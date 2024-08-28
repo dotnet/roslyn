@@ -9,42 +9,41 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote.Host
+namespace Microsoft.CodeAnalysis.Remote.Host;
+
+internal interface IGlobalServiceBroker
 {
-    internal interface IGlobalServiceBroker
+    IServiceBroker Instance { get; }
+}
+
+/// <summary>
+/// Hacky way to expose a <see cref="IServiceBroker"/> to workspace services that expect there to be a global
+/// singleton (like in visual studio).  Effectively the first service that gets called into will record its
+/// broker here for these services to use.
+/// </summary>
+// Note: this Export is only so MEF picks up the exported member internally.
+[Export(typeof(IGlobalServiceBroker)), Shared]
+internal class GlobalServiceBroker : IGlobalServiceBroker
+{
+    private static IServiceBroker? s_instance;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public GlobalServiceBroker()
     {
-        IServiceBroker Instance { get; }
     }
 
-    /// <summary>
-    /// Hacky way to expose a <see cref="IServiceBroker"/> to workspace services that expect there to be a global
-    /// singleton (like in visual studio).  Effectively the first service that gets called into will record its
-    /// broker here for these services to use.
-    /// </summary>
-    // Note: this Export is only so MEF picks up the exported member internally.
-    [Export(typeof(IGlobalServiceBroker)), Shared]
-    internal class GlobalServiceBroker : IGlobalServiceBroker
+    public static void RegisterServiceBroker(IServiceBroker serviceBroker)
     {
-        private static IServiceBroker? s_instance;
+        Interlocked.CompareExchange(ref s_instance, serviceBroker, null);
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public GlobalServiceBroker()
+    public IServiceBroker Instance
+    {
+        get
         {
-        }
-
-        public static void RegisterServiceBroker(IServiceBroker serviceBroker)
-        {
-            Interlocked.CompareExchange(ref s_instance, serviceBroker, null);
-        }
-
-        public IServiceBroker Instance
-        {
-            get
-            {
-                Contract.ThrowIfNull(s_instance, "Global service broker not registered");
-                return s_instance;
-            }
+            Contract.ThrowIfNull(s_instance, "Global service broker not registered");
+            return s_instance;
         }
     }
 }

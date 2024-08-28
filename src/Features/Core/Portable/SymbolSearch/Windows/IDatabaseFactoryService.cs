@@ -6,10 +6,9 @@
 
 using Microsoft.CodeAnalysis.Elfie.Model;
 
-namespace Microsoft.CodeAnalysis.SymbolSearch
+namespace Microsoft.CodeAnalysis.SymbolSearch;
+
+internal interface IDatabaseFactoryService
 {
-    internal interface IDatabaseFactoryService
-    {
-        AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes);
-    }
+    AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes);
 }

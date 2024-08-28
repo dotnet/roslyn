@@ -10,8 +10,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
     Public Class VisualBasicBraceMatcherTests
         Inherits AbstractBraceMatcherTests
 
-        Protected Overrides Function CreateWorkspaceFromCode(code As String, options As ParseOptions) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(code)
+        Protected Overrides Function CreateWorkspaceFromCode(code As String, options As ParseOptions) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(code)
         End Function
 
         Private Async Function TestInClassAsync(code As String, expectedCode As String) As Task
@@ -372,8 +372,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
             Await TestInClassAsync(code, expected)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7120")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")>
         Public Async Function TestConditionalDirectiveWithSingleMatchingDirective() As Task
             Dim code =
 <Text>Class C
@@ -397,8 +396,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7120")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")>
         Public Async Function TestConditionalDirectiveWithTwoMatchingDirectives() As Task
             Dim code =
 <Text>Class C
@@ -422,8 +420,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7120")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")>
         Public Async Function TestConditionalDirectiveWithAllMatchingDirectives() As Task
             Dim code =
 <Text>Class C
@@ -449,8 +446,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7120")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")>
         Public Async Function TestRegionDirective() As Task
             Dim code =
 <Text>Class C
@@ -472,8 +468,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7120")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")>
         Public Async Function TestInterleavedDirectivesInner() As Task
             Dim code =
 <Text>#Const CHK = True
@@ -509,8 +504,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7120")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")>
         Public Async Function TestInterleavedDirectivesOuter() As Task
             Dim code =
 <Text>#Const CHK = True
@@ -546,8 +540,7 @@ End Module
             Await TestAsync(code, expected)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7120")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")>
         Public Async Function TestUnmatchedDirective1() As Task
             Dim code =
 <Text>Class C
@@ -568,8 +561,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7120")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7120")>
         Public Async Function TestUnmatchedDirective2() As Task
             Dim code =
 <Text>
@@ -592,8 +584,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7534")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7534")>
         Public Async Function TestUnmatchedIncompleteConditionalDirective() As Task
             Dim code =
 <Text>
@@ -615,8 +606,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7534")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7534")>
         Public Async Function TestUnmatchedCompleteConditionalDirective() As Task
             Dim code =
 <Text>
@@ -638,8 +628,7 @@ End Class
             Await TestAsync(code, expected)
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/7534")>
-        <WpfFact>
+        <WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/7534")>
         Public Async Function TestUnmatchedConditionalDirective() As Task
             Dim code =
 <Text>

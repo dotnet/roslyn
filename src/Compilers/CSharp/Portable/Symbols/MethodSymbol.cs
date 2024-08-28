@@ -10,6 +10,8 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Symbols;
@@ -130,12 +132,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Misc implementation metadata flags (ImplFlags in metadata).
         /// </summary>
-        internal abstract System.Reflection.MethodImplAttributes ImplementationAttributes { get; }
+        internal abstract MethodImplAttributes ImplementationAttributes { get; }
 
         /// <summary>
         /// True if the type has declarative security information (HasSecurity flags).
         /// </summary>
         internal abstract bool HasDeclarativeSecurity { get; }
+
+        internal abstract bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument);
 
 #nullable enable
         /// <summary>
@@ -731,6 +735,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return visitor.VisitMethod(this);
         }
 
+        public MethodSymbol ReduceExtensionMethod(TypeSymbol receiverType, CSharpCompilation compilation)
+        {
+            return ReduceExtensionMethod(receiverType, compilation, wasFullyInferred: out _);
+        }
+
         /// <summary>
         /// If this is an extension method that can be applied to a receiver of the given type,
         /// returns a reduced extension method symbol thus formed. Otherwise, returns null.
@@ -738,7 +747,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="compilation">The compilation in which constraints should be checked.
         /// Should not be null, but if it is null we treat constraints as we would in the latest
         /// language version.</param>
-        public MethodSymbol ReduceExtensionMethod(TypeSymbol receiverType, CSharpCompilation compilation)
+        public MethodSymbol ReduceExtensionMethod(TypeSymbol receiverType, CSharpCompilation compilation, out bool wasFullyInferred)
         {
             if ((object)receiverType == null)
             {
@@ -747,10 +756,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!this.IsExtensionMethod || this.MethodKind == MethodKind.ReducedExtension || receiverType.IsVoidType())
             {
+                wasFullyInferred = false;
                 return null;
             }
 
-            return ReducedExtensionMethodSymbol.Create(this, receiverType, compilation);
+            return ReducedExtensionMethodSymbol.Create(this, receiverType, compilation, out wasFullyInferred);
         }
 
         /// <summary>
@@ -1176,9 +1186,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool IsNullableAnalysisEnabled();
 
+        /// <summary>
+        /// Gets the resolution priority of this method, 0 if not set.
+        /// </summary>
+        /// <remarks>
+        /// Do not call this method from early attribute binding, cycles will occur.
+        /// </remarks>
+        internal int OverloadResolutionPriority => CanHaveOverloadResolutionPriority ? (TryGetOverloadResolutionPriority() ?? 0) : 0;
+
+        internal abstract int? TryGetOverloadResolutionPriority();
+
+        internal bool CanHaveOverloadResolutionPriority =>
+            MethodKind is MethodKind.Ordinary
+                       or MethodKind.Constructor
+                       or MethodKind.UserDefinedOperator
+                       or MethodKind.ReducedExtension
+            && !IsOverride;
+
         #region IMethodSymbolInternal
 
+        bool IMethodSymbolInternal.HasDeclarativeSecurity => HasDeclarativeSecurity;
+        bool IMethodSymbolInternal.IsAccessCheckedOnOverride => IsAccessCheckedOnOverride;
+        bool IMethodSymbolInternal.IsExternal => IsExternal;
+        bool IMethodSymbolInternal.IsHiddenBySignature => !HidesBaseMethodsByName;
+        bool IMethodSymbolInternal.IsMetadataNewSlot => IsMetadataNewSlot();
+        bool IMethodSymbolInternal.IsPlatformInvoke => GetDllImportData() != null;
+        bool IMethodSymbolInternal.HasRuntimeSpecialName => HasRuntimeSpecialName;
+        bool IMethodSymbolInternal.IsMetadataFinal => IsSealed;
+        bool IMethodSymbolInternal.HasSpecialName => HasSpecialName;
+        bool IMethodSymbolInternal.RequiresSecurityObject => RequiresSecurityObject;
+        MethodImplAttributes IMethodSymbolInternal.ImplementationAttributes => ImplementationAttributes;
         bool IMethodSymbolInternal.IsIterator => IsIterator;
+        ISymbolInternal IMethodSymbolInternal.AssociatedSymbol => AssociatedSymbol;
+        IMethodSymbolInternal IMethodSymbolInternal.PartialImplementationPart => PartialImplementationPart;
+        IMethodSymbolInternal IMethodSymbolInternal.PartialDefinitionPart => PartialDefinitionPart;
+
+        /// <summary>
+        /// Gets the handle for the signature of this method as it appears in metadata. 
+        /// Nil handle for symbols not loaded from metadata, or if the metadata is invalid.
+        /// </summary>
+        public virtual BlobHandle MetadataSignatureHandle => default;
+
+        int IMethodSymbolInternal.ParameterCount => ParameterCount;
+
+        ImmutableArray<IParameterSymbolInternal> IMethodSymbolInternal.Parameters => Parameters.Cast<ParameterSymbol, IParameterSymbolInternal>();
 
         int IMethodSymbolInternal.CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => CalculateLocalSyntaxOffset(localPosition, localTree);
 

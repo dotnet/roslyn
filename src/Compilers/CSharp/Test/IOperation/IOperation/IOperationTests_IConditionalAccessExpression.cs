@@ -1188,7 +1188,7 @@ struct P
     public int Length { get; }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
 
             string expectedGraph = @"

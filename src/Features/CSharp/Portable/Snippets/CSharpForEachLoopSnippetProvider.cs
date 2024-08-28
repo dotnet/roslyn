@@ -20,124 +20,112 @@ using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Snippets
+namespace Microsoft.CodeAnalysis.CSharp.Snippets;
+
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
+[ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSnippetProvider<ForEachStatementSyntax>
 {
-    [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpForEachLoopSnippetProvider : AbstractForEachLoopSnippetProvider
+    public override string Identifier => CSharpSnippetIdentifiers.ForEach;
+
+    public override string Description => FeaturesResources.foreach_loop;
+
+    protected override bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpForEachLoopSnippetProvider()
+        var syntaxContext = context.SyntaxContext;
+        var token = syntaxContext.TargetToken;
+
+        // Allow `foreach` snippet after `await` as expression statement
+        // So `await $$` is a valid position, but `var result = await $$` is not
+        // The second check if for case when completions are invoked after `await` in non-async context. In such cases parser treats `await` as identifier
+        if (token is { RawKind: (int)SyntaxKind.AwaitKeyword, Parent: ExpressionSyntax { Parent: ExpressionStatementSyntax } } ||
+            token is { RawKind: (int)SyntaxKind.IdentifierToken, ValueText: "await", Parent: IdentifierNameSyntax { Parent: ExpressionStatementSyntax } })
         {
+            return true;
         }
 
-        protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-            var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-            var targetToken = syntaxContext.TargetToken;
-
-            // Allow `foreach` snippet after `await` as expression statement
-            // So `await $$` is a valid position, but `var result = await $$` is not
-            // The second check if for case when completions are invoked after `await` in non-async context. In such cases parser treats `await` as identifier
-            if (targetToken is { RawKind: (int)SyntaxKind.AwaitKeyword, Parent: ExpressionSyntax { Parent: ExpressionStatementSyntax } } ||
-                targetToken is { RawKind: (int)SyntaxKind.IdentifierToken, ValueText: "await", Parent: IdentifierNameSyntax { Parent: ExpressionStatementSyntax } })
-            {
-                return true;
-            }
-
-            return await base.IsValidSnippetLocationAsync(document, position, cancellationToken).ConfigureAwait(false);
-        }
-
-        protected override SyntaxNode GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, SyntaxNode? inlineExpression)
-        {
-            var semanticModel = syntaxContext.SemanticModel;
-            var position = syntaxContext.Position;
-
-            var varIdentifier = SyntaxFactory.IdentifierName("var");
-            var collectionIdentifier = (ExpressionSyntax?)inlineExpression;
-
-            if (collectionIdentifier is null)
-            {
-                var isAsync = syntaxContext.TargetToken is { RawKind: (int)SyntaxKind.AwaitKeyword } or { RawKind: (int)SyntaxKind.IdentifierToken, ValueText: "await" };
-                var enumerationSymbol = semanticModel.LookupSymbols(position).FirstOrDefault(symbol => symbol.GetSymbolType() is { } symbolType &&
-                    (isAsync ? symbolType.CanBeAsynchronouslyEnumerated(semanticModel.Compilation) : symbolType.CanBeEnumerated()) &&
-                    symbol.Kind is SymbolKind.Local or SymbolKind.Field or SymbolKind.Parameter or SymbolKind.Property);
-                collectionIdentifier = enumerationSymbol is null
-                    ? SyntaxFactory.IdentifierName("collection")
-                    : SyntaxFactory.IdentifierName(enumerationSymbol.Name);
-            }
-
-            var itemString = NameGenerator.GenerateUniqueName(
-                "item", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
-
-            ForEachStatementSyntax forEachStatement;
-
-            if (inlineExpression is not null &&
-                semanticModel.GetTypeInfo(inlineExpression).Type!.CanBeAsynchronouslyEnumerated(semanticModel.Compilation))
-            {
-                forEachStatement = SyntaxFactory.ForEachStatement(
-                    SyntaxFactory.Token(SyntaxKind.AwaitKeyword),
-                    SyntaxFactory.Token(SyntaxKind.ForEachKeyword),
-                    SyntaxFactory.Token(SyntaxKind.OpenParenToken),
-                    varIdentifier,
-                    SyntaxFactory.Identifier(itemString),
-                    SyntaxFactory.Token(SyntaxKind.InKeyword),
-                    collectionIdentifier.WithoutLeadingTrivia(),
-                    SyntaxFactory.Token(SyntaxKind.CloseParenToken),
-                    SyntaxFactory.Block());
-            }
-            else
-            {
-                forEachStatement = SyntaxFactory.ForEachStatement(
-                    varIdentifier,
-                    itemString,
-                    collectionIdentifier.WithoutLeadingTrivia(),
-                    SyntaxFactory.Block());
-            }
-
-            return forEachStatement.NormalizeWhitespace();
-        }
-
-        /// <summary>
-        /// Goes through each piece of the foreach statement and extracts the identifiers
-        /// as well as their locations to create SnippetPlaceholder's of each.
-        /// </summary>
-        protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
-            GetPartsOfForEachStatement(node, out var identifier, out var expression, out var _1);
-            arrayBuilder.Add(new SnippetPlaceholder(identifier.ToString(), identifier.SpanStart));
-
-            if (!ConstructedFromInlineExpression)
-                arrayBuilder.Add(new SnippetPlaceholder(expression.ToString(), expression.SpanStart));
-
-            return arrayBuilder.ToImmutableArray();
-        }
-
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-        {
-            return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<ForEachStatementSyntax>(
-                caretTarget,
-                static s => (BlockSyntax)s.Statement,
-                sourceText);
-        }
-
-        protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-        {
-            return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<ForEachStatementSyntax>(
-                document,
-                FindSnippetAnnotation,
-                static s => (BlockSyntax)s.Statement,
-                cancellationToken);
-        }
-
-        private static void GetPartsOfForEachStatement(SyntaxNode node, out SyntaxToken identifier, out SyntaxNode expression, out SyntaxNode statement)
-        {
-            var forEachStatement = (ForEachStatementSyntax)node;
-            identifier = forEachStatement.Identifier;
-            expression = forEachStatement.Expression;
-            statement = forEachStatement.Statement;
-        }
+        return base.IsValidSnippetLocationCore(context, cancellationToken);
     }
+
+    protected override ForEachStatementSyntax GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)
+    {
+        var semanticModel = syntaxContext.SemanticModel;
+        var position = syntaxContext.Position;
+
+        var varIdentifier = IdentifierName("var");
+        var collectionIdentifier = (ExpressionSyntax?)inlineExpressionInfo?.Node;
+
+        if (collectionIdentifier is null)
+        {
+            var isAsync = syntaxContext.TargetToken is { RawKind: (int)SyntaxKind.AwaitKeyword } or { RawKind: (int)SyntaxKind.IdentifierToken, ValueText: "await" };
+            var enumerationSymbol = semanticModel.LookupSymbols(position).FirstOrDefault(symbol => symbol.GetSymbolType() is { } symbolType &&
+                (isAsync ? symbolType.CanBeAsynchronouslyEnumerated(semanticModel.Compilation) : symbolType.CanBeEnumerated()) &&
+                symbol.Kind is SymbolKind.Local or SymbolKind.Field or SymbolKind.Parameter or SymbolKind.Property);
+            collectionIdentifier = enumerationSymbol is null
+                ? IdentifierName("collection")
+                : IdentifierName(enumerationSymbol.Name);
+        }
+
+        var itemString = NameGenerator.GenerateUniqueName(
+            "item", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
+
+        ForEachStatementSyntax forEachStatement;
+
+        if (inlineExpressionInfo is { TypeInfo: var typeInfo } &&
+            typeInfo.Type!.CanBeAsynchronouslyEnumerated(semanticModel.Compilation))
+        {
+            forEachStatement = ForEachStatement(
+                AwaitKeyword,
+                ForEachKeyword,
+                OpenParenToken,
+                varIdentifier,
+                Identifier(itemString),
+                InKeyword,
+                collectionIdentifier.WithoutLeadingTrivia(),
+                CloseParenToken,
+                Block());
+        }
+        else
+        {
+            forEachStatement = ForEachStatement(
+                varIdentifier,
+                itemString,
+                collectionIdentifier.WithoutLeadingTrivia(),
+                Block());
+        }
+
+        return forEachStatement.NormalizeWhitespace();
+    }
+
+    /// <summary>
+    /// Goes through each piece of the foreach statement and extracts the identifiers
+    /// as well as their locations to create SnippetPlaceholder's of each.
+    /// </summary>
+    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(ForEachStatementSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
+        arrayBuilder.Add(new SnippetPlaceholder(node.Identifier.ToString(), node.Identifier.SpanStart));
+
+        if (!ConstructedFromInlineExpression)
+            arrayBuilder.Add(new SnippetPlaceholder(node.Expression.ToString(), node.Expression.SpanStart));
+
+        return arrayBuilder.ToImmutableAndClear();
+    }
+
+    protected override int GetTargetCaretPosition(ForEachStatementSyntax forEachStatement, SourceText sourceText)
+        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
+            forEachStatement,
+            static s => (BlockSyntax)s.Statement,
+            sourceText);
+
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, ForEachStatementSyntax forEachStatement, CancellationToken cancellationToken)
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync(
+            document,
+            forEachStatement,
+            static s => (BlockSyntax)s.Statement,
+            cancellationToken);
 }

@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.Remote.Testing
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 Imports Microsoft.CodeAnalysis.VisualBasic.SimplifyTypeNames
 
@@ -16,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyTypeNames
     <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
     <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
     Partial Public Class SimplifyTypeNamesTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicSimplifyTypeNamesDiagnosticAnalyzer(),
@@ -959,7 +960,7 @@ Namespace N1
 End Namespace")
         End Function
 
-        <WpfFact>
+        <Fact>
         Public Async Function TestSimplifyTypeInScriptCode() As Task
             Await TestAsync(
 "Imports System
@@ -1821,7 +1822,7 @@ End Module
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition())
+            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition().WithTestHostParts(TestHost.OutOfProcess))
                 Dim diagnosticAndFixes = Await GetDiagnosticAndFixesAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFixes.Item1.First().Location.SourceSpan
                 Assert.NotEqual(span.Start, 0)
@@ -1869,7 +1870,7 @@ End Namespace
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition())
+            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition().WithTestHostParts(TestHost.OutOfProcess))
                 Dim diagnosticAndFixes = Await GetDiagnosticAndFixesAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFixes.Item1.First().Location.SourceSpan
                 Assert.Equal(span.Start, expected.Value.ReplaceLineEndings(vbLf).IndexOf("new C", StringComparison.Ordinal) + 4)
@@ -1903,7 +1904,7 @@ End Module
 
             Await TestInRegularAndScriptAsync(source.Value, expected.Value)
 
-            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition())
+            Using workspace = TestWorkspace.CreateVisualBasic(source.Value, composition:=GetComposition().WithTestHostParts(TestHost.OutOfProcess))
                 Dim diagnosticAndFixes = Await GetDiagnosticAndFixesAsync(workspace, New TestParameters())
                 Dim span = diagnosticAndFixes.Item1.First().Location.SourceSpan
                 Assert.Equal(span.Start, expected.Value.ReplaceLineEndings(vbLf).IndexOf("Console.WriteLine(""goo"")", StringComparison.Ordinal))

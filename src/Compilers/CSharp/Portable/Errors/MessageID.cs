@@ -276,6 +276,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureInlineArrays = MessageBase + 12836,
         IDS_FeatureCollectionExpressions = MessageBase + 12837,
         IDS_FeatureRefReadonlyParameters = MessageBase + 12838,
+        IDS_FeatureStringEscapeCharacter = MessageBase + 12839,
+
+        IDS_FeatureImplicitIndexerInitializer = MessageBase + 12840,
+        IDS_FeatureLockObject = MessageBase + 12841,
+
+        IDS_FeatureParamsCollections = MessageBase + 12842,
+
+        IDS_FeatureRefUnsafeInIteratorAsync = MessageBase + 12843,
+
+        IDS_FeatureRefStructInterfaces = MessageBase + 12844,
+
+        IDS_FeaturePartialProperties = MessageBase + 12845,
+        IDS_FeatureFieldKeyword = MessageBase + 12846,
+
+        IDS_FeatureAllowsRefStructConstraint = MessageBase + 12847,
+        IDS_OverloadResolutionPriority = MessageBase + 12848,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -456,8 +472,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PREFER reporting diagnostics in binding when diagnostics do not affect the shape of the syntax tree
 
                 // C# preview features.
-                //case MessageID.IDS_NewFeature:
-                //    return LanguageVersion.Preview;
+                case MessageID.IDS_FeatureFieldKeyword:
+                    return LanguageVersion.Preview;
+
+                // C# 13.0 features.
+                case MessageID.IDS_FeatureStringEscapeCharacter: // lexer check
+                case MessageID.IDS_FeatureImplicitIndexerInitializer:
+                case MessageID.IDS_FeatureLockObject:
+                case MessageID.IDS_FeatureParamsCollections:
+                case MessageID.IDS_FeatureRefUnsafeInIteratorAsync:
+                case MessageID.IDS_FeatureRefStructInterfaces:
+                case MessageID.IDS_FeatureAllowsRefStructConstraint:
+                case MessageID.IDS_FeaturePartialProperties:
+                case MessageID.IDS_OverloadResolutionPriority:
+                    return LanguageVersion.CSharp13;
 
                 // C# 12.0 features.
                 case MessageID.IDS_FeatureLambdaOptionalParameters: // semantic check

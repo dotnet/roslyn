@@ -6,40 +6,67 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
+
+internal class StructKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
-    internal class StructKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
+        {
+            SyntaxKind.InternalKeyword,
+            SyntaxKind.PublicKeyword,
+            SyntaxKind.PrivateKeyword,
+            SyntaxKind.ProtectedKeyword,
+            SyntaxKind.UnsafeKeyword,
+            SyntaxKind.RefKeyword,
+            SyntaxKind.ReadOnlyKeyword,
+            SyntaxKind.FileKeyword,
+        };
+
+    public StructKeywordRecommender()
+        : base(SyntaxKind.StructKeyword)
     {
-        private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
-            {
-                SyntaxKind.InternalKeyword,
-                SyntaxKind.PublicKeyword,
-                SyntaxKind.PrivateKeyword,
-                SyntaxKind.ProtectedKeyword,
-                SyntaxKind.UnsafeKeyword,
-                SyntaxKind.RefKeyword,
-                SyntaxKind.ReadOnlyKeyword,
-                SyntaxKind.FileKeyword,
-            };
+    }
 
-        public StructKeywordRecommender()
-            : base(SyntaxKind.StructKeyword)
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+    {
+        return
+            context.IsGlobalStatementContext ||
+            context.IsTypeDeclarationContext(
+                validModifiers: s_validModifiers,
+                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
+                canBePartial: true,
+                cancellationToken: cancellationToken) ||
+            context.IsRecordDeclarationContext(s_validModifiers, cancellationToken) ||
+            IsConstraintContext(context);
+    }
+
+    private static bool IsConstraintContext(CSharpSyntaxContext context)
+    {
+        //    where T : |
+        if (context.SyntaxTree.IsTypeParameterConstraintStartContext(context.Position, context.LeftToken))
         {
+            return true;
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        // cases:
+        //    where T : allows ref |
+        //    where T : struct, allows ref |
+        //    where T : class, allows ref |
+        //    where T : new(), allows ref |
+        //    where T : Goo, allows ref |
+
+        var token = context.TargetToken;
+
+        if (token.Kind() == SyntaxKind.RefKeyword &&
+            token.Parent is RefStructConstraintSyntax refStructConstraint && refStructConstraint.RefKeyword == token &&
+            refStructConstraint.Parent is AllowsConstraintClauseSyntax allowsClause &&
+            allowsClause.Parent is TypeParameterConstraintClauseSyntax)
         {
-            var syntaxTree = context.SyntaxTree;
-            return
-                context.IsGlobalStatementContext ||
-                context.IsTypeDeclarationContext(
-                    validModifiers: s_validModifiers,
-                    validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
-                    canBePartial: true,
-                    cancellationToken: cancellationToken) ||
-                context.IsRecordDeclarationContext(s_validModifiers, cancellationToken) ||
-                syntaxTree.IsTypeParameterConstraintStartContext(position, context.LeftToken);
+            return true;
         }
+
+        return false;
     }
 }

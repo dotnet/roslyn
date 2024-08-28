@@ -2,14 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.IO;
 
-namespace Microsoft.CodeAnalysis.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
+
+internal abstract class TextReaderWithLength(int length) : TextReader
 {
-    internal abstract class TextReaderWithLength(int length) : TextReader
+    public int Length { get; } = length;
+
+    public override string ReadToEnd()
     {
-        public int Length { get; } = length;
+#if NET
+        return string.Create(Length, this, static (chars, state) => state.Read(chars));
+#else
+        var chars = new char[Length];
+
+        var read = base.Read(chars, 0, Length);
+
+        return new string(chars, 0, read);
+#endif                
     }
 }

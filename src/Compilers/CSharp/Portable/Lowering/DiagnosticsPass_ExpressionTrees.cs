@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_inExpressionLambda &&
                 node.Indices.Length == 1 &&
-                node.Indices[0].Type!.SpecialType == SpecialType.None)
+                !node.Indices[0].Type!.SpecialType.CanOptimizeBehavior())
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsPatternImplicitIndexer, node);
             }
@@ -1036,7 +1036,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_inExpressionLambda)
             {
-                Error(ErrorCode.ERR_ExpressionTreeContainsCollectionExpression, node);
+                Error(
+                    node.IsParamsArrayOrCollection ?
+                        ErrorCode.ERR_ParamsCollectionExpressionTree :
+                        ErrorCode.ERR_ExpressionTreeContainsCollectionExpression,
+                    node);
             }
 
             return base.VisitCollectionExpression(node);

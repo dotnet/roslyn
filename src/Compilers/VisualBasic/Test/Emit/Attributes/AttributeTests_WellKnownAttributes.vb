@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 #Disable Warning SYSLIB0050 ' 'TypeAttributes.Serializable' is obsolete
 
@@ -434,6 +435,270 @@ End Class
 
             ' Verify attributes from source .
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator)
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70206")>
+        Public Sub DefaultParameterValueWithMethodGroup_01()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+
+class Program
+    public shared Sub Evil(<DefaultParameterValue(Evil)>)
+    End Sub
+
+    public shared Sub Main()
+    end sub
+end class
+]]>
+    </file>
+</compilation>
+
+            CreateCompilation(source).AssertTheseEmitDiagnostics(
+<expected><![CDATA[
+BC30455: Argument not specified for parameter '' of 'Public Shared Sub Evil( As Object)'.
+    public shared Sub Evil(<DefaultParameterValue(Evil)>)
+                                                  ~~~~
+BC30203: Identifier expected.
+    public shared Sub Evil(<DefaultParameterValue(Evil)>)
+                                                        ~
+]]></expected>
+            )
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70206")>
+        Public Sub DefaultParameterValueWithMethodGroup_02()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+
+class Program
+    public shared Sub Evil(<DefaultParameterValue(Evil)> Optional x as Object = Nothing)
+    End Sub
+
+    public shared Sub Main()
+    end sub
+end class
+]]>
+    </file>
+</compilation>
+
+            CreateCompilation(source).AssertTheseEmitDiagnostics(
+<expected><![CDATA[
+BC30491: Expression does not produce a value.
+    public shared Sub Evil(<DefaultParameterValue(Evil)> Optional x as Object = Nothing)
+                                                  ~~~~
+BC37226: The parameter has multiple distinct default values.
+    public shared Sub Evil(<DefaultParameterValue(Evil)> Optional x as Object = Nothing)
+                                                                                ~~~~~~~
+]]></expected>
+            )
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70206")>
+        Public Sub DefaultParameterValueWithMethodGroup_03()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+
+class Program
+    public shared Sub Evil(<DefaultParameterValue(nameof(Evil))> Optional x as String = nameof(Evil))
+        System.Console.WriteLine(x)
+    End Sub
+
+    public shared Sub Main()
+        Evil()
+    end sub
+end class
+]]>
+    </file>
+</compilation>
+
+            CompileAndVerify(source, expectedOutput:="Evil").VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70206")>
+        Public Sub DefaultParameterValueWithMethodGroup_04()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+
+class Program
+    public shared Sub Evil(<DefaultParameterValue(nameof(Evil))> Optional x as String = "evil")
+    End Sub
+
+    public shared Sub Main()
+    end sub
+end class
+]]>
+    </file>
+</compilation>
+
+            CreateCompilation(source).AssertTheseEmitDiagnostics(
+<expected><![CDATA[
+BC37226: The parameter has multiple distinct default values.
+    public shared Sub Evil(<DefaultParameterValue(nameof(Evil))> Optional x as String = "evil")
+                                                                                        ~~~~~~
+]]></expected>
+            )
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70206")>
+        Public Sub DefaultParameterValueWithMethodGroup_05()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+imports microsoft.visualbasic.strings
+
+class Program
+    public shared Sub Evil(<DefaultParameterValue(AscW("A"))> Optional x as Integer = AscW("A"))
+        System.Console.WriteLine(x)
+    End Sub
+
+    public shared Sub Main()
+        Evil()
+    end sub
+end class
+]]>
+    </file>
+</compilation>
+
+            CompileAndVerify(source, expectedOutput:="65").VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70206")>
+        Public Sub DefaultParameterValueWithMethodGroup_06()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+imports microsoft.visualbasic.strings
+
+class Program
+    public shared Sub Evil(<DefaultParameterValue(AscW("A"c))> Optional x as Integer = AscW("A"c))
+        System.Console.WriteLine(x)
+    End Sub
+
+    public shared Sub Main()
+        Evil()
+    end sub
+end class
+]]>
+    </file>
+</compilation>
+
+            CompileAndVerify(source, expectedOutput:="65").VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70206")>
+        Public Sub DefaultParameterValueWithMethodGroup_07()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+imports microsoft.visualbasic.strings
+
+class Program
+    public shared Sub Evil(<DefaultParameterValue(Asc("A"))> Optional x as Integer = Asc("A"))
+        System.Console.WriteLine(x)
+    End Sub
+
+    public shared Sub Main()
+        Evil()
+    end sub
+end class
+]]>
+    </file>
+</compilation>
+
+            CompileAndVerify(source, expectedOutput:="65").VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70206")>
+        Public Sub DefaultParameterValueWithMethodGroup_08()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+imports microsoft.visualbasic.strings
+
+class Program
+    public shared Sub Evil(<DefaultParameterValue(Asc("A"c))> Optional x as Integer = Asc("A"c))
+        System.Console.WriteLine(x)
+    End Sub
+
+    public shared Sub Main()
+        Evil()
+    end sub
+end class
+]]>
+    </file>
+</compilation>
+
+            CompileAndVerify(source, expectedOutput:="65").VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70206")>
+        Public Sub DefaultParameterValueWithMethodGroup_09()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+imports microsoft.visualbasic.strings
+
+class Program
+    public shared Sub Evil(<DefaultParameterValue(microsoft.visualbasic.strings.ChrW(65))> Optional x as Char = ChrW(65))
+        System.Console.WriteLine(x)
+    End Sub
+
+    public shared Sub Main()
+        Evil()
+    end sub
+end class
+]]>
+    </file>
+</compilation>
+
+            CompileAndVerify(source, expectedOutput:="A").VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70206")>
+        Public Sub DefaultParameterValueWithMethodGroup_10()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System.Runtime.InteropServices
+imports microsoft.visualbasic.strings
+
+class Program
+    public shared Sub Evil(<DefaultParameterValue(Chr(65))> Optional x as Char = Chr(65))
+        System.Console.WriteLine(x)
+    End Sub
+
+    public shared Sub Main()
+        Evil()
+    end sub
+end class
+]]>
+    </file>
+</compilation>
+
+            CompileAndVerify(source, expectedOutput:="A").VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -1956,7 +2221,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {TestMetadata.Net40.SystemCore}).VerifyDiagnostics()
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}).VerifyDiagnostics()
         End Sub
 
         <Fact>
@@ -5469,7 +5734,7 @@ End Class
             ' Dev10 Runtime Exception:
             ' Unhandled Exception: System.TypeLoadException: Windows Runtime types can only be declared in Windows Runtime assemblies.
 
-            Dim validator = CompileAndVerifyEx(source, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=Verification.Fails, targetFramework:=TargetFramework.Mscorlib45)
+            Dim validator = CompileAndVerifyEx(source, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=Verification.Fails, targetFramework:=TargetFramework.Mscorlib461)
             validator.EmitAndVerify("Type load failed.")
         End Sub
 

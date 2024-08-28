@@ -42,6 +42,21 @@
         <target state="translated">Atribut System.Runtime.CompilerServices.RequiredMemberAttribute je vyhrazen pouze pro použití kompilátoru.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="translated">Argument diagnosticId atributu Experimental musí být platný identifikátor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidVersionFormatDeterministic">
+        <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
+        <target state="new">The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LockTypeUnsupported">
+        <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
+        <target state="translated">Hodnota typu System.Threading.Lock není v SyncLock podporována. Zvažte ruční volání metod Enter a Exit ve Zkušebním/Závěrečném bloku.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">Ve stejném adresáři nemůže být více konfiguračních souborů analyzátoru ({0}).</target>
@@ -603,6 +618,16 @@
         <target state="translated">CallerArgumentExpressionAttribute použitý u parametru nebude mít žádný vliv, protože odkazuje sám na sebe.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConvertingLock">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">Hodnota typu System.Threading.Lock převedená na jiný typ použije pravděpodobně nezamýšlené zamykání na základě monitorování v příkazu SyncLock.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock_Title">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">Hodnota typu System.Threading.Lock převedená na jiný typ použije pravděpodobně nezamýšlené zamykání na základě monitorování v příkazu SyncLock.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">
         <source>Analyzer reference '{0}' specified multiple times</source>
         <target state="translated">Odkaz analyzátoru {0} byl zadán vícekrát</target>
@@ -614,16 +639,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">Generátor {0} nemohl vygenerovat zdroj. V důsledku toho může docházet k chybám kompilace a generátor nebude přispívat na výstup. Výjimka měla typ {1} se zprávou {2}.</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">Generátor vyvolal následující výjimku:
-{0}.</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">Generátor {0} nemohl vygenerovat zdroj. V důsledku toho může docházet k chybám kompilace a generátor nebude přispívat na výstup. Výjimka měla typ {1} se zprávou {2}.
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -631,16 +654,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">Generátor {0} se nepovedlo inicializovat. V důsledku toho může docházet k chybám kompilace a generátor nebude přispívat na výstup. Výjimka měla typ {1} se zprávou {2}.</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">Generátor vyvolal následující výjimku:
-{0}.</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">Generátor {0} se nepovedlo inicializovat. V důsledku toho může docházet k chybám kompilace a generátor nebude přispívat na výstup. Výjimka měla typ {1} se zprávou {2}.
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
@@ -7676,8 +7697,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
-        <source>The specified version string does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="translated">Zadaný řetězec verze není v souladu s doporučeným formátem – hlavní_verze.dílčí_verze.build.revize.</target>
+        <source>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</source>
+        <target state="needs-review-translation">Zadaný řetězec verze není v souladu s doporučeným formátem – hlavní_verze.dílčí_verze.build.revize.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyCultureForExe">

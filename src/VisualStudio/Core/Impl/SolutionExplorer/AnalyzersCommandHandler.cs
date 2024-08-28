@@ -18,10 +18,10 @@ using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Internal.VisualStudio.PlatformUI;
@@ -287,7 +287,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
                 foreach (var diagnosticItem in group)
                 {
-                    var severity = diagnosticItem.Descriptor.GetEffectiveSeverity(project.CompilationOptions, analyzerConfigOptions?.AnalyzerOptions, analyzerConfigOptions?.TreeOptions);
+                    var severity = diagnosticItem.Descriptor.GetEffectiveSeverity(project.CompilationOptions, analyzerConfigOptions?.ConfigOptions, analyzerConfigOptions?.TreeOptions);
                     selectedItemSeverities.Add(severity);
                 }
             }
@@ -468,10 +468,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                                 _workspace,
                                 originalSolution,
                                 fromDocument: null,
-                                operations: operations,
+                                operations,
                                 title: ServicesVSResources.Updating_severity,
-                                progressTracker: new UIThreadOperationContextProgressTracker(scope1),
-                                cancellationToken: context.UserCancellationToken).ConfigureAwait(true);
+                                scope1.GetCodeAnalysisProgress(),
+                                context.UserCancellationToken).ConfigureAwait(true);
                             continue;
                         }
 

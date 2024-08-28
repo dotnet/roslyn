@@ -58,7 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ScopeBinder = binder;
 
-            binder = binder.WithUnsafeRegionIfNecessary(syntax.Modifiers);
+            binder = binder.SetOrClearUnsafeRegionIfNecessary(syntax.Modifiers);
+            _binder = binder;
 
             if (syntax.TypeParameterList != null)
             {
@@ -85,8 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _declarationDiagnostics.AddRange(diagnostics.DiagnosticBag);
             _declarationDependencies.AddAll(diagnostics.DependenciesBag);
             diagnostics.Free();
-
-            _binder = binder;
         }
 
         /// <summary>
@@ -107,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Force complete type parameters
             foreach (var typeParam in _typeParameters)
             {
-                typeParam.ForceComplete(null, default(CancellationToken));
+                typeParam.ForceComplete(null, filter: null, default(CancellationToken));
             }
 
             // force lazy init
@@ -116,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var p in _lazyParameters)
             {
                 // Force complete parameters to retrieve all diagnostics
-                p.ForceComplete(null, default(CancellationToken));
+                p.ForceComplete(null, filter: null, default(CancellationToken));
             }
 
             ComputeReturnType();
@@ -126,6 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = DeclaringCompilation;
             ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, addTo, modifyCompilation: false);
+            // Not emitting ParamCollectionAttribute/ParamArrayAttribute for local functions
             ParameterHelpers.EnsureNativeIntegerAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureScopedRefAttributeExists(compilation, Parameters, addTo, modifyCompilation: false);
             ParameterHelpers.EnsureNullableAttributeExists(compilation, this, Parameters, addTo, modifyCompilation: false);

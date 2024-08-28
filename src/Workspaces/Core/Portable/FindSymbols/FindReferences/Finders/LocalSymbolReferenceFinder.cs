@@ -7,18 +7,17 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.FindSymbols.Finders
-{
-    internal sealed class LocalSymbolReferenceFinder : AbstractMemberScopedReferenceFinder<ILocalSymbol>
-    {
-        protected override bool TokensMatch(FindReferencesDocumentState state, SyntaxToken token, string name)
-            => IdentifiersMatch(state.SyntaxFacts, name, token);
+namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
-        protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(ILocalSymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
-            await DiscoverImpliedSymbolsAsync(symbol, solution, symbols, cancellationToken).ConfigureAwait(false);
-            return symbols.ToImmutable();
-        }
+internal sealed class LocalSymbolReferenceFinder : AbstractMemberScopedReferenceFinder<ILocalSymbol>
+{
+    protected override bool TokensMatch(FindReferencesDocumentState state, SyntaxToken token, string name)
+        => IdentifiersMatch(state.SyntaxFacts, name, token);
+        
+    protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(ILocalSymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
+        await DiscoverImpliedSymbolsAsync(symbol, solution, symbols, cancellationToken).ConfigureAwait(false);
+        return symbols.ToImmutable();
     }
 }

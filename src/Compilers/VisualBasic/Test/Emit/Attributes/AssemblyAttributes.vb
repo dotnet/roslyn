@@ -102,6 +102,20 @@ End Class
 
     End Sub
 
+    <Fact, WorkItem(30738, "https://github.com/dotnet/roslyn/issues/30738")>
+    Public Sub VersionAttributeWithWildcardAndDeterminism()
+        Dim comp = CreateCompilationWithMscorlib40(
+<compilation>
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Reflection.AssemblyVersion("10101.0.*")>
+Public Class C
+End Class
+]]>
+    </file>
+</compilation>, options:=TestOptions.ReleaseDll.WithDeterministic(True))
+        comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_InvalidVersionFormatDeterministic, """10101.0.*""").WithLocation(1, 46))
+    End Sub
+
     <Fact>
     Public Sub VersionAttribute_Overflow()
         Dim comp = CreateCompilationWithMscorlib40(
@@ -172,7 +186,7 @@ BC36962: The specified version string does not conform to the required format - 
 
         CompilationUtils.AssertTheseDiagnostics(comp,
 <expected><![CDATA[
-BC36976: The specified version string does not conform to the recommended format - major.minor.build.revision
+BC36976: The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)
 <Assembly: System.Resources.SatelliteContractVersionAttribute("1.2.3.A")>
                                                               ~~~~~~~~~
 ]]></expected>)
@@ -185,7 +199,7 @@ BC36976: The specified version string does not conform to the recommended format
 
         CompilationUtils.AssertTheseDiagnostics(comp,
 <expected><![CDATA[
-BC36976: The specified version string does not conform to the recommended format - major.minor.build.revision
+BC36976: The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)
 <Assembly: System.Resources.SatelliteContractVersionAttribute("1.2.*")>
                                                               ~~~~~~~
 ]]></expected>)
@@ -2077,7 +2091,7 @@ System.Reflection.AssemblyTrademarkAttribute("Roslyn")
 
     Private Shared Sub GetAssemblyDescriptionAttributes(assembly As AssemblySymbol, list As ArrayBuilder(Of VisualBasicAttributeData))
         For Each attrData In assembly.GetAttributes()
-            If attrData.IsTargetAttribute(assembly, AttributeDescription.AssemblyDescriptionAttribute) Then
+            If attrData.IsTargetAttribute(AttributeDescription.AssemblyDescriptionAttribute) Then
                 list.Add(attrData)
             End If
         Next
@@ -2225,6 +2239,149 @@ BC42370: Attribute 'AssemblyDescriptionAttribute' from module 'M2.netmodule' wil
                                                               Assert.Equal("System.Reflection.AssemblyDescriptionAttribute(""Module1"")", list(0).ToString())
                                                           End Sub)
 
+    End Sub
+
+    <Fact>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/70338")>
+    Public Sub ErrorsWithAssemblyAttributesInModules_01()
+        Dim attribute1 =
+<compilation name="A1">
+    <file><![CDATA[
+public class A1 
+    Inherits System.Attribute
+
+    public Sub New(a As Integer)
+    End Sub    
+End Class
+    ]]></file>
+</compilation>
+
+        Dim attributeDefinition1 = CreateCompilation(attribute1, options:=TestOptions.ReleaseDll).EmitToImageReference()
+
+        Dim [module] =
+<compilation name="M1">
+    <file><![CDATA[
+<assembly:A1(1)>
+    ]]></file>
+</compilation>
+
+        Dim moduleWithAttribute = CreateCompilation([module], references:={attributeDefinition1}, options:=TestOptions.ReleaseModule).EmitToImageReference()
+
+        Dim comp = CreateCompilation("", references:={moduleWithAttribute, attributeDefinition1}, options:=TestOptions.ReleaseDll)
+
+        CompileAndVerify(comp, symbolValidator:=Sub(m)
+                                                    Dim attrs = m.ContainingAssembly.GetAttributes()
+                                                    Assert.Equal(4, attrs.Length)
+                                                    AssertEx.Equal("System.Runtime.CompilerServices.CompilationRelaxationsAttribute(8)", attrs(0).ToString())
+                                                    AssertEx.Equal("System.Runtime.CompilerServices.RuntimeCompatibilityAttribute(WrapNonExceptionThrows:=True)", attrs(1).ToString())
+                                                    AssertEx.Equal("System.Diagnostics.DebuggableAttribute(System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)", attrs(2).ToString())
+                                                    AssertEx.Equal("A1(1)", attrs(3).ToString())
+                                                End Sub).VerifyDiagnostics()
+
+        Dim comp2 = CreateCompilation("", references:={moduleWithAttribute}, options:=TestOptions.ReleaseDll)
+
+        comp2.AssertTheseEmitDiagnostics(
+<expected>
+BC30652: Reference required to assembly 'A1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'A1'. Add one to your project.
+</expected>
+        )
+
+        Dim attribute2 =
+<compilation name="A1">
+    <file><![CDATA[
+public class A1 
+    Inherits System.Attribute
+
+    public Sub New()
+    End Sub    
+End Class
+    ]]></file>
+</compilation>
+
+        Dim attributeDefinition2 = CreateCompilation(attribute2, options:=TestOptions.ReleaseDll).EmitToImageReference()
+
+        Dim comp3 = CreateCompilation("", references:={moduleWithAttribute, attributeDefinition2}, options:=TestOptions.ReleaseDll)
+
+        comp3.AssertTheseEmitDiagnostics(
+<expected>
+BC35000: Requested operation is not available because the runtime library function 'A1..ctor' is not defined.
+</expected>
+        )
+    End Sub
+
+    <Fact>
+    <WorkItem("https://github.com/dotnet/roslyn/issues/70338")>
+    Public Sub ErrorsWithAssemblyAttributesInModules_02()
+        Dim c1 =
+<compilation name="A1">
+    <file><![CDATA[
+public class C1 
+End Class
+    ]]></file>
+</compilation>
+
+        Dim c1Definition = CreateCompilation(c1, options:=TestOptions.ReleaseDll).EmitToImageReference()
+
+        Dim module1 =
+<compilation name="M1">
+    <file><![CDATA[
+<assembly:A1(GetType(C1))>
+
+public class A1 
+    Inherits System.Attribute
+
+    public Sub New(a As System.Type)
+    End Sub    
+End Class
+    ]]></file>
+</compilation>
+
+        Dim module1WithAttribute = CreateCompilation(module1, references:={c1Definition}, options:=TestOptions.ReleaseModule).EmitToImageReference()
+
+        Dim comp = CreateCompilation("", references:={module1WithAttribute, c1Definition}, options:=TestOptions.ReleaseDll)
+
+        CompileAndVerify(comp, symbolValidator:=Sub(m)
+                                                    Dim attrs = m.ContainingAssembly.GetAttributes()
+                                                    Assert.Equal(4, attrs.Length)
+                                                    AssertEx.Equal("System.Runtime.CompilerServices.CompilationRelaxationsAttribute(8)", attrs(0).ToString())
+                                                    AssertEx.Equal("System.Runtime.CompilerServices.RuntimeCompatibilityAttribute(WrapNonExceptionThrows:=True)", attrs(1).ToString())
+                                                    AssertEx.Equal("System.Diagnostics.DebuggableAttribute(System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)", attrs(2).ToString())
+                                                    AssertEx.Equal("A1(GetType(C1))", attrs(3).ToString())
+                                                End Sub).VerifyDiagnostics()
+
+        Dim comp2 = CreateCompilation("", references:={module1WithAttribute}, options:=TestOptions.ReleaseDll)
+
+        comp2.AssertTheseEmitDiagnostics(
+<expected>
+BC30652: Reference required to assembly 'A1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'C1'. Add one to your project.
+</expected>
+        )
+
+        Dim module2 =
+<compilation name="M1">
+    <file><![CDATA[
+<module:A1(GetType(C1))>
+
+public class A1 
+    Inherits System.Attribute
+
+    public Sub New(a As System.Type)
+    End Sub    
+End Class
+    ]]></file>
+</compilation>
+
+        Dim module2WithAttribute = CreateCompilation(module2, references:={c1Definition}, options:=TestOptions.ReleaseModule).EmitToImageReference()
+
+        Dim comp3 = CreateCompilation("", references:={module2WithAttribute}, options:=TestOptions.ReleaseDll)
+
+        CompileAndVerify(comp3, symbolValidator:=Sub(m)
+                                                     Dim attrs = m.ContainingAssembly.GetAttributes()
+                                                     Assert.Equal(3, attrs.Length)
+                                                     AssertEx.Equal("System.Runtime.CompilerServices.CompilationRelaxationsAttribute(8)", attrs(0).ToString())
+                                                     AssertEx.Equal("System.Runtime.CompilerServices.RuntimeCompatibilityAttribute(WrapNonExceptionThrows:=True)", attrs(1).ToString())
+                                                     AssertEx.Equal("System.Diagnostics.DebuggableAttribute(System.Diagnostics.DebuggableAttribute.DebuggingModes.IgnoreSymbolStoreSequencePoints)", attrs(2).ToString())
+                                                 End Sub).VerifyDiagnostics()
     End Sub
 
 End Class

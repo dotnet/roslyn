@@ -8,10 +8,11 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <TargetFramework>net472</TargetFramework>
     <IsShipping>false</IsShipping>
+    <IsTestUtilityProject>true</IsTestUtilityProject>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <Reference Include="System" />
-    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="$(MicrosoftVisualStudioDebuggerEngineimplementationVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Debugger.Engine-implementation" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />

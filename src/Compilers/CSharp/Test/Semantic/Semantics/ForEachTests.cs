@@ -3305,6 +3305,64 @@ public static class Extensions
             return boundNode;
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70340")]
+        public void ForEachStatementInfo_PointerElementType_Array()
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    unsafe void M()
+                    {
+                        foreach (var x in new int*[0])
+                        {
+                        }
+                    }
+                }
+                """, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(loop);
+            Assert.Equal(default, info);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70340")]
+        public void ForEachStatementInfo_PointerElementType_Custom()
+        {
+            var comp = CreateCompilation("""
+                internal class MyEnumerable
+                {
+                    public Enumerator GetEnumerator() => new Enumerator();
+                }
+
+                internal unsafe class Enumerator
+                {
+                    public int* Current { get; }
+
+                    public bool MoveNext() => true;
+                }
+
+                class C
+                {
+                    void M()
+                    {
+                        foreach (var x in new MyEnumerable())
+                        {
+                        }
+                    }
+                }
+                """, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var loop = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var info = model.GetForEachStatementInfo(loop);
+            Assert.Equal(Conversion.Identity, info.CurrentConversion);
+            Assert.Equal(Conversion.Identity, info.ElementConversion);
+            Assert.Equal("System.Int32*", info.ElementType.ToTestDisplayString());
+        }
+
         [WorkItem(1100741, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1100741")]
         [Fact]
         public void Bug1100741()
@@ -3473,10 +3531,7 @@ class C
             System.Console.Write(x);
         }
     }
-}").VerifyDiagnostics(
-                // (20,26): error CS8177: Async methods cannot have by-reference locals
-                //         foreach (ref int x in new E())
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "x").WithLocation(20, 26));
+}").VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -3507,10 +3562,7 @@ class C
             System.Console.Write(x);
         }
     }
-}").VerifyDiagnostics(
-                // (20,35): error CS8177: Async methods cannot have by-reference locals
-                //         foreach (ref readonly int x in new E())
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "x").WithLocation(20, 35));
+}").VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -3539,10 +3591,7 @@ class C
             yield return x;
         }
     }
-}").VerifyDiagnostics(
-                // (18,26): error CS8176: Iterators cannot have by-reference locals
-                //         foreach (ref int x in new E())
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(18, 26));
+}").VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -3571,10 +3620,7 @@ class C
             yield return x;
         }
     }
-}").VerifyDiagnostics(
-                // (18,35): error CS8176: Iterators cannot have by-reference locals
-                //         foreach (ref readonly int x in new E())
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(18, 35));
+}").VerifyEmitDiagnostics();
         }
 
         [Fact]

@@ -5,16 +5,15 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
-{
-    internal class JoinKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
-    {
-        public JoinKeywordRecommender()
-            : base(SyntaxKind.JoinKeyword)
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-            => context.SyntaxTree.IsValidContextForJoinClause(position, context.LeftToken);
+internal class JoinKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+{
+    public JoinKeywordRecommender()
+        : base(SyntaxKind.JoinKeyword)
+    {
     }
+
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        => context.SyntaxTree.IsValidContextForJoinClause(position, context.LeftToken);
 }

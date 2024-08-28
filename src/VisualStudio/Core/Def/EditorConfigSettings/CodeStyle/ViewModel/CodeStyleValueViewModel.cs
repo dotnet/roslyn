@@ -4,35 +4,34 @@
 
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View;
+
+internal class CodeStyleValueViewModel
 {
-    internal class CodeStyleValueViewModel
+    private readonly CodeStyleSetting _setting;
+
+    private string? _selectedValue;
+
+    public string[] Values => _setting.GetValueDescriptions();
+
+    public string SelectedValue
     {
-        private readonly CodeStyleSetting _setting;
-
-        private string? _selectedValue;
-
-        public string[] Values => _setting.GetValueDescriptions();
-
-        public string SelectedValue
+        get
         {
-            get
-            {
-                _selectedValue ??= _setting.GetCurrentValueDescription();
+            _selectedValue ??= _setting.GetCurrentValueDescription();
 
-                return _selectedValue;
-            }
-            set => _selectedValue = value;
+            return _selectedValue;
         }
-
-        public string ToolTip => ServicesVSResources.Value;
-
-        public static string AutomationName => ServicesVSResources.Value;
-
-        public CodeStyleValueViewModel(CodeStyleSetting setting)
-            => _setting = setting;
-
-        public void SelectionChanged(int selectedIndex)
-            => _setting.ChangeValue(selectedIndex);
+        set => _selectedValue = value;
     }
+
+    public string ToolTip => ServicesVSResources.Value;
+
+    public static string AutomationName => ServicesVSResources.Value;
+
+    public CodeStyleValueViewModel(CodeStyleSetting setting)
+        => _setting = setting;
+
+    public void SelectionChanged(int selectedIndex)
+        => _setting.ChangeValue(selectedIndex);
 }

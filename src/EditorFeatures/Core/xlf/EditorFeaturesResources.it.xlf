@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../EditorFeaturesResources.resx">
     <body>
+      <trans-unit id="An_error_occurred_while_generating_documentation_for_this_code">
+        <source>An error occurred while generating documentation for this code.</source>
+        <target state="translated">Si è verificato un errore durante la generazione della documentazione per questo codice.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
         <target state="translated">Per l'identificatore '{0}' è attiva una sessione di ridenominazione inline. Richiamare nuovamente la ridenominazione inline per accedere alle opzioni aggiuntive. È possibile continuare a modificare l'identificatore da rinominare in qualsiasi momento.</target>
@@ -17,34 +22,29 @@
         <target state="translated">Non è possibile passare al simbolo sotto il punto di inserimento.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Change_configuration">
-        <source>Change configuration</source>
-        <target state="translated">Cambia la configurazione</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Code_cleanup_is_not_configured">
-        <source>Code cleanup is not configured</source>
-        <target state="translated">La pulizia del codice non è configurata</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">Calcolo delle informazioni su 'Incapsula campo'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Configure_it_now">
-        <source>Configure it now</source>
-        <target state="translated">Configura ora</target>
+      <trans-unit id="Copilot">
+        <source>Copilot</source>
+        <target state="translated">Copilot</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copilot_thinking">
+        <source>Copilot thinking...</source>
+        <target state="translated">Elaborazione di Copilot in corso...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Describe_with_Copilot">
+        <source>Describe with Copilot</source>
+        <target state="translated">Descrivi con Copilot</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
         <source>Do not prefer 'this.' or 'Me.'</source>
         <target state="translated">Non preferire 'this.' o 'Me.'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_not_show_this_message_again">
-        <source>Do not show this message again</source>
-        <target state="translated">Non visualizzare più questo messaggio</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
@@ -77,24 +77,14 @@
         <target state="translated">Filtro</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
-      <trans-unit id="Format_document_performed_additional_cleanup">
-        <source>Format Document performed additional cleanup</source>
-        <target state="translated">Formatta documento ha eseguito una pulizia aggiuntiva</target>
+      <trans-unit id="Generate_summary_with_Copilot">
+        <source>Generate summary with Copilot (might be inaccurate)</source>
+        <target state="translated">Genera riepilogo con Copilot (potrebbe non essere accurato)</target>
         <note />
       </trans-unit>
       <trans-unit id="Get_help_for_0">
         <source>Get help for '{0}'</source>
         <target state="translated">Visualizza la Guida per '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Gathering_Suggestions_0">
-        <source>Gathering Suggestions - '{0}'</source>
-        <target state="translated">Raccolta dei suggerimenti - '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
-        <source>Gathering Suggestions - Waiting for the solution to fully load</source>
-        <target state="translated">Raccolta dei suggerimenti - In attesa del completamento del caricamento della soluzione</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_To_Base">
@@ -237,6 +227,16 @@
         <target state="translated">No</target>
         <note />
       </trans-unit>
+      <trans-unit id="Obsolete_symbol">
+        <source>Obsolete symbol</source>
+        <target state="translated">Simbolo obsoleto</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="On_the_fly_documentation">
+        <source>On-the-fly documentation</source>
+        <target state="translated">Documentazione in tempo reale</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
         <target state="translated">Operatore - Overload</target>
@@ -292,6 +292,11 @@
         <target state="translated">Variabile riassegnata</target>
         <note />
       </trans-unit>
+      <trans-unit id="Refine_using_Copilot">
+        <source>Refine using Copilot</source>
+        <target state="translated">Affinare con Copilot</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">Rinomina _file (il tipo non corrisponde al nome file)</target>
@@ -314,12 +319,17 @@
       </trans-unit>
       <trans-unit id="Roslyn_Test_Code">
         <source>Roslyn Test Code</source>
-        <target state="new">Roslyn Test Code</target>
+        <target state="translated">Codice di test di Roslyn</target>
         <note />
       </trans-unit>
       <trans-unit id="Roslyn_Test_Code_Markup">
         <source>Roslyn Test Code Markup</source>
-        <target state="new">Roslyn Test Code Markup</target>
+        <target state="translated">Markup del codice di test di Roslyn</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run">
+        <source>Run</source>
+        <target state="translated">Esegui</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_comment">
@@ -577,11 +587,6 @@
         <target state="translated">Commenti in formato documentazione XML - Valore attributo</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unnecessary_Code">
-        <source>Unnecessary Code</source>
-        <target state="translated">Codice non necessario</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rude_Edit">
         <source>Rude Edit</source>
         <target state="translated">Modifica non applicabile al momento</target>
@@ -627,19 +632,24 @@
         <target state="translated">Verranno risolti {0} conflitti</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_declarations_and_interceptors">
+        <source>'{0}' declarations and interceptors</source>
+        <target state="new">'{0}' declarations and interceptors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_implemented_members">
         <source>'{0}' implemented members</source>
         <target state="translated">Membri implementati di '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_intercepted_locations">
+        <source>'{0}' intercepted locations</source>
+        <target state="translated">'{0}' posizioni intercettate</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
         <source>{0} unresolvable conflict(s)</source>
         <target state="translated">{0} conflitti non risolti</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Applying_0">
-        <source>Applying "{0}"...</source>
-        <target state="translated">Applicazione di "{0}"...</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_to_1_with_content_colon">
@@ -697,11 +707,6 @@
         <target state="translated">Incapsula campo</target>
         <note />
       </trans-unit>
-      <trans-unit id="Applying_Encapsulate_Field_refactoring">
-        <source>Applying "Encapsulate Field" refactoring...</source>
-        <target state="translated">Applicazione del refactoring per "Incapsula campo"...</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Please_select_the_definition_of_the_field_to_encapsulate">
         <source>Please select the definition of the field to encapsulate.</source>
         <target state="translated">Selezionare la definizione del campo da incapsulare.</target>
@@ -727,11 +732,6 @@
         <target state="translated">Non sono state trovate informazioni.</target>
         <note />
       </trans-unit>
-      <trans-unit id="No_usages_found">
-        <source>No usages found.</source>
-        <target state="translated">Non sono stati trovati utilizzi.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implements_">
         <source>Implements</source>
         <target state="translated">Implementa</target>
@@ -752,84 +752,14 @@
         <target state="translated">Sottoposto a override da</target>
         <note />
       </trans-unit>
-      <trans-unit id="Directly_Called_In">
-        <source>Directly Called In</source>
-        <target state="translated">Chiamato in modo diretto</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indirectly_Called_In">
-        <source>Indirectly Called In</source>
-        <target state="translated">Chiamato in modo indiretto</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Called_In">
-        <source>Called In</source>
-        <target state="translated">Chiamato</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Referenced_In">
-        <source>Referenced In</source>
-        <target state="translated">Con riferimenti in</target>
-        <note />
-      </trans-unit>
       <trans-unit id="No_references_found">
         <source>No references found.</source>
         <target state="translated">Non sono stati trovati riferimenti.</target>
         <note />
       </trans-unit>
-      <trans-unit id="No_derived_types_found">
-        <source>No derived types found.</source>
-        <target state="translated">Non sono stati trovati tipi derivati.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_implementations_found">
-        <source>No implementations found.</source>
-        <target state="translated">Non sono state trovate implementazioni.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_Line_1">
-        <source>{0} - (Line {1})</source>
-        <target state="translated">{0} - (riga {1})</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Class_Parts">
-        <source>Class Parts</source>
-        <target state="translated">Parti di classe</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Struct_Parts">
-        <source>Struct Parts</source>
-        <target state="translated">Parti struct</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_Parts">
-        <source>Interface Parts</source>
-        <target state="translated">Parti interfaccia</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Parts">
-        <source>Type Parts</source>
-        <target state="translated">Parti tipo</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inherits_">
         <source>Inherits</source>
         <target state="translated">Eredita</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inherited_By">
-        <source>Inherited By</source>
-        <target state="translated">Ereditato da</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Already_tracking_document_with_identical_key">
-        <source>Already tracking document with identical key</source>
-        <target state="translated">La verifica del documento con chiave identica è già in corso</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="document_is_not_currently_being_tracked">
-        <source>document is not currently being tracked</source>
-        <target state="translated">al momento il documento non è sottoposto a verifica</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_Rename_information">
@@ -887,24 +817,9 @@
         <target state="translated">Completamento automatico in...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatic_Pair_Completion">
-        <source>Automatic Pair Completion</source>
-        <target state="translated">Completamento coppia automatico</target>
-        <note />
-      </trans-unit>
       <trans-unit id="An_active_inline_rename_session_is_still_active_Complete_it_before_starting_a_new_one">
         <source>An active inline rename session is still active. Complete it before starting a new one.</source>
         <target state="translated">Una sessione di ridenominazione inline è ancora attiva. Completarla prima di avviarne una nuova.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_buffer_is_not_part_of_a_workspace">
-        <source>The buffer is not part of a workspace.</source>
-        <target state="translated">Il buffer non fa parte di un'area di lavoro.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_token_is_not_contained_in_the_workspace">
-        <source>The token is not contained in the workspace.</source>
-        <target state="translated">Il token non è contenuto nell'area di lavoro.</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigation_Bars">
@@ -917,24 +832,9 @@
         <target state="translated">Aggiornamento delle barre di spostamento in corso...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Token">
-        <source>Format Token</source>
-        <target state="translated">Formatta token</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Find_References">
         <source>Find References</source>
         <target state="translated">Trova riferimenti</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Finding_references">
-        <source>Finding references...</source>
-        <target state="translated">Ricerca dei riferimenti in corso...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Finding_references_of_0">
-        <source>Finding references of "{0}"...</source>
-        <target state="translated">Ricerca dei riferimenti di "{0}"...</target>
         <note />
       </trans-unit>
       <trans-unit id="Comment_Selection">
@@ -982,11 +882,6 @@
         <target state="translated">Applicazione del refactoring per "Estrai metodo"...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Document">
-        <source>Format Document</source>
-        <target state="translated">Formatta documento</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_document">
         <source>Formatting document...</source>
         <target state="translated">Formattazione del documento...</target>
@@ -995,11 +890,6 @@
       <trans-unit id="Formatting">
         <source>Formatting</source>
         <target state="translated">Formattazione</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_Selection">
-        <source>Format Selection</source>
-        <target state="translated">Formatta selezione</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_currently_selected_text">
@@ -1042,11 +932,6 @@
         <target state="translated">Ridenominazione inline - Correzione</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Rename_Resolved_Conflict">
-        <source>Inline Rename Resolved Conflict</source>
-        <target state="translated">Ridenominazione inline - Conflitto risolto</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inline_Rename">
         <source>Inline Rename</source>
         <target state="translated">Ridenominazione inline</target>
@@ -1060,11 +945,6 @@
       <trans-unit id="Start_Rename">
         <source>Start Rename</source>
         <target state="translated">Avvia ridenominazione</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Display_conflict_resolutions">
-        <source>Display conflict resolutions</source>
-        <target state="translated">Visualizza le risoluzioni dei conflitti</target>
         <note />
       </trans-unit>
       <trans-unit id="Finding_token_to_rename">
@@ -1107,29 +987,9 @@
         <target state="translated">Rinomina: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Light_bulb_session_is_already_dismissed">
-        <source>Light bulb session is already dismissed.</source>
-        <target state="translated">La sessione lampadina è già stata chiusa.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatic_Pair_Completion_End_Point_Marker_Color">
-        <source>Automatic Pair Completion End Point Marker Color</source>
-        <target state="translated">Colore marcatore punto finale per completamento coppia automatico</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
         <target state="translated">Il motore deve essere collegato a una finestra interattiva.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changes_the_current_prompt_settings">
-        <source>Changes the current prompt settings.</source>
-        <target state="translated">Cambia le impostazioni correnti del prompt.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unexpected_text_colon_0">
-        <source>Unexpected text: '{0}'</source>
-        <target state="translated">Testo imprevisto: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="The_triggerSpan_is_not_included_in_the_given_workspace">
@@ -1145,11 +1005,6 @@
       <trans-unit id="The_transaction_is_already_complete">
         <source>The transaction is already complete.</source>
         <target state="translated">La transazione è già completata.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Not_a_source_error_line_column_unavailable">
-        <source>Not a source error, line/column unavailable</source>
-        <target state="translated">L'errore non dipende dall'origine. La riga o la colonna non è disponibile</target>
         <note />
       </trans-unit>
       <trans-unit id="Can_t_compare_positions_from_different_text_snapshots">
@@ -1232,11 +1087,6 @@
         <target state="translated">Anteprima modifiche</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Paste">
-        <source>Format Paste</source>
-        <target state="translated">Formatta testo incollato</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_pasted_text">
         <source>Formatting pasted text...</source>
         <target state="translated">Formattazione del testo incollato...</target>
@@ -1294,11 +1144,6 @@ Continuare?</target>
         <target state="translated">Chiamate all'implementazione dell'interfaccia '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Computing_Call_Hierarchy_Information">
-        <source>Computing Call Hierarchy Information</source>
-        <target state="translated">Elaborazione informazioni su gerarchia di chiamata</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implements_0">
         <source>Implements '{0}'</source>
         <target state="translated">Implementa '{0}'</target>
@@ -1349,11 +1194,6 @@ Continuare?</target>
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="IntelliSense_Commit_Formatting">
-        <source>IntelliSense Commit Formatting</source>
-        <target state="translated">Formattazione commit IntelliSense</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_Tracking">
         <source>Rename Tracking</source>
         <target state="translated">Verifica ridenominazione</target>
@@ -1362,11 +1202,6 @@ Continuare?</target>
       <trans-unit id="Removing_0_from_1_with_content_colon">
         <source>Removing '{0}' from '{1}' with content:</source>
         <target state="translated">Rimozione di '{0}' da '{1}' con contenuto:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation">
-        <source>'{0}' does not support the '{1}' operation. However, it may contain nested '{2}'s (see '{2}.{3}') that support this operation.</source>
-        <target state="translated">'{0}' non supporta l'operazione '{1}', ma può contenere elementi '{2}' annidati (vedere '{2}.{3}') che supportano questa operazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Brace_Completion">
@@ -1429,11 +1264,6 @@ Continuare?</target>
         <target state="translated">Spostamento...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggestion_ellipses">
-        <source>Suggestion ellipses (…)</source>
-        <target state="translated">Puntini di sospensione di suggerimento (…)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="_0_declarations">
         <source>'{0}' declarations</source>
         <target state="translated">'Dichiarazioni di '{0}'</target>
@@ -1462,11 +1292,6 @@ Continuare?</target>
       <trans-unit id="Comment_Uncomment_Selection">
         <source>Comment/Uncomment Selection</source>
         <target state="translated">Aggiungi/Rimuovi commento selezione</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Code_Completion">
-        <source>Code Completion</source>
-        <target state="translated">Completamento codice</target>
         <note />
       </trans-unit>
       <trans-unit id="Execute_In_Interactive">
@@ -1557,11 +1382,6 @@ Continuare?</target>
       <trans-unit id="Signature_Help">
         <source>Signature Help</source>
         <target state="translated">Guida per la firma</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Smart_Token_Formatter">
-        <source>Smart Token Formatter</source>
-        <target state="translated">Formattatore di token intelligente</target>
         <note />
       </trans-unit>
     </body>

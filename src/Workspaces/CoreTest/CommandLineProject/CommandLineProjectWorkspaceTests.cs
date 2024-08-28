@@ -6,7 +6,6 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 

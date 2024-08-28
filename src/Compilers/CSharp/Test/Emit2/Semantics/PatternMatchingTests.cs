@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    [CompilerTrait(CompilerFeature.Patterns)]
+    [CompilerTrait(CompilerFeature.Patterns, CompilerFeature.RefLifetime)]
     public class PatternMatchingTests : PatternMatchingTestBase
     {
         [Fact]
@@ -249,7 +249,7 @@ class D
     public D(bool b) { Console.WriteLine(b); }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var expectedOutput =
@@ -972,11 +972,11 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
                 // (9,34): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     static bool Test1 = 1 is int x1 && Dummy(x1); 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 34)
@@ -1010,7 +1010,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True
 2
@@ -1065,11 +1065,11 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
                 // (9,41): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     static bool Test1 {get;} = 1 is int x1 && Dummy(x1); 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 41)
@@ -1142,7 +1142,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
@@ -1160,7 +1160,7 @@ True");
 
             Assert.Equal("System.Int32", ((ILocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl[0])).Type.ToTestDisplayString());
 
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
                 // (12,40): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     public D(object o) : base(2 is var x1 && Dummy(x1)) 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(12, 40),
@@ -4773,26 +4773,28 @@ public class Program5815
     private static object M() => null;
 }";
             var compilation = CreateCompilation(program).VerifyDiagnostics(
-                // (9,32): error CS1525: Invalid expression term 'break'
-                //             case Color? Color2:
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("break").WithLocation(9, 32),
-                // (9,32): error CS1003: Syntax error, ':' expected
-                //             case Color? Color2:
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(9, 32),
                 // (8,18): error CS0118: 'Color' is a variable but is used like a type
                 //             case Color Color:
                 Diagnostic(ErrorCode.ERR_BadSKknown, "Color").WithArguments("Color", "variable", "type").WithLocation(8, 18),
                 // (9,25): error CS0103: The name 'Color2' does not exist in the current context
                 //             case Color? Color2:
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "Color2").WithArguments("Color2").WithLocation(9, 25)
-                );
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Color2").WithArguments("Color2").WithLocation(9, 25),
+                // (9,32): error CS1525: Invalid expression term 'break'
+                //             case Color? Color2:
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("break").WithLocation(9, 32),
+                // (9,32): error CS1003: Syntax error, ':' expected
+                //             case Color? Color2:
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(9, 32));
+
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
             var colorDecl = GetPatternDeclarations(tree, "Color").ToArray();
             var colorRef = GetReferences(tree, "Color").ToArray();
+
             Assert.Equal(1, colorDecl.Length);
             Assert.Equal(2, colorRef.Length);
+
             Assert.Null(model.GetSymbolInfo(colorRef[0]).Symbol);
             VerifyModelForDeclarationOrVarSimplePattern(model, colorDecl[0], colorRef[1]);
         }
@@ -6598,11 +6600,11 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
                 // (9,65): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     static event System.Func<bool> Test1 = GetDelegate(1 is int x1 && Dummy(x1)); 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 65)
@@ -7684,7 +7686,7 @@ class C
   .locals init (int V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ComputeReadOnlySpanHash(System.ReadOnlySpan<char>)""
+  IL_0001:  call       ""uint <PrivateImplementationDetails>.ComputeReadOnlySpanHash(System.ReadOnlySpan<char>)""
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x75b03721
@@ -8000,7 +8002,7 @@ class C
   .maxstack  2
   .locals init (uint V_0)
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ComputeReadOnlySpanHash(System.ReadOnlySpan<char>)""
+  IL_0001:  call       ""uint <PrivateImplementationDetails>.ComputeReadOnlySpanHash(System.ReadOnlySpan<char>)""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  ldc.i4     0x75b03721
@@ -9282,7 +9284,7 @@ class C
   .locals init (int V_0,
                 uint V_1)
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ComputeSpanHash(System.Span<char>)""
+  IL_0001:  call       ""uint <PrivateImplementationDetails>.ComputeSpanHash(System.Span<char>)""
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  ldc.i4     0x75b03721
@@ -9599,7 +9601,7 @@ class C
   .maxstack  2
   .locals init (uint V_0)
   IL_0000:  ldarg.0
-  IL_0001:  call       ""ComputeSpanHash(System.Span<char>)""
+  IL_0001:  call       ""uint <PrivateImplementationDetails>.ComputeSpanHash(System.Span<char>)""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  ldc.i4     0x75b03721

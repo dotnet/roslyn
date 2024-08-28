@@ -42,6 +42,21 @@
         <target state="translated">'System.Runtime.CompilerServices.RequiredMemberAttribute' yalnızca derleyici kullanımı için ayrılmıştır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="translated">'Experimental' özniteliğinin diagnosticId bağımsız değişkeni geçerli bir tanımlayıcı olmalıdır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidVersionFormatDeterministic">
+        <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
+        <target state="new">The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LockTypeUnsupported">
+        <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
+        <target state="translated">SyncLock'ta 'System.Threading.Lock' türünde bir değer desteklenmiyor. Bunun yerine Try/Finally bloğunda 'Enter' ve 'Exit' yöntemlerini el ile çağırmayı düşünün.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">Birden çok çözümleyici yapılandırma dosyası aynı dizinde ('{0}') olamaz.</target>
@@ -604,6 +619,16 @@
         <target state="translated">Parametre kendini işaret ettiğinden, parametreye uygulanan CallerArgumentExpressionAttribute hiçbir etkiye sahip olmaz.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConvertingLock">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">Farklı bir türe dönüştürülen 'System.Threading.Lock' türündeki bir değer, SyncLock deyiminde büyük olasılıkla istenmeyen izleyici tabanlı kilitlemeyi kullanır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock_Title">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">Farklı bir türe dönüştürülen 'System.Threading.Lock' türündeki bir değer, SyncLock deyiminde büyük olasılıkla istenmeyen izleyici tabanlı kilitlemeyi kullanır.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">
         <source>Analyzer reference '{0}' specified multiple times</source>
         <target state="translated">Çözümleyici referansı '{0}' birden çok kez belirtildi</target>
@@ -615,16 +640,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">'{0}' oluşturucusu kaynak oluşturamadı. Oluşturucu çıkışa katkıda bulunmayacağından, bunun sonucunda derleme hataları oluşabilir. Özel durum '{2}' iletisi ile '{1}' türündeydi</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">Oluşturucu aşağıdaki özel durumu oluşturdu:
-'{0}'.</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">'{0}' oluşturucusu kaynak oluşturamadı. Oluşturucu çıkışa katkıda bulunamaz, bunun sonucunda derleme hataları oluşabilir. Özel durum '{2}' iletisi ile '{1}' türündeydi.
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -632,16 +655,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">'{0}' oluşturucusu başlatılamadı. Oluşturucu çıkışa katkıda bulunmayacağından, bunun sonucunda derleme hataları oluşabilir. Özel durum '{2}' iletisi ile '{1}' türündeydi</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">Oluşturucu aşağıdaki özel durumu oluşturdu:
-'{0}'.</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">'{0}' oluşturucusu başlatılamadı. Oluşturucu çıkışa katkıda bulunamaz, bunun sonucunda derleme hataları oluşabilir. Özel durum '{2}' iletisi ile '{1}' türündeydi.
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
@@ -7677,8 +7698,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
-        <source>The specified version string does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="translated">Belirtilen sürüm dizesi önerilen biçime uymuyor - major.minor.build.revision</target>
+        <source>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</source>
+        <target state="needs-review-translation">Belirtilen sürüm dizesi önerilen biçime uymuyor - major.minor.build.revision</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyCultureForExe">

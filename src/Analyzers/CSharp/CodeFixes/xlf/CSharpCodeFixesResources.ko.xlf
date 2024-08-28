@@ -137,11 +137,6 @@
         <target state="translated">다음 줄에 토큰 배치</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Usings">
-        <source>Remove Unnecessary Usings</source>
-        <target state="translated">불필요한 Using 제거</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_blank_lines_between_braces">
         <source>Remove blank line between braces</source>
         <target state="translated">중괄호 사이의 빈 줄 제거</target>
@@ -155,6 +150,11 @@
       <trans-unit id="Remove_new_modifier">
         <source>Remove 'new' modifier</source>
         <target state="translated">'new' 한정자 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_usings">
+        <source>Remove unnecessary usings</source>
+        <target state="translated">불필요한 Using 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unreachable_code">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="Use_collection_expression">
         <source>Use collection expression</source>
-        <target state="new">Use collection expression</target>
+        <target state="translated">컬렉션 식 사용</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">

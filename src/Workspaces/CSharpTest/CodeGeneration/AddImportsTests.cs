@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
                     "test",
                     "test.dll",
                     LanguageNames.CSharp,
-                    metadataReferences: new[] { TestMetadata.Net451.mscorlib }));
+                    metadataReferences: new[] { NetFramework.mscorlib }));
 
             var doc = emptyProject.AddDocument("test.cs", code);
 
@@ -114,10 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         }
 
         public static object[][] TestAllData =
-        {
-            new object[] { false },
-            new object[] { true },
-        };
+        [
+            [false],
+            [true],
+        ];
 
         [Theory, MemberData(nameof(TestAllData))]
         public async Task TestAddImport(bool useSymbolAnnotations)
@@ -781,10 +781,10 @@ class C
                     "test",
                     "test.dll",
                     LanguageNames.CSharp,
-                    metadataReferences: new[] { TestMetadata.Net451.mscorlib }));
+                    metadataReferences: new[] { NetFramework.mscorlib }));
 
             var project = emptyProject
-                .AddMetadataReferences(new[] { otherAssemblyReference })
+                .AddMetadataReferences([otherAssemblyReference])
                 .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             project = project.AddDocument("duplicate.cs", externalCode).Project;
@@ -833,9 +833,9 @@ class C
             var tree = CSharpSyntaxTree.ParseText(code);
 
             var compilation = CSharpCompilation
-                .Create("test.dll", new[] { tree })
+                .Create("test.dll", [tree])
                 .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
-                .AddReferences(TestMetadata.Net451.mscorlib);
+                .AddReferences(NetFramework.mscorlib);
 
             return compilation.ToMetadataReference();
         }

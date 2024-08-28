@@ -42,8 +42,8 @@
         <target state="translated">Sub als asynchron definieren</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_Unnecessary_Imports">
-        <source>Remove Unnecessary Imports</source>
+      <trans-unit id="Remove_unnecessary_imports">
+        <source>Remove unnecessary imports</source>
         <target state="translated">Unnötige Import-Direktiven entfernen</target>
         <note />
       </trans-unit>

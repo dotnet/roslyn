@@ -16,9 +16,10 @@ Imports System.Reflection.Metadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
-    Friend Class SourceAttributeData
+    Friend NotInheritable Class SourceAttributeData
         Inherits VisualBasicAttributeData
 
+        Private ReadOnly _compilation As VisualBasicCompilation
         Private ReadOnly _attributeClass As NamedTypeSymbol ' TODO - Remove attribute class. It is available from the constructor.
         Private ReadOnly _attributeConstructor As MethodSymbol
         Private ReadOnly _constructorArguments As ImmutableArray(Of TypedConstant)
@@ -27,15 +28,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _hasErrors As Boolean
         Private ReadOnly _applicationNode As SyntaxReference
 
-        Friend Sub New(ByVal applicationNode As SyntaxReference,
+        Friend Sub New(ByVal compilation As VisualBasicCompilation,
+                       ByVal applicationNode As SyntaxReference,
                        ByVal attrClass As NamedTypeSymbol,
                        ByVal attrMethod As MethodSymbol,
                        ByVal constructorArgs As ImmutableArray(Of TypedConstant),
                        ByVal namedArgs As ImmutableArray(Of KeyValuePair(Of String, TypedConstant)),
                        ByVal isConditionallyOmitted As Boolean,
                        ByVal hasErrors As Boolean)
+            Debug.Assert(compilation IsNot Nothing)
+            Debug.Assert(applicationNode IsNot Nothing)
             Debug.Assert(attrMethod IsNot Nothing OrElse hasErrors)
 
+            Me._compilation = compilation
             Me._applicationNode = applicationNode
             Me._attributeClass = attrClass
             Me._attributeConstructor = attrMethod
@@ -75,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property IsConditionallyOmitted As Boolean
+        Friend Overrides ReadOnly Property IsConditionallyOmitted As Boolean
             Get
                 Return _isConditionallyOmitted
             End Get
@@ -86,7 +91,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return Me
             End If
 
-            Return New SourceAttributeData(Me.ApplicationSyntaxReference,
+            Return New SourceAttributeData(Me._compilation,
+                                           Me.ApplicationSyntaxReference,
                                            Me.AttributeClass,
                                            Me.AttributeConstructor,
                                            Me.CommonConstructorArguments,
@@ -95,9 +101,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                            Me.HasErrors)
         End Function
 
-        Friend NotOverridable Overrides ReadOnly Property HasErrors As Boolean
+        Friend Overrides ReadOnly Property HasErrors As Boolean
             Get
                 Return _hasErrors
+            End Get
+        End Property
+
+        Friend Overrides ReadOnly Property ErrorInfo As DiagnosticInfo
+            Get
+                Return Nothing ' Binder reports errors
             End Get
         End Property
 
@@ -108,14 +120,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' well known attributes.
         ''' </summary>
         ''' <param name="description">Attribute to match.</param>
-        Friend Overrides Function GetTargetAttributeSignatureIndex(targetSymbol As Symbol, description As AttributeDescription) As Integer
-            If Not IsTargetAttribute(description.Namespace, description.Name, description.MatchIgnoringCase) Then
+        Friend Overrides Function GetTargetAttributeSignatureIndex(description As AttributeDescription) As Integer
+            Return GetTargetAttributeSignatureIndex(_compilation, AttributeClass, AttributeConstructor, description)
+        End Function
+
+        Friend Overloads Shared Function GetTargetAttributeSignatureIndex(compilation As VisualBasicCompilation, attributeClass As NamedTypeSymbol, attributeConstructor As MethodSymbol, description As AttributeDescription) As Integer
+            If Not IsTargetAttribute(attributeClass, description.Namespace, description.Name, description.MatchIgnoringCase) Then
                 Return -1
             End If
 
             Dim lazySystemType As TypeSymbol = Nothing
 
-            Dim ctor = AttributeConstructor
+            Dim ctor = attributeConstructor
             ' Ensure that the attribute data really has a constructor before comparing the signature.
             If ctor Is Nothing Then
                 Return -1
@@ -235,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         Case CByte(SerializationTypeCode.Type)
                             If lazySystemType Is Nothing Then
-                                lazySystemType = GetSystemType(targetSymbol)
+                                lazySystemType = compilation.GetWellKnownType(WellKnownType.System_Type)
                             End If
 
                             foundMatch = TypeSymbol.Equals(parameterType, lazySystemType, TypeCompareKind.ConsiderEverything)
@@ -264,14 +280,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' Gets the System.Type type symbol from targetSymbol's containing assembly.
+        ''' Compares the namespace and type name with the attribute's namespace and type name.  Returns true if they are the same.
         ''' </summary>
-        ''' <param name="targetSymbol">Target symbol on which this attribute is applied.</param>
-        ''' <returns>System.Type type symbol.</returns>
-        Friend Overridable Function GetSystemType(targetSymbol As Symbol) As TypeSymbol
-            Return targetSymbol.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type)
+        Friend Overrides Function IsTargetAttribute(
+            namespaceName As String,
+            typeName As String,
+            Optional ignoreCase As Boolean = False
+        ) As Boolean
+            Return IsTargetAttribute(AttributeClass, namespaceName, typeName, ignoreCase)
         End Function
 
+        Friend Overloads Shared Function IsTargetAttribute(
+            attributeClass As NamedTypeSymbol,
+            namespaceName As String,
+            typeName As String,
+            Optional ignoreCase As Boolean = False
+        ) As Boolean
+            If attributeClass.IsErrorType() AndAlso Not TypeOf attributeClass Is MissingMetadataTypeSymbol Then
+                ' Can't guarantee complete name information.
+                Return False
+            End If
+
+            Dim options As StringComparison = If(ignoreCase, StringComparison.OrdinalIgnoreCase, StringComparison.Ordinal)
+            Return attributeClass.HasNameQualifier(namespaceName, options) AndAlso
+                attributeClass.Name.Equals(typeName, options)
+        End Function
     End Class
 
 End Namespace

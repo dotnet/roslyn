@@ -19,6 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #endif 
         Cci.IEventDefinition
     {
+        bool Cci.IDefinition.IsEncDeleted
+            => false;
+
         #region IEventDefinition Members
 
         IEnumerable<Cci.IMethodReference> Cci.IEventDefinition.GetAccessors(EmitContext context)
@@ -112,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return PEModuleBuilder.MemberVisibility(AdaptedEventSymbol);
+                return AdaptedEventSymbol.MetadataVisibility;
             }
         }
 

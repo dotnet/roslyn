@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.Diagnostics.AnalyzerDriver;
@@ -1083,7 +1084,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             break;
 
                         case SymbolDeclaredCompilationEvent symbolDeclaredCompilationEvent:
-                            if (!symbolDeclaredCompilationEvent.SymbolInternal.IsDefinedInSourceTree(tree, definedWithinSpan: null, cancellationToken))
+                            if (!shouldIncludeSymbol(symbolDeclaredCompilationEvent.SymbolInternal, tree, cancellationToken))
                                 continue;
 
                             break;
@@ -1101,6 +1102,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 return builder.ToImmutableAndFree();
+
+                static bool shouldIncludeSymbol(ISymbolInternal symbol, SyntaxTree tree, CancellationToken cancellationToken)
+                {
+                    if (symbol.IsDefinedInSourceTree(tree, definedWithinSpan: null, cancellationToken))
+                        return true;
+
+                    // Always include both parts of partial in analysis if any one part is defined in the tree.
+                    if (symbol is IMethodSymbolInternal methodSymbol)
+                    {
+                        if (methodSymbol.PartialDefinitionPart?.IsDefinedInSourceTree(tree, definedWithinSpan: null, cancellationToken) == true
+                            || methodSymbol.PartialImplementationPart?.IsDefinedInSourceTree(tree, definedWithinSpan: null, cancellationToken) == true)
+                        {
+                            return true;
+                        }
+                    }
+
+                    // https://github.com/dotnet/roslyn/issues/73772: should we also check IPropertySymbol?
+                    // there is no interface IPropertySymbolInternal
+                    // where are tests for this?
+
+                    return false;
+                }
             }
         }
 

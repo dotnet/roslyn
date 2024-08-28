@@ -7,7 +7,6 @@ using System.Runtime.Serialization;
 using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -17,15 +16,12 @@ namespace Microsoft.CodeAnalysis;
 /// as new generations happen. This is mostly for convenience as we are reguarly working with this combination of values.
 /// </summary>
 [DataContract]
-internal readonly record struct SourceGeneratedDocumentIdentity
-    : IObjectWritable, IEquatable<SourceGeneratedDocumentIdentity>
+internal readonly record struct SourceGeneratedDocumentIdentity : IEquatable<SourceGeneratedDocumentIdentity>
 {
     [DataMember(Order = 0)] public DocumentId DocumentId { get; }
     [DataMember(Order = 1)] public string HintName { get; }
     [DataMember(Order = 2)] public SourceGeneratorIdentity Generator { get; }
     [DataMember(Order = 3)] public string FilePath { get; }
-
-    bool IObjectWritable.ShouldReuseInSerialization => true;
 
     public SourceGeneratedDocumentIdentity(DocumentId documentId, string hintName, SourceGeneratorIdentity generator, string filePath)
     {
@@ -92,12 +88,12 @@ internal readonly record struct SourceGeneratedDocumentIdentity
     {
         var documentId = DocumentId.ReadFrom(reader);
 
-        var hintName = reader.ReadString();
-        var generatorAssemblyName = reader.ReadString();
+        var hintName = reader.ReadRequiredString();
+        var generatorAssemblyName = reader.ReadRequiredString();
         var generatorAssemblyPath = reader.ReadString();
-        var generatorAssemblyVersion = Version.Parse(reader.ReadString());
-        var generatorTypeName = reader.ReadString();
-        var filePath = reader.ReadString();
+        var generatorAssemblyVersion = Version.Parse(reader.ReadRequiredString());
+        var generatorTypeName = reader.ReadRequiredString();
+        var filePath = reader.ReadRequiredString();
 
         return new SourceGeneratedDocumentIdentity(
             documentId,

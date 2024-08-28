@@ -119,9 +119,7 @@ End Namespace
             Dim outputCompilation As Compilation = Nothing
             Dim outputDiagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, outputCompilation, outputDiagnostics)
-            outputDiagnostics.Verify(
-                    Diagnostic("BC42501").WithArguments("CallbackGenerator", "Exception", "Init Exception").WithLocation(1, 1)
-            )
+            VerifyGeneratorExceptionDiagnostic(Of Exception)(outputDiagnostics.Single(), NameOf(CallbackGenerator), "Init Exception", initialization:=True)
         End Sub
 
         <Fact>
@@ -137,9 +135,7 @@ End Namespace
             Dim outputCompilation As Compilation = Nothing
             Dim outputDiagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, outputCompilation, outputDiagnostics)
-            outputDiagnostics.Verify(
-                    Diagnostic("BC42502").WithArguments("CallbackGenerator", "Exception", "Generate Exception").WithLocation(1, 1)
-            )
+            VerifyGeneratorExceptionDiagnostic(Of Exception)(outputDiagnostics.Single(), NameOf(CallbackGenerator), "Generate Exception")
 
         End Sub
 
@@ -155,9 +151,7 @@ End Namespace
             Dim outputCompilation As Compilation = Nothing
             Dim outputDiagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, outputCompilation, outputDiagnostics)
-            outputDiagnostics.Verify(
-                Diagnostic("BC42502").WithArguments("VBGenerator", "Exception", "Syntax Walk").WithLocation(1, 1)
-            )
+            VerifyGeneratorExceptionDiagnostic(Of Exception)(outputDiagnostics.Single(), NameOf(VBGenerator), "Syntax Walk")
         End Sub
 
         <Fact>
@@ -322,8 +316,7 @@ End Class",
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(generator), parseOptions:=parseOptions)
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, Diagnostics)
-            diagnostics.Verify(
-                ArgumentExceptionDiagnostic("PipelineCallbackGenerator", "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed.", "diagnostic").WithLocation(1, 1))
+            VerifyArgumentExceptionDiagnostic(diagnostics.Single(), NameOf(PipelineCallbackGenerator), "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed.", "diagnostic")
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -355,8 +348,7 @@ End Class",
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(generator), parseOptions:=parseOptions)
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
-            diagnostics.Verify(
-                ArgumentExceptionDiagnostic("PipelineCallbackGenerator", "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed.", "diagnostic").WithLocation(1, 1))
+            VerifyArgumentExceptionDiagnostic(diagnostics.Single(), NameOf(PipelineCallbackGenerator), "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed.", "diagnostic")
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -385,8 +377,7 @@ End Class",
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(generator), parseOptions:=parseOptions)
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
-            diagnostics.Verify(
-                ArgumentExceptionDiagnostic("CallbackGenerator", "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed.", "diagnostic").WithLocation(1, 1))
+            VerifyArgumentExceptionDiagnostic(diagnostics.Single(), NameOf(CallbackGenerator), "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed.", "diagnostic")
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -417,8 +408,7 @@ End Class",
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(generator), parseOptions:=parseOptions)
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
-            diagnostics.Verify(
-                ArgumentExceptionDiagnostic("CallbackGenerator", "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed.", "diagnostic").WithLocation(1, 1))
+            VerifyArgumentExceptionDiagnostic(diagnostics.Single(), NameOf(CallbackGenerator), "Reported diagnostic 'TEST0001' has a source location in file '/detached', which is not part of the compilation being analyzed.", "diagnostic")
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -448,8 +438,7 @@ End Class",
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(generator), parseOptions:=parseOptions)
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
-            diagnostics.Verify(
-                ArgumentExceptionDiagnostic("PipelineCallbackGenerator", "Reported diagnostic 'TEST0001' has a source location '[2..100)' in file '/original', which is outside of the given file.", "diagnostic").WithLocation(1, 1))
+            VerifyArgumentExceptionDiagnostic(diagnostics.Single(), NameOf(PipelineCallbackGenerator), "Reported diagnostic 'TEST0001' has a source location '[2..100)' in file '/original', which is outside of the given file.", "diagnostic")
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -480,8 +469,7 @@ End Class",
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(generator), parseOptions:=parseOptions)
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
-            diagnostics.Verify(
-                ArgumentExceptionDiagnostic("PipelineCallbackGenerator", "Reported diagnostic 'TEST0001' has a source location '[2..100)' in file '/original', which is outside of the given file.", "diagnostic").WithLocation(1, 1))
+            VerifyArgumentExceptionDiagnostic(diagnostics.Single(), NameOf(PipelineCallbackGenerator), "Reported diagnostic 'TEST0001' has a source location '[2..100)' in file '/original', which is outside of the given file.", "diagnostic")
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -510,8 +498,7 @@ End Class",
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(generator), parseOptions:=parseOptions)
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
-            diagnostics.Verify(
-                ArgumentExceptionDiagnostic("CallbackGenerator", "Reported diagnostic 'TEST0001' has a source location '[2..100)' in file '/original', which is outside of the given file.", "diagnostic").WithLocation(1, 1))
+            VerifyArgumentExceptionDiagnostic(diagnostics.Single(), NameOf(CallbackGenerator), "Reported diagnostic 'TEST0001' has a source location '[2..100)' in file '/original', which is outside of the given file.", "diagnostic")
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -541,8 +528,7 @@ End Class",
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(generator), parseOptions:=parseOptions)
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
-            diagnostics.Verify(
-                ArgumentExceptionDiagnostic("CallbackGenerator", "Reported diagnostic 'TEST0001' has a source location '[2..100)' in file '/original', which is outside of the given file.", "diagnostic").WithLocation(1, 1))
+            VerifyArgumentExceptionDiagnostic(diagnostics.Single(), NameOf(CallbackGenerator), "Reported diagnostic 'TEST0001' has a source location '[2..100)' in file '/original', which is outside of the given file.", "diagnostic")
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -572,8 +558,7 @@ End Class",
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(generator), parseOptions:=parseOptions)
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
-            diagnostics.Verify(
-                ArgumentExceptionDiagnostic("PipelineCallbackGenerator", "Reported diagnostic has an ID 'TEST 0001', which is not a valid identifier.", "diagnostic").WithLocation(1, 1))
+            VerifyArgumentExceptionDiagnostic(diagnostics.Single(), NameOf(PipelineCallbackGenerator), "Reported diagnostic has an ID 'TEST 0001', which is not a valid identifier.", "diagnostic")
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -602,8 +587,7 @@ End Class",
             Dim driver As GeneratorDriver = VisualBasicGeneratorDriver.Create(ImmutableArray.Create(generator), parseOptions:=parseOptions)
             Dim diagnostics As ImmutableArray(Of Diagnostic) = Nothing
             driver.RunGeneratorsAndUpdateCompilation(compilation, compilation, diagnostics)
-            diagnostics.Verify(
-                ArgumentExceptionDiagnostic("CallbackGenerator", "Reported diagnostic has an ID 'TEST 0001', which is not a valid identifier.", "diagnostic").WithLocation(1, 1))
+            VerifyArgumentExceptionDiagnostic(diagnostics.Single(), NameOf(CallbackGenerator), "Reported diagnostic has an ID 'TEST 0001', which is not a valid identifier.", "diagnostic")
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -736,14 +720,27 @@ End Class
             diagnostics.Verify(expected)
         End Sub
 
-        Shared Function ArgumentExceptionDiagnostic(generatorName As String, message As String, parameterName As String) As DiagnosticDescription
-#If NETCOREAPP Then
-            Dim fullMessage = $"{message} (Parameter '{parameterName}')"
+        Shared Sub VerifyArgumentExceptionDiagnostic(diagnostic As Diagnostic, generatorName As String, message As String, parameterName As String, Optional initialization As Boolean = False)
+#If NET Then
+            Dim expectedMessage = $"{message} (Parameter '{parameterName}')"
 #Else
-            Dim fullMessage = $"{message}{Environment.NewLine}Parameter name: {parameterName}"
+            Dim expectedMessage = $"{message}{Environment.NewLine}Parameter name: {parameterName}"
 #End If
-            Return Diagnostic("BC42502").WithArguments(generatorName, NameOf(ArgumentException), fullMessage)
-        End Function
+            VerifyGeneratorExceptionDiagnostic(Of ArgumentException)(diagnostic, generatorName, expectedMessage, initialization)
+        End Sub
+
+        Shared Sub VerifyGeneratorExceptionDiagnostic(Of T As Exception)(diagnostic As Diagnostic, generatorName As String, message As String, Optional initialization As Boolean = False)
+            Dim errorCode = If(initialization, ERRID.WRN_GeneratorFailedDuringInitialization, ERRID.WRN_GeneratorFailedDuringGeneration)
+            Assert.Equal("BC" & CInt(errorCode), diagnostic.Id)
+            Assert.Equal(NoLocation.Singleton, diagnostic.Location)
+            Assert.Equal(4, diagnostic.Arguments.Count)
+            Assert.Equal(generatorName, diagnostic.Arguments(0))
+            Dim typeName = GetType(T).Name
+            Assert.Equal(typeName, diagnostic.Arguments(1))
+            Assert.Equal(message, diagnostic.Arguments(2))
+            Dim expectedDetails = $"System.{typeName}: {message}{Environment.NewLine}   "
+            Assert.StartsWith(expectedDetails, TryCast(diagnostic.Arguments(3), String))
+        End Sub
     End Class
 
     <Generator(LanguageNames.VisualBasic)>

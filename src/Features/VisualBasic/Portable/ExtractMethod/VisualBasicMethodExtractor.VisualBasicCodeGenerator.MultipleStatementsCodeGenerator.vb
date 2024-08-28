@@ -15,35 +15,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Private Class MultipleStatementsCodeGenerator
                 Inherits VisualBasicCodeGenerator
 
-                Public Sub New(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
-                    MyBase.New(insertionPoint, selectionResult, analyzerResult, options)
+                Public Sub New(selectionResult As VisualBasicSelectionResult, analyzerResult As AnalyzerResult, options As VisualBasicCodeGenerationOptions)
+                    MyBase.New(selectionResult, analyzerResult, options)
                 End Sub
-
-                Public Shared Function IsExtractMethodOnMultipleStatements(code As SelectionResult) As Boolean
-                    Dim result = DirectCast(code, VisualBasicSelectionResult)
-                    Dim first = result.GetFirstStatement()
-                    Dim last = result.GetLastStatement()
-                    If first IsNot last Then
-                        Dim firstUnderContainer = result.GetFirstStatementUnderContainer()
-                        Dim lastUnderContainer = result.GetLastStatementUnderContainer()
-                        Contract.ThrowIfFalse(firstUnderContainer.Parent Is lastUnderContainer.Parent)
-                        Return True
-                    End If
-
-                    Return False
-                End Function
 
                 Protected Overrides Function CreateMethodName() As SyntaxToken
                     ' change this to more smarter one.
                     Dim semanticModel = SemanticDocument.SemanticModel
                     Dim nameGenerator = New UniqueNameGenerator(semanticModel)
-                    Dim containingScope = Me.VBSelectionResult.GetContainingScope()
+                    Dim containingScope = Me.SelectionResult.GetContainingScope()
                     Return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(containingScope, "NewMethod"))
                 End Function
 
                 Protected Overrides Function GetInitialStatementsForMethodDefinitions() As ImmutableArray(Of StatementSyntax)
-                    Dim firstStatementUnderContainer = Me.VBSelectionResult.GetFirstStatementUnderContainer()
-                    Dim lastStatementUnderContainer = Me.VBSelectionResult.GetLastStatementUnderContainer()
+                    Dim firstStatementUnderContainer = Me.SelectionResult.GetFirstStatementUnderContainer()
+                    Dim lastStatementUnderContainer = Me.SelectionResult.GetLastStatementUnderContainer()
 
                     Dim statements = firstStatementUnderContainer.Parent.GetStatements()
 
@@ -60,17 +46,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                     Return nodes.ToImmutableArray()
                 End Function
 
-                Protected Overrides Function GetOutermostCallSiteContainerToProcess(cancellationToken As CancellationToken) As SyntaxNode
-                    Dim callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken)
-                    Return If(callSiteContainer, Me.VBSelectionResult.GetFirstStatementUnderContainer().Parent)
-                End Function
-
                 Protected Overrides Function GetFirstStatementOrInitializerSelectedAtCallSite() As StatementSyntax
-                    Return Me.VBSelectionResult.GetFirstStatementUnderContainer()
+                    Return Me.SelectionResult.GetFirstStatementUnderContainer()
                 End Function
 
                 Protected Overrides Function GetLastStatementOrInitializerSelectedAtCallSite() As StatementSyntax
-                    Return Me.VBSelectionResult.GetLastStatementUnderContainer()
+                    Return Me.SelectionResult.GetLastStatementUnderContainer()
                 End Function
 
                 Protected Overrides Function GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(cancellationToken As CancellationToken) As Task(Of StatementSyntax)

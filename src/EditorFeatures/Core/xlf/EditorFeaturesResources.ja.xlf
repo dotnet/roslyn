@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ja" original="../EditorFeaturesResources.resx">
     <body>
+      <trans-unit id="An_error_occurred_while_generating_documentation_for_this_code">
+        <source>An error occurred while generating documentation for this code.</source>
+        <target state="translated">このコードのドキュメントの生成中にエラーが発生しました。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
         <target state="translated">識別子 '{0}' のインラインの名前変更セッションがアクティブです。追加オプションにアクセスするには、インラインの名前変更をもう一度呼び出します。名前を変更する識別子はいつでも引き続き編集できます。</target>
@@ -17,34 +22,29 @@
         <target state="translated">カレットの下のシンボルに移動できません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Change_configuration">
-        <source>Change configuration</source>
-        <target state="translated">構成の変更</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Code_cleanup_is_not_configured">
-        <source>Code cleanup is not configured</source>
-        <target state="translated">コード クリーンアップは構成されていません</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">'フィールドのカプセル化' 情報を計算中</target>
         <note />
       </trans-unit>
-      <trans-unit id="Configure_it_now">
-        <source>Configure it now</source>
-        <target state="translated">今すぐ構成する</target>
+      <trans-unit id="Copilot">
+        <source>Copilot</source>
+        <target state="translated">Copilot</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copilot_thinking">
+        <source>Copilot thinking...</source>
+        <target state="translated">Copilot は考え中です...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Describe_with_Copilot">
+        <source>Describe with Copilot</source>
+        <target state="translated">Copilot で説明する</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
         <source>Do not prefer 'this.' or 'Me.'</source>
         <target state="translated">'this.' または 'Me' を優先しない</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_not_show_this_message_again">
-        <source>Do not show this message again</source>
-        <target state="translated">今後、このメッセージを表示しない</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
@@ -77,24 +77,14 @@
         <target state="translated">フィルター</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
-      <trans-unit id="Format_document_performed_additional_cleanup">
-        <source>Format Document performed additional cleanup</source>
-        <target state="translated">ドキュメントのフォーマットで追加のクリーンアップが実行されました</target>
+      <trans-unit id="Generate_summary_with_Copilot">
+        <source>Generate summary with Copilot (might be inaccurate)</source>
+        <target state="translated">Copilot で要約を生成する (不正確になる可能性があります)</target>
         <note />
       </trans-unit>
       <trans-unit id="Get_help_for_0">
         <source>Get help for '{0}'</source>
         <target state="translated">'{0}' のヘルプの表示</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Gathering_Suggestions_0">
-        <source>Gathering Suggestions - '{0}'</source>
-        <target state="translated">提案を収集しています - '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
-        <source>Gathering Suggestions - Waiting for the solution to fully load</source>
-        <target state="translated">提案を収集しています - ソリューションが完全に読み込まれるのを待機しています</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_To_Base">
@@ -237,6 +227,16 @@
         <target state="translated">いいえ</target>
         <note />
       </trans-unit>
+      <trans-unit id="Obsolete_symbol">
+        <source>Obsolete symbol</source>
+        <target state="translated">古い記号</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="On_the_fly_documentation">
+        <source>On-the-fly documentation</source>
+        <target state="translated">オンザフライのドキュメント</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
         <target state="translated">演算子 - オーバーロード</target>
@@ -292,6 +292,11 @@
         <target state="translated">再割り当てされる変数</target>
         <note />
       </trans-unit>
+      <trans-unit id="Refine_using_Copilot">
+        <source>Refine using Copilot</source>
+        <target state="translated">Copilot を使用して絞り込む</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">ファイル名の変更 (種類がファイル名と一致しません)(_F)</target>
@@ -314,12 +319,17 @@
       </trans-unit>
       <trans-unit id="Roslyn_Test_Code">
         <source>Roslyn Test Code</source>
-        <target state="new">Roslyn Test Code</target>
+        <target state="translated">Roslyn テスト コード</target>
         <note />
       </trans-unit>
       <trans-unit id="Roslyn_Test_Code_Markup">
         <source>Roslyn Test Code Markup</source>
-        <target state="new">Roslyn Test Code Markup</target>
+        <target state="translated">Roslyn テスト コード マークアップ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run">
+        <source>Run</source>
+        <target state="translated">実行</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_comment">
@@ -577,11 +587,6 @@
         <target state="translated">XML ドキュメント コメント - 属性値</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unnecessary_Code">
-        <source>Unnecessary Code</source>
-        <target state="translated">不要なコード</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rude_Edit">
         <source>Rude Edit</source>
         <target state="translated">Rude 編集</target>
@@ -627,19 +632,24 @@
         <target state="translated">{0} 個の競合が解決されます</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_declarations_and_interceptors">
+        <source>'{0}' declarations and interceptors</source>
+        <target state="new">'{0}' declarations and interceptors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_implemented_members">
         <source>'{0}' implemented members</source>
         <target state="translated">'{0}' が実装されたメンバー</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_intercepted_locations">
+        <source>'{0}' intercepted locations</source>
+        <target state="translated">'{0}' が傍受された場所</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
         <source>{0} unresolvable conflict(s)</source>
         <target state="translated">未解決の競合 {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Applying_0">
-        <source>Applying "{0}"...</source>
-        <target state="translated">"{0}" を適用しています...</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_to_1_with_content_colon">
@@ -697,11 +707,6 @@
         <target state="translated">フィールドのカプセル化</target>
         <note />
       </trans-unit>
-      <trans-unit id="Applying_Encapsulate_Field_refactoring">
-        <source>Applying "Encapsulate Field" refactoring...</source>
-        <target state="translated">"フィールドのカプセル化" リファクタリングを適用しています...</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Please_select_the_definition_of_the_field_to_encapsulate">
         <source>Please select the definition of the field to encapsulate.</source>
         <target state="translated">カプセル化するフィールドの定義を選択してください。</target>
@@ -727,11 +732,6 @@
         <target state="translated">情報が見つかりません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="No_usages_found">
-        <source>No usages found.</source>
-        <target state="translated">使用状況が見つかりません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implements_">
         <source>Implements</source>
         <target state="translated">実装</target>
@@ -752,84 +752,14 @@
         <target state="translated">オーバーライド元</target>
         <note />
       </trans-unit>
-      <trans-unit id="Directly_Called_In">
-        <source>Directly Called In</source>
-        <target state="translated">直接に呼び出し済み</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indirectly_Called_In">
-        <source>Indirectly Called In</source>
-        <target state="translated">間接的に呼び出し済み</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Called_In">
-        <source>Called In</source>
-        <target state="translated">呼び出し済み</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Referenced_In">
-        <source>Referenced In</source>
-        <target state="translated">参照先</target>
-        <note />
-      </trans-unit>
       <trans-unit id="No_references_found">
         <source>No references found.</source>
         <target state="translated">参照が見つかりません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="No_derived_types_found">
-        <source>No derived types found.</source>
-        <target state="translated">派生型が見つかりません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_implementations_found">
-        <source>No implementations found.</source>
-        <target state="translated">実装が見つかりません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_Line_1">
-        <source>{0} - (Line {1})</source>
-        <target state="translated">{0} - (行 {1})</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Class_Parts">
-        <source>Class Parts</source>
-        <target state="translated">クラスの部品</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Struct_Parts">
-        <source>Struct Parts</source>
-        <target state="translated">構造体の部品</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_Parts">
-        <source>Interface Parts</source>
-        <target state="translated">インターフェイス パーツ</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Parts">
-        <source>Type Parts</source>
-        <target state="translated">型の部品</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inherits_">
         <source>Inherits</source>
         <target state="translated">継承</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inherited_By">
-        <source>Inherited By</source>
-        <target state="translated">継承先</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Already_tracking_document_with_identical_key">
-        <source>Already tracking document with identical key</source>
-        <target state="translated">同じキーを持つドキュメントを既に追跡しています</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="document_is_not_currently_being_tracked">
-        <source>document is not currently being tracked</source>
-        <target state="translated">ドキュメントが現在追跡されていません</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_Rename_information">
@@ -887,24 +817,9 @@
         <target state="translated">自動補完しています...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatic_Pair_Completion">
-        <source>Automatic Pair Completion</source>
-        <target state="translated">ペアの自動補完</target>
-        <note />
-      </trans-unit>
       <trans-unit id="An_active_inline_rename_session_is_still_active_Complete_it_before_starting_a_new_one">
         <source>An active inline rename session is still active. Complete it before starting a new one.</source>
         <target state="translated">アクティブなインラインの名前変更セッションがアクティブなままです。新しいセッションを開始する前に完了してください。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_buffer_is_not_part_of_a_workspace">
-        <source>The buffer is not part of a workspace.</source>
-        <target state="translated">バッファーはワークスペースの一部ではありません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_token_is_not_contained_in_the_workspace">
-        <source>The token is not contained in the workspace.</source>
-        <target state="translated">トークンはワークスペースに含まれていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigation_Bars">
@@ -917,24 +832,9 @@
         <target state="translated">ナビゲーション バーを更新しています...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Token">
-        <source>Format Token</source>
-        <target state="translated">書式トークン</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Find_References">
         <source>Find References</source>
         <target state="translated">参照の検索</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Finding_references">
-        <source>Finding references...</source>
-        <target state="translated">参照を検索しています...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Finding_references_of_0">
-        <source>Finding references of "{0}"...</source>
-        <target state="translated">"{0}" の参照を検索しています...</target>
         <note />
       </trans-unit>
       <trans-unit id="Comment_Selection">
@@ -982,11 +882,6 @@
         <target state="translated">"メソッドの抽出" リファクタリングを適用しています...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Document">
-        <source>Format Document</source>
-        <target state="translated">ドキュメントのフォーマット</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_document">
         <source>Formatting document...</source>
         <target state="translated">ドキュメントを書式設定しています...</target>
@@ -995,11 +890,6 @@
       <trans-unit id="Formatting">
         <source>Formatting</source>
         <target state="translated">書式設定</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_Selection">
-        <source>Format Selection</source>
-        <target state="translated">選択範囲のフォーマット</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_currently_selected_text">
@@ -1042,11 +932,6 @@
         <target state="translated">インラインの名前変更の Fixup</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Rename_Resolved_Conflict">
-        <source>Inline Rename Resolved Conflict</source>
-        <target state="translated">インラインの名前変更の競合を解決しました</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inline_Rename">
         <source>Inline Rename</source>
         <target state="translated">インラインの名前変更</target>
@@ -1060,11 +945,6 @@
       <trans-unit id="Start_Rename">
         <source>Start Rename</source>
         <target state="translated">名前の変更を開始</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Display_conflict_resolutions">
-        <source>Display conflict resolutions</source>
-        <target state="translated">競合する解像度の表示</target>
         <note />
       </trans-unit>
       <trans-unit id="Finding_token_to_rename">
@@ -1107,29 +987,9 @@
         <target state="translated">{0} の名前変更</target>
         <note />
       </trans-unit>
-      <trans-unit id="Light_bulb_session_is_already_dismissed">
-        <source>Light bulb session is already dismissed.</source>
-        <target state="translated">電球セッションは既に閉鎖されています。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatic_Pair_Completion_End_Point_Marker_Color">
-        <source>Automatic Pair Completion End Point Marker Color</source>
-        <target state="translated">ペアの自動補完の終点のマーカーの色</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
         <target state="translated">インタラクティブ ウィンドウにエンジンを関連付ける必要があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changes_the_current_prompt_settings">
-        <source>Changes the current prompt settings.</source>
-        <target state="translated">現在のプロンプトの設定を変更します。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unexpected_text_colon_0">
-        <source>Unexpected text: '{0}'</source>
-        <target state="translated">予期しないテキスト: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="The_triggerSpan_is_not_included_in_the_given_workspace">
@@ -1145,11 +1005,6 @@
       <trans-unit id="The_transaction_is_already_complete">
         <source>The transaction is already complete.</source>
         <target state="translated">トランザクションが既に完了します。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Not_a_source_error_line_column_unavailable">
-        <source>Not a source error, line/column unavailable</source>
-        <target state="translated">ソース エラーではなく、行/列を使用できません</target>
         <note />
       </trans-unit>
       <trans-unit id="Can_t_compare_positions_from_different_text_snapshots">
@@ -1232,11 +1087,6 @@
         <target state="translated">変更のプレビュー</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Paste">
-        <source>Format Paste</source>
-        <target state="translated">書式の貼り付け</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_pasted_text">
         <source>Formatting pasted text...</source>
         <target state="translated">貼り付けたテキストを書式設定しています...</target>
@@ -1294,11 +1144,6 @@ Do you want to proceed?</source>
         <target state="translated">インターフェイスの実装 '{0}' への呼び出し</target>
         <note />
       </trans-unit>
-      <trans-unit id="Computing_Call_Hierarchy_Information">
-        <source>Computing Call Hierarchy Information</source>
-        <target state="translated">呼び出し階層情報を計算しています</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implements_0">
         <source>Implements '{0}'</source>
         <target state="translated">'{0}' を実装します</target>
@@ -1349,11 +1194,6 @@ Do you want to proceed?</source>
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="IntelliSense_Commit_Formatting">
-        <source>IntelliSense Commit Formatting</source>
-        <target state="translated">IntelliSense のコミットの書式設定</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_Tracking">
         <source>Rename Tracking</source>
         <target state="translated">名前変更の追跡</target>
@@ -1362,11 +1202,6 @@ Do you want to proceed?</source>
       <trans-unit id="Removing_0_from_1_with_content_colon">
         <source>Removing '{0}' from '{1}' with content:</source>
         <target state="translated">コンテンツを含む '{0}' を '{1}' から削除しています:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation">
-        <source>'{0}' does not support the '{1}' operation. However, it may contain nested '{2}'s (see '{2}.{3}') that support this operation.</source>
-        <target state="translated">'{0}' は '{1}' の操作をサポートしません。ただし、この操作をサポートする入れ子になった '{2}' を含めることはできます ('{2}.{3}' を参照)。</target>
         <note />
       </trans-unit>
       <trans-unit id="Brace_Completion">
@@ -1429,11 +1264,6 @@ Do you want to proceed?</source>
         <target state="translated">移動中...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggestion_ellipses">
-        <source>Suggestion ellipses (…)</source>
-        <target state="translated">提案事項の省略記号 (…)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="_0_declarations">
         <source>'{0}' declarations</source>
         <target state="translated">'{0}' の宣言</target>
@@ -1462,11 +1292,6 @@ Do you want to proceed?</source>
       <trans-unit id="Comment_Uncomment_Selection">
         <source>Comment/Uncomment Selection</source>
         <target state="translated">選択範囲のコメント/コメント解除</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Code_Completion">
-        <source>Code Completion</source>
-        <target state="translated">コード補完</target>
         <note />
       </trans-unit>
       <trans-unit id="Execute_In_Interactive">
@@ -1557,11 +1382,6 @@ Do you want to proceed?</source>
       <trans-unit id="Signature_Help">
         <source>Signature Help</source>
         <target state="translated">シグネチャ ヘルプ</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Smart_Token_Formatter">
-        <source>Smart Token Formatter</source>
-        <target state="translated">スマート トークン フォーマッタ</target>
         <note />
       </trans-unit>
     </body>

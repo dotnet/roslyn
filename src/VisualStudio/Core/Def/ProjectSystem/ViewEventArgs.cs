@@ -7,15 +7,12 @@
 using System;
 using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+
+internal class ViewEventArgs : EventArgs
 {
-    internal class ViewEventArgs : EventArgs
-    {
-        private readonly IVsTextView _textView;
+    public ViewEventArgs(IVsTextView textView)
+        => TextView = textView;
 
-        public ViewEventArgs(IVsTextView textView)
-            => _textView = textView;
-
-        public IVsTextView TextView { get { return _textView; } }
-    }
+    public IVsTextView TextView { get; }
 }

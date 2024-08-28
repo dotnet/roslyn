@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Public Overrides Function GetCapturedVariables(model As SemanticModel) As ImmutableArray(Of ISymbol)
-            Return model.AnalyzeDataFlow(If(TryCast(_node.Parent, LambdaExpressionSyntax), _node)).Captured
+            Return model.AnalyzeDataFlow(If(TryCast(_node.Parent, LambdaExpressionSyntax), _node)).CapturedInside
         End Function
 
         Public Overrides Function TryGetPartnerLambdaBody(newLambda As SyntaxNode) As LambdaBody

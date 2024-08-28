@@ -45,7 +45,6 @@ Class C
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
                 Dim previewEngine = New PreviewEngine(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     forkedDocument.Project.Solution,
                     workspace.CurrentSolution,
@@ -77,7 +76,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, composition:=s_composition)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml, composition:=s_composition)
                 Dim expectedItems = New List(Of Tuple(Of String, Integer)) From
                     {
                     Tuple.Create("topLevelItemName", 0),
@@ -106,7 +105,6 @@ Class C
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
                 Dim previewEngine = New PreviewEngine(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     newSolution,
                     workspace.CurrentSolution,
@@ -142,7 +140,6 @@ Class C
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
                 Dim previewEngine = New PreviewEngine(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     forkedDocument.Project.Solution,
                     workspace.CurrentSolution,
@@ -185,7 +182,7 @@ Class C
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, composition:=s_composition)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml, composition:=s_composition)
                 Dim docId = workspace.Documents.First().Id
                 Dim document = workspace.CurrentSolution.GetDocument(docId)
 
@@ -208,7 +205,6 @@ Class C
                 newSolution = newSolution.AddDocument(addedDocumentId2, "test5.cs", "// This file will be unchecked and not added!")
 
                 Dim previewEngine = New PreviewEngine(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     newSolution,
                     workspace.CurrentSolution,
@@ -269,7 +265,7 @@ End Class
                                    </Project>
                                </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, composition:=s_composition)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml, composition:=s_composition)
                 Dim documentId1 = workspace.Documents.Where(Function(d) d.Project.Name = "VBProj1").Single().Id
                 Dim document1 = workspace.CurrentSolution.GetDocument(documentId1)
 
@@ -289,7 +285,6 @@ End Class
                 Dim componentModel = New MockComponentModel(workspace.ExportProvider)
 
                 Dim previewEngine = New PreviewEngine(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
                     "Title", "helpString", "description", "topLevelItemName", Glyph.Assembly,
                     updatedSolution,
                     workspace.CurrentSolution,

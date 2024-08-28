@@ -40,11 +40,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">減法必須是字元類別中的最後一個元素</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
       </trans-unit>
-      <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_requires_restarting_the_application">
-        <source>Accessing captured variable '{0}' that hasn't been accessed before in {1} requires restarting the application.</source>
-        <target state="translated">存取在 {1} 中尚未存取的擷取到的變數 '{0}' 需要重新啟動應用程式。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
         <target state="translated">新增 'DebuggerDisplay' 屬性</target>
@@ -113,11 +108,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Adding_0_requires_restarting_the_application">
         <source>Adding {0} requires restarting the application.</source>
         <target state="translated">新增 {0} 需要重新啟動應用程式。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
-        <source>Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
-        <target state="translated">新增在不同的範圍中宣告存取擷取到的變數 '{1}' 和 '{2}' 的 {0}，需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_with_the_Handles_clause_requires_restarting_the_application">
@@ -316,8 +306,8 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
-        <source>Awaited task returns '{0}'</source>
-        <target state="translated">等待的工作會傳回 '{0}'</target>
+        <source>Awaited task returns {0}</source>
+        <target state="translated">等待的工作會傳回 {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_no_value">
@@ -325,9 +315,9 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">等待的工作不會傳回任何值</target>
         <note />
       </trans-unit>
-      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
-        <source>Base classes contain inaccessible unimplemented members</source>
-        <target state="translated">基底類別包含無法存取的未實作成員</target>
+      <trans-unit id="Built_in_Copilot_analysis">
+        <source>Built-in Copilot analysis</source>
+        <target state="translated">內建 Copilot 分析</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
@@ -362,27 +352,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
         <source>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</source>
-        <target state="new">Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
-        <source>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</source>
-        <target state="translated">擷取之前尚未擷取的變數 '{0}' 需要重新啟動應用程式。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application">
-        <source>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</source>
-        <target state="translated">停止在 {1} 中存取擷取到的變數 '{0}' 需要重新啟動應用程式。</target>
+        <target state="translated">擷取之前尚未擷取的主要建構函式參數 '{0}' 需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
       <trans-unit id="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application">
         <source>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</source>
-        <target state="new">Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_capture_variable_0_requires_restarting_the_application">
-        <source>Ceasing to capture variable '{0}' requires restarting the application.</source>
-        <target state="new">Ceasing to capture variable '{0}' requires restarting the application.</target>
+        <target state="translated">停止擷取 '{1}' 的主要建構函式參數 '{0}' 需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
@@ -425,6 +400,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">將 {0} 從非同步變更為同步需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_0_might_not_have_any_effect_until_the_application_is_restarted">
+        <source>Changing '{0}' might not have any effect until the application is restarted.</source>
+        <target state="translated">在重新啟動應用程式之前，變更 '{0}' 可能不會有任何作用。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_0_to_1_requires_restarting_the_application_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' requires restarting the application because it changes the shape of the state machine.</source>
         <target state="translated">將 '{0}' 變更為 '{1}' 需要重新啟動應用程式，因為它會變更狀態機器的圖形。</target>
@@ -437,12 +417,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Changing_attribute_0_requires_restarting_the_application">
         <source>Changing attribute '{0}' requires restarting the application.</source>
-        <target state="new">Changing attribute '{0}' requires restarting the application.</target>
+        <target state="translated">變更屬性 '{0}' 需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_constraints_of_0_requires_restarting_the_application">
         <source>Changing constraints of {0} requires restarting the application.</source>
         <target state="translated">變更 {0} 的限制式需要重新啟動應用程式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_name_or_signature_of_0_that_contains_an_active_statement_requires_restarting_the_application">
+        <source>Changing attribute '{0}' requires restarting the application.</source>
+        <target state="translated">變更屬性 '{0}' 需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_parameter_types_of_0_requires_restarting_the_application">
@@ -475,9 +460,9 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">變更 {0} 的傳回型別需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_type_of_0_requires_restarting_the_application">
-        <source>Changing the type of {0} requires restarting the application.</source>
-        <target state="translated">變更 {0} 的類型需要重新啟動應用程式。</target>
+      <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</source>
+        <target state="translated">變更 {0} 的簽章需要重新啟動應用程式，因為執行階段不支援它。</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application">
@@ -497,7 +482,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Chosen_version_0">
         <source>Chosen version: '{0}'</source>
-        <target state="new">Chosen version: '{0}'</target>
+        <target state="translated">選擇的版本: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_snippet_for_0">
@@ -547,7 +532,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Convert_number">
         <source>Convert number</source>
-        <target state="new">Convert number</target>
+        <target state="translated">轉換號碼</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -597,7 +582,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Could_not_find_by_name_0">
         <source>Could not find by name: '{0}'</source>
-        <target state="new">Could not find by name: '{0}'</target>
+        <target state="translated">依名稱 '{0}' 找不到結果</target>
         <note />
       </trans-unit>
       <trans-unit id="Could_not_find_implementation_of_symbol_0">
@@ -627,17 +612,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Debug_All_Tests">
         <source>Debug All Tests</source>
-        <target state="new">Debug All Tests</target>
+        <target state="translated">偵錯所有測試</target>
         <note />
       </trans-unit>
       <trans-unit id="Debug_Test">
         <source>Debug Test</source>
-        <target state="new">Debug Test</target>
+        <target state="translated">偵錯測試</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompilation_log">
         <source>Decompilation log</source>
-        <target state="new">Decompilation log</target>
+        <target state="translated">反向組譯記錄檔</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiled">
@@ -665,19 +650,14 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">刪除 {0} 需要重新啟動應用程式，因為執行階段不支援它。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
-        <source>Deleting captured variable '{0}' requires restarting the application.</source>
-        <target state="translated">刪除擷取到的變數 '{0}' 需要重新啟動應用程式。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Directives_from_0">
         <source>Directives from '{0}'</source>
         <target state="translated">來自 '{0}' 的指示詞</target>
         <note />
       </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
-        <source>Do not change this code. Put cleanup code in '{0}' method</source>
-        <target state="translated">請勿變更此程式碼。請將清除程式碼放入 '{0}' 方法</target>
+      <trans-unit id="Dismiss">
+        <source>Dismiss</source>
+        <target state="translated">關閉</target>
         <note />
       </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
@@ -780,6 +760,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">未在適用的符號上叫用 [尋找所有參考]</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_All_0">
+        <source>Fix All: {0}</source>
+        <target state="translated">全部修正：{0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">修正錯字 '{0}'</target>
@@ -797,7 +782,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Found_0_assemblies_for_1">
         <source>Found '{0}' assemblies for '{1}':</source>
-        <target state="new">Found '{0}' assemblies for '{1}':</target>
+        <target state="translated">找到 '{0}' 個 '{1}' 的組件:</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_PDB_file_at_0">
@@ -822,27 +807,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Found_exact_match_0">
         <source>Found exact match: '{0}'</source>
-        <target state="new">Found exact match: '{0}'</target>
+        <target state="translated">找到完全相符項: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_higher_version_match_0">
         <source>Found higher version match: '{0}'</source>
-        <target state="new">Found higher version match: '{0}'</target>
+        <target state="translated">找到更高版本的相符項: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_single_assembly_0">
         <source>Found single assembly: '{0}'</source>
-        <target state="new">Found single assembly: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_method_0">
-        <source>Generate abstract method '{0}'</source>
-        <target state="translated">產生抽象方法 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_property_0">
-        <source>Generate abstract property '{0}'</source>
-        <target state="translated">產生抽象屬性 '{0}'</target>
+        <target state="translated">找到單一組件: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_comparison_operators">
@@ -850,64 +825,9 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">產生比較運算子</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constant_0">
-        <source>Generate constant '{0}'</source>
-        <target state="translated">產生常數 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_fields">
-        <source>Generate constructor in '{0}' (with fields)</source>
-        <target state="translated">在 '{0}' 中產生建構函式 (使用欄位)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_properties">
-        <source>Generate constructor in '{0}' (with properties)</source>
-        <target state="translated">在 '{0}' 中產生建構函式 (使用屬性)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_enum_member_0">
-        <source>Generate enum member '{0}'</source>
-        <target state="translated">產生列舉成員 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_0">
-        <source>Generate field '{0}'</source>
-        <target state="translated">產生欄位 '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="translated">為 '{0}' 產生</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_method_0">
-        <source>Generate method '{0}'</source>
-        <target state="translated">產生方法 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_parameter_0">
-        <source>Generate parameter '{0}'</source>
-        <target state="translated">產生參數 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_parameter_0_and_overrides_implementations">
-        <source>Generate parameter '{0}' (and overrides/implementations)</source>
-        <target state="translated">產生參數 '{0}' (以及覆寫/實作)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_property_0">
-        <source>Generate property '{0}'</source>
-        <target state="translated">產生屬性 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_field_0">
-        <source>Generate read-only field '{0}'</source>
-        <target state="translated">產生唯讀欄位 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_property_0">
-        <source>Generate read-only property '{0}'</source>
-        <target state="translated">產生唯讀屬性 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -940,11 +860,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">隱含實作 '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_abstract_class">
-        <source>Implement abstract class</source>
-        <target state="translated">實作抽象類別</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_all_interfaces_explicitly">
         <source>Implement all interfaces explicitly</source>
         <target state="translated">明確實作所有介面</target>
@@ -955,11 +870,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">隱含實作所有介面</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_all_members_explicitly">
-        <source>Implement all members explicitly</source>
-        <target state="translated">明確實作所有成員</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
         <target state="translated">明確實作</target>
@@ -968,16 +878,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">隱含實作</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_remaining_members_explicitly">
-        <source>Implement remaining members explicitly</source>
-        <target state="translated">明確實作剩餘的成員</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_through_0">
-        <source>Implement through '{0}'</source>
-        <target state="translated">透過 '{0}' 實作</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
@@ -1112,7 +1012,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Load_from_0">
         <source>Load from: '{0}'</source>
-        <target state="new">Load from: '{0}'</target>
+        <target state="translated">載入來源: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
@@ -1163,6 +1063,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="MethodMustReturnStreamThatSupportsReadAndSeek">
         <source>{0} must return a stream that supports read and seek operations.</source>
         <target state="translated">{0} 必須傳回支援讀取和搜尋作業的資料流。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method_0_must_be_static_and_non_generic">
+        <source>Method '{0}' must be static and non-generic</source>
+        <target state="translated">方法 '{0}' 必須是靜態和非泛型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method_0_must_have_a_single_parameter_of_type_1_and_return_2">
+        <source>Method '{0}' must have a single parameter of type '{1}' and return '{2}'</source>
+        <target state="translated">方法 '{0}' 必須具有類型為 '{1}' 的單一參數，並傳回 '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Miscellaneous_Files">
@@ -1247,7 +1157,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Module_not_found">
         <source>Module not found!</source>
-        <target state="new">Module not found!</target>
+        <target state="translated">找不到模組!</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -1278,6 +1188,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Moving_0_requires_restarting_the_application">
         <source>Moving {0} requires restarting the application.</source>
         <target state="translated">移動 {0} 需要重新啟動應用程式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NET_Code_Actions">
+        <source>.NET Code Actions</source>
+        <target state="new">.NET Code Actions</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_expected">
@@ -1394,6 +1309,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Quantifier {x,y} following nothing</source>
         <target state="translated">數量詞 {x,y} 前面沒有任何項目</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
+      </trans-unit>
+      <trans-unit id="Query">
+        <source>Query</source>
+        <target state="translated">查詢</target>
+        <note />
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group">
         <source>reference to undefined group</source>
@@ -2530,14 +2450,14 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">不支援移除文件</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_Imports_or_usings">
-        <source>Remove unnecessary Imports or usings</source>
-        <target state="translated">移除不必要的 Import 或 Using</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
         <target state="translated">移除不必要的 Cast</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_imports_or_usings">
+        <source>Remove unnecessary imports or usings</source>
+        <target state="translated">移除不必要的 Import 或 Using</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameters">
@@ -2553,11 +2473,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Remove_unused_variables">
         <source>Remove unused variables</source>
         <target state="translated">移除未使用的變數</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
-        <source>Removing {0} that accessed captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
-        <target state="translated">移除已存取擷取到的變數 '{1}' 和 '{2}' 的 {0}，需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_requires_restarting_the_application">
@@ -2602,17 +2517,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Resolve_0">
         <source>Resolve: '{0}'</source>
-        <target state="new">Resolve: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Resolve_conflict_markers">
-        <source>Resolve conflict markers</source>
-        <target state="translated">解決衝突標記</target>
+        <target state="translated">解析: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Resolve_module_0_of_1">
         <source>Resolve module: '{0}' of '{1}'</source>
-        <target state="new">Resolve module: '{0}' of '{1}'</target>
+        <target state="translated">解析模組: '{0}' 之 '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="RudeEdit">
@@ -2622,12 +2532,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Run_All_Tests">
         <source>Run All Tests</source>
-        <target state="new">Run All Tests</target>
+        <target state="translated">執行所有測試</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_Test">
         <source>Run Test</source>
-        <target state="new">Run Test</target>
+        <target state="translated">執行測試</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
@@ -2638,6 +2548,26 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Selection_not_contained_inside_a_type">
         <source>Selection not contained inside a type.</source>
         <target state="translated">選取範圍未包含在類型內。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticSearch">
+        <source>Semantic Search</source>
+        <target state="translated">語意搜尋</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_only_supported_on_net_core">
+        <source>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</source>
+        <target state="translated">只有當程式碼分析在最新的 .NET 上以單獨的流程執行時，才支援語意搜尋 (請參閱 [工具] &gt; [選項] &gt; [文字編輯器] &gt; C# &gt; [進階])。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_query_failed_to_compile">
+        <source>Semantic search query failed to compile</source>
+        <target state="translated">語意搜尋查詢無法編譯</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_query_terminated_with_exception">
+        <source>Semantic search query terminated with exception</source>
+        <target state="translated">語意搜尋查詢因例外狀況已終止</target>
         <note />
       </trans-unit>
       <trans-unit id="Silent">
@@ -2700,19 +2630,19 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">在組件路徑 '{0}' 中找到符號</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_search">
+        <source>Symbol search</source>
+        <target state="new">Symbol search</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Symbols">
+        <source>Symbols</source>
+        <target state="translated">符號</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Syntax_error">
         <source>Syntax error</source>
         <target state="translated">語法錯誤</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
-        <target state="translated">TODO: 釋出非受控資源 (非受控物件) 並覆寫完成項</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
-        <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
-        <target state="translated">TODO: 僅有當 '{0}' 具有會釋出非受控資源的程式碼時，才覆寫完成項</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
@@ -2728,6 +2658,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
         <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
         <target state="translated">分析程式組件 '{0}' 參考編譯器的版本 '{1}' ，比目前執行的版本 '{2}' 還要新。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_query_does_not_specify_0_method_or_top_level_function">
+        <source>The query does not specify '{0}' method or top-level function</source>
+        <target state="translated">查詢未指定 '{0}' 方法或頂層函式</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2783,6 +2718,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">無法讀取來源檔案 '{0}' 或為包含該檔案之專案所建置的 PDB。等到此檔案的內容與已建置的來源一致後，才會套用於偵錯期間對此檔案所做的所有變更。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_load_type_0_1">
+        <source>Unable to load type '{0}': '{1}'</source>
+        <target state="translated">無法載入類型 '{0}': '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_property">
@@ -2863,6 +2803,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Unwrap_call_chain">
         <source>Unwrap call chain</source>
         <target state="translated">將呼叫鏈取消包裝</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_collection">
+        <source>Unwrap collection</source>
+        <target state="translated">取消包裝集合</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
@@ -2975,6 +2920,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">更新 {0} 的大小需要重新啟動應用程式。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application">
+        <source>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</source>
+        <target state="new">Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">
         <source>Updating the type of {0} requires restarting the application.</source>
         <target state="translated">更新 {0} 的類型需要重新啟動應用程式。</target>
@@ -3002,7 +2952,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="WARN_Version_mismatch_Expected_0_Got_1">
         <source>WARN: Version mismatch. Expected: '{0}', Got: '{1}'</source>
-        <target state="new">WARN: Version mismatch. Expected: '{0}', Got: '{1}'</target>
+        <target state="translated">警告: 版本不符。應為: '{0}'，但取得: '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
@@ -3035,6 +2985,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">包裝呼叫鏈</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_collection">
+        <source>Wrap collection</source>
+        <target state="translated">包裝集合</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_every_argument">
         <source>Wrap every argument</source>
         <target state="translated">包裝每個引數</target>
@@ -3063,6 +3018,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">包裝長呼叫鏈</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_collection">
+        <source>Wrap long collection</source>
+        <target state="translated">包裝長集合</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_initializer">
@@ -3187,7 +3147,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="_0_items_in_cache">
         <source>'{0}' items in cache</source>
-        <target state="new">'{0}' items in cache</target>
+        <target state="translated">快取中有 '{0}' 個項目</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_literal_not_allowed">
@@ -3468,7 +3428,7 @@ If the "H" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="class_with_explicit_or_sequential_layout">
         <source>class with explicit or sequential layout</source>
-        <target state="new">class with explicit or sequential layout</target>
+        <target state="translated">具有明確或循序配置的類別</target>
         <note />
       </trans-unit>
       <trans-unit id="code">
@@ -3810,11 +3770,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">無法擷取介面: 此類型不包含任何可以擷取至介面的成員。</target>
         <note />
       </trans-unit>
-      <trans-unit id="can_t_not_construct_final_tree">
-        <source>can't not construct final tree</source>
-        <target state="translated">無法建構最終的樹狀結構</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket">
         <source>Parameters' type or return type cannot be an anonymous type : [{0}]</source>
         <target state="translated">參數的類型或傳回類型不可為匿名類型: [{0}]</target>
@@ -3865,16 +3820,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">產生委派建構函式 '{0}({1})'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_0_1">
-        <source>Generate constructor '{0}({1})'</source>
-        <target state="translated">產生建構函式 '{0}({1})'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_assigning_constructor_0_1">
-        <source>Generate field assigning constructor '{0}({1})'</source>
-        <target state="translated">產生欄位指派建構函式 '{0}({1})'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_Equals_and_GetHashCode">
         <source>Generate Equals and GetHashCode</source>
         <target state="translated">產生 Equals 與 GetHashCode</target>
@@ -3890,21 +3835,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">產生 GetHashCode()</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_in_0">
-        <source>Generate constructor in '{0}'</source>
-        <target state="translated">在 '{0}' 中產生建構函式</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_all">
-        <source>Generate all</source>
-        <target state="translated">產生全部</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_local_0">
-        <source>Generate local '{0}'</source>
-        <target state="translated">產生區域 '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_0_1_in_new_file">
         <source>Generate {0} '{1}' in new file</source>
         <target state="translated">在新檔案中產生 {0} '{1}'</target>
@@ -3913,21 +3843,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Generate_nested_0_1">
         <source>Generate nested {0} '{1}'</source>
         <target state="translated">產生巢狀 {0} '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_abstractly">
-        <source>Implement interface abstractly</source>
-        <target state="translated">以抽象方式實作介面</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_through_0">
-        <source>Implement interface through '{0}'</source>
-        <target state="translated">透過 '{0}' 實作介面</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface">
-        <source>Implement interface</source>
-        <target state="translated">實作介面</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_field_for_0">
@@ -4210,16 +4125,6 @@ Do you want to continue?</source>
         <target state="translated">注意: 按兩次 Tab 鍵即可插入 '{0}' 程式碼片段。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
-        <source>Implement interface explicitly with Dispose pattern</source>
-        <target state="translated">使用 Dispose 模式明確地實作介面</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_with_Dispose_pattern">
-        <source>Implement interface with Dispose pattern</source>
-        <target state="translated">使用 Dispose 模式實作介面</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">
         <source>Computing fix all occurrences code fix...</source>
         <target state="translated">正在計算修正所有出現程式碼修正之處...</target>
@@ -4243,16 +4148,6 @@ Do you want to continue?</source>
       <trans-unit id="Solution">
         <source>Solution</source>
         <target state="translated">解決方案</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
-        <source>TODO: dispose managed state (managed objects)</source>
-        <target state="translated">TODO: 處置受控狀態 (受控物件)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_set_large_fields_to_null">
-        <source>TODO: set large fields to null</source>
-        <target state="translated">TODO: 將大型欄位設為 Null</target>
         <note />
       </trans-unit>
       <trans-unit id="Compiler2">
@@ -4603,11 +4498,6 @@ This version used in: {2}</source>
       <trans-unit id="Install_version_0">
         <source>Install version '{0}'</source>
         <target state="translated">安裝 '{0}' 版</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_variable_0">
-        <source>Generate variable '{0}'</source>
-        <target state="translated">產生變數 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Classes">

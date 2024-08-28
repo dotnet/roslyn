@@ -7,12 +7,11 @@
 using System;
 using System.Composition;
 
-namespace Microsoft.CodeAnalysis.BraceMatching
+namespace Microsoft.CodeAnalysis.BraceMatching;
+
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class)]
+internal sealed class ExportBraceMatcherAttribute(string language) : ExportAttribute(typeof(IBraceMatcher))
 {
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
-    internal sealed class ExportBraceMatcherAttribute(string language) : ExportAttribute(typeof(IBraceMatcher))
-    {
-        public string Language { get; } = language ?? throw new ArgumentNullException(nameof(language));
-    }
+    public string Language { get; } = language ?? throw new ArgumentNullException(nameof(language));
 }

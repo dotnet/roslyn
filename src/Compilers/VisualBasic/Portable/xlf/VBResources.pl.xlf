@@ -42,6 +42,21 @@
         <target state="translated">Element „System.Runtime.CompilerServices.RequiredMemberAttribute” jest zarezerwowany tylko do użycia przez kompilator.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="translated">Argument diagnosticId atrybutu „Experimental” musi być prawidłowym identyfikatorem</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidVersionFormatDeterministic">
+        <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
+        <target state="new">The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LockTypeUnsupported">
+        <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
+        <target state="translated">Wartość typu „System.Threading.Lock” nie jest obsługiwana w funkcji SyncLock. Zamiast tego, rozważ ręczne wywołanie metod „Wprowadź” i „Wyjdź” w bloku Spróbuj/Zakończ.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">Wiele plików konfiguracji analizatora nie może znajdować się w tym samym katalogu („{0}”).</target>
@@ -603,6 +618,16 @@
         <target state="translated">Atrybut CallerArgumentExpressionAttribute zastosowany do parametru nie będzie działać, ponieważ jest to odwołanie samodzielne.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConvertingLock">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">Wartość typu „System.Threading.Lock” przekonwertowana na inny typ użyje prawdopodobnie niezamierzonej blokady opartej na monitorze w instrukcji SyncLock.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock_Title">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">Wartość typu „System.Threading.Lock” przekonwertowana na inny typ użyje prawdopodobnie niezamierzonej blokady opartej na monitorze w instrukcji SyncLock.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">
         <source>Analyzer reference '{0}' specified multiple times</source>
         <target state="translated">Odwołanie analizatora „{0}” określono wiele razy</target>
@@ -614,16 +639,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">Generator „{0}” nie mógł wygenerować źródła. W rezultacie nie będzie on współtworzyć danych wyjściowych i mogą wystąpić błędy kompilacji. Typ wyjątku: „{1}”, komunikat: „{2}”</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">Generator zgłosił następujący wyjątek:
-„{0}”.</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">Generator „{0}” nie mógł wygenerować źródła. W rezultacie nie będzie on współtworzyć danych wyjściowych i mogą wystąpić błędy kompilacji. Wyjątek był typu „{1}” z komunikatem „{2}”.
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -631,16 +654,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">Generator „{0}” nie mógł przeprowadzić inicjalizacji. W rezultacie nie będzie on współtworzyć danych wyjściowych i mogą wystąpić błędy kompilacji. Typ wyjątku: „{1}”, komunikat: „{2}”</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">Generator zgłosił następujący wyjątek:
-„{0}”.</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">Generator „{0}” nie mógł przeprowadzić inicjalizacji. W rezultacie nie będzie on współtworzyć danych wyjściowych i mogą wystąpić błędy kompilacji. Wyjątek był typu „{1}” z komunikatem „{2}”.
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
@@ -7676,8 +7697,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
-        <source>The specified version string does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="translated">Określony ciąg wersji nie jest zgodny z zalecanym formatem — wersja_główna.wersja_pomocnicza.kompilacja.poprawka</target>
+        <source>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</source>
+        <target state="needs-review-translation">Określony ciąg wersji nie jest zgodny z zalecanym formatem — wersja_główna.wersja_pomocnicza.kompilacja.poprawka</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyCultureForExe">

@@ -122,12 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         }
 
         protected override Cci.TypeMemberVisibility Visibility
-        {
-            get
-            {
-                return PEModuleBuilder.MemberVisibility(UnderlyingField.AdaptedFieldSymbol);
-            }
-        }
+            => UnderlyingField.AdaptedFieldSymbol.MetadataVisibility;
 
         protected override string Name
         {

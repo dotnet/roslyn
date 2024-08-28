@@ -15,46 +15,41 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.UseExplicitTupleName
+namespace Microsoft.CodeAnalysis.UseExplicitTupleName;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseExplicitTupleName), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal partial class UseExplicitTupleNameCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseExplicitTupleName), Shared]
-    internal partial class UseExplicitTupleNameCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    public override ImmutableArray<string> FixableDiagnosticIds { get; }
+        = [IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId];
+
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public UseExplicitTupleNameCodeFixProvider()
+        RegisterCodeFix(context, AnalyzersResources.Use_explicitly_provided_tuple_name, nameof(AnalyzersResources.Use_explicitly_provided_tuple_name));
+        return Task.CompletedTask;
+    }
+
+    protected override Task FixAllAsync(
+        Document document, ImmutableArray<Diagnostic> diagnostics,
+        SyntaxEditor editor, CancellationToken cancellationToken)
+    {
+        var generator = editor.Generator;
+
+        foreach (var diagnostic in diagnostics)
         {
+            var oldNameNode = diagnostic.Location.FindNode(
+                getInnermostNodeForTie: true, cancellationToken: cancellationToken);
+
+            var preferredName = diagnostic.Properties[nameof(UseExplicitTupleNameDiagnosticAnalyzer.ElementName)];
+            Contract.ThrowIfNull(preferredName);
+
+            var newNameNode = generator.IdentifierName(preferredName).WithTriviaFrom(oldNameNode);
+
+            editor.ReplaceNode(oldNameNode, newNameNode);
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; }
-            = ImmutableArray.Create(IDEDiagnosticIds.UseExplicitTupleNameDiagnosticId);
-
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            RegisterCodeFix(context, AnalyzersResources.Use_explicitly_provided_tuple_name, nameof(AnalyzersResources.Use_explicitly_provided_tuple_name));
-            return Task.CompletedTask;
-        }
-
-        protected override Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-        {
-            var generator = editor.Generator;
-
-            foreach (var diagnostic in diagnostics)
-            {
-                var oldNameNode = diagnostic.Location.FindNode(
-                    getInnermostNodeForTie: true, cancellationToken: cancellationToken);
-
-                var preferredName = diagnostic.Properties[nameof(UseExplicitTupleNameDiagnosticAnalyzer.ElementName)];
-                Contract.ThrowIfNull(preferredName);
-
-                var newNameNode = generator.IdentifierName(preferredName).WithTriviaFrom(oldNameNode);
-
-                editor.ReplaceNode(oldNameNode, newNameNode);
-            }
-
-            return Task.CompletedTask;
-        }
+        return Task.CompletedTask;
     }
 }

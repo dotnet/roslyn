@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="ko" original="../VBWorkspaceResources.resx">
     <body>
-      <trans-unit id="Namespace_can_not_be_added_in_this_destination">
-        <source>Namespace can not be added in this destination.</source>
-        <target state="translated">이 대상에는 네임스페이스를 추가할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Only_attributes_expressions_or_statements_can_be_made_explicit">
         <source>Only attributes, expressions or statements can be made explicit</source>
         <target state="translated">특성, 식 또는 문만 명시적일 수 있습니다.</target>
@@ -24,7 +19,7 @@
       </trans-unit>
       <trans-unit id="VB_Coding_Conventions">
         <source>VB Coding Conventions</source>
-        <target state="new">VB Coding Conventions</target>
+        <target state="translated">VB 코딩 규칙</target>
         <note />
       </trans-unit>
       <trans-unit id="event_">
@@ -225,21 +220,6 @@
       <trans-unit id="Introduces_a_type_conversion_operation_that_does_not_throw_an_exception_If_an_attempted_conversion_fails_TryCast_returns_Nothing_which_your_program_can_test_for">
         <source>Introduces a type conversion operation that does not throw an exception. If an attempted conversion fails, TryCast returns Nothing, which your program can test for.</source>
         <target state="translated">예외를 throw하지 않는 형식 변환 작업을 지정합니다. 변환하지 못한 경우 프로그램에서 테스트할 수 있도록 TryCast에서 Nothing을 반환합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_does_not_descend_from_root">
-        <source>Node does not descend from root.</source>
-        <target state="translated">노드가 루트의 내림차순이 아닙니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_not_in_parent_s_child_list">
-        <source>Node not in parent's child list</source>
-        <target state="translated">부모의 자식 목록에 노드가 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Trivia_is_not_associated_with_token">
-        <source>Trivia is not associated with token</source>
-        <target state="translated">Trivia가 토큰에 연결되어 있지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="typeOrMember">

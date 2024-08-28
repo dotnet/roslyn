@@ -3,18 +3,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net6.0-windows;net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v1" />
+    <EmbeddedResource Include="Resources\Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v2" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
     <ProjectReference Include="..\CoreTestUtilities\Microsoft.CodeAnalysis.Workspaces.Test.Utilities.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="System.Buffers" Version="$(SystemBuffersVersion)" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
+    <ProjectReference Include="..\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
+    <ProjectReference Include="..\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

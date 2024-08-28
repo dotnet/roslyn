@@ -42,7 +42,7 @@ unsafe class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1), options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1), options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (4,18): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
                 //     delegate ref readonly int D1();
@@ -87,7 +87,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1), options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1), options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (4,19): error CS8302: Feature 'readonly references' is not available in C# 7.1. Please use language version 7.2 or greater.
                 //     static void M(in int x)
@@ -185,7 +185,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (9,10): error CS1073: Unexpected token 'ref'
                 //         (ref readonly int, ref readonly int Alice)? t = null;

@@ -12,32 +12,31 @@ using Microsoft.CodeAnalysis.Internal.Editing;
 using Microsoft.CodeAnalysis.Editing;
 #endif
 
-namespace Microsoft.CodeAnalysis.CodeGeneration
+namespace Microsoft.CodeAnalysis.CodeGeneration;
+
+internal class CodeGenerationConversionSymbol(
+    INamedTypeSymbol containingType,
+    ImmutableArray<AttributeData> attributes,
+    Accessibility declaredAccessibility,
+    DeclarationModifiers modifiers,
+    ITypeSymbol toType,
+    IParameterSymbol fromType,
+    bool isImplicit,
+    ImmutableArray<AttributeData> toTypeAttributes,
+    string documentationCommentXml) : CodeGenerationMethodSymbol(containingType,
+          attributes,
+          declaredAccessibility,
+          modifiers,
+          returnType: toType,
+          refKind: RefKind.None,
+          explicitInterfaceImplementations: default,
+          name: isImplicit
+                  ? WellKnownMemberNames.ImplicitConversionName
+                  : WellKnownMemberNames.ExplicitConversionName,
+          typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
+          parameters: ImmutableArray.Create(fromType),
+          returnTypeAttributes: toTypeAttributes,
+          documentationCommentXml)
 {
-    internal class CodeGenerationConversionSymbol(
-        INamedTypeSymbol containingType,
-        ImmutableArray<AttributeData> attributes,
-        Accessibility declaredAccessibility,
-        DeclarationModifiers modifiers,
-        ITypeSymbol toType,
-        IParameterSymbol fromType,
-        bool isImplicit,
-        ImmutableArray<AttributeData> toTypeAttributes,
-        string documentationCommentXml) : CodeGenerationMethodSymbol(containingType,
-              attributes,
-              declaredAccessibility,
-              modifiers,
-              returnType: toType,
-              refKind: RefKind.None,
-              explicitInterfaceImplementations: default,
-              name: isImplicit
-                      ? WellKnownMemberNames.ImplicitConversionName
-                      : WellKnownMemberNames.ExplicitConversionName,
-              typeParameters: ImmutableArray<ITypeParameterSymbol>.Empty,
-              parameters: ImmutableArray.Create(fromType),
-              returnTypeAttributes: toTypeAttributes,
-              documentationCommentXml)
-    {
-        public override MethodKind MethodKind => MethodKind.Conversion;
-    }
+    public override MethodKind MethodKind => MethodKind.Conversion;
 }

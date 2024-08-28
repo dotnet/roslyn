@@ -8,21 +8,19 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.ServiceHub.Framework;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Api;
+
+internal static class RazorBrokeredServiceImplementation
 {
-    internal static class RazorBrokeredServiceImplementation
-    {
-        public static ValueTask<T> RunServiceAsync<T>(Func<CancellationToken, ValueTask<T>> implementation, CancellationToken cancellationToken)
-            => BrokeredServiceBase.RunServiceImplAsync<T>(implementation, cancellationToken);
+    public static ValueTask<T> RunServiceAsync<T>(Func<CancellationToken, ValueTask<T>> implementation, CancellationToken cancellationToken)
+        => BrokeredServiceBase.RunServiceImplAsync<T>(implementation, cancellationToken);
 
-        public static ValueTask RunServiceAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
-            => BrokeredServiceBase.RunServiceImplAsync(implementation, cancellationToken);
+    public static ValueTask RunServiceAsync(Func<CancellationToken, ValueTask> implementation, CancellationToken cancellationToken)
+        => BrokeredServiceBase.RunServiceImplAsync(implementation, cancellationToken);
 
-        [Obsolete("Use RunServiceAsync (that is passsed a Solution) instead", error: false)]
-        public static ValueTask<Solution> GetSolutionAsync(this RazorPinnedSolutionInfoWrapper solutionInfo, ServiceBrokerClient client, CancellationToken cancellationToken)
-            => RemoteWorkspaceManager.Default.GetSolutionAsync(client, solutionInfo.UnderlyingObject, cancellationToken);
+    public static ValueTask<T> RunServiceAsync<T>(this RazorPinnedSolutionInfoWrapper solutionInfo, ServiceBrokerClient client, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
+        => RemoteWorkspaceManager.Default.RunServiceAsync(client, solutionInfo.UnderlyingObject, implementation, cancellationToken);
 
-        public static ValueTask<T> RunServiceAsync<T>(this RazorPinnedSolutionInfoWrapper solutionInfo, ServiceBrokerClient client, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
-            => RemoteWorkspaceManager.Default.RunServiceAsync(client, solutionInfo.UnderlyingObject, implementation, cancellationToken);
-    }
+    public static Workspace GetWorkspace()
+        => RemoteWorkspaceManager.Default.GetWorkspace();
 }

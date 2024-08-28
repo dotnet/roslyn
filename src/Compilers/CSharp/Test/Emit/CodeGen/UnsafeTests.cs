@@ -4419,26 +4419,35 @@ public static class FixableExt
 
             compVerifier.VerifyIL("C.Main", @"
 {
-  // Code size       34 (0x22)
+  // Code size       49 (0x31)
   .maxstack  2
   .locals init (Fixable V_0,
-                pinned int& V_1)
+            pinned int& V_1,
+            Fixable? V_2)
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    ""Fixable""
   IL_0008:  ldloc.0
   IL_0009:  newobj     ""Fixable?..ctor(Fixable)""
-  IL_000e:  call       ""ref int FixableExt.GetPinnableReference(Fixable?)""
-  IL_0013:  stloc.1
-  IL_0014:  ldloc.1
-  IL_0015:  conv.u
-  IL_0016:  ldc.i4.4
-  IL_0017:  add
-  IL_0018:  ldind.i4
-  IL_0019:  call       ""void System.Console.WriteLine(int)""
-  IL_001e:  ldc.i4.0
-  IL_001f:  conv.u
-  IL_0020:  stloc.1
-  IL_0021:  ret
+  IL_000e:  stloc.2
+  IL_000f:  ldloca.s   V_2
+  IL_0011:  call       ""bool Fixable?.HasValue.get""
+  IL_0016:  brtrue.s   IL_001c
+  IL_0018:  ldc.i4.0
+  IL_0019:  conv.u
+  IL_001a:  br.s       IL_0025
+  IL_001c:  ldloc.2
+  IL_001d:  call       ""ref int FixableExt.GetPinnableReference(Fixable?)""
+  IL_0022:  stloc.1
+  IL_0023:  ldloc.1
+  IL_0024:  conv.u
+  IL_0025:  ldc.i4.4
+  IL_0026:  add
+  IL_0027:  ldind.i4
+  IL_0028:  call       ""void System.Console.WriteLine(int)""
+  IL_002d:  ldc.i4.0
+  IL_002e:  conv.u
+  IL_002f:  stloc.1
+  IL_0030:  ret
 }
 ");
         }
@@ -5401,7 +5410,7 @@ public struct Fixable
         public void CustomFixedStructVariousErr06_UseSite()
         {
             var missing_cs = "public struct Missing { }";
-            var missing = CreateCompilationWithMscorlib45(missing_cs, options: TestOptions.DebugDll, assemblyName: "missing");
+            var missing = CreateCompilationWithMscorlib461(missing_cs, options: TestOptions.DebugDll, assemblyName: "missing");
 
             var lib_cs = @"
 public struct Fixable
@@ -5412,7 +5421,7 @@ public struct Fixable
 }
 ";
 
-            var lib = CreateCompilationWithMscorlib45(lib_cs, references: new[] { missing.EmitToImageReference() }, options: TestOptions.DebugDll);
+            var lib = CreateCompilationWithMscorlib461(lib_cs, references: new[] { missing.EmitToImageReference() }, options: TestOptions.DebugDll);
 
             var source =
 @"
@@ -5427,7 +5436,7 @@ unsafe class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { lib.EmitToImageReference() }, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithMscorlib461(source, references: new[] { lib.EmitToImageReference() }, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (6,26): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         fixed (void* p = new Fixable(1))
@@ -5613,6 +5622,189 @@ public struct Fixable
                 // (6,25): error CS9385: The given expression cannot be used in a fixed statement
                 //         fixed (int* p = new Fixable())
                 Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new Fixable()").WithLocation(6, 25)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66167")]
+        public void Issue66167_01()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        Test((int?)null);
+        Test2((int?)null);
+    }
+
+    public static void Test<T>(T arg)
+    {
+        fixed (int* p = arg)
+        {
+            System.Console.Write(p == null? 0: p[1]);
+        }
+    }
+    public static void Test2(int? arg)
+    {
+        fixed (int* p = arg)
+        {
+            System.Console.Write(p == null? 0: p[1]);
+        }
+    }
+}
+
+static class FixAllExt
+{
+    public static ref int GetPinnableReference<T>(this T dummy)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+";
+
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"00", verify: Verification.Fails);
+
+            compVerifier.VerifyIL("C.Test<T>(T)", @"
+{
+  // Code size       49 (0x31)
+  .maxstack  2
+  .locals init (int* V_0, //p
+                pinned int& V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  box        ""T""
+  IL_0006:  brtrue.s   IL_000c
+  IL_0008:  ldc.i4.0
+  IL_0009:  conv.u
+  IL_000a:  br.s       IL_001b
+  IL_000c:  ldarga.s   V_0
+  IL_000e:  ldobj      ""T""
+  IL_0013:  call       ""ref int FixAllExt.GetPinnableReference<T>(T)""
+  IL_0018:  stloc.1
+  IL_0019:  ldloc.1
+  IL_001a:  conv.u
+  IL_001b:  stloc.0
+  IL_001c:  ldloc.0
+  IL_001d:  ldc.i4.0
+  IL_001e:  conv.u
+  IL_001f:  beq.s      IL_0027
+  IL_0021:  ldloc.0
+  IL_0022:  ldc.i4.4
+  IL_0023:  add
+  IL_0024:  ldind.i4
+  IL_0025:  br.s       IL_0028
+  IL_0027:  ldc.i4.0
+  IL_0028:  call       ""void System.Console.Write(int)""
+  IL_002d:  ldc.i4.0
+  IL_002e:  conv.u
+  IL_002f:  stloc.1
+  IL_0030:  ret
+}
+");
+
+            compVerifier.VerifyIL("C.Test2(int?)", @"
+{
+  // Code size       46 (0x2e)
+  .maxstack  2
+  .locals init (int* V_0, //p
+                pinned int& V_1,
+                int? V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.2
+  IL_0002:  ldloca.s   V_2
+  IL_0004:  call       ""bool int?.HasValue.get""
+  IL_0009:  brtrue.s   IL_000f
+  IL_000b:  ldc.i4.0
+  IL_000c:  conv.u
+  IL_000d:  br.s       IL_0018
+  IL_000f:  ldloc.2
+  IL_0010:  call       ""ref int FixAllExt.GetPinnableReference<int?>(int?)""
+  IL_0015:  stloc.1
+  IL_0016:  ldloc.1
+  IL_0017:  conv.u
+  IL_0018:  stloc.0
+  IL_0019:  ldloc.0
+  IL_001a:  ldc.i4.0
+  IL_001b:  conv.u
+  IL_001c:  beq.s      IL_0024
+  IL_001e:  ldloc.0
+  IL_001f:  ldc.i4.4
+  IL_0020:  add
+  IL_0021:  ldind.i4
+  IL_0022:  br.s       IL_0025
+  IL_0024:  ldc.i4.0
+  IL_0025:  call       ""void System.Console.Write(int)""
+  IL_002a:  ldc.i4.0
+  IL_002b:  conv.u
+  IL_002c:  stloc.1
+  IL_002d:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/66167")]
+        public void Issue66167_02()
+        {
+            var text = @"
+unsafe class C
+{
+    public static void Main()
+    {
+        fixed (int* p = new S1())
+        {
+        }
+
+        fixed (int* p = new S1?())
+        {
+        }
+
+        fixed (int* p = new S2())
+        {
+        }
+
+        fixed (int* p = new S2?())
+        {
+        }
+    }
+}
+
+struct S1
+{
+    public ref int GetPinnableReference()
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+
+struct S2
+{
+}
+
+static class FixAllExt
+{
+    public static ref int GetPinnableReference(this S2 dummy)
+    {
+        return ref (new int[]{1,2,3})[0];
+    }
+}
+";
+
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (10,25): error CS1929: 'S1?' does not contain a definition for 'GetPinnableReference' and the best extension method overload 'FixAllExt.GetPinnableReference(S2)' requires a receiver of type 'S2'
+                //         fixed (int* p = new S1?())
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new S1?()").WithArguments("S1?", "GetPinnableReference", "FixAllExt.GetPinnableReference(S2)", "S2").WithLocation(10, 25),
+                // (10,25): error CS8385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new S1?())
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new S1?()").WithLocation(10, 25),
+                // (18,25): error CS1929: 'S2?' does not contain a definition for 'GetPinnableReference' and the best extension method overload 'FixAllExt.GetPinnableReference(S2)' requires a receiver of type 'S2'
+                //         fixed (int* p = new S2?())
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "new S2?()").WithArguments("S2?", "GetPinnableReference", "FixAllExt.GetPinnableReference(S2)", "S2").WithLocation(18, 25),
+                // (18,25): error CS8385: The given expression cannot be used in a fixed statement
+                //         fixed (int* p = new S2?())
+                Diagnostic(ErrorCode.ERR_ExprCannotBeFixed, "new S2?()").WithLocation(18, 25)
                 );
         }
 

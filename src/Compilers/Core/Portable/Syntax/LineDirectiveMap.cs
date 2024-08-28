@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis
             // mapped to the entire 'MappedSpan', regardless of the size of the unmapped span,
             // even if the unmapped span ends before 'UnmappedCharacterOffset'.
             if (unmappedStartPos.Line == entry.UnmappedLine &&
-                unmappedStartPos.Character <= entry.UnmappedCharacterOffset.GetValueOrDefault())
+                unmappedStartPos.Character < entry.UnmappedCharacterOffset.GetValueOrDefault())
             {
                 return entry.MappedSpan;
             }

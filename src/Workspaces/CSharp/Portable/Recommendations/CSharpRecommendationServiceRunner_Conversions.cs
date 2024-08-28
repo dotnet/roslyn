@@ -17,7 +17,8 @@ internal partial class CSharpRecommendationService
     /// </summary>
     private sealed partial class CSharpRecommendationServiceRunner
     {
-        private static readonly ImmutableArray<SpecialType> s_predefinedEnumConversionTargets = ImmutableArray.Create(
+        private static readonly ImmutableArray<SpecialType> s_predefinedEnumConversionTargets =
+        [
             SpecialType.System_Byte,
             SpecialType.System_Char,
             SpecialType.System_Decimal,
@@ -29,51 +30,55 @@ internal partial class CSharpRecommendationService
             SpecialType.System_Int16,
             SpecialType.System_UInt32,
             SpecialType.System_UInt64,
-            SpecialType.System_UInt16);
+            SpecialType.System_UInt16,
+        ];
 
-        private static readonly ImmutableArray<SpecialType> s_sbyteConversions = ImmutableArray.Create(
-            SpecialType.System_Byte,
-            SpecialType.System_Char,
-            SpecialType.System_UInt32,
-            SpecialType.System_UInt64,
-            SpecialType.System_UInt16);
-
-        private static readonly ImmutableArray<SpecialType> s_byteConversions = ImmutableArray.Create(
-            SpecialType.System_Char,
-            SpecialType.System_SByte);
-
-        private static readonly ImmutableArray<SpecialType> s_int16Conversions = ImmutableArray.Create(
+        private static readonly ImmutableArray<SpecialType> s_sbyteConversions =
+        [
             SpecialType.System_Byte,
             SpecialType.System_Char,
             SpecialType.System_UInt32,
             SpecialType.System_UInt64,
             SpecialType.System_UInt16,
-            SpecialType.System_SByte);
+        ];
 
-        private static readonly ImmutableArray<SpecialType> s_uint16Conversions = ImmutableArray.Create(
+        private static readonly ImmutableArray<SpecialType> s_byteConversions = [SpecialType.System_Char, SpecialType.System_SByte];
+
+        private static readonly ImmutableArray<SpecialType> s_int16Conversions =
+        [
             SpecialType.System_Byte,
             SpecialType.System_Char,
+            SpecialType.System_UInt32,
+            SpecialType.System_UInt64,
+            SpecialType.System_UInt16,
             SpecialType.System_SByte,
-            SpecialType.System_Int16);
+        ];
 
-        private static readonly ImmutableArray<SpecialType> s_int32Conversions = ImmutableArray.Create(
+        private static readonly ImmutableArray<SpecialType> s_uint16Conversions = [SpecialType.System_Byte, SpecialType.System_Char, SpecialType.System_SByte, SpecialType.System_Int16];
+
+        private static readonly ImmutableArray<SpecialType> s_int32Conversions =
+        [
             SpecialType.System_Byte,
             SpecialType.System_Char,
             SpecialType.System_SByte,
             SpecialType.System_Int16,
             SpecialType.System_UInt32,
             SpecialType.System_UInt16,
-            SpecialType.System_UInt64);
+            SpecialType.System_UInt64,
+        ];
 
-        private static readonly ImmutableArray<SpecialType> s_uint32Conversions = ImmutableArray.Create(
+        private static readonly ImmutableArray<SpecialType> s_uint32Conversions =
+        [
             SpecialType.System_Byte,
             SpecialType.System_Char,
             SpecialType.System_Int32,
             SpecialType.System_SByte,
             SpecialType.System_Int16,
-            SpecialType.System_UInt16);
+            SpecialType.System_UInt16,
+        ];
 
-        private static readonly ImmutableArray<SpecialType> s_int64Conversions = ImmutableArray.Create(
+        private static readonly ImmutableArray<SpecialType> s_int64Conversions =
+        [
             SpecialType.System_Byte,
             SpecialType.System_Char,
             SpecialType.System_Int32,
@@ -81,9 +86,11 @@ internal partial class CSharpRecommendationService
             SpecialType.System_UInt64,
             SpecialType.System_UInt16,
             SpecialType.System_SByte,
-            SpecialType.System_Int16);
+            SpecialType.System_Int16,
+        ];
 
-        private static readonly ImmutableArray<SpecialType> s_uint64Conversions = ImmutableArray.Create(
+        private static readonly ImmutableArray<SpecialType> s_uint64Conversions =
+        [
             SpecialType.System_Byte,
             SpecialType.System_Char,
             SpecialType.System_Int32,
@@ -91,14 +98,13 @@ internal partial class CSharpRecommendationService
             SpecialType.System_UInt32,
             SpecialType.System_UInt16,
             SpecialType.System_SByte,
-            SpecialType.System_Int16);
+            SpecialType.System_Int16,
+        ];
 
-        private static readonly ImmutableArray<SpecialType> s_charConversions = ImmutableArray.Create(
-            SpecialType.System_Byte,
-            SpecialType.System_SByte,
-            SpecialType.System_Int16);
+        private static readonly ImmutableArray<SpecialType> s_charConversions = [SpecialType.System_Byte, SpecialType.System_SByte, SpecialType.System_Int16];
 
-        private static readonly ImmutableArray<SpecialType> s_singleConversions = ImmutableArray.Create(
+        private static readonly ImmutableArray<SpecialType> s_singleConversions =
+        [
             SpecialType.System_Byte,
             SpecialType.System_Char,
             SpecialType.System_Decimal,
@@ -108,9 +114,11 @@ internal partial class CSharpRecommendationService
             SpecialType.System_UInt64,
             SpecialType.System_UInt16,
             SpecialType.System_SByte,
-            SpecialType.System_Int16);
+            SpecialType.System_Int16,
+        ];
 
-        private static readonly ImmutableArray<SpecialType> s_doubleConversions = ImmutableArray.Create(
+        private static readonly ImmutableArray<SpecialType> s_doubleConversions =
+        [
             SpecialType.System_Byte,
             SpecialType.System_Char,
             SpecialType.System_Decimal,
@@ -121,7 +129,8 @@ internal partial class CSharpRecommendationService
             SpecialType.System_UInt64,
             SpecialType.System_UInt16,
             SpecialType.System_SByte,
-            SpecialType.System_Int16);
+            SpecialType.System_Int16,
+        ];
 
         private void AddConversions(ITypeSymbol container, ArrayBuilder<ISymbol> symbols)
         {

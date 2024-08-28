@@ -100,8 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override Location ErrorLocation
             => _property.Location;
 
-        protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
-            => _property.AttributeDeclarationSyntaxList;
+        protected override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+            => _property.GetAttributeDeclarations();
 
         public override Symbol AssociatedSymbol
             => _property;
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
 
-            if (attribute.IsTargetAttribute(this, AttributeDescription.FixedBufferAttribute))
+            if (attribute.IsTargetAttribute(AttributeDescription.FixedBufferAttribute))
             {
                 // error CS8362: Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on property
                 ((BindingDiagnosticBag)arguments.Diagnostics).Add(ErrorCode.ERR_DoNotUseFixedBufferAttrOnProperty, arguments.AttributeSyntaxOpt.Name.Location);
@@ -163,15 +163,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            foreach (var attribute in AttributeDeclarationSyntaxList)
+            foreach (var attributeList in GetAttributeDeclarations())
             {
-                if (attribute.Target?.GetAttributeLocation() == AttributeLocation.Field)
+                foreach (var attribute in attributeList)
                 {
-                    diagnostics.Add(
-                        new CSDiagnosticInfo(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable,
-                            languageVersion.ToDisplayString(),
-                            new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAttributesOnBackingFields.RequiredVersion())),
-                        attribute.Target.Location);
+                    if (attribute.Target?.GetAttributeLocation() == AttributeLocation.Field)
+                    {
+                        diagnostics.Add(
+                            new CSDiagnosticInfo(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable,
+                                languageVersion.ToDisplayString(),
+                                new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAttributesOnBackingFields.RequiredVersion())),
+                            attribute.Target.Location);
+                    }
                 }
             }
         }

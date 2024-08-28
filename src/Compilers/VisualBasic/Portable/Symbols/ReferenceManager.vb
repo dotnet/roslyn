@@ -734,7 +734,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private MustInherit Class AssemblyDataForMetadataOrCompilation
                 Inherits AssemblyData
 
-                Private _assemblies As List(Of AssemblySymbol)
+                Private _assemblies As ImmutableArray(Of AssemblySymbol)
                 Private ReadOnly _identity As AssemblyIdentity
                 Private ReadOnly _referencedAssemblies As ImmutableArray(Of AssemblyIdentity)
                 Private ReadOnly _embedInteropTypes As Boolean
@@ -759,22 +759,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Get
                 End Property
 
-                Public Overrides ReadOnly Property AvailableSymbols As IEnumerable(Of AssemblySymbol)
+                Public Overrides ReadOnly Property AvailableSymbols As ImmutableArray(Of AssemblySymbol)
                     Get
-                        If (_assemblies Is Nothing) Then
-                            _assemblies = New List(Of AssemblySymbol)()
+                        If (_assemblies.IsDefault) Then
+                            Dim assemblies = ArrayBuilder(Of AssemblySymbol).GetInstance()
 
                             ' This should be done lazy because while we creating
                             ' instances of this type, creation of new SourceAssembly symbols
                             ' might change the set of available AssemblySymbols.
-                            AddAvailableSymbols(_assemblies)
+                            AddAvailableSymbols(assemblies)
+
+                            _assemblies = assemblies.ToImmutableAndFree()
                         End If
 
                         Return _assemblies
                     End Get
                 End Property
 
-                Protected MustOverride Sub AddAvailableSymbols(assemblies As List(Of AssemblySymbol))
+                Protected MustOverride Sub AddAvailableSymbols(assemblies As ArrayBuilder(Of AssemblySymbol))
 
                 Public Overrides ReadOnly Property AssemblyReferences As ImmutableArray(Of AssemblyIdentity)
                     Get
@@ -863,7 +865,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Get
                 End Property
 
-                Protected Overrides Sub AddAvailableSymbols(assemblies As List(Of AssemblySymbol))
+                Protected Overrides Sub AddAvailableSymbols(assemblies As ArrayBuilder(Of AssemblySymbol))
                     Dim internalsMayBeVisibleToCompilation = Me.InternalsMayBeVisibleToCompilation
 
                     ' accessing cached symbols requires a lock
@@ -965,7 +967,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return New RetargetingAssemblySymbol(Compilation.SourceAssembly, IsLinked)
                 End Function
 
-                Protected Overrides Sub AddAvailableSymbols(assemblies As List(Of AssemblySymbol))
+                Protected Overrides Sub AddAvailableSymbols(assemblies As ArrayBuilder(Of AssemblySymbol))
                     assemblies.Add(Compilation.Assembly)
 
                     ' accessing cached symbols requires a lock

@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed class MethodTypeInferrer
+    internal struct MethodTypeInferrer
     {
         internal abstract class Extensions
         {
@@ -358,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 sb.Append(_formalParameterTypes[i]);
             }
 
-            sb.Append("\n");
+            sb.Append('\n');
 
             sb.AppendFormat("Argument types ({0})\n", string.Join(", ", from a in _arguments select a.Type));
 
@@ -377,16 +377,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (_dependencies[i, j])
                         {
                             case Dependency.NotDependent:
-                                sb.Append("N");
+                                sb.Append('N');
                                 break;
                             case Dependency.Direct:
-                                sb.Append("D");
+                                sb.Append('D');
                                 break;
                             case Dependency.Indirect:
-                                sb.Append("I");
+                                sb.Append('I');
                                 break;
                             case Dependency.Unknown:
-                                sb.Append("U");
+                                sb.Append('U');
                                 break;
                         }
                     }
@@ -615,10 +615,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MakeCollectionExpressionTypeInferences(binder, (BoundUnconvertedCollectionExpression)argument, target, kind, ref useSiteInfo);
             }
-            else if (argument.Kind == BoundKind.CollectionExpressionSpreadElement)
-            {
-                MakeSpreadElementTypeInferences((BoundCollectionExpressionSpreadElement)argument, target, ref useSiteInfo);
-            }
             else if (argument.Kind != BoundKind.TupleLiteral ||
                 !MakeExplicitParameterTypeInferences(binder, (BoundTupleLiteral)argument, target, kind, ref useSiteInfo))
             {
@@ -662,7 +658,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var element in argument.Elements)
             {
-                MakeExplicitParameterTypeInferences(binder, element, targetElementType, kind, ref useSiteInfo);
+                if (element is BoundCollectionExpressionSpreadElement spread)
+                {
+                    MakeSpreadElementTypeInferences(spread, targetElementType, ref useSiteInfo);
+                }
+                else
+                {
+                    MakeExplicitParameterTypeInferences(binder, (BoundExpression)element, targetElementType, kind, ref useSiteInfo);
+                }
             }
         }
 
@@ -880,7 +883,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var element in argument.Elements)
             {
-                MakeOutputTypeInferences(binder, element, targetElementType, ref useSiteInfo);
+                if (element is BoundExpression expression)
+                {
+                    MakeOutputTypeInferences(binder, expression, targetElementType, ref useSiteInfo);
+                }
             }
         }
 
@@ -921,7 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:     o Xi has a non-empty set of bounds, and
             // SPEC:     o Xi does not depend on any Xj
             // SPEC:   then each such Xi is fixed.
-            return FixParameters((inferrer, index) => !inferrer.DependsOnAny(index), ref useSiteInfo);
+            return FixParameters((ref MethodTypeInferrer inferrer, int index) => !inferrer.DependsOnAny(index), ref useSiteInfo);
         }
 
         private InferenceResult FixDependentParameters(ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -929,11 +935,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: * All unfixed type parameters Xi are fixed for which all of the following hold:
             // SPEC:   * There is at least one type parameter Xj that depends on Xi.
             // SPEC:   * Xi has a non-empty set of bounds.
-            return FixParameters((inferrer, index) => inferrer.AnyDependsOn(index), ref useSiteInfo);
+            return FixParameters((ref MethodTypeInferrer inferrer, int index) => inferrer.AnyDependsOn(index), ref useSiteInfo);
         }
 
+        private delegate bool FixParametersPredicate(ref MethodTypeInferrer inferrer, int index);
+
         private InferenceResult FixParameters(
-            Func<MethodTypeInferrer, int, bool> predicate,
+            FixParametersPredicate predicate,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // Dependency is only defined for unfixed parameters. Therefore, fixing
@@ -945,7 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = InferenceResult.NoProgress;
             for (int param = 0; param < _methodTypeParameters.Length; param++)
             {
-                if (IsUnfixed(param) && HasBound(param) && predicate(this, param))
+                if (IsUnfixed(param) && HasBound(param) && predicate(ref this, param))
                 {
                     needsFixing[param] = true;
                     result = InferenceResult.MadeProgress;
@@ -1477,10 +1485,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversions.GetDelegateOrFunctionPointerArguments(source.Syntax, analyzedArguments, delegateParameters, binder.Compilation);
 
             var resolution = binder.ResolveMethodGroup(source, analyzedArguments, useSiteInfo: ref useSiteInfo,
-                isMethodGroupConversion: true, returnRefKind: delegateRefKind,
+                options: OverloadResolution.Options.IsMethodGroupConversion |
+                         (isFunctionPointerResolution ? OverloadResolution.Options.IsFunctionPointerResolution : OverloadResolution.Options.None),
+                returnRefKind: delegateRefKind,
                 // Since we are trying to infer the return type, it is not an input to resolving the method group
                 returnType: null,
-                isFunctionPointerResolution: isFunctionPointerResolution, callingConventionInfo: in callingConventionInfo);
+                callingConventionInfo: in callingConventionInfo);
 
             TypeWithAnnotations type = default;
 
@@ -1827,7 +1837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (sourceSignature.GetCallingConventionModifiers(), targetSignature.GetCallingConventionModifiers()) switch
             {
                 (null, null) => true,
-                ({ } sourceModifiers, { } targetModifiers) when sourceModifiers.SetEquals(targetModifiers) => true,
+                ({ } sourceModifiers, { } targetModifiers) when sourceModifiers.SetEqualsWithoutIntermediateHashSet(targetModifiers) => true,
                 _ => false
             };
         }
@@ -3089,7 +3099,7 @@ OuterBreak:
             // We need at least one formal parameter type and at least one argument.
             if ((method.ParameterCount < 1) || (arguments.Length < 1))
             {
-                inferrer = null;
+                inferrer = default;
                 return false;
             }
 
@@ -3179,7 +3189,14 @@ OuterBreak:
 
         private static void GetAllCandidates(Dictionary<TypeWithAnnotations, TypeWithAnnotations> candidates, ArrayBuilder<TypeWithAnnotations> builder)
         {
-            builder.AddRange(candidates.Values);
+            // Not using builder.AddRange here because the dictionary values enumerator is a struct, and calling AddRange will have to box the enumerator.
+            // Instead, we increase the builder capacity, then loop over the values.
+            // Also, we don't access candidates.Values to avoid realizing the Dictionary's internal ValueCollection (it's created lazily when Values is accessed)
+            builder.EnsureCapacity(builder.Count + candidates.Count);
+            foreach (var (_, value) in candidates)
+            {
+                builder.Add(value);
+            }
         }
 
         private static void AddAllCandidates(

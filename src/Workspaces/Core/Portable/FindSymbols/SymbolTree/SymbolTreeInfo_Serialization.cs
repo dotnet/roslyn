@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
@@ -17,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal partial class SymbolTreeInfo : IObjectWritable
+internal partial class SymbolTreeInfo
 {
     private const string PrefixSymbolTreeInfo = "<SymbolTreeInfo>";
     private static readonly Checksum SerializationFormatChecksum = Checksum.Create("25");
@@ -61,11 +60,10 @@ internal partial class SymbolTreeInfo : IObjectWritable
             var persistentStorageService = services.GetPersistentStorageService();
 
             var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
-            await using var _ = storage.ConfigureAwait(false);
 
             using (var stream = SerializableBytes.CreateWritableStream())
             {
-                using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+                using (var writer = new ObjectWriter(stream, leaveOpen: true))
                 {
                     result.WriteTo(writer);
                 }
@@ -91,22 +89,19 @@ internal partial class SymbolTreeInfo : IObjectWritable
         var persistentStorageService = services.GetPersistentStorageService();
 
         var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
-        await using var _ = storage.ConfigureAwait(false);
 
         // Get the unique key to identify our data.
         var key = PrefixSymbolTreeInfo + keySuffix;
 
         // If the checksum doesn't need to match, then we can pass in 'null' here allowing any result to be found.
         using var stream = await storage.ReadStreamAsync(key, checksumMustMatch ? checksum : null, cancellationToken).ConfigureAwait(false);
-        using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
+        using var reader = ObjectReader.TryGetReader(stream);
 
         // We have some previously persisted data.  Attempt to read it back.  
         // If we're able to, and the version of the persisted data matches
         // our version, then we can reuse this instance.
         return TryReadSymbolTreeInfo(reader, checksum);
     }
-
-    bool IObjectWritable.ShouldReuseInSerialization => true;
 
     public void WriteTo(ObjectWriter writer)
     {
@@ -194,7 +189,7 @@ internal partial class SymbolTreeInfo : IObjectWritable
     }
 
     private static SymbolTreeInfo? TryReadSymbolTreeInfo(
-        ObjectReader reader, Checksum checksum)
+        ObjectReader? reader, Checksum checksum)
     {
         if (reader == null)
             return null;
@@ -206,7 +201,7 @@ internal partial class SymbolTreeInfo : IObjectWritable
 
             for (var i = 0; i < nodeCount; i++)
             {
-                var name = reader.ReadString();
+                var name = reader.ReadRequiredString();
                 var groupCount = reader.ReadInt32();
                 for (var j = 0; j < groupCount; j++)
                 {
@@ -238,17 +233,17 @@ internal partial class SymbolTreeInfo : IObjectWritable
             }
             else
             {
-                receiverTypeNameToExtensionMethodMap = new();
+                receiverTypeNameToExtensionMethodMap = [];
 
                 for (var i = 0; i < keyCount; i++)
                 {
-                    var typeName = reader.ReadString();
+                    var typeName = reader.ReadRequiredString();
                     var valueCount = reader.ReadInt32();
 
                     for (var j = 0; j < valueCount; j++)
                     {
-                        var containerName = reader.ReadString();
-                        var name = reader.ReadString();
+                        var containerName = reader.ReadRequiredString();
+                        var name = reader.ReadRequiredString();
 
                         receiverTypeNameToExtensionMethodMap.Add(typeName, new ExtensionMethodInfo(containerName, name));
                     }

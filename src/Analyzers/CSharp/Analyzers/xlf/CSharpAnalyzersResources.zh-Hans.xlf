@@ -12,6 +12,11 @@
         <target state="translated">向 “{0}” 语句添加大括号。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Anonymous_function_can_be_made_static">
+        <source>Anonymous function can be made static</source>
+        <target state="translated">匿名函数可以成为静态函数</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_arrow_expression_clause_token">
         <source>Blank line not allowed after arrow expression clause token</source>
         <target state="translated">箭头表达式子句标记后不允许空行</target>
@@ -90,6 +95,11 @@
       <trans-unit id="Lambda_expression_can_be_removed">
         <source>Lambda expression can be removed</source>
         <target state="translated">可以删除 Lambda 表达式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_anonymous_function_static">
+        <source>Make anonymous function static</source>
+        <target state="translated">使匿名函数成为静态函数</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_member_readonly">
@@ -172,11 +182,6 @@
         <target state="translated">删除冗余的可为空的指令</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_suppression_operators">
-        <source>Remove suppression operators</source>
-        <target state="translated">请删除忽略运算符</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_lambda_expression">
         <source>Remove unnecessary lambda expression</source>
         <target state="translated">删除不必要的 lambda 表达式</target>
@@ -231,6 +236,11 @@
         <source>Unreachable code detected</source>
         <target state="translated">检测到无法访问的代码</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Use_System_Threading_Lock">
+        <source>Use 'System.Threading.Lock'</source>
+        <target state="new">Use 'System.Threading.Lock'</target>
+        <note>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>
@@ -457,9 +467,9 @@
         <target state="translated">可简化 "new" 表达式</target>
         <note />
       </trans-unit>
-      <trans-unit id="typeof_can_be_converted_ to_nameof">
-        <source>'typeof' can be converted  to 'nameof'</source>
-        <target state="translated">"typeof" 可以转换为 "nameof"</target>
+      <trans-unit id="typeof_can_be_converted_to_nameof">
+        <source>'typeof' can be converted to 'nameof'</source>
+        <target state="translated">“Typeof”可以转换为“nameof”</target>
         <note />
       </trans-unit>
       <trans-unit id="use_var_instead_of_explicit_type">

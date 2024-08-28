@@ -13,287 +13,286 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateOverrides
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.GenerateOverrides;
+
+public class GenerateOverridesTests : AbstractCSharpCodeActionTest_NoEditor
 {
-    public class GenerateOverridesTests : AbstractCSharpCodeActionTest
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
+        => new GenerateOverridesCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+    public async Task Test1()
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new GenerateOverridesCodeRefactoringProvider((IPickMembersService)parameters.fixProviderData);
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
-        public async Task Test1()
-        {
-            await TestWithPickMembersDialogAsync(
-                """
-                class C
+        await TestWithPickMembersDialogAsync(
+            """
+            class C
+            {
+                [||]
+            }
+            """,
+            """
+            class C
+            {
+                public override bool Equals(object obj)
                 {
-                    [||]
-                }
-                """,
-                """
-                class C
-                {
-                    public override bool Equals(object obj)
-                    {
-                        return base.Equals(obj);
-                    }
-
-                    public override int GetHashCode()
-                    {
-                        return base.GetHashCode();
-                    }
-
-                    public override string ToString()
-                    {
-                        return base.ToString();
-                    }
-                }
-                """, new[] { "Equals", "GetHashCode", "ToString" });
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-        public async Task TestAtEndOfFile()
-        {
-            await TestWithPickMembersDialogAsync(
-                """
-                class C[||]
-                """,
-                """
-                class C
-                {
-                    public override bool Equals(object obj)
-                    {
-                        return base.Equals(obj);
-                    }
-
-                    public override int GetHashCode()
-                    {
-                        return base.GetHashCode();
-                    }
-
-                    public override string ToString()
-                    {
-                        return base.ToString();
-                    }
+                    return base.Equals(obj);
                 }
 
-                """, new[] { "Equals", "GetHashCode", "ToString" });
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/48295")]
-        public async Task TestOnRecordWithSemiColon()
-        {
-            await TestWithPickMembersDialogAsync("""
-                record C[||];
-                """, """
-                record C
+                public override int GetHashCode()
                 {
-                    public override int GetHashCode()
-                    {
-                        return base.GetHashCode();
-                    }
-
-                    public override string ToString()
-                    {
-                        return base.ToString();
-                    }
+                    return base.GetHashCode();
                 }
 
-                """, new[] { "GetHashCode", "ToString" });
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/17698")]
-        public async Task TestRefReturns()
-        {
-            await TestWithPickMembersDialogAsync(
-                """
-                using System;
-
-                class Base
+                public override string ToString()
                 {
-                    public virtual ref int X() => throw new NotImplementedException();
+                    return base.ToString();
+                }
+            }
+            """, ["Equals", "GetHashCode", "ToString"]);
+    }
 
-                    public virtual ref int Y => throw new NotImplementedException();
-
-                    public virtual ref int this[int i] => throw new NotImplementedException();
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
+    public async Task TestAtEndOfFile()
+    {
+        await TestWithPickMembersDialogAsync(
+            """
+            class C[||]
+            """,
+            """
+            class C
+            {
+                public override bool Equals(object obj)
+                {
+                    return base.Equals(obj);
                 }
 
-                class Derived : Base
+                public override int GetHashCode()
                 {
-                     [||]
-                }
-                """,
-                """
-                using System;
-
-                class Base
-                {
-                    public virtual ref int X() => throw new NotImplementedException();
-
-                    public virtual ref int Y => throw new NotImplementedException();
-
-                    public virtual ref int this[int i] => throw new NotImplementedException();
+                    return base.GetHashCode();
                 }
 
-                class Derived : Base
+                public override string ToString()
                 {
-                    public override ref int this[int i] => ref base[i];
-
-                    public override ref int Y => ref base.Y;
-
-                    public override ref int X()
-                    {
-                        return ref base.X();
-                    }
+                    return base.ToString();
                 }
-                """, new[] { "X", "Y", "this[]" });
-        }
+            }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
-        public async Task TestInitOnlyProperty()
-        {
-            await TestWithPickMembersDialogAsync(
-                """
-                class Base
-                {
-                    public virtual int Property { init => throw new NotImplementedException(); }
-                }
+            """, ["Equals", "GetHashCode", "ToString"]);
+    }
 
-                class Derived : Base
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/48295")]
+    public async Task TestOnRecordWithSemiColon()
+    {
+        await TestWithPickMembersDialogAsync("""
+            record C[||];
+            """, """
+            record C
+            {
+                public override int GetHashCode()
                 {
-                     [||]
-                }
-                """,
-                """
-                class Base
-                {
-                    public virtual int Property { init => throw new NotImplementedException(); }
+                    return base.GetHashCode();
                 }
 
-                class Derived : Base
+                public override string ToString()
                 {
-                    public override int Property { init => base.Property = value; }
+                    return base.ToString();
                 }
-                """, new[] { "Property" });
-        }
+            }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
-        public async Task TestInitOnlyIndexer()
-        {
-            await TestWithPickMembersDialogAsync(
-                """
-                class Base
-                {
-                    public virtual int this[int i] { init => throw new NotImplementedException(); }
-                }
+            """, ["GetHashCode", "ToString"]);
+    }
 
-                class Derived : Base
-                {
-                     [||]
-                }
-                """,
-                """
-                class Base
-                {
-                    public virtual int this[int i] { init => throw new NotImplementedException(); }
-                }
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/17698")]
+    public async Task TestRefReturns()
+    {
+        await TestWithPickMembersDialogAsync(
+            """
+            using System;
 
-                class Derived : Base
-                {
-                    public override int this[int i] { init => base[i] = value; }
-                }
-                """, new[] { "this[]" });
-        }
+            class Base
+            {
+                public virtual ref int X() => throw new NotImplementedException();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21601")]
-        public async Task TestMissingInStaticClass1()
-        {
-            await TestMissingAsync(
-                """
-                static class C
-                {
-                    [||]
-                }
-                """);
-        }
+                public virtual ref int Y => throw new NotImplementedException();
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21601")]
-        public async Task TestMissingInStaticClass2()
-        {
-            await TestMissingAsync(
-                """
-                static class [||]C
-                {
+                public virtual ref int this[int i] => throw new NotImplementedException();
+            }
 
-                }
-                """);
-        }
+            class Derived : Base
+            {
+                 [||]
+            }
+            """,
+            """
+            using System;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/53012")]
-        public async Task TestNullableTypeParameter()
-        {
-            await TestWithPickMembersDialogAsync(
-                """
-                class C
-                {
-                    public virtual void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) {}
-                }
+            class Base
+            {
+                public virtual ref int X() => throw new NotImplementedException();
 
-                class D : C
-                {
-                    [||]
-                }
-                """,
-                """
-                class C
-                {
-                    public virtual void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) {}
-                }
+                public virtual ref int Y => throw new NotImplementedException();
 
-                class D : C
-                {
-                    public override void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d)
-                        where T1 : default
-                        where T3 : default
-                    {
-                        base.M(a, b, c, d);
-                    }
-                }
-                """, new[] { "M" });
-        }
+                public virtual ref int this[int i] => throw new NotImplementedException();
+            }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
-        public async Task TestRequiredProperty()
-        {
-            await TestWithPickMembersDialogAsync(
-                """
-                class Base
-                {
-                    public virtual required int Property { get; set; }
-                }
+            class Derived : Base
+            {
+                public override ref int this[int i] => ref base[i];
 
-                class Derived : Base
-                {
-                     [||]
-                }
-                """,
-                """
-                class Base
-                {
-                    public virtual required int Property { get; set; }
-                }
+                public override ref int Y => ref base.Y;
 
-                class Derived : Base
+                public override ref int X()
                 {
-                    public override required int Property { get => base.Property; set => base.Property = value; }
+                    return ref base.X();
                 }
-                """, new[] { "Property" });
-        }
+            }
+            """, ["X", "Y", "this[]"]);
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+    public async Task TestInitOnlyProperty()
+    {
+        await TestWithPickMembersDialogAsync(
+            """
+            class Base
+            {
+                public virtual int Property { init => throw new NotImplementedException(); }
+            }
+
+            class Derived : Base
+            {
+                 [||]
+            }
+            """,
+            """
+            class Base
+            {
+                public virtual int Property { init => throw new NotImplementedException(); }
+            }
+
+            class Derived : Base
+            {
+                public override int Property { init => base.Property = value; }
+            }
+            """, ["Property"]);
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+    public async Task TestInitOnlyIndexer()
+    {
+        await TestWithPickMembersDialogAsync(
+            """
+            class Base
+            {
+                public virtual int this[int i] { init => throw new NotImplementedException(); }
+            }
+
+            class Derived : Base
+            {
+                 [||]
+            }
+            """,
+            """
+            class Base
+            {
+                public virtual int this[int i] { init => throw new NotImplementedException(); }
+            }
+
+            class Derived : Base
+            {
+                public override int this[int i] { init => base[i] = value; }
+            }
+            """, ["this[]"]);
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/21601")]
+    public async Task TestMissingInStaticClass1()
+    {
+        await TestMissingAsync(
+            """
+            static class C
+            {
+                [||]
+            }
+            """);
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/21601")]
+    public async Task TestMissingInStaticClass2()
+    {
+        await TestMissingAsync(
+            """
+            static class [||]C
+            {
+
+            }
+            """);
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/53012")]
+    public async Task TestNullableTypeParameter()
+    {
+        await TestWithPickMembersDialogAsync(
+            """
+            class C
+            {
+                public virtual void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) {}
+            }
+
+            class D : C
+            {
+                [||]
+            }
+            """,
+            """
+            class C
+            {
+                public virtual void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d) {}
+            }
+
+            class D : C
+            {
+                public override void M<T1, T2, T3>(T1? a, T2 b, T1? c, T3? d)
+                    where T1 : default
+                    where T3 : default
+                {
+                    base.M(a, b, c, d);
+                }
+            }
+            """, ["M"]);
+    }
+
+    [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateOverrides)]
+    public async Task TestRequiredProperty()
+    {
+        await TestWithPickMembersDialogAsync(
+            """
+            class Base
+            {
+                public virtual required int Property { get; set; }
+            }
+
+            class Derived : Base
+            {
+                 [||]
+            }
+            """,
+            """
+            class Base
+            {
+                public virtual required int Property { get; set; }
+            }
+
+            class Derived : Base
+            {
+                public override required int Property { get => base.Property; set => base.Property = value; }
+            }
+            """, ["Property"]);
     }
 }

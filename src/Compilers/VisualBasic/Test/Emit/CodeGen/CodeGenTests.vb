@@ -4,14 +4,13 @@
 
 Imports System.Collections.Immutable
 Imports System.Reflection
-Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Test.Resources.Proprietary
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -131,7 +130,6 @@ End Class
 
         <Fact()>
         Public Sub Bug776642a_ref()
-            ' ILVerify: Unexpected type on the stack. { Offset = 30, Found = readonly address of '[...]OuterStruct', Expected = address of '[...]OuterStruct' }
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -166,7 +164,7 @@ Structure OuterStruct
     Public z As DoubleAndStruct
 End Structure
     </file>
-</compilation>, verify:=Verification.FailsILVerify).
+</compilation>).
             VerifyIL("Program.M",
             <![CDATA[
 {
@@ -3422,8 +3420,8 @@ End Module</file>
 ]]>)
         End Sub
 
-        <Fact()>
-        Public Sub TestNullCoalesce_NullableWithNonDefault_NoOptimization()
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableWithNonDefault()
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -3476,32 +3474,24 @@ End Module</file>
 ]]>).
             VerifyIL("Program.CoalesceWithNonDefault1",
             <![CDATA[
- {
-  // Code size       19 (0x13)
-  .maxstack  1
+{
+  // Code size        9 (0x9)
+  .maxstack  2
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       "Function Integer?.get_HasValue() As Boolean"
-  IL_0007:  brtrue.s   IL_000b
-  IL_0009:  ldc.i4.2
-  IL_000a:  ret
-  IL_000b:  ldarga.s   V_0
-  IL_000d:  call       "Function Integer?.GetValueOrDefault() As Integer"
-  IL_0012:  ret
+  IL_0002:  ldc.i4.2
+  IL_0003:  call       "Function Integer?.GetValueOrDefault(Integer) As Integer"
+  IL_0008:  ret
 }
 ]]>).
             VerifyIL("Program.CoalesceWithNonDefault2",
             <![CDATA[
- {
-  // Code size       19 (0x13)
-  .maxstack  1
+{
+  // Code size        9 (0x9)
+  .maxstack  2
   IL_0000:  ldarga.s   V_0
-  IL_0002:  call       "Function Integer?.get_HasValue() As Boolean"
-  IL_0007:  brtrue.s   IL_000b
-  IL_0009:  ldarg.1
-  IL_000a:  ret
-  IL_000b:  ldarga.s   V_0
-  IL_000d:  call       "Function Integer?.GetValueOrDefault() As Integer"
-  IL_0012:  ret
+  IL_0002:  ldarg.1
+  IL_0003:  call       "Function Integer?.GetValueOrDefault(Integer) As Integer"
+  IL_0008:  ret
 }
 ]]>).
             VerifyIL("Program.CoalesceWithNonDefault3",
@@ -3535,6 +3525,71 @@ End Module</file>
   IL_0014:  ret
 }
             ]]>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableWithNonDefault_ByRefParameter()
+            Dim verifier = CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function CoalesceWithNonDefault(x As Integer?, ByRef y As Integer) As Integer
+        Return If(x, y)
+    End Function
+End Module</file>
+</compilation>)
+
+            ' Dereferencing might throw, so no `GetValueOrDefault(defaultValue)` optimization here
+            verifier.VerifyIL("Program.CoalesceWithNonDefault",
+            <![CDATA[
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_0007:  brtrue.s   IL_000c
+  IL_0009:  ldarg.1
+  IL_000a:  ldind.i4
+  IL_000b:  ret
+  IL_000c:  ldarga.s   V_0
+  IL_000e:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0013:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableWithNonDefault_Local()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function CoalesceWithNonDefault(x As Integer?) As Integer
+        Dim y = 3
+        Dim z = If(x, y)
+        Return y + z
+    End Function
+End Module</file>
+</compilation>).
+            VerifyIL("Program.CoalesceWithNonDefault",
+            <![CDATA[
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  .locals init (Integer V_0, //y
+                Integer V_1) //z
+  IL_0000:  ldc.i4.3
+  IL_0001:  stloc.0
+  IL_0002:  ldarga.s   V_0
+  IL_0004:  ldloc.0
+  IL_0005:  call       "Function Integer?.GetValueOrDefault(Integer) As Integer"
+  IL_000a:  stloc.1
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.1
+  IL_000d:  add.ovf
+  IL_000e:  ret
+}
+]]>)
         End Sub
 
         <Fact()>
@@ -3576,7 +3631,7 @@ value
 ]]>)
         End Sub
 
-        <Fact()>
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
         Public Sub TestNullCoalesce_NullableDefault_MissingGetValueOrDefault()
             Dim compilation = CreateCompilation(
 <compilation>
@@ -3588,10 +3643,98 @@ Public Module Program
 End Module</file>
 </compilation>)
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault)
+            compilation.AssertTheseEmitDiagnostics()
+
+            Dim verifier = CompileAndVerify(compilation)
+
+            ' We gracefully fallback to calling `GetValueOrDefault(defaultValue)` member
+            verifier.VerifyIL("Program.Coalesce",
+            <![CDATA[
+{
+  // Code size       14 (0xe)
+  .maxstack  2
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldc.i4.0
+  IL_0003:  call       "Function Integer?.GetValueOrDefault(Integer) As Integer"
+  IL_0008:  box        "Integer"
+  IL_000d:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableDefault_MissingGetValueOrDefaultAndGetValueOrDefaultWithADefaultValueParameter()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function Coalesce(x As Integer?)
+        Return If(x, 0)
+    End Function
+End Module</file>
+</compilation>)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue)
             compilation.AssertTheseEmitDiagnostics(
 <errors>
 BC35000: Requested operation is not available because the runtime library function 'System.Nullable`1.GetValueOrDefault' is not defined.
         Return If(x, 0)
+                  ~
+</errors>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableWiNonDefault_MissingGetValueOrDefaultWithADefaultValueParameter()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function Coalesce(x As Integer?)
+        Return If(x, 2)
+    End Function
+End Module</file>
+</compilation>)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue)
+            compilation.AssertTheseEmitDiagnostics()
+
+            Dim verifier = CompileAndVerify(compilation)
+
+            ' We gracefully fallback to less efficient implementation with branching
+            verifier.VerifyIL("Program.Coalesce",
+            <![CDATA[
+{
+  // Code size       25 (0x19)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  call       "Function Integer?.get_HasValue() As Boolean"
+  IL_0007:  brtrue.s   IL_000c
+  IL_0009:  ldc.i4.2
+  IL_000a:  br.s       IL_0013
+  IL_000c:  ldarga.s   V_0
+  IL_000e:  call       "Function Integer?.GetValueOrDefault() As Integer"
+  IL_0013:  box        "Integer"
+  IL_0018:  ret
+}
+]]>)
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56007")>
+        Public Sub TestNullCoalesce_NullableWiNonDefault_MissingGetValueOrDefaultAndGetValueOrDefaultWithADefaultValueParameter()
+            Dim compilation = CreateCompilation(
+<compilation>
+    <file name="a.vb">
+Public Module Program
+    Public Function Coalesce(x As Integer?)
+        Return If(x, 2)
+    End Function
+End Module</file>
+</compilation>)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault)
+            compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefaultDefaultValue)
+            compilation.AssertTheseEmitDiagnostics(
+<errors>
+BC35000: Requested operation is not available because the runtime library function 'System.Nullable`1.GetValueOrDefault' is not defined.
+        Return If(x, 2)
                   ~
 </errors>)
         End Sub
@@ -10338,7 +10481,7 @@ Public Class C1(Of T)
     End Function
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull())}))
+                </compilation>, references:={MetadataReference.CreateFromImage(Net40.Resources.mscorlib.AsImmutableOrNull())}))
 
             Dim comp = CompilationUtils.CreateEmptyCompilationWithReferences(
                 <compilation>
@@ -10355,7 +10498,7 @@ Public Class C2(Of U)
     End Function
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull()), ref1})
+                </compilation>, references:={MetadataReference.CreateFromImage(Net40.Resources.mscorlib.AsImmutableOrNull()), ref1})
 
             CompileAndVerify(comp)
 
@@ -10396,7 +10539,7 @@ Public Class C1
     End Sub
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull())}))
+                </compilation>, references:={MetadataReference.CreateFromImage(Net40.Resources.mscorlib.AsImmutableOrNull())}))
 
             Dim comp = CompilationUtils.CreateEmptyCompilationWithReferences(
                 <compilation>
@@ -10423,7 +10566,7 @@ Public Class C2
     End Sub
 End Class
                     </file>
-                </compilation>, references:={MetadataReference.CreateFromImage(ResourcesNet40.mscorlib.AsImmutableOrNull()), ref1})
+                </compilation>, references:={MetadataReference.CreateFromImage(Net40.Resources.mscorlib.AsImmutableOrNull()), ref1})
 
             Dim compilationVerifier = CompileAndVerify(comp)
 
@@ -11566,21 +11709,30 @@ expectedOutput:="2").
             VerifyIL("Test.TestINop(Of T)(T)",
             <![CDATA[
 {
-  // Code size       36 (0x24)
+  // Code size       60 (0x3c)
   .maxstack  3
-  .locals init (T V_0)
+  .locals init (T V_0,
+            T V_1)
   IL_0000:  ldarg.0
   IL_0001:  call       "Function Test.Nop(Of T)(T) As T"
   IL_0006:  stloc.0
   IL_0007:  ldloca.s   V_0
-  IL_0009:  ldloca.s   V_0
-  IL_000b:  constrained. "T"
-  IL_0011:  callvirt   "Function I.get_IntPropI() As Integer"
-  IL_0016:  ldc.i4.1
-  IL_0017:  add.ovf
-  IL_0018:  constrained. "T"
-  IL_001e:  callvirt   "Sub I.set_IntPropI(Integer)"
-  IL_0023:  ret
+  IL_0009:  ldloca.s   V_1
+  IL_000b:  initobj    "T"
+  IL_0011:  ldloc.1
+  IL_0012:  box        "T"
+  IL_0017:  brtrue.s   IL_0021
+  IL_0019:  ldobj      "T"
+  IL_001e:  stloc.1
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  constrained. "T"
+  IL_0029:  callvirt   "Function I.get_IntPropI() As Integer"
+  IL_002e:  ldc.i4.1
+  IL_002f:  add.ovf
+  IL_0030:  constrained. "T"
+  IL_0036:  callvirt   "Sub I.set_IntPropI(Integer)"
+  IL_003b:  ret
 }
 ]]>)
         End Sub
@@ -12891,9 +13043,10 @@ End class
             VerifyIL("test(Of T).Repro1(T)",
             <![CDATA[
 {
-  // Code size       77 (0x4d)
+      // Code size       77 (0x4d)
   .maxstack  4
-  .locals init (Integer& V_0)
+  .locals init (Integer& V_0,
+                T V_1)
   IL_0000:  ldarg.0
   IL_0001:  box        "T"
   IL_0006:  ldflda     "c0.x As Integer"
@@ -12904,23 +13057,27 @@ End class
   IL_000f:  ldc.i4.1
   IL_0010:  add.ovf
   IL_0011:  stind.i4
-  IL_0012:  ldarga.s   V_0
-  IL_0014:  ldarga.s   V_0
-  IL_0016:  constrained. "T"
-  IL_001c:  callvirt   "Function c0.get_P1() As Integer"
-  IL_0021:  ldc.i4.1
-  IL_0022:  add.ovf
-  IL_0023:  constrained. "T"
+  IL_0012:  ldarg.0
+  IL_0013:  dup
+  IL_0014:  stloc.1
+  IL_0015:  box        "T"
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  constrained. "T"
+  IL_0022:  callvirt   "Function c0.get_P1() As Integer"
+  IL_0027:  ldc.i4.1
+  IL_0028:  add.ovf
   IL_0029:  callvirt   "Sub c0.set_P1(Integer)"
-  IL_002e:  ldarga.s   V_0
-  IL_0030:  ldc.i4.1
-  IL_0031:  ldarga.s   V_0
-  IL_0033:  ldc.i4.1
-  IL_0034:  constrained. "T"
-  IL_003a:  callvirt   "Function c0.get_Item(Integer) As Integer"
-  IL_003f:  ldc.i4.1
-  IL_0040:  add.ovf
-  IL_0041:  constrained. "T"
+  IL_002e:  ldarg.0
+  IL_002f:  dup
+  IL_0030:  stloc.1
+  IL_0031:  box        "T"
+  IL_0036:  ldc.i4.1
+  IL_0037:  ldloca.s   V_1
+  IL_0039:  ldc.i4.1
+  IL_003a:  constrained. "T"
+  IL_0040:  callvirt   "Function c0.get_Item(Integer) As Integer"
+  IL_0045:  ldc.i4.1
+  IL_0046:  add.ovf
   IL_0047:  callvirt   "Sub c0.set_Item(Integer, Integer)"
   IL_004c:  ret
 }
@@ -13844,6 +14001,7 @@ End Module
             Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
+Imports System.Globalization
 Public Class TestClass
     Private _rotation As Decimal
     Private Sub CalculateDimensions()
@@ -13854,7 +14012,7 @@ Public Class TestClass
         Dim x as New TestClass()
         x._rotation = 1
         x.CalculateDimensions()
-        System.Console.WriteLine(x._rotation)
+        System.Console.WriteLine(x._rotation.ToString(CultureInfo.InvariantCulture))
     End Sub
 End Class
     </file>
@@ -13890,6 +14048,7 @@ End Class
             Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
+Imports System.Globalization
 Public Class TestClass
     Private Shared Sub CalculateDimensions(_rotation As Decimal())
         _rotation(GetIndex()) *= 180 / System.Math.PI 'This line causes '"vbc.exe" exited with code -2146232797'
@@ -13903,7 +14062,7 @@ Public Class TestClass
         Dim _rotation(0) as Decimal
         _rotation(0) = 1
         CalculateDimensions(_rotation)
-        System.Console.WriteLine(_rotation(0))
+        System.Console.WriteLine(_rotation(0).ToString(CultureInfo.InvariantCulture))
     End Sub
 End Class
     </file>

@@ -5,8 +5,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Differencing;
-using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue;
@@ -41,7 +39,7 @@ internal sealed class PrimaryConstructorWithImplicitInitializerDeclarationBody(T
         => TypeDeclaration;
 
     public override ImmutableArray<ISymbol> GetCapturedVariables(SemanticModel model)
-        => ImmutableArray<ISymbol>.Empty;
+        => [];
 
     // Active spans of copy-constructor and primary record properties overlap with the primary constructor initializer span,
     // but do not belong to the primary constructor body. The only active span that belongs is the initializer span itself.

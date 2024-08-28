@@ -1,0 +1,5 @@
+{
+  "CSharpLanguageServiceExtension.OpenInteractiveWindow.DisplayName": "C# Interactive",
+  "CSharpLanguageServiceExtension.ResetInteractiveWindowFromProject.DisplayName": "Initialize Interactive with Project",
+  "CSharpLanguageServiceExtension.OpenSemanticSearchWindow.DisplayName": "C# Semantic Search"
+}

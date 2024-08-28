@@ -39,6 +39,18 @@ namespace Microsoft.CodeAnalysis
         public const string NotConfigurable = nameof(NotConfigurable);
 
         /// <summary>
+        /// Indicates that the analyzer reporting the diagnostic supports custom severity configuration mechanism(s)
+        /// to allow end users to configure effective severity of the diagnostic.
+        /// Such analyzers are always considered to be enabled by the compiler and always receive analyzer callbacks.
+        /// Additionally, severity of the diagnostics reported with this custom tag is not altered by analyzer config options
+        /// to configure severity, i.e. 'dotnet_diagnostic' and 'dotnet_analyzer_diagnostic' entries. 
+        /// </summary>
+        /// <remarks>
+        /// See https://github.com/dotnet/roslyn/issues/52991 for further details.
+        /// </remarks>
+        public const string CustomSeverityConfigurable = nameof(CustomSeverityConfigurable);
+
+        /// <summary>
         /// Indicates that the diagnostic is related to an exception thrown by a <see cref="DiagnosticAnalyzer"/>.
         /// </summary>
         public const string AnalyzerException = nameof(AnalyzerException);

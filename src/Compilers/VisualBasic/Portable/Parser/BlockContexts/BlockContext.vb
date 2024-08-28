@@ -250,7 +250,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' body is large enough, so we get red node with weak children.
         Friend Function BodyWithWeakChildren() As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)
             If IsLargeEnoughNonEmptyStatementList(_statements) Then
-                Dim result = New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(SyntaxList.List(CType(_statements, SyntaxListBuilder).ToArray))
+                Dim result = New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of StatementSyntax)(
+                    CodeAnalysis.Syntax.InternalSyntax.SyntaxList.List(CType(_statements, SyntaxListBuilder).ToArray))
 
                 _statements.Clear()
 

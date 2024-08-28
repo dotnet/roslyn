@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>$(SourceBuildTargetFrameworks);netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynSourceBuild);netstandard2.0</TargetFrameworks>
     <RootNamespace></RootNamespace>
     <ApplyNgenOptimization Condition="'$(TargetFramework)' == 'netstandard2.0'">full</ApplyNgenOptimization>
 
@@ -14,28 +14,29 @@
     </PackageDescription>
   </PropertyGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <ProjectReference Include="..\..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
-    <ProjectReference Include="..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
-    <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
     <ProjectReference Include="..\..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
+    <ProjectReference Include="..\..\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Workspaces" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeStyle.LegacyTestFramework.UnitTestUtilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.DiagnosticsTests.Utilities"/>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.Test.Utilities"/>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Workspaces" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeStyle.LegacyTestFramework.UnitTestUtilities" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Shared.Extensions" />

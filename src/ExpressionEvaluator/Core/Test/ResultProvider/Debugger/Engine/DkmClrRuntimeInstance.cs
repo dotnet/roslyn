@@ -32,12 +32,10 @@ namespace Microsoft.VisualStudio.Debugger.Clr
 
         internal readonly Assembly[] Assemblies;
         internal readonly DkmClrModuleInstance[] Modules;
-        private readonly DkmClrModuleInstance _defaultModule;
-        private readonly DkmClrAppDomain _appDomain; // exactly one for now
         private readonly Dictionary<string, DkmClrObjectFavoritesInfo> _favoritesByTypeName;
         internal readonly GetMemberValueDelegate GetMemberValue;
 
-        internal DkmClrRuntimeInstance(Assembly assembly) : this(new[] { assembly })
+        internal DkmClrRuntimeInstance(Assembly assembly) : this([assembly])
         { }
 
         internal DkmClrRuntimeInstance(
@@ -50,8 +48,8 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             getModule ??= (r, a) => new DkmClrModuleInstance(r, a, (a != null) ? new DkmModule(a.GetName().Name + ".dll") : null);
             this.Assemblies = assemblies;
             this.Modules = assemblies.Select(a => getModule(this, a)).Where(m => m != null).ToArray();
-            _defaultModule = getModule(this, null);
-            _appDomain = new DkmClrAppDomain(this);
+            DefaultModule = getModule(this, null);
+            DefaultAppDomain = new DkmClrAppDomain(this);
             this.GetMemberValue = getMemberValue;
         }
 
@@ -61,28 +59,22 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             _favoritesByTypeName = favoritesByTypeName;
         }
 
-        internal DkmClrModuleInstance DefaultModule
-        {
-            get { return _defaultModule; }
-        }
+        internal DkmClrModuleInstance DefaultModule { get; }
 
-        internal DkmClrAppDomain DefaultAppDomain
-        {
-            get { return _appDomain; }
-        }
+        internal DkmClrAppDomain DefaultAppDomain { get; }
 
         internal DkmClrType GetType(Type type)
         {
             var assembly = ((AssemblyImpl)type.Assembly).Assembly;
-            var module = this.Modules.FirstOrDefault(m => m.Assembly == assembly) ?? _defaultModule;
-            return new DkmClrType(module, _appDomain, type, GetObjectFavoritesInfo(type));
+            var module = this.Modules.FirstOrDefault(m => m.Assembly == assembly) ?? DefaultModule;
+            return new DkmClrType(module, DefaultAppDomain, type, GetObjectFavoritesInfo(type));
         }
 
         internal DkmClrType GetType(System.Type type)
         {
             var assembly = type.Assembly;
             var module = this.Modules.First(m => m.Assembly == assembly);
-            return new DkmClrType(module, _appDomain, (TypeImpl)type, GetObjectFavoritesInfo((TypeImpl)type));
+            return new DkmClrType(module, DefaultAppDomain, (TypeImpl)type, GetObjectFavoritesInfo((TypeImpl)type));
         }
 
         internal DkmClrType GetType(string typeName, params System.Type[] typeArguments)
@@ -93,7 +85,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                 var type = assembly.GetType(typeName);
                 if (type != null)
                 {
-                    var result = new DkmClrType(module, _appDomain, (TypeImpl)type, GetObjectFavoritesInfo((TypeImpl)type));
+                    var result = new DkmClrType(module, DefaultAppDomain, (TypeImpl)type, GetObjectFavoritesInfo((TypeImpl)type));
                     if (typeArguments.Length > 0)
                     {
                         result = result.MakeGenericType(typeArguments.Select(this.GetType).ToArray());
@@ -132,7 +124,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
 
         internal DkmClrModuleInstance FindClrModuleInstance(Guid mvid)
         {
-            return this.Modules.FirstOrDefault(m => m.Mvid == mvid) ?? _defaultModule;
+            return this.Modules.FirstOrDefault(m => m.Mvid == mvid) ?? DefaultModule;
         }
 
         private DkmClrObjectFavoritesInfo GetObjectFavoritesInfo(Type type)

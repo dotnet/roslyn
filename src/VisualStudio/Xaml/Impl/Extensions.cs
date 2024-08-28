@@ -2,9 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
-using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
@@ -12,9 +10,6 @@ namespace Microsoft.CodeAnalysis.Editor.Xaml
 {
     internal static class Extensions
     {
-        public static Guid GetProjectGuid(this VisualStudioWorkspace workspace, ProjectId projectId)
-            => workspace.GetProjectGuid(projectId);
-
         public static string GetFilePath(this ITextView textView)
             => textView.TextBuffer.GetFilePath();
 

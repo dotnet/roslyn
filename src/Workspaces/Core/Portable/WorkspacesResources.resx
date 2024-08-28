@@ -123,14 +123,8 @@
   <data name="Symbol_0_is_not_from_source" xml:space="preserve">
     <value>Symbol "{0}" is not from source.</value>
   </data>
-  <data name="Documentation_comment_id_must_start_with_E_F_M_N_P_or_T" xml:space="preserve">
-    <value>Documentation comment id must start with E, F, M, N, P or T</value>
-  </data>
   <data name="Cycle_detected_in_extensions" xml:space="preserve">
     <value>Cycle detected in extensions</value>
-  </data>
-  <data name="Node_is_of_the_wrong_type" xml:space="preserve">
-    <value>Node is of the wrong type.</value>
   </data>
   <data name="Duplicate_source_file_0_in_project_1" xml:space="preserve">
     <value>Duplicate source file '{0}' in project '{1}'</value>
@@ -198,9 +192,6 @@
   <data name="A_project_may_not_reference_itself" xml:space="preserve">
     <value>A project may not reference itself.</value>
   </data>
-  <data name="The_solution_already_contains_the_specified_document" xml:space="preserve">
-    <value>The solution already contains the specified document.</value>
-  </data>
   <data name="The_solution_already_contains_the_specified_reference" xml:space="preserve">
     <value>The solution already contains the specified reference.</value>
   </data>
@@ -228,29 +219,11 @@
   <data name="Can_t_resolve_analyzer_reference_colon_0" xml:space="preserve">
     <value>Can't resolve analyzer reference: '{0}'.</value>
   </data>
-  <data name="Invalid_project_block_expected_after_Project" xml:space="preserve">
-    <value>Invalid project block, expected "=" after Project.</value>
-  </data>
-  <data name="Invalid_project_block_expected_after_project_name" xml:space="preserve">
-    <value>Invalid project block, expected "," after project name.</value>
-  </data>
-  <data name="Invalid_project_block_expected_after_project_path" xml:space="preserve">
-    <value>Invalid project block, expected "," after project path.</value>
-  </data>
   <data name="Expected_0" xml:space="preserve">
     <value>Expected {0}.</value>
   </data>
   <data name="_0_must_be_a_non_null_and_non_empty_string" xml:space="preserve">
     <value>"{0}" must be a non-null and non-empty string.</value>
-  </data>
-  <data name="Expected_header_colon_0" xml:space="preserve">
-    <value>Expected header: "{0}".</value>
-  </data>
-  <data name="Expected_end_of_file" xml:space="preserve">
-    <value>Expected end-of-file.</value>
-  </data>
-  <data name="Expected_0_line" xml:space="preserve">
-    <value>Expected {0} line.</value>
   </data>
   <data name="This_submission_already_references_another_submission_project" xml:space="preserve">
     <value>This submission already references another submission project.</value>
@@ -264,17 +237,8 @@
   <data name="_0_is_still_open" xml:space="preserve">
     <value>{0} is still open.</value>
   </data>
-  <data name="Arrays_with_more_than_one_dimension_cannot_be_serialized" xml:space="preserve">
-    <value>Arrays with more than one dimension cannot be serialized.</value>
-  </data>
   <data name="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer" xml:space="preserve">
     <value>Value too large to be represented as a 30 bit unsigned integer.</value>
-  </data>
-  <data name="Specified_path_must_be_absolute" xml:space="preserve">
-    <value>Specified path must be absolute.</value>
-  </data>
-  <data name="Unknown_identifier" xml:space="preserve">
-    <value>Unknown identifier.</value>
   </data>
   <data name="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language" xml:space="preserve">
     <value>Cannot open project '{0}' because the file extension '{1}' is not associated with a language.</value>
@@ -309,9 +273,6 @@
   <data name="Removed_colon" xml:space="preserve">
     <value>Removed:</value>
   </data>
-  <data name="Invalid_CodePage_value_colon_0" xml:space="preserve">
-    <value>Invalid CodePage value: {0}</value>
-  </data>
   <data name="Adding_additional_documents_is_not_supported" xml:space="preserve">
     <value>Adding additional documents is not supported.</value>
   </data>
@@ -323,9 +284,6 @@
   </data>
   <data name="Adding_documents_is_not_supported" xml:space="preserve">
     <value>Adding documents is not supported.</value>
-  </data>
-  <data name="Adding_metadata_references_is_not_supported" xml:space="preserve">
-    <value>Adding metadata references is not supported.</value>
   </data>
   <data name="Adding_project_references_is_not_supported" xml:space="preserve">
     <value>Adding project references is not supported.</value>
@@ -339,9 +297,6 @@
   <data name="Changing_documents_is_not_supported" xml:space="preserve">
     <value>Changing documents is not supported.</value>
   </data>
-  <data name="Changing_project_properties_is_not_supported" xml:space="preserve">
-    <value>Changing project properties is not supported.</value>
-  </data>
   <data name="Removing_additional_documents_is_not_supported" xml:space="preserve">
     <value>Removing additional documents is not supported.</value>
   </data>
@@ -354,9 +309,6 @@
   <data name="Removing_documents_is_not_supported" xml:space="preserve">
     <value>Removing documents is not supported.</value>
   </data>
-  <data name="Removing_metadata_references_is_not_supported" xml:space="preserve">
-    <value>Removing metadata references is not supported.</value>
-  </data>
   <data name="Removing_project_references_is_not_supported" xml:space="preserve">
     <value>Removing project references is not supported.</value>
   </data>
@@ -368,15 +320,6 @@
   </data>
   <data name="Diagnostic_must_have_span_0" xml:space="preserve">
     <value>Diagnostic must have span '{0}'</value>
-  </data>
-  <data name="Cannot_deserialize_type_0" xml:space="preserve">
-    <value>Cannot deserialize type '{0}'.</value>
-  </data>
-  <data name="Cannot_serialize_type_0" xml:space="preserve">
-    <value>Cannot serialize type '{0}'.</value>
-  </data>
-  <data name="The_type_0_is_not_understood_by_the_serialization_binder" xml:space="preserve">
-    <value>The type '{0}' is not understood by the serialization binder.</value>
   </data>
   <data name="Label_for_node_0_is_invalid_it_must_be_within_bracket_0_1" xml:space="preserve">
     <value>Label for node '{0}' is invalid, it must be within [0, {1}).</value>
@@ -441,9 +384,6 @@
   <data name="Stream_is_too_long" xml:space="preserve">
     <value>Stream is too long.</value>
   </data>
-  <data name="Deserialization_reader_for_0_read_incorrect_number_of_values" xml:space="preserve">
-    <value>Deserialization reader for '{0}' read incorrect number of values.</value>
-  </data>
   <data name="Async_Method" xml:space="preserve">
     <value>Async Method</value>
     <comment>{locked: async}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</comment>
@@ -499,9 +439,6 @@
   <data name="Warning_adding_imports_will_bring_an_extension_method_into_scope_with_the_same_name_as_member_access" xml:space="preserve">
     <value>Adding imports will bring an extension method into scope with the same name as '{0}'</value>
   </data>
-  <data name="Document_does_not_support_syntax_trees" xml:space="preserve">
-    <value>Document does not support syntax trees</value>
-  </data>
   <data name="_0_is_in_a_different_project" xml:space="preserve">
     <value>{0} is in a different project.</value>
   </data>
@@ -530,7 +467,7 @@
   <data name="Sync_namespace_to_folder_structure" xml:space="preserve">
     <value>Sync namespace to folder structure</value>
   </data>
-  <data name="CodeAction_{0}_did_not_produce_a_changed_solution" xml:space="preserve">
+  <data name="CodeAction_0_did_not_produce_a_changed_solution" xml:space="preserve">
     <value>CodeAction '{0}' did not produce a changed solution</value>
     <comment>"CodeAction" is a specific type, and {0} represents the title shown by the action.</comment>
   </data>
@@ -551,5 +488,23 @@
   </data>
   <data name="Unexpected_value_0_in_DocumentKinds_array" xml:space="preserve">
     <value>Unexpected value '{0}' in DocumentKinds array.</value>
+  </data>
+  <data name="Running_code_cleanup_on_fixed_documents" xml:space="preserve">
+    <value>Running code cleanup on fixed documents</value>
+  </data>
+  <data name="Applying_changes_to_0" xml:space="preserve">
+    <value>Applying changes to {0}</value>
+  </data>
+  <data name="Removing_compilation_options_is_not_supported" xml:space="preserve">
+    <value>Removing compilation options is not supported</value>
+  </data>
+  <data name="Removing_parse_options_is_not_supported" xml:space="preserve">
+    <value>Removing parse options is not supported</value>
+  </data>
+  <data name="Changing_project_language_is_not_supported" xml:space="preserve">
+    <value>Changing project language is not supported</value>
+  </data>
+  <data name="Changing_project_between_ordinary_and_interactive_submission_is_not_supported" xml:space="preserve">
+    <value>Changing project between ordinary and interactive submission is not supported</value>
   </data>
 </root>

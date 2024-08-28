@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports System.Reflection.Metadata.Ecma335
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
 
@@ -46,7 +47,7 @@ End Class
             Dim compilation1 = CompilationUtils.CreateEmptyCompilationWithReferences(source1, references:=LatestVbReferences, options:=TestOptions.DebugDll)
 
             Dim bytes0 = compilation0.EmitToArray()
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, compilation1.GetMember(Of MethodSymbol)("C.G"))))
@@ -397,7 +398,7 @@ End Class
             Dim compilation1 = CompilationUtils.CreateEmptyCompilationWithReferences(source1, references:=LatestVbReferences, options:=TestOptions.DebugDll)
 
             Dim bytes0 = compilation0.EmitToArray()
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
+            Dim generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, compilation1.GetMember(Of MethodSymbol)("C.F"))))
@@ -724,7 +725,7 @@ End Class
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider)
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
@@ -832,7 +833,7 @@ End Class
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider)
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
@@ -911,7 +912,7 @@ End Class
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider)
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
@@ -959,7 +960,7 @@ End Class
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, EmptyLocalsProvider)
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
@@ -976,9 +977,9 @@ End Class
 
         <Fact>
         Public Sub AsyncMethodOverloads()
-            Dim source0 =
-<compilation>
-    <file name="a.vb">
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
 Imports System.Threading.Tasks
 Class C
     Async Function F(a As Integer) As Task(Of Integer)
@@ -991,11 +992,12 @@ Class C
         Return Await Task.FromResult(1)
     End Function
 End Class
-    </file>
-</compilation>
-            Dim source1 =
-<compilation>
-    <file name="a.vb">
+",
+                    validator:=
+                    Sub(g)
+                    End Sub).
+                AddGeneration(
+                    source:="
 Imports System.Threading.Tasks
 Class C
     Async Function F(a As Long) As Task(Of Integer)
@@ -1008,164 +1010,62 @@ Class C
         Return Await Task.FromResult(4)
     End Function
 End Class
-    </file>
-</compilation>
-
-            Dim compilation0 = CompilationUtils.CreateEmptyCompilationWithReferences(source0, references:=LatestVbReferences, options:=TestOptions.DebugDll)
-            Dim compilation1 = compilation0.WithSource(source1)
-
-            Dim v0 = CompileAndVerify(compilation:=compilation0)
-
-            Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
-                Dim methodShort0 = compilation0.GetMembers("C.F").Single(Function(m) m.ToTestDisplayString() = "Function C.F(a As System.Int16) As System.Threading.Tasks.Task(Of System.Int32)")
-                Dim methodShort1 = compilation1.GetMembers("C.F").Single(Function(m) m.ToTestDisplayString() = "Function C.F(a As System.Int16) As System.Threading.Tasks.Task(Of System.Int32)")
-
-                Dim methodInt0 = compilation0.GetMembers("C.F").Single(Function(m) m.ToTestDisplayString() = "Function C.F(a As System.Int32) As System.Threading.Tasks.Task(Of System.Int32)")
-                Dim methodInt1 = compilation1.GetMembers("C.F").Single(Function(m) m.ToTestDisplayString() = "Function C.F(a As System.Int32) As System.Threading.Tasks.Task(Of System.Int32)")
-
-                Dim methodLong0 = compilation0.GetMembers("C.F").Single(Function(m) m.ToTestDisplayString() = "Function C.F(a As System.Int64) As System.Threading.Tasks.Task(Of System.Int32)")
-                Dim methodLong1 = compilation1.GetMembers("C.F").Single(Function(m) m.ToTestDisplayString() = "Function C.F(a As System.Int64) As System.Threading.Tasks.Task(Of System.Int32)")
-
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
-                Dim diff1 = compilation1.EmitDifference(
-                    generation0,
-                    ImmutableArray.Create(
-                        New SemanticEdit(SemanticEditKind.Update, methodShort0, methodShort1, preserveLocalVariables:=True),
-                        New SemanticEdit(SemanticEditKind.Update, methodInt0, methodInt1, preserveLocalVariables:=True),
-                        New SemanticEdit(SemanticEditKind.Update, methodLong0, methodLong1, preserveLocalVariables:=True)))
-
-                Using md1 = diff1.GetMetadata()
-                    ' notice no TypeDefs, FieldDefs
-                    CheckEncLogDefinitions(md1.Reader,
-                        Row(7, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(8, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(9, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(10, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(11, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(12, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(1, TableIndex.Param, EditAndContinueOperation.Default),
-                        Row(2, TableIndex.Param, EditAndContinueOperation.Default),
-                        Row(3, TableIndex.Param, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
-                End Using
+",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMembers("C.F").Single(Function(m) m.ToTestDisplayString() = "Function C.F(a As System.Int16) As System.Threading.Tasks.Task(Of System.Int32)"), preserveLocalVariables:=True),
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMembers("C.F").Single(Function(m) m.ToTestDisplayString() = "Function C.F(a As System.Int32) As System.Threading.Tasks.Task(Of System.Int32)"), preserveLocalVariables:=True),
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMembers("C.F").Single(Function(m) m.ToTestDisplayString() = "Function C.F(a As System.Int64) As System.Threading.Tasks.Task(Of System.Int32)"), preserveLocalVariables:=True)
+                    },
+                    validator:=
+                    Sub(g)
+                        ' notice no TypeDefs, FieldDefs
+                        g.VerifyEncLogDefinitions(
+                        {
+                            Row(7, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(8, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(9, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(10, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(11, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(12, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(1, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.Param, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        })
+                    End Sub).
+                Verify()
             End Using
         End Sub
 
         <Fact>
         Public Sub UpdateIterator_NoVariables()
-            Dim source0 =
-<compilation>
-    <file name="a.vb">
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
 Imports System.Collections.Generic
 Class C
     Iterator Function F() As IEnumerable(Of Integer)
-        Yield 1
+        <N:0>Yield 1</N:0>
     End Function
-End Class
-    </file>
-</compilation>
-            Dim source1 =
-<compilation>
-    <file name="a.vb">
-Imports System.Collections.Generic
-Class C
-    Iterator Function F() As IEnumerable(Of Integer)
-        Yield 2
-    End Function
-End Class
-    </file>
-</compilation>
-
-            Dim compilation0 = CompilationUtils.CreateEmptyCompilationWithReferences(source0, references:=LatestVbReferences, options:=TestOptions.DebugDll)
-            Dim compilation1 = CompilationUtils.CreateEmptyCompilationWithReferences(source1, references:=LatestVbReferences, options:=TestOptions.DebugDll)
-
-            Dim v0 = CompileAndVerify(compilation:=compilation0)
-
-            Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
-                Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
-                Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
-
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
-                Dim diff1 = compilation1.EmitDifference(
-                    generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
-
-                ' only methods with sequence points should be listed in UpdatedMethods:
-                diff1.VerifyUpdatedMethods("0x06000005")
-
-                ' verify delta metadata contains expected rows
-                Using md1 = diff1.GetMetadata()
-                    CheckEncLogDefinitions(md1.Reader,
-                        Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
-                End Using
-
-                diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
-{
-  // Code size       63 (0x3f)
-  .maxstack  3
-  .locals init (Boolean V_0,
-                Integer V_1)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0006:  stloc.1
-  IL_0007:  ldloc.1
-  IL_0008:  brfalse.s  IL_0012
-  IL_000a:  br.s       IL_000c
-  IL_000c:  ldloc.1
-  IL_000d:  ldc.i4.1
-  IL_000e:  beq.s      IL_0014
-  IL_0010:  br.s       IL_0016
-  IL_0012:  br.s       IL_0018
-  IL_0014:  br.s       IL_0034
-  IL_0016:  ldc.i4.0
-  IL_0017:  ret
-  IL_0018:  ldarg.0
-  IL_0019:  ldc.i4.m1
-  IL_001a:  dup
-  IL_001b:  stloc.1
-  IL_001c:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0021:  nop
-  IL_0022:  ldarg.0
-  IL_0023:  ldc.i4.2
-  IL_0024:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
-  IL_0029:  ldarg.0
-  IL_002a:  ldc.i4.1
-  IL_002b:  dup
-  IL_002c:  stloc.1
-  IL_002d:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0032:  ldc.i4.1
-  IL_0033:  ret
-  IL_0034:  ldarg.0
-  IL_0035:  ldc.i4.m1
-  IL_0036:  dup
-  IL_0037:  stloc.1
-  IL_0038:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_003d:  ldc.i4.0
-  IL_003e:  ret
-}
-")
-                v0.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
+End Class",
+                    validator:=
+                    Sub(g)
+                        g.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
 {
   // Code size       63 (0x3f)
   .maxstack  3
@@ -1210,160 +1110,97 @@ End Class
   IL_003e:  ret
 }
 ")
+                    End Sub).
+                AddGeneration(
+                    source:="
+Imports System.Collections.Generic
+Class C
+    Iterator Function F() As IEnumerable(Of Integer)
+        <N:0>Yield 2</N:0>
+    End Function
+End Class",
+                    edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)},
+                    validator:=
+                    Sub(g)
+                        g.VerifyUpdatedMethodNames("MoveNext")
+
+                        g.VerifyEncLogDefinitions(
+                        {
+                            Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        })
+
+                        g.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
+{
+  // Code size       63 (0x3f)
+  .maxstack  3
+  .locals init (Boolean V_0,
+                Integer V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0006:  stloc.1
+  IL_0007:  ldloc.1
+  IL_0008:  brfalse.s  IL_0012
+  IL_000a:  br.s       IL_000c
+  IL_000c:  ldloc.1
+  IL_000d:  ldc.i4.1
+  IL_000e:  beq.s      IL_0014
+  IL_0010:  br.s       IL_0016
+  IL_0012:  br.s       IL_0018
+  IL_0014:  br.s       IL_0034
+  IL_0016:  ldc.i4.0
+  IL_0017:  ret
+  IL_0018:  ldarg.0
+  IL_0019:  ldc.i4.m1
+  IL_001a:  dup
+  IL_001b:  stloc.1
+  IL_001c:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0021:  nop
+  IL_0022:  ldarg.0
+  IL_0023:  ldc.i4.2
+  IL_0024:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
+  IL_0029:  ldarg.0
+  IL_002a:  ldc.i4.1
+  IL_002b:  dup
+  IL_002c:  stloc.1
+  IL_002d:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0032:  ldc.i4.1
+  IL_0033:  ret
+  IL_0034:  ldarg.0
+  IL_0035:  ldc.i4.m1
+  IL_0036:  dup
+  IL_0037:  stloc.1
+  IL_0038:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_003d:  ldc.i4.0
+  IL_003e:  ret
+}
+")
+                    End Sub).
+                Verify()
             End Using
         End Sub
 
         <Fact>
         Public Sub UpdateAsync_NoVariables()
-            Dim source0 =
-<compilation>
-    <file name="a.vb">
+            Using New EditAndContinueTest().
+                AddBaseline(
+                    source:="
 Imports System.Threading.Tasks
 Class C
     Async Function F() As Task(Of Integer)
-        Await Task.FromResult(1)
+        <N:0>Await Task.FromResult(1)</N:0>
         Return 2
     End Function
-End Class
-    </file>
-</compilation>
-            Dim source1 =
-<compilation>
-    <file name="a.vb">
-Imports System.Threading.Tasks
-Class C
-    Async Function F() As Task(Of Integer)
-        Await Task.FromResult(10)
-        Return 20
-    End Function
-End Class
-    </file>
-</compilation>
-
-            Dim compilation0 = CompilationUtils.CreateEmptyCompilationWithReferences(source0, references:=LatestVbReferences, options:=TestOptions.DebugDll)
-            Dim compilation1 = CompilationUtils.CreateEmptyCompilationWithReferences(source1, references:=LatestVbReferences, options:=TestOptions.DebugDll)
-
-            Dim v0 = CompileAndVerify(compilation:=compilation0)
-
-            Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
-                Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
-                Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
-
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
-                Dim diff1 = compilation1.EmitDifference(
-                    generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
-
-                ' only methods with sequence points should be listed in UpdatedMethods:
-                diff1.VerifyUpdatedMethods("0x06000004")
-
-                ' verify delta metadata contains expected rows
-                Using md1 = diff1.GetMetadata()
-                    CheckEncLogDefinitions(md1.Reader,
-                        Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
-                End Using
-
-                diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
-{
-  // Code size      186 (0xba)
-  .maxstack  3
-  .locals init (Integer V_0,
-                Integer V_1,
-                System.Threading.Tasks.Task(Of Integer) V_2,
-                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_3,
-                C.VB$StateMachine_1_F V_4,
-                System.Exception V_5)
-  IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_0006:  stloc.1
-  .try
-  {
-    IL_0007:  ldloc.1
-    IL_0008:  brfalse.s  IL_000c
-    IL_000a:  br.s       IL_000e
-    IL_000c:  br.s       IL_004a
-    IL_000e:  nop
-    IL_000f:  ldc.i4.s   10
-    IL_0011:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
-    IL_0016:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_001b:  stloc.3
-    IL_001c:  ldloca.s   V_3
-    IL_001e:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
-    IL_0023:  brtrue.s   IL_0068
-    IL_0025:  ldarg.0
-    IL_0026:  ldc.i4.0
-    IL_0027:  dup
-    IL_0028:  stloc.1
-    IL_0029:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_002e:  ldarg.0
-    IL_002f:  ldloc.3
-    IL_0030:  stfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0035:  ldarg.0
-    IL_0036:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_003b:  ldloca.s   V_3
-    IL_003d:  ldarg.0
-    IL_003e:  stloc.s    V_4
-    IL_0040:  ldloca.s   V_4
-    IL_0042:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef C.VB$StateMachine_1_F)""
-    IL_0047:  nop
-    IL_0048:  leave.s    IL_00b9
-    IL_004a:  ldarg.0
-    IL_004b:  ldc.i4.m1
-    IL_004c:  dup
-    IL_004d:  stloc.1
-    IL_004e:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_0053:  ldarg.0
-    IL_0054:  ldfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0059:  stloc.3
-    IL_005a:  ldarg.0
-    IL_005b:  ldflda     ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0060:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0066:  br.s       IL_0068
-    IL_0068:  ldloca.s   V_3
-    IL_006a:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
-    IL_006f:  pop
-    IL_0070:  ldloca.s   V_3
-    IL_0072:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
-    IL_0078:  ldc.i4.s   20
-    IL_007a:  stloc.0
-    IL_007b:  leave.s    IL_00a2
-  }
-  catch System.Exception
-  {
-    IL_007d:  dup
-    IL_007e:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
-    IL_0083:  stloc.s    V_5
-    IL_0085:  ldarg.0
-    IL_0086:  ldc.i4.s   -2
-    IL_0088:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-    IL_008d:  ldarg.0
-    IL_008e:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-    IL_0093:  ldloc.s    V_5
-    IL_0095:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
-    IL_009a:  nop
-    IL_009b:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
-    IL_00a0:  leave.s    IL_00b9
-  }
-  IL_00a2:  ldarg.0
-  IL_00a3:  ldc.i4.s   -2
-  IL_00a5:  dup
-  IL_00a6:  stloc.1
-  IL_00a7:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
-  IL_00ac:  ldarg.0
-  IL_00ad:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
-  IL_00b2:  ldloc.0
-  IL_00b3:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
-  IL_00b8:  nop
-  IL_00b9:  ret
-}
-")
-                v0.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
+End Class",
+                    validator:=
+                    Sub(g)
+                        g.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
 {
   // Code size      184 (0xb8)
   .maxstack  3
@@ -1457,6 +1294,129 @@ End Class
   IL_00b7:  ret
 }
 ")
+                    End Sub).
+                AddGeneration(
+                    source:="
+Imports System.Threading.Tasks
+Class C
+    Async Function F() As Task(Of Integer)
+        <N:0>Await Task.FromResult(10)</N:0>
+        Return 20
+    End Function
+End Class",
+                    edits:={Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)},
+                    validator:=
+                    Sub(g)
+                        ' only methods with sequence points should be listed in UpdatedMethods:
+                        g.VerifyUpdatedMethodNames("MoveNext")
+
+                        g.VerifyEncLogDefinitions(
+                        {
+                            Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default)
+                        })
+
+                        g.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
+{
+  // Code size      186 (0xba)
+  .maxstack  3
+  .locals init (Integer V_0,
+                Integer V_1,
+                System.Threading.Tasks.Task(Of Integer) V_2,
+                System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_3,
+                C.VB$StateMachine_1_F V_4,
+                System.Exception V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0006:  stloc.1
+  .try
+  {
+    IL_0007:  ldloc.1
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_000e
+    IL_000c:  br.s       IL_004a
+    IL_000e:  nop
+    IL_000f:  ldc.i4.s   10
+    IL_0011:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
+    IL_0016:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_001b:  stloc.3
+    IL_001c:  ldloca.s   V_3
+    IL_001e:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).get_IsCompleted() As Boolean""
+    IL_0023:  brtrue.s   IL_0068
+    IL_0025:  ldarg.0
+    IL_0026:  ldc.i4.0
+    IL_0027:  dup
+    IL_0028:  stloc.1
+    IL_0029:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_002e:  ldarg.0
+    IL_002f:  ldloc.3
+    IL_0030:  stfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0035:  ldarg.0
+    IL_0036:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_003b:  ldloca.s   V_3
+    IL_003d:  ldarg.0
+    IL_003e:  stloc.s    V_4
+    IL_0040:  ldloca.s   V_4
+    IL_0042:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef C.VB$StateMachine_1_F)""
+    IL_0047:  nop
+    IL_0048:  leave.s    IL_00b9
+    IL_004a:  ldarg.0
+    IL_004b:  ldc.i4.m1
+    IL_004c:  dup
+    IL_004d:  stloc.1
+    IL_004e:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_0053:  ldarg.0
+    IL_0054:  ldfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0059:  stloc.3
+    IL_005a:  ldarg.0
+    IL_005b:  ldflda     ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0060:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0066:  br.s       IL_0068
+    IL_0068:  ldloca.s   V_3
+    IL_006a:  call       ""Function System.Runtime.CompilerServices.TaskAwaiter(Of Integer).GetResult() As Integer""
+    IL_006f:  pop
+    IL_0070:  ldloca.s   V_3
+    IL_0072:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_0078:  ldc.i4.s   20
+    IL_007a:  stloc.0
+    IL_007b:  leave.s    IL_00a2
+  }
+  catch System.Exception
+  {
+    IL_007d:  dup
+    IL_007e:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0083:  stloc.s    V_5
+    IL_0085:  ldarg.0
+    IL_0086:  ldc.i4.s   -2
+    IL_0088:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_008d:  ldarg.0
+    IL_008e:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_0093:  ldloc.s    V_5
+    IL_0095:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
+    IL_009a:  nop
+    IL_009b:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00a0:  leave.s    IL_00b9
+  }
+  IL_00a2:  ldarg.0
+  IL_00a3:  ldc.i4.s   -2
+  IL_00a5:  dup
+  IL_00a6:  stloc.1
+  IL_00a7:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_00ac:  ldarg.0
+  IL_00ad:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+  IL_00b2:  ldloc.0
+  IL_00b3:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
+  IL_00b8:  nop
+  IL_00b9:  ret
+}
+")
+                    End Sub).
+                Verify()
             End Using
         End Sub
 
@@ -1521,10 +1481,10 @@ End Class")
             Dim v0 = CompileAndVerify(compilation:=compilation0).VerifyDiagnostics()
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 v0.VerifyPdb("C.F", "
 <symbols>
@@ -1970,14 +1930,14 @@ End Class")
 
             Dim v0 = CompileAndVerify(compilation:=compilation0).VerifyDiagnostics()
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 Dim diff2 = compilation2.EmitDifference(
                     diff1.NextGeneration,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
                 v0.VerifyPdb("C.F", "
 <symbols>
@@ -2566,12 +2526,12 @@ End Class")
             Dim ctor0 = compilation0.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single()
             Dim ctor1 = compilation1.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single()
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(
                  generation0,
                  ImmutableArray.Create(
-                     SemanticEdit.Create(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                     SemanticEdit.Create(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1))))
 
             v0.VerifyPdb("C..ctor",
 <symbols>
@@ -3028,10 +2988,10 @@ End Class")
             Dim v0 = CompileAndVerify(compilation:=compilation0).VerifyDiagnostics()
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 diff1.VerifyIL("C.VB$StateMachine_5_F.MoveNext", "
 {
@@ -3197,10 +3157,10 @@ End Try</N:1>
             Dim v0 = CompileAndVerify(compilation:=compilation0).VerifyDiagnostics()
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 v0.VerifyIL("C.VB$StateMachine_8_F.MoveNext", "
  {
@@ -3585,10 +3545,10 @@ End Class")
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
                 diff1.VerifyUpdatedMethods("0x06000005")
@@ -3690,10 +3650,10 @@ End Class")
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
                 diff1.VerifyUpdatedMethods("0x06000005")
@@ -3800,10 +3760,10 @@ End Class")
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
                 diff1.VerifyUpdatedMethods("0x06000005")
@@ -3906,10 +3866,10 @@ End Class")
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
                 diff1.VerifyUpdatedMethods("0x06000005")
@@ -4039,10 +3999,10 @@ End Class")
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
                 diff1.VerifyUpdatedMethods("0x06000005")
@@ -4206,10 +4166,10 @@ End Class"
             Dim v0 = CompileAndVerify(compilation:=compilation0).VerifyDiagnostics()
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 v0.VerifyPdb("C.F", "
 <symbols>
@@ -4467,10 +4427,10 @@ End Class"
             Dim v0 = CompileAndVerify(compilation:=compilation0).VerifyDiagnostics()
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 diff1.VerifyIL("C.VB$StateMachine_6_F.MoveNext", "
 {
@@ -4631,12 +4591,12 @@ End Class")
             Dim ctor0 = compilation0.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single()
             Dim ctor1 = compilation1.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single()
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim diff1 = compilation1.EmitDifference(
                  generation0,
                  ImmutableArray.Create(
-                     SemanticEdit.Create(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                     SemanticEdit.Create(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1))))
 
             v0.VerifyPdb("C..ctor",
 <symbols>
@@ -4960,10 +4920,10 @@ End Try</N:3>
             Dim v0 = CompileAndVerify(compilation:=compilation0).VerifyDiagnostics()
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 v0.VerifyPdb("C.F", "
 <symbols>
@@ -5462,10 +5422,10 @@ End Using
             Dim v0 = CompileAndVerify(compilation:=compilation0).VerifyDiagnostics()
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 v0.VerifyPdb("C.F", "
 <symbols>
@@ -5901,10 +5861,10 @@ End SyncLock</N:0>
             Dim v0 = CompileAndVerify(compilation:=compilation0).VerifyDiagnostics()
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 v0.VerifyPdb("C.F", "
  <symbols>
@@ -6358,10 +6318,10 @@ End Class")
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
                 diff1.VerifyUpdatedMethods("0x06000004")
@@ -6511,10 +6471,10 @@ End Class")
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
                 diff1.VerifyUpdatedMethods("0x06000004")
@@ -6669,10 +6629,10 @@ End Class")
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
                 diff1.VerifyUpdatedMethods("0x06000004")
@@ -6823,10 +6783,10 @@ End Class")
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) symReader.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
                 diff1.VerifyUpdatedMethods("0x06000004")
@@ -7080,13 +7040,13 @@ End Class")
 
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
             Dim syntaxMap1 = GetSyntaxMapFromMarkers(source0, source1)
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(
-                        New SemanticEdit(SemanticEditKind.Update, f0, f1, syntaxMap1, preserveLocalVariables:=True),
-                        New SemanticEdit(SemanticEditKind.Update, g0, g1, syntaxMap1, preserveLocalVariables:=True)))
+                        New SemanticEdit(SemanticEditKind.Update, f0, f1, syntaxMap1),
+                        New SemanticEdit(SemanticEditKind.Update, g0, g1, syntaxMap1)))
 
             diff1.VerifySynthesizedMembers(
                 "C: {VB$StateMachine_1_F, VB$StateMachine_2_G}",
@@ -7097,7 +7057,7 @@ End Class")
             Dim diff2 = compilation2.EmitDifference(
                     diff1.NextGeneration,
                     ImmutableArray.Create(
-                        New SemanticEdit(SemanticEditKind.Update, f1, f2, syntaxMap2, preserveLocalVariables:=True)))
+                        New SemanticEdit(SemanticEditKind.Update, f1, f2, syntaxMap2)))
 
             diff2.VerifySynthesizedMembers(
                 "C: {VB$StateMachine_1_F, VB$StateMachine_2_G}",
@@ -7108,8 +7068,8 @@ End Class")
             Dim diff3 = compilation3.EmitDifference(
                     diff2.NextGeneration,
                     ImmutableArray.Create(
-                        New SemanticEdit(SemanticEditKind.Update, g2, g3, syntaxMap3, preserveLocalVariables:=True),
-                        New SemanticEdit(SemanticEditKind.Update, h2, h3, syntaxMap3, preserveLocalVariables:=True)))
+                        New SemanticEdit(SemanticEditKind.Update, g2, g3, syntaxMap3),
+                        New SemanticEdit(SemanticEditKind.Update, h2, h3, syntaxMap3)))
 
             diff3.VerifySynthesizedMembers(
                 "C: {VB$StateMachine_2_G, VB$StateMachine_3_H, VB$StateMachine_1_F}",
@@ -7580,14 +7540,14 @@ End Class")
 
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
 
             Dim syntaxMap1 = GetSyntaxMapFromMarkers(source0, source1)
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(
-                        New SemanticEdit(SemanticEditKind.Update, f0, f1, syntaxMap1, preserveLocalVariables:=True),
-                        New SemanticEdit(SemanticEditKind.Update, g0, g1, syntaxMap1, preserveLocalVariables:=True)))
+                        New SemanticEdit(SemanticEditKind.Update, f0, f1, syntaxMap1),
+                        New SemanticEdit(SemanticEditKind.Update, g0, g1, syntaxMap1)))
 
             diff1.VerifySynthesizedMembers(
                 "C: {VB$StateMachine_4_F, VB$StateMachine_5_G}",
@@ -7598,7 +7558,7 @@ End Class")
             Dim diff2 = compilation2.EmitDifference(
                     diff1.NextGeneration,
                     ImmutableArray.Create(
-                        New SemanticEdit(SemanticEditKind.Update, f1, f2, syntaxMap2, preserveLocalVariables:=True)))
+                        New SemanticEdit(SemanticEditKind.Update, f1, f2, syntaxMap2)))
 
             diff2.VerifySynthesizedMembers(
                 "C: {VB$StateMachine_4_F, VB$StateMachine_5_G}",
@@ -7609,8 +7569,8 @@ End Class")
             Dim diff3 = compilation3.EmitDifference(
                     diff2.NextGeneration,
                     ImmutableArray.Create(
-                        New SemanticEdit(SemanticEditKind.Update, g2, g3, syntaxMap3, preserveLocalVariables:=True),
-                        New SemanticEdit(SemanticEditKind.Update, h2, h3, syntaxMap3, preserveLocalVariables:=True)))
+                        New SemanticEdit(SemanticEditKind.Update, g2, g3, syntaxMap3),
+                        New SemanticEdit(SemanticEditKind.Update, h2, h3, syntaxMap3)))
 
             diff3.VerifySynthesizedMembers(
                 "C: {VB$StateMachine_5_G, VB$StateMachine_6_H, VB$StateMachine_4_F}",
@@ -8049,7 +8009,7 @@ End Class
             Dim v0 = CompileAndVerify(compilation:=compilation0)
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, Function(handle) v0.CreateSymReader().GetEncMethodDebugInfo(handle))
 
             Dim diff1 = compilation1.EmitDifference(
                     generation0,
@@ -8063,7 +8023,7 @@ End Class
             Dim diff2 = compilation2.EmitDifference(
                     diff1.NextGeneration,
                     ImmutableArray.Create(
-                        New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapByKind(f1, SyntaxKind.FunctionBlock), preserveLocalVariables:=True)))
+                        New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapByKind(f1, SyntaxKind.FunctionBlock))))
 
             diff2.VerifySynthesizedMembers(
                 "C: {VB$StateMachine_1#1_F}",
@@ -8166,7 +8126,7 @@ Class C
     End Function
 End Class")
 
-            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({source0.Tree}, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
+            Dim compilation0 = CreateCompilationWithMscorlib461AndVBRuntime({source0.Tree}, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
             Dim compilation1 = compilation0.WithSource(source1.Tree)
             Dim compilation2 = compilation1.WithSource(source2.Tree)
 
@@ -8183,7 +8143,7 @@ End Class")
                 End Sub)
 
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
@@ -8192,7 +8152,7 @@ End Class")
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             ' note that the types of the awaiter fields $A0, $A1 are the same as in the previous generation
             diff1.VerifySynthesizedFields("C._Closure$__.VB$StateMachine___Lambda$__1-0",
@@ -8205,7 +8165,7 @@ End Class")
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             ' note that the types of the awaiter fields $A0, $A1 are the same as in the previous generation
             diff2.VerifySynthesizedFields("C._Closure$__.VB$StateMachine___Lambda$__1-0",
@@ -8250,7 +8210,7 @@ Class C
     Shared Sub G(f As Func(Of Integer))
     End Sub
 End Class")
-            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({source0.Tree}, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib461AndVBRuntime({source0.Tree}, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Dim m0 = compilation0.GetMember(Of MethodSymbol)("C.M")
@@ -8260,7 +8220,7 @@ End Class")
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
                 Dim reader0 = md0.MetadataReader
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
                 ' Notice encLocalSlotMap CDI on both M and MoveNext methods.
                 ' The former is used to calculate mapping for variables lifted to fields of the state machine,
@@ -8319,7 +8279,7 @@ End Class")
                 Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    SemanticEdit.Create(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 ' Notice that we reused field "$VB$ResumableLocal_$VB$Closure_$0" (there is no "$VB$ResumableLocal_$VB$Closure_$1"), which stores the closure pointer.
                 diff1.VerifySynthesizedMembers(
@@ -8368,7 +8328,7 @@ Class C
         Return Task.FromResult(1)
     End Function
 End Class")
-            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({source0.Tree}, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib461AndVBRuntime({source0.Tree}, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Dim m0 = compilation0.GetMember(Of MethodSymbol)("C.M")
@@ -8378,7 +8338,7 @@ End Class")
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
                 Dim reader0 = md0.MetadataReader
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+                Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
                 ' Notice encLocalSlotMap CDI on both M and MoveNext methods.
                 ' The former is used to calculate mapping for variables lifted to fields of the state machine,
@@ -8429,7 +8389,7 @@ End Class")
                 Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    SemanticEdit.Create(SemanticEditKind.Update, m0, m1, GetSyntaxMapFromMarkers(source0, source1))))
 
                 ' Notice that we reused field "$W0" (there is no "$W1"), which stores the closure pointer.
                 diff1.VerifySynthesizedMembers(
@@ -8476,7 +8436,7 @@ Class C
     End Function
 End Class
 ")
-            Dim compilation0 = CreateCompilationWithMscorlib45({source0.Tree}, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib461({source0.Tree}, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
             Dim compilation2 = compilation1.WithSource(source2.Tree)
 
@@ -8488,7 +8448,7 @@ End Class
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
             Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim baselineIL = "
 {
@@ -8550,7 +8510,7 @@ End Class
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.VerifySynthesizedMembers(
                 "C: {VB$StateMachine_1_F}",
@@ -8561,7 +8521,7 @@ End Class
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             diff2.VerifySynthesizedMembers(
                 "C: {VB$StateMachine_1_F}",
@@ -8608,7 +8568,7 @@ Class C
     End Function
 End Class
 ")
-            Dim compilation0 = CreateCompilationWithMscorlib45({source0.Tree}, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib461({source0.Tree}, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
             Dim compilation2 = compilation1.WithSource(source2.Tree)
 
@@ -8620,7 +8580,7 @@ End Class
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
             Dim f2 = compilation2.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             Dim baselineIL = "
 {
@@ -8691,7 +8651,7 @@ End Class
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.VerifySynthesizedMembers(
                 "C: {VB$StateMachine_1_F}",
@@ -8702,7 +8662,7 @@ End Class
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             diff2.VerifySynthesizedMembers(
                 "C: {VB$StateMachine_1_F}",
@@ -8741,7 +8701,7 @@ End Class
             Dim source4 = source0
             Dim source5 = source1
 
-            Dim compilation0 = CreateCompilationWithMscorlib45AndVBRuntime({source0.Tree}, {SystemCoreRef}, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib461AndVBRuntime({source0.Tree}, {SystemCoreRef}, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
             Dim compilation2 = compilation0.WithSource(source2.Tree)
             Dim compilation3 = compilation0.WithSource(source3.Tree)
@@ -8758,13 +8718,13 @@ End Class
             Dim f4 = compilation4.GetMember(Of MethodSymbol)("C.F")
             Dim f5 = compilation5.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
 
             ' y is added 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.VerifySynthesizedMembers(
                 "C: {VB$StateMachine_1_F, _Closure$__}",
@@ -8775,7 +8735,7 @@ End Class
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2))))
 
             ' Synthesized members collection still includes y field since members are only added to it and never deleted.
             ' The corresponding CLR field is also present.
@@ -8788,7 +8748,7 @@ End Class
             Dim diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f2, f3, GetSyntaxMapFromMarkers(source2, source3), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f2, f3, GetSyntaxMapFromMarkers(source2, source3))))
 
             diff3.VerifySynthesizedMembers(
                 "C: {VB$StateMachine_1_F, _Closure$__}",
@@ -8799,7 +8759,7 @@ End Class
             Dim diff4 = compilation4.EmitDifference(
                 diff3.NextGeneration,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f3, f4, GetSyntaxMapFromMarkers(source3, source4), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f3, f4, GetSyntaxMapFromMarkers(source3, source4))))
 
             diff4.VerifySynthesizedMembers(
                 "C: {VB$StateMachine_1_F, _Closure$__}",
@@ -8810,7 +8770,7 @@ End Class
             Dim diff5 = compilation5.EmitDifference(
                 diff4.NextGeneration,
                 ImmutableArray.Create(
-                    New SemanticEdit(SemanticEditKind.Update, f4, f5, GetSyntaxMapFromMarkers(source4, source5), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f4, f5, GetSyntaxMapFromMarkers(source4, source5))))
 
             diff5.VerifySynthesizedMembers(
                 "C: {VB$StateMachine_1_F, _Closure$__}",
@@ -8856,10 +8816,10 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.EmitResult.Diagnostics.Verify(
                 Diagnostic(ERRID.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("Public Function F() As IEnumerable(Of Integer)", "System.Runtime.CompilerServices.IteratorStateMachineAttribute").WithLocation(6, 30))
@@ -8914,10 +8874,10 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.EmitResult.Diagnostics.Verify(
                 Diagnostic(ERRID.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("Public Function F() As IEnumerable(Of Integer)", "System.Runtime.CompilerServices.IteratorStateMachineAttribute").WithLocation(12, 30))
@@ -8970,12 +8930,12 @@ End Class
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
             Dim ism1 = compilation1.GetMember(Of TypeSymbol)("System.Runtime.CompilerServices.IteratorStateMachineAttribute")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     New SemanticEdit(SemanticEditKind.Insert, Nothing, ism1),
-                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                    New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.EmitResult.Diagnostics.Verify()
         End Sub
@@ -9032,10 +8992,10 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.EmitResult.Diagnostics.Verify()
         End Sub
@@ -9085,10 +9045,10 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.EmitResult.Diagnostics.Verify(
                 Diagnostic(ERRID.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("Public Function F() As Task(Of Integer)", "System.Runtime.CompilerServices.AsyncStateMachineAttribute").WithLocation(15, 27))
@@ -9112,7 +9072,7 @@ Class C
     End Function
 End Class
 ")
-            Dim compilation0 = CompilationUtils.CreateEmptyCompilation({source0.Tree}, {TestMetadata.Net451.mscorlib}, options:=ComSafeDebugDll)
+            Dim compilation0 = CompilationUtils.CreateEmptyCompilation({source0.Tree}, {NetFramework.mscorlib}, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Assert.NotNull(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor))
@@ -9123,10 +9083,10 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.EmitResult.Diagnostics.Verify()
         End Sub
@@ -9162,10 +9122,10 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.EmitResult.Diagnostics.Verify(
                 Diagnostic(ERRID.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("Public Function F() As Task(Of Integer)", "System.Runtime.CompilerServices.AsyncStateMachineAttribute").WithLocation(15, 27))
@@ -9201,10 +9161,10 @@ End Class
             Dim f0 = compilation0.GetMember(Of MethodSymbol)("C.F")
             Dim f1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-            Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
+            Dim generation0 = CreateInitialBaseline(compilation0, md0, AddressOf v0.CreateSymReader().GetEncMethodDebugInfo)
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))))
 
             diff1.EmitResult.Diagnostics.Verify(
                 Diagnostic(ERRID.ERR_EncUpdateFailedMissingAttribute, "F").WithArguments("Public Function F() As IEnumerable(Of Integer)", "System.Runtime.CompilerServices.IteratorStateMachineAttribute").WithLocation(5, 30))

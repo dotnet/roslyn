@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
+using Basic.Reference.Assemblies;
 using static TestResources.NetFX.ValueTuple;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -3266,7 +3266,7 @@ class C
         public void HugeTupleCreationParses()
         {
             StringBuilder b = new StringBuilder();
-            b.Append("(");
+            b.Append('(');
             for (int i = 0; i < 3000; i++)
             {
                 b.Append("1, ");
@@ -3292,7 +3292,7 @@ class C
         public void HugeTupleDeclarationParses()
         {
             StringBuilder b = new StringBuilder();
-            b.Append("(");
+            b.Append('(');
             for (int i = 0; i < 3000; i++)
             {
                 b.Append("int, ");
@@ -3550,8 +3550,7 @@ static class C
 ";
 
             CompileAndVerify(source,
-                targetFramework: TargetFramework.Mscorlib45,
-                references: new[] { Net451.System, Net451.SystemCore, Net451.SystemRuntime, ValueTupleRef },
+                targetFramework: TargetFramework.NetFramework,
                 expectedOutput: @"42 Alice");
         }
 
@@ -3856,7 +3855,7 @@ public static class Extensions
     public static string a(this (int, int) self) { return ""hello""; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { Net451.System, Net451.SystemCore, Net451.SystemRuntime, ValueTupleRef }, parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetFramework, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (8,32): error CS8305: Tuple element name 'a' is inferred. Please use language version 7.1 or greater to access an element by its inferred name.
                 //         System.Console.Write(t.a);
@@ -10360,7 +10359,7 @@ class C
         (int, int) t1 = t0;
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source);
             comp.VerifyDiagnostics(
                 // (14,33): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //     static void Main((int, int) p)
@@ -10390,7 +10389,7 @@ class Program
         ValueTuple<int, int*> t3 = t2;
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, references: s_valueTupleRefs,
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, references: s_valueTupleRefs,
                options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (5,31): error CS0306: The type 'int*' may not be used as a type argument
@@ -10441,7 +10440,7 @@ class C<T>
         return default((U, U));
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source);
             comp.VerifyDiagnostics(
                 // (15,12): error CS0452: The type 'U' must be a reference type in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //     (U, U) M<U>(U x)
@@ -10482,7 +10481,7 @@ class C<T> where T : class
         return default((U, U));
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source);
             comp.VerifyDiagnostics(
                 // (17,24): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C<T>'
                 //         var t0 = new C<int>();
@@ -10520,7 +10519,7 @@ class C<T> where T : class
         return default((U, U));
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source);
             comp.VerifyDiagnostics(
                 // (15,12): error CS0453: The type 'U' must be a non-nullable value type in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //     (U, U) M<U>(U x) where U : class
@@ -10593,7 +10592,7 @@ class C
         (int, int, int, int, int, int, int, int) t1 = t0;
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source);
             comp.VerifyDiagnostics(
                 // (42,53): error CS0452: The type 'ValueTuple<int>' must be a reference type in order to use it as parameter 'TRest' in the generic type or method 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>'
                 //     void M((int, int, int, int, int, int, int, int) p)
@@ -10639,7 +10638,7 @@ class Program
         var v2 = (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, (int*)null);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, references: s_valueTupleRefs,
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, references: s_valueTupleRefs,
                options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (15,102): error CS0306: The type 'int*' may not be used as a type argument
@@ -13914,7 +13913,7 @@ public class Test
                                                      options: TestOptions.ReleaseDll);
 
             var comp2CompilationRef = comp2.ToMetadataReference();
-            var comp3 = CreateCompilationWithMscorlib45(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, comp2CompilationRef },
+            var comp3 = CreateCompilationWithMscorlib461(source1, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, comp2CompilationRef },
                                                      options: TestOptions.ReleaseExe);
 
             Assert.NotSame(comp2.Assembly, (AssemblySymbol)comp3.GetAssemblyOrModuleSymbol(comp2CompilationRef)); // We are interested in retargeting scenario
@@ -14079,7 +14078,7 @@ public class Test
                                                      options: TestOptions.ReleaseDll);
 
             var comp2CompilationRef = comp2.ToMetadataReference();
-            var comp3 = CreateCompilationWithMscorlib45(source1, references: (new[] { comp2CompilationRef }).Concat(s_valueTupleRefs),
+            var comp3 = CreateCompilationWithMscorlib461(source1, references: (new[] { comp2CompilationRef }).Concat(s_valueTupleRefs),
                                                      options: TestOptions.ReleaseExe);
 
             Assert.NotSame(comp2.Assembly, (AssemblySymbol)comp3.GetAssemblyOrModuleSymbol(comp2CompilationRef)); // We are interested in retargeting scenario
@@ -19057,7 +19056,7 @@ class C {
             var tupleComp1 = CreateCompilationWithMscorlib40(trivial2uple + trivial3uple + trivialRemainingTuples);
 
             var tree = Parse(text);
-            var comp = (Compilation)CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { (MetadataReference)Net40.mscorlib, tupleComp1.ToMetadataReference() });
+            var comp = (Compilation)CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { (MetadataReference)Net40.References.mscorlib, tupleComp1.ToMetadataReference() });
 
             var model = comp.GetSemanticModel(tree);
             var exprs = GetBindingNodes<ExpressionSyntax>(comp);
@@ -19096,7 +19095,7 @@ class C {
             var tupleComp1 = CreateCompilationWithMscorlib40(trivial2uple + trivial3uple + trivialRemainingTuples);
 
             var tree = Parse(text);
-            var comp = (Compilation)CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { (MetadataReference)Net40.mscorlib, tupleComp1.ToMetadataReference() });
+            var comp = (Compilation)CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { (MetadataReference)Net40.References.mscorlib, tupleComp1.ToMetadataReference() });
 
             var model = comp.GetSemanticModel(tree);
             var exprs = GetBindingNodes<ExpressionSyntax>(comp);
@@ -19766,7 +19765,7 @@ class Derived : Base
             var comp1 = CreateCompilation(source1 + trivial2uple + source2);
             comp1.VerifyDiagnostics();
 
-            var comp2 = CreateCompilationWithMscorlib45(source1 + trivial2uple);
+            var comp2 = CreateCompilationWithMscorlib461(source1 + trivial2uple);
             comp2.VerifyDiagnostics();
 
             // Retargeting (different version of mscorlib)
@@ -19774,7 +19773,7 @@ class Derived : Base
             comp3.VerifyDiagnostics();
 
             // Metadata
-            var comp4 = CreateCompilationWithMscorlib45(source2, references: new[] { comp2.EmitToImageReference() });
+            var comp4 = CreateCompilationWithMscorlib461(source2, references: new[] { comp2.EmitToImageReference() });
             comp4.VerifyDiagnostics();
         }
 
@@ -20498,10 +20497,12 @@ public class C4 : I2, I3
 
             void assertExplicitInterfaceImplementations(INamedTypeSymbol c)
             {
-                var cMabImplementations = ((IMethodSymbol)c.GetMember("I1<(System.Int32a,System.Int32b)>.M")).ExplicitInterfaceImplementations;
+                var members = c.GetMembers("I1<System.ValueTuple<System.Int32,System.Int32>>.M");
+                Assert.Equal(2, members.Length);
+                var cMabImplementations = ((IMethodSymbol)members[0]).ExplicitInterfaceImplementations;
                 Assert.Equal(1, cMabImplementations.Length);
                 Assert.Equal("void I1<(System.Int32 a, System.Int32 b)>.M()", cMabImplementations[0].ToTestDisplayString());
-                var cMcdImplementations = ((IMethodSymbol)c.GetMember("I1<(System.Int32c,System.Int32d)>.M")).ExplicitInterfaceImplementations;
+                var cMcdImplementations = ((IMethodSymbol)members[1]).ExplicitInterfaceImplementations;
                 Assert.Equal(1, cMcdImplementations.Length);
                 Assert.Equal("void I1<(System.Int32 c, System.Int32 d)>.M()", cMcdImplementations[0].ToTestDisplayString());
             }
@@ -20565,7 +20566,7 @@ public class C2 : C1, I1<(int c, int d)>
                 Assert.Equal("void C2.M1()",
                              c2.FindImplementationForInterfaceMember(((TypeSymbol)c1Interfaces[0]).GetMember("M1")).ToTestDisplayString());
 
-                var m2 = (MethodSymbol)((TypeSymbol)c2).GetMember("I1<(System.Int32c,System.Int32d)>.M2");
+                var m2 = (MethodSymbol)((TypeSymbol)c2).GetMember("I1<System.ValueTuple<System.Int32,System.Int32>>.M2");
                 var m2Implementations = m2.ExplicitInterfaceImplementations;
                 Assert.Equal(1, m2Implementations.Length);
                 Assert.Equal(isMetadata ?
@@ -20712,10 +20713,12 @@ public class C4<T> : I2<T>, I3<T>
 
             void assertExplicitInterfaceImplementations(INamedTypeSymbol c)
             {
-                var cMabImplementations = ((IMethodSymbol)c.GetMember("I1<(Ta,Tb)>.M")).ExplicitInterfaceImplementations;
+                var members = c.GetMembers("I1<System.ValueTuple<T,T>>.M");
+                Assert.Equal(2, members.Length);
+                var cMabImplementations = ((IMethodSymbol)members[0]).ExplicitInterfaceImplementations;
                 Assert.Equal(1, cMabImplementations.Length);
                 Assert.Equal("void I1<(T a, T b)>.M()", cMabImplementations[0].ToTestDisplayString());
-                var cMcdImplementations = ((IMethodSymbol)c.GetMember("I1<(Tc,Td)>.M")).ExplicitInterfaceImplementations;
+                var cMcdImplementations = ((IMethodSymbol)members[1]).ExplicitInterfaceImplementations;
                 Assert.Equal(1, cMcdImplementations.Length);
                 Assert.Equal("void I1<(T c, T d)>.M()", cMcdImplementations[0].ToTestDisplayString());
             }
@@ -20757,10 +20760,10 @@ public class C3<T, U> : I1<(T a, T b)>, I1<(U c, U d)>
 
             void assertExplicitInterfaceImplementations(INamedTypeSymbol c)
             {
-                var cMabImplementations = ((IMethodSymbol)c.GetMember("I1<(Ta,Tb)>.M")).ExplicitInterfaceImplementations;
+                var cMabImplementations = ((IMethodSymbol)c.GetMember("I1<System.ValueTuple<T,T>>.M")).ExplicitInterfaceImplementations;
                 Assert.Equal(1, cMabImplementations.Length);
                 Assert.Equal("void I1<(T a, T b)>.M()", cMabImplementations[0].ToTestDisplayString());
-                var cMcdImplementations = ((IMethodSymbol)c.GetMember("I1<(Uc,Ud)>.M")).ExplicitInterfaceImplementations;
+                var cMcdImplementations = ((IMethodSymbol)c.GetMember("I1<System.ValueTuple<U,U>>.M")).ExplicitInterfaceImplementations;
                 Assert.Equal(1, cMcdImplementations.Length);
                 Assert.Equal("void I1<(U c, U d)>.M()", cMcdImplementations[0].ToTestDisplayString());
             }
@@ -20801,7 +20804,7 @@ public class C4 : I1<(int c, int d)>
             Assert.Equal("I1<(System.Int32 a, System.Int32 b)>", c3Interfaces[0].ToTestDisplayString());
             Assert.Equal("I1<(System.Int32 a, System.Int32 b)>", c3AllInterfaces[0].ToTestDisplayString());
 
-            var mImplementations = ((MethodSymbol)c3.GetMember("I1<(System.Int32c,System.Int32d)>.M")).GetPublicSymbol().ExplicitInterfaceImplementations;
+            var mImplementations = ((MethodSymbol)c3.GetMember("I1<System.ValueTuple<System.Int32,System.Int32>>.M")).GetPublicSymbol().ExplicitInterfaceImplementations;
             Assert.Equal(1, mImplementations.Length);
             Assert.Equal("void I1<(System.Int32 c, System.Int32 d)>.M()", mImplementations[0].ToTestDisplayString());
 
@@ -21003,15 +21006,15 @@ public partial class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (10,18): error CS8142: Both partial method declarations, 'C.M1((int a, int b))' and 'C.M1((int notA, int notB))', must use the same tuple element names.
+                // (10,18): error CS8142: Both partial member declarations, 'C.M1((int a, int b))' and 'C.M1((int notA, int notB))', must use the same tuple element names.
                 //     partial void M1((int notA, int notB) y) { }
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M1").WithArguments("C.M1((int a, int b))", "C.M1((int notA, int notB))").WithLocation(10, 18),
+                Diagnostic(ErrorCode.ERR_PartialMemberInconsistentTupleNames, "M1").WithArguments("C.M1((int a, int b))", "C.M1((int notA, int notB))").WithLocation(10, 18),
                 // (10,18): warning CS8826: Partial method declarations 'void C.M1((int a, int b) x)' and 'void C.M1((int notA, int notB) y)' have signature differences.
                 //     partial void M1((int notA, int notB) y) { }
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("void C.M1((int a, int b) x)", "void C.M1((int notA, int notB) y)").WithLocation(10, 18),
-                // (11,18): error CS8142: Both partial method declarations, 'C.M2((int a, int b))' and 'C.M2((int, int))', must use the same tuple element names.
+                // (11,18): error CS8142: Both partial member declarations, 'C.M2((int a, int b))' and 'C.M2((int, int))', must use the same tuple element names.
                 //     partial void M2((int, int) y) { }
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M2").WithArguments("C.M2((int a, int b))", "C.M2((int, int))").WithLocation(11, 18),
+                Diagnostic(ErrorCode.ERR_PartialMemberInconsistentTupleNames, "M2").WithArguments("C.M2((int a, int b))", "C.M2((int, int))").WithLocation(11, 18),
                 // (11,18): warning CS8826: Partial method declarations 'void C.M2((int a, int b) x)' and 'void C.M2((int, int) y)' have signature differences.
                 //     partial void M2((int, int) y) { }
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("void C.M2((int a, int b) x)", "void C.M2((int, int) y)").WithLocation(11, 18),
@@ -21917,37 +21920,7 @@ namespace System
                 assemblyName: "comp",
                 parseOptions: TestOptions.Regular);
 
-            comp.VerifyDiagnostics(
-                // (8,13): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //             (string I1,
-                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, @"(string I1,
-                string I2,
-                string I3,
-                string I4,
-                string I5,
-                string I6,
-                string I7,
-                string I8)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 13),
-                // (30,13): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //             (string I1,
-                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, @"(string I1,
-                string I2,
-                string I3,
-                string I4,
-                string I5,
-                string I6,
-                string I7,
-                string I8)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(30, 13),
-                // (52,13): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //             (string I1,
-                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, @"(string I1,
-                string I2,
-                string I3,
-                string I4,
-                string I5,
-                string I6,
-                string I7,
-                string I8)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(52, 13),
+            comp.VerifyEmitDiagnostics(
                 // (70,38): error CS0165: Use of unassigned local variable 'ss'
                 //             System.Console.WriteLine(ss); // should fail
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "ss").WithArguments("ss").WithLocation(70, 38)
@@ -23443,7 +23416,7 @@ namespace ClassLibrary1
     }
 }
 ";
-            var libComp = CreateCompilationWithMscorlib45AndCSharp(lib, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            var libComp = CreateCompilationWithMscorlib461AndCSharp(lib, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             libComp.VerifyDiagnostics();
 
             var source = @"
@@ -23497,7 +23470,7 @@ namespace ClassLibrary1
     }
 }
 ";
-            var libComp = CreateCompilationWithMscorlib45AndCSharp(lib, options: TestOptions.DebugDll, references: s_valueTupleRefs);
+            var libComp = CreateCompilationWithMscorlib461AndCSharp(lib, options: TestOptions.DebugDll, references: s_valueTupleRefs);
             libComp.VerifyDiagnostics();
 
             var source = @"
@@ -23870,7 +23843,7 @@ namespace ConsoleApplication5
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, references: (new[] { libCompRef }).Concat(s_valueTupleRefs).ToArray(), options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, references: (new[] { libCompRef }).Concat(s_valueTupleRefs).ToArray(), options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput: "42qq", verify: Verification.Fails);
 
@@ -23899,7 +23872,7 @@ namespace ClassLibrary1
     }
 }
 ";
-            var libComp = CreateCompilationWithMscorlib45AndCSharp(lib, references: s_valueTupleRefs, options: TestOptions.DebugDll);
+            var libComp = CreateCompilationWithMscorlib461AndCSharp(lib, references: s_valueTupleRefs, options: TestOptions.DebugDll);
             libComp.VerifyDiagnostics();
 
             var source = @"
@@ -24105,7 +24078,7 @@ public class C
 }
 public struct S { }
 ";
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, references: s_valueTupleRefs, options: TestOptions.UnsafeDebugDll);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, references: s_valueTupleRefs, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (13,18): error CS0306: The type 'int*' may not be used as a type argument
                 //                 (int*, int*) t1 = (p, p); // converted tuple literal with a pointer type
@@ -27646,7 +27619,7 @@ namespace System
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, null, TestOptions.UnsafeDebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, null, TestOptions.UnsafeDebugExe);
             CompileAndVerify(compilation, expectedOutput:
                 "MessageType x MessageType").VerifyDiagnostics();
         }
@@ -27951,7 +27924,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib461);
             var type = (SourceNamedTypeSymbol)comp.GetMember("System.ValueTuple");
             var field = (SourceMemberFieldSymbolFromDeclarator)type.GetMember("Item1");
             var underlyingField = field.TupleUnderlyingField;
@@ -27961,7 +27934,7 @@ class C
             Assert.False(field.HasComplete(CompletionPart.All));
             Assert.False(underlyingField.HasComplete(CompletionPart.All));
 
-            field.ForceComplete(null, default);
+            field.ForceComplete(null, filter: null, default);
 
             Assert.True(field.RequiresCompletion);
             Assert.True(underlyingField.RequiresCompletion);
@@ -28579,7 +28552,7 @@ class C
         public T1 Rest;
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib461);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, symbolValidator: verifyModule, sourceSymbolValidator: verifyModule);
 

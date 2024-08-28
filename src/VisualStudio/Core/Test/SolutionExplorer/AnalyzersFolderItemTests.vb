@@ -2,7 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
@@ -20,10 +20,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim project = workspace.Projects.Single()
 
-                Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing, Nothing)
+                Dim analyzerFolder = New AnalyzersFolderItem(workspace.GetService(Of IThreadingContext), workspace, project.Id, Nothing, Nothing)
 
                 Assert.Equal(expected:=SolutionExplorerShim.Analyzers, actual:=analyzerFolder.Text)
             End Using
@@ -38,10 +38,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim project = workspace.Projects.Single()
 
-                Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing, Nothing)
+                Dim analyzerFolder = New AnalyzersFolderItem(workspace.GetService(Of IThreadingContext), workspace, project.Id, Nothing, Nothing)
                 Dim browseObject = DirectCast(analyzerFolder.GetBrowseObject(), AnalyzersFolderItem.BrowseObject)
 
                 Assert.Equal(expected:=SolutionExplorerShim.Analyzers, actual:=browseObject.GetComponentName())

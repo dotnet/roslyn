@@ -4,19 +4,26 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.CodeActions
+Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.VisualBasic.Wrapping
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Wrapping
     Public MustInherit Class AbstractWrappingTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
+
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
+            Return New VisualBasicWrappingCodeRefactoringProvider()
+        End Function
 
         Protected Overrides Function MassageActions(actions As ImmutableArray(Of CodeAction)) As ImmutableArray(Of CodeAction)
             Return FlattenActions(actions)
         End Function
 
         Private Protected Function GetIndentionColumn(column As Integer) As TestParameters
-            Return New TestParameters(globalOptions:=[Option](CodeActionOptionsStorage.WrappingColumn, column))
+            Return New TestParameters(options:=[Option](FormattingOptions2.WrappingColumn, column))
         End Function
 
         Protected Function TestAllWrappingCasesAsync(

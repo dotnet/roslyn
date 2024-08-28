@@ -5,22 +5,21 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
+
+/// <summary>
+/// Provide a way to control solution crawler.
+/// </summary>
+internal interface IUnitTestingSolutionCrawlerService : IWorkspaceService
 {
     /// <summary>
-    /// Provide a way to control solution crawler.
+    /// Ask solution crawler to re-analyze given <see cref="ProjectId"/>s or/and <see cref="DocumentId"/>s 
+    /// in given <see cref="Workspace"/> with given <see cref="IUnitTestingIncrementalAnalyzer"/>.
     /// </summary>
-    internal interface IUnitTestingSolutionCrawlerService : IWorkspaceService
-    {
-        /// <summary>
-        /// Ask solution crawler to re-analyze given <see cref="ProjectId"/>s or/and <see cref="DocumentId"/>s 
-        /// in given <see cref="Workspace"/> with given <see cref="IUnitTestingIncrementalAnalyzer"/>.
-        /// </summary>
-        void Reanalyze(string? workspaceKind, SolutionServices services, IUnitTestingIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false);
+    void Reanalyze(string? workspaceKind, SolutionServices services, IUnitTestingIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null);
 
-        /// <summary>
-        /// Get <see cref="IUnitTestingSolutionCrawlerProgressReporter"/> for the given <see cref="Workspace"/>
-        /// </summary>
-        IUnitTestingSolutionCrawlerProgressReporter GetProgressReporter(Workspace workspace);
-    }
+    /// <summary>
+    /// Get <see cref="IUnitTestingSolutionCrawlerProgressReporter"/> for the given <see cref="Workspace"/>
+    /// </summary>
+    IUnitTestingSolutionCrawlerProgressReporter GetProgressReporter(Workspace workspace);
 }

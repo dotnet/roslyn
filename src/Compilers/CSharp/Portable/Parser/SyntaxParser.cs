@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             _prevTokenTrailingTrivia = null;
             if (this.IsIncremental || _allowModeReset)
             {
-                _firstBlender = new Blender(this.lexer, null, null);
+                _firstBlender = new Blender(this.lexer, oldTree: null, changes: null);
             }
         }
 

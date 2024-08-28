@@ -16,8 +16,8 @@ namespace Roslyn.Hosting.Diagnostics.VenusMargin
 
         public ProjectionBufferViewModel()
         {
-            SourceBuffers = new ObservableCollection<ITextBuffer>();
-            SourceSpans = new ObservableCollection<SnapshotSpan>();
+            SourceBuffers = [];
+            SourceSpans = [];
         }
     }
 }

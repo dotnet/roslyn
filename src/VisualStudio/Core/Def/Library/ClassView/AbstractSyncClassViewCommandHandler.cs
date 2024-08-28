@@ -11,111 +11,107 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
-using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassView
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ClassView;
+
+internal abstract class AbstractSyncClassViewCommandHandler : ICommandHandler<SyncClassViewCommandArgs>
 {
-    internal abstract class AbstractSyncClassViewCommandHandler : ForegroundThreadAffinitizedObject,
-        ICommandHandler<SyncClassViewCommandArgs>
+    private const string ClassView = "Class View";
+    private readonly IThreadingContext _threadingContext;
+    private readonly IServiceProvider _serviceProvider;
+
+    public string DisplayName => ServicesVSResources.Sync_Class_View;
+
+    protected AbstractSyncClassViewCommandHandler(
+        IThreadingContext threadingContext,
+        SVsServiceProvider serviceProvider)
     {
-        private const string ClassView = "Class View";
+        Contract.ThrowIfNull(serviceProvider);
+        _threadingContext = threadingContext;
+        _serviceProvider = serviceProvider;
+    }
 
-        private readonly IServiceProvider _serviceProvider;
+    public bool ExecuteCommand(SyncClassViewCommandArgs args, CommandExecutionContext context)
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
 
-        public string DisplayName => ServicesVSResources.Sync_Class_View;
-
-        protected AbstractSyncClassViewCommandHandler(
-            IThreadingContext threadingContext,
-            SVsServiceProvider serviceProvider)
-            : base(threadingContext)
+        var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
+        if (caretPosition < 0)
         {
-            Contract.ThrowIfNull(serviceProvider);
-
-            _serviceProvider = serviceProvider;
+            return false;
         }
 
-        public bool ExecuteCommand(SyncClassViewCommandArgs args, CommandExecutionContext context)
+        var snapshot = args.SubjectBuffer.CurrentSnapshot;
+
+        using var waitScope = context.OperationContext.AddScope(allowCancellation: true, string.Format(ServicesVSResources.Synchronizing_with_0, ClassView));
+        var document = snapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
+            context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
+        if (document == null)
         {
-            this.AssertIsForeground();
-
-            var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
-            if (caretPosition < 0)
-            {
-                return false;
-            }
-
-            var snapshot = args.SubjectBuffer.CurrentSnapshot;
-
-            using var waitScope = context.OperationContext.AddScope(allowCancellation: true, string.Format(ServicesVSResources.Synchronizing_with_0, ClassView));
-            var document = snapshot.GetFullyLoadedOpenDocumentInCurrentContextWithChangesAsync(
-                context.OperationContext).WaitAndGetResult(context.OperationContext.UserCancellationToken);
-            if (document == null)
-            {
-                return true;
-            }
-
-            var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
-            if (syntaxFactsService == null)
-            {
-                return true;
-            }
-
-            var libraryService = document.GetLanguageService<ILibraryService>();
-            if (libraryService == null)
-            {
-                return true;
-            }
-
-            var userCancellationToken = context.OperationContext.UserCancellationToken;
-            var semanticModel = document
-                .GetSemanticModelAsync(userCancellationToken)
-                .WaitAndGetResult(userCancellationToken);
-
-            var root = semanticModel.SyntaxTree
-                .GetRootAsync(userCancellationToken)
-                .WaitAndGetResult(userCancellationToken);
-
-            var memberDeclaration = syntaxFactsService.GetContainingMemberDeclaration(root, caretPosition);
-
-            var symbol = memberDeclaration != null
-                ? semanticModel.GetDeclaredSymbol(memberDeclaration, userCancellationToken)
-                : null;
-
-            while (symbol != null && !IsValidSymbolToSynchronize(symbol))
-            {
-                symbol = symbol.ContainingSymbol;
-            }
-
-            IVsNavInfo navInfo = null;
-            if (symbol != null)
-            {
-                navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, document.Project, semanticModel.Compilation, useExpandedHierarchy: true);
-            }
-
-            navInfo ??= libraryService.NavInfoFactory.CreateForProject(document.Project);
-
-            if (navInfo == null)
-            {
-                return true;
-            }
-
-            var navigationTool = _serviceProvider.GetServiceOnMainThread<SVsClassView, IVsNavigationTool>();
-            navigationTool.NavigateToNavInfo(navInfo);
             return true;
         }
 
-        private static bool IsValidSymbolToSynchronize(ISymbol symbol)
-            => symbol.Kind is SymbolKind.Event or
-            SymbolKind.Field or
-            SymbolKind.Method or
-            SymbolKind.NamedType or
-            SymbolKind.Property;
+        var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
+        if (syntaxFactsService == null)
+        {
+            return true;
+        }
 
-        public CommandState GetCommandState(SyncClassViewCommandArgs args)
-            => Commanding.CommandState.Available;
+        var libraryService = document.GetLanguageService<ILibraryService>();
+        if (libraryService == null)
+        {
+            return true;
+        }
+
+        var userCancellationToken = context.OperationContext.UserCancellationToken;
+        var semanticModel = document
+            .GetSemanticModelAsync(userCancellationToken)
+            .WaitAndGetResult(userCancellationToken);
+
+        var root = semanticModel.SyntaxTree
+            .GetRootAsync(userCancellationToken)
+            .WaitAndGetResult(userCancellationToken);
+
+        var memberDeclaration = syntaxFactsService.GetContainingMemberDeclaration(root, caretPosition);
+
+        var symbol = memberDeclaration != null
+            ? semanticModel.GetDeclaredSymbol(memberDeclaration, userCancellationToken)
+            : null;
+
+        while (symbol != null && !IsValidSymbolToSynchronize(symbol))
+        {
+            symbol = symbol.ContainingSymbol;
+        }
+
+        IVsNavInfo navInfo = null;
+        if (symbol != null)
+        {
+            navInfo = libraryService.NavInfoFactory.CreateForSymbol(symbol, document.Project, semanticModel.Compilation, useExpandedHierarchy: true);
+        }
+
+        navInfo ??= libraryService.NavInfoFactory.CreateForProject(document.Project);
+
+        if (navInfo == null)
+        {
+            return true;
+        }
+
+        var navigationTool = _serviceProvider.GetServiceOnMainThread<SVsClassView, IVsNavigationTool>();
+        navigationTool.NavigateToNavInfo(navInfo);
+        return true;
     }
+
+    private static bool IsValidSymbolToSynchronize(ISymbol symbol)
+        => symbol.Kind is SymbolKind.Event or
+        SymbolKind.Field or
+        SymbolKind.Method or
+        SymbolKind.NamedType or
+        SymbolKind.Property;
+
+    public CommandState GetCommandState(SyncClassViewCommandArgs args)
+        => Commanding.CommandState.Available;
 }

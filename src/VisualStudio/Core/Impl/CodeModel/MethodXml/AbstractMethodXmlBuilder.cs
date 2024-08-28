@@ -58,8 +58,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Metho
         private const string TypeAttributeName = "type";
         private const string VariableKindAttributeName = "variablekind";
 
-        private static readonly char[] s_encodedChars = new[] { '<', '>', '&' };
-        private static readonly ImmutableArray<string> s_encodings = ImmutableArray.Create("&lt;", "&gt;", "&amp;");
+        private static readonly char[] s_encodedChars = ['<', '>', '&'];
+        private static readonly ImmutableArray<string> s_encodings = ["&lt;", "&gt;", "&amp;"];
 
         private readonly StringBuilder _builder = new();
         protected readonly IMethodSymbol Symbol;

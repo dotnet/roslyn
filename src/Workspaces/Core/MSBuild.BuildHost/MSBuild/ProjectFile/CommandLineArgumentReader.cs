@@ -26,9 +26,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         private static void ValidateName(string name)
         {
-            if (RoslynString.IsNullOrEmpty(name) || name.Contains(char.IsWhiteSpace))
+            if (string.IsNullOrEmpty(name) || name.Any(char.IsWhiteSpace))
             {
-                throw new ArgumentException(WorkspaceMSBuildResources.Parameter_cannot_be_null_empty_or_contain_whitespace, nameof(name));
+                throw new ArgumentException(WorkspaceMSBuildBuildHostResources.Parameter_cannot_be_null_empty_or_contain_whitespace, nameof(name));
             }
         }
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             ValidateName(name);
 
-            if (RoslynString.IsNullOrEmpty(value) || (addQuoteIfValueContainsWhitespace && value.Contains(char.IsWhiteSpace)))
+            if (string.IsNullOrEmpty(value) || (addQuoteIfValueContainsWhitespace && value.Any(char.IsWhiteSpace)))
             {
                 _builder.Add($"/{name}:\"{value}\"");
             }

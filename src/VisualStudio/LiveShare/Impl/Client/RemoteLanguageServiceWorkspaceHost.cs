@@ -12,10 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.LiveShare.Client.Projects;
-using Microsoft.VisualStudio.LanguageServices.Setup;
 using Microsoft.VisualStudio.LiveShare;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -40,13 +37,12 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         private ImmutableDictionary<string, ProjectId> _loadedProjects = ImmutableDictionary.Create<string, ProjectId>(StringComparer.OrdinalIgnoreCase);
         private ImmutableDictionary<string, ProjectInfo> _loadedProjectInfo = ImmutableDictionary.Create<string, ProjectInfo>(StringComparer.OrdinalIgnoreCase);
         private TaskCompletionSource<bool> _projectsLoadedTaskCompletionSource = new TaskCompletionSource<bool>();
-        private readonly RemoteLanguageServiceWorkspace _remoteLanguageServiceWorkspace;
         private readonly RemoteProjectInfoProvider _remoteProjectInfoProvider;
 
         private readonly SVsServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;
 
-        public RemoteLanguageServiceWorkspace Workspace => _remoteLanguageServiceWorkspace;
+        public RemoteLanguageServiceWorkspace Workspace { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RemoteLanguageServiceWorkspaceHost"/> class.
@@ -59,7 +55,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                                                   SVsServiceProvider serviceProvider,
                                                   IThreadingContext threadingContext)
         {
-            _remoteLanguageServiceWorkspace = Requires.NotNull(remoteLanguageServiceWorkspace, nameof(remoteLanguageServiceWorkspace));
+            Workspace = Requires.NotNull(remoteLanguageServiceWorkspace, nameof(remoteLanguageServiceWorkspace));
             _remoteProjectInfoProvider = Requires.NotNull(remoteProjectInfoProvider, nameof(remoteProjectInfoProvider));
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
             _threadingContext = Requires.NotNull(threadingContext, nameof(threadingContext));
@@ -69,7 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         {
             await LoadRoslynPackageAsync(cancellationToken).ConfigureAwait(false);
 
-            await _remoteLanguageServiceWorkspace.SetSessionAsync(collaborationSession).ConfigureAwait(false);
+            await Workspace.SetSessionAsync(collaborationSession).ConfigureAwait(false);
 
             // Kick off loading the projects in the background.
             // Clients can call EnsureProjectsLoadedAsync to await completion.
@@ -78,9 +74,9 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
             var lifeTimeService = new RemoteLanguageServiceSession();
             lifeTimeService.Disposed += (s, e) =>
             {
-                _remoteLanguageServiceWorkspace.EndSession();
+                Workspace.EndSession();
                 CloseAllProjects();
-                _remoteLanguageServiceWorkspace.Dispose();
+                Workspace.Dispose();
                 _projectsLoadedTaskCompletionSource = new TaskCompletionSource<bool>();
             };
 
@@ -92,13 +88,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// </summary>
         public async Task EnsureProjectsLoadedAsync(CancellationToken cancellationToken)
         {
-            using (var token = cancellationToken.Register(() =>
+            using var token = cancellationToken.Register(() =>
             {
                 _projectsLoadedTaskCompletionSource.SetCanceled();
-            }))
-            {
-                await _projectsLoadedTaskCompletionSource.Task.ConfigureAwait(false);
-            }
+            });
+            await _projectsLoadedTaskCompletionSource.Task.ConfigureAwait(false);
         }
 
         private async Task LoadRoslynPackageAsync(CancellationToken cancellationToken)
@@ -129,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
                         // Adds the Roslyn project into the current solution;
                         // and raise WorkspaceChanged event (WorkspaceChangeKind.ProjectAdded)
-                        _remoteLanguageServiceWorkspace.OnProjectAdded(projectInfo);
+                        Workspace.OnProjectAdded(projectInfo);
 
                         _loadedProjects = _loadedProjects.Add(projectName, projectId);
                         _loadedProjectInfo = _loadedProjectInfo.Add(projectName, projectInfo);
@@ -140,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                     {
                         if (_loadedProjectInfo.TryGetValue(projectName, out var projInfo))
                         {
-                            _remoteLanguageServiceWorkspace.OnProjectReloaded(projectInfo);
+                            Workspace.OnProjectReloaded(projectInfo);
                         }
                     }
                 }
@@ -157,7 +151,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         {
             foreach (var projectId in _loadedProjects.Values)
             {
-                _remoteLanguageServiceWorkspace.OnProjectRemoved(projectId);
+                Workspace.OnProjectRemoved(projectId);
             }
 
             _loadedProjects = _loadedProjects.Clear();

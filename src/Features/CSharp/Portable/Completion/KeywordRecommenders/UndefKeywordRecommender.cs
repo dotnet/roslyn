@@ -6,21 +6,20 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
-{
-    internal class UndefKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
-    {
-        public UndefKeywordRecommender()
-            : base(SyntaxKind.UndefKeyword, isValidInPreprocessorContext: true)
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            var syntaxTree = context.SyntaxTree;
-            return
-                context.IsPreProcessorKeywordContext &&
-                syntaxTree.IsBeforeFirstToken(position, cancellationToken);
-        }
+internal class UndefKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+{
+    public UndefKeywordRecommender()
+        : base(SyntaxKind.UndefKeyword, isValidInPreprocessorContext: true)
+    {
+    }
+
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+    {
+        var syntaxTree = context.SyntaxTree;
+        return
+            context.IsPreProcessorKeywordContext &&
+            syntaxTree.IsBeforeFirstToken(position, cancellationToken);
     }
 }

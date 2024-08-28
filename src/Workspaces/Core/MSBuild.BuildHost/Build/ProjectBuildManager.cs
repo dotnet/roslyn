@@ -11,11 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.Build.Framework;
-using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
-namespace Microsoft.CodeAnalysis.MSBuild.Build
+namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal class ProjectBuildManager
     {
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             { PropertyNames.DesignTimeBuild, bool.TrueString },
 
             // this will force CoreCompile task to execute even if all inputs and outputs are up to date
-#if NETCOREAPP
+#if NET
             { PropertyNames.NonExistentFile, "__NonExistentSubDir__\\__NonExistentFile__" },
 #else
             // Setting `BuildingInsideVisualStudio` indirectly sets NonExistentFile:
@@ -66,7 +65,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         {
             if (BatchBuildStarted)
             {
-                throw new InvalidOperationException("ProjectBuilderManager.Stop() not called.");
+                throw new InvalidOperationException($"{nameof(ProjectBuildManager)}.{nameof(EndBatchBuild)} not called.");
             }
         }
 
@@ -103,7 +102,20 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                 // path explicitly is necessary so that the reserved properties like $(MSBuildProjectDirectory) will work.
                 xml.FullPath = path;
 
-                var project = new MSB.Evaluation.Project(xml, globalProperties: null, toolsVersion: null, projectCollection);
+                // Roughly matches the VS project load settings for their design time builds.
+                var projectLoadSettings = MSB.Evaluation.ProjectLoadSettings.RejectCircularImports
+                    | MSB.Evaluation.ProjectLoadSettings.IgnoreEmptyImports
+                    | MSB.Evaluation.ProjectLoadSettings.IgnoreMissingImports
+                    | MSB.Evaluation.ProjectLoadSettings.IgnoreInvalidImports
+                    | MSB.Evaluation.ProjectLoadSettings.DoNotEvaluateElementsWithFalseCondition
+                    | MSB.Evaluation.ProjectLoadSettings.FailOnUnresolvedSdk;
+
+                var project = new MSB.Evaluation.Project(
+                    xml,
+                    globalProperties: null,
+                    toolsVersion: null,
+                    projectCollection,
+                    projectLoadSettings);
 
                 return (project, log);
             }
@@ -123,7 +135,10 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             }
             else
             {
-                var projectCollection = new MSB.Evaluation.ProjectCollection(AllGlobalProperties);
+                var projectCollection = new MSB.Evaluation.ProjectCollection(
+                    AllGlobalProperties,
+                    _msbuildLogger != null ? [_msbuildLogger] : ImmutableArray<MSB.Framework.ILogger>.Empty,
+                    MSB.Evaluation.ToolsetDefinitionLocations.Default);
                 try
                 {
                     return LoadProjectAsync(path, projectCollection, cancellationToken);
@@ -158,18 +173,27 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
             globalProperties ??= ImmutableDictionary<string, string>.Empty;
             var allProperties = s_defaultGlobalProperties.RemoveRange(globalProperties.Keys).AddRange(globalProperties);
-            _batchBuildProjectCollection = new MSB.Evaluation.ProjectCollection(allProperties);
+
             _batchBuildLogger = new MSBuildDiagnosticLogger()
             {
                 Verbosity = MSB.Framework.LoggerVerbosity.Normal
             };
 
+            // Pass in the binlog (if any) to the ProjectCollection to ensure evaluation results are included in it.
+            //
+            // We do not need to include the _batchBuildLogger in the ProjectCollection - it just collects the
+            // DiagnosticLog from the build steps, but evaluation already separately reports the DiagnosticLog.
+            var loggers = _msbuildLogger is not null
+                ? [_msbuildLogger]
+                : ImmutableArray<MSB.Framework.ILogger>.Empty;
+
+            _batchBuildProjectCollection = new MSB.Evaluation.ProjectCollection(allProperties, loggers, MSB.Evaluation.ToolsetDefinitionLocations.Default);
+
             var buildParameters = new MSB.Execution.BuildParameters(_batchBuildProjectCollection)
             {
-                Loggers = _msbuildLogger is null
-                    ? (new MSB.Framework.ILogger[] { _batchBuildLogger })
-                    : (new MSB.Framework.ILogger[] { _batchBuildLogger, _msbuildLogger }),
-
+                // The loggers are not inherited from the project collection, so specify both the
+                // binlog logger and the _batchBuildLogger for the build steps.
+                Loggers = loggers.Add(_batchBuildLogger),
                 // If we have an additional logger and it's diagnostic, then we need to opt into task inputs globally, or otherwise
                 // it won't get any log events. This logic matches https://github.com/dotnet/msbuild/blob/fa6710d2720dcf1230a732a8858ffe71bcdbe110/src/Build/Instance/ProjectInstance.cs#L2365-L2371
                 LogTaskInputs = _msbuildLogger is not null && _msbuildLogger.Verbosity == LoggerVerbosity.Diagnostic
@@ -201,31 +225,41 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         {
             Debug.Assert(BatchBuildStarted);
 
-            var targets = new[] { TargetNames.Compile, TargetNames.CoreCompile };
+            var requiredTargets = new[] { TargetNames.Compile, TargetNames.CoreCompile };
+            var optionalTargets = new[] { TargetNames.DesignTimeMarkupCompilation };
 
-            return BuildProjectAsync(project, targets, log, cancellationToken);
+            return BuildProjectAsync(project, requiredTargets, optionalTargets, log, cancellationToken);
         }
 
         private async Task<MSB.Execution.ProjectInstance> BuildProjectAsync(
-            MSB.Evaluation.Project project, string[] targets, DiagnosticLog log, CancellationToken cancellationToken)
+            MSB.Evaluation.Project project, string[] requiredTargets, string[] optionalTargets, DiagnosticLog log, CancellationToken cancellationToken)
         {
             // create a project instance to be executed by build engine.
             // The executed project will hold the final model of the project after execution via msbuild.
             var projectInstance = project.CreateProjectInstance();
 
             // Verify targets
-            foreach (var target in targets)
+            foreach (var target in requiredTargets)
             {
                 if (!projectInstance.Targets.ContainsKey(target))
                 {
-                    log.Add(string.Format(WorkspaceMSBuildResources.Project_does_not_contain_0_target, target), projectInstance.FullPath);
+                    log.Add(string.Format(WorkspaceMSBuildBuildHostResources.Project_does_not_contain_0_target, target), projectInstance.FullPath);
                     return projectInstance;
+                }
+            }
+
+            var targets = new List<string>(requiredTargets);
+            foreach (var target in optionalTargets)
+            {
+                if (projectInstance.Targets.ContainsKey(target))
+                {
+                    targets.Add(target);
                 }
             }
 
             _batchBuildLogger?.SetProjectAndLog(projectInstance.FullPath, log);
 
-            var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, targets);
+            var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, [.. targets]);
 
             var result = await BuildAsync(buildRequestData, cancellationToken).ConfigureAwait(false);
 

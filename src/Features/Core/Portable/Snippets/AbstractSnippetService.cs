@@ -5,72 +5,67 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Snippets
+namespace Microsoft.CodeAnalysis.Snippets;
+
+internal abstract class AbstractSnippetService(IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> lazySnippetProviders) : ISnippetService
 {
-    internal abstract class AbstractSnippetService(IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> lazySnippetProviders) : ISnippetService
+    private readonly ImmutableArray<Lazy<ISnippetProvider, LanguageMetadata>> _lazySnippetProviders = lazySnippetProviders.ToImmutableArray();
+    private readonly Dictionary<string, ISnippetProvider> _identifierToProviderMap = [];
+    private readonly object _snippetProvidersLock = new();
+    private ImmutableArray<ISnippetProvider> _snippetProviders;
+
+    /// <summary>
+    /// This should never be called prior to GetSnippetsAsync because it gets populated
+    /// at that point in time.
+    /// </summary>
+    public ISnippetProvider GetSnippetProvider(string snippetIdentifier)
     {
-        private readonly ImmutableArray<Lazy<ISnippetProvider, LanguageMetadata>> _lazySnippetProviders = lazySnippetProviders.ToImmutableArray();
-        private readonly Dictionary<string, ISnippetProvider> _identifierToProviderMap = new();
-        private readonly object _snippetProvidersLock = new();
-        private ImmutableArray<ISnippetProvider> _snippetProviders;
+        Contract.ThrowIfFalse(_identifierToProviderMap.ContainsKey(snippetIdentifier));
+        return _identifierToProviderMap[snippetIdentifier];
+    }
 
-        /// <summary>
-        /// This should never be called prior to GetSnippetsAsync because it gets populated
-        /// at that point in time.
-        /// </summary>
-        public ISnippetProvider GetSnippetProvider(string snippetIdentifier)
+    /// <summary>
+    /// Iterates through all providers and determines if the snippet 
+    /// can be added to the Completion list at the corresponding position.
+    /// </summary>
+    public ImmutableArray<SnippetData> GetSnippets(SnippetContext context, CancellationToken cancellationToken)
+    {
+        using var _ = ArrayBuilder<SnippetData>.GetInstance(out var arrayBuilder);
+        EnsureSnippetsLoaded(context.Document.Project.Language);
+        foreach (var provider in _snippetProviders)
         {
-            Contract.ThrowIfFalse(_identifierToProviderMap.ContainsKey(snippetIdentifier));
-            return _identifierToProviderMap[snippetIdentifier];
+            if (provider.IsValidSnippetLocation(context, cancellationToken))
+                arrayBuilder.Add(new(provider.Identifier, provider.Description, provider.AdditionalFilterTexts));
         }
 
-        /// <summary>
-        /// Iterates through all providers and determines if the snippet 
-        /// can be added to the Completion list at the corresponding position.
-        /// </summary>
-        public async Task<ImmutableArray<SnippetData>> GetSnippetsAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<SnippetData>.GetInstance(out var arrayBuilder);
-            foreach (var provider in GetSnippetProviders(document))
-            {
-                var snippetData = await provider.GetSnippetDataAsync(document, position, cancellationToken).ConfigureAwait(false);
-                arrayBuilder.AddIfNotNull(snippetData);
-            }
+        return arrayBuilder.ToImmutableAndClear();
+    }
 
-            return arrayBuilder.ToImmutable();
-        }
-
-        private ImmutableArray<ISnippetProvider> GetSnippetProviders(Document document)
+    internal void EnsureSnippetsLoaded(string language)
+    {
+        lock (_snippetProvidersLock)
         {
-            lock (_snippetProvidersLock)
+            if (_snippetProviders.IsDefault)
             {
-                if (_snippetProviders.IsDefault)
+                using var _ = ArrayBuilder<ISnippetProvider>.GetInstance(out var arrayBuilder);
+                foreach (var provider in _lazySnippetProviders.Where(p => p.Metadata.Language == language))
                 {
-                    using var _ = ArrayBuilder<ISnippetProvider>.GetInstance(out var arrayBuilder);
-                    foreach (var provider in _lazySnippetProviders.Where(p => p.Metadata.Language == document.Project.Language))
-                    {
-                        var providerData = provider.Value;
-                        Debug.Assert(!_identifierToProviderMap.TryGetValue(providerData.Identifier, out var _));
-                        _identifierToProviderMap.Add(providerData.Identifier, providerData);
-                        arrayBuilder.Add(providerData);
-                    }
-
-                    _snippetProviders = arrayBuilder.ToImmutable();
+                    var providerData = provider.Value;
+                    Debug.Assert(!_identifierToProviderMap.TryGetValue(providerData.Identifier, out var _));
+                    _identifierToProviderMap.Add(providerData.Identifier, providerData);
+                    arrayBuilder.Add(providerData);
                 }
-            }
 
-            return _snippetProviders;
+                _snippetProviders = arrayBuilder.ToImmutable();
+            }
         }
     }
 }

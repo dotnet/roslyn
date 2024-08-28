@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="zh-Hans" original="../EditorFeaturesResources.resx">
     <body>
+      <trans-unit id="An_error_occurred_while_generating_documentation_for_this_code">
+        <source>An error occurred while generating documentation for this code.</source>
+        <target state="translated">生成此代码的文档时出错。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
         <target state="translated">标识符“{0}”的内联重命名会话处于活动状态。再次调用内联重命名以访问其他选项。可随时继续编辑正在重命名的标识符。</target>
@@ -17,34 +22,29 @@
         <target state="translated">无法导航到插入点下面的符号。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Change_configuration">
-        <source>Change configuration</source>
-        <target state="translated">更改配置</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Code_cleanup_is_not_configured">
-        <source>Code cleanup is not configured</source>
-        <target state="translated">未配置代码清理</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">计算“封装字段”信息</target>
         <note />
       </trans-unit>
-      <trans-unit id="Configure_it_now">
-        <source>Configure it now</source>
-        <target state="translated">立即配置</target>
+      <trans-unit id="Copilot">
+        <source>Copilot</source>
+        <target state="translated">Copilot</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copilot_thinking">
+        <source>Copilot thinking...</source>
+        <target state="translated">Copilot 正在思考...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Describe_with_Copilot">
+        <source>Describe with Copilot</source>
+        <target state="translated">使用 Copilot 进行描述</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
         <source>Do not prefer 'this.' or 'Me.'</source>
         <target state="translated">不首选 "this." 或 "Me."</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_not_show_this_message_again">
-        <source>Do not show this message again</source>
-        <target state="translated">不再显示此消息</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
@@ -77,24 +77,14 @@
         <target state="translated">筛选</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
-      <trans-unit id="Format_document_performed_additional_cleanup">
-        <source>Format Document performed additional cleanup</source>
-        <target state="translated">格式文档执行了额外的清理</target>
+      <trans-unit id="Generate_summary_with_Copilot">
+        <source>Generate summary with Copilot (might be inaccurate)</source>
+        <target state="translated">使用 Copilot 生成摘要(可能不准确)</target>
         <note />
       </trans-unit>
       <trans-unit id="Get_help_for_0">
         <source>Get help for '{0}'</source>
         <target state="translated">获取有关“{0}”的帮助</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Gathering_Suggestions_0">
-        <source>Gathering Suggestions - '{0}'</source>
-        <target state="translated">正在收集建议 -“{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
-        <source>Gathering Suggestions - Waiting for the solution to fully load</source>
-        <target state="translated">正在收集建议 - 正在等待解决方案完全加载</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_To_Base">
@@ -237,6 +227,16 @@
         <target state="translated">否</target>
         <note />
       </trans-unit>
+      <trans-unit id="Obsolete_symbol">
+        <source>Obsolete symbol</source>
+        <target state="translated">过时的符号</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="On_the_fly_documentation">
+        <source>On-the-fly documentation</source>
+        <target state="translated">动态文档</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
         <target state="translated">运算符-重载</target>
@@ -292,6 +292,11 @@
         <target state="translated">重新分配的变量</target>
         <note />
       </trans-unit>
+      <trans-unit id="Refine_using_Copilot">
+        <source>Refine using Copilot</source>
+        <target state="translated">使用 Copilot 优化</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">重命名文件(类型与文件名不匹配)(_F)</target>
@@ -314,12 +319,17 @@
       </trans-unit>
       <trans-unit id="Roslyn_Test_Code">
         <source>Roslyn Test Code</source>
-        <target state="new">Roslyn Test Code</target>
+        <target state="translated">Roslyn 测试代码</target>
         <note />
       </trans-unit>
       <trans-unit id="Roslyn_Test_Code_Markup">
         <source>Roslyn Test Code Markup</source>
-        <target state="new">Roslyn Test Code Markup</target>
+        <target state="translated">Roslyn 测试代码标记</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run">
+        <source>Run</source>
+        <target state="translated">运行</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_comment">
@@ -577,11 +587,6 @@
         <target state="translated">XML 文档注释 - 属性值</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unnecessary_Code">
-        <source>Unnecessary Code</source>
-        <target state="translated">不必要的代码</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rude_Edit">
         <source>Rude Edit</source>
         <target state="translated">原始编辑</target>
@@ -627,19 +632,24 @@
         <target state="translated">将解决 {0} 个冲突</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_declarations_and_interceptors">
+        <source>'{0}' declarations and interceptors</source>
+        <target state="new">'{0}' declarations and interceptors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_implemented_members">
         <source>'{0}' implemented members</source>
         <target state="translated">“{0}”个实现的成员</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_intercepted_locations">
+        <source>'{0}' intercepted locations</source>
+        <target state="translated">“{0}”截获位置</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
         <source>{0} unresolvable conflict(s)</source>
         <target state="translated">{0} 个无法解决的冲突</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Applying_0">
-        <source>Applying "{0}"...</source>
-        <target state="translated">正在应用 “{0}”...</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_to_1_with_content_colon">
@@ -697,11 +707,6 @@
         <target state="translated">封装字段</target>
         <note />
       </trans-unit>
-      <trans-unit id="Applying_Encapsulate_Field_refactoring">
-        <source>Applying "Encapsulate Field" refactoring...</source>
-        <target state="translated">正在应用 “封装字段”重构...</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Please_select_the_definition_of_the_field_to_encapsulate">
         <source>Please select the definition of the field to encapsulate.</source>
         <target state="translated">请选择要封装字段的定义。</target>
@@ -727,11 +732,6 @@
         <target state="translated">未找到信息。</target>
         <note />
       </trans-unit>
-      <trans-unit id="No_usages_found">
-        <source>No usages found.</source>
-        <target state="translated">未找到用法。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implements_">
         <source>Implements</source>
         <target state="translated">实现</target>
@@ -752,84 +752,14 @@
         <target state="translated">重写者</target>
         <note />
       </trans-unit>
-      <trans-unit id="Directly_Called_In">
-        <source>Directly Called In</source>
-        <target state="translated">直接调入</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indirectly_Called_In">
-        <source>Indirectly Called In</source>
-        <target state="translated">间接调入</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Called_In">
-        <source>Called In</source>
-        <target state="translated">调入</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Referenced_In">
-        <source>Referenced In</source>
-        <target state="translated">引用于</target>
-        <note />
-      </trans-unit>
       <trans-unit id="No_references_found">
         <source>No references found.</source>
         <target state="translated">未找到引用。</target>
         <note />
       </trans-unit>
-      <trans-unit id="No_derived_types_found">
-        <source>No derived types found.</source>
-        <target state="translated">未找到派生类型。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_implementations_found">
-        <source>No implementations found.</source>
-        <target state="translated">未找到实现。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_Line_1">
-        <source>{0} - (Line {1})</source>
-        <target state="translated">{0} - (第 {1} 行)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Class_Parts">
-        <source>Class Parts</source>
-        <target state="translated">类部件</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Struct_Parts">
-        <source>Struct Parts</source>
-        <target state="translated">结构部件</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_Parts">
-        <source>Interface Parts</source>
-        <target state="translated">接口部件</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Parts">
-        <source>Type Parts</source>
-        <target state="translated">类型部件</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inherits_">
         <source>Inherits</source>
         <target state="translated">继承</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inherited_By">
-        <source>Inherited By</source>
-        <target state="translated">继承者</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Already_tracking_document_with_identical_key">
-        <source>Already tracking document with identical key</source>
-        <target state="translated">已使用等价键跟踪文档</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="document_is_not_currently_being_tracked">
-        <source>document is not currently being tracked</source>
-        <target state="translated">当前未跟踪文档</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_Rename_information">
@@ -887,24 +817,9 @@
         <target state="translated">正在自动完成...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatic_Pair_Completion">
-        <source>Automatic Pair Completion</source>
-        <target state="translated">自动配对完成</target>
-        <note />
-      </trans-unit>
       <trans-unit id="An_active_inline_rename_session_is_still_active_Complete_it_before_starting_a_new_one">
         <source>An active inline rename session is still active. Complete it before starting a new one.</source>
         <target state="translated">有效的内联重命名会话仍处于活动状态。在开始一个新会话前完成它。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_buffer_is_not_part_of_a_workspace">
-        <source>The buffer is not part of a workspace.</source>
-        <target state="translated">缓冲区不是工作区的一部分。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_token_is_not_contained_in_the_workspace">
-        <source>The token is not contained in the workspace.</source>
-        <target state="translated">工作区中不包含该标记。</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigation_Bars">
@@ -917,24 +832,9 @@
         <target state="translated">正在刷新导航栏...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Token">
-        <source>Format Token</source>
-        <target state="translated">设置标记的格式</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Find_References">
         <source>Find References</source>
         <target state="translated">查找引用</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Finding_references">
-        <source>Finding references...</source>
-        <target state="translated">正在查找引用...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Finding_references_of_0">
-        <source>Finding references of "{0}"...</source>
-        <target state="translated">正在查找“{0}”的引用...</target>
         <note />
       </trans-unit>
       <trans-unit id="Comment_Selection">
@@ -982,11 +882,6 @@
         <target state="translated">正在应用“提取方法”重构...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Document">
-        <source>Format Document</source>
-        <target state="translated">设置文档的格式</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_document">
         <source>Formatting document...</source>
         <target state="translated">正在设置文档格式...</target>
@@ -995,11 +890,6 @@
       <trans-unit id="Formatting">
         <source>Formatting</source>
         <target state="translated">格式设置</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_Selection">
-        <source>Format Selection</source>
-        <target state="translated">设置选定内容的格式</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_currently_selected_text">
@@ -1042,11 +932,6 @@
         <target state="translated">内联重命名修复</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Rename_Resolved_Conflict">
-        <source>Inline Rename Resolved Conflict</source>
-        <target state="translated">内联重命名已解决冲突</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inline_Rename">
         <source>Inline Rename</source>
         <target state="translated">内联重命名</target>
@@ -1060,11 +945,6 @@
       <trans-unit id="Start_Rename">
         <source>Start Rename</source>
         <target state="translated">开始重命名</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Display_conflict_resolutions">
-        <source>Display conflict resolutions</source>
-        <target state="translated">显示冲突解决方法</target>
         <note />
       </trans-unit>
       <trans-unit id="Finding_token_to_rename">
@@ -1107,29 +987,9 @@
         <target state="translated">重命名: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Light_bulb_session_is_already_dismissed">
-        <source>Light bulb session is already dismissed.</source>
-        <target state="translated">灯泡会话已解除。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatic_Pair_Completion_End_Point_Marker_Color">
-        <source>Automatic Pair Completion End Point Marker Color</source>
-        <target state="translated">自动配对完成终点标记颜色</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
         <target state="translated">引擎必须附加到“交互窗口”。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changes_the_current_prompt_settings">
-        <source>Changes the current prompt settings.</source>
-        <target state="translated">更改当前提示设置。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unexpected_text_colon_0">
-        <source>Unexpected text: '{0}'</source>
-        <target state="translated">意外的文本:“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="The_triggerSpan_is_not_included_in_the_given_workspace">
@@ -1145,11 +1005,6 @@
       <trans-unit id="The_transaction_is_already_complete">
         <source>The transaction is already complete.</source>
         <target state="translated">该事务已完成。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Not_a_source_error_line_column_unavailable">
-        <source>Not a source error, line/column unavailable</source>
-        <target state="translated">不是源错误，行/列不可用</target>
         <note />
       </trans-unit>
       <trans-unit id="Can_t_compare_positions_from_different_text_snapshots">
@@ -1232,11 +1087,6 @@
         <target state="translated">预览更改</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Paste">
-        <source>Format Paste</source>
-        <target state="translated">格式粘贴</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_pasted_text">
         <source>Formatting pasted text...</source>
         <target state="translated">正在设置已粘贴文本的格式...</target>
@@ -1294,11 +1144,6 @@ Do you want to proceed?</source>
         <target state="translated">对接口实现“{0}”的调用</target>
         <note />
       </trans-unit>
-      <trans-unit id="Computing_Call_Hierarchy_Information">
-        <source>Computing Call Hierarchy Information</source>
-        <target state="translated">计算调用层次结构信息</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implements_0">
         <source>Implements '{0}'</source>
         <target state="translated">实现“{0}”</target>
@@ -1349,11 +1194,6 @@ Do you want to proceed?</source>
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="IntelliSense_Commit_Formatting">
-        <source>IntelliSense Commit Formatting</source>
-        <target state="translated">IntelliSense 提交格式</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_Tracking">
         <source>Rename Tracking</source>
         <target state="translated">重命名跟踪</target>
@@ -1362,11 +1202,6 @@ Do you want to proceed?</source>
       <trans-unit id="Removing_0_from_1_with_content_colon">
         <source>Removing '{0}' from '{1}' with content:</source>
         <target state="translated">将“{0}”连带内容从“{1}”删除:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation">
-        <source>'{0}' does not support the '{1}' operation. However, it may contain nested '{2}'s (see '{2}.{3}') that support this operation.</source>
-        <target state="translated">“{0}”不支持“{1}”操作。但是，它可能包含支持此操作的嵌套“{2}”(参见“{2}.{3}”)。</target>
         <note />
       </trans-unit>
       <trans-unit id="Brace_Completion">
@@ -1429,11 +1264,6 @@ Do you want to proceed?</source>
         <target state="translated">正在导航...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggestion_ellipses">
-        <source>Suggestion ellipses (…)</source>
-        <target state="translated">建议使用省略号(…)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="_0_declarations">
         <source>'{0}' declarations</source>
         <target state="translated">“{0}”声明</target>
@@ -1462,11 +1292,6 @@ Do you want to proceed?</source>
       <trans-unit id="Comment_Uncomment_Selection">
         <source>Comment/Uncomment Selection</source>
         <target state="translated">注释/取消注释选定内容</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Code_Completion">
-        <source>Code Completion</source>
-        <target state="translated">代码完成</target>
         <note />
       </trans-unit>
       <trans-unit id="Execute_In_Interactive">
@@ -1557,11 +1382,6 @@ Do you want to proceed?</source>
       <trans-unit id="Signature_Help">
         <source>Signature Help</source>
         <target state="translated">签名帮助</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Smart_Token_Formatter">
-        <source>Smart Token Formatter</source>
-        <target state="translated">智能令牌格式化程序</target>
         <note />
       </trans-unit>
     </body>

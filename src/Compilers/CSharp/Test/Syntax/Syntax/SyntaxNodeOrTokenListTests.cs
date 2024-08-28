@@ -34,10 +34,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Assert.Throws<NotSupportedException>(() => default(SyntaxNodeOrTokenList.Enumerator).Equals(default(SyntaxNodeOrTokenList.Enumerator)));
         }
 
-        [Fact]
-        public void TestAddInsertRemove()
+        [Theory, CombinatorialData]
+        public void TestAddInsertRemove(bool collectionExpression)
         {
-            var list = SyntaxFactory.NodeOrTokenList(SyntaxFactory.ParseToken("A "), SyntaxFactory.ParseToken("B "), SyntaxFactory.ParseToken("C "));
+            var list = collectionExpression
+                ? [SyntaxFactory.ParseToken("A "), SyntaxFactory.ParseToken("B "), SyntaxFactory.ParseToken("C ")]
+                : SyntaxFactory.NodeOrTokenList(SyntaxFactory.ParseToken("A "), SyntaxFactory.ParseToken("B "), SyntaxFactory.ParseToken("C "));
 
             Assert.Equal(3, list.Count);
             Assert.Equal("A", list[0].ToString());
@@ -172,6 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public void TestAddInsertRemoveReplaceOnEmptyList()
         {
             DoTestAddInsertRemoveReplaceOnEmptyList(SyntaxFactory.NodeOrTokenList());
+            DoTestAddInsertRemoveReplaceOnEmptyList([]);
             DoTestAddInsertRemoveReplaceOnEmptyList(default(SyntaxNodeOrTokenList));
         }
 

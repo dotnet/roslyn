@@ -18,13 +18,13 @@ Imports Microsoft.VisualStudio.Text.Operations
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     <[UseExportProvider]>
     Public Class RenameCommandHandlerTests
-        Private Shared Function CreateCommandHandler(workspace As TestWorkspace) As RenameCommandHandler
+        Private Shared Function CreateCommandHandler(workspace As EditorTestWorkspace) As RenameCommandHandler
             Return workspace.ExportProvider.GetCommandHandler(Of RenameCommandHandler)(PredefinedCommandHandlerNames.Rename)
         End Function
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub RenameCommandInvokesInlineRename(host As RenameTestHost)
+        Public Async Function RenameCommandInvokesInlineRename(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -40,17 +40,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 view.Caret.MoveTo(New SnapshotPoint(view.TextBuffer.CurrentSnapshot, workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value))
 
                 CreateCommandHandler(workspace).ExecuteCommand(New RenameCommandArgs(view, view.TextBuffer), Sub() Throw New Exception("The operation should have been handled."), Utilities.TestCommandExecutionContext.Create())
+                Await WaitForRename(workspace)
 
                 Dim expectedTriggerToken = workspace.CurrentSolution.Projects.Single().Documents.Single().GetSyntaxRootAsync().Result.FindToken(view.Caret.Position.BufferPosition)
                 Assert.Equal(expectedTriggerToken.Span.ToSnapshotSpan(view.TextSnapshot), view.Selection.SelectedSpans.Single())
             End Using
-        End Sub
+        End Function
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <Trait(Traits.Feature, Traits.Features.Interactive)>
         Public Sub RenameCommandDisabledInSubmission(host As RenameTestHost)
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Submission Language="C#" CommonReferences="true">  
                         object $$goo;  
@@ -655,8 +656,7 @@ Goo f;
             End Using
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577178")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577178")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function TypingInOtherFileTriggersCommit(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -713,8 +713,7 @@ Goo f;
             End Using
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577178")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577178")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function TypingInOtherFileWithConflictTriggersCommit(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(

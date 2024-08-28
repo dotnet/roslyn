@@ -254,8 +254,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 VariableSlotAllocator lazyVariableSlotAllocator = null;
-                var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
-                var closureDebugInfoBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
+                var lambdaDebugInfoBuilder = ArrayBuilder<EncLambdaInfo>.GetInstance();
+                var lambdaRuntimeRudeEditsBuilder = ArrayBuilder<LambdaRuntimeRudeEditInfo>.GetInstance();
+                var closureDebugInfoBuilder = ArrayBuilder<EncClosureInfo>.GetInstance();
                 var stateMachineStateDebugInfoBuilder = ArrayBuilder<StateMachineStateDebugInfo>.GetInstance();
                 StateMachineTypeSymbol stateMachineTypeOpt = null;
                 const int methodOrdinal = -1;
@@ -272,6 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics,
                     ref lazyVariableSlotAllocator,
                     lambdaDebugInfoBuilder,
+                    lambdaRuntimeRudeEditsBuilder,
                     closureDebugInfoBuilder,
                     stateMachineStateDebugInfoBuilder,
                     out stateMachineTypeOpt);
@@ -279,11 +281,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(lazyVariableSlotAllocator is null);
                 Debug.Assert(stateMachineTypeOpt is null);
                 Debug.Assert(codeCoverageSpans.IsEmpty);
-                Debug.Assert(lambdaDebugInfoBuilder.IsEmpty());
-                Debug.Assert(closureDebugInfoBuilder.IsEmpty());
-                Debug.Assert(stateMachineStateDebugInfoBuilder.IsEmpty());
+                Debug.Assert(lambdaDebugInfoBuilder.IsEmpty);
+                Debug.Assert(lambdaRuntimeRudeEditsBuilder.IsEmpty);
+                Debug.Assert(closureDebugInfoBuilder.IsEmpty);
+                Debug.Assert(stateMachineStateDebugInfoBuilder.IsEmpty);
 
                 lambdaDebugInfoBuilder.Free();
+                lambdaRuntimeRudeEditsBuilder.Free();
                 closureDebugInfoBuilder.Free();
                 stateMachineStateDebugInfoBuilder.Free();
 
@@ -294,8 +298,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         synthesizedEntryPoint,
                         methodOrdinal,
                         loweredBody,
-                        ImmutableArray<LambdaDebugInfo>.Empty,
-                        ImmutableArray<ClosureDebugInfo>.Empty,
+                        ImmutableArray<EncLambdaInfo>.Empty,
+                        ImmutableArray<LambdaRuntimeRudeEditInfo>.Empty,
+                        ImmutableArray<EncClosureInfo>.Empty,
                         ImmutableArray<StateMachineStateDebugInfo>.Empty,
                         stateMachineTypeOpt: null,
                         variableSlotAllocatorOpt: null,
@@ -536,17 +541,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
                         }
 
-                    case SymbolKind.Event:
-                        {
-                            SourceEventSymbol eventSymbol = member as SourceEventSymbol;
-                            if ((object)eventSymbol != null && eventSymbol.HasAssociatedField && !eventSymbol.IsAbstract && compilationState.Emitting)
-                            {
-                                CompileFieldLikeEventAccessor(eventSymbol, isAddMethod: true);
-                                CompileFieldLikeEventAccessor(eventSymbol, isAddMethod: false);
-                            }
-                            break;
-                        }
-
                     case SymbolKind.Field:
                         {
                             var fieldSymbol = (FieldSymbol)member;
@@ -653,11 +647,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static MethodSymbol GetMethodToCompile(MethodSymbol method)
         {
-            if (IsFieldLikeEventAccessor(method))
-            {
-                return null;
-            }
-
             if (method.IsPartialDefinition())
             {
                 return method.PartialImplementationPart;
@@ -672,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var compilationState = new TypeCompilationState(null, _compilation, _moduleBeingBuiltOpt);
             var context = new EmitContext(_moduleBeingBuiltOpt, null, diagnostics.DiagnosticBag, metadataOnly: false, includePrivateMembers: true);
-            foreach (Cci.IMethodDefinition definition in privateImplClass.GetMethods(context).Concat(privateImplClass.GetTopLevelTypeMethods(context)))
+            foreach (Cci.IMethodDefinition definition in privateImplClass.GetMethods(context).Concat(privateImplClass.GetTopLevelAndNestedTypeMethods(context)))
             {
                 var method = (MethodSymbol)definition.GetInternalSymbol();
                 Debug.Assert(method.SynthesizesLoweredBoundBody);
@@ -766,8 +755,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 method,
                                 methodOrdinal,
                                 loweredBody,
-                                ImmutableArray<LambdaDebugInfo>.Empty,
-                                ImmutableArray<ClosureDebugInfo>.Empty,
+                                ImmutableArray<EncLambdaInfo>.Empty,
+                                ImmutableArray<LambdaRuntimeRudeEditInfo>.Empty,
+                                ImmutableArray<EncClosureInfo>.Empty,
                                 stateMachineStateDebugInfoBuilder.ToImmutable(),
                                 stateMachine,
                                 variableSlotAllocatorOpt,
@@ -812,14 +802,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static bool IsFieldLikeEventAccessor(MethodSymbol method)
-        {
-            Symbol associatedPropertyOrEvent = method.AssociatedSymbol;
-            return (object)associatedPropertyOrEvent != null &&
-                associatedPropertyOrEvent.Kind == SymbolKind.Event &&
-                ((EventSymbol)associatedPropertyOrEvent).HasAssociatedField;
-        }
-
         /// <summary>
         /// In some circumstances (e.g. implicit implementation of an interface method by a non-virtual method in a
         /// base type from another assembly) it is necessary for the compiler to generate explicit implementations for
@@ -860,57 +842,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 discardedDiagnostics.Free();
 
                 _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceProperty.ContainingType, synthesizedAccessor.GetCciAdapter());
-            }
-        }
-
-        // https://github.com/dotnet/roslyn/issues/67104: Unify with GenerateMethodBody/SynthesizesLoweredBoundBody
-        private void CompileFieldLikeEventAccessor(SourceEventSymbol eventSymbol, bool isAddMethod)
-        {
-            Debug.Assert(_moduleBeingBuiltOpt != null);
-
-            MethodSymbol accessor = isAddMethod ? eventSymbol.AddMethod : eventSymbol.RemoveMethod;
-
-            var diagnosticsThisMethod = BindingDiagnosticBag.GetInstance(_diagnostics);
-            try
-            {
-                BoundBlock boundBody = MethodBodySynthesizer.ConstructFieldLikeEventAccessorBody(eventSymbol, isAddMethod, _compilation, diagnosticsThisMethod);
-                var hasErrors = diagnosticsThisMethod.HasAnyErrors();
-                SetGlobalErrorIfTrue(hasErrors);
-
-                // we cannot rely on GlobalHasErrors since that can be changed concurrently by other methods compiling
-                // we however do not want to continue with generating method body if we have errors in this particular method - generating may crash
-                // or if had declaration errors - we will fail anyways, but if some types are bad enough, generating may produce duplicate errors about that.
-                if (!hasErrors && !_hasDeclarationErrors && _emitMethodBodies)
-                {
-                    const int accessorOrdinal = -1;
-
-                    var instrumentation = _moduleBeingBuiltOpt.GetMethodBodyInstrumentations(accessor);
-
-                    MethodBody emittedBody = GenerateMethodBody(
-                        _moduleBeingBuiltOpt,
-                        accessor,
-                        accessorOrdinal,
-                        boundBody,
-                        ImmutableArray<LambdaDebugInfo>.Empty,
-                        ImmutableArray<ClosureDebugInfo>.Empty,
-                        ImmutableArray<StateMachineStateDebugInfo>.Empty,
-                        stateMachineTypeOpt: null,
-                        variableSlotAllocatorOpt: null,
-                        diagnostics: diagnosticsThisMethod,
-                        debugDocumentProvider: GetDebugDocumentProvider(instrumentation),
-                        importChainOpt: null,
-                        emittingPdb: false,
-                        codeCoverageSpans: ImmutableArray<SourceSpan>.Empty,
-                        entryPointOpt: null);
-
-                    _moduleBeingBuiltOpt.SetMethodBody(accessor, emittedBody);
-                    // Definition is already in the symbol table, so don't call moduleBeingBuilt.AddCompilerGeneratedDefinition
-                }
-            }
-            finally
-            {
-                _diagnostics.AddRange(diagnosticsThisMethod);
-                diagnosticsThisMethod.Free();
             }
         }
 
@@ -1087,7 +1018,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             ((methodSymbol.ContainingType.IsStructType() && !methodSymbol.IsImplicitConstructor) ||
                             methodSymbol is SynthesizedPrimaryConstructor ||
                             instrumentation.Kinds.Contains(InstrumentationKind.TestCoverage) ||
-                            instrumentation.Kinds.Contains(InstrumentationKindExtensions.LocalStateTracing)))
+                            instrumentation.Kinds.Contains(InstrumentationKindExtensions.LocalStateTracing) ||
+                            instrumentation.Kinds.Contains(InstrumentationKind.StackOverflowProbing) ||
+                            instrumentation.Kinds.Contains(InstrumentationKind.ModuleCancellation)))
                         {
                             if (methodSymbol.IsImplicitConstructor &&
                                 (instrumentation.Kinds.Contains(InstrumentationKind.TestCoverage) || instrumentation.Kinds.Contains(InstrumentationKindExtensions.LocalStateTracing)))
@@ -1163,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     try
                     {
                         bool diagsWritten;
-                        actualDiagnostics = new ImmutableBindingDiagnostic<AssemblySymbol>(sourceMethod.SetDiagnostics(actualDiagnostics.Diagnostics, out diagsWritten), actualDiagnostics.Dependencies);
+                        actualDiagnostics = new ReadOnlyBindingDiagnostic<AssemblySymbol>(sourceMethod.SetDiagnostics(actualDiagnostics.Diagnostics, out diagsWritten), actualDiagnostics.Dependencies);
 
                         if (diagsWritten && !methodSymbol.IsImplicitlyDeclared && _compilation.EventQueue != null)
                         {
@@ -1213,8 +1146,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool hasBody = flowAnalyzedBody != null;
                 VariableSlotAllocator lazyVariableSlotAllocator = null;
                 StateMachineTypeSymbol stateMachineTypeOpt = null;
-                var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
-                var closureDebugInfoBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
+                var lambdaDebugInfoBuilder = ArrayBuilder<EncLambdaInfo>.GetInstance();
+                var lambdaRuntimeRudeEditsBuilder = ArrayBuilder<LambdaRuntimeRudeEditInfo>.GetInstance();
+                var closureDebugInfoBuilder = ArrayBuilder<EncClosureInfo>.GetInstance();
                 var stateMachineStateDebugInfoBuilder = ArrayBuilder<StateMachineStateDebugInfo>.GetInstance();
                 BoundStatement loweredBodyOpt = null;
 
@@ -1234,6 +1168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagsForCurrentMethod,
                             ref lazyVariableSlotAllocator,
                             lambdaDebugInfoBuilder,
+                            lambdaRuntimeRudeEditsBuilder,
                             closureDebugInfoBuilder,
                             stateMachineStateDebugInfoBuilder,
                             out stateMachineTypeOpt);
@@ -1309,6 +1244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     diagsForCurrentMethod,
                                     ref lazyVariableSlotAllocator,
                                     lambdaDebugInfoBuilder,
+                                    lambdaRuntimeRudeEditsBuilder,
                                     closureDebugInfoBuilder,
                                     stateMachineStateDebugInfoBuilder,
                                     out StateMachineTypeSymbol initializerStateMachineTypeOpt);
@@ -1360,9 +1296,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return;
                             }
                         }
-                        if (_emitMethodBodies && (!(methodSymbol is SynthesizedStaticConstructor cctor) || cctor.ShouldEmit(processedInitializers.BoundInitializers)))
+                        if (_emitMethodBodies && (methodSymbol is not SynthesizedStaticConstructor cctor || cctor.ShouldEmit(processedInitializers.BoundInitializers)))
                         {
                             var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
+
+                            lambdaRuntimeRudeEditsBuilder.Sort(static (x, y) => x.LambdaId.CompareTo(y.LambdaId));
 
                             var emittedBody = GenerateMethodBody(
                                 _moduleBeingBuiltOpt,
@@ -1370,6 +1308,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 methodOrdinal,
                                 boundBody,
                                 lambdaDebugInfoBuilder.ToImmutable(),
+                                lambdaRuntimeRudeEditsBuilder.ToImmutable(),
                                 closureDebugInfoBuilder.ToImmutable(),
                                 stateMachineStateDebugInfoBuilder.ToImmutable(),
                                 stateMachineTypeOpt,
@@ -1390,6 +1329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 finally
                 {
                     lambdaDebugInfoBuilder.Free();
+                    lambdaRuntimeRudeEditsBuilder.Free();
                     closureDebugInfoBuilder.Free();
                     stateMachineStateDebugInfoBuilder.Free();
                 }
@@ -1413,8 +1353,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             out ImmutableArray<SourceSpan> codeCoverageSpans,
             BindingDiagnosticBag diagnostics,
             ref VariableSlotAllocator lazyVariableSlotAllocator,
-            ArrayBuilder<LambdaDebugInfo> lambdaDebugInfoBuilder,
-            ArrayBuilder<ClosureDebugInfo> closureDebugInfoBuilder,
+            ArrayBuilder<EncLambdaInfo> lambdaDebugInfoBuilder,
+            ArrayBuilder<LambdaRuntimeRudeEditInfo> lambdaRuntimeRudeEditsBuilder,
+            ArrayBuilder<EncClosureInfo> closureDebugInfoBuilder,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
             out StateMachineTypeSymbol stateMachineTypeOpt)
         {
@@ -1482,8 +1423,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         method.ThisParameter,
                         method,
                         methodOrdinal,
-                        null,
+                        substitutedSourceMethod: null,
                         lambdaDebugInfoBuilder,
+                        lambdaRuntimeRudeEditsBuilder,
                         closureDebugInfoBuilder,
                         lazyVariableSlotAllocator,
                         compilationState,
@@ -1528,8 +1470,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol method,
             int methodOrdinal,
             BoundStatement block,
-            ImmutableArray<LambdaDebugInfo> lambdaDebugInfo,
-            ImmutableArray<ClosureDebugInfo> closureDebugInfo,
+            ImmutableArray<EncLambdaInfo> lambdaDebugInfo,
+            ImmutableArray<LambdaRuntimeRudeEditInfo> orderedLambdaRuntimeRudeEdits,
+            ImmutableArray<EncClosureInfo> closureDebugInfo,
             ImmutableArray<StateMachineStateDebugInfo> stateMachineStateDebugInfos,
             StateMachineTypeSymbol stateMachineTypeOpt,
             VariableSlotAllocator variableSlotAllocatorOpt,
@@ -1664,6 +1607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.HasDynamicLocal,
                     importScopeOpt,
                     lambdaDebugInfo,
+                    orderedLambdaRuntimeRudeEdits,
                     closureDebugInfo,
                     stateMachineTypeOpt?.Name,
                     stateMachineHoistedLocalScopes,
@@ -1828,7 +1772,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     buildIdentifierMapOfBindIdentifierTargets(syntaxNode, bodyBinder, out inMethodBinder, out identifierMap);
 #endif
 
-                    BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics);
+                    BoundNode methodBody = bodyBinder.BindWithLambdaBindingCountDiagnostics(
+                        syntaxNode,
+                        (object?)null,
+                        diagnostics,
+                        static (bodyBinder, syntaxNode, _, diagnostics) => bodyBinder.BindMethodBody(syntaxNode, diagnostics));
 
 #if DEBUG
                     assertBindIdentifierTargets(inMethodBinder, identifierMap, methodBody, diagnostics);
@@ -1934,7 +1882,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var property = sourceMethod.AssociatedSymbol as SourcePropertySymbolBase;
                     if (property is not null && property.IsAutoPropertyWithGetAccessor)
                     {
-                        // https://github.com/dotnet/roslyn/issues/67104: Unify with GenerateMethodBody/SynthesizesLoweredBoundBody
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
                     }
 

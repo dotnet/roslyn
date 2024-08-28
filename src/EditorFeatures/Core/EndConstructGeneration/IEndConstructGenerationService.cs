@@ -9,10 +9,9 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.EndConstructGeneration
+namespace Microsoft.CodeAnalysis.Editor.Implementation.EndConstructGeneration;
+
+internal interface IEndConstructGenerationService : ILanguageService
 {
-    internal interface IEndConstructGenerationService : ILanguageService
-    {
-        bool TryDo(ITextView textView, ITextBuffer subjectBuffer, char typedChar, CancellationToken cancellationToken);
-    }
+    bool TryDo(ITextView textView, ITextBuffer subjectBuffer, char typedChar, CancellationToken cancellationToken);
 }

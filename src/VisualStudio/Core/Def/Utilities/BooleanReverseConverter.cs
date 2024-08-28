@@ -8,14 +8,13 @@ using System;
 using System.Globalization;
 using System.Windows.Data;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
-{
-    internal class BooleanReverseConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-            => !(bool)value;
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-            => !(bool)value;
-    }
+internal class BooleanReverseConverter : IValueConverter
+{
+    public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        => !(bool)value;
+
+    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        => !(bool)value;
 }

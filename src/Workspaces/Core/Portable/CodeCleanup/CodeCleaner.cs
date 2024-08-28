@@ -10,93 +10,90 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Simplification;
 
-namespace Microsoft.CodeAnalysis.CodeCleanup
+namespace Microsoft.CodeAnalysis.CodeCleanup;
+
+/// <summary>
+/// Static CodeCleaner class that provides default code cleaning behavior.
+/// </summary>
+internal static class CodeCleaner
 {
     /// <summary>
-    /// Static CodeCleaner class that provides default code cleaning behavior.
+    /// Return default code cleaners for a given document.
+    /// 
+    /// This can be modified and given to the Cleanup method to provide different cleaners.
     /// </summary>
-    internal static class CodeCleaner
+    public static ImmutableArray<ICodeCleanupProvider> GetDefaultProviders(Document document)
     {
-        /// <summary>
-        /// Return default code cleaners for a given document.
-        /// 
-        /// This can be modified and given to the Cleanup method to provide different cleaners.
-        /// </summary>
-        public static ImmutableArray<ICodeCleanupProvider> GetDefaultProviders(Document document)
+        if (document == null)
         {
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
-            var service = document.GetLanguageService<ICodeCleanerService>();
-            if (service != null)
-            {
-                return service.GetDefaultProviders();
-            }
-            else
-            {
-                return ImmutableArray<ICodeCleanupProvider>.Empty;
-            }
+            throw new ArgumentNullException(nameof(document));
         }
 
-        /// <summary>
-        /// Cleans up the whole document.
-        /// Optionally you can provide your own options and code cleaners. Otherwise, the default will be used.
-        /// </summary>
-        public static async Task<Document> CleanupAsync(Document document, CodeCleanupOptions options, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
+        var service = document.GetLanguageService<ICodeCleanerService>();
+        if (service != null)
         {
-            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            return await CleanupAsync(document, new TextSpan(0, text.Length), options, providers, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return service.GetDefaultProviders();
         }
-
-        /// <summary>
-        /// Cleans up the document marked with the provided annotation.
-        /// Optionally you can provide your own options and code cleaners. Otherwise, the default will be used.
-        /// </summary>
-        public static async Task<Document> CleanupAsync(Document document, SyntaxAnnotation annotation, CodeCleanupOptions options, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
+        else
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return await CleanupAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(n => n.Span).ToImmutableArray(), options, providers, cancellationToken: cancellationToken).ConfigureAwait(false);
+            return [];
         }
+    }
 
-        /// <summary>
-        /// Clean up the provided span in the document.
-        /// Optionally you can provide your own options and code cleaners. Otherwise, the default will be used.
-        /// </summary>
-        public static Task<Document> CleanupAsync(Document document, TextSpan span, CodeCleanupOptions options, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
-            => CleanupAsync(document, ImmutableArray.Create(span), options, providers, cancellationToken);
+    /// <summary>
+    /// Cleans up the whole document.
+    /// Optionally you can provide your own options and code cleaners. Otherwise, the default will be used.
+    /// </summary>
+    public static async Task<Document> CleanupAsync(Document document, CodeCleanupOptions options, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
+    {
+        var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+        return await CleanupAsync(document, new TextSpan(0, text.Length), options, providers, cancellationToken: cancellationToken).ConfigureAwait(false);
+    }
 
-        /// <summary>
-        /// Clean up the provided spans in the document.
-        /// Optionally you can provide your own options and code cleaners. Otherwise, the default will be used.
-        /// </summary>
-        public static async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CodeCleanupOptions options, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
-        {
-            var cleanupService = document.GetRequiredLanguageService<ICodeCleanerService>();
-            return await cleanupService.CleanupAsync(document, spans, options, providers, cancellationToken).ConfigureAwait(false);
-        }
+    /// <summary>
+    /// Cleans up the document marked with the provided annotation.
+    /// Optionally you can provide your own options and code cleaners. Otherwise, the default will be used.
+    /// </summary>
+    public static async Task<Document> CleanupAsync(Document document, SyntaxAnnotation annotation, CodeCleanupOptions options, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
+    {
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        return await CleanupAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(n => n.Span).ToImmutableArray(), options, providers, cancellationToken: cancellationToken).ConfigureAwait(false);
+    }
 
-        /// <summary>
-        /// Clean up the provided span in the node.
-        /// This will only cleanup stuff that doesn't require semantic information.
-        /// </summary>
-        public static Task<SyntaxNode> CleanupAsync(SyntaxNode root, TextSpan span, SyntaxFormattingOptions options, SolutionServices services, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
-            => CleanupAsync(root, ImmutableArray.Create(span), options, services, providers, cancellationToken);
+    /// <summary>
+    /// Clean up the provided span in the document.
+    /// Optionally you can provide your own options and code cleaners. Otherwise, the default will be used.
+    /// </summary>
+    public static Task<Document> CleanupAsync(Document document, TextSpan span, CodeCleanupOptions options, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
+        => CleanupAsync(document, [span], options, providers, cancellationToken);
 
-        /// <summary>
-        /// Clean up the provided spans in the node.
-        /// This will only cleanup stuff that doesn't require semantic information.
-        /// </summary>
-        public static Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SolutionServices services, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
-        {
-            var cleanupService = services.GetRequiredLanguageService<ICodeCleanerService>(root.Language);
-            return cleanupService.CleanupAsync(root, spans, options, services, providers, cancellationToken);
-        }
+    /// <summary>
+    /// Clean up the provided spans in the document.
+    /// Optionally you can provide your own options and code cleaners. Otherwise, the default will be used.
+    /// </summary>
+    public static async Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CodeCleanupOptions options, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
+    {
+        var cleanupService = document.GetRequiredLanguageService<ICodeCleanerService>();
+        return await cleanupService.CleanupAsync(document, spans, options, providers, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Clean up the provided span in the node.
+    /// This will only cleanup stuff that doesn't require semantic information.
+    /// </summary>
+    public static Task<SyntaxNode> CleanupAsync(SyntaxNode root, TextSpan span, SyntaxFormattingOptions options, SolutionServices services, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
+        => CleanupAsync(root, [span], options, services, providers, cancellationToken);
+
+    /// <summary>
+    /// Clean up the provided spans in the node.
+    /// This will only cleanup stuff that doesn't require semantic information.
+    /// </summary>
+    public static Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SolutionServices services, ImmutableArray<ICodeCleanupProvider> providers = default, CancellationToken cancellationToken = default)
+    {
+        var cleanupService = services.GetRequiredLanguageService<ICodeCleanerService>(root.Language);
+        return cleanupService.CleanupAsync(root, spans, options, services, providers, cancellationToken);
     }
 }

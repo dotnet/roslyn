@@ -3192,7 +3192,7 @@ class C
             TestOperatorKinds(code);
         }
 
-        private void TestBoundTree(string source, System.Func<IEnumerable<KeyValuePair<TreeDumperNode, TreeDumperNode>>, IEnumerable<string>> query)
+        private static void TestBoundTree(string source, System.Func<IEnumerable<KeyValuePair<TreeDumperNode, TreeDumperNode>>, IEnumerable<string>> query)
         {
             // The mechanism of this test is: we build the bound tree for the code passed in and then extract
             // from it the nodes that describe the operators. We then compare the description of
@@ -3217,7 +3217,7 @@ class C
             AssertEx.Equal(expected, results);
         }
 
-        private void TestOperatorKinds(string source)
+        internal static void TestOperatorKinds(string source)
         {
             // The mechanism of this test is: we build the bound tree for the code passed in and then extract
             // from it the nodes that describe the operators. We then compare the description of
@@ -3231,7 +3231,7 @@ class C
                 select node.Value.ToString());
         }
 
-        private void TestCompoundAssignment(string source)
+        internal static void TestCompoundAssignment(string source)
         {
             TestBoundTree(source, edges =>
                 from edge in edges
@@ -3260,7 +3260,7 @@ class C
                                                })));
         }
 
-        private void TestTypes(string source)
+        internal static void TestTypes(string source)
         {
             TestBoundTree(source, edges =>
                 from edge in edges
@@ -3289,7 +3289,7 @@ class C
             return s + ">";
         }
 
-        private void TestDynamicMemberAccessCore(string source)
+        internal static void TestDynamicMemberAccessCore(string source)
         {
             TestBoundTree(source, edges =>
                 from edge in edges
@@ -7593,7 +7593,7 @@ public class RubyTime
             }
             else
             {
-                signature = compilation.builtInOperators.GetSignature(result);
+                signature = compilation.BuiltInOperators.GetSignature(result);
 
                 if ((object)underlying != (object)type)
                 {
@@ -7849,7 +7849,7 @@ class Module1
 
             var source = builder.ToString();
 
-            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45Extended, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib461Extended, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
 
             var tree = compilation.SyntaxTrees.Single();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -8232,14 +8232,14 @@ class Module1
                 else if ((op == BinaryOperatorKind.Addition || op == BinaryOperatorKind.Subtraction) &&
                     leftType.IsEnumType() && (rightType.IsIntegralType() || rightType.IsCharType()) &&
                     (result = OverloadResolution.BinopEasyOut.OpKind(op, leftType.EnumUnderlyingTypeOrSelf(), rightType)) != BinaryOperatorKind.Error &&
-                    TypeSymbol.Equals((signature = compilation.builtInOperators.GetSignature(result)).RightType, leftType.EnumUnderlyingTypeOrSelf(), TypeCompareKind.ConsiderEverything2))
+                    TypeSymbol.Equals((signature = compilation.BuiltInOperators.GetSignature(result)).RightType, leftType.EnumUnderlyingTypeOrSelf(), TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(signature.Kind | BinaryOperatorKind.EnumAndUnderlying, leftType, signature.RightType, leftType);
                 }
                 else if ((op == BinaryOperatorKind.Addition || op == BinaryOperatorKind.Subtraction) &&
                     rightType.IsEnumType() && (leftType.IsIntegralType() || leftType.IsCharType()) &&
                     (result = OverloadResolution.BinopEasyOut.OpKind(op, leftType, rightType.EnumUnderlyingTypeOrSelf())) != BinaryOperatorKind.Error &&
-                    TypeSymbol.Equals((signature = compilation.builtInOperators.GetSignature(result)).LeftType, rightType.EnumUnderlyingTypeOrSelf(), TypeCompareKind.ConsiderEverything2))
+                    TypeSymbol.Equals((signature = compilation.BuiltInOperators.GetSignature(result)).LeftType, rightType.EnumUnderlyingTypeOrSelf(), TypeCompareKind.ConsiderEverything2))
                 {
                     signature = new BinaryOperatorSignature(signature.Kind | BinaryOperatorKind.EnumAndUnderlying, signature.LeftType, rightType, rightType);
                 }
@@ -8355,7 +8355,7 @@ class Module1
             }
             else
             {
-                signature = compilation.builtInOperators.GetSignature(result);
+                signature = compilation.BuiltInOperators.GetSignature(result);
             }
 
             Assert.NotNull(symbol1);

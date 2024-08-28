@@ -17,20 +17,46 @@ resources:
     name: DartLab.Templates
     ref: main
   - repository: RoslynMirror
-    endpoint: dnceng/internal dotnet-roslyn
+    endpoint: dnceng/internal
     type: git
     name: internal/dotnet-roslyn
     ref: $(Build.SourceBranch)
     trigger:
     - main
 
+parameters:
+  - name: prNumber
+    type: string
+    default: ''
+  - name: sha
+    type: string
+    default: ''
+
 variables:
 - name: XUNIT_LOGS
   value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
+- name: Codeql.Enabled
+  value: false
+- name: Codeql.SkipTaskAutoInjection
+  value: true
 
 stages:
+- ${{ if ne(parameters.prNumber, '') }}:
+  - stage: GitHubCommentFirst
+    jobs:
+      - job: GitHubCommentFirstJob
+        steps:
+          - checkout: none
+          - task: GitHubComment@0
+            inputs:
+              gitHubConnection: 'dotnet-comment-bot-service-connection'
+              repositoryName: '$(Build.Repository.Name)'
+              id: ${{ parameters.prNumber }}
+              comment: 'Started DartLab pipeline [run]($(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)) for ${{ parameters.sha }}'
+
 - template: \stages\visual-studio\agent.yml@DartLabTemplates
   parameters:
+    name: VSIntegration
     displayName: VS Integration
     testLabPoolName: VS-Platform
     visualStudioBootstrapperURI: https://vsdrop.corp.microsoft.com/file/v1/$(VisualStudio.BuildUnderTest.ProductsDropName);bootstrappers/Enterprise/vs_enterprise.exe
@@ -63,9 +89,37 @@ stages:
         arguments: -DropNamePrefix 'Products' -VstsDropUrlsJson '$(Pipeline.Workspace)\VisualStudioBuildUnderTest\BuildArtifacts\VstsDropUrls.json' -OutVariableName 'VisualStudio.BuildUnderTest.ProductsDropName'
     deployAndRunTestsStepList:
     - checkout: RoslynMirror
+      fetchDepth: 1
+      fetchTags: false
     - template: eng/pipelines/test-integration-job.yml
       parameters:
         configuration: $(_configuration)
         oop64bit: $(_oop64bit)
         lspEditor: false
         skipCheckout: true
+
+- ${{ if ne(parameters.prNumber, '') }}:
+  - stage: GitHubCommentCompleted
+    condition: always()
+    dependsOn: VSIntegration
+    jobs:
+      - job: GitHubCommentCompletedSuccessfullyJob
+        condition: eq(stageDependencies.VSIntegration.result, 'Succeeded')
+        steps:
+          - checkout: none
+          - task: GitHubComment@0
+            inputs:
+              gitHubConnection: 'dotnet-comment-bot-service-connection'
+              repositoryName: '$(Build.Repository.Name)'
+              id: ${{ parameters.prNumber }}
+              comment: 'DartLab pipeline [run]($(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)) completed successfully for ${{ parameters.sha }}'
+      - job: GitHubCommentCompletedUnsuccessfullyJob
+        condition: ne(stageDependencies.VSIntegration.result, 'Succeeded')
+        steps:
+          - checkout: none
+          - task: GitHubComment@0
+            inputs:
+              gitHubConnection: 'dotnet-comment-bot-service-connection'
+              repositoryName: '$(Build.Repository.Name)'
+              id: ${{ parameters.prNumber }}
+              comment: 'DartLab pipeline [run]($(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)) did not complete successfully for ${{ parameters.sha }}'

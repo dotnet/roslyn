@@ -98,7 +98,7 @@ Public MustInherit Class SemanticModelTestBase : Inherits BasicTestBase
         Return DirectCast(semanticModel.GetAliasInfo(node), AliasSymbol)
     End Function
 
-    Protected Function GetBlockOrStatementInfoForTest(Of StmtSyntax As SyntaxNode, ISM As SemanticModel)(compilation As Compilation, fileName As String, Optional which As Integer = 0, Optional useParent As Boolean = False) As Object
+    Protected Function GetBlockOrStatementInfoForTest(Of StmtSyntax As SyntaxNode)(compilation As Compilation, fileName As String, Optional which As Integer = 0, Optional useParent As Boolean = False) As Object
         Dim node As SyntaxNode = CompilationUtils.FindBindingText(Of StmtSyntax)(compilation, fileName, which)
         Dim tree = (From t In compilation.SyntaxTrees Where t.FilePath = fileName).Single()
         Dim semanticModel = CType(compilation.GetSemanticModel(tree), VBSemanticModel)

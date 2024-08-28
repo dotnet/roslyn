@@ -10,7 +10,8 @@
     <IsPackable>true</IsPackable>
     <PackageId>Microsoft.CodeAnalysis.Compiler.Test.Resources</PackageId>
     <PackageDescription>This is an internal package for testing. Not meant for external or production uses. The API can and will break at our discretion.</PackageDescription>
-    <NoWarn>NU5100,NU5106,CS1591</NoWarn>
+    <NoWarn>$(NoWarn),NU5100,NU5106,CS1591</NoWarn>
+    <IsTestUtilityProject>true</IsTestUtilityProject>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -102,7 +103,6 @@
     <EmbeddedResource Include="SymbolsTests\CorLibrary\GuidTest2.exe" />
     <EmbeddedResource Include="SymbolsTests\CorLibrary\NoMsCorLibRef.dll" />
     <Content Include="SymbolsTests\CorLibrary\NoMsCorLibRef.il" />
-    <Content Include="SymbolsTests\CustomModifiers\CppCli.cpp" />
     <EmbeddedResource Include="SymbolsTests\CustomModifiers\CppCli.dll" />
     <EmbeddedResource Include="SymbolsTests\CustomModifiers\Modifiers.dll" />
     <Content Include="SymbolsTests\CustomModifiers\Modifiers.il" />
@@ -374,7 +374,6 @@
   <ItemGroup>
     <EmbeddedResource Include="NetFX\ValueTuple\ValueTuple.cs" />
     <EmbeddedResource Include="NetFX\ValueTuple\TupleElementNamesAttribute.cs" />
-    <Content Include="SymbolsTests\CustomModifiers\GenericMethodWithModifiers.cpp" />
     <None Include="SymbolsTests\Metadata\public-and-private.cs" />
   </ItemGroup>
   <ItemGroup>

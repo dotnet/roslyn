@@ -105,14 +105,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
             return new LineMappingEntry(unmappedLine, unmappedLine, mappedPathOpt: null, PositionState.Unmapped);
 
-            static bool tryGetOneBasedNumericLiteralValue(in SyntaxToken token, out int value)
+            static bool tryGetNumericLiteralValue(in SyntaxToken token, out int value, bool oneBased)
             {
                 if (!token.IsMissing &&
                     token.Kind() == SyntaxKind.NumericLiteralToken &&
                     token.Value is int tokenValue)
                 {
+                    value = tokenValue;
+
                     // convert one-based line number into zero-based line number
-                    value = tokenValue - 1;
+                    if (oneBased)
+                    {
+                        value--;
+                    }
+
                     return true;
                 }
                 value = 0;
@@ -141,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         return true;
                     }
                     int val = 0;
-                    if (tryGetOneBasedNumericLiteralValue(token, out val))
+                    if (tryGetNumericLiteralValue(token, out val, oneBased: false))
                     {
                         value = val;
                         return true;
@@ -154,8 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             // returns false on error
             static bool tryGetPosition(LineDirectivePositionSyntax syntax, bool isEnd, out LinePosition position)
             {
-                if (tryGetOneBasedNumericLiteralValue(syntax.Line, out int line) &&
-                    tryGetOneBasedNumericLiteralValue(syntax.Character, out int character))
+                if (tryGetNumericLiteralValue(syntax.Line, out int line, oneBased: true) &&
+                    tryGetNumericLiteralValue(syntax.Character, out int character, oneBased: true))
                 {
                     position = new LinePosition(line, isEnd ? character + 1 : character);
                     return true;

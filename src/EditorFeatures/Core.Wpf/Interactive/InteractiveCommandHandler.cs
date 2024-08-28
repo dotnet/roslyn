@@ -8,12 +8,10 @@ using System;
 using System.Diagnostics;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using System.Threading;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
@@ -25,7 +23,6 @@ namespace Microsoft.CodeAnalysis.Interactive
         ICommandHandler<ExecuteInInteractiveCommandArgs>,
         ICommandHandler<CopyToInteractiveCommandArgs>
     {
-        private readonly IContentTypeRegistryService _contentTypeRegistryService;
         private readonly EditorOptionsService _editorOptionsService;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
@@ -34,12 +31,12 @@ namespace Microsoft.CodeAnalysis.Interactive
             EditorOptionsService editorOptionsService,
             IEditorOperationsFactoryService editorOperationsFactoryService)
         {
-            _contentTypeRegistryService = contentTypeRegistryService;
+            ContentTypeRegistryService = contentTypeRegistryService;
             _editorOptionsService = editorOptionsService;
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        protected IContentTypeRegistryService ContentTypeRegistryService { get { return _contentTypeRegistryService; } }
+        protected IContentTypeRegistryService ContentTypeRegistryService { get; }
 
         protected abstract IInteractiveWindow OpenInteractiveWindow(bool focus);
 

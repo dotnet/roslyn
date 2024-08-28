@@ -5,71 +5,65 @@
 using System;
 using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion
+namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion;
+
+/// <summary>
+/// Brace completion service used for completing curly braces inside interpolated strings.
+/// In other curly brace completion scenarios the <see cref="CurlyBraceCompletionService"/> should be used.
+/// </summary>
+[ExportBraceCompletionService(LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class InterpolationBraceCompletionService() : AbstractCSharpBraceCompletionService
 {
+    protected override char OpeningBrace => CurlyBrace.OpenCharacter;
+    protected override char ClosingBrace => CurlyBrace.CloseCharacter;
+
+    public override bool AllowOverType(BraceCompletionContext context, CancellationToken cancellationToken)
+        => AllowOverTypeWithValidClosingToken(context);
+
     /// <summary>
-    /// Brace completion service used for completing curly braces inside interpolated strings.
-    /// In other curly brace completion scenarios the <see cref="CurlyBraceCompletionService"/> should be used.
+    /// Only return this service as valid when we're typing curly braces inside an interpolated string.
+    /// Otherwise curly braces should be completed using the <see cref="CurlyBraceCompletionService"/>
     /// </summary>
-    [Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
-    internal class InterpolationBraceCompletionService : AbstractCSharpBraceCompletionService
+    public override bool CanProvideBraceCompletion(char brace, int openingPosition, ParsedDocument document, CancellationToken cancellationToken)
+        => OpeningBrace == brace && IsPositionInInterpolationContext(document, openingPosition);
+
+    protected override bool IsValidOpenBraceTokenAtPosition(SourceText text, SyntaxToken token, int position)
+        => IsValidOpeningBraceToken(token) && token.SpanStart == position;
+
+    protected override bool IsValidOpeningBraceToken(SyntaxToken token)
+        => token.IsKind(SyntaxKind.OpenBraceToken) && token.Parent.IsKind(SyntaxKind.Interpolation);
+
+    protected override bool IsValidClosingBraceToken(SyntaxToken token)
+        => token.IsKind(SyntaxKind.CloseBraceToken);
+
+    /// <summary>
+    /// Returns true when the input position could be starting an interpolation expression if a curly brace was typed.
+    /// </summary>
+    public static bool IsPositionInInterpolationContext(ParsedDocument document, int position)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public InterpolationBraceCompletionService()
+        // First, check to see if the character to the left of the position is an open curly.
+        // If it is, we shouldn't complete because the user may be trying to escape a curly.
+        // E.g. they are trying to type $"{{"
+        if (CouldEscapePreviousOpenBrace('{', position, document.Text))
         {
+            return false;
         }
 
-        protected override char OpeningBrace => CurlyBrace.OpenCharacter;
-        protected override char ClosingBrace => CurlyBrace.CloseCharacter;
-
-        public override bool AllowOverType(BraceCompletionContext context, CancellationToken cancellationToken)
-            => AllowOverTypeWithValidClosingToken(context);
-
-        /// <summary>
-        /// Only return this service as valid when we're typing curly braces inside an interpolated string.
-        /// Otherwise curly braces should be completed using the <see cref="CurlyBraceCompletionService"/>
-        /// </summary>
-        public override bool CanProvideBraceCompletion(char brace, int openingPosition, ParsedDocument document, CancellationToken cancellationToken)
-            => OpeningBrace == brace && IsPositionInInterpolationContext(document, openingPosition);
-
-        protected override bool IsValidOpenBraceTokenAtPosition(SourceText text, SyntaxToken token, int position)
-            => IsValidOpeningBraceToken(token) && token.SpanStart == position;
-
-        protected override bool IsValidOpeningBraceToken(SyntaxToken token)
-            => token.IsKind(SyntaxKind.OpenBraceToken) && token.Parent.IsKind(SyntaxKind.Interpolation);
-
-        protected override bool IsValidClosingBraceToken(SyntaxToken token)
-            => token.IsKind(SyntaxKind.CloseBraceToken);
-
-        /// <summary>
-        /// Returns true when the input position could be starting an interpolation expression if a curly brace was typed.
-        /// </summary>
-        public static bool IsPositionInInterpolationContext(ParsedDocument document, int position)
+        var token = document.Root.FindTokenOnLeftOfPosition(position);
+        if (!token.Span.IntersectsWith(position))
         {
-            // First, check to see if the character to the left of the position is an open curly.
-            // If it is, we shouldn't complete because the user may be trying to escape a curly.
-            // E.g. they are trying to type $"{{"
-            if (CouldEscapePreviousOpenBrace('{', position, document.Text))
-            {
-                return false;
-            }
-
-            var token = document.Root.FindTokenOnLeftOfPosition(position);
-            if (!token.Span.IntersectsWith(position))
-            {
-                return false;
-            }
-
-            // We can be starting an interpolation expression if we're inside an interpolated string.
-            return token.Parent.IsKind(SyntaxKind.InterpolatedStringExpression) || token.Parent.IsParentKind(SyntaxKind.InterpolatedStringExpression);
+            return false;
         }
+
+        // We can be starting an interpolation expression if we're inside an interpolated string.
+        return token.Parent.IsKind(SyntaxKind.InterpolatedStringExpression) || token.Parent.IsParentKind(SyntaxKind.InterpolatedStringExpression);
     }
 }

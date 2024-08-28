@@ -9,38 +9,37 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+
+internal abstract partial class AbstractRenameCommandHandler : IChainedCommandHandler<BackspaceKeyCommandArgs>, IChainedCommandHandler<DeleteKeyCommandArgs>
 {
-    internal abstract partial class AbstractRenameCommandHandler : IChainedCommandHandler<BackspaceKeyCommandArgs>, IChainedCommandHandler<DeleteKeyCommandArgs>
+    public CommandState GetCommandState(BackspaceKeyCommandArgs args, Func<CommandState> nextHandler)
+        => GetCommandState(nextHandler);
+
+    public CommandState GetCommandState(DeleteKeyCommandArgs args, Func<CommandState> nextHandler)
+        => GetCommandState(nextHandler);
+
+    public void ExecuteCommand(BackspaceKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
     {
-        public CommandState GetCommandState(BackspaceKeyCommandArgs args, Func<CommandState> nextHandler)
-            => GetCommandState(nextHandler);
-
-        public CommandState GetCommandState(DeleteKeyCommandArgs args, Func<CommandState> nextHandler)
-            => GetCommandState(nextHandler);
-
-        public void ExecuteCommand(BackspaceKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
-        {
-            HandlePossibleTypingCommand(args, nextHandler, (activeSession, span) =>
+        HandlePossibleTypingCommand(args, nextHandler, (activeSession, span) =>
+            {
+                var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
+                if (!args.TextView.Selection.IsEmpty || caretPoint.Value != span.Start)
                 {
-                    var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
-                    if (!args.TextView.Selection.IsEmpty || caretPoint.Value != span.Start)
-                    {
-                        nextHandler();
-                    }
-                });
-        }
+                    nextHandler();
+                }
+            });
+    }
 
-        public void ExecuteCommand(DeleteKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
-        {
-            HandlePossibleTypingCommand(args, nextHandler, (activeSession, span) =>
+    public void ExecuteCommand(DeleteKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
+    {
+        HandlePossibleTypingCommand(args, nextHandler, (activeSession, span) =>
+            {
+                var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
+                if (!args.TextView.Selection.IsEmpty || caretPoint.Value != span.End)
                 {
-                    var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
-                    if (!args.TextView.Selection.IsEmpty || caretPoint.Value != span.End)
-                    {
-                        nextHandler();
-                    }
-                });
-        }
+                    nextHandler();
+                }
+            });
     }
 }

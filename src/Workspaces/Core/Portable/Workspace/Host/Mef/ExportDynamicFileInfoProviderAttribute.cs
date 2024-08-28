@@ -8,31 +8,30 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 
-namespace Microsoft.CodeAnalysis.Host.Mef
+namespace Microsoft.CodeAnalysis.Host.Mef;
+
+/// <summary>
+/// Use this attribute to declare a <see cref="IDynamicFileInfoProvider"/> implementation for MEF
+/// </summary>
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class)]
+internal class ExportDynamicFileInfoProviderAttribute : ExportAttribute
 {
     /// <summary>
-    /// Use this attribute to declare a <see cref="IDynamicFileInfoProvider"/> implementation for MEF
+    /// file extensions this <see cref="IDynamicFileInfoProvider"/> can handle such as cshtml
+    /// 
+    /// match will be done by <see cref="StringComparer.OrdinalIgnoreCase"/>
     /// </summary>
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportDynamicFileInfoProviderAttribute : ExportAttribute
+    public IEnumerable<string> Extensions { get; }
+
+    public ExportDynamicFileInfoProviderAttribute(params string[] extensions)
+        : base(typeof(IDynamicFileInfoProvider))
     {
-        /// <summary>
-        /// file extensions this <see cref="IDynamicFileInfoProvider"/> can handle such as cshtml
-        /// 
-        /// match will be done by <see cref="StringComparer.OrdinalIgnoreCase"/>
-        /// </summary>
-        public IEnumerable<string> Extensions { get; }
-
-        public ExportDynamicFileInfoProviderAttribute(params string[] extensions)
-            : base(typeof(IDynamicFileInfoProvider))
+        if (extensions?.Length == 0)
         {
-            if (extensions?.Length == 0)
-            {
-                throw new ArgumentException(nameof(extensions));
-            }
-
-            Extensions = extensions;
+            throw new ArgumentException(nameof(extensions));
         }
+
+        Extensions = extensions;
     }
 }

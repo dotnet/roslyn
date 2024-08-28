@@ -10,36 +10,31 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.CodeAnalysis.DesignerAttribute
+namespace Microsoft.CodeAnalysis.DesignerAttribute;
+
+/// <summary>
+/// Interface to allow host (VS) to inform the OOP service to start incrementally analyzing and
+/// reporting results back to the host.
+/// </summary>
+internal interface IRemoteDesignerAttributeDiscoveryService
 {
-    /// <summary>
-    /// Interface to allow host (VS) to inform the OOP service to start incrementally analyzing and
-    /// reporting results back to the host.
-    /// </summary>
-    internal interface IRemoteDesignerAttributeDiscoveryService
+    internal interface ICallback
     {
-        internal interface ICallback
-        {
-            ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
-        }
-
-        ValueTask DiscoverDesignerAttributesAsync(
-            RemoteServiceCallbackId callbackId, Checksum solutionChecksum, DocumentId? priorityDocument, bool useFrozenSnapshots, CancellationToken cancellationToken);
+        ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken);
     }
 
-    [ExportRemoteServiceCallbackDispatcher(typeof(IRemoteDesignerAttributeDiscoveryService)), Shared]
-    internal sealed class RemoteDesignerAttributeDiscoveryCallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteDesignerAttributeDiscoveryService.ICallback
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteDesignerAttributeDiscoveryCallbackDispatcher()
-        {
-        }
+    ValueTask DiscoverDesignerAttributesAsync(RemoteServiceCallbackId callbackId, Checksum solutionChecksum, CancellationToken cancellationToken);
+    ValueTask DiscoverDesignerAttributesAsync(RemoteServiceCallbackId callbackId, Checksum solutionChecksum, DocumentId priorityDocument, CancellationToken cancellationToken);
+}
 
-        private new IDesignerAttributeDiscoveryService.ICallback GetCallback(RemoteServiceCallbackId callbackId)
-            => (IDesignerAttributeDiscoveryService.ICallback)base.GetCallback(callbackId);
+[ExportRemoteServiceCallbackDispatcher(typeof(IRemoteDesignerAttributeDiscoveryService)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class RemoteDesignerAttributeDiscoveryCallbackDispatcher() : RemoteServiceCallbackDispatcher, IRemoteDesignerAttributeDiscoveryService.ICallback
+{
+    private new IDesignerAttributeDiscoveryService.ICallback GetCallback(RemoteServiceCallbackId callbackId)
+        => (IDesignerAttributeDiscoveryService.ICallback)base.GetCallback(callbackId);
 
-        public ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
-            => GetCallback(callbackId).ReportDesignerAttributeDataAsync(data, cancellationToken);
-    }
+    public ValueTask ReportDesignerAttributeDataAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DesignerAttributeData> data, CancellationToken cancellationToken)
+        => GetCallback(callbackId).ReportDesignerAttributeDataAsync(data, cancellationToken);
 }

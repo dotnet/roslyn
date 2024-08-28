@@ -2,35 +2,32 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
-namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
+internal enum Capitalization : byte
 {
-    internal enum Capitalization : byte
-    {
-        /// <summary>
-        /// Each word is capitalized
-        /// </summary>
-        PascalCase,
+    /// <summary>
+    /// Each word is capitalized
+    /// </summary>
+    PascalCase,
 
-        /// <summary>
-        /// Every word except the first word is capitalized
-        /// </summary>
-        CamelCase,
+    /// <summary>
+    /// Every word except the first word is capitalized
+    /// </summary>
+    CamelCase,
 
-        /// <summary>
-        /// Only the first word is capitalized
-        /// </summary>
-        FirstUpper,
+    /// <summary>
+    /// Only the first word is capitalized
+    /// </summary>
+    FirstUpper,
 
-        /// <summary>
-        /// Every character is capitalized
-        /// </summary>
-        AllUpper,
+    /// <summary>
+    /// Every character is capitalized
+    /// </summary>
+    AllUpper,
 
-        /// <summary>
-        /// No characters are capitalized
-        /// </summary>
-        AllLower
-    }
+    /// <summary>
+    /// No characters are capitalized
+    /// </summary>
+    AllLower
 }

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -79,9 +80,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             private const int HasPrimaryConstructorBit = 1 << HasPrimaryConstructorOffset;
 
-            public SpecialType SpecialType
+            public ExtendedSpecialType ExtendedSpecialType
             {
-                get { return (SpecialType)((_flags >> SpecialTypeOffset) & SpecialTypeMask); }
+                get { return (ExtendedSpecialType)((_flags >> SpecialTypeOffset) & SpecialTypeMask); }
             }
 
             public ManagedKind ManagedKind
@@ -109,12 +110,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             static Flags()
             {
                 // Verify masks are sufficient for values.
+                _ = new int[SpecialTypeMask - (int)InternalSpecialType.NextAvailable + 1];
                 Debug.Assert(EnumUtilities.ContainsAllValues<SpecialType>(SpecialTypeMask));
+                Debug.Assert(EnumUtilities.ContainsAllValues<InternalSpecialType>(SpecialTypeMask)); //This assert might false fail in the future, we don't really need to be able to represent NextAvailable
                 Debug.Assert(EnumUtilities.ContainsAllValues<NullableContextKind>(NullableContextMask));
             }
 #endif
 
-            public Flags(SpecialType specialType, TypeKind typeKind, bool hasPrimaryConstructor)
+            public Flags(ExtendedSpecialType specialType, TypeKind typeKind, bool hasPrimaryConstructor)
             {
                 int specialTypeInt = ((int)specialType & SpecialTypeMask) << SpecialTypeOffset;
                 int typeKindInt = ((int)typeKind & TypeKindMask) << TypeKindOffset;
@@ -250,8 +253,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _declModifiers = modifiers;
 
             var specialType = access == (int)DeclarationModifiers.Public
-                ? MakeSpecialType()
-                : SpecialType.None;
+                ? MakeExtendedSpecialType()
+                : default;
 
             _flags = new Flags(specialType, typeKind, declaration.HasPrimaryConstructor);
             Debug.Assert(typeKind is TypeKind.Struct or TypeKind.Class || !HasPrimaryConstructor);
@@ -265,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             state.NotePartComplete(CompletionPart.TypeArguments); // type arguments need not be computed separately
         }
 
-        private SpecialType MakeSpecialType()
+        private ExtendedSpecialType MakeExtendedSpecialType()
         {
             // check if this is one of the COR library types
             if (ContainingSymbol.Kind == SymbolKind.Namespace &&
@@ -279,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                return SpecialType.None;
+                return default;
             }
         }
 
@@ -532,8 +535,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected abstract void CheckBase(BindingDiagnosticBag diagnostics);
         protected abstract void CheckInterfaces(BindingDiagnosticBag diagnostics);
 
-        internal override void ForceComplete(SourceLocation? locationOpt, CancellationToken cancellationToken)
+        internal override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
+            if (filter?.Invoke(this) == false)
+            {
+                return;
+            }
+
             while (true)
             {
                 // NOTE: cases that depend on GetMembers[ByName] should call RequireCompletionPartMembers.
@@ -583,7 +591,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // force type parameters
                         foreach (var typeParameter in this.TypeParameters)
                         {
-                            typeParameter.ForceComplete(locationOpt, cancellationToken);
+                            // We can't filter out type parameters: if this container was requested, then all its type parameters need to be compiled
+                            typeParameter.ForceComplete(locationOpt, filter: null, cancellationToken);
                         }
 
                         state.NotePartComplete(CompletionPart.TypeParameters);
@@ -624,19 +633,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             bool allCompleted = true;
 
-                            if (locationOpt == null)
+                            if (locationOpt == null && filter == null)
                             {
                                 foreach (var member in members)
                                 {
                                     cancellationToken.ThrowIfCancellationRequested();
-                                    member.ForceComplete(locationOpt, cancellationToken);
+                                    member.ForceComplete(locationOpt, filter: null, cancellationToken);
                                 }
                             }
                             else
                             {
                                 foreach (var member in members)
                                 {
-                                    ForceCompleteMemberByLocation(locationOpt, member, cancellationToken);
+                                    ForceCompleteMemberConditionally(locationOpt, filter, member, cancellationToken);
                                     allCompleted = allCompleted && member.HasComplete(CompletionPart.All);
                                 }
                             }
@@ -763,11 +772,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Flags Encoded Properties
 
-        public override SpecialType SpecialType
+        public override ExtendedSpecialType ExtendedSpecialType
         {
             get
             {
-                return _flags.SpecialType;
+                return _flags.ExtendedSpecialType;
             }
         }
 
@@ -861,7 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                return FileIdentifier.Create(syntaxTree);
+                return FileIdentifier.Create(syntaxTree, DeclaringCompilation?.Options?.SourceReferenceResolver);
             }
         }
 
@@ -1398,6 +1407,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _flags.SetHasDeclaredRequiredMembers(hasDeclaredMembers);
                 return hasDeclaredMembers;
             }
+        }
+
+        internal override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            return HasAsyncMethodBuilderAttribute(this, out builderArgument);
+        }
+
+        /// <summary>
+        /// Returns true if the method has a [AsyncMethodBuilder(typeof(B))] attribute. If so it returns type B.
+        /// Validation of builder type B is left for elsewhere. This method returns B without validation of any kind.
+        /// </summary>
+        internal static bool HasAsyncMethodBuilderAttribute(Symbol symbol, [NotNullWhen(true)] out TypeSymbol? builderArgument)
+        {
+            Debug.Assert(symbol is not null);
+
+            // Find the AsyncMethodBuilder attribute.
+            foreach (var attr in symbol.GetAttributes())
+            {
+                Debug.Assert(attr is SourceAttributeData);
+
+                if (attr.IsTargetAttribute(AttributeDescription.AsyncMethodBuilderAttribute)
+                    && attr.CommonConstructorArguments.Length == 1
+                    && attr.CommonConstructorArguments[0].Kind == TypedConstantKind.Type)
+                {
+                    builderArgument = (TypeSymbol)attr.CommonConstructorArguments[0].ValueInternal!;
+                    return true;
+                }
+            }
+
+            builderArgument = null;
+            return false;
         }
 
         internal override ImmutableArray<Symbol> GetMembersUnordered()
@@ -2694,7 +2734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var m in syntax.Members)
                 {
-                    if (HasInstanceData(m))
+                    if (hasInstanceData(m))
                     {
                         if (whereFoundField != null && whereFoundField != syntaxRef)
                         {
@@ -2714,35 +2754,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_SequentialOnPartialClass, GetFirstLocation(), this);
                 return;
             }
-        }
 
-        private static bool HasInstanceData(MemberDeclarationSyntax m)
-        {
-            switch (m.Kind())
+            static bool hasInstanceData(MemberDeclarationSyntax m)
             {
-                case SyntaxKind.FieldDeclaration:
-                    var fieldDecl = (FieldDeclarationSyntax)m;
-                    return
-                        !ContainsModifier(fieldDecl.Modifiers, SyntaxKind.StaticKeyword) &&
-                        !ContainsModifier(fieldDecl.Modifiers, SyntaxKind.ConstKeyword);
-                case SyntaxKind.PropertyDeclaration:
-                    // auto-property
-                    var propertyDecl = (PropertyDeclarationSyntax)m;
-                    return
-                        !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.StaticKeyword) &&
-                        !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.AbstractKeyword) &&
-                        !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.ExternKeyword) &&
-                        propertyDecl.AccessorList != null &&
-                        All(propertyDecl.AccessorList.Accessors, a => a.Body == null && a.ExpressionBody == null);
-                case SyntaxKind.EventFieldDeclaration:
-                    // field-like event declaration
-                    var eventFieldDecl = (EventFieldDeclarationSyntax)m;
-                    return
-                        !ContainsModifier(eventFieldDecl.Modifiers, SyntaxKind.StaticKeyword) &&
-                        !ContainsModifier(eventFieldDecl.Modifiers, SyntaxKind.AbstractKeyword) &&
-                        !ContainsModifier(eventFieldDecl.Modifiers, SyntaxKind.ExternKeyword);
-                default:
-                    return false;
+                switch (m.Kind())
+                {
+                    case SyntaxKind.FieldDeclaration:
+                        var fieldDecl = (FieldDeclarationSyntax)m;
+                        return
+                            !ContainsModifier(fieldDecl.Modifiers, SyntaxKind.StaticKeyword) &&
+                            !ContainsModifier(fieldDecl.Modifiers, SyntaxKind.ConstKeyword);
+                    case SyntaxKind.PropertyDeclaration:
+                        // auto-property
+                        var propertyDecl = (PropertyDeclarationSyntax)m;
+                        return
+                            !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.StaticKeyword) &&
+                            !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.AbstractKeyword) &&
+                            !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.ExternKeyword) &&
+                            !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.PartialKeyword) &&
+                            propertyDecl.AccessorList != null &&
+                            All(propertyDecl.AccessorList.Accessors, a => a.Body == null && a.ExpressionBody == null);
+                    case SyntaxKind.EventFieldDeclaration:
+                        // field-like event declaration
+                        var eventFieldDecl = (EventFieldDeclarationSyntax)m;
+                        return
+                            !ContainsModifier(eventFieldDecl.Modifiers, SyntaxKind.StaticKeyword) &&
+                            !ContainsModifier(eventFieldDecl.Modifiers, SyntaxKind.AbstractKeyword) &&
+                            !ContainsModifier(eventFieldDecl.Modifiers, SyntaxKind.ExternKeyword);
+                    default:
+                        return false;
+                }
             }
         }
 
@@ -3385,7 +3426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var member in nonTypeMembersToCheck)
             {
-                if (member.IsAccessor() || member.IsIndexer())
+                if (member.IsAccessor())
                 {
                     continue;
                 }
@@ -3534,78 +3575,169 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             memberNames.AddRange(membersByName.Keys);
 
             //key and value will be the same object
-            var methodsBySignature = new Dictionary<MethodSymbol, SourceMemberMethodSymbol>(MemberSignatureComparer.PartialMethodsComparer);
+            var membersBySignature = new Dictionary<Symbol, Symbol>(MemberSignatureComparer.PartialMethodsComparer);
 
             foreach (var name in memberNames)
             {
-                methodsBySignature.Clear();
+                membersBySignature.Clear();
                 foreach (var symbol in membersByName[name])
                 {
-                    var method = symbol as SourceMemberMethodSymbol;
-                    if (method is null || !method.IsPartial)
+                    if (!symbol.IsPartialMember())
                     {
-                        continue; // only partial methods need to be merged
+                        continue;
                     }
 
-                    if (methodsBySignature.TryGetValue(method, out var prev))
+                    if (!membersBySignature.TryGetValue(symbol, out var prev))
                     {
-                        var prevPart = (SourceOrdinaryMethodSymbol)prev;
-                        var methodPart = (SourceOrdinaryMethodSymbol)method;
-
-                        if (methodPart.IsPartialImplementation &&
-                            (prevPart.IsPartialImplementation || (prevPart.OtherPartOfPartial is MethodSymbol otherImplementation && (object)otherImplementation != methodPart)))
-                        {
-                            // A partial method may not have multiple implementing declarations
-                            diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyOneActual, methodPart.GetFirstLocation());
-                        }
-                        else if (methodPart.IsPartialDefinition &&
-                                 (prevPart.IsPartialDefinition || (prevPart.OtherPartOfPartial is MethodSymbol otherDefinition && (object)otherDefinition != methodPart)))
-                        {
-                            // A partial method may not have multiple defining declarations
-                            diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyOneLatent, methodPart.GetFirstLocation());
-                        }
-                        else
-                        {
-                            if ((object)membersByName == _lazyEarlyAttributeDecodingMembersDictionary)
-                            {
-                                // Avoid mutating the cached dictionary and especially avoid doing this possibly on multiple threads in parallel.
-                                membersByName = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>(membersByName, ReadOnlyMemoryOfCharComparer.Instance);
-                            }
-
-                            membersByName[name] = FixPartialMember(membersByName[name], prevPart, methodPart);
-                        }
+                        membersBySignature.Add(symbol, symbol);
+                        continue;
                     }
-                    else
+
+                    switch (symbol, prev)
                     {
-                        methodsBySignature.Add(method, method);
+                        case (SourceOrdinaryMethodSymbol currentMethod, SourceOrdinaryMethodSymbol prevMethod):
+                            mergePartialMethods(ref membersByName, name, currentMethod, prevMethod, diagnostics);
+                            break;
+
+                        case (SourcePropertySymbol currentProperty, SourcePropertySymbol prevProperty):
+                            mergePartialProperties(ref membersByName, name, currentProperty, prevProperty, diagnostics);
+                            break;
+
+                        case (SourcePropertyAccessorSymbol, SourcePropertyAccessorSymbol):
+                            break; // accessor symbols and their diagnostics are handled by processing the associated property
+
+                        default:
+                            // This is an error scenario. We simply don't merge the symbols in this case and a duplicate name diagnostic is reported separately.
+                            // One way this case can be reached is if type contains both `public partial int P { get; }` and `public partial int P_get();`.
+                            Debug.Assert(symbol is SourceOrdinaryMethodSymbol or SourcePropertySymbol or SourcePropertyAccessorSymbol);
+                            Debug.Assert(prev is SourceOrdinaryMethodSymbol or SourcePropertySymbol or SourcePropertyAccessorSymbol);
+                            break;
                     }
                 }
 
-                foreach (SourceOrdinaryMethodSymbol method in methodsBySignature.Values)
+                foreach (var symbol in membersBySignature.Values)
                 {
-                    // partial implementations not paired with a definition
-                    if (method.IsPartialImplementation && method.OtherPartOfPartial is null)
+                    switch (symbol)
                     {
-                        diagnostics.Add(ErrorCode.ERR_PartialMethodMustHaveLatent, method.GetFirstLocation(), method);
-                    }
-                    else if (method is { IsPartialDefinition: true, OtherPartOfPartial: null, HasExplicitAccessModifier: true })
-                    {
-                        diagnostics.Add(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, method.GetFirstLocation(), method);
+                        case SourceOrdinaryMethodSymbol method:
+                            // partial implementations not paired with a definition
+                            if (method.IsPartialImplementation && method.OtherPartOfPartial is null)
+                            {
+                                diagnostics.Add(ErrorCode.ERR_PartialMethodMustHaveLatent, method.GetFirstLocation(), method);
+                            }
+                            else if (method is { IsPartialDefinition: true, OtherPartOfPartial: null, HasExplicitAccessModifier: true })
+                            {
+                                diagnostics.Add(ErrorCode.ERR_PartialMethodWithAccessibilityModsMustHaveImplementation, method.GetFirstLocation(), method);
+                            }
+                            break;
+
+                        case SourcePropertySymbol property:
+                            if (property.OtherPartOfPartial is null)
+                            {
+                                diagnostics.Add(
+                                    property.IsPartialDefinition ? ErrorCode.ERR_PartialPropertyMissingImplementation : ErrorCode.ERR_PartialPropertyMissingDefinition,
+                                    property.GetFirstLocation(),
+                                    property);
+                            }
+                            break;
+
+                        case SourcePropertyAccessorSymbol:
+                            break; // diagnostics for missing partial accessors are handled in 'mergePartialProperties'.
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(symbol);
                     }
                 }
             }
 
             memberNames.Free();
+
+            void mergePartialMethods(ref Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName, ReadOnlyMemory<char> name, SourceOrdinaryMethodSymbol currentMethod, SourceOrdinaryMethodSymbol prevMethod, BindingDiagnosticBag diagnostics)
+            {
+                if (currentMethod.IsPartialImplementation &&
+                    (prevMethod.IsPartialImplementation || (prevMethod.OtherPartOfPartial is MethodSymbol otherImplementation && (object)otherImplementation != currentMethod)))
+                {
+                    // A partial method may not have multiple implementing declarations
+                    diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyOneActual, currentMethod.GetFirstLocation());
+                }
+                else if (currentMethod.IsPartialDefinition &&
+                    (prevMethod.IsPartialDefinition || (prevMethod.OtherPartOfPartial is MethodSymbol otherDefinition && (object)otherDefinition != currentMethod)))
+                {
+                    // A partial method may not have multiple defining declarations
+                    diagnostics.Add(ErrorCode.ERR_PartialMethodOnlyOneLatent, currentMethod.GetFirstLocation());
+                }
+                else
+                {
+                    if ((object)membersByName == _lazyEarlyAttributeDecodingMembersDictionary)
+                    {
+                        // Avoid mutating the cached dictionary and especially avoid doing this possibly on multiple threads in parallel.
+                        membersByName = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>(membersByName, ReadOnlyMemoryOfCharComparer.Instance);
+                    }
+
+                    membersByName[name] = FixPartialMember(membersByName[name], prevMethod, currentMethod);
+                }
+            }
+
+            void mergePartialProperties(ref Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName, ReadOnlyMemory<char> name, SourcePropertySymbol currentProperty, SourcePropertySymbol prevProperty, BindingDiagnosticBag diagnostics)
+            {
+                if (currentProperty.IsPartialImplementation &&
+                    (prevProperty.IsPartialImplementation || (prevProperty.OtherPartOfPartial is SourcePropertySymbol otherImplementation && (object)otherImplementation != currentProperty)))
+                {
+                    diagnostics.Add(ErrorCode.ERR_PartialPropertyDuplicateImplementation, currentProperty.GetFirstLocation());
+                }
+                else if (currentProperty.IsPartialDefinition &&
+                    (prevProperty.IsPartialDefinition || (prevProperty.OtherPartOfPartial is SourcePropertySymbol otherDefinition && (object)otherDefinition != currentProperty)))
+                {
+                    diagnostics.Add(ErrorCode.ERR_PartialPropertyDuplicateDefinition, currentProperty.GetFirstLocation());
+                }
+                else
+                {
+                    var (currentGet, prevGet) = ((SourcePropertyAccessorSymbol?)currentProperty.GetMethod, (SourcePropertyAccessorSymbol?)prevProperty.GetMethod);
+                    if (currentGet != null || prevGet != null)
+                    {
+                        var accessorName = (currentGet ?? prevGet)!.Name.AsMemory();
+                        mergeAccessors(ref membersByName, accessorName, currentGet, prevGet);
+                    }
+
+                    var (currentSet, prevSet) = ((SourcePropertyAccessorSymbol?)currentProperty.SetMethod, (SourcePropertyAccessorSymbol?)prevProperty.SetMethod);
+                    if (currentSet != null || prevSet != null)
+                    {
+                        var accessorName = (currentSet ?? prevSet)!.Name.AsMemory();
+                        mergeAccessors(ref membersByName, accessorName, currentSet, prevSet);
+                    }
+
+                    if ((object)membersByName == _lazyEarlyAttributeDecodingMembersDictionary)
+                    {
+                        // Avoid mutating the cached dictionary and especially avoid doing this possibly on multiple threads in parallel.
+                        membersByName = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>(membersByName, ReadOnlyMemoryOfCharComparer.Instance);
+                    }
+
+                    membersByName[name] = FixPartialMember(membersByName[name], prevProperty, currentProperty);
+                }
+
+                void mergeAccessors(ref Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName, ReadOnlyMemory<char> name, SourcePropertyAccessorSymbol? currentAccessor, SourcePropertyAccessorSymbol? prevAccessor)
+                {
+                    Debug.Assert(currentAccessor != null || prevAccessor != null);
+                    if (currentAccessor != null && prevAccessor != null)
+                    {
+                        var implementationAccessor = currentProperty.IsPartialDefinition ? prevAccessor : currentAccessor;
+                        membersByName[name] = Remove(membersByName[name], implementationAccessor);
+                    }
+                    else
+                    {
+                        var (foundAccessor, containingProperty, otherProperty) = prevAccessor != null ? (prevAccessor, prevProperty, currentProperty) : (currentAccessor!, currentProperty, prevProperty);
+                        // When an accessor is present on definition but not on implementation, the accessor is said to be missing on the implementation.
+                        // When an accessor is present on implementation but not on definition, the accessor is said to be unexpected on the implementation.
+                        var (errorCode, propertyToBlame) = foundAccessor.IsPartialDefinition
+                            ? (ErrorCode.ERR_PartialPropertyMissingAccessor, otherProperty)
+                            : (ErrorCode.ERR_PartialPropertyUnexpectedAccessor, containingProperty);
+                        diagnostics.Add(errorCode, propertyToBlame.GetFirstLocation(), foundAccessor);
+                    }
+                }
+            }
         }
 
-        /// <summary>
-        /// Fix up a partial method by combining its defining and implementing declarations, updating the array of symbols (by name),
-        /// and returning the combined symbol.
-        /// </summary>
-        /// <param name="symbols">The symbols array containing both the latent and implementing declaration</param>
-        /// <param name="part1">One of the two declarations</param>
-        /// <param name="part2">The other declaration</param>
-        /// <returns>An updated symbols array containing only one method symbol representing the two parts</returns>
+        /// <summary>Links together the definition and implementation parts of a partial method. Returns a member list which has the implementation part removed.</summary>
         private static ImmutableArray<Symbol> FixPartialMember(ImmutableArray<Symbol> symbols, SourceOrdinaryMethodSymbol part1, SourceOrdinaryMethodSymbol part2)
         {
             SourceOrdinaryMethodSymbol definition;
@@ -3624,6 +3756,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourceOrdinaryMethodSymbol.InitializePartialMethodParts(definition, implementation);
 
             // a partial method is represented in the member list by its definition part:
+            return Remove(symbols, implementation);
+        }
+
+        /// <summary>Links together the definition and implementation parts of a partial property. Returns a member list which has the implementation part removed.</summary>
+        private static ImmutableArray<Symbol> FixPartialMember(ImmutableArray<Symbol> symbols, SourcePropertySymbol part1, SourcePropertySymbol part2)
+        {
+            SourcePropertySymbol definition;
+            SourcePropertySymbol implementation;
+            if (part1.IsPartialDefinition)
+            {
+                definition = part1;
+                implementation = part2;
+            }
+            else
+            {
+                definition = part2;
+                implementation = part1;
+            }
+
+            SourcePropertySymbol.InitializePartialPropertyParts(definition, implementation);
+
+            // a partial property is represented in the member list by its definition part:
             return Remove(symbols, implementation);
         }
 
@@ -4104,7 +4258,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray<TypeParameterSymbol>.Empty,
                     ctor.Parameters.SelectAsArray<ParameterSymbol, ParameterSymbol>(param => new SignatureOnlyParameterSymbol(param.TypeWithAnnotations,
                                                                                                                               ImmutableArray<CustomModifier>.Empty,
-                                                                                                                              isParams: false,
+                                                                                                                              isParamsArray: false,
+                                                                                                                              isParamsCollection: false,
                                                                                                                               RefKind.Out
                                                                                                                               )),
                     RefKind.None,
@@ -4151,7 +4306,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create<ParameterSymbol>(new SignatureOnlyParameterSymbol(
                                                                 TypeWithAnnotations.Create(this),
                                                                 ImmutableArray<CustomModifier>.Empty,
-                                                                isParams: false,
+                                                                isParamsArray: false,
+                                                                isParamsCollection: false,
                                                                 RefKind.None
                                                                 )),
                     RefKind.None,
@@ -4199,7 +4355,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create<ParameterSymbol>(new SignatureOnlyParameterSymbol(
                         TypeWithAnnotations.Create(compilation.GetWellKnownType(WellKnownType.System_Text_StringBuilder)),
                         ImmutableArray<CustomModifier>.Empty,
-                        isParams: false,
+                        isParamsArray: false,
+                        isParamsCollection: false,
                         RefKind.None)),
                     RefKind.None,
                     isInitOnly: false,
@@ -4523,7 +4680,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableArray.Create<ParameterSymbol>(new SignatureOnlyParameterSymbol(
                                                                 TypeWithAnnotations.Create(this),
                                                                 ImmutableArray<CustomModifier>.Empty,
-                                                                isParams: false,
+                                                                isParamsArray: false,
+                                                                isParamsCollection: false,
                                                                 RefKind.None
                                                                 )),
                     RefKind.None,
@@ -4625,7 +4783,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 //kick out early if we've seen everything we're looking for
-                if (hasInstanceConstructor && hasStaticConstructor)
+                if (hasInstanceConstructor &&
+                    hasParameterlessInstanceConstructor &&
+                    hasStaticConstructor)
                 {
                     break;
                 }
@@ -5200,6 +5360,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         #endregion
+
+        internal void DiscoverInterceptors(ArrayBuilder<NamespaceOrTypeSymbol> toSearch)
+        {
+            foreach (var type in this.GetTypeMembers())
+            {
+                toSearch.Add(type);
+            }
+
+            if (!declaration.AnyMemberHasAttributes)
+            {
+                return;
+            }
+
+            foreach (var member in this.GetMembersUnordered())
+            {
+                if (member is MethodSymbol { MethodKind: MethodKind.Ordinary })
+                {
+                    // force binding attributes and populating compilation-level structures
+                    member.GetAttributes();
+                }
+            }
+        }
 
         public sealed override NamedTypeSymbol ConstructedFrom
         {

@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Features.EmbeddedLanguages;
 
 [ExportEmbeddedLanguageClassifier(
-    PredefinedEmbeddedLanguageNames.CSharpTest, new[] { LanguageNames.CSharp }, supportsUnannotatedAPIs: false,
+    PredefinedEmbeddedLanguageNames.CSharpTest, [LanguageNames.CSharp], supportsUnannotatedAPIs: false,
     PredefinedEmbeddedLanguageNames.CSharpTest), Shared]
 internal sealed class CSharpTestEmbeddedLanguageClassifier : IEmbeddedLanguageClassifier
 {

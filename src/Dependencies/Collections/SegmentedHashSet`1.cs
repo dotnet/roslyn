@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
-// https://github.com/dotnet/runtime/blob/v5.0.7/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/HashSet.cs
+// https://github.com/dotnet/runtime/blob/v8.0.3/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/HashSet.cs
 //
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Microsoft.CodeAnalysis.Collections.Internal;
 
 namespace Microsoft.CodeAnalysis.Collections
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Collections
 #endif
     {
         private const bool SupportsComparerDevirtualization
-#if NETCOREAPP
+#if NET
             = true;
 #else
             = false;
@@ -47,6 +48,8 @@ namespace Microsoft.CodeAnalysis.Collections
         private const int ShrinkThreshold = 3;
         private const int StartOfFreeList = -3;
 
+        private static IEnumerator<T>? s_emptyEnumerator;
+
         private SegmentedArray<int> _buckets;
         private SegmentedArray<Entry> _entries;
         private ulong _fastModMultiplier;
@@ -54,7 +57,7 @@ namespace Microsoft.CodeAnalysis.Collections
         private int _freeList;
         private int _freeCount;
         private int _version;
-#if NETCOREAPP
+#if NET
         private readonly IEqualityComparer<T>? _comparer;
 #else
         /// <summary>
@@ -70,7 +73,19 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public SegmentedHashSet(IEqualityComparer<T>? comparer)
         {
-            if (comparer != null && comparer != EqualityComparer<T>.Default) // first check for null to avoid forcing default comparer instantiation unnecessarily
+            // For reference types, we always want to store a comparer instance, either
+            // the one provided, or if one wasn't provided, the default (accessing
+            // EqualityComparer<TKey>.Default with shared generics on every dictionary
+            // access can add measurable overhead).  For value types, if no comparer is
+            // provided, or if the default is provided, we'd prefer to use
+            // EqualityComparer<TKey>.Default.Equals on every use, enabling the JIT to
+            // devirtualize and possibly inline the operation.
+            if (!typeof(T).IsValueType)
+            {
+                _comparer = comparer ?? EqualityComparer<T>.Default;
+            }
+            else if (comparer is not null && // first check for null to avoid forcing default comparer instantiation unnecessarily
+                     comparer != EqualityComparer<T>.Default)
             {
                 _comparer = comparer;
             }
@@ -187,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 Debug.Assert(_buckets.Length > 0, "_buckets should be non-empty");
                 Debug.Assert(_entries.Length > 0, "_entries should be non-empty");
 
-                SegmentedArray.Clear(_buckets, 0, _buckets.Length);
+                SegmentedArray.Clear(_buckets);
                 _count = 0;
                 _freeList = -1;
                 _freeCount = 0;
@@ -212,62 +227,39 @@ namespace Microsoft.CodeAnalysis.Collections
                 uint collisionCount = 0;
                 var comparer = _comparer;
 
-                if (SupportsComparerDevirtualization && comparer == null)
+                if (SupportsComparerDevirtualization &&
+                    typeof(T).IsValueType && // comparer can only be null for value types; enable JIT to eliminate entire if block for ref types
+                    comparer == null)
                 {
-                    var hashCode = item != null ? item.GetHashCode() : 0;
-                    if (typeof(T).IsValueType)
+                    // ValueType: Devirtualize with EqualityComparer<TValue>.Default intrinsic
+                    var hashCode = item!.GetHashCode();
+                    var i = GetBucketRef(hashCode) - 1; // Value in _buckets is 1-based
+                    while (i >= 0)
                     {
-                        // ValueType: Devirtualize with EqualityComparer<TValue>.Default intrinsic
-                        var i = GetBucketRef(hashCode) - 1; // Value in _buckets is 1-based
-                        while (i >= 0)
+                        ref var entry = ref entries[i];
+                        if (entry._hashCode == hashCode && EqualityComparer<T>.Default.Equals(entry._value, item))
                         {
-                            ref var entry = ref entries[i];
-                            if (entry._hashCode == hashCode && EqualityComparer<T>.Default.Equals(entry._value, item))
-                            {
-                                return i;
-                            }
-                            i = entry._next;
-
-                            collisionCount++;
-                            if (collisionCount > (uint)entries.Length)
-                            {
-                                // The chain of entries forms a loop, which means a concurrent update has happened.
-                                ThrowHelper.ThrowInvalidOperationException_ConcurrentOperationsNotSupported();
-                            }
+                            return i;
                         }
-                    }
-                    else
-                    {
-                        // Object type: Shared Generic, EqualityComparer<TValue>.Default won't devirtualize (https://github.com/dotnet/runtime/issues/10050),
-                        // so cache in a local rather than get EqualityComparer per loop iteration.
-                        var defaultComparer = EqualityComparer<T>.Default;
-                        var i = GetBucketRef(hashCode) - 1; // Value in _buckets is 1-based
-                        while (i >= 0)
-                        {
-                            ref var entry = ref entries[i];
-                            if (entry._hashCode == hashCode && defaultComparer.Equals(entry._value, item))
-                            {
-                                return i;
-                            }
-                            i = entry._next;
+                        i = entry._next;
 
-                            collisionCount++;
-                            if (collisionCount > (uint)entries.Length)
-                            {
-                                // The chain of entries forms a loop, which means a concurrent update has happened.
-                                ThrowHelper.ThrowInvalidOperationException_ConcurrentOperationsNotSupported();
-                            }
+                        collisionCount++;
+                        if (collisionCount > (uint)entries.Length)
+                        {
+                            // The chain of entries forms a loop, which means a concurrent update has happened.
+                            ThrowHelper.ThrowInvalidOperationException_ConcurrentOperationsNotSupported();
                         }
                     }
                 }
                 else
                 {
-                    var hashCode = item != null ? comparer.GetHashCode(item) : 0;
+                    Debug.Assert(comparer is not null);
+                    var hashCode = item != null ? comparer!.GetHashCode(item) : 0;
                     var i = GetBucketRef(hashCode) - 1; // Value in _buckets is 1-based
                     while (i >= 0)
                     {
                         ref var entry = ref entries[i];
-                        if (entry._hashCode == hashCode && comparer.Equals(entry._value, item))
+                        if (entry._hashCode == hashCode && comparer!.Equals(entry._value, item))
                         {
                             return i;
                         }
@@ -303,7 +295,13 @@ namespace Microsoft.CodeAnalysis.Collections
 
                 uint collisionCount = 0;
                 var last = -1;
-                var hashCode = item != null ? (_comparer?.GetHashCode(item) ?? item.GetHashCode()) : 0;
+
+                IEqualityComparer<T>? comparer = _comparer;
+                Debug.Assert((SupportsComparerDevirtualization && typeof(T).IsValueType) || comparer is not null);
+                int hashCode =
+                    SupportsComparerDevirtualization && typeof(T).IsValueType && comparer == null ? item!.GetHashCode() :
+                    item is not null ? comparer!.GetHashCode(item) :
+                    0;
 
                 ref var bucket = ref GetBucketRef(hashCode);
                 var i = bucket - 1; // Value in buckets is 1-based
@@ -312,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 {
                     ref var entry = ref entries[i];
 
-                    if (entry._hashCode == hashCode && (_comparer?.Equals(entry._value, item) ?? EqualityComparer<T>.Default.Equals(entry._value, item)))
+                    if (entry._hashCode == hashCode && (comparer?.Equals(entry._value, item) ?? EqualityComparer<T>.Default.Equals(entry._value, item)))
                     {
                         if (last < 0)
                         {
@@ -326,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Collections
                         Debug.Assert((StartOfFreeList - _freeList) < 0, "shouldn't underflow because max hashtable length is MaxPrimeArrayLength = 0x7FEFFFFD(2146435069) _freelist underflow threshold 2147483646");
                         entry._next = StartOfFreeList - _freeList;
 
-#if NETCOREAPP
+#if NET
                         if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
 #endif
                         {
@@ -365,9 +363,16 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public Enumerator GetEnumerator() => new(this);
 
-        IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
+        IEnumerator<T> IEnumerable<T>.GetEnumerator() =>
+            Count == 0 ? GetEmptyEnumerator() :
+            GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<T>)this).GetEnumerator();
+
+        private static IEnumerator<T> GetEmptyEnumerator()
+        {
+            return LazyInitializer.EnsureInitialized(ref s_emptyEnumerator, static () => new Enumerator(new SegmentedHashSet<T>()))!;
+        }
 
         #endregion
 
@@ -641,7 +646,15 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
             }
 
-            return ContainsAllElements(other);
+            foreach (T element in other)
+            {
+                if (!Contains(element))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         /// <summary>Determines whether a <see cref="SegmentedHashSet{T}"/> object is a proper superset of the specified collection.</summary>
@@ -678,7 +691,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     }
 
                     // Now perform element check.
-                    return ContainsAllElements(otherAsSet);
+                    return otherAsSet.IsSubsetOfHashSetWithSameComparer(this);
                 }
             }
 
@@ -746,8 +759,8 @@ namespace Microsoft.CodeAnalysis.Collections
                 }
 
                 // Already confirmed that the sets have the same number of distinct elements, so if
-                // one is a superset of the other then they must be equal.
-                return ContainsAllElements(otherAsSet);
+                // one is a subset of the other then they must be equal.
+                return IsSubsetOfHashSetWithSameComparer(otherAsSet);
             }
             else
             {
@@ -778,6 +791,10 @@ namespace Microsoft.CodeAnalysis.Collections
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
             }
 
+#if NET8_0_OR_GREATER
+            ArgumentOutOfRangeException.ThrowIfNegative(arrayIndex);
+            ArgumentOutOfRangeException.ThrowIfNegative(count);
+#else
             // Check array index valid index into array.
             if (arrayIndex < 0)
             {
@@ -789,6 +806,7 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 throw new ArgumentOutOfRangeException(nameof(count), count, SR.ArgumentOutOfRange_NeedNonNegNum);
             }
+#endif
 
             // Will the array, starting at arrayIndex, be able to hold elements? Note: not
             // checking arrayIndex >= array.Length (consistency with list of allowing
@@ -989,65 +1007,43 @@ namespace Microsoft.CodeAnalysis.Collections
             uint collisionCount = 0;
             ref var bucket = ref RoslynUnsafe.NullRef<int>();
 
-            if (SupportsComparerDevirtualization && comparer == null)
+            if (SupportsComparerDevirtualization &&
+                typeof(T).IsValueType && // comparer can only be null for value types; enable JIT to eliminate entire if block for ref types
+                comparer == null)
             {
-                hashCode = value != null ? value.GetHashCode() : 0;
+                hashCode = value!.GetHashCode();
                 bucket = ref GetBucketRef(hashCode);
                 var i = bucket - 1; // Value in _buckets is 1-based
-                if (typeof(T).IsValueType)
-                {
-                    // ValueType: Devirtualize with EqualityComparer<TValue>.Default intrinsic
-                    while (i >= 0)
-                    {
-                        ref var entry = ref entries[i];
-                        if (entry._hashCode == hashCode && EqualityComparer<T>.Default.Equals(entry._value, value))
-                        {
-                            location = i;
-                            return false;
-                        }
-                        i = entry._next;
 
-                        collisionCount++;
-                        if (collisionCount > (uint)entries.Length)
-                        {
-                            // The chain of entries forms a loop, which means a concurrent update has happened.
-                            ThrowHelper.ThrowInvalidOperationException_ConcurrentOperationsNotSupported();
-                        }
+                // ValueType: Devirtualize with EqualityComparer<TValue>.Default intrinsic
+                while (i >= 0)
+                {
+                    ref var entry = ref entries[i];
+                    if (entry._hashCode == hashCode && EqualityComparer<T>.Default.Equals(entry._value, value))
+                    {
+                        location = i;
+                        return false;
                     }
-                }
-                else
-                {
-                    // Object type: Shared Generic, EqualityComparer<TValue>.Default won't devirtualize (https://github.com/dotnet/runtime/issues/10050),
-                    // so cache in a local rather than get EqualityComparer per loop iteration.
-                    var defaultComparer = EqualityComparer<T>.Default;
-                    while (i >= 0)
-                    {
-                        ref var entry = ref entries[i];
-                        if (entry._hashCode == hashCode && defaultComparer.Equals(entry._value, value))
-                        {
-                            location = i;
-                            return false;
-                        }
-                        i = entry._next;
+                    i = entry._next;
 
-                        collisionCount++;
-                        if (collisionCount > (uint)entries.Length)
-                        {
-                            // The chain of entries forms a loop, which means a concurrent update has happened.
-                            ThrowHelper.ThrowInvalidOperationException_ConcurrentOperationsNotSupported();
-                        }
+                    collisionCount++;
+                    if (collisionCount > (uint)entries.Length)
+                    {
+                        // The chain of entries forms a loop, which means a concurrent update has happened.
+                        ThrowHelper.ThrowInvalidOperationException_ConcurrentOperationsNotSupported();
                     }
                 }
             }
             else
             {
-                hashCode = value != null ? comparer.GetHashCode(value) : 0;
+                Debug.Assert(comparer is not null);
+                hashCode = value != null ? comparer!.GetHashCode(value) : 0;
                 bucket = ref GetBucketRef(hashCode);
                 var i = bucket - 1; // Value in _buckets is 1-based
                 while (i >= 0)
                 {
                     ref var entry = ref entries[i];
-                    if (entry._hashCode == hashCode && comparer.Equals(entry._value, value))
+                    if (entry._hashCode == hashCode && comparer!.Equals(entry._value, value))
                     {
                         location = i;
                         return false;
@@ -1092,24 +1088,6 @@ namespace Microsoft.CodeAnalysis.Collections
                 bucket = index + 1;
                 _version++;
                 location = index;
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// Checks if this contains of other's elements. Iterates over other's elements and
-        /// returns false as soon as it finds an element in other that's not in this.
-        /// Used by SupersetOf, ProperSupersetOf, and SetEquals.
-        /// </summary>
-        private bool ContainsAllElements(IEnumerable<T> other)
-        {
-            foreach (var element in other)
-            {
-                if (!Contains(element))
-                {
-                    return false;
-                }
             }
 
             return true;
@@ -1309,7 +1287,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <param name="other"></param>
         /// <param name="returnIfUnfound">Allows us to finish faster for equals and proper superset
         /// because unfoundCount must be 0.</param>
-        private unsafe (int UniqueCount, int UnfoundCount) CheckUniqueAndUnfoundElements(IEnumerable<T> other, bool returnIfUnfound)
+        private (int UniqueCount, int UnfoundCount) CheckUniqueAndUnfoundElements(IEnumerable<T> other, bool returnIfUnfound)
         {
             // Need special case in case this has no elements.
             if (_count == 0)

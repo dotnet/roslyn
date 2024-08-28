@@ -27,7 +27,7 @@ internal sealed class JsonLanguageDetector(
 {
     internal readonly struct JsonInfo : ILanguageDetectorInfo<JsonLanguageDetector>
     {
-        public ImmutableArray<string> LanguageIdentifiers => ImmutableArray.Create("Json");
+        public ImmutableArray<string> LanguageIdentifiers => ["Json"];
 
         public JsonLanguageDetector Create(Compilation compilation, EmbeddedLanguageInfo info)
         {
@@ -39,13 +39,13 @@ internal sealed class JsonLanguageDetector(
     private const string JsonParameterName = "json";
     private const string ParseMethodName = "Parse";
 
-    private static readonly HashSet<string> s_typeNamesOfInterest = new()
-    {
+    private static readonly HashSet<string> s_typeNamesOfInterest =
+    [
         "Newtonsoft.Json.Linq.JToken",
         "Newtonsoft.Json.Linq.JObject",
         "Newtonsoft.Json.Linq.JArray",
         "System.Text.Json.JsonDocument",
-    };
+    ];
 
     private readonly ISet<INamedTypeSymbol> _typesOfInterest = typesOfInterest;
 
@@ -73,7 +73,14 @@ internal sealed class JsonLanguageDetector(
             return result;
 
         if (includeProbableStrings && IsProbablyJson(token, out var tree))
-            return tree;
+        {
+            // We have a string that looks like json.  Treat it as such *unless* we see that it was *explicitly* marked
+            // as belonging to some other language.  This allows us to light up on strings that are very likely to be
+            // json while not misclassifying strings that are actually meant to be something else.
+            var languageIdentifier = this.Detector.TryGetEmbeddedLanguageTokenIdentifier(token, semanticModel, cancellationToken);
+            if (languageIdentifier is null || this.Detector.IsEmbeddedLanguageIdentifier(languageIdentifier))
+                return tree;
+        }
 
         return null;
     }

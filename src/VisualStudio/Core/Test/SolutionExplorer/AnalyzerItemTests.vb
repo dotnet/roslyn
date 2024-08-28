@@ -2,13 +2,14 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
-    <[UseExportProvider]>
+    <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.Diagnostics)>
     Public Class AnalyzerItemTests
         <Fact>
@@ -20,10 +21,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim project = workspace.Projects.Single()
 
-                Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing, Nothing)
+                Dim analyzerFolder = New AnalyzersFolderItem(workspace.GetService(Of IThreadingContext), workspace, project.Id, Nothing, Nothing)
                 Dim analyzer = New AnalyzerItem(analyzerFolder, project.AnalyzerReferences.Single(), Nothing)
 
                 Assert.Equal(expected:="Goo", actual:=analyzer.Text)
@@ -39,10 +40,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim project = workspace.Projects.Single()
 
-                Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing, Nothing)
+                Dim analyzerFolder = New AnalyzersFolderItem(workspace.GetService(Of IThreadingContext), workspace, project.Id, Nothing, Nothing)
                 Dim analyzer = New AnalyzerItem(analyzerFolder, project.AnalyzerReferences.Single(), Nothing)
                 Dim browseObject = DirectCast(analyzer.GetBrowseObject(), AnalyzerItem.BrowseObject)
 

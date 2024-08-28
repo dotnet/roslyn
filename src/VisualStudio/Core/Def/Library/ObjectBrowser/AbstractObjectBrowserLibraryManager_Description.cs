@@ -6,19 +6,18 @@
 
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
-{
-    internal abstract partial class AbstractObjectBrowserLibraryManager
-    {
-        internal bool TryFillDescription(ObjectListItem listItem, IVsObjectBrowserDescription3 description, _VSOBJDESCOPTIONS options)
-        {
-            var project = GetProject(listItem);
-            if (project == null)
-            {
-                return false;
-            }
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser;
 
-            return CreateDescriptionBuilder(description, listItem, project).TryBuild(options);
+internal abstract partial class AbstractObjectBrowserLibraryManager
+{
+    internal bool TryFillDescription(ObjectListItem listItem, IVsObjectBrowserDescription3 description, _VSOBJDESCOPTIONS options)
+    {
+        var project = GetProject(listItem);
+        if (project == null)
+        {
+            return false;
         }
+
+        return CreateDescriptionBuilder(description, listItem, project).TryBuild(options);
     }
 }

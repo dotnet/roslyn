@@ -4,14 +4,11 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem
-{
-    internal record ProjectSystemHostInfo(
-        ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> DynamicFileInfoProviders,
-        IProjectSystemDiagnosticSource DiagnosticSource,
-        IHostDiagnosticAnalyzerProvider HostDiagnosticAnalyzerProvider);
-}
+namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+
+internal record ProjectSystemHostInfo(
+    ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> DynamicFileInfoProviders,
+    IHostDiagnosticAnalyzerProvider HostDiagnosticAnalyzerProvider);

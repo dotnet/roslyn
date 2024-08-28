@@ -2526,7 +2526,7 @@ class Test {
     static void LogCallerMemberName([CallerMemberName] string memberName = """") { }
 }";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2543,7 +2543,7 @@ class Test {
     static void LogCallerMemberName([CallerMemberName] string memberName) { }
 }";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (5,38): error CS4020: The CallerLineNumberAttribute may only be applied to parameters with default values
                 //     static void LogCallerLineNumber([CallerLineNumber] int lineNumber) { }
                 Diagnostic(ErrorCode.ERR_BadCallerLineNumberParamWithoutDefaultValue, @"CallerLineNumber").WithLocation(5, 38),
@@ -2674,7 +2674,7 @@ line: 77
 line: 78
 line: 79
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -2708,7 +2708,7 @@ line: -1
 line: -1
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -2752,7 +2752,7 @@ line: 25
 line: 26
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -2782,7 +2782,7 @@ class Test {
     static void LogCallerMemberName5([CallerMemberName] int? memberName = 0) { }
 }";
 
-            CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(5, 39).WithArguments("int", "string"),
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(6, 39).WithArguments("int", "char"),
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithLocation(7, 39).WithArguments("int", "bool"),
@@ -2843,7 +2843,7 @@ message: something happened
 line: 21
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -2923,7 +2923,7 @@ class Test
 line: -1
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -2954,7 +2954,7 @@ class Test
 line: 17
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -3043,7 +3043,7 @@ line: 47
 line: 55
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -3074,7 +3074,7 @@ class Test
 line: 17
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -3167,7 +3167,7 @@ line: hello
 ";
 
             MetadataReference libReference = CompileIL(iLSource);
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { libReference }, TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, new[] { libReference }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -3193,7 +3193,7 @@ partial class D
     }
 }";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "CallerLineNumber").WithArguments("CallerLineNumber"),
                 Diagnostic(ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation, "CallerLineNumber").WithArguments("x").WithLocation(11, 23));
         }
@@ -3221,7 +3221,7 @@ partial class D
     }
 }";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (12,10): warning CS4024: The CallerLineNumberAttribute applied to parameter 'line' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
                 //         [CallerLineNumber] int line,
                 Diagnostic(ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation, "CallerLineNumber").WithArguments("line"),
@@ -3231,6 +3231,19 @@ partial class D
                 // (14,10): warning CS4025: The CallerFilePathAttribute applied to parameter 'path' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
                 //         [CallerFilePath] string path) { }
                 Diagnostic(ErrorCode.WRN_CallerFilePathParamForUnconsumedLocation, "CallerFilePath").WithArguments("path"));
+
+            CompileAndVerify(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: verify);
+
+            void verify(ModuleSymbol module)
+            {
+                // https://github.com/dotnet/roslyn/issues/73482
+                // These are ignored in source but they still get written out to metadata.
+                // This means if the method is accessible from another compilation, then the attribute will be respected there, but not in the declaring compilation.
+                var goo = module.GlobalNamespace.GetMember<MethodSymbol>("D.Goo");
+                AssertEx.Equal(["System.Runtime.CompilerServices.CallerLineNumberAttribute"], goo.Parameters[0].GetAttributes().SelectAsArray(attr => attr.ToString()));
+                AssertEx.Equal(["System.Runtime.CompilerServices.CallerMemberNameAttribute"], goo.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+                AssertEx.Equal(["System.Runtime.CompilerServices.CallerFilePathAttribute"], goo.Parameters[2].GetAttributes().SelectAsArray(attr => attr.ToString()));
+            }
         }
 
         [Fact]
@@ -3262,7 +3275,7 @@ line: 16
 line: 18
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -3307,7 +3320,7 @@ class Test
     public static void Log23([CallerMemberName, CallerLineNumber] int x = 1) { Console.WriteLine(""line: "" + x); }
     public static void Log24([CallerLineNumber, CallerMemberName] int x = 1) { Console.WriteLine(""line: "" + x); }
 }";
-            CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll.WithWarningLevel(0)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseDll.WithWarningLevel(0)).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithLocation(7, 48).WithArguments("string", "int"),
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(7, 64).WithArguments("string", "int"),
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithLocation(8, 48).WithArguments("string", "int"),
@@ -3370,7 +3383,7 @@ C:\file.cs
 C:\file.cs
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[] { Parse(source, @"C:\file.cs") },
                 new[] { SystemRef },
                 TestOptions.ReleaseExe);
@@ -3412,7 +3425,7 @@ class Test
 line: 15
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -3438,7 +3451,7 @@ partial class D
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef });
+            var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef });
             compilation.VerifyDiagnostics(
                 Diagnostic(ErrorCode.WRN_CallerLineNumberParamForUnconsumedLocation, "CallerLineNumber").WithArguments("x").WithLocation(11, 23));
         }
@@ -3469,7 +3482,7 @@ partial class D
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
 
             compilation.VerifyEmitDiagnostics(
                 // (12,23): warning CS4026: The CallerMemberNameAttribute applied to parameter 'x' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
@@ -3505,7 +3518,7 @@ partial class D
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
             compilation.VerifyEmitDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "Main");
         }
@@ -3547,7 +3560,7 @@ class Test
 name: LambdaCaller
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -3590,7 +3603,7 @@ class Test
 name: LocalFunctionCaller
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -3766,7 +3779,7 @@ class Test
 name: op_Increment
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -3814,7 +3827,7 @@ name: IsTrue
 name: IsTrue
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -3852,7 +3865,7 @@ class Test
 name: MyMethod
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -3889,7 +3902,7 @@ class A
 name: Compare
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 source,
                 new[] { SystemRef },
                 TestOptions.ReleaseExe);
@@ -3950,7 +3963,7 @@ name: Add
 name: HasThing
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -3992,7 +4005,7 @@ name: ThingHappened
 name: ThingHappened
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -4044,7 +4057,7 @@ name: .ctor
 name: Finalize
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -4118,7 +4131,7 @@ name: Item
 name: Item
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -4150,7 +4163,7 @@ partial class A
             string source3 = @"partial class A { static void Main3() { Log(); } }";
             string source4 = @"partial class A { static void Main4() { Log(); } }";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[]
                 {
                     SyntaxFactory.ParseSyntaxTree(source1, path: @"C:\filename", encoding: Encoding.UTF8),
@@ -4245,7 +4258,7 @@ partial class A { static void Main4() { Log(); } }
 partial class A { static void Main5() { Log(); } }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[]
                 {
                     SyntaxFactory.ParseSyntaxTree(source1, path: @"C:\filename", encoding: Encoding.UTF8),
@@ -4320,7 +4333,7 @@ member: MyMethod
 member: 
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef }, TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, new[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -4363,7 +4376,7 @@ namespace MyNamespace
 member: MyMethod
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -4385,7 +4398,7 @@ class Test
     public static void Main() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: "");
 
             var ctor = compilation.GetMember<MethodSymbol>("Goo..ctor");
@@ -4415,7 +4428,7 @@ class Test
     public static void Main() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, references: new MetadataReference[] { SystemRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: "");
 
             var ctor = compilation.GetMember<MethodSymbol>("Goo..ctor");
@@ -4468,7 +4481,7 @@ class Driver {
             var expected = @"";
 
             MetadataReference libReference = CompileIL(iLSource);
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { libReference }, TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, new[] { libReference }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -4503,7 +4516,7 @@ class Driver
 
             var expected = @"Bar";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -4618,7 +4631,7 @@ name: C:\file.cs
 
             MetadataReference libReference = CompileIL(iLSource);
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[] { Parse(source, @"C:\file.cs") },
                 new[] { libReference },
                 TestOptions.ReleaseExe);
@@ -4653,7 +4666,7 @@ class Driver
 
             var expected = @"13";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -4704,7 +4717,7 @@ a.LineNumber, a.MemberName ?? ""<null>"");
 CallerInfoAttributed: (, 22, Property1)
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -4774,7 +4787,7 @@ Item
 MyMethod
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -4807,7 +4820,7 @@ class Program
 13
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -4845,7 +4858,7 @@ class Program
 }
 ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (21,2): error CS0181: Attribute constructor parameter 'lineNumber' has type 'int?', which is not a valid attribute parameter type
                 // [LineNumber2NullableInt, LineNumber2ValueType]
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "LineNumber2NullableInt").WithArguments("lineNumber", "int?"),
@@ -4890,7 +4903,7 @@ class Test
 19
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -4919,7 +4932,7 @@ class Test
 }
 ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (13,2): error CS0181: Attribute constructor parameter 'lineNumber' has type 'decimal', which is not a valid attribute parameter type
                 // [LineNumber2DecimalAttribute]
                 Diagnostic(ErrorCode.ERR_BadAttributeParamType, "LineNumber2DecimalAttribute").WithArguments("lineNumber", "decimal"));
@@ -5008,7 +5021,7 @@ class Test
 61
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -5047,7 +5060,7 @@ class Test
 }
 ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (19,38): error CS4017: CallerLineNumberAttribute cannot be applied because there are no standard conversions from type 'int' to type 'Test'
                 //     public bool M1(string expected, [CallerLineNumber] Test line = null)
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerLineNumberParam, "CallerLineNumber").WithArguments("int", "Test"),
@@ -5154,7 +5167,7 @@ query line : 66
 query path : C:\filename
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) },
                 new[] { SystemCoreRef },
                 TestOptions.ReleaseExe);
@@ -5205,7 +5218,7 @@ C:\filename
 25
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[] { SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular7, path: @"C:\filename", encoding: Encoding.UTF8) },
                 options: TestOptions.ReleaseExe);
 
@@ -5276,7 +5289,7 @@ class Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular7, path: @"C:\filename") }).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib461(new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular7, path: @"C:\filename") }).VerifyDiagnostics(
                 // C:\filename(7,38): error CS4018: CallerFilePathAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
                 //     static void M1([CallerLineNumber,CallerFilePath,CallerMemberName] int i = 0) { Console.WriteLine(); }
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerFilePathParam, "CallerFilePath").WithArguments("string", "int").WithLocation(7, 38),
@@ -5368,7 +5381,7 @@ class Test
 }";
 
             string expected = @"PASS";
-            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -5404,7 +5417,7 @@ public class Goo
 
             string expected = @"F1
 F2";
-            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -5440,7 +5453,7 @@ public class Goo
 
             string expected = @"F1
 F2";
-            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -5479,7 +5492,7 @@ public class Goo : I1
 ";
 
             string expected = @"F2";
-            var compilation = CreateCompilationWithMscorlib45(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, new MetadataReference[] { SystemRef }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expected);
         }
 
@@ -5538,7 +5551,7 @@ C:\filename
 Caller file path: C:\filename
 C:\filename";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) },
                 new[] { SystemCoreRef },
                 TestOptions.ReleaseExe);
@@ -5598,7 +5611,7 @@ static class E
 Main
 21";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[] { SyntaxFactory.ParseSyntaxTree(source, path: @"C:\filename", encoding: Encoding.UTF8) },
                 new[] { SystemCoreRef },
                 TestOptions.ReleaseExe);
@@ -5653,7 +5666,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[] { SyntaxFactory.ParseSyntaxTree(csSource, path: @"C:\filename", encoding: Encoding.UTF8) },
                 new[] { SystemCoreRef, vbReference },
                 TestOptions.ReleaseExe);
@@ -5692,7 +5705,7 @@ class C
 
             const string expected = "Main";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 source,
                 new[] { SystemCoreRef },
                 TestOptions.ReleaseExe);
@@ -5738,7 +5751,7 @@ class Program
         Console.WriteLine(from y in x select y);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 csSource,
                 new[] { SystemCoreRef, vbReference },
                 TestOptions.ReleaseExe);
@@ -5835,6 +5848,107 @@ void M(int i, [CallerArgumentExpression(""i"")] in string s = ""default value"")
                 // (5,51): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
                 //         public CallerArgumentExpressionAttribute([CallerArgumentExpression(nameof(parameterName))] string parameterName)
                 Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(5, 51));
+        }
+
+        [Fact]
+        public void CallerMemberName_SetterValueParam()
+        {
+            // There is no way in C# to call a setter without passing an argument for the value, so the CallerMemberName effectively does nothing.
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                public partial class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        c[1] = "1";
+                    }
+
+                    public string this[int x]
+                    {
+                        [param: Optional, DefaultParameterValue("0")]
+                        [param: CallerMemberName]
+                        set
+                        {
+                            Console.Write(value);
+                        }
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+
+            var source1 = """
+                class D
+                {
+                    void M()
+                    {
+                        var c = new C();
+                        c.set_Item(1);
+                    }
+                }
+                """;
+            var comp1 = CreateCompilation(source1, references: [verifier.Compilation.EmitToImageReference()]);
+            comp1.VerifyEmitDiagnostics(
+                // (6,11): error CS0571: 'C.this[int].set': cannot explicitly call operator or accessor
+                //         c.set_Item(1);
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "set_Item").WithArguments("C.this[int].set").WithLocation(6, 11));
+        }
+
+        [Fact]
+        public void CallerArgumentExpression_SetterValueParam()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                namespace System.Runtime.CompilerServices
+                {
+                    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = true, Inherited = false)]
+                    public sealed class CallerArgumentExpressionAttribute : Attribute
+                    {
+                        public CallerArgumentExpressionAttribute(string parameterName)
+                        {
+                            ParameterName = parameterName;
+                        }
+                        public string ParameterName { get; }
+                    }
+                }
+
+                partial class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        c[1] = GetNumber();
+                    }
+
+                    public static int GetNumber() => 1;
+
+                    public int this[int x, [CallerArgumentExpression("value")] string argumentExpression = "0"]
+                    {
+                        set
+                        {
+                            Console.Write(argumentExpression);
+                        }
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "0", symbolValidator: verify);
+            verifier.VerifyDiagnostics(
+                // (27,29): warning CS8963: The CallerArgumentExpressionAttribute applied to parameter 'argumentExpression' will have no effect. It is applied with an invalid parameter name.
+                //     public int this[int x, [CallerArgumentExpression("value")] string argumentExpression = "0"]
+                Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("argumentExpression").WithLocation(27, 29));
+
+            void verify(ModuleSymbol module)
+            {
+                var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+                AssertEx.Equal(["""System.Runtime.CompilerServices.CallerArgumentExpressionAttribute("value")"""], indexer.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+            }
         }
     }
 }

@@ -7,7 +7,7 @@ Imports System.Text
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     ''' <summary>
@@ -38,7 +38,7 @@ End Module]]></file>
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  options:=TestOptions.ReleaseExe.WithOverflowChecks(True),
                  expectedOutput:=<![CDATA[
 Lambda(
@@ -733,13 +733,13 @@ Lambda(
 ]]>
 
             CompileAndVerify(source,
-                          references:={Net40.SystemCore},
+                          references:={Net40.References.SystemCore},
                           options:=TestOptions.ReleaseExe.WithOverflowChecks(True),
                           expectedOutput:=expected
             )
 
             CompileAndVerify(source,
-                        references:={Net40.SystemCore},
+                        references:={Net40.References.SystemCore},
                         options:=TestOptions.ReleaseExe.WithOverflowChecks(False),
                         expectedOutput:=expected
             )
@@ -1201,7 +1201,7 @@ Lambda(
                          </compilation>
 
             CompileAndVerify(source,
-                             references:={Net40.SystemCore},
+                             references:={Net40.References.SystemCore},
                              options:=TestOptions.ReleaseExe.WithOverflowChecks(checked),
                              expectedOutput:=result.Trim
             ).VerifyDiagnostics()
@@ -1223,7 +1223,7 @@ Lambda(
                          </compilation>
 
             CompileAndVerify(source,
-                             references:={Net40.SystemCore},
+                             references:={Net40.References.SystemCore},
                              options:=TestOptions.ReleaseExe.WithOverflowChecks(checked),
                              expectedOutput:=result.Trim
             ).VerifyDiagnostics()
@@ -1448,7 +1448,7 @@ Lambda(
                          </compilation>
 
             CompileAndVerify(source,
-                             references:={Net40.SystemCore},
+                             references:={Net40.References.SystemCore},
                              options:=TestOptions.ReleaseExe.WithOverflowChecks(checked),
                              expectedOutput:=result.Trim
             ).VerifyDiagnostics(Diagnostic(ERRID.WRN_ObsoleteIdentityDirectCastForValueType, "x"),
@@ -1918,7 +1918,7 @@ End Module
             Dim src = source...<file>.Value
 
             CompileAndVerify(source,
-                             references:={Net40.SystemCore},
+                             references:={Net40.References.SystemCore},
                              options:=TestOptions.ReleaseExe.WithOverflowChecks(checked),
                              expectedOutput:=result.Trim
             ).VerifyDiagnostics(If(diagnostics, {}))
@@ -2012,7 +2012,32 @@ End Module
 ]]></file>
                          </compilation>
 
-            CompileAndVerify(source, references:={Net40.SystemCore}).VerifyDiagnostics()
+            CompileAndVerify(source, references:={Net40.References.SystemCore}).VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72456")>
+        Public Sub UndeclaredClassInLambdaFunction()
+            Dim source =
+<compilation>
+    <file name="expr.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Module Program
+    Public Function CreateExpression() As Expression(Of Func(Of Object))
+        Return Function() (New UndeclaredClass() With {.Name = "testName"})
+    End Function
+End Module
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, {LinqAssemblyRef})
+            AssertTheseDiagnostics(compilation.GetDiagnostics(),
+<expected>
+BC30002: Type 'UndeclaredClass' is not defined.
+        Return Function() (New UndeclaredClass() With {.Name = "testName"})
+                               ~~~~~~~~~~~~~~~
+</expected>)
         End Sub
 
         <Fact>
@@ -3664,7 +3689,6 @@ Lambda(
 
         <Fact>
         Public Sub ExprTree_LegacyTests02_v40()
-            ' ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 1223 }
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
 Imports System
@@ -3705,12 +3729,11 @@ Module Form1
     End Sub
 End Module
 ]]></file>
-            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v40_Result, verify:=Verification.FailsILVerify)
+            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v40_Result)
         End Sub
 
         <Fact>
         Public Sub ExprTree_LegacyTests02_v45()
-            ' ILVerify: Unrecognized arguments for delegate .ctor. { Offset = 1167 }
             Dim file = <file name="expr.vb"><![CDATA[
 Option Strict Off 
 Imports System
@@ -3748,7 +3771,7 @@ Module Form1
     End Sub
 End Module
 ]]></file>
-            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v45_Result, latestReferences:=True, verify:=Verification.FailsILVerify)
+            TestExpressionTrees(file, ExpTreeTestResources.ExprTree_LegacyTests02_v45_Result, latestReferences:=True)
         End Sub
 
         <Fact>
@@ -6605,7 +6628,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:=<![CDATA[
 Lambda(
   Parameter(
@@ -6663,7 +6686,7 @@ End Class
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:=<![CDATA[
 Lambda(
   Parameter(
@@ -6768,7 +6791,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:=<![CDATA[
 Infer A=System.Decimal
 Infer B=System.String
@@ -6811,7 +6834,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:=<![CDATA[Where Select]]>).VerifyDiagnostics()
         End Sub
 
@@ -6861,7 +6884,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:="GroupBy 1;Select;GroupBy 2;Select;").VerifyDiagnostics()
         End Sub
 
@@ -6904,7 +6927,7 @@ End Module]]></file>
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:="GroupJoin;").VerifyDiagnostics()
         End Sub
 
@@ -6987,7 +7010,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:=<![CDATA[A1 B2 C1 D2 E1 F2]]>)
         End Sub
 
@@ -7028,7 +7051,7 @@ End Module]]></file>
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:=<![CDATA[f1 f1 g1]]>)
         End Sub
 
@@ -7055,7 +7078,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:="() => (value(Form1+_Closure$__0-0).$VB$Local_s1_a ?? Convert(value(Form1+_Closure$__0-0).$VB$Local_s1_b))").VerifyDiagnostics()
         End Sub
 
@@ -7173,7 +7196,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:="10").VerifyDiagnostics()
         End Sub
 
@@ -7252,7 +7275,7 @@ end class
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:="m => m").VerifyDiagnostics()
         End Sub
 
@@ -7291,7 +7314,7 @@ End Class
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  expectedOutput:="").VerifyDiagnostics()
         End Sub
 
@@ -8214,9 +8237,15 @@ End Class
 </compilation>)
             AssertTheseEmitDiagnostics(compilation,
 <errors>
+    BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
+    Shared F As Expression(Of D) = Function() New A(Nothing)
+                                              ~~~~~~~~~~~~~~
 BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
     Shared G As Expression(Of D) = Function() M()
                                               ~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
+    Shared F As Expression(Of D) = Function() New A(Nothing)
+                                              ~~~~~~~~~~~~~~
 BC35000: Requested operation is not available because the runtime library function 'System.Reflection.MethodBase.GetMethodFromHandle' is not defined.
     Shared G As Expression(Of D) = Function() M()
                                               ~~~
@@ -8281,7 +8310,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 () => (value(M+_Closure$__2-0`1[M+X]).$VB$Local_x == null)
@@ -8341,7 +8370,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 () => (value(M+_Closure$__2-0`1[M+X]).$VB$Local_x == null)
@@ -8383,7 +8412,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 () => Concat(value(M+_Closure$__0-0).$VB$Local_str, null)
@@ -8437,7 +8466,7 @@ End Namespace
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 In catch
@@ -8502,7 +8531,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 x => x.set_City(ItIs(s => IsNullOrEmpty(s)))
@@ -8578,7 +8607,7 @@ End Module
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 x => x.set_City(1, ItIs(s => IsNullOrEmpty(s)))
@@ -8643,7 +8672,7 @@ End Module
                          </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  options:=TestOptions.ReleaseExe)
 
             compilation.VerifyDiagnostics(
@@ -8693,7 +8722,7 @@ End Class
                          </compilation>
 
             CompileAndVerify(source,
-                 references:={Net40.SystemCore},
+                 references:={Net40.References.SystemCore},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
 42

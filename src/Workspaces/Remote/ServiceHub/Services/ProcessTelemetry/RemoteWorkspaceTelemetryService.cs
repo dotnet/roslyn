@@ -6,27 +6,22 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 
-namespace Microsoft.VisualStudio.LanguageServices.Telemetry
+namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
+
+[ExportWorkspaceService(typeof(IWorkspaceTelemetryService)), Shared]
+internal sealed class RemoteWorkspaceTelemetryService : AbstractWorkspaceTelemetryService
 {
-    [ExportWorkspaceService(typeof(IWorkspaceTelemetryService)), Shared]
-    internal sealed class RemoteWorkspaceTelemetryService : AbstractWorkspaceTelemetryService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RemoteWorkspaceTelemetryService()
     {
-        private readonly IAsynchronousOperationListenerProvider _asyncListenerProvider;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteWorkspaceTelemetryService(IAsynchronousOperationListenerProvider asyncListenerProvider)
-        {
-            _asyncListenerProvider = asyncListenerProvider;
-        }
-
-        protected override ILogger CreateLogger(TelemetrySession telemetrySession, bool logDelta)
-            => AggregateLogger.Create(
-                TelemetryLogger.Create(telemetrySession, logDelta, _asyncListenerProvider),
-                Logger.GetLogger());
     }
+
+    protected override ILogger CreateLogger(TelemetrySession telemetrySession, bool logDelta)
+        => AggregateLogger.Create(
+            TelemetryLogger.Create(telemetrySession, logDelta),
+            Logger.GetLogger());
 }

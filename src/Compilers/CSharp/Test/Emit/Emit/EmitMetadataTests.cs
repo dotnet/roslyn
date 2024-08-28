@@ -891,7 +891,7 @@ class C : I
         [Fact]
         public void SetGetOnlyAutopropsInConstructors()
         {
-            var comp = CreateCompilationWithMscorlib45(@"using System;
+            var comp = CreateCompilationWithMscorlib461(@"using System;
 class C
 {
     public int P1 { get; }
@@ -1930,6 +1930,7 @@ public class E
         public void RefEmit_IL1()
         {
             CompileAndVerify(@"
+using System.Globalization;
 class C 
 { 
     public static void Main() 
@@ -1947,8 +1948,8 @@ class C
         System.Console.WriteLine(k);
         System.Console.WriteLine(b);
         System.Console.WriteLine(c);
-        System.Console.WriteLine(f);
-        System.Console.WriteLine(d);
+        System.Console.WriteLine(f.ToString(CultureInfo.InvariantCulture));
+        System.Console.WriteLine(d.ToString(CultureInfo.InvariantCulture));
         System.Console.WriteLine(s);
         System.Console.WriteLine(x);
     }

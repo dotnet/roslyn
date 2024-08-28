@@ -7,47 +7,45 @@ using System.Collections.Generic;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
+
+internal partial class UnitTestingSolutionCrawlerRegistrationService : IUnitTestingSolutionCrawlerRegistrationService
 {
-    internal partial class UnitTestingSolutionCrawlerRegistrationService : IUnitTestingSolutionCrawlerRegistrationService
+    /// <summary>
+    /// nested class of <see cref="UnitTestingSolutionCrawlerRegistrationService"/> since it is tightly coupled with it.
+    /// 
+    /// <see cref="IUnitTestingSolutionCrawlerService"/> is implemented by this class since WorkspaceService doesn't allow a class to implement
+    /// more than one <see cref="IWorkspaceService"/>.
+    /// </summary>
+    [ExportWorkspaceService(typeof(IUnitTestingSolutionCrawlerService), ServiceLayer.Default), Shared]
+    internal class UnitTestingSolutionCrawlerService : IUnitTestingSolutionCrawlerService
     {
-        /// <summary>
-        /// nested class of <see cref="UnitTestingSolutionCrawlerRegistrationService"/> since it is tightly coupled with it.
-        /// 
-        /// <see cref="IUnitTestingSolutionCrawlerService"/> is implemented by this class since WorkspaceService doesn't allow a class to implement
-        /// more than one <see cref="IWorkspaceService"/>.
-        /// </summary>
-        [ExportWorkspaceService(typeof(IUnitTestingSolutionCrawlerService), ServiceLayer.Default), Shared]
-        internal class UnitTestingSolutionCrawlerService : IUnitTestingSolutionCrawlerService
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public UnitTestingSolutionCrawlerService()
         {
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public UnitTestingSolutionCrawlerService()
+        }
+
+        public void Reanalyze(string? workspaceKind, SolutionServices services, IUnitTestingIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null)
+        {
+            // if solution crawler doesn't exist for the given workspace. don't do anything
+            if (services.GetService<IUnitTestingSolutionCrawlerRegistrationService>() is UnitTestingSolutionCrawlerRegistrationService registration)
             {
+                registration.Reanalyze(workspaceKind, services, analyzer, projectIds, documentIds);
+            }
+        }
+
+        public IUnitTestingSolutionCrawlerProgressReporter GetProgressReporter(Workspace workspace)
+        {
+            // if solution crawler doesn't exist for the given workspace, return null reporter
+            if (workspace.Services.GetService<IUnitTestingSolutionCrawlerRegistrationService>() is UnitTestingSolutionCrawlerRegistrationService registration)
+            {
+                // currently we have only 1 global reporter that are shared by all workspaces.
+                return registration._progressReporter;
             }
 
-            public void Reanalyze(string? workspaceKind, SolutionServices services, IUnitTestingIncrementalAnalyzer analyzer, IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null, bool highPriority = false)
-            {
-                // if solution crawler doesn't exist for the given workspace. don't do anything
-                if (services.GetService<IUnitTestingSolutionCrawlerRegistrationService>() is UnitTestingSolutionCrawlerRegistrationService registration)
-                {
-                    registration.Reanalyze(workspaceKind, services, analyzer, projectIds, documentIds, highPriority);
-                }
-            }
-
-            public IUnitTestingSolutionCrawlerProgressReporter GetProgressReporter(Workspace workspace)
-            {
-                // if solution crawler doesn't exist for the given workspace, return null reporter
-                if (workspace.Services.GetService<IUnitTestingSolutionCrawlerRegistrationService>() is UnitTestingSolutionCrawlerRegistrationService registration)
-                {
-                    // currently we have only 1 global reporter that are shared by all workspaces.
-                    return registration._progressReporter;
-                }
-
-                return UnitTestingNullReporter.Instance;
-            }
+            return UnitTestingNullReporter.Instance;
         }
     }
 }

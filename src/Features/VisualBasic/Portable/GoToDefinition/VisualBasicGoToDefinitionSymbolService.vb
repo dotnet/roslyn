@@ -3,14 +3,17 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
+Imports System.Threading
 Imports Microsoft.CodeAnalysis.GoToDefinition
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GoToDefinition
     <ExportLanguageService(GetType(IGoToDefinitionSymbolService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicGoToDefinitionSymbolService
+    Friend NotInheritable Class VisualBasicGoToDefinitionSymbolService
         Inherits AbstractGoToDefinitionSymbolService
 
         <ImportingConstructor>
@@ -18,7 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GoToDefinition
         Public Sub New()
         End Sub
 
-        Protected Overrides Function FindRelatedExplicitlyDeclaredSymbol(symbol As ISymbol, compilation As Compilation) As ISymbol
+        Protected Overrides Async Function FindRelatedExplicitlyDeclaredSymbolAsync(project As Project, symbol As ISymbol, cancellationToken As CancellationToken) As Task(Of ISymbol)
+            Dim compilation = Await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(False)
             Return symbol.FindRelatedExplicitlyDeclaredSymbol(compilation)
         End Function
 
@@ -46,6 +50,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GoToDefinition
 
                 ' Exit Select, Exit While, Exit For, Exit ForEach, ...
                 Return exitTarget.GetLastToken().Span.End
+            End If
+
+            If node.IsKind(SyntaxKind.GoToStatement) Then
+                Dim goToStatement = DirectCast(node, GoToStatementSyntax)
+
+                Dim gotoOperation = DirectCast(semanticModel.GetOperation(goToStatement), IBranchOperation)
+                If gotoOperation Is Nothing Then
+                    Return Nothing
+                End If
+
+                Debug.Assert(gotoOperation.BranchKind = BranchKind.GoTo)
+                Dim target = gotoOperation.Target
+                Return target.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax()?.SpanStart
             End If
 
             Return Nothing

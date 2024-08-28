@@ -7,55 +7,53 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
+namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify;
+
+internal abstract class AbstractFullyQualifyCodeFixProvider : CodeFixProvider
 {
-    internal abstract class AbstractFullyQualifyCodeFixProvider : CodeFixProvider
+    public override FixAllProvider? GetFixAllProvider()
     {
-        public override FixAllProvider? GetFixAllProvider()
+        // Fix All is not supported by this code fix
+        // https://github.com/dotnet/roslyn/issues/34465
+        return null;
+    }
+
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    {
+        var cancellationToken = context.CancellationToken;
+        var document = context.Document;
+
+        var service = document.GetRequiredLanguageService<IFullyQualifyService>();
+        var optFixData = await service.GetFixDataAsync(document, context.Span, cancellationToken).ConfigureAwait(false);
+        if (optFixData is null)
+            return;
+
+        var fixData = optFixData.Value;
+        if (fixData.IndividualFixData.Length == 0)
+            return;
+
+        var codeActions = fixData.IndividualFixData.SelectAsArray(
+            d => CodeAction.Create(
+                d.Title,
+                async cancellationToken =>
+                {
+                    var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                    var newText = sourceText.WithChanges(d.TextChanges);
+                    return document.WithText(newText);
+                },
+                d.Title));
+
+        if (codeActions.Length >= 2)
         {
-            // Fix All is not supported by this code fix
-            // https://github.com/dotnet/roslyn/issues/34465
-            return null;
+            // Wrap the actions into a single top level suggestion so as to not clutter the list.
+            context.RegisterCodeFix(CodeAction.Create(
+                string.Format(FeaturesResources.Fully_qualify_0, fixData.Name),
+                codeActions,
+                isInlinable: true), context.Diagnostics);
         }
-
-        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        else
         {
-            var cancellationToken = context.CancellationToken;
-            var document = context.Document;
-            var hideAdvancedMembers = context.Options.GetOptions(document.Project.Services).HideAdvancedMembers;
-
-            var service = document.GetRequiredLanguageService<IFullyQualifyService>();
-            var optFixData = await service.GetFixDataAsync(document, context.Span, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
-            if (optFixData is null)
-                return;
-
-            var fixData = optFixData.Value;
-            if (fixData.IndividualFixData.Length == 0)
-                return;
-
-            var codeActions = fixData.IndividualFixData.SelectAsArray(
-                d => CodeAction.Create(
-                    d.Title,
-                    async cancellationToken =>
-                    {
-                        var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-                        var newText = sourceText.WithChanges(d.TextChanges);
-                        return document.WithText(newText);
-                    },
-                    d.Title));
-
-            if (codeActions.Length >= 2)
-            {
-                // Wrap the actions into a single top level suggestion so as to not clutter the list.
-                context.RegisterCodeFix(CodeAction.Create(
-                    string.Format(FeaturesResources.Fully_qualify_0, fixData.Name),
-                    codeActions,
-                    isInlinable: true), context.Diagnostics);
-            }
-            else
-            {
-                context.RegisterFixes(codeActions, context.Diagnostics);
-            }
+            context.RegisterFixes(codeActions, context.Diagnostics);
         }
     }
 }

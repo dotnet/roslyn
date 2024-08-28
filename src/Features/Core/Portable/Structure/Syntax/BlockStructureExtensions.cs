@@ -7,16 +7,15 @@
 using System;
 using System.Collections.Immutable;
 
-namespace Microsoft.CodeAnalysis.Structure
+namespace Microsoft.CodeAnalysis.Structure;
+
+internal static class BlockStructureExtensions
 {
-    internal static class BlockStructureExtensions
+    public static void Add<TType, TOutliner>(
+        this ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>>.Builder builder)
+        where TType : SyntaxNode
+        where TOutliner : AbstractSyntaxStructureProvider, new()
     {
-        public static void Add<TType, TOutliner>(
-            this ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>>.Builder builder)
-            where TType : SyntaxNode
-            where TOutliner : AbstractSyntaxStructureProvider, new()
-        {
-            builder.Add(typeof(TType), ImmutableArray.Create<AbstractSyntaxStructureProvider>(new TOutliner()));
-        }
+        builder.Add(typeof(TType), [new TOutliner()]);
     }
 }

@@ -274,6 +274,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(p2.IsVirtual);
             Assert.False(p3.IsOverride);
             Assert.False(p3.IsParams);
+            Assert.False(p3.IsParamsArray);
+            Assert.False(p3.IsParamsCollection);
             Assert.False(p4.IsOptional);
             Assert.False(p4.HasExplicitDefaultValue);
             // Not Impl - out of scope
@@ -369,6 +371,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(p1.IsOverride);
             Assert.False(p1.IsExtern);
             Assert.False(p1.IsParams);
+            Assert.False(p1.IsParamsArray);
+            Assert.False(p1.IsParamsCollection);
             Assert.False(p2.IsOptional);
             Assert.False(p2.HasExplicitDefaultValue);
             // Not Impl - Not in M2 scope

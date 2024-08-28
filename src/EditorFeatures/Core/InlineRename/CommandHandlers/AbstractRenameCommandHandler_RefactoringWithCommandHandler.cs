@@ -5,48 +5,47 @@
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+
+internal abstract partial class AbstractRenameCommandHandler :
+    ICommandHandler<ReorderParametersCommandArgs>,
+    ICommandHandler<RemoveParametersCommandArgs>,
+    ICommandHandler<ExtractInterfaceCommandArgs>,
+    ICommandHandler<EncapsulateFieldCommandArgs>
 {
-    internal abstract partial class AbstractRenameCommandHandler :
-        ICommandHandler<ReorderParametersCommandArgs>,
-        ICommandHandler<RemoveParametersCommandArgs>,
-        ICommandHandler<ExtractInterfaceCommandArgs>,
-        ICommandHandler<EncapsulateFieldCommandArgs>
+    public CommandState GetCommandState(ReorderParametersCommandArgs args)
+        => CommandState.Unspecified;
+
+    public bool ExecuteCommand(ReorderParametersCommandArgs args, CommandExecutionContext context)
     {
-        public CommandState GetCommandState(ReorderParametersCommandArgs args)
-            => CommandState.Unspecified;
+        CommitIfActive(args);
+        return false;
+    }
 
-        public bool ExecuteCommand(ReorderParametersCommandArgs args, CommandExecutionContext context)
-        {
-            CommitIfActive(args);
-            return false;
-        }
+    public CommandState GetCommandState(RemoveParametersCommandArgs args)
+        => CommandState.Unspecified;
 
-        public CommandState GetCommandState(RemoveParametersCommandArgs args)
-            => CommandState.Unspecified;
+    public bool ExecuteCommand(RemoveParametersCommandArgs args, CommandExecutionContext context)
+    {
+        CommitIfActive(args);
+        return false;
+    }
 
-        public bool ExecuteCommand(RemoveParametersCommandArgs args, CommandExecutionContext context)
-        {
-            CommitIfActive(args);
-            return false;
-        }
+    public CommandState GetCommandState(ExtractInterfaceCommandArgs args)
+        => CommandState.Unspecified;
 
-        public CommandState GetCommandState(ExtractInterfaceCommandArgs args)
-            => CommandState.Unspecified;
+    public bool ExecuteCommand(ExtractInterfaceCommandArgs args, CommandExecutionContext context)
+    {
+        CommitIfActive(args);
+        return false;
+    }
 
-        public bool ExecuteCommand(ExtractInterfaceCommandArgs args, CommandExecutionContext context)
-        {
-            CommitIfActive(args);
-            return false;
-        }
+    public CommandState GetCommandState(EncapsulateFieldCommandArgs args)
+        => CommandState.Unspecified;
 
-        public CommandState GetCommandState(EncapsulateFieldCommandArgs args)
-            => CommandState.Unspecified;
-
-        public bool ExecuteCommand(EncapsulateFieldCommandArgs args, CommandExecutionContext context)
-        {
-            CommitIfActive(args);
-            return false;
-        }
+    public bool ExecuteCommand(EncapsulateFieldCommandArgs args, CommandExecutionContext context)
+    {
+        CommitIfActive(args);
+        return false;
     }
 }

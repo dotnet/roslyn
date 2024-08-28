@@ -7,16 +7,14 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CodeLens
+namespace Microsoft.CodeAnalysis.CodeLens;
+
+internal interface IRemoteCodeLensReferencesService
 {
-    internal interface IRemoteCodeLensReferencesService
-    {
-        ValueTask<ReferenceCount?> GetReferenceCountAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan textSpan, int maxResultCount, CancellationToken cancellationToken);
-        ValueTask<ImmutableArray<ReferenceLocationDescriptor>?> FindReferenceLocationsAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
-        ValueTask<ImmutableArray<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
-        ValueTask<string> GetFullyQualifiedNameAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
-    }
+    ValueTask<ReferenceCount?> GetReferenceCountAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan textSpan, int maxResultCount, CancellationToken cancellationToken);
+    ValueTask<ImmutableArray<ReferenceLocationDescriptor>?> FindReferenceLocationsAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
+    ValueTask<ImmutableArray<ReferenceMethodDescriptor>?> FindReferenceMethodsAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
+    ValueTask<string> GetFullyQualifiedNameAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan textSpan, CancellationToken cancellationToken);
 }

@@ -35,8 +35,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
         // Debug information emitted to Debug PDBs supporting EnC:
         private readonly DebugId _methodId;
         private readonly ImmutableArray<EncHoistedLocalInfo> _stateMachineHoistedLocalSlots;
-        private readonly ImmutableArray<LambdaDebugInfo> _lambdaDebugInfo;
-        private readonly ImmutableArray<ClosureDebugInfo> _closureDebugInfo;
+        private readonly ImmutableArray<EncLambdaInfo> _lambdaDebugInfo;
+        private readonly ImmutableArray<LambdaRuntimeRudeEditInfo> _orderedLambdaRuntimeRudeEdits;
+        private readonly ImmutableArray<EncClosureInfo> _closureDebugInfo;
         private readonly StateMachineStatesDebugInfo _stateMachineStatesDebugInfo;
 
         // Data used when emitting EnC delta:
@@ -61,8 +62,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             ImmutableArray<Cci.LocalScope> localScopes,
             bool hasDynamicLocalVariables,
             Cci.IImportScope importScopeOpt,
-            ImmutableArray<LambdaDebugInfo> lambdaDebugInfo,
-            ImmutableArray<ClosureDebugInfo> closureDebugInfo,
+            ImmutableArray<EncLambdaInfo> lambdaDebugInfo,
+            ImmutableArray<LambdaRuntimeRudeEditInfo> orderedLambdaRuntimeRudeEdits,
+            ImmutableArray<EncClosureInfo> closureDebugInfo,
             string stateMachineTypeNameOpt,
             ImmutableArray<StateMachineHoistedLocalScope> stateMachineHoistedLocalScopes,
             ImmutableArray<EncHoistedLocalInfo> stateMachineHoistedLocalSlots,
@@ -88,6 +90,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _hasDynamicLocalVariables = hasDynamicLocalVariables;
             _importScopeOpt = importScopeOpt;
             _lambdaDebugInfo = lambdaDebugInfo;
+            _orderedLambdaRuntimeRudeEdits = orderedLambdaRuntimeRudeEdits;
             _closureDebugInfo = closureDebugInfo;
             _stateMachineTypeNameOpt = stateMachineTypeNameOpt;
             _stateMachineHoistedLocalScopes = stateMachineHoistedLocalScopes;
@@ -152,9 +155,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public DebugId MethodId => _methodId;
 
-        public ImmutableArray<LambdaDebugInfo> LambdaDebugInfo => _lambdaDebugInfo;
+        public ImmutableArray<EncLambdaInfo> LambdaDebugInfo => _lambdaDebugInfo;
 
-        public ImmutableArray<ClosureDebugInfo> ClosureDebugInfo => _closureDebugInfo;
+        /// <summary>
+        /// Ordered by <see cref="LambdaRuntimeRudeEditInfo.LambdaId"/>.
+        /// </summary>
+        public ImmutableArray<LambdaRuntimeRudeEditInfo> OrderedLambdaRuntimeRudeEdits => _orderedLambdaRuntimeRudeEdits;
+
+        public ImmutableArray<EncClosureInfo> ClosureDebugInfo => _closureDebugInfo;
 
         public StateMachineStatesDebugInfo StateMachineStatesDebugInfo => _stateMachineStatesDebugInfo;
 

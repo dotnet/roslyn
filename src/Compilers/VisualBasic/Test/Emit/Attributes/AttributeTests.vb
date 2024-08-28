@@ -4452,6 +4452,249 @@ End Class
             Assert.Equal("Target(Of )", typeInAttribute.ToTestDisplayString())
         End Sub
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
+        Public Sub Attribute_GenericTypeInParameter_Constructor()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Class A
+    Inherits System.Attribute
+
+    Public Sub New(e As B(Of Integer).E)
+    End Sub
+End Class
+
+Public Class B(Of T)
+    Public Enum E
+        X
+    End Enum
+
+    Public Const C As E = CType(33, E)
+End Class
+
+<A(B(Of Integer).C)>
+Class C
+End Class
+    ]]></file>
+</compilation>
+
+            Dim verifier = CompileAndVerify(source, symbolValidator:=
+                Sub(m)
+                    Dim c = m.GlobalNamespace.GetTypeMember("C")
+                    Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+                    Assert.False(attr.HasErrors)
+                    Assert.Empty(attr.NamedArguments)
+                    Dim arg = attr.ConstructorArguments.Single()
+                    Assert.Equal(33, arg.Value)
+                    Assert.Equal("B(Of System.Int32).E", arg.Type.ToTestDisplayString())
+                End Sub)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
+        Public Sub Attribute_GenericTypeInParameter_Property()
+            Dim source =
+<compilation>
+    <file><![CDATA[
+Class A
+    Inherits System.Attribute
+
+    Public Property E As B(Of Integer).E
+End Class
+
+Public Class B(Of T)
+    Public Enum E
+        X
+    End Enum
+
+    Public Const C As E = CType(33, E)
+End Class
+
+<A(E:=B(Of Integer).C)>
+Class C
+End Class
+    ]]></file>
+</compilation>
+
+            Dim verifier = CompileAndVerify(source, symbolValidator:=
+                Sub(m)
+                    Dim c = m.GlobalNamespace.GetTypeMember("C")
+                    Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+                    Assert.False(attr.HasErrors)
+                    Assert.Empty(attr.ConstructorArguments)
+                    Dim arg = attr.NamedArguments.Single()
+                    Assert.Equal("E", arg.Key)
+                    Assert.Equal(33, arg.Value.Value)
+                    Assert.Equal("B(Of System.Int32).E", arg.Value.Type.ToTestDisplayString())
+                End Sub)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
+        Public Sub Attribute_Generic_Constructor()
+            Dim source1 = <![CDATA[
+class A<T> : System.Attribute
+{
+    public A(T t) { }
+}
+
+struct B<T>
+{
+    public enum E { }
+    public const E C = (E)33;
+}
+
+[A<B<int>.E>(B<int>.C)]
+public class C { }
+]]>
+            Dim comp1 = CreateCSharpCompilation(source1).VerifyDiagnostics()
+            Dim comp2 = CreateCompilation("", {comp1.EmitToImageReference()}).VerifyDiagnostics()
+            Dim c = comp2.GetTypeByMetadataName("C")
+            Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+            Assert.False(attr.HasErrors)
+            Assert.Empty(attr.NamedArguments)
+            Dim arg = attr.ConstructorArguments.Single()
+            Assert.Equal(33, arg.Value)
+            Assert.Equal("B(Of System.Int32).E", arg.Type.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
+        Public Sub Attribute_Generic_Property()
+            Dim source1 = <![CDATA[
+class A<T> : System.Attribute
+{
+    public T Prop { get; set; }
+}
+
+struct B<T>
+{
+    public enum E { }
+    public const E C = (E)33;
+}
+
+[A<B<int>.E>(Prop = B<int>.C)]
+public class C { }
+]]>
+            Dim comp1 = CreateCSharpCompilation(source1).VerifyDiagnostics()
+            Dim comp2 = CreateCompilation("", {comp1.EmitToImageReference()}).VerifyDiagnostics()
+            Dim c = comp2.GetTypeByMetadataName("C")
+            Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+            Assert.False(attr.HasErrors)
+            Assert.Empty(attr.ConstructorArguments)
+            Dim arg = attr.NamedArguments.Single()
+            Assert.Equal("Prop", arg.Key)
+            Assert.Equal(33, arg.Value.Value)
+            Assert.Equal("B(Of System.Int32).E", arg.Value.Type.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
+        Public Sub Attribute_Generic_NestedClass()
+            Dim source1 = <![CDATA[
+class A1<T>
+{
+    public class A2 : System.Attribute
+    {
+        public A2(T t) { }
+    }
+}
+
+struct B<T>
+{
+    public enum E { }
+    public const E C = (E)33;
+}
+
+[A1<B<int>.E>.A2(B<int>.C)]
+public class C { }
+]]>
+            Dim comp1 = CreateCSharpCompilation(source1).VerifyDiagnostics()
+            Dim comp2 = CreateCompilation("", {comp1.EmitToImageReference()}).VerifyDiagnostics()
+            Dim c = comp2.GetTypeByMetadataName("C")
+            Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A2")
+            Assert.False(attr.HasErrors)
+            Assert.Empty(attr.NamedArguments)
+            Dim arg = attr.ConstructorArguments.Single()
+            Assert.Equal(33, arg.Value)
+            Assert.Equal("B(Of System.Int32).E", arg.Type.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
+        Public Sub Attribute_Generic_Object()
+            Dim source1 = <![CDATA[
+class A<T> : System.Attribute
+{
+    public A(T t) { }
+}
+
+public enum E { }
+
+[A<object>(C.X)]
+public class C
+{
+    public const E X = (E)33;
+}
+]]>
+            Dim comp1 = CreateCSharpCompilation(source1).VerifyDiagnostics()
+            Dim comp2 = CreateCompilation("", {comp1.EmitToImageReference()}).VerifyDiagnostics()
+            Dim c = comp2.GetTypeByMetadataName("C")
+            Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+            Assert.False(attr.HasErrors)
+            Assert.Empty(attr.NamedArguments)
+            Dim arg = attr.ConstructorArguments.Single()
+            Assert.Equal(33, arg.Value)
+            Assert.Equal("E", arg.Type.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
+        Public Sub Attribute_Generic_Constant()
+            Dim source1 = <![CDATA[
+class A<T> : System.Attribute
+{
+    public A(T t) { }
+}
+
+[A<int>(33)]
+public class C { }
+]]>
+            Dim comp1 = CreateCSharpCompilation(source1).VerifyDiagnostics()
+            Dim comp2 = CreateCompilation("", {comp1.EmitToImageReference()}).VerifyDiagnostics()
+            Dim c = comp2.GetTypeByMetadataName("C")
+            Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+            Assert.False(attr.HasErrors)
+            Assert.Empty(attr.NamedArguments)
+            Dim arg = attr.ConstructorArguments.Single()
+            Assert.Equal(33, arg.Value)
+            Assert.Equal("System.Int32", arg.Type.ToTestDisplayString())
+        End Sub
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66370")>
+        Public Sub Attribute_Generic_NestedGeneric()
+            Dim source1 = <![CDATA[
+class A<T> : System.Attribute
+{
+    public A(B<T>.E t) { }
+}
+
+struct B<T>
+{
+    public enum E { }
+    public const E C = (E)33;
+}
+
+[A<int>(B<int>.C)]
+public class C { }
+]]>
+            Dim comp1 = CreateCSharpCompilation(source1).VerifyDiagnostics()
+            Dim comp2 = CreateCompilation("", {comp1.EmitToImageReference()}).VerifyDiagnostics()
+            Dim c = comp2.GetTypeByMetadataName("C")
+            Dim attr = c.GetAttributes().Single(Function(d) d.AttributeClass?.Name = "A")
+            Assert.False(attr.HasErrors)
+            Assert.Empty(attr.NamedArguments)
+            Dim arg = attr.ConstructorArguments.Single()
+            Assert.Equal(33, arg.Value)
+            Assert.Equal("B(Of System.Int32).E", arg.Type.ToTestDisplayString())
+        End Sub
+
         <Fact, WorkItem(879792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/879792")>
         Public Sub Bug879792()
             Dim source2 =
@@ -4868,7 +5111,7 @@ Namespace a
     End Class
 End Namespace
 "
-            CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(code).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_BadAttributeConstructor1, "Command").WithArguments("a.Class1.CommandAttribute.FxCommand").WithLocation(20, 10),
                 Diagnostic(ERRID.ERR_RequiredConstExpr, "AddressOf UserInfo").WithLocation(20, 18))
         End Sub
@@ -5000,7 +5243,37 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <expected><![CDATA[
-DiagID1: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+BC30668: 'C' is obsolete: 'error'.
+    Sub M(c As C)
+               ~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ExperimentalWithDiagnosticsId_WithObsolete_ReverseOrder()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID1")>
+<System.Obsolete("error", True)>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30668: 'C' is obsolete: 'error'.
     Sub M(c As C)
                ~
 ]]></expected>)
@@ -5039,6 +5312,98 @@ BC30668: 'C' is obsolete: 'error'.
                ~
 ]]></expected>)
 
+        End Sub
+
+        <Fact>
+        Public Sub ExperimentalWithDiagnosticsId_WithDeprecated()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+Imports System
+Namespace Windows.Foundation.Metadata
+    <AttributeUsage(
+        AttributeTargets.Class Or AttributeTargets.Struct Or AttributeTargets.Enum Or AttributeTargets.Constructor Or AttributeTargets.Method Or AttributeTargets.Property Or AttributeTargets.Field Or AttributeTargets.Event Or AttributeTargets.Interface Or AttributeTargets.Delegate,
+        AllowMultiple:=True)>
+    Public NotInheritable Class DeprecatedAttribute
+        Inherits Attribute
+        Public Sub New(message As String, type As DeprecationType, version As UInteger)
+        End Sub
+    End Class
+    Public Enum DeprecationType
+        Deprecate
+        Remove
+    End Enum
+End Namespace
+
+<Windows.Foundation.Metadata.Deprecated("DEPRECATED", Windows.Foundation.Metadata.DeprecationType.Deprecate, 0)>
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID1")>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC40000: 'C' is obsolete: 'DEPRECATED'.
+    Sub M(c As C)
+               ~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub ExperimentalWithDiagnosticsId_WithDeprecated_ReverseOrder()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+Imports System
+Namespace Windows.Foundation.Metadata
+    <AttributeUsage(
+        AttributeTargets.Class Or AttributeTargets.Struct Or AttributeTargets.Enum Or AttributeTargets.Constructor Or AttributeTargets.Method Or AttributeTargets.Property Or AttributeTargets.Field Or AttributeTargets.Event Or AttributeTargets.Interface Or AttributeTargets.Delegate,
+        AllowMultiple:=True)>
+    Public NotInheritable Class DeprecatedAttribute
+        Inherits Attribute
+        Public Sub New(message As String, type As DeprecationType, version As UInteger)
+        End Sub
+    End Class
+    Public Enum DeprecationType
+        Deprecate
+        Remove
+    End Enum
+End Namespace
+
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID1")>
+<Windows.Foundation.Metadata.Deprecated("DEPRECATED", Windows.Foundation.Metadata.DeprecationType.Deprecate, 0)>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC40000: 'C' is obsolete: 'DEPRECATED'.
+    Sub M(c As C)
+               ~
+]]></expected>)
         End Sub
 
         <Fact>
@@ -5463,6 +5828,304 @@ DiagID1: 'Derived' is for evaluation purposes only and is subject to change or r
             Assert.IsType(Of RetargetingNamedTypeSymbol)(derivedType)
             Assert.IsType(Of RetargetingModuleSymbol)(derivedType.ContainingModule)
             Assert.Equal(ObsoleteAttributeKind.Experimental, derivedType.ContainingModule.ObsoleteKind)
+        End Sub
+
+        <Fact>
+        Public Sub NullDiagnosticId()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental(Nothing)>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC37328: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+<System.Diagnostics.CodeAnalysis.Experimental(Nothing)>
+                                              ~~~~~~~
+BC42380: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+    Sub M(c As C)
+               ~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub MissingDiagnosticIdArgument()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental()>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30455: Argument not specified for parameter 'diagnosticId' of 'Public Overloads Sub New(diagnosticId As String)'.
+<System.Diagnostics.CodeAnalysis.Experimental()>
+                                 ~~~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub IntegerDiagnosticIdArgument()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental(42)>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30934: Conversion from 'Integer' to 'String' cannot occur in a constant expression used as an argument to an attribute.
+<System.Diagnostics.CodeAnalysis.Experimental(42)>
+                                              ~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub MultipleArguments()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID", "other")>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30057: Too many arguments to 'Public Overloads Sub New(diagnosticId As String)'.
+<System.Diagnostics.CodeAnalysis.Experimental("DiagID", "other")>
+                                                        ~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub WhitespaceDiagnosticId()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental(" ")>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC37328: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+<System.Diagnostics.CodeAnalysis.Experimental(" ")>
+                                              ~~~
+BC42380: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+    Sub M(c As C)
+               ~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub WhitespaceDiagnosticId_WithSuppression()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental(" ")>
+Class C
+End Class
+
+#Disable Warning BC42380
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            Assert.Equal(DirectCast(42380, ERRID), ERRID.WRN_Experimental)
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC37328: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+<System.Diagnostics.CodeAnalysis.Experimental(" ")>
+                                              ~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SpacedDiagnosticId()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental("Diag 01")>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC37328: The diagnosticId argument to the 'Experimental' attribute must be a valid identifier
+<System.Diagnostics.CodeAnalysis.Experimental("Diag 01")>
+                                              ~~~~~~~~~
+Diag 01: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+    Sub M(c As C)
+               ~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SpacedDiagnosticId_WithSecondArgument()
+            Dim attrComp = CreateCSharpCompilation(experimentalAttributeCSharpSrc)
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+<System.Diagnostics.CodeAnalysis.Experimental("Diag 01", "other")>
+Class C
+End Class
+
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilation(src, references:={attrComp.EmitToImageReference()})
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30057: Too many arguments to 'Public Overloads Sub New(diagnosticId As String)'.
+<System.Diagnostics.CodeAnalysis.Experimental("Diag 01", "other")>
+                                                         ~~~~~~~
+]]></expected>)
+        End Sub
+
+        <Fact>
+        Public Sub SpacedDiagnosticId_Metadata()
+            Dim il = <![CDATA[
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .custom instance void System.Diagnostics.CodeAnalysis.ExperimentalAttribute::.ctor(string) = { string('Diag 01') }
+
+    .method public hidebysig static void M () cil managed
+    {
+        IL_0000: ret
+    }
+
+    .method public hidebysig specialname rtspecialname instance void .ctor () cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Object::.ctor()
+        IL_0006: ret
+    }
+}
+
+.class public auto ansi sealed beforefieldinit System.Diagnostics.CodeAnalysis.ExperimentalAttribute
+    extends [mscorlib]System.Attribute
+{
+    .method public hidebysig specialname rtspecialname instance void .ctor ( string diagnosticId ) cil managed
+    {
+        IL_0000: ldarg.0
+        IL_0001: call instance void [mscorlib]System.Attribute::.ctor()
+        IL_0006: ret
+    }
+}
+]]>
+
+            Dim src = <compilation>
+                          <file name="a.vb">
+                              <![CDATA[
+Class D
+    Sub M(c As C)
+    End Sub
+End Class
+]]>
+                          </file>
+                      </compilation>
+
+            Dim comp = CreateCompilationWithCustomILSource(src, ilSource:=il)
+
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+Diag 01: 'C' is for evaluation purposes only and is subject to change or removal in future updates.
+    Sub M(c As C)
+               ~
+]]></expected>)
         End Sub
 
         <Fact>

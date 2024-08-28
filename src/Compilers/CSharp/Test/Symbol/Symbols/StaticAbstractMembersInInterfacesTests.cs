@@ -1145,9 +1145,9 @@ partial interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,34): error CS0750: A partial method cannot have the 'abstract' modifier
+                // (4,34): error CS0750: A partial member cannot have the 'abstract' modifier
                 //     abstract static partial void M01();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M01").WithLocation(4, 34)
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "M01").WithLocation(4, 34)
                 );
 
             var i1 = compilation1.GetTypeByMetadataName("I1");
@@ -1260,15 +1260,15 @@ partial interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,34): error CS0750: A partial method cannot have the 'abstract' modifier
+                // (4,34): error CS0750: A partial member cannot have the 'abstract' modifier
                 //     abstract static partial void M01();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M01").WithLocation(4, 34),
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "M01").WithLocation(4, 34),
                 // (8,34): error CS0500: 'I1.M01()' cannot declare a body because it is marked abstract
                 //     abstract static partial void M01() {}
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M01").WithArguments("I1.M01()").WithLocation(8, 34),
-                // (8,34): error CS0750: A partial method cannot have the 'abstract' modifier
+                // (8,34): error CS0750: A partial member cannot have the 'abstract' modifier
                 //     abstract static partial void M01() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M01").WithLocation(8, 34)
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "M01").WithLocation(8, 34)
                 );
 
             var i1 = compilation1.GetTypeByMetadataName("I1");
@@ -1372,9 +1372,9 @@ partial interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,34): error CS0750: A partial method cannot have the 'abstract' modifier
+                // (4,34): error CS0750: A partial member cannot have the 'abstract' modifier
                 //     abstract static partial void M01();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M01").WithLocation(4, 34)
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "M01").WithLocation(4, 34)
                 );
 
             var i1 = compilation1.GetTypeByMetadataName("I1");
@@ -1427,12 +1427,12 @@ partial interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (8,25): error CS8799: Both partial method declarations must have identical accessibility modifiers.
+                // (8,25): error CS8799: Both partial member declarations must have identical accessibility modifiers.
                 //     static partial void M01() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodAccessibilityDifference, "M01").WithLocation(8, 25),
-                // (8,25): error CS8800: Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "M01").WithLocation(8, 25),
+                // (8,25): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
                 //     static partial void M01() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M01").WithLocation(8, 25)
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "M01").WithLocation(8, 25)
                 );
 
             var i1 = compilation1.GetTypeByMetadataName("I1");
@@ -1485,9 +1485,9 @@ partial interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (8,32): error CS8800: Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                // (8,32): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
                 //     public static partial void M01() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M01").WithLocation(8, 32)
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "M01").WithLocation(8, 32)
                 );
 
             var i1 = compilation1.GetTypeByMetadataName("I1");
@@ -1543,9 +1543,9 @@ partial interface I1
                 // (8,34): error CS0500: 'I1.M01()' cannot declare a body because it is marked abstract
                 //     abstract static partial void M01() {}
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M01").WithArguments("I1.M01()").WithLocation(8, 34),
-                // (8,34): error CS0750: A partial method cannot have the 'abstract' modifier
+                // (8,34): error CS0750: A partial member cannot have the 'abstract' modifier
                 //     abstract static partial void M01() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M01").WithLocation(8, 34)
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "M01").WithLocation(8, 34)
                 );
 
             var i1 = compilation1.GetTypeByMetadataName("I1");
@@ -5369,7 +5369,7 @@ interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation1.VerifyDiagnostics(
                 // (4,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -5410,7 +5410,7 @@ interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation1.VerifyDiagnostics(
                 // (4,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -5699,7 +5699,7 @@ interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             bool isChecked = op.StartsWith("checked ");
 
@@ -5746,7 +5746,7 @@ interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             bool isChecked = op.StartsWith("checked ");
 
@@ -5776,7 +5776,7 @@ interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_BadAbstractEqualityOperatorSignature).Verify(
                 // (4,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -5825,7 +5825,7 @@ interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation1.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_BadAbstractEqualityOperatorSignature).Verify(
                 // (4,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -5950,7 +5950,7 @@ interface I1<T> where T : I1<T>
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation1.VerifyDiagnostics(
                 // (4,39): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -6067,7 +6067,7 @@ interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation1.VerifyDiagnostics(
                 // (4,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -6091,7 +6091,7 @@ interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation1.VerifyDiagnostics(
                 // (4,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -6206,7 +6206,7 @@ interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation1.VerifyDiagnostics(
                 // (4,41): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -6227,7 +6227,7 @@ interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation1.VerifyDiagnostics(
                 // (4,41): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -8505,7 +8505,7 @@ class Test
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -8516,7 +8516,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyDiagnostics(
                 // (12,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -9115,7 +9115,7 @@ class Test
 
                 var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.DesktopLatestExtended,
+                                                     targetFramework: TargetFramework.Mscorlib461Extended,
                                                      references: new[] { compilation1.ToMetadataReference() });
 
                 compilation2.VerifyDiagnostics(
@@ -9126,7 +9126,7 @@ class Test
 
                 var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.DesktopLatestExtended);
+                                                     targetFramework: TargetFramework.Mscorlib461Extended);
 
                 compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                     // (12,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -9400,7 +9400,7 @@ class Test
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -9411,7 +9411,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyDiagnostics(
                 // (12,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -9805,7 +9805,7 @@ class C<T>
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -9816,7 +9816,7 @@ class C<T>
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyDiagnostics(
                 // (21,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -12184,7 +12184,7 @@ class Test
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -12195,7 +12195,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.ERR_BadAbstractEqualityOperatorSignature)).Verify(
                 // (12,33): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -12247,7 +12247,7 @@ class Test
 
                 var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.DesktopLatestExtended,
+                                                     targetFramework: TargetFramework.Mscorlib461Extended,
                                                      references: new[] { compilation1.ToMetadataReference() });
 
                 if (success)
@@ -12265,7 +12265,7 @@ class Test
 
                 var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                      parseOptions: TestOptions.RegularPreview,
-                                                     targetFramework: TargetFramework.DesktopLatestExtended);
+                                                     targetFramework: TargetFramework.Mscorlib461Extended);
 
                 var builder = ArrayBuilder<DiagnosticDescription>.GetInstance();
 
@@ -12334,7 +12334,7 @@ class Test
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -12345,7 +12345,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (12,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -12384,7 +12384,7 @@ class Test
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -12395,7 +12395,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyDiagnostics(
                 // (12,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -13439,7 +13439,7 @@ class Test
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -13450,7 +13450,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyDiagnostics(
                 // (12,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -13491,7 +13491,7 @@ class Test
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -13502,7 +13502,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyDiagnostics(
                 // (12,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -13543,7 +13543,7 @@ class Test
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -13557,7 +13557,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyDiagnostics(
                 // (12,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -14149,7 +14149,7 @@ class Test
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -14160,7 +14160,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyDiagnostics(
                 // (12,41): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -14198,7 +14198,7 @@ class Test
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -14209,7 +14209,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyDiagnostics(
                 // (12,41): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -14751,7 +14751,7 @@ class Test
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -14762,7 +14762,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyDiagnostics(
                 // (12,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -15157,7 +15157,7 @@ class Test
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -15168,7 +15168,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyDiagnostics(
                 // (12,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -15425,7 +15425,7 @@ unsafe class Test
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll.WithAllowUnsafe(true),
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -15436,7 +15436,7 @@ unsafe class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll.WithAllowUnsafe(true),
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyDiagnostics(
                 // (12,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -15963,7 +15963,7 @@ typeKeyword + @"
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -15974,7 +15974,7 @@ typeKeyword + @"
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyDiagnostics(
                 // (9,26): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -16010,7 +16010,7 @@ typeKeyword + @"
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -16021,7 +16021,7 @@ typeKeyword + @"
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyDiagnostics(
                 // (4,20): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -19062,7 +19062,7 @@ typeKeyword + @"
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
@@ -19073,7 +19073,7 @@ typeKeyword + @"
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType)).Verify(
                 // (9,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -19114,7 +19114,7 @@ typeKeyword + @"
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
@@ -19125,7 +19125,7 @@ typeKeyword + @"
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.WRN_EqualityOpWithoutEquals or (int)ErrorCode.WRN_EqualityOpWithoutGetHashCode)).Verify(
                 // (9,32): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -19166,7 +19166,7 @@ typeKeyword + @"
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -19177,7 +19177,7 @@ typeKeyword + @"
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_OpTFRetType or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch)).Verify(
                 // (4,27): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -19221,7 +19221,7 @@ typeKeyword + @"
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -19232,7 +19232,7 @@ typeKeyword + @"
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not ((int)ErrorCode.ERR_OperatorNeedsMatch or (int)ErrorCode.ERR_CheckedOperatorNeedsMatch or (int)ErrorCode.ERR_BadAbstractEqualityOperatorSignature)).Verify(
                 // (4,27): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -22813,7 +22813,7 @@ typeKeyword + @"
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -22830,7 +22830,7 @@ typeKeyword + @"
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyDiagnostics(
                 // (9,31): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -22869,7 +22869,7 @@ typeKeyword + @"
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -22880,7 +22880,7 @@ typeKeyword + @"
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyDiagnostics(
                 // (4,19): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -25597,7 +25597,7 @@ typeKeyword + @"
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -25614,7 +25614,7 @@ typeKeyword + @"
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyDiagnostics(
                 // (9,41): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -25650,7 +25650,7 @@ typeKeyword + @"
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -25661,7 +25661,7 @@ typeKeyword + @"
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyDiagnostics(
                 // (4,35): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -28522,7 +28522,7 @@ public partial interface I1<T> where T : I1<T>
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
@@ -28533,7 +28533,7 @@ public partial interface I1<T> where T : I1<T>
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (9,39): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -28574,7 +28574,7 @@ typeKeyword + @"
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
@@ -28585,7 +28585,7 @@ typeKeyword + @"
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (4,40): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -30519,7 +30519,7 @@ class Test
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -30530,7 +30530,7 @@ class Test
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.GetDiagnostics().Where(d => d.Code is not (int)ErrorCode.ERR_CheckedOperatorNeedsMatch).Verify(
                 // (12,39): error CS8919: Target runtime doesn't support static abstract members in interfaces.
@@ -30577,7 +30577,7 @@ class C<T>
 
             var compilation2 = CreateCompilation(source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  references: new[] { compilation1.ToMetadataReference() });
 
             compilation2.VerifyDiagnostics(
@@ -30588,7 +30588,7 @@ class C<T>
 
             var compilation3 = CreateCompilation(source2 + source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyDiagnostics(
                 // (21,39): error CS8919: Target runtime doesn't support static abstract members in interfaces.

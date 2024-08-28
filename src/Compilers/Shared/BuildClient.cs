@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var client = new BuildClient(logger, language, compileFunc, compileOnServerFunc);
             var clientDir = GetClientDirectory();
             var workingDir = Directory.GetCurrentDirectory();
-            var tempDir = BuildServerConnection.GetTempPath(workingDir);
+            var tempDir = Path.GetTempPath();
             var buildPaths = new BuildPaths(clientDir: clientDir, workingDir: workingDir, sdkDir: sdkDir, tempDir: tempDir);
             var originalArguments = GetCommandLineArgs(arguments);
             return client.RunCompilation(originalArguments, buildPaths).ExitCode;
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             try
             {
-                var requestId = Guid.NewGuid();
+                var requestId = Guid.NewGuid().ToString();
                 var buildRequest = BuildServerConnection.CreateBuildRequest(
                     requestId,
                     _language,

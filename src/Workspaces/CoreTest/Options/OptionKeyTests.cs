@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.UnitTests;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Options
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options
             Assert.Throws<ArgumentNullException>(() => new Option<bool>("Test Feature", null!, false));
             Assert.Throws<ArgumentNullException>(() => new Option<bool>(null!, "Test Name", false));
             Assert.Throws<ArgumentNullException>(() => new Option<bool>("X", "Test Name", false, storageLocations: null!));
-            Assert.Throws<ArgumentNullException>(() => new Option<bool>("X", "Test Name", false, storageLocations: new OptionStorageLocation[] { null! }));
+            Assert.Throws<ArgumentNullException>(() => new Option<bool>("X", "Test Name", false, storageLocations: [null!]));
         }
 
         [Fact]
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options
             Assert.Throws<ArgumentNullException>(() => new PerLanguageOption<bool>("Test Feature", null!, false));
             Assert.Throws<ArgumentNullException>(() => new PerLanguageOption<bool>(null!, "Test Name", false));
             Assert.Throws<ArgumentNullException>(() => new PerLanguageOption<bool>("X", "Test Name", false, storageLocations: null!));
-            Assert.Throws<ArgumentNullException>(() => new PerLanguageOption<bool>("X", "Test Name", false, storageLocations: new OptionStorageLocation[] { null! }));
+            Assert.Throws<ArgumentNullException>(() => new PerLanguageOption<bool>("X", "Test Name", false, storageLocations: [null!]));
         }
 
         [Fact]
@@ -171,7 +169,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options
             var publicOption = CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess;
 
             Assert.True(option.Definition.Serializer.TryParseValue("true:suggestion", out var result));
-            Assert.Equal(new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion), result);
+            Assert.Equal(new CodeStyleOption2<bool>(true, NotificationOption2.Suggestion.WithIsExplicitlySpecified(true)), result);
 
             Assert.Empty(publicOption.StorageLocations);
         }
@@ -179,10 +177,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Options
         [Fact]
         public void IsEditorConfigOption()
         {
-            Assert.All(FormattingOptions2.Options, o => Assert.True(o.Definition.IsEditorConfigOption));
+            Assert.All(FormattingOptions2.EditorConfigOptions, o => Assert.True(o.Definition.IsEditorConfigOption));
+            Assert.All(FormattingOptions2.UndocumentedOptions, o => Assert.True(o.Definition.IsEditorConfigOption));
+
             Assert.False(FormattingOptions2.SmartIndent.Definition.IsEditorConfigOption);
 
-            Assert.All(CSharpFormattingOptions2.AllOptions, o => Assert.True(o.Definition.IsEditorConfigOption));
+            Assert.All(CSharpFormattingOptions2.EditorConfigOptions, o => Assert.True(o.Definition.IsEditorConfigOption));
+            Assert.All(CSharpFormattingOptions2.UndocumentedOptions, o => Assert.True(o.Definition.IsEditorConfigOption));
 
             Assert.True(NamingStyleOptions.NamingPreferences.Definition.IsEditorConfigOption);
             Assert.True(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess.Definition.IsEditorConfigOption);

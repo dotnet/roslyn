@@ -49,7 +49,36 @@
           "msbuild",
           "-p:RunAnalyzersDuringBuild=false",
           "-p:GenerateFullPaths=true",
-          "src/Compilers/CSharp/csc/csc.csproj"
+          "-tl:off",
+          "src/Compilers/CSharp/csc/AnyCpu/csc.csproj"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "build Compilers.slnf",
+        "command": "dotnet",
+        "type": "shell",
+        "args": [
+          "build",
+          "-p:RunAnalyzersDuringBuild=false",
+          "-p:GenerateFullPaths=true",
+          "-tl:off",
+          "Compilers.slnf"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
+        "label": "build Roslyn.sln",
+        "command": "dotnet",
+        "type": "shell",
+        "args": [
+          "build",
+          "-p:RunAnalyzersDuringBuild=false",
+          "-p:GenerateFullPaths=true",
+          "-tl:off",
+          "Roslyn.sln"
         ],
         "problemMatcher": "$msCompile",
         "group": "build"
@@ -60,22 +89,13 @@
         "command": "dotnet",
         "args": [
           "pwsh",
+          "-noprofile",
           "${workspaceFolder}/scripts/vscode-build.ps1",
           "-filePath",
           "${file}",
           "-msbuildEngine",
           "dotnet"
         ],
-        "windows": {
-          "command": "powershell",
-          "args": [
-            "${workspaceFolder}/scripts/vscode-build.ps1",
-            "-filePath",
-            "${file}",
-            "-msbuildEngine",
-            "dotnet"
-          ],
-        },
         "problemMatcher": "$msCompile",
         "group": "build"
     },
@@ -119,6 +139,30 @@
         },
         "problemMatcher": "$msCompile",
         "group": "build"
+    },
+    {
+      "label": "build language server",
+      "command": "dotnet",
+      "type": "shell",
+      "args": [
+        "build",
+        "-c",
+        "Debug",
+        "src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Microsoft.CodeAnalysis.LanguageServer.csproj"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      "label": "launch vscode with language server",
+      "command": "${execPath}",
+      "type": "process",
+      "options": {
+        "env": {
+          "DOTNET_ROSLYN_SERVER_PATH": "${workspaceRoot}/artifacts/bin/Microsoft.CodeAnalysis.LanguageServer/Debug/net8.0/Microsoft.CodeAnalysis.LanguageServer.dll"
+        }
+      },
+      "dependsOn": [ "build language server" ]
     }
   ]
 }

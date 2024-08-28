@@ -76,33 +76,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Structure
 
             ''' <summary>
-            ''' Spill an expression list with a receiver (e.g. array access, method call), 
-            ''' where at least one of the receiver or the arguments contains an await expression.
-            ''' </summary>
-            Private Function SpillExpressionsWithReceiver(receiverOpt As BoundExpression,
-                                                          isReceiverOfAMethodCall As Boolean,
-                                                          expressions As ImmutableArray(Of BoundExpression),
-                                                          <[In], Out> ByRef spillBuilder As SpillBuilder) As ExpressionsWithReceiver
-
-                If receiverOpt Is Nothing Then
-                    Return New ExpressionsWithReceiver(Nothing, SpillExpressionList(spillBuilder, expressions, firstArgumentIsAReceiverOfAMethodCall:=False))
-                End If
-
-                ' We have a non-null receiver, and an expression of the form:
-                '      receiver(arg1/index1, arg2/index2, ..., argN/indexN)
-                ' or:
-                '      receiver.M(arg1, arg2, ... argN)
-
-                ' Build a list containing the receiver and all expressions (in that order)
-                Dim allExpressions = ImmutableArray.Create(Of BoundExpression)(receiverOpt).Concat(expressions)
-
-                ' Spill the expressions (and possibly the receiver):
-                Dim allSpilledExpressions = SpillExpressionList(spillBuilder, allExpressions, isReceiverOfAMethodCall)
-
-                Return New ExpressionsWithReceiver(allSpilledExpressions.First(), allSpilledExpressions.RemoveAt(0))
-            End Function
-
-            ''' <summary>
             ''' Spill a list of expressions (e.g. the arguments of a method call).
             ''' 
             ''' The expressions are processed right-to-left. Once an expression has been found that contains an await
@@ -155,12 +128,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' 
             ''' </summary>
             Private Function SpillExpressionList(<[In], Out> ByRef builder As SpillBuilder,
-                                                 expressions As ImmutableArray(Of BoundExpression),
-                                                 firstArgumentIsAReceiverOfAMethodCall As Boolean
+                                                 expressions As ImmutableArray(Of BoundExpression)
             ) As ImmutableArray(Of BoundExpression)
                 Dim spillBuilders = ArrayBuilder(Of SpillBuilder).GetInstance()
 
-                Dim newArgs As ImmutableArray(Of BoundExpression) = SpillArgumentListInner(expressions, spillBuilders, firstArgumentIsAReceiverOfAMethodCall, False)
+                Dim newArgs As ImmutableArray(Of BoundExpression) = SpillArgumentListInner(expressions, spillBuilders, False)
 
                 For index = spillBuilders.Count - 1 To 0 Step -1
                     builder.AddSpill(spillBuilders(index))
@@ -174,12 +146,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Function SpillExpressionList(<[In], Out> ByRef builder As SpillBuilder,
                                                  ParamArray expressions() As BoundExpression) As ImmutableArray(Of BoundExpression)
-                Return SpillExpressionList(builder, expressions.AsImmutableOrNull, firstArgumentIsAReceiverOfAMethodCall:=False)
+                Return SpillExpressionList(builder, expressions.AsImmutableOrNull)
             End Function
 
             Private Function SpillArgumentListInner(arguments As ImmutableArray(Of BoundExpression),
                                                     spillBuilders As ArrayBuilder(Of SpillBuilder),
-                                                    firstArgumentIsAReceiverOfAMethodCall As Boolean,
                                                     <[In], Out> ByRef spilledFirstArg As Boolean) As ImmutableArray(Of BoundExpression)
 
                 Dim newArgs(arguments.Length - 1) As BoundExpression
@@ -190,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' Descend into a nested array initializer:
                         Dim nestedInitializer = DirectCast(arg, BoundArrayInitialization)
                         Dim newInitializers As ImmutableArray(Of BoundExpression) =
-                            SpillArgumentListInner(nestedInitializer.Initializers, spillBuilders, False, spilledFirstArg)
+                            SpillArgumentListInner(nestedInitializer.Initializers, spillBuilders, spilledFirstArg)
                         newArgs(index) = nestedInitializer.Update(newInitializers, nestedInitializer.Type)
                         Continue For
                     End If
@@ -219,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Else
                         ' We are to the left of an await-containing expression. Spill the arg.
                         newExpression = SpillValue(arg,
-                                                   isReceiver:=(index = 0 AndAlso firstArgumentIsAReceiverOfAMethodCall),
+                                                   isReceiver:=False,
                                                    evaluateSideEffects:=True,
                                                    builder:=builder)
                     End If
@@ -254,8 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(expr IsNot Nothing)
                 Debug.Assert(isReceiver OrElse expr.IsLValue)
 
-                If isReceiver AndAlso expr.Type.IsReferenceType AndAlso
-                   Not expr.Type.IsTypeParameter() Then ' Skip type parameters to enforce Dev12 behavior
+                If isReceiver AndAlso expr.Type.IsReferenceType Then
                     Return SpillRValue(expr.MakeRValue(), builder)
                 End If
 
@@ -337,6 +307,62 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Return fieldAccess
 
+                    Case BoundKind.ComplexConditionalAccessReceiver
+                        Debug.Assert(isReceiver)
+                        Debug.Assert(Not isAssignmentTarget)
+
+                        Dim complexReceiver = DirectCast(expr, BoundComplexConditionalAccessReceiver)
+
+                        Dim valueReceiverBuilder As New SpillBuilder()
+                        Dim spilledValueReceiver As BoundExpression = SpillLValue(complexReceiver.ValueTypeReceiver, isReceiver, evaluateSideEffects, valueReceiverBuilder, isAssignmentTarget)
+                        spilledValueReceiver = valueReceiverBuilder.BuildSequenceAndFree(Me.F, spilledValueReceiver)
+                        Dim valueReceiverSpillSequence = TryCast(spilledValueReceiver, BoundSpillSequence)
+
+                        Dim referenceReceiverBuilder As New SpillBuilder()
+                        Dim spilledReferenceReceiver As BoundExpression = SpillLValue(complexReceiver.ReferenceTypeReceiver, isReceiver, evaluateSideEffects, referenceReceiverBuilder, isAssignmentTarget)
+                        spilledReferenceReceiver = referenceReceiverBuilder.BuildSequenceAndFree(Me.F, spilledReferenceReceiver)
+                        Dim referenceReceiverSpillSequence = TryCast(spilledReferenceReceiver, BoundSpillSequence)
+
+                        If valueReceiverSpillSequence Is Nothing Then
+                            If referenceReceiverSpillSequence Is Nothing Then
+                                Return complexReceiver.Update(spilledValueReceiver, spilledReferenceReceiver, complexReceiver.Type)
+                            Else
+                                ' If condition `(object)default(T) != null` is true at execution time,
+                                ' the T is a value type. And it is a reference type otherwise.
+                                Dim isValueTypeCheck = Me.F.ReferenceIsNotNothing(Me.F.DirectCast(Me.F.DirectCast(Me.F.Null(), complexReceiver.Type),
+                                                                                          Me.F.SpecialType(SpecialType.System_Object)))
+                                builder.AssumeFieldsIfNeeded(referenceReceiverSpillSequence)
+                                builder.AddLocals(referenceReceiverSpillSequence.Locals)
+                                builder.AddStatement(Me.F.If(Me.F.Not(isValueTypeCheck), Me.F.StatementList(referenceReceiverSpillSequence.Statements)))
+
+                                Return complexReceiver.Update(spilledValueReceiver, referenceReceiverSpillSequence.ValueOpt, complexReceiver.Type)
+                            End If
+
+                        ElseIf referenceReceiverSpillSequence Is Nothing Then
+                            ' If condition `(object)default(T) != null` is true at execution time,
+                            ' the T is a value type. And it is a reference type otherwise.
+                            Dim isValueTypeCheck = Me.F.ReferenceIsNotNothing(Me.F.DirectCast(Me.F.DirectCast(Me.F.Null(), complexReceiver.Type),
+                                                                                          Me.F.SpecialType(SpecialType.System_Object)))
+                            builder.AssumeFieldsIfNeeded(valueReceiverSpillSequence)
+                            builder.AddLocals(valueReceiverSpillSequence.Locals)
+                            builder.AddStatement(Me.F.If(isValueTypeCheck, Me.F.StatementList(valueReceiverSpillSequence.Statements)))
+
+                            Return complexReceiver.Update(valueReceiverSpillSequence.ValueOpt, spilledReferenceReceiver, complexReceiver.Type)
+                        Else
+
+                            ' If condition `(object)default(T) != null` is true at execution time,
+                            ' the T is a value type. And it is a reference type otherwise.
+                            Dim isValueTypeCheck = Me.F.ReferenceIsNotNothing(Me.F.DirectCast(Me.F.DirectCast(Me.F.Null(), complexReceiver.Type),
+                                                                                          Me.F.SpecialType(SpecialType.System_Object)))
+                            builder.AssumeFieldsIfNeeded(valueReceiverSpillSequence)
+                            builder.AddLocals(valueReceiverSpillSequence.Locals)
+                            builder.AssumeFieldsIfNeeded(referenceReceiverSpillSequence)
+                            builder.AddLocals(referenceReceiverSpillSequence.Locals)
+                            builder.AddStatement(Me.F.If(isValueTypeCheck, Me.F.StatementList(valueReceiverSpillSequence.Statements), Me.F.StatementList(referenceReceiverSpillSequence.Statements)))
+
+                            Return complexReceiver.Update(valueReceiverSpillSequence.ValueOpt, referenceReceiverSpillSequence.ValueOpt, complexReceiver.Type)
+                        End If
+
                     Case BoundKind.Local
                         ' Ref locals that appear as l-values in await-containing expressions get hoisted
                         Debug.Assert(Not DirectCast(expr, BoundLocal).LocalSymbol.IsByRef)
@@ -368,7 +394,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Case BoundKind.ArrayInitialization
                         Dim arrayInit = DirectCast(expr, BoundArrayInitialization)
-                        Return arrayInit.Update(SpillExpressionList(builder, arrayInit.Initializers, firstArgumentIsAReceiverOfAMethodCall:=False), arrayInit.Type)
+                        Return arrayInit.Update(SpillExpressionList(builder, arrayInit.Initializers), arrayInit.Type)
 
                     Case BoundKind.ConditionalAccessReceiverPlaceholder
                         If _conditionalAccessReceiverPlaceholderReplacementInfo Is Nothing OrElse

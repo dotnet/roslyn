@@ -45,12 +45,14 @@
       "Microsoft.CodeAnalysis.EditorFeatures.Wpf": "vssdk",
       "Microsoft.CodeAnalysis.EditorFeatures.Cocoa": "vssdk",
       "Microsoft.VisualStudio.IntegrationTest.Utilities": "vs-impl",
-      "Microsoft.VisualStudio.LanguageServices.DevKit": "npm",
+      "Microsoft.VisualStudio.LanguageServices.DevKit": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.alpine-arm64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.alpine-x64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.linux-arm64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.linux-x64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.linux-musl-x64": "vs-impl",
+      "Microsoft.CodeAnalysis.LanguageServer.linux-musl-arm64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.neutral": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.osx-arm64": "vs-impl",
       "Microsoft.CodeAnalysis.LanguageServer.osx-x64": "vs-impl",
@@ -62,9 +64,11 @@
       "Microsoft.CodeAnalysis.VisualBasic.LanguageServer.Protocol": "vs-impl",
       "Microsoft.CodeAnalysis.Lsif.Generator": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Apex": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.Copilot": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.CodeLens": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSDK": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Debugger": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.FSharp": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.IntelliTrace": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.ProjectSystem": "vs-impl",
@@ -75,14 +79,17 @@
       "Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.TypeScript": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.UnitTesting": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.Xaml":  "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch": "vs-impl",
       "Microsoft.CodeAnalysis.Remote.Razor.ServiceHub": "vs-impl",
       "Microsoft.CodeAnalysis.Remote.ServiceHub": "vs-impl",
       "Microsoft.CodeAnalysis.Remote.Workspaces": "vs-impl",
       "Microsoft.VisualStudio.LanguageServices.LiveShare": "vs-impl",
       "Microsoft.VisualStudio.LanguageServices.Razor.RemoteClient": "vs-impl",
-      "Microsoft.CommonLanguageServerProtocol.Framework": "vs-impl"
+      "Microsoft.CommonLanguageServerProtocol.Framework": "vs-impl",
+      "Microsoft.CommonLanguageServerProtocol.Framework.Binary": "vs-impl"
     }
   },
   "comment-about-servicing-branches": "For a list of VS versions under servicing, see https://docs.microsoft.com/en-us/visualstudio/releases/2019/servicing#support-options-for-enterprise-and-professional-customers",
@@ -136,24 +143,6 @@
       "vsMajorVersion": 17,
       "insertionTitlePrefix": "[d17.3]"
     },
-    "release/dev17.4": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d17.4",
-      "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.4]"
-    },
-    "release/dev17.5-vs-deps": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "rel/d17.5",
-      "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.5]"
-    },
     "release/dev17.6": {
       "nugetKind": [
         "Shipping",
@@ -170,7 +159,7 @@
       ],
       "vsBranch": "rel/d17.7",
       "vsMajorVersion": 17,
-      "insertionTitlePrefix": "[d17.7P3]"
+      "insertionTitlePrefix": "[d17.7]"
     },
     "release/dev17.8": {
       "nugetKind": [
@@ -179,8 +168,44 @@
       ],
       "vsBranch": "rel/d17.8",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[d17.8P2]"
+      "insertionTitlePrefix": "[d17.8]"
+    },
+    "release/dev17.9": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "rel/d17.9",
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17.9]"
+    },
+    "release/dev17.10": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "rel/d17.10",
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17.10]"
+    },
+    "release/dev17.11": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "rel/d17.11",
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17.11]"
+    },
+    "release/dev17.12": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "rel/d17.12",
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": false,
+      "insertionTitlePrefix": "[d17.12 P1]"
     },
     "main": {
       "nugetKind": [
@@ -190,27 +215,7 @@
       "vsBranch": "main",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.8P3]"
-    },
-    "dev/jorobich/fix-pr-val": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[Validation]"
-    },
-    "dev/jjonescz/razor-ea": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[Validation]"
+      "insertionTitlePrefix": "[d17.12 P2]"
     },
     "dev/andrha/telemetry": {
       "nugetKind": [
@@ -221,6 +226,26 @@
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": true,
       "insertionTitlePrefix": "[Telemetry Validation]"
+    },
+    "dev/jorobich/pr-val-v3-publishing": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[PR Validation]"
+    },
+    "demo/razor-lexer": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "insertionTitlePrefix": "[Do not merge, please close me]",
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": false
     }
   }
 }

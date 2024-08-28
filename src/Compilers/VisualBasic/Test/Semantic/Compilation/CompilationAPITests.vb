@@ -18,7 +18,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.TestHelpers
-Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 Imports CS = Microsoft.CodeAnalysis.CSharp
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -43,12 +43,12 @@ Class C
 End Class")
             Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
                 WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=options)
+            Dim comp = CreateCompilationWithMscorlib461({tree}, options:=options)
             comp.AssertNoDiagnostics()
 
             options = options.WithSyntaxTreeOptionsProvider(
                 New TestSyntaxTreeOptionsProvider(tree, ("BC42024", ReportDiagnostic.Warn)))
-            comp = CreateCompilationWithMscorlib45({tree}, options:=options)
+            comp = CreateCompilationWithMscorlib461({tree}, options:=options)
             ' Global options override syntax tree options. This is the opposite of C# behavior
             comp.AssertNoDiagnostics()
         End Sub
@@ -106,12 +106,12 @@ End Class")
 
             Dim options = TestOptions.DebugDll.WithSpecificDiagnosticOptions(
                 CreateImmutableDictionary(("BC42024", ReportDiagnostic.Suppress)))
-            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=options)
+            Dim comp = CreateCompilationWithMscorlib461({tree}, options:=options)
             comp.AssertNoDiagnostics()
 
             options = options.WithSyntaxTreeOptionsProvider(
                 New TestSyntaxTreeOptionsProvider(tree, ("BC42024", ReportDiagnostic.Error)))
-            Dim comp2 = CreateCompilationWithMscorlib45({tree}, options:=options)
+            Dim comp2 = CreateCompilationWithMscorlib461({tree}, options:=options)
             ' Specific diagnostic options should have precedence over tree options
             comp2.AssertNoDiagnostics()
         End Sub
@@ -135,7 +135,7 @@ End Class")
                 New TestSyntaxTreeOptionsProvider(
                     (tree, {("BC42024", ReportDiagnostic.Suppress)}),
                     (newTree, {("BC4024", ReportDiagnostic.Error)})))
-            Dim comp = CreateCompilationWithMscorlib45({tree, newTree}, options:=options)
+            Dim comp = CreateCompilationWithMscorlib461({tree, newTree}, options:=options)
             comp.AssertTheseDiagnostics(
                 <errors>
 BC42024: Unused local variable: 'y'.
@@ -285,7 +285,7 @@ BC37283: Invalid assembly name: Name contains invalid characters.
             listSyntaxTree.Add(t1)
 
             ' System.dll
-            listRef.Add(Net451.System)
+            listRef.Add(NetFramework.System)
             Dim ops = TestOptions.ReleaseExe
 
             ' Create Compilation with Option is not Nothing
@@ -320,7 +320,7 @@ BC37283: Invalid assembly name: Name contains invalid characters.
 
         <Fact>
         Public Sub GetSpecialType()
-            Dim comp = VisualBasicCompilation.Create("compilation", Nothing, Nothing, Nothing)
+            Dim comp = DirectCast(VisualBasicCompilation.Create("compilation", Nothing, Nothing, Nothing), Compilation)
             ' Get Special Type by enum
             Dim ntSmb = comp.GetSpecialType(typeId:=SpecialType.Count)
             Assert.Equal(SpecialType.Count, ntSmb.SpecialType)
@@ -530,8 +530,8 @@ End Namespace
         Public Sub ReferenceAPITest()
             ' Create Compilation takes two args
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim ref1 = Net451.mscorlib
-            Dim ref2 = Net451.System
+            Dim ref1 = NetFramework.mscorlib
+            Dim ref2 = NetFramework.System
             Dim ref3 = New TestMetadataReference(fullPath:="c:\xml.bms")
             Dim ref4 = New TestMetadataReference(fullPath:="c:\aaa.dll")
 
@@ -837,7 +837,7 @@ End Namespace
             ' Create compilation with args is disordered
             Dim comp1 = VisualBasicCompilation.Create("Compilation")
             Dim Err = "c:\file_that_does_not_exist"
-            Dim ref1 = Net451.mscorlib
+            Dim ref1 = NetFramework.mscorlib
             Dim listRef = New List(Of MetadataReference)
             ' this is NOT testing Roslyn
             listRef.Add(ref1)
@@ -1053,8 +1053,8 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
 
             Dim csCompRef = csComp.ToMetadataReference(embedInteropTypes:=True)
 
-            Dim ref1 = Net451.mscorlib
-            Dim ref2 = Net451.System
+            Dim ref1 = NetFramework.mscorlib
+            Dim ref2 = NetFramework.System
 
             ' Add VisualBasicCompilationReference
             comp = VisualBasicCompilation.Create("Test1",
@@ -1169,7 +1169,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
 
         <Fact>
         Public Sub AssemblySuppliedAsModule()
-            Dim comp = VisualBasicCompilation.Create("Compilation", references:={ModuleMetadata.CreateFromImage(ResourcesNet451.System).GetReference()})
+            Dim comp = VisualBasicCompilation.Create("Compilation", references:={ModuleMetadata.CreateFromImage(Net461.Resources.System).GetReference()})
             Assert.Equal(comp.GetDiagnostics().First().Code, ERRID.ERR_MetaDataIsNotModule)
         End Sub
 
@@ -1179,7 +1179,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference1()
             Dim comp = VisualBasicCompilation.Create("Compilation")
 
-            Assert.Null(comp.GetReferencedAssemblySymbol(Net451.System))
+            Assert.Null(comp.GetReferencedAssemblySymbol(NetFramework.System))
 
             Dim modRef1 = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.NetModule01.ModuleVB01).GetReference()
             Assert.Null(comp.GetReferencedModuleSymbol(modRef1))
@@ -1190,7 +1190,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         <Fact>
         Public Sub NegReference2()
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim ref1 = Net451.System
+            Dim ref1 = NetFramework.System
             Dim ref2 = New TestMetadataReference(fullPath:="c:\a\xml.bms")
             Dim ref3 = ref2
             Dim ref4 = New TestMetadataReference(fullPath:="c:\aaa.dll")
@@ -1218,7 +1218,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference3()
             Dim comp = VisualBasicCompilation.Create("Compilation")
             Dim ref1 = New TestMetadataReference(fullPath:="c:\xml.bms")
-            Dim ref2 = Net451.System
+            Dim ref2 = NetFramework.System
             comp = comp.AddReferences(ref1)
             Assert.Equal(1, comp.References.Count)
 
@@ -1256,8 +1256,8 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
         Public Sub NegReference5()
             Dim comp = VisualBasicCompilation.Create("Compilation")
 
-            Dim ref1 = Net451.mscorlib
-            Dim ref2 = Net451.System
+            Dim ref1 = NetFramework.mscorlib
+            Dim ref2 = NetFramework.System
             Assert.Throws(Of ArgumentException)(
                 Sub()
                     comp = comp.ReplaceReference(ref1, ref2)
@@ -2134,7 +2134,7 @@ End Class
         <Fact()>
         Public Sub GetEntryPoint_Script()
             Dim source = <![CDATA[System.Console.WriteLine(1)]]>
-            Dim compilation = CreateCompilationWithMscorlib45({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib461({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
 
             Dim scriptMethod = compilation.GetMember("Script.<Main>")
@@ -2154,7 +2154,7 @@ End Class
         End Sub
     End Class
     ]]>
-            Dim compilation = CreateCompilationWithMscorlib45({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib461({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics(Diagnostic(ERRID.WRN_MainIgnored, "Main").WithArguments("Public Shared Sub Main()").WithLocation(3, 20))
 
             Dim scriptMethod = compilation.GetMember("Script.<Main>")
@@ -2485,7 +2485,7 @@ End Class
         <WorkItem(797640, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/797640")>
         Public Sub GetMetadataReferenceAPITest()
             Dim comp = VisualBasicCompilation.Create("Compilation")
-            Dim metadata = Net451.mscorlib
+            Dim metadata = NetFramework.mscorlib
             comp = comp.AddReferences(metadata)
             Dim assemblySmb = comp.GetReferencedAssemblySymbol(metadata)
             Dim reference = comp.GetMetadataReference(assemblySmb)

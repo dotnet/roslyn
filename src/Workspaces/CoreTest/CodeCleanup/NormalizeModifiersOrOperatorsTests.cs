@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
@@ -1014,8 +1013,7 @@ End Module";
 
         private static async Task VerifyAsync(string codeWithMarker, string expectedResult)
         {
-            MarkupTestFile.GetSpans(codeWithMarker,
-                out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
+            MarkupTestFile.GetSpans(codeWithMarker, out var codeWithoutMarker, out var textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);
             var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name is PredefinedCodeCleanupProviderNames.NormalizeModifiersOrOperators or PredefinedCodeCleanupProviderNames.Format);

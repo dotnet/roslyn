@@ -5336,7 +5336,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
     // (17,34): error CS0165: Use of unassigned local variable 'o'
     //         System.Console.WriteLine(o);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "o").WithArguments("o").WithLocation(17, 34)
@@ -5368,7 +5368,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5397,7 +5397,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5426,7 +5426,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
     );
         }
 
@@ -5453,7 +5453,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         // DataFlowPass.VisitConversion with IsConditionalState.
@@ -5554,7 +5554,7 @@ class C
         }
     }
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (28,17): error CS0165: Use of unassigned local variable 'obj'
                 //                 obj.ToString();
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "obj").WithArguments("obj").WithLocation(28, 17)
@@ -5937,6 +5937,170 @@ class C
                 // (5,40): error CS9058: Feature 'instance member in 'nameof'' is not available in C# 11.0. Please use language version 12.0 or greater.
                 //     public static string M() => nameof(c.c.c);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "c").WithArguments("instance member in 'nameof'", "12.0").WithLocation(5, 40));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69775")]
+        public void OutParameterIsNotAssigned_01()
+        {
+            var source = """
+                #pragma warning disable CS8321 // The local function is declared but never used
+                
+                static void bug(out int a)
+                {
+                    bool hasLevel() => true;
+                    hasLevel();
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,13): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                // static void bug(out int a)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "bug").WithArguments("a").WithLocation(3, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69775")]
+        public void OutParameterIsNotAssigned_02()
+        {
+            var source = """
+                #pragma warning disable CS8321 // The local function is declared but never used
+
+                static void bug(out int a)
+                {
+                    bool hasLevel() => true;
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,13): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                // static void bug(out int a)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "bug").WithArguments("a").WithLocation(3, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69775")]
+        public void OutParameterIsNotAssigned_03()
+        {
+            var source = """
+                #pragma warning disable CS8321 // The local function is declared but never used
+                
+                class C
+                {
+                    static void bug(out int a)
+                    {
+                        bool hasLevel() => true;
+                        hasLevel();
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,17): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                //     static void bug(out int a)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "bug").WithArguments("a").WithLocation(5, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69775")]
+        public void OutParameterIsNotAssigned_04()
+        {
+            var source = """
+                #pragma warning disable CS8321 // The local function is declared but never used
+
+                class C
+                {
+                    static void bug(out int a)
+                    {
+                        bool hasLevel() => true;
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,17): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                //     static void bug(out int a)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "bug").WithArguments("a").WithLocation(5, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69775")]
+        public void OutParameterIsNotAssigned_05()
+        {
+            var source = """
+                #pragma warning disable CS8321 // The local function is declared but never used
+                
+                static void bug(out int a)
+                {
+                    System.Func<bool> hasLevel = () => true;
+                    hasLevel();
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,13): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                // static void bug(out int a)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "bug").WithArguments("a").WithLocation(3, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69775")]
+        public void OutParameterIsNotAssigned_06()
+        {
+            var source = """
+                class C
+                {
+                    static void bug(out int a)
+                    {
+                        System.Func<bool> hasLevel = () => true;
+                        hasLevel();
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,17): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                //     static void bug(out int a)
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "bug").WithArguments("a").WithLocation(3, 17)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/69775")]
+        public void OutParameterIsNotAssigned_07()
+        {
+            var source = """
+                class C(out int a) : Base(Test(() =>
+                                          {
+                                              System.Func<bool> hasLevel = () => true;
+                                              return hasLevel();
+                                          }))
+                {
+                    int F = Test(() =>
+                                 {
+                                     System.Func<bool> hasLevel = () => true;
+                                     return hasLevel();
+                                 });
+
+                    static int Test(System.Func<bool> x) => 0;
+                }
+
+                class Base
+                {
+                    public Base(int x){}    
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (1,7): error CS0177: The out parameter 'a' must be assigned to before control leaves the current method
+                // class C(out int a) : Base(Test(() =>
+                Diagnostic(ErrorCode.ERR_ParamUnassigned, "C").WithArguments("a").WithLocation(1, 7)
+                );
         }
     }
 }

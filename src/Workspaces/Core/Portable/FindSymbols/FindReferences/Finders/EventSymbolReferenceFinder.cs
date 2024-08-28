@@ -2,62 +2,69 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.FindSymbols.Finders
+namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
+
+internal sealed class EventSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IEventSymbol>
 {
-    internal class EventSymbolReferenceFinder : AbstractMethodOrPropertyOrEventSymbolReferenceFinder<IEventSymbol>
+    protected override bool CanFind(IEventSymbol symbol)
+        => true;
+
+    // old change
+    protected sealed override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
+        IEventSymbol symbol,
+        Solution solution,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
     {
-        protected override bool CanFind(IEventSymbol symbol)
-            => true;
+        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
 
-        protected sealed override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
-            IEventSymbol symbol,
-            Solution solution,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);
+        await DiscoverImpliedSymbolsAsync(symbol, solution, symbols, cancellationToken).ConfigureAwait(false);
 
-            await DiscoverImpliedSymbolsAsync(symbol, solution, symbols, cancellationToken).ConfigureAwait(false);
+        var backingFields = symbol.ContainingType
+            .GetMembers()
+            .OfType<IFieldSymbol>()
+            .Where(f => symbol.Equals(f.AssociatedSymbol));
+        symbols.AddRange(backingFields);
 
-            var backingFields = symbol.ContainingType.GetMembers()
-                                                     .OfType<IFieldSymbol>()
-                                                     .Where(f => symbol.Equals(f.AssociatedSymbol));
-            symbols.AddRange(backingFields);
+        var associatedNamedTypes = symbol.ContainingType
+            .GetTypeMembers()
+            .Where(n => symbol.Equals(n.AssociatedSymbol));
+        symbols.AddRange(associatedNamedTypes);
 
-            var associatedNamedTypes = symbol.ContainingType.GetTypeMembers()
-                                                            .Where(n => symbol.Equals(n.AssociatedSymbol));
-            symbols.AddRange(associatedNamedTypes);
+        return symbols.ToImmutable();
+    }
 
-            return symbols.ToImmutable();
-        }
+    protected sealed override async Task DetermineDocumentsToSearchAsync<TData>(
+        IEventSymbol symbol,
+        HashSet<string>? globalAliases,
+        Project project,
+        IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
+    {
+        await FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name).ConfigureAwait(false);
+        await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, processResult, processResultData, cancellationToken).ConfigureAwait(false);
+    }
 
-        protected sealed override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-            IEventSymbol symbol,
-            HashSet<string>? globalAliases,
-            Project project,
-            IImmutableSet<Document>? documents,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
-            var documentsWithGlobalAttributes = await FindDocumentsWithGlobalSuppressMessageAttributeAsync(project, documents, cancellationToken).ConfigureAwait(false);
-            return documentsWithName.Concat(documentsWithGlobalAttributes);
-        }
-
-        protected sealed override ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
-            IEventSymbol symbol,
-            FindReferencesDocumentState state,
-            FindReferencesSearchOptions options,
-            CancellationToken cancellationToken)
-        {
-            return FindReferencesInDocumentUsingSymbolNameAsync(symbol, state, cancellationToken);
-        }
+    protected sealed override void FindReferencesInDocument<TData>(
+        IEventSymbol symbol,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
+    {
+        FindReferencesInDocumentUsingSymbolName(symbol, state, processResult, processResultData, cancellationToken);
     }
 }

@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml.Linq;
@@ -344,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpre
 
         private static string And(params string[] regexes)
         {
-            var conj = $"({regexes[regexes.Length - 1]})";
+            var conj = $"({regexes[^1]})";
             for (var i = regexes.Length - 2; i >= 0; i--)
                 conj = $"(?({regexes[i]}){conj}|[0-[0]])";
 

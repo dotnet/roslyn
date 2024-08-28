@@ -4,9 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -15,128 +19,195 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
     internal partial class EditAndContinueTest<TSelf> : IDisposable
     {
-        internal sealed class GenerationVerifier
+        internal sealed class GenerationVerifier(int ordinal, GenerationInfo generationInfo, ImmutableArray<MetadataReader> readers)
         {
-            private readonly int _ordinal;
-            private readonly MetadataReader _metadataReader;
-            private readonly IEnumerable<MetadataReader> _readers;
-            private readonly GenerationInfo _generationInfo;
+            public readonly List<Exception> Exceptions = [];
 
-            public GenerationVerifier(int ordinal, GenerationInfo generationInfo, IEnumerable<MetadataReader> readers)
-            {
-                _ordinal = ordinal;
-                _metadataReader = generationInfo.MetadataReader;
-                _readers = readers;
-                _generationInfo = generationInfo;
-            }
+            private MetadataReader MetadataReader
+                => generationInfo.MetadataReader;
 
             private string GetAssertMessage(string message)
             {
-                var ordinalDescription = _ordinal == 0 ? "initial baseline" : $"generation {_ordinal}";
+                var ordinalDescription = ordinal == 0 ? "initial baseline" : $"generation {ordinal}";
                 return $"Failure in {ordinalDescription}: {message}";
             }
 
-            internal void VerifyTypeDefNames(params string[] expected)
+            private void Verify(Action action)
             {
-                var actual = _readers.GetStrings(_metadataReader.GetTypeDefNames());
-                AssertEx.Equal(expected, actual, message: GetAssertMessage("TypeDefs don't match"));
+                try
+                {
+                    action();
+                }
+                catch (Exception e)
+                {
+                    Exceptions.Add(e);
+                }
             }
+
+            internal void VerifyTypeDefNames(params string[] expected)
+                => Verify(() => AssertEntityNamesEqual("TypeDefs", expected, MetadataReader.GetTypeDefNames()));
 
             internal void VerifyMethodDefNames(params string[] expected)
-            {
-                var actual = _readers.GetStrings(_metadataReader.GetMethodDefNames());
-                AssertEx.Equal(expected, actual, message: GetAssertMessage("MethodDefs don't match"));
-            }
+                => Verify(() => AssertEntityNamesEqual("MethodDefs", expected, MetadataReader.GetMethodDefNames()));
+
+            internal void VerifyTypeRefNames(params string[] expected)
+                => Verify(() => AssertEntityNamesEqual("TypeRefs", expected, MetadataReader.GetTypeRefNames()));
 
             internal void VerifyMemberRefNames(params string[] expected)
-            {
-                var actual = _readers.GetStrings(_metadataReader.GetMemberRefNames());
-                AssertEx.Equal(expected, actual, message: GetAssertMessage("MemberRefs don't match"));
-            }
+                => Verify(() => AssertEntityNamesEqual("MemberRefs", expected, MetadataReader.GetMemberRefNames()));
 
             internal void VerifyFieldDefNames(params string[] expected)
-            {
-                var actual = _readers.GetStrings(_metadataReader.GetFieldDefNames());
-                AssertEx.Equal(expected, actual, message: GetAssertMessage("FieldDefs don't match"));
-            }
+                => Verify(() => AssertEntityNamesEqual("FieldDefs", expected, MetadataReader.GetFieldDefNames()));
 
             internal void VerifyPropertyDefNames(params string[] expected)
-            {
-                var actual = _readers.GetStrings(_metadataReader.GetPropertyDefNames());
-                AssertEx.Equal(expected, actual, message: GetAssertMessage("PropertyDefs don't match"));
-            }
+                => Verify(() => AssertEntityNamesEqual("PropertyDefs", expected, MetadataReader.GetPropertyDefNames()));
+
+            private void AssertEntityNamesEqual(string entityKinds, string[] expected, StringHandle[] actual)
+                => AssertEx.Equal(expected, readers.GetStrings(actual), message: GetAssertMessage($"{entityKinds} don't match"), itemSeparator: ", ", itemInspector: s => $"\"{s}\"");
 
             internal void VerifyDeletedMembers(params string[] expected)
-            {
-                var actual = _generationInfo.Baseline.DeletedMembers.Select(e => e.Key.ToString() + ": {" + string.Join(", ", e.Value.Select(v => v.Name)) + "}");
-                AssertEx.SetEqual(expected, actual, itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
-            }
+                => Verify(() =>
+                {
+                    var actual = generationInfo.Baseline.DeletedMembers.Select(e => e.Key.ToString() + ": {" + string.Join(", ", e.Value.Select(v => v.Name)) + "}");
+                    AssertEx.SetEqual(expected, actual, itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
+                });
 
             internal void VerifyTableSize(TableIndex table, int expected)
-            {
-                AssertEx.AreEqual(expected, _metadataReader.GetTableRowCount(table), message: GetAssertMessage($"{table} table size doesnt't match"));
-            }
+                => Verify(() =>
+                {
+                    AssertEx.AreEqual(expected, MetadataReader.GetTableRowCount(table), message: GetAssertMessage($"{table} table size doesnt't match"));
+                });
 
             internal void VerifyEncLog(IEnumerable<EditAndContinueLogEntry>? expected = null)
-            {
-                AssertEx.Equal(
-                    expected ?? Array.Empty<EditAndContinueLogEntry>(),
-                    _metadataReader.GetEditAndContinueLogEntries(), itemInspector: EncLogRowToString, message: GetAssertMessage("EncLog doesn't match"));
-            }
+                => Verify(() =>
+                {
+                    AssertEx.Equal(
+                        expected ?? Array.Empty<EditAndContinueLogEntry>(),
+                        MetadataReader.GetEditAndContinueLogEntries(), itemInspector: EncLogRowToString, message: GetAssertMessage("EncLog doesn't match"));
+                });
 
             internal void VerifyEncMap(IEnumerable<EntityHandle>? expected = null)
-            {
-                AssertEx.Equal(
-                    expected ?? Array.Empty<EntityHandle>(),
-                    _metadataReader.GetEditAndContinueMapEntries(), itemInspector: EncMapRowToString, message: GetAssertMessage("EncMap doesn't match"));
-            }
+                => Verify(() =>
+                {
+                    AssertEx.Equal(
+                        expected ?? Array.Empty<EntityHandle>(),
+                        MetadataReader.GetEditAndContinueMapEntries(), itemInspector: EncMapRowToString, message: GetAssertMessage("EncMap doesn't match"));
+                });
 
             internal void VerifyEncLogDefinitions(IEnumerable<EditAndContinueLogEntry>? expected = null)
-            {
-                AssertEx.Equal(
-                    expected ?? Array.Empty<EditAndContinueLogEntry>(),
-                    _metadataReader.GetEditAndContinueLogEntries().Where(e => IsDefinition(e.Handle.Kind)), itemInspector: EncLogRowToString, message: GetAssertMessage("EncLog definitions don't match"));
-            }
+                => Verify(() =>
+                {
+                    AssertEx.Equal(
+                        expected ?? Array.Empty<EditAndContinueLogEntry>(),
+                        MetadataReader.GetEditAndContinueLogEntries().Where(e => IsDefinition(e.Handle.Kind)), itemInspector: EncLogRowToString, message: GetAssertMessage("EncLog definitions don't match"));
+                });
 
             internal void VerifyEncMapDefinitions(IEnumerable<EntityHandle>? expected = null)
-            {
-                AssertEx.Equal(
-                    expected ?? Array.Empty<EntityHandle>(),
-                    _metadataReader.GetEditAndContinueMapEntries().Where(e => IsDefinition(e.Kind)), itemInspector: EncMapRowToString, message: GetAssertMessage("EncMap definitions don't match"));
-            }
+                => Verify(() =>
+                {
+                    AssertEx.Equal(
+                        expected ?? Array.Empty<EntityHandle>(),
+                        MetadataReader.GetEditAndContinueMapEntries().Where(e => IsDefinition(e.Kind)), itemInspector: EncMapRowToString, message: GetAssertMessage("EncMap definitions don't match"));
+                });
 
             internal void VerifyCustomAttributes(IEnumerable<CustomAttributeRow>? expected = null)
-            {
-                AssertEx.Equal(
-                    expected ?? Array.Empty<CustomAttributeRow>(),
-                    _metadataReader.GetCustomAttributeRows(), itemInspector: AttributeRowToString);
-            }
+                => Verify(() =>
+                {
+                    AssertEx.Equal(
+                        expected ?? Array.Empty<CustomAttributeRow>(),
+                        MetadataReader.GetCustomAttributeRows(), itemInspector: AttributeRowToString);
+                });
+
+            private IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> GetSynthesizedMembers()
+                => (generationInfo.CompilationVerifier != null)
+                        ? generationInfo.CompilationVerifier.TestData.Module!.GetAllSynthesizedMembers()
+                        : generationInfo.Baseline.SynthesizedMembers;
 
             public void VerifySynthesizedMembers(params string[] expected)
-            {
-                var actual = _generationInfo.Baseline.SynthesizedMembers
-                    .Select(e => e.Key.ToString() + ": {" + string.Join(", ", e.Value.Select(v => v.Name)) + "}");
+                => VerifySynthesizedMembers(displayTypeKind: false, expected);
 
-                AssertEx.SetEqual(expected, actual, itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
-            }
+            public void VerifySynthesizedMembers(bool displayTypeKind, params string[] expected)
+                => Verify(() =>
+                {
+                    var actual = GetSynthesizedMembers().Select(e =>
+                        $"{(displayTypeKind && e.Key is INamedTypeSymbolInternal type ? (type.TypeKind == TypeKind.Struct ? "struct " : "class ") : "")}{e.Key}: " +
+                        $"{{{string.Join(", ", e.Value.Select(v => v.Name))}}}");
+
+                    AssertEx.SetEqual(expected, actual, itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
+                });
 
             public void VerifySynthesizedFields(string typeName, params string[] expectedSynthesizedTypesAndMemberCounts)
-            {
-                var actual = _generationInfo.Baseline.SynthesizedMembers
-                    .Single(e => e.Key.ToString() == typeName).Value.Where(s => s.Kind == SymbolKind.Field)
-                    .Select(s => (IFieldSymbol)s.GetISymbol()).Select(f => f.Name + ": " + f.Type);
+                => Verify(() =>
+                {
+                    var actual = GetSynthesizedMembers()
+                        .Single(e => e.Key.ToString() == typeName).Value.Where(s => s.Kind == SymbolKind.Field)
+                        .Select(s => (IFieldSymbol)s.GetISymbol()).Select(f => f.Name + ": " + f.Type);
 
-                AssertEx.SetEqual(expectedSynthesizedTypesAndMemberCounts, actual, itemSeparator: "\r\n");
-            }
+                    AssertEx.SetEqual(expectedSynthesizedTypesAndMemberCounts, actual, itemSeparator: "\r\n");
+                });
+
+            public void VerifyUpdatedMethodNames(params string[] expectedMethodNames)
+                => Verify(() =>
+                {
+                    Debug.Assert(generationInfo.CompilationDifference != null);
+                    CheckNames(readers, generationInfo.CompilationDifference.EmitResult.UpdatedMethods, expectedMethodNames);
+                });
+
+            public void VerifyChangedTypeNames(params string[] expectedTypeNames)
+                => Verify(() =>
+                {
+                    Debug.Assert(generationInfo.CompilationDifference != null);
+                    CheckNames(readers, generationInfo.CompilationDifference.EmitResult.ChangedTypes, expectedTypeNames);
+                });
 
             internal void VerifyMethodBody(string qualifiedMemberName, string expectedILWithSequencePoints)
-                => _generationInfo.CompilationVerifier!.VerifyMethodBody(qualifiedMemberName, expectedILWithSequencePoints);
+                 => Verify(() =>
+                 {
+                     if (generationInfo.CompilationVerifier != null)
+                     {
+                         generationInfo.CompilationVerifier.VerifyMethodBody(qualifiedMemberName, expectedILWithSequencePoints);
+                     }
+                     else
+                     {
+                         Debug.Assert(generationInfo.CompilationDifference != null);
+                         var updatedMethods = generationInfo.CompilationDifference.EmitResult.UpdatedMethods;
+
+                         Debug.Assert(updatedMethods.Length == 1, "Only supported for a single method update");
+                         var updatedMethodToken = updatedMethods.Single();
+
+                         generationInfo.CompilationDifference.VerifyIL(qualifiedMemberName, expectedILWithSequencePoints, methodToken: updatedMethodToken);
+                     }
+                 });
+
+            internal void VerifyPdb(IEnumerable<int> methodTokens, string expectedPdb)
+                => Verify(() => generationInfo.CompilationDifference!.VerifyPdb(methodTokens, expectedPdb, expectedIsRawXml: true));
+
+            internal void VerifyPdb(string qualifiedMemberName, string expectedPdb, PdbValidationOptions options = default)
+                => Verify(() => generationInfo.CompilationVerifier!.VerifyPdb(qualifiedMemberName, expectedPdb, options: options, expectedIsRawXml: true));
+
+            internal void VerifyCustomDebugInformation(string qualifiedMemberName, string expectedPdb)
+                => VerifyPdb(qualifiedMemberName, expectedPdb, PdbValidationOptions.ExcludeDocuments | PdbValidationOptions.ExcludeSequencePoints | PdbValidationOptions.ExcludeScopes);
 
             internal void VerifyIL(string expectedIL)
-                => _generationInfo.CompilationDifference!.VerifyIL(expectedIL);
+                => Verify(() =>
+                {
+                    Debug.Assert(generationInfo.CompilationDifference != null);
+                    generationInfo.CompilationDifference.VerifyIL(expectedIL);
+                });
 
             internal void VerifyIL(string qualifiedMemberName, string expectedIL)
-                => _generationInfo.CompilationDifference!.VerifyIL(qualifiedMemberName, expectedIL);
+                => Verify(() =>
+                {
+                    if (generationInfo.CompilationVerifier != null)
+                    {
+                        generationInfo.CompilationVerifier.VerifyIL(qualifiedMemberName, expectedIL);
+                    }
+                    else
+                    {
+                        Debug.Assert(generationInfo.CompilationDifference != null);
+                        generationInfo.CompilationDifference.VerifyIL(qualifiedMemberName, expectedIL);
+                    }
+                });
         }
     }
 }

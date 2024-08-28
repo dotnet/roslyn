@@ -362,6 +362,36 @@ class C
         }
 
         [Fact]
+        public void EmptyParamsArg()
+        {
+            var comp = CompileAndVerify(@"
+using System;
+class C
+{
+    public static void Main()
+    {
+        M(y: 2, x: 1);
+    }
+    public static void M(int x, int y, params int[] p)
+    {
+        Console.WriteLine(x);
+        Console.WriteLine(p.Length);
+    }
+}", expectedOutput: @"1
+0");
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  3
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  call       ""int[] System.Array.Empty<int>()""
+  IL_0007:  call       ""void C.M(int, int, params int[])""
+  IL_000c:  ret
+}");
+        }
+
+        [Fact]
         public void InParamReorder()
         {
             var comp = CompileAndVerify(@"
@@ -1124,7 +1154,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,9): error CS8331: Cannot assign to variable 'arg1' or use it as the right hand side of a ref assignment because it is a readonly variable
                 //         arg1 = 1;
@@ -1176,7 +1206,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (18,20): error CS8333: Cannot return variable 'arg1' by writable reference because it is a readonly variable
                 //         return ref arg1;
@@ -1201,7 +1231,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,25): error CS8329: Cannot use variable 'arg1' as a ref or out value because it is a readonly variable
                 //         ref var y = ref arg1;
@@ -1234,7 +1264,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (6,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* a = & arg1;
@@ -1267,7 +1297,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (10,24): error CS8333: Cannot return variable 'arg1' by writable reference because it is a readonly variable
                 //             return ref arg1;
@@ -1386,7 +1416,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib461(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (12,28): error CS8333: Cannot return variable 'arg11' by writable reference because it is a readonly variable
                 //                 return ref arg11;

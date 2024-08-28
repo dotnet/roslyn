@@ -127,6 +127,11 @@
         <target state="translated">セマンティック分類</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_SemanticSearch">
+        <source>Semantic search</source>
+        <target state="translated">セマンティック検索</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">資産プロバイダー</target>
@@ -134,7 +139,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_SourceGeneration">
         <source>Source generation</source>
-        <target state="new">Source generation</target>
+        <target state="translated">ソースの生成</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_StackTraceExplorer">

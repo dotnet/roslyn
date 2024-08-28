@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         /// <summary>
         /// stores the parameter hint tags in a global location
         /// </summary>
-        private readonly List<(IMappingTagSpan<InlineHintDataTag> mappingTagSpan, ITagSpan<IntraTextAdornmentTag>? tagSpan)> _cache = new();
+        private readonly List<(IMappingTagSpan<InlineHintDataTag> mappingTagSpan, TagSpan<IntraTextAdornmentTag>? tagSpan)> _cache = [];
 
         /// <summary>
         /// Stores the snapshot associated with the cached tags in <see cref="_cache" />
@@ -133,14 +133,15 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
             _cache.Clear();
         }
 
-        public IEnumerable<ITagSpan<IntraTextAdornmentTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+        IEnumerable<ITagSpan<IntraTextAdornmentTag>> ITagger<IntraTextAdornmentTag>.GetTags(NormalizedSnapshotSpanCollection spans)
+            => GetTags(spans);
+
+        public IReadOnlyList<TagSpan<IntraTextAdornmentTag>> GetTags(NormalizedSnapshotSpanCollection spans)
         {
             try
             {
                 if (spans.Count == 0)
-                {
-                    return Array.Empty<ITagSpan<IntraTextAdornmentTag>>();
-                }
+                    return [];
 
                 var snapshot = spans[0].Snapshot;
                 if (snapshot != _cacheSnapshot)
@@ -169,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                 var classify = document != null && _taggerProvider.EditorOptionsService.GlobalOptions.GetOption(InlineHintsViewOptionsStorage.ColorHints, document.Project.Language);
 
-                var selectedSpans = new List<ITagSpan<IntraTextAdornmentTag>>();
+                var selectedSpans = new List<TagSpan<IntraTextAdornmentTag>>();
                 for (var i = 0; i < _cache.Count; i++)
                 {
                     var tagSpans = _cache[i].mappingTagSpan.Span.GetSpans(snapshot);

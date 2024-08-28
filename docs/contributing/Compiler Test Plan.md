@@ -37,13 +37,19 @@ This document provides guidance for thinking about language interactions and tes
  
 # Type and members
 - Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
-- type declarations (class, record class/struct with or without positional members, struct, interface, type parameter)
+- type declarations
+  - class with or without primary constructor
+  - record class/struct with or without positional members
+  - struct with or without primary constructor
+  - interface
+  - type parameter
 - file-local types
 - methods
+  - Primary constructors
 - fields (required and not)
 - properties (including get/set/init accessors, required and not)
 - events (including add/remove accessors)
-- Parameter modifiers (ref, out, in, ref readonly, params)
+- Parameter modifiers: ref, out, in, ref readonly, params (for array, for non-array)
 - Attributes (including generic attributes and security attributes)
 - Generics (type arguments, variance, constraints including `class`, `struct`, `new()`, `unmanaged`, `notnull`, types and interfaces with nullability)
 - Default and constant values
@@ -79,6 +85,7 @@ This document provides guidance for thinking about language interactions and tes
 - Conversions (boxing/unboxing)
 - Nullable (wrapping, unwrapping)
 - Overload resolution, override/hide/implement (OHI)
+  - OverloadResolutionPriorityAttribute
 - Inheritance (virtual, override, abstract, new)
 - Anonymous types
 - Tuple types and literals (elements with explicit or inferred names, long tuples), tuple equality
@@ -105,6 +112,7 @@ This document provides guidance for thinking about language interactions and tes
 - Definite assignment analysis and auto-default struct fields
 - If you add a place an expression can appear in code, make sure `SpillSequenceSpiller` handles it. Test with a `switch` expression or `stackalloc` in that place.
 - If you add a new expression form that requires spilling, test it in the catch filter.
+- If you add a new expression that can be nested inside itself, test deeply nesting it. Potentially cut off direct nesting.
 - extension based Dispose, DisposeAsync, GetEnumerator, GetAsyncEnumerator, Deconstruct, GetAwaiter etc.
 - UTF8 String Literals (string literals with 'u8' or 'U8' type suffix).
 - Inline array element access and slicing.
@@ -176,7 +184,7 @@ return … ;
 try  { … } catch (…) when (…) { … } finally { … } 
 checked { … } 
 unchecked { … } 
-lock(…) … 
+lock(…) … // including variant on an instance of the `System.Threading.Lock` type
 using (…) … // including `await` variant
 yield return …; 
 yield break; 

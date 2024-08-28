@@ -10,7 +10,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
@@ -18,7 +17,6 @@ using Microsoft.CodeAnalysis.CSharp.Scripting.Hosting;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Interactive
@@ -29,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
     {
         private SynchronizedStringWriter _synchronizedOutput = null!;
         private SynchronizedStringWriter _synchronizedErrorOutput = null!;
-        private int[] _outputReadPosition = new int[] { 0, 0 };
+        private int[] _outputReadPosition = [0, 0];
 
         internal readonly InteractiveHost Host;
 
@@ -84,8 +82,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences("", errorOutput);
 
-            var expectedOutput = new List<string>();
-            expectedOutput.Add(string.Format(CSharpScriptingResources.LogoLine1, CommonCompiler.GetProductVersion(typeof(CSharpReplServiceProvider))));
+            var expectedOutput = new List<string>
+            {
+                string.Format(CSharpScriptingResources.LogoLine1, CommonCompiler.GetProductVersion(typeof(CSharpReplServiceProvider)))
+            };
 
             if (UseDefaultInitializationFile)
             {
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Interactive
 
         public void ClearOutput()
         {
-            _outputReadPosition = new int[] { 0, 0 };
+            _outputReadPosition = [0, 0];
             _synchronizedOutput.Clear();
             _synchronizedErrorOutput.Clear();
         }

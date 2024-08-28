@@ -6,14 +6,13 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.TaskList
+namespace Microsoft.CodeAnalysis.TaskList;
+
+/// <summary>
+/// Interface to allow host (VS) to inform the OOP service to start incrementally analyzing and
+/// reporting results back to the host.
+/// </summary>
+internal interface IRemoteTaskListService
 {
-    /// <summary>
-    /// Interface to allow host (VS) to inform the OOP service to start incrementally analyzing and
-    /// reporting results back to the host.
-    /// </summary>
-    internal interface IRemoteTaskListService
-    {
-        ValueTask<ImmutableArray<TaskListItem>> GetTaskListItemsAsync(Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TaskListItemDescriptor> descriptors, CancellationToken cancellationToken);
-    }
+    ValueTask<ImmutableArray<TaskListItem>> GetTaskListItemsAsync(Checksum solutionChecksum, DocumentId documentId, ImmutableArray<TaskListItemDescriptor> descriptors, CancellationToken cancellationToken);
 }

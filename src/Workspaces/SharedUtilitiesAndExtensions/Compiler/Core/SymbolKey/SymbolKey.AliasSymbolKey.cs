@@ -4,94 +4,94 @@
 
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal partial struct SymbolKey
 {
-    internal partial struct SymbolKey
+    private sealed class AliasSymbolKey : AbstractSymbolKey<IAliasSymbol>
     {
-        private sealed class AliasSymbolKey : AbstractSymbolKey<IAliasSymbol>
+        public static readonly AliasSymbolKey Instance = new();
+
+        public sealed override void Create(IAliasSymbol symbol, SymbolKeyWriter visitor)
         {
-            public static readonly AliasSymbolKey Instance = new();
+            visitor.WriteString(symbol.Name);
+            visitor.WriteSymbolKey(symbol.Target);
+            visitor.WriteString(symbol.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree.FilePath ?? "");
+        }
 
-            public sealed override void Create(IAliasSymbol symbol, SymbolKeyWriter visitor)
+        protected sealed override SymbolKeyResolution Resolve(
+            SymbolKeyReader reader, IAliasSymbol? contextualSymbol, out string? failureReason)
+        {
+            var name = reader.ReadRequiredString();
+            var targetResolution = reader.ReadSymbolKey(contextualSymbol?.Target, out var targetFailureReason);
+            var filePath = reader.ReadRequiredString();
+
+            if (targetFailureReason != null)
             {
-                visitor.WriteString(symbol.Name);
-                visitor.WriteSymbolKey(symbol.Target);
-                visitor.WriteString(symbol.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree.FilePath ?? "");
-            }
-
-            protected sealed override SymbolKeyResolution Resolve(
-                SymbolKeyReader reader, IAliasSymbol? contextualSymbol, out string? failureReason)
-            {
-                var name = reader.ReadRequiredString();
-                var targetResolution = reader.ReadSymbolKey(contextualSymbol?.Target, out var targetFailureReason);
-                var filePath = reader.ReadRequiredString();
-
-                if (targetFailureReason != null)
-                {
-                    failureReason = $"({nameof(AliasSymbolKey)} {nameof(targetResolution)} failed -> {targetFailureReason})";
-                    return default;
-                }
-
-                var syntaxTree = reader.GetSyntaxTree(filePath);
-                if (syntaxTree != null)
-                {
-                    var target = targetResolution.GetAnySymbol();
-                    if (target != null)
-                    {
-                        var semanticModel = reader.Compilation.GetSemanticModel(syntaxTree);
-                        var result = Resolve(semanticModel, syntaxTree.GetRoot(reader.CancellationToken), name, target, reader.CancellationToken);
-                        if (result.HasValue)
-                        {
-                            failureReason = null;
-                            return result.Value;
-                        }
-                    }
-                }
-
-                failureReason = $"({nameof(AliasSymbolKey)} '{name}' not found)";
+                failureReason = $"({nameof(AliasSymbolKey)} {nameof(targetResolution)} failed -> {targetFailureReason})";
                 return default;
             }
 
-            private static SymbolKeyResolution? Resolve(
-                SemanticModel semanticModel, SyntaxNode syntaxNode, string name, ISymbol target,
-                CancellationToken cancellationToken)
+            var syntaxTree = reader.GetSyntaxTree(filePath);
+            if (syntaxTree != null)
             {
-                var symbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
-                if (symbol != null)
+                var target = targetResolution.GetAnySymbol();
+                if (target != null)
                 {
-                    if (symbol.Kind == SymbolKind.Alias)
+                    var semanticModel = reader.Compilation.GetSemanticModel(syntaxTree);
+                    var result = Resolve(semanticModel, syntaxTree.GetRoot(reader.CancellationToken), name, target, reader.CancellationToken);
+                    if (result.HasValue)
                     {
-                        var aliasSymbol = (IAliasSymbol)symbol;
-                        if (aliasSymbol.Name == name &&
-                            SymbolEquivalenceComparer.Instance.Equals(aliasSymbol.Target, target))
-                        {
-                            return new SymbolKeyResolution(aliasSymbol);
-                        }
-                    }
-                    else if (symbol.Kind != SymbolKind.Namespace)
-                    {
-                        // Don't recurse into anything except namespaces.  We can't find aliases
-                        // any deeper than that.
-                        return null;
+                        failureReason = null;
+                        return result.Value;
                     }
                 }
-
-                foreach (var child in syntaxNode.ChildNodesAndTokens())
-                {
-                    if (child.IsNode)
-                    {
-                        var result = Resolve(semanticModel, child.AsNode()!, name, target, cancellationToken);
-                        if (result.HasValue)
-                        {
-                            return result;
-                        }
-                    }
-                }
-
-                return null;
             }
+
+            failureReason = $"({nameof(AliasSymbolKey)} '{name}' not found)";
+            return default;
+        }
+
+        private static SymbolKeyResolution? Resolve(
+            SemanticModel semanticModel, SyntaxNode syntaxNode, string name, ISymbol target,
+            CancellationToken cancellationToken)
+        {
+            var symbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
+            if (symbol != null)
+            {
+                if (symbol.Kind == SymbolKind.Alias)
+                {
+                    var aliasSymbol = (IAliasSymbol)symbol;
+                    if (aliasSymbol.Name == name &&
+                        SymbolEquivalenceComparer.Instance.Equals(aliasSymbol.Target, target))
+                    {
+                        return new SymbolKeyResolution(aliasSymbol);
+                    }
+                }
+                else if (symbol.Kind != SymbolKind.Namespace)
+                {
+                    // Don't recurse into anything except namespaces.  We can't find aliases
+                    // any deeper than that.
+                    return null;
+                }
+            }
+
+            foreach (var child in syntaxNode.ChildNodesAndTokens())
+            {
+                if (child.AsNode(out var childNode))
+                {
+                    var result = Resolve(semanticModel, childNode, name, target, cancellationToken);
+                    if (result.HasValue)
+                    {
+                        return result;
+                    }
+                }
+            }
+
+            return null;
         }
     }
 }

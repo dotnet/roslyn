@@ -3408,7 +3408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = SyntaxFactory.ParseCompilationUnit(text.NormalizeLineEndings());
             Assert.Equal(text.NormalizeLineEndings(), node.ToFullString().NormalizeLineEndings());
             var actual = node.NormalizeWhitespace("  ").ToFullString();
-            Assert.Equal(expected.NormalizeLineEndings(), actual.NormalizeLineEndings());
+            AssertEx.Equal(expected.NormalizeLineEndings(), actual.NormalizeLineEndings());
         }
 
         [Fact]
@@ -3641,9 +3641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 SyntaxFactory.TriviaList(
                                     SyntaxFactory.Trivia(
                                         SyntaxFactory.SkippedTokensTrivia()
-                                        .WithTokens(
-                                            SyntaxFactory.TokenList(
-                                                SyntaxFactory.Literal(@"""a\b"""))))),
+                                        .WithTokens([SyntaxFactory.Literal(@"""a\b""")]))),
                                 SyntaxKind.EndOfDirectiveToken,
                                 default(SyntaxTriviaList))))), """
                 #line 1 "\"a\\b\""
@@ -5953,6 +5951,119 @@ $"  ///  </summary>{Environment.NewLine}" +
                 class C
                 {
                   C() : base({{expected}})
+                  {
+                  }
+                }
+                """);
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70135")]
+        [InlineData("if (\"\" is var I)")]
+        [InlineData("if ('' is var I)")]
+        [InlineData("if ('x' is var I)")]
+        public void TestNormalizeParseStatementLiteralCharacter(string expression)
+        {
+            var syntaxNode = SyntaxFactory.ParseStatement(expression).NormalizeWhitespace();
+            Assert.Equal(expression, syntaxNode.ToFullString());
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/70135")]
+        [InlineData("1 is var i")]
+        [InlineData("@\"\" is var s")]
+        [InlineData("\"\"\"a\"\"\" is var s")]
+        [InlineData("$@\"\" is var s")]
+        [InlineData("$\"\"\"a\"\"\" is var s")]
+        [InlineData("\"\"u8 is var s")]
+        public void TestNormalizeParseExpressionLiteralCharacter(string expression)
+        {
+            var syntaxNode = SyntaxFactory.ParseExpression(expression).NormalizeWhitespace();
+            Assert.Equal(expression, syntaxNode.ToFullString());
+        }
+
+        [Fact]
+        public void TestNormalizeAllowsRefStructConstraint_01()
+        {
+            TestNormalizeDeclaration("""
+                class C1<T> where T:allows   ref   struct   ;
+                class C2<T, S> where T:allows   ref   struct,where S:struct     ;
+                class C3<T> where T:struct,allows   ref   struct            ;
+                class C4<T> where T:new(),allows   ref   struct          ;
+                class C5<T>
+                where
+                T
+                :
+                allows
+                ref
+                struct
+                ;
+                class C6<T, S> where T:allows   ref   struct        where S:struct     ;
+                """, """
+                class C1<T>
+                  where T : allows ref struct;
+                class C2<T, S>
+                  where T : allows ref struct , where S : struct;
+                class C3<T>
+                  where T : struct, allows ref struct;
+                class C4<T>
+                  where T : new(), allows ref struct;
+                class C5<T>
+                  where T : allows ref struct;
+                class C6<T, S>
+                  where T : allows ref struct where S : struct;
+                """);
+        }
+
+        [Fact]
+        public void TestNormalizeAllowsRefStructConstraint_02()
+        {
+            TestNormalizeDeclaration("""
+                class C
+                {
+                    void M1<T>() where T:allows   ref   struct   {}
+                    void M2<T, S>() where T:allows   ref   struct,where S:struct     {}
+                    void M3<T>() where T:struct,allows   ref   struct            {}
+                    void M4<T>() where T:new(),allows   ref   struct          {}
+                    void M5<T>()
+                    where
+                    T
+                    :
+                    allows
+                    ref
+                    struct
+                    {
+                    }
+                    void M6<T, S>() where T:allows   ref   struct       where S:struct     {}
+                }
+                """, """
+                class C
+                {
+                  void M1<T>()
+                    where T : allows ref struct
+                  {
+                  }
+
+                  void M2<T, S>()
+                    where T : allows ref struct , where S : struct
+                  {
+                  }
+
+                  void M3<T>()
+                    where T : struct, allows ref struct
+                  {
+                  }
+
+                  void M4<T>()
+                    where T : new(), allows ref struct
+                  {
+                  }
+
+                  void M5<T>()
+                    where T : allows ref struct
+                  {
+                  }
+
+                  void M6<T, S>()
+                    where T : allows ref struct where S : struct
                   {
                   }
                 }

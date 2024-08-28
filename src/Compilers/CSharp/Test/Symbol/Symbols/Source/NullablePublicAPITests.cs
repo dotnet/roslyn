@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable RSEXPERIMENTAL001 // Internal usage of experimental API
 #nullable disable
 
 using System;
@@ -13,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using PublicNullableAnnotation = Microsoft.CodeAnalysis.NullableAnnotation;
 using PublicNullableFlowState = Microsoft.CodeAnalysis.NullableFlowState;
@@ -1556,7 +1558,7 @@ class C
 
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
-                // (5,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                // (5,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 //     public C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Prop").WithLocation(5, 12));
 
@@ -1650,7 +1652,7 @@ class C
 
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
-                // (6,27): warning CS8618: Non-nullable field 's_data' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (6,27): warning CS8618: Non-nullable field 's_data' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     private static string s_data;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "s_data").WithArguments("field", "s_data").WithLocation(6, 27),
                 // (6,27): warning CS0649: Field 'C.s_data' is never assigned to, and will always have its default value null
@@ -5159,6 +5161,385 @@ class C
             var model = comp.GetSemanticModel(tree);
             var binaryRightArgument = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single().Right.DescendantNodes().OfType<ArgumentSyntax>().Single().Expression;
             Assert.Equal("System.Object?", model.GetTypeInfo(binaryRightArgument).Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableDisableSemanticModel_01(bool runNullableAnalysisAlways)
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    void M(string x)
+                    {
+                        if (x == null)
+                        {
+                            x.ToString();
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: runNullableAnalysisAlways ? TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "always") : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13));
+
+            test(SemanticModelOptions.None, expectedAnnotation: PublicNullableAnnotation.Annotated);
+            test(SemanticModelOptions.DisableNullableAnalysis, expectedAnnotation: PublicNullableAnnotation.None);
+
+            void test(SemanticModelOptions options, PublicNullableAnnotation expectedAnnotation)
+            {
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree, options);
+                var xUsage = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single().Expression;
+                var typeInfo = model.GetTypeInfo(xUsage);
+                Assert.NotNull(typeInfo.Type);
+                Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
+                Assert.Equal(expectedAnnotation, typeInfo.Type.NullableAnnotation);
+            }
+        }
+
+        [Fact]
+        public void NullableDisableSemanticModel_02()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    void M(string x)
+                    {
+                        if (x == null)
+                        {
+                            x.ToString();
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never"));
+            comp.VerifyDiagnostics();
+
+            test(SemanticModelOptions.None);
+            test(SemanticModelOptions.DisableNullableAnalysis);
+
+            void test(SemanticModelOptions options)
+            {
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree, options);
+                var xUsage = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single().Expression;
+                var typeInfo = model.GetTypeInfo(xUsage);
+                Assert.NotNull(typeInfo.Type);
+                Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
+                Assert.Equal(PublicNullableAnnotation.None, typeInfo.Type.NullableAnnotation);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+        public void CollectionExpression_NestedNullability_01()
+        {
+            var source = """
+                #nullable enable
+
+                var b = false;
+                var arr = b ? ["1"] : new[] { "2" };
+                """;
+
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var collectionExpr = root.DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(collectionExpr);
+            var type = (IArrayTypeSymbol)typeInfo.ConvertedType;
+            Assert.Equal("System.String[]", type.ToTestDisplayString());
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.ElementNullableAnnotation);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+        public void CollectionExpression_NestedNullability_01_RhsTargetTyped()
+        {
+            var source = """
+                #nullable enable
+
+                var b = false;
+                var arr = b ? new[] { "1" } : ["2"];
+                """;
+
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var collectionExpr = root.DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(collectionExpr);
+            var type = (IArrayTypeSymbol)typeInfo.ConvertedType;
+            Assert.Equal("System.String[]", type.ToTestDisplayString());
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.ElementNullableAnnotation);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+        public void CollectionExpression_NestedNullability_02()
+        {
+            var source = """
+                #nullable enable
+
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        string[] x = ["1"];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var collectionExpr = root.DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(collectionExpr);
+            var type = (IArrayTypeSymbol)typeInfo.ConvertedType;
+            Assert.Equal("System.String[]", type.ToTestDisplayString());
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.ElementNullableAnnotation);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+        public void CollectionExpression_NestedNullability_03()
+        {
+            var source = """
+                #nullable enable
+
+                var b = false;
+                var arr = b switch { true => ["1"], false => new[] { "2" } };
+                """;
+
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var collectionExpr = root.DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(collectionExpr);
+            var type = (IArrayTypeSymbol)typeInfo.ConvertedType;
+            Assert.Equal("System.String[]", type.ToTestDisplayString());
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.ElementNullableAnnotation);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+        public void CollectionExpression_NestedNullability_04()
+        {
+            var source = """
+                #nullable enable
+
+                var arr = new[] { ["1"], new[] { "2" } };
+                """;
+
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var collectionExpr = root.DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(collectionExpr);
+            var type = (IArrayTypeSymbol)typeInfo.ConvertedType;
+            Assert.Equal("System.String[]", type.ToTestDisplayString());
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.ElementNullableAnnotation);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+        public void CollectionExpression_NestedNullability_05()
+        {
+            var source = """
+                #nullable enable
+                public class C
+                {
+                    public string[] M1(bool b)
+                    {
+                        var arr = b ? ["1"] : new[] { "2" };
+                        arr[0] = null; // 1
+                        return arr;
+                    }
+
+                    public string[] M2(bool b)
+                    {
+                        var arr = new[] { "2" };
+                        arr = b ? ["1"] : arr;
+                        arr[0] = null; // 2
+                        return arr;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,18): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         arr[0] = null; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 18),
+                // (15,18): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         arr[0] = null; // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 18));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var collectionExprs = root.DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
+            Assert.Equal(2, collectionExprs.Length);
+            foreach (var collectionExpr in collectionExprs)
+            {
+                var typeInfo = model.GetTypeInfo(collectionExpr);
+                var type = (IArrayTypeSymbol)typeInfo.ConvertedType;
+                Assert.Equal("System.String[]", type.ToTestDisplayString());
+                Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.NullableAnnotation);
+                Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.ElementNullableAnnotation);
+            }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74609")]
+        public void CollectionExpression_NestedNullability_06()
+        {
+            var source = """
+                #nullable enable
+
+                public class C
+                {
+                    public string[] M1(bool b)
+                    {
+                        var lam = () =>
+                        {
+                            if (b)
+                                return ["1"];
+
+                            return new[] { "2" };
+                        };
+
+                        var arr = lam();
+                        arr[0] = null; // 1
+                        return arr;
+                    }
+
+                    public string[] M2(bool b)
+                    {
+                        var lam = () => new[] { "2" };
+                        var arr = lam();
+                        arr = b ? ["1"] : arr;
+                        arr[0] = null; // 2
+                        return arr;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            // The expected nullable warnings are not reported here.
+            // https://github.com/dotnet/roslyn/issues/74609
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var collectionExprs = root.DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
+            Assert.Equal(2, collectionExprs.Length);
+            foreach (var collectionExpr in collectionExprs)
+            {
+                var typeInfo = model.GetTypeInfo(collectionExpr);
+                var type = (IArrayTypeSymbol)typeInfo.ConvertedType;
+                Assert.Equal("System.String[]", type.ToTestDisplayString());
+                Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.NullableAnnotation);
+
+                // The arrays have unexpected oblivious element nullability.
+                // https://github.com/dotnet/roslyn/issues/74609
+                Assert.Equal(PublicNullableAnnotation.None, type.ElementNullableAnnotation);
+            }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74693")]
+        public void TargetTypedExpressions_NestedNullability()
+        {
+            // Warning (2) is missing because default literals are contributing
+            // their initial bound type to best-type in nullable analysis.
+            // https://github.com/dotnet/roslyn/issues/74693
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+
+                public class C
+                {
+                    public void M(bool b)
+                    {
+                        var x = b ? null! : new[] {"1"};
+                        x[0] = null; // 1
+                    }
+
+                    public void M2(bool b)
+                    {
+                        var x = b ? default! : new[] {"1"};
+                        x[0] = null; // 2 (missing)
+                    }
+
+                    public void M3(bool b)
+                    {
+                        var x = b ? (b ? null! : null!) : new[] {"1"};
+                        x[0] = null; // 3
+                    }
+
+                    public void M4(bool b)
+                    {
+                        var x = b ? (b switch { _ => null! }) : new[] {"1"};
+                        x[0] = null; // 4
+                    }
+
+                    List<T> MakeList<T>(T value) => new List<T> { value };
+
+                    public void M5(bool b)
+                    {
+                        var x = b ? new() : MakeList("1");
+                        x[0] = null; // 5
+                    }
+
+                    public void M6(bool b)
+                    {
+                        var x = b ? default! : MakeList("1");
+                        x[0] = null; // 6
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         x[0] = null; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 16),
+                // (21,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         x[0] = null; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(21, 16),
+                // (27,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         x[0] = null; // 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(27, 16),
+                // (35,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         x[0] = null; // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(35, 16),
+                // (41,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         x[0] = null; // 6
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(41, 16));
         }
     }
 }

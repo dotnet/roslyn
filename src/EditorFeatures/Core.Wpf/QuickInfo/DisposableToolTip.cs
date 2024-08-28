@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;

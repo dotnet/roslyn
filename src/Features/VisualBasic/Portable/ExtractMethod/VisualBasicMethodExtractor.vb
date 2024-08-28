@@ -7,9 +7,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.ExtractMethod
-Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
@@ -17,21 +15,27 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
     Partial Friend Class VisualBasicMethodExtractor
-        Inherits MethodExtractor
+        Inherits MethodExtractor(Of VisualBasicSelectionResult, ExecutableStatementSyntax, ExpressionSyntax)
 
         Public Sub New(result As VisualBasicSelectionResult, options As ExtractMethodGenerationOptions)
             MyBase.New(result, options, localFunction:=False)
         End Sub
 
-        Protected Overrides Function AnalyzeAsync(selectionResult As SelectionResult, localFunction As Boolean, cancellationToken As CancellationToken) As Task(Of AnalyzerResult)
-            Return VisualBasicAnalyzer.AnalyzeResultAsync(selectionResult, cancellationToken)
+        Protected Overrides Function CreateCodeGenerator(analyzerResult As AnalyzerResult) As CodeGenerator
+            Return VisualBasicCodeGenerator.Create(Me.OriginalSelectionResult, analyzerResult, DirectCast(Me.Options.CodeGenerationOptions, VisualBasicCodeGenerationOptions))
         End Function
 
-        Protected Overrides Async Function GetInsertionPointAsync(document As SemanticDocument, cancellationToken As CancellationToken) As Task(Of InsertionPoint)
+        Protected Overrides Function Analyze(selectionResult As VisualBasicSelectionResult, localFunction As Boolean, cancellationToken As CancellationToken) As AnalyzerResult
+            Return VisualBasicAnalyzer.AnalyzeResult(selectionResult, cancellationToken)
+        End Function
+
+        Protected Overrides Function GetInsertionPointNode(
+                analyzerResult As AnalyzerResult, cancellationToken As CancellationToken) As SyntaxNode
+            Dim document = Me.OriginalSelectionResult.SemanticDocument
             Dim originalSpanStart = OriginalSelectionResult.OriginalSpan.Start
             Contract.ThrowIfFalse(originalSpanStart >= 0)
 
-            Dim root = Await document.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
+            Dim root = document.Root
             Dim basePosition = root.FindToken(originalSpanStart)
 
             Dim enclosingTopLevelNode As SyntaxNode = basePosition.GetAncestor(Of PropertyBlockSyntax)()
@@ -52,72 +56,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End If
 
             Contract.ThrowIfNull(enclosingTopLevelNode)
-            Return Await InsertionPoint.CreateAsync(document, enclosingTopLevelNode, cancellationToken).ConfigureAwait(False)
+            Return enclosingTopLevelNode
         End Function
 
-        Protected Overrides Async Function PreserveTriviaAsync(selectionResult As SelectionResult, cancellationToken As CancellationToken) As Task(Of TriviaResult)
+        Protected Overrides Async Function PreserveTriviaAsync(selectionResult As VisualBasicSelectionResult, cancellationToken As CancellationToken) As Task(Of TriviaResult)
             Return Await VisualBasicTriviaResult.ProcessAsync(selectionResult, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Async Function ExpandAsync(selection As SelectionResult, cancellationToken As CancellationToken) As Task(Of SemanticDocument)
-            Dim lastExpression = selection.GetFirstTokenInSelection().GetCommonRoot(selection.GetLastTokenInSelection()).GetAncestors(Of ExpressionSyntax)().LastOrDefault()
-            If lastExpression Is Nothing Then
-                Return selection.SemanticDocument
-            End If
-
-            Dim newStatement = Await Simplifier.ExpandAsync(lastExpression, selection.SemanticDocument.Document, Function(n) n IsNot selection.GetContainingScope(), expandParameter:=False, cancellationToken:=cancellationToken).ConfigureAwait(False)
-            Return Await selection.SemanticDocument.WithSyntaxRootAsync(selection.SemanticDocument.Root.ReplaceNode(lastExpression, newStatement), cancellationToken).ConfigureAwait(False)
-        End Function
-
-        Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As SelectionResult, analyzeResult As AnalyzerResult, options As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
+        Protected Overrides Function GenerateCodeAsync(insertionPoint As InsertionPoint, selectionResult As VisualBasicSelectionResult, analyzeResult As AnalyzerResult, options As CodeGenerationOptions, cancellationToken As CancellationToken) As Task(Of GeneratedCode)
             Return VisualBasicCodeGenerator.GenerateResultAsync(insertionPoint, selectionResult, analyzeResult, DirectCast(options, VisualBasicCodeGenerationOptions), cancellationToken)
         End Function
 
-        Protected Overrides Function GetCustomFormattingRules(document As Document) As ImmutableArray(Of AbstractFormattingRule)
-            Return ImmutableArray.Create(Of AbstractFormattingRule)(New FormattingRule())
+        Protected Overrides Function GetCustomFormattingRule(document As Document) As AbstractFormattingRule
+            Return FormattingRule.Instance
         End Function
 
-        Protected Overrides Function GetMethodNameAtInvocation(methodNames As IEnumerable(Of SyntaxNodeOrToken)) As SyntaxToken
-            Return CType(methodNames.FirstOrDefault(Function(t) t.Parent.Kind <> SyntaxKind.SubStatement AndAlso t.Parent.Kind <> SyntaxKind.FunctionStatement), SyntaxToken)
+        Protected Overrides Function GetInvocationNameToken(methodNames As IEnumerable(Of SyntaxToken)) As SyntaxToken?
+            Return methodNames.FirstOrNull(Function(t) t.Parent.Kind <> SyntaxKind.SubStatement AndAlso t.Parent.Kind <> SyntaxKind.FunctionStatement)
         End Function
 
-        Protected Overrides Async Function CheckTypeAsync(document As Document,
-                                               contextNode As SyntaxNode,
-                                               location As Location,
-                                               type As ITypeSymbol,
-                                               cancellationToken As CancellationToken) As Task(Of OperationStatus)
-            Contract.ThrowIfNull(type)
-
-            If type.SpecialType = SpecialType.System_Void Then
-                ' this can happen if there is no return value
-                Return OperationStatus.Succeeded
-            End If
-
-            If type.TypeKind = TypeKind.Error OrElse type.TypeKind = TypeKind.Unknown Then
-                Return OperationStatus.ErrorOrUnknownType
-            End If
-
-            ' if it is type parameter, make sure we are getting same type parameter
-            Dim binding = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-
-            For Each typeParameter In TypeParameterCollector.Collect(type)
-                Dim typeName = SyntaxFactory.ParseTypeName(typeParameter.Name)
-                Dim symbolInfo = binding.GetSpeculativeSymbolInfo(contextNode.SpanStart, typeName, SpeculativeBindingOption.BindAsTypeOrNamespace)
-                Dim currentType = TryCast(symbolInfo.Symbol, ITypeSymbol)
-
-                If Not SymbolEqualityComparer.Default.Equals(currentType, binding.ResolveType(typeParameter)) Then
-                    Return New OperationStatus(OperationStatusFlag.BestEffort,
-                        String.Format(FeaturesResources.Type_parameter_0_is_hidden_by_another_type_parameter_1,
-                            typeParameter.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
-                            If(currentType Is Nothing, String.Empty, currentType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat))))
-                End If
-            Next typeParameter
-
-            Return OperationStatus.Succeeded
+        Protected Overrides Function ParseTypeName(name As String) As SyntaxNode
+            Return SyntaxFactory.ParseTypeName(name)
         End Function
 
-        Private Class FormattingRule
+        Private NotInheritable Class FormattingRule
             Inherits CompatAbstractFormattingRule
+
+            Public Shared ReadOnly Instance As New FormattingRule()
+
+            Private Sub New()
+            End Sub
 
             Public Overrides Function GetAdjustNewLinesOperationSlow(ByRef previousToken As SyntaxToken, ByRef currentToken As SyntaxToken, ByRef nextOperation As NextGetAdjustNewLinesOperation) As AdjustNewLinesOperation
                 If Not previousToken.IsLastTokenOfStatement() Then
@@ -155,12 +123,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             End Function
         End Class
 
-        Protected Overrides Function InsertNewLineBeforeLocalFunctionIfNecessaryAsync(document As Document,
-                                                                                      methodName As SyntaxToken,
-                                                                                      methodDefinition As SyntaxNode,
-                                                                                      cancellationToken As CancellationToken) As Task(Of (document As Document, methodName As SyntaxToken, methodDefinition As SyntaxNode))
+        Protected Overrides Function InsertNewLineBeforeLocalFunctionIfNecessaryAsync(
+                document As Document,
+                invocationNameToken? As SyntaxToken,
+                methodDefinition As SyntaxNode,
+                cancellationToken As CancellationToken) As Task(Of (document As Document, invocationNameToken As SyntaxToken?))
             ' VB doesn't need to do any correction, so we just return the values untouched
-            Return Task.FromResult((document, methodName, methodDefinition))
+            Return Task.FromResult((document, invocationNameToken))
         End Function
     End Class
 End Namespace

@@ -6,36 +6,36 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+public class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
-    public class FullyQualifyTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public FullyQualifyTests(ITestOutputHelper logger)
+      : base(logger)
     {
-        public FullyQualifyTests(ITestOutputHelper logger)
-          : base(logger)
-        {
-        }
+    }
 
-        internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpFullyQualifyCodeFixProvider());
+    internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (null, new CSharpFullyQualifyCodeFixProvider());
 
-        protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
-            => FlattenActions(actions);
+    protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
+        => FlattenActions(actions);
 
-        [Theory, CombinatorialData]
-        public async Task TestTypeFromMultipleNamespaces1(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestTypeFromMultipleNamespaces1(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|IDictionary|] Method()
@@ -50,12 +50,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
         Goo();
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestTypeFromMultipleNamespaces2(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestTypeFromMultipleNamespaces2(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|IDictionary|] Method()
@@ -71,12 +71,54 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.FullyQualify
     }
 }",
 index: 1, testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestGenericWithNoArgs(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1889385")]
+    public async Task TestPreservesIncorrectIndentation1(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
+@"class Class
+{
+      [|IDictionary|] Method()
+    {
+        Goo();
+    }
+}",
+@"class Class
+{
+      System.Collections.IDictionary Method()
+    {
+        Goo();
+    }
+}", testHost: testHost);
+    }
+
+    [Theory, CombinatorialData]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1889385")]
+    public async Task TestPreservesIncorrectIndentation2(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
+@"class Class
+{
+\t[|IDictionary|] Method()
+    {
+        Goo();
+    }
+}".Replace(@"\t", "\t"),
+@"class Class
+{
+\tSystem.Collections.IDictionary Method()
+    {
+        Goo();
+    }
+}".Replace(@"\t", "\t"), testHost: testHost);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestGenericWithNoArgs(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|List|] Method()
@@ -91,12 +133,12 @@ index: 1, testHost: testHost);
         Goo();
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestGenericWithCorrectArgs(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestGenericWithCorrectArgs(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     [|List<int>|] Method()
@@ -111,12 +153,12 @@ index: 1, testHost: testHost);
         Goo();
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestSmartTagDisplayText(TestHost testHost)
-        {
-            await TestSmartTagTextAsync(
+    [Theory, CombinatorialData]
+    public async Task TestSmartTagDisplayText(TestHost testHost)
+    {
+        await TestSmartTagTextAsync(
 @"class Class
 {
     [|List<int>|] Method()
@@ -125,12 +167,12 @@ index: 1, testHost: testHost);
     }
 }",
 "System.Collections.Generic.List", new TestParameters(testHost: testHost));
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestGenericWithWrongArgs(TestHost testHost)
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestGenericWithWrongArgs(TestHost testHost)
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class Class
 {
     [|List<int, string>|] Method()
@@ -138,12 +180,12 @@ index: 1, testHost: testHost);
         Goo();
     }
 }", new TestParameters(testHost: testHost));
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestNotOnVar1(TestHost testHost)
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestNotOnVar1(TestHost testHost)
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"namespace N
 {
     class var { }
@@ -157,12 +199,12 @@ class C
     }
 }
 ", new TestParameters(testHost: testHost));
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestNotOnVar2(TestHost testHost)
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestNotOnVar2(TestHost testHost)
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"namespace N
 {
     class Bar { }
@@ -176,12 +218,12 @@ class C
     }
 }
 ", new TestParameters(testHost: testHost));
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestGenericInLocalDeclaration(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestGenericInLocalDeclaration(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Goo()
@@ -196,12 +238,12 @@ class C
         System.Collections.Generic.List<int> a = new List<int>();
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestGenericItemType(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestGenericItemType(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Class
@@ -214,12 +256,12 @@ class Class
 {
     List<System.Int32> l;
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestGenerateWithExistingUsings(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestGenerateWithExistingUsings(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"using System;
 
 class Class
@@ -238,12 +280,12 @@ class Class
         Goo();
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestGenerateInNamespace(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestGenerateInNamespace(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"namespace N
 {
     class Class
@@ -264,12 +306,12 @@ class Class
         }
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestGenerateInNamespaceWithUsings(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestGenerateInNamespaceWithUsings(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"namespace N
 {
     using System;
@@ -294,12 +336,12 @@ class Class
         }
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestExistingUsing(TestHost testHost)
-        {
-            await TestActionCountAsync(
+    [Theory, CombinatorialData]
+    public async Task TestExistingUsing(TestHost testHost)
+    {
+        await TestActionCountAsync(
 @"using System.Collections.Generic;
 
 class Class
@@ -311,7 +353,7 @@ class Class
 }",
 count: 1, new TestParameters(testHost: testHost));
 
-            await TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Class
@@ -330,12 +372,12 @@ class Class
         Goo();
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestMissingIfUniquelyBound(TestHost testHost)
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestMissingIfUniquelyBound(TestHost testHost)
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 class Class
@@ -345,12 +387,12 @@ class Class
         Goo();
     }
 }", new TestParameters(testHost: testHost));
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestMissingIfUniquelyBoundGeneric(TestHost testHost)
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestMissingIfUniquelyBoundGeneric(TestHost testHost)
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Class
@@ -360,12 +402,12 @@ class Class
         Goo();
     }
 }", new TestParameters(testHost: testHost));
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestOnEnum(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestOnEnum(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Goo()
@@ -400,12 +442,12 @@ namespace A
         Blue
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestOnClassInheritance(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestOnClassInheritance(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class : [|Class2|]
 {
 }
@@ -426,12 +468,12 @@ namespace A
     {
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestOnImplementedInterface(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestOnImplementedInterface(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class : [|IGoo|]
 {
 }
@@ -452,12 +494,12 @@ namespace A
     {
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestAllInBaseList(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestAllInBaseList(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class : [|IGoo|], Class2
 {
 }
@@ -493,7 +535,7 @@ namespace B
     }
 }", testHost: testHost);
 
-            await TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
 @"class Class : B.IGoo, [|Class2|]
 {
 }
@@ -528,12 +570,12 @@ namespace B
     {
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestAttributeUnexpanded(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestAttributeUnexpanded(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"[[|Obsolete|]]
 class Class
 {
@@ -542,12 +584,12 @@ class Class
 class Class
 {
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestAttributeExpanded(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestAttributeExpanded(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"[[|ObsoleteAttribute|]]
 class Class
 {
@@ -556,12 +598,12 @@ class Class
 class Class
 {
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527360")]
-        public async Task TestExtensionMethods(TestHost testHost)
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527360")]
+    public async Task TestExtensionMethods(TestHost testHost)
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"using System.Collections.Generic;
 
 class Goo
@@ -572,12 +614,12 @@ class Goo
         values.[|Where|](i => i > 1);
     }
 }", new TestParameters(testHost: testHost));
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538018")]
-        public async Task TestAfterNew(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538018")]
+    public async Task TestAfterNew(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Goo()
@@ -594,12 +636,12 @@ class Goo
         l = new System.Collections.Generic.List<int>();
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestArgumentsInMethodCall(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestArgumentsInMethodCall(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Test()
@@ -614,12 +656,12 @@ class Goo
         Console.WriteLine(System.DateTime.Today);
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestCallSiteArgs(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestCallSiteArgs(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Test([|DateTime|] dt)
@@ -632,12 +674,12 @@ class Goo
     {
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestUsePartialClass(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestUsePartialClass(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"namespace A
 {
     public class Class
@@ -666,12 +708,12 @@ namespace B
     {
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestGenericClassInNestedNamespace(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestGenericClassInNestedNamespace(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"namespace A
 {
     namespace B
@@ -706,12 +748,12 @@ namespace C
         A.B.GenericClass<int> c;
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestBeforeStaticMethod(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestBeforeStaticMethod(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     void Test()
@@ -724,12 +766,12 @@ namespace C
     {
         System.Math.Sqrt();
     }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
-        public async Task TestBeforeNamespace(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538136")]
+    public async Task TestBeforeNamespace(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"namespace A
 {
     class Class
@@ -764,28 +806,28 @@ namespace B
         }
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
-        public async Task TestSimpleNameWithLeadingTrivia(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
+    public async Task TestSimpleNameWithLeadingTrivia(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class { void Test() { /*goo*/[|Int32|] i; } }",
 @"class Class { void Test() { /*goo*/System.Int32 i; } }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
-        public async Task TestGenericNameWithLeadingTrivia(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527395")]
+    public async Task TestGenericNameWithLeadingTrivia(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class { void Test() { /*goo*/[|List<int>|] l; } }",
 @"class Class { void Test() { /*goo*/System.Collections.Generic.List<int> l; } }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
-        public async Task TestFullyQualifyTypeName(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
+    public async Task TestFullyQualifyTypeName(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"public class Program
 {
     public class Inner
@@ -808,12 +850,12 @@ class Test
 {
     Program.Inner i;
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26887")]
-        public async Task TestFullyQualifyUnboundIdentifier3(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26887")]
+    public async Task TestFullyQualifyUnboundIdentifier3(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"public class Program
 {
     public class Inner
@@ -836,12 +878,12 @@ class Test
 {
     public Program.Inner Name
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
-        public async Task TestFullyQualifyTypeName_NotForGenericType(TestHost testHost)
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538740")]
+    public async Task TestFullyQualifyTypeName_NotForGenericType(TestHost testHost)
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class Program<T>
 {
     public class Inner
@@ -853,12 +895,12 @@ class Test
 {
     [|Inner|] i;
 }", new TestParameters(testHost: testHost));
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538764")]
-        public async Task TestFullyQualifyThroughAlias(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538764")]
+    public async Task TestFullyQualifyThroughAlias(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"using Alias = System;
 
 class C
@@ -871,12 +913,12 @@ class C
 {
     Alias.Int32 i;
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
-        public async Task TestFullyQualifyPrioritizeTypesOverNamespaces1(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
+    public async Task TestFullyQualifyPrioritizeTypesOverNamespaces1(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"namespace Outer
 {
     namespace C
@@ -905,12 +947,12 @@ class Test
 {
     Outer.C.C c;
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
-        public async Task TestFullyQualifyPrioritizeTypesOverNamespaces2(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538763")]
+    public async Task TestFullyQualifyPrioritizeTypesOverNamespaces2(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"namespace Outer
 {
     namespace C
@@ -940,21 +982,21 @@ class Test
     Outer.C c;
 }",
 index: 1, testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
-        public async Task BugFix5950(TestHost testHost)
-        {
-            await TestAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539853")]
+    public async Task BugFix5950(TestHost testHost)
+    {
+        await TestAsync(
 @"using System.Console; WriteLine([|Expression|].Constant(123));",
 @"using System.Console; WriteLine(System.Linq.Expressions.Expression.Constant(123));",
 parseOptions: GetScriptOptions(), testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540318")]
-        public async Task TestAfterAlias(TestHost testHost)
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540318")]
+    public async Task TestAfterAlias(TestHost testHost)
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -966,12 +1008,12 @@ class Program
         System::[|Console|] :: WriteLine(""TEST"");
     }
 }", new TestParameters(testHost: testHost));
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540942")]
-        public async Task TestMissingOnIncompleteStatement(TestHost testHost)
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540942")]
+    public async Task TestMissingOnIncompleteStatement(TestHost testHost)
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"using System;
 using System.IO;
 
@@ -981,20 +1023,20 @@ class C
     {
         [|Path|] }
 }", new TestParameters(testHost: testHost));
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542643")]
-        public async Task TestAssemblyAttribute(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542643")]
+    public async Task TestAssemblyAttribute(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"[assembly: [|InternalsVisibleTo|](""Project"")]",
 @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Project"")]", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543388")]
-        public async Task TestMissingOnAliasName(TestHost testHost)
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543388")]
+    public async Task TestMissingOnAliasName(TestHost testHost)
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"using [|GIBBERISH|] = Goo.GIBBERISH;
 
 class Program
@@ -1011,12 +1053,12 @@ namespace Goo
     {
     }
 }", new TestParameters(testHost: testHost));
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TestMissingOnAttributeOverloadResolutionError(TestHost testHost)
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TestMissingOnAttributeOverloadResolutionError(TestHost testHost)
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"using System.Runtime.InteropServices;
 
 class M
@@ -1024,12 +1066,12 @@ class M
     [[|DllImport|]()]
     static extern int? My();
 }", new TestParameters(testHost: testHost));
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544950")]
-        public async Task TestNotOnAbstractConstructor(TestHost testHost)
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544950")]
+    public async Task TestNotOnAbstractConstructor(TestHost testHost)
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"using System.IO;
 
 class Program
@@ -1039,26 +1081,26 @@ class Program
         var s = new [|Stream|]();
     }
 }", new TestParameters(testHost: testHost));
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
-        public async Task TestAttributeCount(TestHost testHost)
-        {
-            await TestActionCountAsync(@"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", 2, new TestParameters(testHost: testHost));
-        }
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
+    public async Task TestAttributeCount(TestHost testHost)
+    {
+        await TestActionCountAsync(@"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", 2, new TestParameters(testHost: testHost));
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
-        public async Task TestAttribute(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545774")]
+    public async Task TestAttribute(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"[ assembly : [|Guid|] ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ",
-@"[ assembly : System.Runtime.InteropServices.Guid( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", testHost: testHost);
-        }
+@"[ assembly : System.Runtime.InteropServices.Guid ( ""9ed54f84-a89d-4fcd-a854-44251e925f09"" ) ] ", testHost: testHost);
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
-        public async Task TestGeneratePropertyFromAttribute(TestHost testHost)
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
+    public async Task TestGeneratePropertyFromAttribute(TestHost testHost)
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"using System;
 
 [AttributeUsage(AttributeTargets.Class)]
@@ -1070,13 +1112,13 @@ class MyAttrAttribute : Attribute
 class D
 {
 }", new TestParameters(testHost: testHost));
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")]
-        public async Task ShouldTriggerOnCS0308(TestHost testHost)
-        {
-            // CS0308: The non-generic type 'A' cannot be used with type arguments
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")]
+    public async Task ShouldTriggerOnCS0308(TestHost testHost)
+    {
+        // CS0308: The non-generic type 'A' cannot be used with type arguments
+        await TestInRegularAndScriptAsync(
 @"using System.Collections;
 
 class Test
@@ -1095,12 +1137,12 @@ class Test
         System.Collections.Generic.IEnumerable<int> f;
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")]
-        public async Task AmbiguousTypeFix(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/947579")]
+    public async Task AmbiguousTypeFix(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"using n1;
 using n2;
 
@@ -1149,12 +1191,12 @@ namespace n2
     {
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995857")]
-        public async Task NonPublicNamespaces(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/995857")]
+    public async Task NonPublicNamespaces(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"namespace MS.Internal.Xaml
 {
     private class A
@@ -1198,7 +1240,7 @@ public class Program
     }
 }", testHost: testHost);
 
-            await TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
 @"namespace MS.Internal.Xaml
 {
     public class A
@@ -1241,12 +1283,12 @@ public class Program
         MS.Internal.Xaml
     }
 }", index: 1, testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/11071")]
-        public async Task AmbiguousFixOrdering(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/11071")]
+    public async Task AmbiguousFixOrdering(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"using n1;
 using n2;
 
@@ -1295,12 +1337,12 @@ namespace n2
         }
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TupleTest(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TupleTest(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     ([|IDictionary|], string) Method()
@@ -1315,12 +1357,12 @@ namespace n2
         Goo();
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData]
-        public async Task TupleWithOneName(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData]
+    public async Task TupleWithOneName(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"class Class
 {
     ([|IDictionary|] a, string) Method()
@@ -1335,12 +1377,12 @@ namespace n2
         Goo();
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/18275")]
-        public async Task TestContextualKeyword1(TestHost testHost)
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/18275")]
+    public async Task TestContextualKeyword1(TestHost testHost)
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"
 namespace N
 {
@@ -1356,24 +1398,24 @@ class C
         [|nameof|]
     }
 }", new TestParameters(testHost: testHost));
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/18623")]
-        public async Task TestDoNotQualifyToTheSameTypeToFixWrongArity(TestHost testHost)
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/18623")]
+    public async Task TestDoNotQualifyToTheSameTypeToFixWrongArity(TestHost testHost)
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"
 using System.Collections.Generic;
 
 class Program : [|IReadOnlyCollection|]
 {
 }", new TestParameters(testHost: testHost));
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/19575")]
-        public async Task TestNoNonGenericsWithGenericCodeParsedAsExpression(TestHost testHost)
-        {
-            var code = @"
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/19575")]
+    public async Task TestNoNonGenericsWithGenericCodeParsedAsExpression(TestHost testHost)
+    {
+        var code = @"
 class C
 {
     private void GetEvaluationRuleNames()
@@ -1382,9 +1424,9 @@ class C
         return ImmutableArray.CreateRange();
     }
 }";
-            await TestActionCountAsync(code, count: 1, new TestParameters(testHost: testHost));
+        await TestActionCountAsync(code, count: 1, new TestParameters(testHost: testHost));
 
-            await TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
 code,
 @"
 class C
@@ -1395,12 +1437,12 @@ class C
         return ImmutableArray.CreateRange();
     }
 }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/49986")]
-        public async Task TestInUsingContext_Type(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/49986")]
+    public async Task TestInUsingContext_Type(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"using [|Math|];
 
 class Class
@@ -1417,12 +1459,12 @@ class Class
     {
         Sqrt(1);
     }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/49986")]
-        public async Task TestInUsingContext_Namespace(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/49986")]
+    public async Task TestInUsingContext_Namespace(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"using [|Collections|];
 
 class Class
@@ -1439,12 +1481,12 @@ class Class
     {
         Sqrt(1);
     }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/49986")]
-        public async Task TestInUsingContext_UsingStatic(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/49986")]
+    public async Task TestInUsingContext_UsingStatic(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"using static [|Math|];
 
 class Class
@@ -1461,20 +1503,20 @@ class Class
     {
         Sqrt(1);
     }", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/51274")]
-        public async Task TestInUsingContext_UsingAlias(TestHost testHost)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/51274")]
+    public async Task TestInUsingContext_UsingAlias(TestHost testHost)
+    {
+        await TestInRegularAndScriptAsync(
 @"using M = [|Math|]",
 @"using M = System.Math", testHost: testHost);
-        }
+    }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
-        public async Task TestAddUsingsEditorBrowsableNeverSameProject(TestHost testHost)
-        {
-            const string InitialWorkspace = @"
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
+    public async Task TestAddUsingsEditorBrowsableNeverSameProject(TestHost testHost)
+    {
+        const string InitialWorkspace = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""lib"" CommonReferences=""true"">
         <Document FilePath=""lib.cs"">
@@ -1499,7 +1541,7 @@ class Program
     </Project>
 </Workspace>";
 
-            const string ExpectedDocumentText = @"
+        const string ExpectedDocumentText = @"
 class Program
 {
     static void Main(string[] args)
@@ -1509,13 +1551,13 @@ class Program
 }
 ";
 
-            await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
-        }
+        await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
+    }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
-        public async Task TestAddUsingsEditorBrowsableNeverDifferentProject(TestHost testHost)
-        {
-            const string InitialWorkspace = @"
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
+    public async Task TestAddUsingsEditorBrowsableNeverDifferentProject(TestHost testHost)
+    {
+        const string InitialWorkspace = @"
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""lib"" CommonReferences=""true"">
         <Document FilePath=""lib.vb"">
@@ -1540,13 +1582,13 @@ class Program
 </Document>
     </Project>
 </Workspace>";
-            await TestMissingAsync(InitialWorkspace, new TestParameters(testHost: testHost));
-        }
+        await TestMissingAsync(InitialWorkspace, new TestParameters(testHost: testHost));
+    }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
-        public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOn(TestHost testHost)
-        {
-            const string InitialWorkspace = @"
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
+    public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOn(TestHost testHost)
+    {
+        const string InitialWorkspace = @"
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""lib"" CommonReferences=""true"">
         <Document FilePath=""lib.vb"">
@@ -1572,7 +1614,7 @@ class Program
     </Project>
 </Workspace>";
 
-            const string ExpectedDocumentText = @"
+        const string ExpectedDocumentText = @"
 class Program
 {
     static void Main(string[] args)
@@ -1581,13 +1623,13 @@ class Program
     }
 }
 ";
-            await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
-        }
+        await TestInRegularAndScript1Async(InitialWorkspace, ExpectedDocumentText, new TestParameters(testHost: testHost));
+    }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
-        public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff(TestHost testHost)
-        {
-            var initialWorkspace = @"
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/54544")]
+    public async Task TestAddUsingsEditorBrowsableAdvancedDifferentProjectOptionOff(TestHost testHost)
+    {
+        var initialWorkspace = @"
 <Workspace>
     <Project Language=""Visual Basic"" AssemblyName=""lib"" CommonReferences=""true"">
         <Document FilePath=""lib.vb"">
@@ -1613,9 +1655,8 @@ class Program
     </Project>
 </Workspace>";
 
-            await TestMissingAsync(initialWorkspace, new TestParameters(
-                globalOptions: Option(CompletionOptionsStorage.HideAdvancedMembers, true),
-                testHost: testHost));
-        }
+        await TestMissingAsync(initialWorkspace, new TestParameters(
+            options: Option(MemberDisplayOptionsStorage.HideAdvancedMembers, true),
+            testHost: testHost));
     }
 }

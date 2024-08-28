@@ -4,7 +4,7 @@
 
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.VisualStudio.LanguageServer.Protocol
+Imports Roslyn.LanguageServer.Protocol
 
 Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
     <UseExportProvider>
@@ -36,7 +36,7 @@ class C
             Dim rangeVertex = Await lsif.GetSelectedRangeAsync()
             Dim resultSetVertex = lsif.GetLinkedVertices(Of Graph.ResultSet)(rangeVertex, "next").Single()
             Dim hoverVertex = lsif.GetLinkedVertices(Of Graph.HoverResult)(resultSetVertex, Methods.TextDocumentHoverName).SingleOrDefault()
-            Dim hoverMarkupContent = DirectCast(hoverVertex.Result.Contents.Value.Fourth, MarkupContent)
+            Dim hoverMarkupContent = DirectCast(hoverVertex.Result.Contents.Fourth, MarkupContent)
 
             Dim expectedHoverContents As String
             Select Case code
@@ -110,7 +110,7 @@ class C
             Dim rangeVertex = Await lsif.GetSelectedRangeAsync()
             Dim resultSetVertex = lsif.GetLinkedVertices(Of Graph.ResultSet)(rangeVertex, "next").Single()
             Dim hoverVertex = lsif.GetLinkedVertices(Of Graph.HoverResult)(resultSetVertex, Methods.TextDocumentHoverName).SingleOrDefault()
-            Dim hoverMarkupContent = DirectCast(hoverVertex.Result.Contents.Value.Fourth, MarkupContent)
+            Dim hoverMarkupContent = DirectCast(hoverVertex.Result.Contents.Fourth, MarkupContent)
 
             Dim expectedHoverContents As String
             Select Case code
@@ -196,7 +196,7 @@ void C.M()
                 End If
             Next
 
-            Dim hoverMarkupContent = DirectCast(hoverVertex.Result.Contents.Value.Fourth, MarkupContent)
+            Dim hoverMarkupContent = DirectCast(hoverVertex.Result.Contents.Fourth, MarkupContent)
             Assert.Equal(MarkupKind.Markdown, hoverMarkupContent.Kind)
             Assert.Equal("```csharp
 class System.String

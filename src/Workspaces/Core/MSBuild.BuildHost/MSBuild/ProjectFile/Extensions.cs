@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -32,29 +31,44 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public static IEnumerable<ProjectFileReference> GetProjectReferences(this MSB.Execution.ProjectInstance executedProject)
             => executedProject
                 .GetItems(ItemNames.ProjectReference)
-                .Where(i => i.ReferenceOutputAssemblyIsTrue())
                 .Select(CreateProjectFileReference);
+
+        public static ImmutableArray<PackageReference> GetPackageReferences(this MSB.Execution.ProjectInstance executedProject)
+        {
+            var packageReferenceItems = executedProject.GetItems(ItemNames.PackageReference);
+            using var _ = PooledHashSet<PackageReference>.GetInstance(out var references);
+
+            foreach (var item in packageReferenceItems)
+            {
+                var name = item.EvaluatedInclude;
+                var versionRangeValue = item.GetMetadataValue(MetadataNames.Version);
+                var packageReference = new PackageReference(name, versionRangeValue);
+                references.Add(packageReference);
+            }
+
+            return [.. references];
+        }
 
         /// <summary>
         /// Create a <see cref="ProjectFileReference"/> from a ProjectReference node in the MSBuild file.
         /// </summary>
         private static ProjectFileReference CreateProjectFileReference(MSB.Execution.ProjectItemInstance reference)
-            => new(reference.EvaluatedInclude, reference.GetAliases());
+            => new(reference.EvaluatedInclude, reference.GetAliases(), reference.ReferenceOutputAssemblyIsTrue());
 
         public static ImmutableArray<string> GetAliases(this MSB.Framework.ITaskItem item)
         {
             var aliasesText = item.GetMetadata(MetadataNames.Aliases);
 
-            return !RoslynString.IsNullOrWhiteSpace(aliasesText)
+            return !string.IsNullOrWhiteSpace(aliasesText)
                 ? ImmutableArray.CreateRange(aliasesText.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(a => a.Trim()))
-                : ImmutableArray<string>.Empty;
+                : [];
         }
 
         public static bool ReferenceOutputAssemblyIsTrue(this MSB.Framework.ITaskItem item)
         {
             var referenceOutputAssemblyText = item.GetMetadata(MetadataNames.ReferenceOutputAssembly);
 
-            return RoslynString.IsNullOrWhiteSpace(referenceOutputAssemblyText) ||
+            return string.IsNullOrWhiteSpace(referenceOutputAssemblyText) ||
                 !string.Equals(referenceOutputAssemblyText, bool.FalseString, StringComparison.OrdinalIgnoreCase);
         }
 

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -14,6 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class LocalRewriter
     {
+        private static readonly AwaitDebugId s_moveNextAsyncAwaitId = new AwaitDebugId(RelativeStateOrdinal: 0);
+        private static readonly AwaitDebugId s_disposeAsyncAwaitId = new AwaitDebugId(RelativeStateOrdinal: 1);
+
         /// <summary>
         /// This is the entry point for foreach-loop lowering.  It delegates to
         ///   RewriteEnumeratorForEachStatement
@@ -156,25 +160,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundLocal boundEnumeratorVar = MakeBoundLocal(forEachSyntax, enumeratorVar, enumeratorType);
 
             var receiver = ConvertReceiverForInvocation(forEachSyntax, rewrittenExpression, getEnumeratorInfo.Method, convertedCollection.Conversion, enumeratorInfo.CollectionType);
+            BoundExpression? firstRewrittenArgument = null;
 
             // If the GetEnumerator call is an extension method, then the first argument is the receiver. We want to replace
             // the first argument with our converted receiver and pass null as the receiver instead.
             if (getEnumeratorInfo.Method.IsExtensionMethod)
             {
                 var builder = ArrayBuilder<BoundExpression>.GetInstance(getEnumeratorInfo.Arguments.Length);
-                builder.Add(receiver);
+                firstRewrittenArgument = receiver;
+                builder.Add(firstRewrittenArgument);
                 builder.AddRange(getEnumeratorInfo.Arguments, 1, getEnumeratorInfo.Arguments.Length - 1);
-                getEnumeratorInfo = getEnumeratorInfo with { Arguments = builder.ToImmutableAndFree() };
+                getEnumeratorInfo = new MethodArgumentInfo(
+                                            getEnumeratorInfo.Method,
+                                            builder.ToImmutableAndFree(),
+                                            defaultArguments: default,
+                                            getEnumeratorInfo.Expanded);
 
                 receiver = null;
             }
 
             // ((C)(x)).GetEnumerator();  OR  (x).GetEnumerator();  OR  async variants (which fill-in arguments for optional parameters)
             BoundExpression enumeratorVarInitValue = SynthesizeCall(getEnumeratorInfo, forEachSyntax, receiver,
-                allowExtensionAndOptionalParameters: isAsync || getEnumeratorInfo.Method.IsExtensionMethod,
-                // C# 8 shipped allowing the CancellationToken of `IAsyncEnumerable.GetAsyncEnumerator` to be non-optional.
-                // https://github.com/dotnet/roslyn/issues/50182 tracks making this an error and breaking the scenario.
-                assertParametersAreOptional: false);
+                allowExtensionAndOptionalParameters: isAsync || getEnumeratorInfo.Method.IsExtensionMethod, firstRewrittenArgument: firstRewrittenArgument);
 
             // E e = ((C)(x)).GetEnumerator();
             BoundStatement enumeratorVarDecl = MakeLocalDeclaration(forEachSyntax, enumeratorVar, enumeratorVarInitValue);
@@ -208,14 +215,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var rewrittenBodyBlock = CreateBlockDeclaringIterationVariables(iterationVariables, iterationVarDecl, rewrittenBody, forEachSyntax);
             BoundExpression rewrittenCondition = SynthesizeCall(
-                    methodArgumentInfo: enumeratorInfo.MoveNextInfo,
-                    syntax: forEachSyntax,
-                    receiver: boundEnumeratorVar,
-                    allowExtensionAndOptionalParameters: isAsync);
+                methodArgumentInfo: enumeratorInfo.MoveNextInfo,
+                syntax: forEachSyntax,
+                receiver: boundEnumeratorVar,
+                allowExtensionAndOptionalParameters: isAsync,
+                firstRewrittenArgument: null);
+
+            var disposalFinallyBlock = GetDisposalFinallyBlock(forEachSyntax, enumeratorInfo, enumeratorType, boundEnumeratorVar, out var hasAsyncDisposal);
             if (isAsync)
             {
                 Debug.Assert(awaitableInfo is { GetResult: { } });
-                rewrittenCondition = RewriteAwaitExpression(forEachSyntax, rewrittenCondition, awaitableInfo, awaitableInfo.GetResult.ReturnType, used: true);
+
+                // We need to be sure that when the disposal isn't async we reserve an unused state machine state number for it,
+                // so that await foreach always produces 2 state machine states: one for MoveNextAsync and the other for DisposeAsync.
+                // Otherwise, EnC wouldn't be able to map states when the disposal changes from having async dispose to not, or vice versa.
+                var debugInfo = new BoundAwaitExpressionDebugInfo(s_moveNextAsyncAwaitId, ReservedStateMachineCount: (byte)(hasAsyncDisposal ? 0 : 1));
+
+                rewrittenCondition = RewriteAwaitExpression(forEachSyntax, rewrittenCondition, awaitableInfo, awaitableInfo.GetResult.ReturnType, debugInfo, used: true);
             }
 
             BoundStatement whileLoop = RewriteWhileStatement(
@@ -228,9 +244,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement result;
 
-            if (enumeratorInfo.NeedsDisposal)
+            if (disposalFinallyBlock != null)
             {
-                BoundStatement tryFinally = WrapWithTryFinallyDispose(forEachSyntax, enumeratorInfo, enumeratorType, boundEnumeratorVar, whileLoop);
+                // try {
+                //     while (e.MoveNext()) {
+                //         V v = (V)(T)e.Current;  -OR-  (D1 d1, ...) = (V)(T)e.Current;
+                //         /* loop body */
+                //     }
+                // }
+                // finally {
+                //     /* dispose of e */
+                // }
+                BoundStatement tryFinally = new BoundTryStatement(
+                    forEachSyntax,
+                    tryBlock: new BoundBlock(forEachSyntax, locals: ImmutableArray<LocalSymbol>.Empty, statements: ImmutableArray.Create(whileLoop)),
+                    catchBlocks: ImmutableArray<BoundCatchBlock>.Empty,
+                    finallyBlockOpt: disposalFinallyBlock);
 
                 // E e = ((C)(x)).GetEnumerator();
                 // try {
@@ -275,17 +304,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// - interface-based disposal (the enumerator type converts to IDisposable/IAsyncDisposable)
         /// - we need to do a runtime check for IDisposable
         /// </summary>
-        private BoundStatement WrapWithTryFinallyDispose(
+        /// <returns>Finally block, or null if none should be emitted.</returns>
+        private BoundBlock? GetDisposalFinallyBlock(
             CSharpSyntaxNode forEachSyntax,
             ForEachEnumeratorInfo enumeratorInfo,
             TypeSymbol enumeratorType,
             BoundLocal boundEnumeratorVar,
-            BoundStatement rewrittenBody)
+            out bool hasAsyncDisposal)
         {
-            Debug.Assert(enumeratorInfo.NeedsDisposal);
+            hasAsyncDisposal = false;
+
+            if (!enumeratorInfo.NeedsDisposal)
+            {
+                return null;
+            }
 
             NamedTypeSymbol? idisposableTypeSymbol = null;
-            bool isImplicit = false;
+            bool implementsInterface = false;
             MethodSymbol? disposeMethod = enumeratorInfo.PatternDisposeInfo?.Method; // pattern-based
 
             if (disposeMethod is null)
@@ -295,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This is a temporary workaround for https://github.com/dotnet/roslyn/issues/39948
                 if (disposeMethod is null)
                 {
-                    return rewrittenBody;
+                    return null;
                 }
 
                 idisposableTypeSymbol = disposeMethod.ContainingType;
@@ -303,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var conversions = _factory.CurrentFunction.ContainingAssembly.CorLibrary.TypeConversions;
 
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo();
-                isImplicit = conversions.ClassifyImplicitConversionFromType(enumeratorType, idisposableTypeSymbol, ref useSiteInfo).IsImplicit;
+                implementsInterface = conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(enumeratorType, idisposableTypeSymbol, ref useSiteInfo, out _);
                 _diagnostics.Add(forEachSyntax, useSiteInfo);
             }
 
@@ -313,8 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                containingType: _factory.CurrentType,
                                                location: enumeratorInfo.Location);
 
-            BoundBlock finallyBlockOpt;
-            if (isImplicit || !(enumeratorInfo.PatternDisposeInfo is null))
+            if (implementsInterface || !(enumeratorInfo.PatternDisposeInfo is null))
             {
                 Conversion receiverConversion = enumeratorType.IsStructType() ?
                     Conversion.Boxing :
@@ -335,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // ((IDisposable)e).Dispose() or e.Dispose() or await ((IAsyncDisposable)e).DisposeAsync() or await e.DisposeAsync()
-                disposeCall = MakeCallWithNoExplicitArgument(disposeInfo, forEachSyntax, receiver);
+                disposeCall = MakeCallWithNoExplicitArgument(disposeInfo, forEachSyntax, receiver, firstRewrittenArgument: null);
 
                 BoundStatement disposeCallStatement;
                 var disposeAwaitableInfoOpt = enumeratorInfo.DisposeAwaitableInfo;
@@ -344,6 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // await /* disposeCall */
                     disposeCallStatement = WrapWithAwait(forEachSyntax, disposeCall, disposeAwaitableInfoOpt);
                     _sawAwaitInExceptionHandler = true;
+                    hasAsyncDisposal = true;
                 }
                 else
                 {
@@ -367,13 +402,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var objectType = _factory.SpecialType(SpecialType.System_Object);
                     alwaysOrMaybeDisposeStmt = RewriteIfStatement(
                         syntax: forEachSyntax,
-                        rewrittenCondition: _factory.ObjectNotEqual(_factory.Convert(objectType, boundEnumeratorVar), _factory.Null(objectType)),
+                        rewrittenCondition: _factory.IsNotNullReference(boundEnumeratorVar),
                         rewrittenConsequence: disposeCallStatement,
                         rewrittenAlternativeOpt: null,
                         hasErrors: false);
                 }
 
-                finallyBlockOpt = new BoundBlock(forEachSyntax,
+                return new BoundBlock(forEachSyntax,
                     locals: ImmutableArray<LocalSymbol>.Empty,
                     statements: ImmutableArray.Create(alwaysOrMaybeDisposeStmt));
             }
@@ -429,27 +464,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // IDisposable d = e as IDisposable;
                 // if (d != null) d.Dispose();
-                finallyBlockOpt = new BoundBlock(forEachSyntax,
+                return new BoundBlock(forEachSyntax,
                     locals: ImmutableArray.Create(disposableVar),
                     statements: ImmutableArray.Create(disposableVarDecl, ifStmt));
             }
-
-            // try {
-            //     while (e.MoveNext()) {
-            //         V v = (V)(T)e.Current;  -OR-  (D1 d1, ...) = (V)(T)e.Current;
-            //         /* loop body */
-            //     }
-            // }
-            // finally {
-            //     /* dispose of e */
-            // }
-            BoundStatement tryFinally = new BoundTryStatement(forEachSyntax,
-                tryBlock: new BoundBlock(forEachSyntax,
-                    locals: ImmutableArray<LocalSymbol>.Empty,
-                    statements: ImmutableArray.Create<BoundStatement>(rewrittenBody)),
-                catchBlocks: ImmutableArray<BoundCatchBlock>.Empty,
-                finallyBlockOpt: finallyBlockOpt);
-            return tryFinally;
         }
 
         /// <summary>
@@ -459,7 +477,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement WrapWithAwait(SyntaxNode forEachSyntax, BoundExpression disposeCall, BoundAwaitableInfo disposeAwaitableInfoOpt)
         {
             TypeSymbol awaitExpressionType = disposeAwaitableInfoOpt.GetResult?.ReturnType ?? _compilation.DynamicType;
-            var awaitExpr = RewriteAwaitExpression(forEachSyntax, disposeCall, disposeAwaitableInfoOpt, awaitExpressionType, used: false);
+            var debugInfo = new BoundAwaitExpressionDebugInfo(s_disposeAsyncAwaitId, ReservedStateMachineCount: 0);
+            var awaitExpr = RewriteAwaitExpression(forEachSyntax, disposeCall, disposeAwaitableInfoOpt, awaitExpressionType, debugInfo, used: false);
             return new BoundExpressionStatement(forEachSyntax, awaitExpr);
         }
 
@@ -518,12 +537,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return receiver;
         }
 
-        private BoundExpression SynthesizeCall(MethodArgumentInfo methodArgumentInfo, CSharpSyntaxNode syntax, BoundExpression? receiver, bool allowExtensionAndOptionalParameters, bool assertParametersAreOptional = true)
+        private BoundExpression SynthesizeCall(MethodArgumentInfo methodArgumentInfo, CSharpSyntaxNode syntax, BoundExpression? receiver, bool allowExtensionAndOptionalParameters, BoundExpression? firstRewrittenArgument)
         {
             if (allowExtensionAndOptionalParameters)
             {
                 // Generate a call with zero explicit arguments, but with implicit arguments for optional and params parameters.
-                return MakeCallWithNoExplicitArgument(methodArgumentInfo, syntax, receiver, assertParametersAreOptional);
+                return MakeCallWithNoExplicitArgument(methodArgumentInfo, syntax, receiver, firstRewrittenArgument: firstRewrittenArgument);
             }
 
             // Generate a call with literally zero arguments

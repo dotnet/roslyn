@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Remote</RootNamespace>
-    <TargetFrameworks>net6.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>$(NetVS);netstandard2.0</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
@@ -17,17 +17,16 @@
     <ProjectReference Include="..\..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
     <ProjectReference Include="..\..\..\Tools\ExternalAccess\Razor\Microsoft.CodeAnalysis.ExternalAccess.Razor.csproj" />
     <ProjectReference Include="..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" />
-    <ProjectReference Include="..\..\..\Tools\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\..\Features\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj" />
     <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
-    <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.RpcContracts" Version="$(MicrosoftVisualStudioRpcContractsVersion)" />
-    <PackageReference Include="Nerdbank.Streams" Version="$(NerdbankStreamsVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" />
+    <PackageReference Include="Microsoft.VisualStudio.RpcContracts" />
+
+    <!-- TODO: remove https://github.com/dotnet/roslyn/issues/71374 -->
+    <PackageReference Include="Microsoft.ServiceHub.Framework" />
+    <PackageReference Include="Microsoft.ServiceHub.Client" />
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
@@ -36,30 +35,23 @@
   <ItemGroup>
     <Compile Include="..\..\..\VisualStudio\Core\Def\UnusedReferences\ProjectAssets\ProjectAssetsFileReader.cs" Link="Services\UnusedReferences\ProjectAssets\ProjectAssetsFileReader.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Watson\FaultReporter.cs" Link="Services\ProcessTelemetry\FaultReporter.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\AbstractCloudCachePersistentStorageService.cs" Link="Host\Storage\AbstractCloudCachePersistentStorageService.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\CloudCachePersistentStorage.cs" Link="Host\Storage\CloudCachePersistentStorage.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\ProjectContainerKeyCache.cs" Link="Host\Storage\ProjectContainerKeyCache.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Storage\FileDownloader.cs" Link="Host\Storage\FileDownloader.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\AbstractWorkspaceTelemetryService.cs" Link="Services\ProcessTelemetry\AbstractWorkspaceTelemetryService.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\AggregatingTelemetryLog.cs" Link="Services\ProcessTelemetry\AggregatingTelemetryLog.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\AggregatingTelemetryLogManager.cs" Link="Services\ProcessTelemetry\AggregatingTelemetryLogManager.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\TelemetryLogger.cs" Link="Services\ProcessTelemetry\TelemetryLogger.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\TelemetryLogProvider.cs" Link="Services\ProcessTelemetry\TelemetryLogProvider.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\TimedTelemetryLogBlock.cs" Link="Services\ProcessTelemetry\TimedTelemetryLogBlock.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VisualStudioTelemetryLog.cs" Link="Services\ProcessTelemetry\VisualStudioTelemetryLog.cs" />
-    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\VisualStudioTelemetryLogManager.cs" Link="Services\ProcessTelemetry\VisualStudioTelemetryLogManager.cs" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\Shared\*.cs" LinkBase="Services\ProcessTelemetry" />
   </ItemGroup>
   <ItemGroup>
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.UnitTests" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Completion.Tests" Key="$(IntelliCodeCSharpKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35081" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp.Extraction" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />

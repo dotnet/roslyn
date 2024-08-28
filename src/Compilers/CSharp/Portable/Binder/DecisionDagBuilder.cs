@@ -679,10 +679,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundRelationalPattern rel,
             out BoundDagTemp output)
         {
-            Debug.Assert(rel.Value.Type is not null);
+            var type = rel.Value.Type ?? input.Type;
+            Debug.Assert(type is { });
             // check if the test is always true or always false
             var tests = ArrayBuilder<Tests>.GetInstance(2);
-            output = MakeConvertToType(input, rel.Syntax, rel.Value.Type, isExplicitTest: false, tests);
+            output = MakeConvertToType(input, rel.Syntax, type, isExplicitTest: false, tests);
             var fac = ValueSetFactory.ForInput(output);
             var values = fac?.Related(rel.Relation.Operator(), rel.ConstantValue);
             if (values?.IsEmpty == true)
@@ -1691,7 +1692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         builder.Append(" BIND[");
                         builder.Append(string.Join("; ", bindings));
-                        builder.Append("]");
+                        builder.Append(']');
                     }
 
                     if (cd.WhenClause is { })
@@ -1754,6 +1755,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             public FrozenArrayBuilder(ArrayBuilder<T> arrayBuilder)
             {
                 Debug.Assert(arrayBuilder != null);
+                if (arrayBuilder.Capacity >= ArrayBuilder<T>.PooledArrayLengthLimitExclusive
+                    && arrayBuilder.Count < ArrayBuilder<T>.PooledArrayLengthLimitExclusive
+                    && arrayBuilder.Capacity >= arrayBuilder.Count * 2)
+                {
+                    // An ArrayBuilder<T> meeting these conditions will satisfy the following:
+                    //
+                    // 1. The current backing array is too large to be returned to the pool (i.e. it will be garbage
+                    //    collected whenever no longer used).
+                    // 2. The resized backing array from trimming is small enough to be returned to the pool (i.e. it
+                    //    will not be wasted after this builder is freed).
+                    // 3. At least half of the storage of the current builder is unused.
+                    //
+                    // If we can save half the space without wasting an array that would fit in the pool, go ahead and
+                    // do so by trimming the array builder.
+                    arrayBuilder.Capacity = arrayBuilder.Count;
+                }
+
                 _arrayBuilder = arrayBuilder;
             }
 

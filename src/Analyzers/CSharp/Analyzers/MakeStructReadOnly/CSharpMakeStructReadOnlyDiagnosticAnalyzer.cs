@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructReadOnly;
 
@@ -61,14 +60,15 @@ internal sealed class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuilt
                     context.ReportDiagnostic(DiagnosticHelper.Create(
                         Descriptor,
                         location,
-                        option.Notification.Severity,
+                        option.Notification,
+                        context.Options,
                         additionalLocations: ImmutableArray.Create(additionalLocation),
                         properties: null));
                 });
             }, SymbolKind.NamedType);
         });
 
-    private static bool IsCandidate(
+    private bool IsCandidate(
         SymbolStartAnalysisContext context,
         [NotNullWhen(true)] out Location? primaryLocation,
         [NotNullWhen(true)] out Location? additionalLocation,
@@ -86,16 +86,15 @@ internal sealed class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuilt
         if (typeSymbol.IsReadOnly)
             return false;
 
-        if (typeSymbol.DeclaringSyntaxReferences.Length == 0)
+        if (typeSymbol.DeclaringSyntaxReferences is not [var typeReference, ..])
             return false;
 
-        var typeDeclaration = typeSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken) as TypeDeclarationSyntax;
-        if (typeDeclaration is null)
+        if (typeReference.GetSyntax(cancellationToken) is not TypeDeclarationSyntax typeDeclaration)
             return false;
 
         var options = context.GetCSharpAnalyzerOptions(typeDeclaration.SyntaxTree);
         option = options.PreferReadOnlyStruct;
-        if (!option.Value)
+        if (!option.Value || ShouldSkipAnalysis(typeDeclaration.SyntaxTree, context.Options, context.Compilation.Options, option.Notification, cancellationToken))
             return false;
 
         // Now, ensure we have at least one field and that all fields are readonly.
@@ -106,6 +105,12 @@ internal sealed class CSharpMakeStructReadOnlyDiagnosticAnalyzer : AbstractBuilt
             {
                 hasField = true;
                 if (!field.IsReadOnly)
+                    return false;
+            }
+            else if (member is IEventSymbol ev)
+            {
+                // field-like events are not allowed in readonly structs.
+                if (ev.AddMethod is { DeclaringSyntaxReferences.Length: 0 })
                     return false;
             }
         }

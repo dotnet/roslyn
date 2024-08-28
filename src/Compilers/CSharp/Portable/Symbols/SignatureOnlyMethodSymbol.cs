@@ -96,6 +96,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
 
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
+
         #region Not used by MethodSignatureComparer
 
         internal override bool GenerateDebugInfo { get { throw ExceptionUtilities.Unreachable(); } }
@@ -177,6 +183,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool HasUnscopedRefAttribute => false;
 
         internal sealed override bool UseUpdatedEscapeRules => true;
+
+        internal sealed override int? TryGetOverloadResolutionPriority() => throw ExceptionUtilities.Unreachable();
 
         #endregion
     }

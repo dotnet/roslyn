@@ -15,8 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a Source custom attribute specification
     /// </summary>
-    internal class SourceAttributeData : CSharpAttributeData
+    internal sealed class SourceAttributeData : CSharpAttributeData
     {
+        private readonly CSharpCompilation _compilation;
         private readonly NamedTypeSymbol _attributeClass;
         private readonly MethodSymbol? _attributeConstructor;
         private readonly ImmutableArray<TypedConstant> _constructorArguments;
@@ -24,10 +25,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<KeyValuePair<string, TypedConstant>> _namedArguments;
         private readonly bool _isConditionallyOmitted;
         private readonly bool _hasErrors;
-        private readonly SyntaxReference? _applicationNode;
+        private readonly SyntaxReference _applicationNode;
 
-        internal SourceAttributeData(
-            SyntaxReference? applicationNode,
+        private SourceAttributeData(
+            CSharpCompilation compilation,
+            SyntaxReference applicationNode,
             NamedTypeSymbol attributeClass,
             MethodSymbol? attributeConstructor,
             ImmutableArray<TypedConstant> constructorArguments,
@@ -36,6 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasErrors,
             bool isConditionallyOmitted)
         {
+            Debug.Assert(compilation is object);
+            Debug.Assert(applicationNode is object);
             Debug.Assert(!isConditionallyOmitted || attributeClass is object && attributeClass.IsConditional);
             Debug.Assert(!constructorArguments.IsDefault);
             Debug.Assert(!namedArguments.IsDefault);
@@ -43,6 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 constructorArgumentsSourceIndices.Any() && constructorArgumentsSourceIndices.Length == constructorArguments.Length);
             Debug.Assert(attributeConstructor is object || hasErrors);
 
+            _compilation = compilation;
             _attributeClass = attributeClass;
             _attributeConstructor = attributeConstructor;
             _constructorArguments = constructorArguments;
@@ -53,9 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _applicationNode = applicationNode;
         }
 
-        internal SourceAttributeData(SyntaxReference applicationNode, NamedTypeSymbol attributeClass, MethodSymbol? attributeConstructor, bool hasErrors)
+        internal SourceAttributeData(CSharpCompilation compilation, AttributeSyntax attributeSyntax, NamedTypeSymbol attributeClass, MethodSymbol? attributeConstructor, bool hasErrors)
             : this(
-            applicationNode,
+            compilation,
+            attributeSyntax,
             attributeClass,
             attributeConstructor,
             constructorArguments: ImmutableArray<TypedConstant>.Empty,
@@ -63,6 +69,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             namedArguments: ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty,
             hasErrors: hasErrors,
             isConditionallyOmitted: false)
+        {
+        }
+
+        internal SourceAttributeData(
+            CSharpCompilation compilation,
+            AttributeSyntax attributeSyntax,
+            NamedTypeSymbol attributeClass,
+            MethodSymbol? attributeConstructor,
+            ImmutableArray<TypedConstant> constructorArguments,
+            ImmutableArray<int> constructorArgumentsSourceIndices,
+            ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments,
+            bool hasErrors,
+            bool isConditionallyOmitted)
+            : this(compilation, attributeSyntax.GetReference(), attributeClass, attributeConstructor, constructorArguments, constructorArgumentsSourceIndices, namedArguments, hasErrors, isConditionallyOmitted)
         {
         }
 
@@ -82,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override SyntaxReference? ApplicationSyntaxReference
+        public override SyntaxReference ApplicationSyntaxReference
         {
             get
             {
@@ -103,14 +123,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal CSharpSyntaxNode GetAttributeArgumentSyntax(int parameterIndex, AttributeSyntax attributeSyntax)
+        internal CSharpSyntaxNode GetAttributeArgumentSyntax(int parameterIndex)
         {
             // This method is only called when decoding (non-erroneous) well-known attributes.
             Debug.Assert(!this.HasErrors);
             Debug.Assert(this.AttributeConstructor is object);
             Debug.Assert(parameterIndex >= 0);
             Debug.Assert(parameterIndex < this.AttributeConstructor.ParameterCount);
-            Debug.Assert(attributeSyntax != null);
+
+            var attributeSyntax = (AttributeSyntax)_applicationNode.GetSyntax();
 
             if (_constructorArgumentsSourceIndices.IsDefault)
             {
@@ -126,8 +147,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (sourceArgIndex == -1)
                 {
-                    // -1 signifies optional parameter whose default argument is used.
-                    Debug.Assert(this.AttributeConstructor.Parameters[parameterIndex].IsOptional);
+                    // -1 signifies optional parameter whose default argument is used, or
+                    // an empty params array.
+                    Debug.Assert(this.AttributeConstructor.Parameters[parameterIndex].IsOptional ||
+                                 this.AttributeConstructor.Parameters[parameterIndex].IsParamsArray);
                     return attributeSyntax.Name;
                 }
                 else
@@ -137,6 +160,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return attributeSyntax.ArgumentList.Arguments[sourceArgIndex];
                 }
             }
+        }
+
+        internal override Location GetAttributeArgumentLocation(int parameterIndex)
+        {
+            return GetAttributeArgumentSyntax(parameterIndex).Location;
         }
 
         internal override bool IsConditionallyOmitted
@@ -155,12 +183,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                return new SourceAttributeData(this.ApplicationSyntaxReference, this.AttributeClass, this.AttributeConstructor, this.CommonConstructorArguments,
+                return new SourceAttributeData(this._compilation, this.ApplicationSyntaxReference, this.AttributeClass, this.AttributeConstructor, this.CommonConstructorArguments,
                     this.ConstructorArgumentsSourceIndices, this.CommonNamedArguments, this.HasErrors, isConditionallyOmitted);
             }
         }
 
-        [MemberNotNullWhen(true, nameof(AttributeClass), nameof(AttributeConstructor))]
+        [MemberNotNullWhen(false, nameof(AttributeConstructor))]
         internal override bool HasErrors
         {
             get
@@ -168,6 +196,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return _hasErrors;
             }
         }
+
+        internal override DiagnosticInfo? ErrorInfo => null; // Binder reported errors
 
         protected internal sealed override ImmutableArray<TypedConstant> CommonConstructorArguments
         {
@@ -185,16 +215,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// and System.Type.  It will not match an arbitrary signature but it is sufficient to match the signatures of the current set of
         /// well known attributes.
         /// </summary>
-        /// <param name="targetSymbol">The symbol which is the target of the attribute</param>
         /// <param name="description">The attribute to match.</param>
-        internal override int GetTargetAttributeSignatureIndex(Symbol targetSymbol, AttributeDescription description)
+        internal override int GetTargetAttributeSignatureIndex(AttributeDescription description)
         {
-            if (!IsTargetAttribute(description.Namespace, description.Name))
+            return GetTargetAttributeSignatureIndex(_compilation, AttributeClass, AttributeConstructor, description);
+        }
+
+        internal static int GetTargetAttributeSignatureIndex(CSharpCompilation compilation, NamedTypeSymbol attributeClass, MethodSymbol? attributeConstructor, AttributeDescription description)
+        {
+            if (!IsTargetAttribute(attributeClass, description.Namespace, description.Name))
             {
                 return -1;
             }
 
-            var ctor = this.AttributeConstructor;
+            var ctor = attributeConstructor;
 
             // Ensure that the attribute data really has a constructor before comparing the signature.
             if (ctor is null)
@@ -401,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             break;
 
                         case (byte)SerializationTypeCode.Type:
-                            lazySystemType ??= GetSystemType(targetSymbol);
+                            lazySystemType ??= compilation.GetWellKnownType(WellKnownType.System_Type);
 
                             if (!TypeSymbol.Equals(parameterType, lazySystemType, TypeCompareKind.ConsiderEverything))
                             {
@@ -427,14 +461,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// Gets the System.Type type symbol from targetSymbol's containing assembly.
-        /// </summary>
-        /// <param name="targetSymbol">Target symbol on which this attribute is applied.</param>
-        /// <returns>System.Type type symbol.</returns>
-        internal virtual TypeSymbol GetSystemType(Symbol targetSymbol)
+        internal override bool IsTargetAttribute(string namespaceName, string typeName)
         {
-            return targetSymbol.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Type);
+            return IsTargetAttribute(AttributeClass, namespaceName, typeName);
+        }
+
+        /// <summary>
+        /// Compares the namespace and type name with the attribute's namespace and type name.
+        /// Returns true if they are the same.
+        /// </summary>
+        internal static bool IsTargetAttribute(NamedTypeSymbol attributeClass, string namespaceName, string typeName)
+        {
+            Debug.Assert(attributeClass is object);
+
+            if (!attributeClass.Name.Equals(typeName))
+            {
+                return false;
+            }
+
+            if (attributeClass.IsErrorType() && !(attributeClass is MissingMetadataTypeSymbol))
+            {
+                // Can't guarantee complete name information.
+                return false;
+            }
+
+            return attributeClass.HasNameQualifier(namespaceName);
         }
     }
 }

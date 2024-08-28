@@ -1,54 +1,42 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net472</TargetFramework>
-    <UseWpf>true</UseWpf>
-    <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp.UnitTests</RootNamespace>
+    <TargetFrameworks>$(NetRoslynNext);net472</TargetFrameworks>
+    <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <StartupObject />
   </PropertyGroup>
-  <ItemGroup>
-    <Compile Include="..\..\EditorFeatures\CSharpTest\Diagnostics\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" Link="AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" />
-  </ItemGroup>
   <ItemGroup Label="Project References">
-    <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <ProjectReference Include="..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\Compilers\Test\Utilities\CSharp\Microsoft.CodeAnalysis.CSharp.Test.Utilities.csproj" />
-    <ProjectReference Include="..\..\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
-    <ProjectReference Include="..\..\Interactive\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
-    <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
-    <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
-    <ProjectReference Include="..\..\Features\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
-    <ProjectReference Include="..\..\Features\Core\Portable\Microsoft.CodeAnalysis.Features.csproj" />
-    <ProjectReference Include="..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
-    <ProjectReference Include="..\..\EditorFeatures\DiagnosticsTestUtilities\Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities.csproj" />
-    <ProjectReference Include="..\..\EditorFeatures\TestUtilities\Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities.csproj" />
-    <ProjectReference Include="..\..\Compilers\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
-    <ProjectReference Include="..\..\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
-    <ProjectReference Include="..\..\Features\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Features.vbproj" />
-    <ProjectReference Include="..\..\Scripting\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Scripting.vbproj" />
-    <ProjectReference Include="..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
-    <ProjectReference Include="..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
-    <ProjectReference Include="..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
-    <ProjectReference Include="..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
-    <ProjectReference Include="..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
-    <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
-    <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\Microsoft.CodeAnalysis.Workspaces.Test.Utilities.csproj" />
+    <ProjectReference Include="..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Features.csproj" />
+    <ProjectReference Include="..\DiagnosticsTestUtilities\Microsoft.CodeAnalysis.Features.DiagnosticsTests.Utilities.csproj" />
+    <ProjectReference Include="..\TestUtilities\Microsoft.CodeAnalysis.Features.Test.Utilities.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.DiaSymReader.PortablePdb" Version="$(MicrosoftDiaSymReaderPortablePdbVersion)" />
-    <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" PrivateAssets="all" />
-    <PackageReference Include="Basic.Reference.Assemblies.Net60" Version="$(BasicReferenceAssembliesNet60Version)" />
+    <!--
+      Not using ProjectReference since it does not execute the specified targets when building in VS.
+      See https://github.com/microsoft/msbuild/issues/5434.
+    -->
+
+    <CopyPublishedOutputProjectReference Include="..\..\Tools\SemanticSearch\ReferenceAssemblies\SemanticSearch.ReferenceAssemblies.csproj">
+      <OutputItemType>SemanticSearch_RefAssemblies</OutputItemType>
+      <SetTargetFramework>TargetFramework=$(NetRoslyn)</SetTargetFramework>
+    </CopyPublishedOutputProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Remove="Debugging\Resources\*.*" />
-    <EmbeddedResource Include="Debugging\Resources\*.*" LogicalName="Debugging/%(FileName)%(Extension)" />
+    <PackageReference Include="Basic.Reference.Assemblies.Net60" />
   </ItemGroup>
   <Import Project="..\..\Analyzers\CSharp\Tests\CSharpAnalyzers.UnitTests.projitems" Label="Shared" />
-  <Import Project="$(RepositoryEngineeringDir)targets\ILAsm.targets" />
+
+  <Target Name="_DeploySemanticSearchRefAssemblies" AfterTargets="ResolveProjectReferences" Condition="'$(DesignTimeBuild)' != 'true'">
+
+    <MSBuild Projects="@(CopyPublishedOutputProjectReference)" Targets="PublishVsixItems" BuildInParallel="$(BuildInParallel)" Properties="%(CopyPublishedOutputProjectReference.SetTargetFramework)">
+      <Output TaskParameter="TargetOutputs" ItemName="%(CopyPublishedOutputProjectReference.OutputItemType)" />
+    </MSBuild>
+
+    <ItemGroup>
+      <Content Include="@(SemanticSearch_RefAssemblies)" Link="SemanticSearchRefs\%(FileName)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
 </Project>

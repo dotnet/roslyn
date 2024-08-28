@@ -5,57 +5,46 @@
 using System;
 using System.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal sealed class ThrowingTraceListener : TraceListener
 {
-    internal sealed class ThrowingTraceListener : TraceListener
+    public override void Fail(string? message, string? detailMessage)
     {
-        public override void Fail(string? message, string? detailMessage)
-        {
-            var stackTrace = new StackTrace();
-            foreach (var frame in stackTrace.GetFrames())
-            {
-                if (frame?.GetMethod()?.DeclaringType?.FullName?.Contains("ChangedText") ?? false)
-                {
-                    // 😢 https://github.com/dotnet/roslyn/issues/47234
-                    return;
-                }
-            }
+        throw new InvalidOperationException(
+            (string.IsNullOrEmpty(message) ? "Assertion failed" : message) +
+            (string.IsNullOrEmpty(detailMessage) ? "" : Environment.NewLine + detailMessage));
+    }
 
-            throw new InvalidOperationException(
-                (string.IsNullOrEmpty(message) ? "Assertion failed" : message) +
-                (string.IsNullOrEmpty(detailMessage) ? "" : Environment.NewLine + detailMessage));
-        }
+    public override void Write(object? o)
+    {
+    }
 
-        public override void Write(object? o)
-        {
-        }
+    public override void Write(object? o, string? category)
+    {
+    }
 
-        public override void Write(object? o, string? category)
-        {
-        }
+    public override void Write(string? message)
+    {
+    }
 
-        public override void Write(string? message)
-        {
-        }
+    public override void Write(string? message, string? category)
+    {
+    }
 
-        public override void Write(string? message, string? category)
-        {
-        }
+    public override void WriteLine(object? o)
+    {
+    }
 
-        public override void WriteLine(object? o)
-        {
-        }
+    public override void WriteLine(object? o, string? category)
+    {
+    }
 
-        public override void WriteLine(object? o, string? category)
-        {
-        }
+    public override void WriteLine(string? message)
+    {
+    }
 
-        public override void WriteLine(string? message)
-        {
-        }
-
-        public override void WriteLine(string? message, string? category)
-        {
-        }
+    public override void WriteLine(string? message, string? category)
+    {
     }
 }

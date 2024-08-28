@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.UnitTests.Persistence;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -17,17 +16,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static Workspace CreateWorkspace(Type[]? additionalParts = null, TestHost testHost = TestHost.InProcess)
             => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).WithTestHostParts(testHost).GetHostServices());
 
-        public static Workspace CreateWorkspaceWithNormalText()
-            => CreateWorkspace(
-            [
-                typeof(TestTemporaryStorageServiceFactory)
-            ]);
-
-        public static Workspace CreateWorkspaceWithRecoverableText()
-            => CreateWorkspace();
-
         public static Workspace CreateWorkspaceWithPartialSemantics(TestHost testHost = TestHost.InProcess)
-            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics([typeof(TestTemporaryStorageServiceFactory)], testHost);
+            => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(testHost: testHost);
 
 #nullable disable
 
@@ -68,8 +58,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(boxedItems, getter(instanceWithItem));
 
             Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, null));
-            Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, Array.Empty<TValue>()));
-            Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, ImmutableArray<TValue>.Empty));
+            Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, []));
+            Assert.Same(instanceWithNoItem, factory(instanceWithNoItem, []));
 
             // the factory makes an immutable copy if given a mutable list:
             var mutableItems = new[] { item };

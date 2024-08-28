@@ -3,65 +3,43 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.CommandLine;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
+using Roslyn.Utilities;
 
-#if !DOTNET_BUILD_FROM_SOURCE
-using StreamJsonRpc;
-#endif
-
-namespace Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
+namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal static class Program
 {
-#if DOTNET_BUILD_FROM_SOURCE
-
-    internal static void Main()
-    {
-        throw new NotSupportedException("This cannot currently be launched as a process in source build scenarios.");
-    }
-
-#else
-
     internal static async Task Main(string[] args)
     {
+        var propertyOption = new CliOption<string[]>("--property") { Arity = ArgumentArity.ZeroOrMore };
         var binaryLogOption = new CliOption<string?>("--binlog") { Required = false };
-        var command = new CliRootCommand { binaryLogOption };
+        var command = new CliRootCommand { binaryLogOption, propertyOption };
         var parsedArguments = command.Parse(args);
+        var properties = parsedArguments.GetValue(propertyOption)!;
         var binaryLogPath = parsedArguments.GetValue(binaryLogOption);
 
-        // Create a console logger that logs everything to standard error instead of standard out; by setting the threshold to Trace
-        // everything will go to standard error.
-        var loggerFactory = LoggerFactory.Create(builder =>
-            builder.AddConsole(configure =>
-            {
-                // DisableColors is deprecated in favor of us moving to simple console, but that loses the LogToStandardErrorThreshold
-                // which we also need
-#pragma warning disable CS0618
-                configure.DisableColors = true;
-#pragma warning restore CS0618
-                configure.LogToStandardErrorThreshold = LogLevel.Trace;
-            }));
+        var propertiesBuilder = ImmutableDictionary.CreateBuilder<string, string>();
 
-        var logger = loggerFactory.CreateLogger(typeof(Program));
-
-        var messageHandler = new HeaderDelimitedMessageHandler(sendingStream: Console.OpenStandardOutput(), receivingStream: Console.OpenStandardInput(), new JsonMessageFormatter());
-
-        var jsonRpc = new JsonRpc(messageHandler)
+        foreach (var property in properties)
         {
-            ExceptionStrategy = ExceptionProcessing.CommonErrorData,
-        };
+            var propertyParts = property.Split(['='], count: 2);
+            propertiesBuilder.Add(propertyParts[0], propertyParts[1]);
+        }
 
-        jsonRpc.AddLocalRpcTarget(new BuildHost(loggerFactory, binaryLogPath));
-        jsonRpc.StartListening();
+        var logger = new BuildHostLogger(Console.Error);
 
-        logger.LogInformation("RPC channel started.");
+        logger.LogInformation($"BuildHost Runtime Version: {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}");
 
-        await jsonRpc.Completion.ConfigureAwait(false);
+        var server = new RpcServer(sendingStream: Console.OpenStandardOutput(), receivingStream: Console.OpenStandardInput());
+
+        var targetObject = server.AddTarget(new BuildHost(logger, propertiesBuilder.ToImmutable(), binaryLogPath, server));
+        Contract.ThrowIfFalse(targetObject == 0, "The first object registered should have target 0, which is assumed by the client.");
+
+        await server.RunAsync().ConfigureAwait(false);
 
         logger.LogInformation("RPC channel closed; process exiting.");
     }
-
-#endif
 }

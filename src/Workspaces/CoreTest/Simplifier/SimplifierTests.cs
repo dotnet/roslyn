@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -113,7 +111,7 @@ public class SimplifierTests
             var updatedOptions = options;
             foreach (var (option, newValue) in publicOptions)
             {
-                var languages = option.IsPerLanguage ? new[] { LanguageNames.CSharp, LanguageNames.VisualBasic } : new string?[] { null };
+                var languages = option.IsPerLanguage ? [LanguageNames.CSharp, LanguageNames.VisualBasic] : new string?[] { null };
 
                 foreach (var language in languages)
                 {

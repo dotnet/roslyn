@@ -9,9 +9,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
 {
     public abstract partial class AbstractMoveToNamespaceTests : AbstractCodeActionTest
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
             => new MoveToNamespaceCodeActionProvider();
 
         public async Task TestMoveToNamespaceAsync(
@@ -50,12 +48,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.MoveToNamespace
                 var actions = await testState.MoveToNamespaceService.GetCodeActionsAsync(
                     testState.InvocationDocument,
                     testState.TestInvocationDocument.SelectedSpans.Single(),
-                    CodeActionOptions.DefaultProvider,
                     CancellationToken.None);
 
                 var operationTasks = actions
                     .Cast<AbstractMoveToNamespaceCodeAction>()
-                    .Select(action => action.GetOperationsAsync(workspace.CurrentSolution, action.GetOptions(CancellationToken.None), CancellationToken.None));
+                    .Select(action => action.GetOperationsAsync(workspace.CurrentSolution, action.GetOptions(CancellationToken.None), CodeAnalysisProgress.None, CancellationToken.None));
 
                 foreach (var task in operationTasks)
                 {

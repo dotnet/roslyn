@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -85,21 +86,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
+        protected override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            get
+            if (this.containingType.AnyMemberHasAttributes)
             {
-                if (this.containingType.AnyMemberHasAttributes)
-                {
-                    return this.SyntaxNode.AttributeLists;
-                }
-
-                return default(SyntaxList<AttributeListSyntax>);
+                return OneOrMany.Create(this.SyntaxNode.AttributeLists);
             }
+
+            return OneOrMany<SyntaxList<AttributeListSyntax>>.Empty;
         }
 
-        internal sealed override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+#nullable enable
+        internal sealed override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
+            if (filter?.Invoke(this) == false)
+            {
+                return;
+            }
+
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -135,6 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 state.SpinWaitComplete(incompletePart, cancellationToken);
             }
         }
+#nullable disable
 
         private sealed class ZeroValuedEnumConstantSymbol : SourceEnumConstantSymbol
         {

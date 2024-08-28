@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -99,7 +100,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isAsync = false;
             bool isStatic = false;
-            var hasParamsArray = false;
 
             foreach (var modifier in syntax.Modifiers)
             {
@@ -183,10 +183,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out var paramsKeyword, out _, out scope);
 
                         var isLastParameter = parameterCount == parameterSyntaxList.Value.Count;
-                        if (isLastParameter && paramsKeyword.Kind() != SyntaxKind.None)
+                        if (isLastParameter && paramsKeyword.Kind() != SyntaxKind.None && type.IsSZArray())
                         {
-                            hasParamsArray = true;
-
                             ReportUseSiteDiagnosticForSynthesizedAttribute(Compilation,
                                 WellKnownMember.System_ParamArrayAttribute__ctor,
                                 diagnostics,
@@ -243,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, scopes, types, names, discardsOpt, parameterSyntaxList, defaultValues, isAsync: isAsync, isStatic: isStatic, hasParamsArray: hasParamsArray);
+            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, scopes, types, names, discardsOpt, parameterSyntaxList, defaultValues, isAsync: isAsync, isStatic: isStatic);
 
             static ImmutableArray<bool> computeDiscards(SeparatedSyntaxList<ParameterSyntax> parameters, int underscoresCount)
             {
@@ -370,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // UNDONE: Where do we report improper use of pointer types?
                     ParameterHelpers.ReportParameterErrors(owner: null, paramSyntax, ordinal: i, lastParameterIndex: lambda.ParameterCount - 1, isParams: isParams, lambda.ParameterTypeWithAnnotations(i),
-                         lambda.RefKind(i), lambda.DeclaredScope(i), containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
+                         lambda.RefKind(i), containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
                 }
             }
 
@@ -424,6 +422,66 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return lambda;
+        }
+
+        // Please don't use thread local storage widely. This should be one of only a few uses.
+        [ThreadStatic] private static PooledDictionary<SyntaxNode, int>? s_lambdaBindings;
+
+        internal TResult BindWithLambdaBindingCountDiagnostics<TSyntax, TArg, TResult>(
+            TSyntax syntax,
+            TArg arg,
+            BindingDiagnosticBag diagnostics,
+            Func<Binder, TSyntax, TArg, BindingDiagnosticBag, TResult> bind)
+            where TSyntax : SyntaxNode
+            where TResult : BoundNode
+        {
+            Debug.Assert(s_lambdaBindings is null);
+            var bindings = PooledDictionary<SyntaxNode, int>.GetInstance();
+            s_lambdaBindings = bindings;
+
+            try
+            {
+                TResult result = bind(this, syntax, arg, diagnostics);
+
+                foreach (var pair in bindings)
+                {
+                    // The particular max value is arbitrary, but large enough so diagnostics should
+                    // only be reported for lambda expressions used as arguments to method calls
+                    // where the product of the number of applicable overloads for that method call
+                    // and for overloads for any containing lambda expressions is large.
+                    const int maxLambdaBinding = 100;
+                    int count = pair.Value;
+                    if (count > maxLambdaBinding)
+                    {
+                        int truncatedToHundreds = (count / 100) * 100;
+                        diagnostics.Add(ErrorCode.INF_TooManyBoundLambdas, GetAnonymousFunctionLocation(pair.Key), truncatedToHundreds);
+                    }
+                }
+
+                return result;
+            }
+            finally
+            {
+                bindings.Free();
+                s_lambdaBindings = null;
+            }
+        }
+
+        internal static void RecordLambdaBinding(SyntaxNode syntax)
+        {
+            var bindings = s_lambdaBindings;
+            if (bindings is null)
+            {
+                return;
+            }
+            if (bindings.TryGetValue(syntax, out int count))
+            {
+                bindings[syntax] = ++count;
+            }
+            else
+            {
+                bindings.Add(syntax, 1);
+            }
         }
     }
 }

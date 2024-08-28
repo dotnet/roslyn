@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1835,7 +1836,7 @@ public class Example
         {
             var tree = Parse(text);
 
-            var comp = CreateCompilationWithMscorlib40(new[] { tree }, new[] { TestMetadata.Net40.SystemCore });
+            var comp = CreateCompilationWithMscorlib40(new[] { tree }, new[] { Net40.References.SystemCore });
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             var model = comp.GetSemanticModel(tree);
@@ -2081,7 +2082,7 @@ public enum Color { Red }
             var refLib = CreateEmptyCompilation(
                 sourceRefLib,
                 assemblyName: "RefLib",
-                references: new[] { TestMetadata.Net20.mscorlib });
+                references: new[] { Net20.References.mscorlib });
 
             refLib.VerifyEmitDiagnostics();
 
@@ -2102,7 +2103,7 @@ class M
                 references: new MetadataReference[]
                 {
                     new CSharpCompilationReference(refLib),
-                    TestMetadata.Net451.mscorlib
+                    NetFramework.mscorlib
                 });
 
             var unifyReferenceWarning =
@@ -2126,7 +2127,7 @@ public class Base { }
             var refLib = CreateEmptyCompilation(
                 sourceRefLib,
                 assemblyName: "RefLib",
-                references: new[] { TestMetadata.Net20.mscorlib });
+                references: new[] { Net20.References.mscorlib });
 
             refLib.VerifyEmitDiagnostics();
 
@@ -2145,7 +2146,7 @@ class C
                 references: new MetadataReference[]
                 {
                     new CSharpCompilationReference(refLib),
-                    TestMetadata.Net451.mscorlib
+                    NetFramework.mscorlib
                 });
 
             var unifyReferenceWarning =
@@ -2365,6 +2366,65 @@ public class Tree2 : Tree1
             var compilation = CreateCompilationWithIL(genericTreeDefinitionSource, implementingTreeWithModoptObjectILSource);
 
             compilation.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71039")]
+        public void ConstInAttributes_NoCycle_01()
+        {
+            var source = """
+                using ILGPU;
+                using System.Runtime.CompilerServices;
+
+                [assembly: InternalsVisibleTo(Context.RuntimeAssemblyName)]
+
+                namespace ILGPU
+                {
+                    public class Context
+                    {
+                        public const string RuntimeAssemblyName = RuntimeSystem.AssemblyName;
+                        public RuntimeSystem RuntimeSystem { get; }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,31): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [assembly: InternalsVisibleTo(Context.RuntimeAssemblyName)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "Context.RuntimeAssemblyName").WithLocation(4, 31),
+                // (10,65): error CS1061: 'RuntimeSystem' does not contain a definition for 'AssemblyName' and no accessible extension method 'AssemblyName' accepting a first argument of type 'RuntimeSystem' could be found (are you missing a using directive or an assembly reference?)
+                //         public const string RuntimeAssemblyName = RuntimeSystem.AssemblyName;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "AssemblyName").WithArguments("RuntimeSystem", "AssemblyName").WithLocation(10, 65),
+                // (11,16): error CS0246: The type or namespace name 'RuntimeSystem' could not be found (are you missing a using directive or an assembly reference?)
+                //         public RuntimeSystem RuntimeSystem { get; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "RuntimeSystem").WithArguments("RuntimeSystem").WithLocation(11, 16)
+            );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71039")]
+        public void ConstInAttributes_NoCycle_02()
+        {
+            var source = """
+                using ILGPU;
+                using System.Runtime.CompilerServices;
+
+                [assembly: InternalsVisibleTo(Context.RuntimeAssemblyName)]
+
+                namespace ILGPU
+                {
+                    public class Context
+                    {
+                        public const string RuntimeAssemblyName = RuntimeSystem.AssemblyName;
+                        public RuntimeSystem RuntimeSystem { get; }
+                    }
+
+                    public class RuntimeSystem
+                    {
+                        public const string AssemblyName = "RuntimeSystem";
+                    }
+                }
+                """;
+
+            CompileAndVerify(source).VerifyDiagnostics();
         }
     }
 }

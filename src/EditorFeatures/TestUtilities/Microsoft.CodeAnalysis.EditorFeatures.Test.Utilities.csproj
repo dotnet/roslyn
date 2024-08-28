@@ -8,18 +8,14 @@
     <UseWpf>true</UseWpf>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsShipping>false</IsShipping>
+    <IsTestUtilityProject>true</IsTestUtilityProject>
   </PropertyGroup>
   <ItemGroup>
     <!-- Prevents ambiguity caused by InternalsVisibleTo from dependent assemblies. -->
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
-    <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
-    <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\Microsoft.CodeAnalysis.Workspaces.Test.Utilities.csproj" />
-    <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
-      <Aliases>global,WORKSPACES</Aliases>
-    </ProjectReference>
+    <ProjectReference Include="..\..\LanguageServer\Protocol.TestUtilities\Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
     <ProjectReference Include="..\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj" />
@@ -29,76 +25,56 @@
     <ProjectReference Include="..\XunitHook\Microsoft.CodeAnalysis.XunitHook.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Moq" Version="$(MoqVersion)" />
-    <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
-    <PackageReference Include="BasicUndo" Version="$(BasicUndoVersion)" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" />
-    <PackageReference Include="StreamJsonRpc" Version="$(StreamJsonRpcVersion)" />
-    <PackageReference Include="Microsoft.ServiceHub.Client" Version="$(MicrosoftServiceHubClientVersion)" />
-    <PackageReference Include="Microsoft.ServiceHub.Framework" Version="$(MicrosoftServiceHubFrameworkVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Editor" Version="$(MicrosoftVisualStudioEditorVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor" Version="$(MicrosoftVisualStudioPlatformVSEditorVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.ComponentModelHost" Version="$(MicrosoftVisualStudioComponentModelHostVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Composition" Version="$(MicrosoftVisualStudioCompositionVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Imaging" Version="$(MicrosoftVisualStudioImagingVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" Version="$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.ImageCatalog" Version="$(MicrosoftVisualStudioImageCatalogVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Interop" Version="$(MicrosoftVisualStudioInteropVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Language" Version="$(MicrosoftVisualStudioLanguageVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Language.StandardClassification" Version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Language.CallHierarchy" Version="$(MicrosoftVisualStudioLanguageCallHierarchyVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces" Version="$(MicrosoftVisualStudioLanguageNavigateToInterfacesVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI" Version="$(MicrosoftVisualStudioTextUIVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading" Version="$(MicrosoftVisualStudioThreadingVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Utilities" Version="$(MicrosoftVisualStudioUtilitiesVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="$(MicrosoftVisualStudioValidationVersion)" />
-    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="$(SystemThreadingTasksDataflowVersion)" />
+    <PackageReference Include="Moq" />
+    <PackageReference Include="BasicUndo" />
+    <PackageReference Include="Microsoft.VisualStudio.Editor" />
+    <PackageReference Include="Microsoft.VisualStudio.Platform.VSEditor" />
+    <PackageReference Include="Microsoft.VisualStudio.Text.Internal" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="IdeBenchmarks" />
+    <InternalsVisibleTo Include="InteractiveHost.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Emit.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Emit2.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EndToEnd.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Features.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests" />
-    <InternalsVisibleTo Include="Roslyn.Compilers.VisualBasic.IOperation.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Symbol.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Syntax.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Test.Utilities" />
-    <InternalsVisibleTo Include="InteractiveHost.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Features.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures2.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Features.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.LiveShare.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.IntegrationTest.Utilities" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Test.Utilities2" />
-    <InternalsVisibleTo Include="IdeBenchmarks" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.UnitTests" />
+    <InternalsVisibleTo Include="Roslyn.Compilers.VisualBasic.IOperation.UnitTests" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <!-- TODO: Remove the below IVTs to CodeStyle Unit test projects once all analyzer/code fix tests are switched to Microsoft.CodeAnalysis.Testing -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeStyle.LegacyTestFramework.UnitTestUtilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />

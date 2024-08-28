@@ -1022,6 +1022,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case BoundKind.Local
                     Dim local As LocalSymbol = DirectCast(node, BoundLocal).LocalSymbol
+
+                    If local.IsCompilerGenerated AndAlso Not Me.ProcessCompilerGeneratedLocals Then
+                        ' For consistency with Assign behavior, which does not process compiler generated temporary locals.
+                        Return True
+                    End If
+
                     If local.DeclarationKind <> LocalDeclarationKind.AmbiguousLocals Then
                         unassignedSlot = VariableSlot(local)
 

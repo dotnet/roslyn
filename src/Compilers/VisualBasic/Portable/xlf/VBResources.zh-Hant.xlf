@@ -42,6 +42,21 @@
         <target state="translated">'System.Runtime.CompilerServices.RequiredMemberAttribute' 僅保留給編譯器使用。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="translated">'Experimental' 屬性的 diagnosticId 引數必須是有效的識別碼</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidVersionFormatDeterministic">
+        <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
+        <target state="new">The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LockTypeUnsupported">
+        <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
+        <target state="translated">SyncLock 不支援型別 'System.Threading.Lock' 的值。請考慮改為在 Try/Finally 區塊中手動呼叫 'Enter' 和 'Exit' 方法。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">多個分析器組態檔無法處於相同目錄 ('{0}') 中。</target>
@@ -604,6 +619,16 @@
         <target state="translated">套用到參數的 CallerArgumentExpressionAttribute 將沒有效果，因為它是自我參考。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConvertingLock">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">型別 'System.Threading.Lock' 轉換為不同型別的值，在 SyncLock 陳述式中可能會使用非預期的監視器型鎖定。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock_Title">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">型別 'System.Threading.Lock' 轉換為不同型別的值，在 SyncLock 陳述式中可能會使用非預期的監視器型鎖定。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">
         <source>Analyzer reference '{0}' specified multiple times</source>
         <target state="translated">已指定多次分析器參考 '{0}'</target>
@@ -615,16 +640,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">產生器 '{0}' 無法產生來源。其不會提供給輸出，並可能導致編譯錯誤。例外狀況的類型為 '{1}'，訊息為 '{2}'</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">產生器擲回了下列例外狀況:
-'{0}'。</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">產生器 '{0}' 無法產生來源。其不會提供給輸出，並可能導致編譯錯誤。例外狀況的類型為 '{1}'，訊息為 '{2}'。
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -632,16 +655,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">產生器 '{0}' 無法初始化。其不會提供給輸出，並可能導致編譯錯誤。例外狀況的類型為 '{1}'，訊息為 '{2}'</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">產生器擲回了下列例外狀況:
-'{0}'。</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">產生器 '{0}' 無法初始化。其不會提供給輸出，並可能導致編譯錯誤。例外狀況的類型為 '{1}'，訊息為 '{2}'。
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
@@ -7677,8 +7698,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
-        <source>The specified version string does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="translated">指定的版本字串不符合建議的格式 - major.minor.build.revision</target>
+        <source>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</source>
+        <target state="needs-review-translation">指定的版本字串不符合建議的格式 - major.minor.build.revision</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyCultureForExe">

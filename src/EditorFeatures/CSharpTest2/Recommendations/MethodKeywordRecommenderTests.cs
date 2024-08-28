@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations;
@@ -249,6 +250,23 @@ public class MethodKeywordRecommenderTests : KeywordRecommenderTests
             [$$
             struct C()
             {
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70077")]
+    public async Task TestLocalFunction()
+    {
+        await VerifyKeywordAsync("""
+            class C
+            {
+                void M()
+                {
+                    [$$
+                    void F()
+                    {
+                    }
+                }
             }
             """);
     }

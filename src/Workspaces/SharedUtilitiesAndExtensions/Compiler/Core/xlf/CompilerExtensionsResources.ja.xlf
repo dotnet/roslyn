@@ -12,11 +12,6 @@
         <target state="translated">抽象メソッド</target>
         <note>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
       </trans-unit>
-      <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
-        <source>An element with the same key but a different value already exists.</source>
-        <target state="translated">キーが同じで値が異なる要素が既に存在します。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Begins_with_I">
         <source>Begins with I</source>
         <target state="translated">I で始まる</target>
@@ -55,6 +50,11 @@
       <trans-unit id="Field_preferences">
         <source>Field preferences</source>
         <target state="translated">フィールド設定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Instantiated_parts_threw_exceptions_from_IDisposable_Dispose">
+        <source>Instantiated part(s) threw exception(s) from IDisposable.Dispose().</source>
+        <target state="new">Instantiated part(s) threw exception(s) from IDisposable.Dispose().</target>
         <note />
       </trans-unit>
       <trans-unit id="Interface">
@@ -161,11 +161,6 @@
         <source>Public or Protected Field</source>
         <target state="translated">パブリックまたは保護されたフィールド</target>
         <note>{locked: public}{locked: protected}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Segment_size_must_be_power_of_2_greater_than_1">
-        <source>Segment size must be power of 2 greater than 1</source>
-        <target state="translated">セグメント サイズは、1 より大きい 2 の累乗にする必要があります</target>
-        <note />
       </trans-unit>
       <trans-unit id="Specified_sequence_has_duplicate_items">
         <source>Specified sequence has duplicate items</source>

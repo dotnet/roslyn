@@ -2,15 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
-    internal sealed class OrderedSet<T> : IEnumerable<T>, Roslyn.Utilities.IReadOnlySet<T>, IReadOnlyList<T>, IOrderedReadOnlySet<T>
+    internal sealed class OrderedSet<T> : IOrderedReadOnlySet<T>
     {
         private readonly HashSet<T> _set;
         private readonly ArrayBuilder<T> _list;
@@ -87,5 +85,23 @@ namespace Microsoft.CodeAnalysis.Collections
             _set.Clear();
             _list.Clear();
         }
+
+        public bool IsProperSubsetOf(IEnumerable<T> other)
+            => _set.IsProperSubsetOf(other);
+
+        public bool IsProperSupersetOf(IEnumerable<T> other)
+            => _set.IsProperSupersetOf(other);
+
+        public bool IsSubsetOf(IEnumerable<T> other)
+            => _set.IsSubsetOf(other);
+
+        public bool IsSupersetOf(IEnumerable<T> other)
+            => _set.IsSupersetOf(other);
+
+        public bool Overlaps(IEnumerable<T> other)
+            => _set.Overlaps(other);
+
+        public bool SetEquals(IEnumerable<T> other)
+            => _set.SetEquals(other);
     }
 }

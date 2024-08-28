@@ -324,7 +324,7 @@
       </trans-unit>
       <trans-unit id="Awaitable_Extension">
         <source>Awaitable, Extension</source>
-        <target state="translated">待機可能、拡張子</target>
+        <target state="translated">待機可能、拡張</target>
         <note />
       </trans-unit>
       <trans-unit id="new_variable">
@@ -1460,16 +1460,6 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</target>
       <trans-unit id="NameOf_function">
         <source>NameOf function</source>
         <target state="translated">NameOf 関数</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_narrowing_conversion_in_0">
-        <source>Generate narrowing conversion in '{0}'</source>
-        <target state="translated">'{0}' で縮小変換を生成する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_widening_conversion_in_0">
-        <source>Generate widening conversion in '{0}'</source>
-        <target state="translated">'{0}' で拡大変換を生成する</target>
         <note />
       </trans-unit>
       <trans-unit id="Try_block">

@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        protected override ImmutableArray<NamedTypeSymbol> GetAllInterfaces()
+        protected sealed override ImmutableArray<NamedTypeSymbol> GetAllInterfaces()
         {
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
@@ -633,6 +633,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract bool HasNotNullConstraint { get; }
 
         public abstract bool HasValueTypeConstraint { get; }
+
+        public abstract bool AllowsRefLikeType { get; }
 
         public abstract bool IsValueTypeFromConstraintTypes { get; }
 

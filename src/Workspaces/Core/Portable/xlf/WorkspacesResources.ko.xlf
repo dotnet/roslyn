@@ -17,6 +17,11 @@
         <target state="translated">지정한 구성 파일을 읽는 동안 오류가 발생했습니다({0}).</target>
         <note />
       </trans-unit>
+      <trans-unit id="Applying_changes_to_0">
+        <source>Applying changes to {0}</source>
+        <target state="translated">{0}에 변경 내용을 적용하는 중</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp_files">
         <source>C# files</source>
         <target state="translated">C# 파일</target>
@@ -37,7 +42,17 @@
         <target state="translated">'{0}' 문서 변경은 지원되지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CodeAction_{0}_did_not_produce_a_changed_solution">
+      <trans-unit id="Changing_project_between_ordinary_and_interactive_submission_is_not_supported">
+        <source>Changing project between ordinary and interactive submission is not supported</source>
+        <target state="new">Changing project between ordinary and interactive submission is not supported</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_project_language_is_not_supported">
+        <source>Changing project language is not supported</source>
+        <target state="new">Changing project language is not supported</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CodeAction_0_did_not_produce_a_changed_solution">
         <source>CodeAction '{0}' did not produce a changed solution</source>
         <target state="translated">CodeAction '{0}'이(가) 변경된 솔루션을 생성하지 않았습니다.</target>
         <note>"CodeAction" is a specific type, and {0} represents the title shown by the action.</note>
@@ -50,11 +65,6 @@
       <trans-unit id="DateTimeKind_must_be_Utc">
         <source>DateTimeKind must be Utc</source>
         <target state="translated">DateTimeKind는 UTC여야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_does_not_support_syntax_trees">
-        <source>Document does not support syntax trees</source>
-        <target state="translated">문서가 구문 트리를 지원하지 않음</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_reading_content_of_source_file_0_1">
@@ -122,9 +132,24 @@
         <target state="translated">분석기 구성 문서 제거는 지원되지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Removing_compilation_options_is_not_supported">
+        <source>Removing compilation options is not supported</source>
+        <target state="new">Removing compilation options is not supported</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_parse_options_is_not_supported">
+        <source>Removing parse options is not supported</source>
+        <target state="new">Removing parse options is not supported</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename '{0}' to '{1}'</source>
         <target state="translated">'{1}'(으)로 '{0}' 이름 바꾸기</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Running_code_cleanup_on_fixed_documents">
+        <source>Running code cleanup on fixed documents</source>
+        <target state="translated">고정된 문서에서 코드 정리 실행 중</target>
         <note />
       </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
@@ -137,19 +162,9 @@
         <target state="translated">"{0}" 기호가 소스에 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Documentation_comment_id_must_start_with_E_F_M_N_P_or_T">
-        <source>Documentation comment id must start with E, F, M, N, P or T</source>
-        <target state="translated">문서 주석 ID는 E, F, M, N, P 또는 T로 시작해야 합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cycle_detected_in_extensions">
         <source>Cycle detected in extensions</source>
         <target state="translated">확장에서 순환 발견</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_is_of_the_wrong_type">
-        <source>Node is of the wrong type.</source>
-        <target state="translated">잘못된 형식의 노드입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Duplicate_source_file_0_in_project_1">
@@ -302,11 +317,6 @@
         <target state="translated">프로젝트가 대상 프로젝트를 이미 참조하고 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_solution_already_contains_the_specified_document">
-        <source>The solution already contains the specified document.</source>
-        <target state="translated">솔루션에 지정한 문서가 이미 포함되어 있습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Temporary_storage_cannot_be_written_more_than_once">
         <source>Temporary storage cannot be written more than once.</source>
         <target state="translated">임시 스토리지는 두 번 쓸 수 없습니다.</target>
@@ -347,21 +357,6 @@
         <target state="translated">분석기 참조를 확인할 수 없습니다('{0}').</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_project_block_expected_after_Project">
-        <source>Invalid project block, expected "=" after Project.</source>
-        <target state="translated">잘못된 프로젝트 블록입니다. Project 다음에 "="가 필요합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_project_block_expected_after_project_name">
-        <source>Invalid project block, expected "," after project name.</source>
-        <target state="translated">잘못된 프로젝트 블록입니다. 프로젝트 이름 다음에 ","가 필요합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_project_block_expected_after_project_path">
-        <source>Invalid project block, expected "," after project path.</source>
-        <target state="translated">잘못된 프로젝트 블록입니다. 프로젝트 경로 다음에 ","가 필요합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expected_0">
         <source>Expected {0}.</source>
         <target state="translated">{0}이(가) 필요합니다.</target>
@@ -370,21 +365,6 @@
       <trans-unit id="_0_must_be_a_non_null_and_non_empty_string">
         <source>"{0}" must be a non-null and non-empty string.</source>
         <target state="translated">"{0}"은(는) null이 아니거나 비어 있지 않은 문자열이어야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expected_header_colon_0">
-        <source>Expected header: "{0}".</source>
-        <target state="translated">헤더가 필요합니다("{0}").</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expected_end_of_file">
-        <source>Expected end-of-file.</source>
-        <target state="translated">파일 끝(EOF)이 필요합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expected_0_line">
-        <source>Expected {0} line.</source>
-        <target state="translated">{0} 줄이 필요합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="This_submission_already_references_another_submission_project">
@@ -402,24 +382,9 @@
         <target state="translated">{0}이(가) 열려 있습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
-        <source>Arrays with more than one dimension cannot be serialized.</source>
-        <target state="translated">차원이 두 개 이상인 배열을 직렬화할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
         <source>Value too large to be represented as a 30 bit unsigned integer.</source>
         <target state="translated">값이 너무 커서 30비트 정수로 표시할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specified_path_must_be_absolute">
-        <source>Specified path must be absolute.</source>
-        <target state="translated">지정한 경로가 절대 경로여야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unknown_identifier">
-        <source>Unknown identifier.</source>
-        <target state="translated">알 수 없는 식별자입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
@@ -477,11 +442,6 @@
         <target state="translated">제거됨:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_CodePage_value_colon_0">
-        <source>Invalid CodePage value: {0}</source>
-        <target state="translated">잘못된 CodePage 값: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Adding_additional_documents_is_not_supported">
         <source>Adding additional documents is not supported.</source>
         <target state="translated">추가 문서 추가는 지원되지 않았습니다.</target>
@@ -495,11 +455,6 @@
       <trans-unit id="Adding_documents_is_not_supported">
         <source>Adding documents is not supported.</source>
         <target state="translated">문서 추가는 지원되지 않습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_metadata_references_is_not_supported">
-        <source>Adding metadata references is not supported.</source>
-        <target state="translated">메타데이터 참조 추가는 지원되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_project_references_is_not_supported">
@@ -517,11 +472,6 @@
         <target state="translated">문서 변경은 지원되지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_project_properties_is_not_supported">
-        <source>Changing project properties is not supported.</source>
-        <target state="translated">프로젝트 속성 변경은 지원되지 않습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Removing_additional_documents_is_not_supported">
         <source>Removing additional documents is not supported.</source>
         <target state="translated">추가 문서 제거는 지원되지 않습니다.</target>
@@ -535,11 +485,6 @@
       <trans-unit id="Removing_documents_is_not_supported">
         <source>Removing documents is not supported.</source>
         <target state="translated">문서 제거는 지원되지 않습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_metadata_references_is_not_supported">
-        <source>Removing metadata references is not supported.</source>
-        <target state="translated">메타데이터 참조 제거는 지원되지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_project_references_is_not_supported">
@@ -560,21 +505,6 @@
       <trans-unit id="Diagnostic_must_have_span_0">
         <source>Diagnostic must have span '{0}'</source>
         <target state="translated">진단에는 '{0}' 범위가 있어야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_deserialize_type_0">
-        <source>Cannot deserialize type '{0}'.</source>
-        <target state="translated">'{0}' 형식을 역직렬화할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_serialize_type_0">
-        <source>Cannot serialize type '{0}'.</source>
-        <target state="translated">'{0}' 형식을 직렬화할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
-        <source>The type '{0}' is not understood by the serialization binder.</source>
-        <target state="translated">직렬화 바인더가 '{0}' 형식을 인식할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Label_for_node_0_is_invalid_it_must_be_within_bracket_0_1">
@@ -675,11 +605,6 @@
       <trans-unit id="Stream_is_too_long">
         <source>Stream is too long.</source>
         <target state="translated">스트림이 너무 깁니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
-        <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">'{0}'에 대한 역직렬화 판독기가 잘못된 숫자 값을 읽습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Async_Method">

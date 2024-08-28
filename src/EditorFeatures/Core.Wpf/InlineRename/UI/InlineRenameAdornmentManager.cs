@@ -3,11 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel.Composition;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -27,6 +28,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly InlineRenameService _renameService;
         private readonly IEditorFormatMapService _editorFormatMapService;
         private readonly IInlineRenameColorUpdater? _dashboardColorUpdater;
+        private readonly IThreadingContext _threadingContext;
+#pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
+        private readonly Lazy<ISmartRenameSessionFactoryWrapper>? _smartRenameSessionFactory;
+#pragma warning restore CS0618
 
         private readonly IAdornmentLayer _adornmentLayer;
 
@@ -41,7 +46,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             IGlobalOptionService globalOptionService,
             IWpfThemeService? themeService,
             IAsyncQuickInfoBroker asyncQuickInfoBroker,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            IThreadingContext threadingContext,
+#pragma warning disable CS0618  // Editor team use Obsolete attribute to mark potential changing API
+            Lazy<ISmartRenameSessionFactoryWrapper>? smartRenameSessionFactory)
+#pragma warning restore CS0618
         {
             _renameService = renameService;
             _editorFormatMapService = editorFormatMapService;
@@ -52,6 +61,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _asyncQuickInfoBroker = asyncQuickInfoBroker;
             _listenerProvider = listenerProvider;
             _adornmentLayer = textView.GetAdornmentLayer(InlineRenameAdornmentProvider.AdornmentLayerName);
+            _threadingContext = threadingContext;
+            _smartRenameSessionFactory = smartRenameSessionFactory;
 
             _renameService.ActiveSessionChanged += OnActiveSessionChanged;
             _textView.Closed += OnTextViewClosed;
@@ -130,10 +141,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var identifierSelection = new TextSpan(start, length);
 
                 var adornment = new RenameFlyout(
-                    (RenameFlyoutViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameFlyoutViewModel(session, identifierSelection, registerOleComponent: true, _globalOptionService)),
+                    (RenameFlyoutViewModel)s_createdViewModels.GetValue(
+                        _renameService.ActiveSession,
+                        session => new RenameFlyoutViewModel(session,
+                            identifierSelection,
+                            registerOleComponent: true,
+                            _globalOptionService,
+                            _threadingContext,
+                            _listenerProvider,
+                            _smartRenameSessionFactory)),
                     _textView,
                     _themeService,
                     _asyncQuickInfoBroker,
+                    _editorFormatMapService,
+                    _threadingContext,
                     _listenerProvider);
 
                 return adornment;

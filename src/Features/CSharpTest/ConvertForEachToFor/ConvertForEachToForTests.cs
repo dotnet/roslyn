@@ -16,1335 +16,1468 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
+public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest_NoEditor
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsConvertForEachToFor)]
-    public partial class ConvertForEachToForTests : AbstractCSharpCodeActionTest
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
+        => new CSharpConvertForEachToForCodeRefactoringProvider();
+
+    private readonly CodeStyleOption2<bool> onWithSilent = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
+
+    private OptionsCollection ImplicitTypeEverywhere
+        => new(GetLanguage())
+        {
+            { CSharpCodeStyleOptions.VarElsewhere, onWithSilent },
+            { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent },
+            { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent },
+        };
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
+    public async Task EmptyBlockBody()
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(
-            Workspace workspace, TestParameters parameters)
-            => new CSharpConvertForEachToForCodeRefactoringProvider();
-
-        private readonly CodeStyleOption2<bool> onWithSilent = new CodeStyleOption2<bool>(true, NotificationOption2.Silent);
-
-        private OptionsCollection ImplicitTypeEverywhere
-            => new(GetLanguage())
+        var text = """
+            class Test
             {
-                { CSharpCodeStyleOptions.VarElsewhere, onWithSilent },
-                { CSharpCodeStyleOptions.VarWhenTypeIsApparent, onWithSilent },
-                { CSharpCodeStyleOptions.VarForBuiltInTypes, onWithSilent },
-            };
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
-        public async Task EmptyBlockBody()
-        {
-            var text = """
-                class Test
-                {
-                    void Method()
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    foreach[||](var a in array)
                     {
-                        var array = new int[] { 1, 3, 4 };
-                        foreach[||](var a in array)
-                        {
-                        }
                     }
                 }
-                """;
-            var expected = """
-                class Test
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var array = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++)
                     {
-                        var array = new int[] { 1, 3, 4 };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++)
-                        {
-                            int a = array[i];
-                        }
+                        int a = array[i];
                     }
                 }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-        [Fact]
-        public async Task EmptyBody()
-        {
-            var text = """
-                class Test
+    [Fact]
+    public async Task EmptyBody()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        foreach[||](var a in array) ;
-                    }
+                    var array = new int[] { 1, 3, 4 };
+                    foreach[||](var a in array) ;
                 }
-                """;
-            var expected = """
-                class Test
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++) ;
-                    }
+                    var array = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++) ;
                 }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-        [Fact]
-        public async Task Body()
-        {
-            var text = """
-                class Test
+    [Fact]
+    public async Task Body()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        foreach[||](var a in array) Console.WriteLine(a);
-                    }
+                    var array = new int[] { 1, 3, 4 };
+                    foreach[||](var a in array) Console.WriteLine(a);
                 }
-                """;
-            var expected = """
-                class Test
-                {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++)
-                        {
-                            int a = array[i];
-                            Console.WriteLine(a);
-                        }
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task BlockBody()
-        {
-            var text = """
-                class Test
-                {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        foreach[||](var a in array)
-                        {
-                            Console.WriteLine(a);
-                        }
-                    }
-                }
-                """;
-            var expected = """
-                class Test
-                {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++)
-                        {
-                            int a = array[i];
-                            Console.WriteLine(a);
-                        }
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
-        public async Task Comment()
-        {
-            var text = """
-                class Test
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var array = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++)
                     {
-                        var array = new int[] { 1, 3, 4 };
-                        /* comment */
-                        foreach[||](var a in array) /* comment */
-                        {
-                        }
+                        int a = array[i];
+                        Console.WriteLine(a);
                     }
                 }
-                """;
-            var expected = """
-                class Test
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact]
+    public async Task BlockBody()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var array = new int[] { 1, 3, 4 };
+                    foreach[||](var a in array)
                     {
-                        var array = new int[] { 1, 3, 4 };
-                        /* comment */
-                        for (int {|Rename:i|} = 0; i < array.Length; i++) /* comment */
-                        {
-                            int a = array[i];
-                        }
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
-        public async Task Comment2()
-        {
-            var text = """
-                class Test
+                        Console.WriteLine(a);
+                    }
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++)
+                    {
+                        int a = array[i];
+                        Console.WriteLine(a);
+                    }
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
+    public async Task Comment()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    /* comment */
+                    foreach[||](var a in array) /* comment */
+                    {
+                    }
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    /* comment */
+                    for (int {|Rename:i|} = 0; i < array.Length; i++) /* comment */
+                    {
+                        int a = array[i];
+                    }
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
+    public async Task Comment2()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    foreach[||](var a in array)
+                    /* comment */
+                    {
+                    }/* comment */
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++)
+                    /* comment */
+                    {
+                        int a = array[i];
+                    }/* comment */
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact]
+    public async Task Comment3()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    foreach[||](var a in array) /* comment */;
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++) /* comment */;
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact]
+    public async Task Comment4()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    foreach[||](var a in array) Console.WriteLine(a); // test
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++)
+                    {
+                        int a = array[i];
+                        Console.WriteLine(a); // test
+                    }
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact]
+    public async Task Comment5()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    foreach [||] (var a in array) /* test */ Console.WriteLine(a); 
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++) /* test */
+                    {
+                        int a = array[i];
+                        Console.WriteLine(a);
+                    }
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact]
+    public async Task Comment6()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    foreach [||] (var a in array) 
+                        /* test */ Console.WriteLine(a); 
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++)
+                    {
+                        int a = array[i];
+                        /* test */
+                        Console.WriteLine(a);
+                    }
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
+    public async Task Comment7()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    // test
+                    foreach[||](var a in new int[] { 1, 3, 4 })
+                    {
+                    }
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    // test
+                    int[] {|Rename:array|} = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++)
+                    {
+                        int a = array[i];
+                    }
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact]
+    public async Task TestCommentsInTheMiddleOfParentheses()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    foreach [||] (var a /* test */ in array) ;
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++) ;
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact]
+    public async Task TestCommentsAtBeginningOfParentheses()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    foreach [||] (/* test */ var a in array) ;
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++) ;
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact]
+    public async Task TestCommentsAtTheEndOfParentheses()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    foreach [||] (var a in array /* test */) ;
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++) ;
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact]
+    public async Task CollectionStatement()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    foreach[||](var a in new int[] { 1, 3, 4 })
+                    {
+                        Console.WriteLine(a);
+                    }
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    int[] {|Rename:array|} = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++)
+                    {
+                        int a = array[i];
+                        Console.WriteLine(a);
+                    }
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact]
+    public async Task CollectionConflict()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = 1;
+
+                    foreach[||](var a in new int[] { 1, 3, 4 })
+                    {
+                        Console.WriteLine(a);
+                    }
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        foreach[||](var a in array)
-                        /* comment */
-                        {
-                        }/* comment */
-                    }
+                    var array = 1;
+
+                    int[] {|Rename:array1|} = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i|} = 0; i < array1.Length; i++)
+                    {
+                        int a = array1[i];
+                        Console.WriteLine(a);
+                    }
                 }
-                """;
-            var expected = """
-                class Test
-                {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++)
-                        /* comment */
-                        {
-                            int a = array[i];
-                        }/* comment */
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task Comment3()
-        {
-            var text = """
-                class Test
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact]
+    public async Task VariableWritten()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var array = new[] { 1 };
+                    foreach [||] (var a in array)
                     {
-                        var array = new int[] { 1, 3, 4 };
-                        foreach[||](var a in array) /* comment */;
+                        a = 1;
                     }
                 }
-                """;
-            var expected = """
-                class Test
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var array = new[] { 1 };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++)
                     {
-                        var array = new int[] { 1, 3, 4 };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++) /* comment */;
+                        {|Warning:int a = array[i];|}
+                        a = 1;
                     }
                 }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-        [Fact]
-        public async Task Comment4()
-        {
-            var text = """
-                class Test
+    [Fact]
+    public async Task IndexConflict()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var array = new int[] { 1, 3, 4 };
+                    foreach [||] (var a in array)
                     {
-                        var array = new int[] { 1, 3, 4 };
-                        foreach[||](var a in array) Console.WriteLine(a); // test
+                        int i = 0;
                     }
                 }
-                """;
-            var expected = """
-                class Test
-                {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++)
-                        {
-                            int a = array[i];
-                            Console.WriteLine(a); // test
-                        }
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task Comment5()
-        {
-            var text = """
-                class Test
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var array = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i1|} = 0; i1 < array.Length; i1++)
                     {
-                        var array = new int[] { 1, 3, 4 };
-                        foreach [||] (var a in array) /* test */ Console.WriteLine(a); 
+                        int a = array[i1];
+                        int i = 0;
                     }
                 }
-                """;
-            var expected = """
-                class Test
-                {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++) /* test */
-                        {
-                            int a = array[i];
-                            Console.WriteLine(a);
-                        }
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task Comment6()
-        {
-            var text = """
-                class Test
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact]
+    public async Task StructPropertyReadFromAndDiscarded()
+    {
+        var text = """
+            class Test
+            {
+                struct Struct
                 {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        foreach [||] (var a in array) 
-                            /* test */ Console.WriteLine(a); 
-                    }
+                    public string Property { get; }
                 }
-                """;
-            var expected = """
-                class Test
-                {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++)
-                        {
-                            int a = array[i];
-                            /* test */
-                            Console.WriteLine(a);
-                        }
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
-        public async Task Comment7()
-        {
-            var text = """
-                class Test
+
+                void Method()
                 {
-                    void Method()
+                    var array = new[] { new Struct() };
+                    foreach [||] (var a in array)
                     {
-                        // test
-                        foreach[||](var a in new int[] { 1, 3, 4 })
-                        {
-                        }
+                        _ = a.Property;
                     }
                 }
-                """;
-            var expected = """
-                class Test
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                struct Struct
                 {
-                    void Method()
-                    {
-                        // test
-                        int[] {|Rename:array|} = new int[] { 1, 3, 4 };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++)
-                        {
-                            int a = array[i];
-                        }
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task TestCommentsInTheMiddleOfParentheses()
-        {
-            var text = """
-                class Test
-                {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        foreach [||] (var a /* test */ in array) ;
-                    }
+                    public string Property { get; }
                 }
-                """;
-            var expected = """
-                class Test
+
+                void Method()
                 {
-                    void Method()
+                    var array = new[] { new Struct() };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++)
                     {
-                        var array = new int[] { 1, 3, 4 };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++) ;
+                        Struct a = array[i];
+                        _ = a.Property;
                     }
                 }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-        [Fact]
-        public async Task TestCommentsAtBeginningOfParentheses()
-        {
-            var text = """
-                class Test
+    [Fact]
+    public async Task StructPropertyReadFromAndAssignedToLocal()
+    {
+        var text = """
+            class Test
+            {
+                struct Struct
                 {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        foreach [||] (/* test */ var a in array) ;
-                    }
+                    public string Property { get; }
                 }
-                """;
-            var expected = """
-                class Test
+
+                void Method()
                 {
-                    void Method()
+                    var array = new[] { new Struct() };
+                    foreach [||] (var a in array)
                     {
-                        var array = new int[] { 1, 3, 4 };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++) ;
+                        var b = a.Property;
                     }
                 }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task TestCommentsAtTheEndOfParentheses()
-        {
-            var text = """
-                class Test
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                struct Struct
                 {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        foreach [||] (var a in array /* test */) ;
-                    }
+                    public string Property { get; }
                 }
-                """;
-            var expected = """
-                class Test
+
+                void Method()
                 {
-                    void Method()
+                    var array = new[] { new Struct() };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++)
                     {
-                        var array = new int[] { 1, 3, 4 };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++) ;
+                        Struct a = array[i];
+                        var b = a.Property;
                     }
                 }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-        [Fact]
-        public async Task CollectionStatement()
-        {
-            var text = """
-                class Test
+    [Fact]
+    public async Task WrongCaretPosition()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var array = new int[] { 1, 3, 4 };
+                    foreach (var a in array)
                     {
-                        foreach[||](var a in new int[] { 1, 3, 4 })
-                        {
-                            Console.WriteLine(a);
-                        }
+                        [||] 
                     }
                 }
-                """;
-            var expected = """
-                class Test
-                {
-                    void Method()
-                    {
-                        int[] {|Rename:array|} = new int[] { 1, 3, 4 };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++)
-                        {
-                            int a = array[i];
-                            Console.WriteLine(a);
-                        }
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task CollectionConflict()
-        {
-            var text = """
-                class Test
+            }
+            """;
+        await TestMissingInRegularAndScriptAsync(text);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
+    public async Task TestCaretBefore()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var array = new int[] { 1, 3, 4 };
+                    [||] foreach(var a in array)
                     {
-                        var array = 1;
-
-                        foreach[||](var a in new int[] { 1, 3, 4 })
-                        {
-                            Console.WriteLine(a);
-                        }
                     }
                 }
-                """;
-            var expected = """
-                class Test
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var array = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++)
                     {
-                        var array = 1;
-
-                        int[] {|Rename:array1|} = new int[] { 1, 3, 4 };
-                        for (int {|Rename:i|} = 0; i < array1.Length; i++)
-                        {
-                            int a = array1[i];
-                            Console.WriteLine(a);
-                        }
+                        int a = array[i];
                     }
                 }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-        [Fact]
-        public async Task VariableWritten()
-        {
-            var text = """
-                class Test
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
+    public async Task TestCaretAfter()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var array = new int[] { 1, 3, 4 };
+                    foreach(var a in array) [||]
                     {
-                        var array = new[] { 1 };
-                        foreach [||] (var a in array)
-                        {
-                            a = 1;
-                        }
                     }
                 }
-                """;
-            var expected = """
-                class Test
-                {
-                    void Method()
-                    {
-                        var array = new[] { 1 };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++)
-                        {
-                            {|Warning:int a = array[i];|}
-                            a = 1;
-                        }
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task IndexConflict()
-        {
-            var text = """
-                class Test
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var array = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++) 
                     {
-                        var array = new int[] { 1, 3, 4 };
-                        foreach [||] (var a in array)
-                        {
-                            int i = 0;
-                        }
+                        int a = array[i];
                     }
                 }
-                """;
-            var expected = """
-                class Test
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
+    public async Task TestSelection()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var array = new int[] { 1, 3, 4 };
+                    [|foreach(var a in array)
                     {
-                        var array = new int[] { 1, 3, 4 };
-                        for (int {|Rename:i1|} = 0; i1 < array.Length; i1++)
-                        {
-                            int a = array[i1];
-                            int i = 0;
-                        }
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task StructPropertyReadFromAndDiscarded()
-        {
-            var text = """
-                class Test
+                    }|]
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
                 {
-                    struct Struct
-                    {
-                        public string Property { get; }
-                    }
-
-                    void Method()
+                    var array = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++)
                     {
-                        var array = new[] { new Struct() };
-                        foreach [||] (var a in array)
-                        {
-                            _ = a.Property;
-                        }
+                        int a = array[i];
                     }
                 }
-                """;
-            var expected = """
-                class Test
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
+    public async Task Field()
+    {
+        var text = """
+            class Test
+            {
+                int[] array = new int[] { 1, 3, 4 };
+
+                void Method()
                 {
-                    struct Struct
+                    foreach [||] (var a in array)
                     {
-                        public string Property { get; }
                     }
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                int[] array = new int[] { 1, 3, 4 };
 
-                    void Method()
-                    {
-                        var array = new[] { new Struct() };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++)
-                        {
-                            Struct a = array[i];
-                            _ = a.Property;
-                        }
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task StructPropertyReadFromAndAssignedToLocal()
-        {
-            var text = """
-                class Test
+                void Method()
                 {
-                    struct Struct
+                    for (int {|Rename:i|} = 0; i < array.Length; i++)
                     {
-                        public string Property { get; }
+                        int a = array[i];
                     }
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-                    void Method()
+    [Fact]
+    public async Task ArrayElement()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[][] { new int[] { 1, 3, 4 } };
+                    foreach [||] (var a in array[0])
                     {
-                        var array = new[] { new Struct() };
-                        foreach [||] (var a in array)
-                        {
-                            var b = a.Property;
-                        }
+                        Console.WriteLine(a);
                     }
                 }
-                """;
-            var expected = """
-                class Test
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
                 {
-                    struct Struct
+                    var array = new int[][] { new int[] { 1, 3, 4 } };
+                    for (int {|Rename:i|} = 0; i < array[0].Length; i++)
                     {
-                        public string Property { get; }
+                        int a = array[0][i];
+                        Console.WriteLine(a);
                     }
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-                    void Method()
-                    {
-                        var array = new[] { new Struct() };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++)
-                        {
-                            Struct a = array[i];
-                            var b = a.Property;
-                        }
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task WrongCaretPosition()
-        {
-            var text = """
-                class Test
-                {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        foreach (var a in array)
-                        {
-                            [||] 
-                        }
-                    }
-                }
-                """;
-            await TestMissingInRegularAndScriptAsync(text);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
-        public async Task TestCaretBefore()
-        {
-            var text = """
-                class Test
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
+    public async Task Parameter()
+    {
+        var text = """
+            class Test
+            {
+                void Method(int[] array)
                 {
-                    void Method()
+                    foreach [||] (var a in array)
                     {
-                        var array = new int[] { 1, 3, 4 };
-                        [||] foreach(var a in array)
-                        {
-                        }
                     }
                 }
-                """;
-            var expected = """
-                class Test
-                {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++)
-                        {
-                            int a = array[i];
-                        }
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
-        public async Task TestCaretAfter()
-        {
-            var text = """
-                class Test
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method(int[] array)
                 {
-                    void Method()
+                    for (int {|Rename:i|} = 0; i < array.Length; i++)
                     {
-                        var array = new int[] { 1, 3, 4 };
-                        foreach(var a in array) [||]
-                        {
-                        }
+                        int a = array[i];
                     }
                 }
-                """;
-            var expected = """
-                class Test
-                {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++) 
-                        {
-                            int a = array[i];
-                        }
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35525")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
-        public async Task TestSelection()
-        {
-            var text = """
-                class Test
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
+    public async Task Property()
+    {
+        var text = """
+            class Test
+            {
+                int [] Prop { get; } = new int[] { 1, 2, 3 };
+
+                void Method()
                 {
-                    void Method()
+                    foreach [||] (var a in Prop)
                     {
-                        var array = new int[] { 1, 3, 4 };
-                        [|foreach(var a in array)
-                        {
-                        }|]
                     }
                 }
-                """;
-            var expected = """
-                class Test
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                int [] Prop { get; } = new int[] { 1, 2, 3 };
+
+                void Method()
                 {
-                    void Method()
+                    for (int {|Rename:i|} = 0; i < Prop.Length; i++)
                     {
-                        var array = new int[] { 1, 3, 4 };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++)
-                        {
-                            int a = array[i];
-                        }
+                        int a = Prop[i];
                     }
                 }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
-        public async Task Field()
-        {
-            var text = """
-                class Test
-                {
-                    int[] array = new int[] { 1, 3, 4 };
+    [Fact]
+    public async Task Interface()
+    {
+        var text = """
+            using System.Collections.Generic;
 
-                    void Method()
-                    {
-                        foreach [||] (var a in array)
-                        {
-                        }
-                    }
-                }
-                """;
-            var expected = """
-                class Test
+            class Test
+            {
+                void Method()
                 {
-                    int[] array = new int[] { 1, 3, 4 };
-
-                    void Method()
+                    var array = (IList<int>)(new int[] { 1, 3, 4 });
+                    foreach[||] (var a in array)
                     {
-                        for (int {|Rename:i|} = 0; i < array.Length; i++)
-                        {
-                            int a = array[i];
-                        }
+                        Console.WriteLine(a);
                     }
                 }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            }
+            """;
+        var expected = """
+            using System.Collections.Generic;
 
-        [Fact]
-        public async Task ArrayElement()
-        {
-            var text = """
-                class Test
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var array = (IList<int>)(new int[] { 1, 3, 4 });
+                    for (int {|Rename:i|} = 0; i < array.Count; i++)
                     {
-                        var array = new int[][] { new int[] { 1, 3, 4 } };
-                        foreach [||] (var a in array[0])
-                        {
-                            Console.WriteLine(a);
-                        }
+                        int a = array[i];
+                        Console.WriteLine(a);
                     }
                 }
-                """;
-            var expected = """
-                class Test
-                {
-                    void Method()
-                    {
-                        var array = new int[][] { new int[] { 1, 3, 4 } };
-                        for (int {|Rename:i|} = 0; i < array[0].Length; i++)
-                        {
-                            int a = array[0][i];
-                            Console.WriteLine(a);
-                        }
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
-        public async Task Parameter()
-        {
-            var text = """
-                class Test
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact]
+    public async Task IListOfT()
+    {
+        var text = """
+            using System.Collections.Generic;
+
+            class Test
+            {
+                void Method()
                 {
-                    void Method(int[] array)
+                    var list = new List<int>();
+                    foreach [||](var a in list)
                     {
-                        foreach [||] (var a in array)
-                        {
-                        }
+                        Console.WriteLine(a);
                     }
                 }
-                """;
-            var expected = """
-                class Test
+            }
+            """;
+        var expected = """
+            using System.Collections.Generic;
+
+            class Test
+            {
+                void Method()
                 {
-                    void Method(int[] array)
+                    var list = new List<int>();
+                    for (int {|Rename:i|} = 0; i < list.Count; i++)
                     {
-                        for (int {|Rename:i|} = 0; i < array.Length; i++)
-                        {
-                            int a = array[i];
-                        }
+                        int a = list[i];
+                        Console.WriteLine(a);
                     }
                 }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31621")]
-        public async Task Property()
-        {
-            var text = """
-                class Test
-                {
-                    int [] Prop { get; } = new int[] { 1, 2, 3 };
+    [Fact]
+    public async Task IReadOnlyListOfT()
+    {
+        var text = """
+            using System.Collections;
+            using System.Collections.Generic;
 
-                    void Method()
+            class Test
+            {
+                void Method()
+                {
+                    var list = new ReadOnly<int>();
+                    foreach [||](var a in list)
                     {
-                        foreach [||] (var a in Prop)
-                        {
-                        }
+                        Console.WriteLine(a);
                     }
+
                 }
-                """;
-            var expected = """
-                class Test
-                {
-                    int [] Prop { get; } = new int[] { 1, 2, 3 };
+            }
 
-                    void Method()
+            class ReadOnly<T> : IReadOnlyList<T>
+            {
+                public T this[int index] => throw new System.NotImplementedException();
+                public int Count => throw new System.NotImplementedException();
+                public IEnumerator<T> GetEnumerator() => throw new System.NotImplementedException();
+                IEnumerator IEnumerable.GetEnumerator() => throw new System.NotImplementedException();
+            }
+            """;
+        var expected = """
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Test
+            {
+                void Method()
+                {
+                    var list = new ReadOnly<int>();
+                    for (int {|Rename:i|} = 0; i < list.Count; i++)
                     {
-                        for (int {|Rename:i|} = 0; i < Prop.Length; i++)
-                        {
-                            int a = Prop[i];
-                        }
+                        int a = list[i];
+                        Console.WriteLine(a);
                     }
+
                 }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            }
 
-        [Fact]
-        public async Task Interface()
-        {
-            var text = """
-                using System.Collections.Generic;
+            class ReadOnly<T> : IReadOnlyList<T>
+            {
+                public T this[int index] => throw new System.NotImplementedException();
+                public int Count => throw new System.NotImplementedException();
+                public IEnumerator<T> GetEnumerator() => throw new System.NotImplementedException();
+                IEnumerator IEnumerable.GetEnumerator() => throw new System.NotImplementedException();
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-                class Test
+    [Fact]
+    public async Task IList()
+    {
+        var text = """
+            using System;
+            using System.Collections;
+
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var list = new List();
+                    foreach [||](var a in list)
                     {
-                        var array = (IList<int>)(new int[] { 1, 3, 4 });
-                        foreach[||] (var a in array)
-                        {
-                            Console.WriteLine(a);
-                        }
+                        Console.WriteLine(a);
                     }
+
                 }
-                """;
-            var expected = """
-                using System.Collections.Generic;
+            }
 
-                class Test
+            class List : IList
+            {
+                public object this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+                public bool IsReadOnly => throw new NotImplementedException();
+                public bool IsFixedSize => throw new NotImplementedException();
+                public int Count => throw new NotImplementedException();
+                public object SyncRoot => throw new NotImplementedException();
+                public bool IsSynchronized => throw new NotImplementedException();
+                public int Add(object value) => throw new NotImplementedException();
+                public void Clear() => throw new NotImplementedException();
+                public bool Contains(object value) => throw new NotImplementedException();
+                public void CopyTo(Array array, int index) => throw new NotImplementedException();
+                public IEnumerator GetEnumerator() => throw new NotImplementedException();
+                public int IndexOf(object value) => throw new NotImplementedException();
+                public void Insert(int index, object value) => throw new NotImplementedException();
+                public void Remove(object value) => throw new NotImplementedException();
+                public void RemoveAt(int index) => throw new NotImplementedException();
+            }
+            """;
+        var expected = """
+            using System;
+            using System.Collections;
+
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var list = new List();
+                    for (int {|Rename:i|} = 0; i < list.Count; i++)
                     {
-                        var array = (IList<int>)(new int[] { 1, 3, 4 });
-                        for (int {|Rename:i|} = 0; i < array.Count; i++)
-                        {
-                            int a = array[i];
-                            Console.WriteLine(a);
-                        }
+                        object a = list[i];
+                        Console.WriteLine(a);
                     }
+
                 }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            }
 
-        [Fact]
-        public async Task IListOfT()
-        {
-            var text = """
-                using System.Collections.Generic;
+            class List : IList
+            {
+                public object this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+                public bool IsReadOnly => throw new NotImplementedException();
+                public bool IsFixedSize => throw new NotImplementedException();
+                public int Count => throw new NotImplementedException();
+                public object SyncRoot => throw new NotImplementedException();
+                public bool IsSynchronized => throw new NotImplementedException();
+                public int Add(object value) => throw new NotImplementedException();
+                public void Clear() => throw new NotImplementedException();
+                public bool Contains(object value) => throw new NotImplementedException();
+                public void CopyTo(Array array, int index) => throw new NotImplementedException();
+                public IEnumerator GetEnumerator() => throw new NotImplementedException();
+                public int IndexOf(object value) => throw new NotImplementedException();
+                public void Insert(int index, object value) => throw new NotImplementedException();
+                public void Remove(object value) => throw new NotImplementedException();
+                public void RemoveAt(int index) => throw new NotImplementedException();
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-                class Test
+    [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29740")]
+    public async Task ImmutableArray()
+    {
+        var text = """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                <MetadataReference>
+            """ + typeof(ImmutableArray<>).Assembly.Location + """
+            </MetadataReference>
+                    <Document>
+            using System;
+            using System.Collections.Immutable;
+
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var list = ImmutableArray.Create(1);
+                    foreach [||](var a in list)
                     {
-                        var list = new List<int>();
-                        foreach [||](var a in list)
-                        {
-                            Console.WriteLine(a);
-                        }
+                        Console.WriteLine(a);
                     }
                 }
-                """;
-            var expected = """
-                using System.Collections.Generic;
+            }</Document>
+                </Project>
+            </Workspace>
+            """;
 
-                class Test
+        var expected = """
+            using System;
+            using System.Collections.Immutable;
+
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var list = ImmutableArray.Create(1);
+                    for (int {|Rename:i|} = 0; i < list.Length; i++)
                     {
-                        var list = new List<int>();
-                        for (int {|Rename:i|} = 0; i < list.Count; i++)
-                        {
-                            int a = list[i];
-                            Console.WriteLine(a);
-                        }
+                        int a = list[i];
+                        Console.WriteLine(a);
                     }
                 }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-        [Fact]
-        public async Task IReadOnlyListOfT()
-        {
-            var text = """
-                using System.Collections;
-                using System.Collections.Generic;
+    [Fact]
+    public async Task ExplicitInterface()
+    {
+        var text = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
 
-                class Test
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var list = new Explicit();
+                    foreach [||] (var a in list)
                     {
-                        var list = new ReadOnly<int>();
-                        foreach [||](var a in list)
-                        {
-                            Console.WriteLine(a);
-                        }
-
+                        Console.WriteLine(a);
                     }
                 }
+            }
 
-                class ReadOnly<T> : IReadOnlyList<T>
-                {
-                    public T this[int index] => throw new System.NotImplementedException();
-                    public int Count => throw new System.NotImplementedException();
-                    public IEnumerator<T> GetEnumerator() => throw new System.NotImplementedException();
-                    IEnumerator IEnumerable.GetEnumerator() => throw new System.NotImplementedException();
-                }
-                """;
-            var expected = """
-                using System.Collections;
-                using System.Collections.Generic;
+            class Explicit : IReadOnlyList<int>
+            {
+                int IReadOnlyList<int>.this[int index] => throw new NotImplementedException();
+                int IReadOnlyCollection<int>.Count => throw new NotImplementedException();
+                IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
+                IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+            }
+            """;
 
-                class Test
+        var expected = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var list = new Explicit();
+                    IReadOnlyList<int> {|Rename:list1|} = list;
+                    for (int {|Rename:i|} = 0; i < list1.Count; i++)
                     {
-                        var list = new ReadOnly<int>();
-                        for (int {|Rename:i|} = 0; i < list.Count; i++)
-                        {
-                            int a = list[i];
-                            Console.WriteLine(a);
-                        }
-
+                        int a = list1[i];
+                        Console.WriteLine(a);
                     }
                 }
+            }
 
-                class ReadOnly<T> : IReadOnlyList<T>
-                {
-                    public T this[int index] => throw new System.NotImplementedException();
-                    public int Count => throw new System.NotImplementedException();
-                    public IEnumerator<T> GetEnumerator() => throw new System.NotImplementedException();
-                    IEnumerator IEnumerable.GetEnumerator() => throw new System.NotImplementedException();
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            class Explicit : IReadOnlyList<int>
+            {
+                int IReadOnlyList<int>.this[int index] => throw new NotImplementedException();
+                int IReadOnlyCollection<int>.Count => throw new NotImplementedException();
+                IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
+                IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-        [Fact]
-        public async Task IList()
-        {
-            var text = """
-                using System;
-                using System.Collections;
+    [Fact]
+    public async Task DoubleExplicitInterface()
+    {
+        var text = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
 
-                class Test
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var list = new Explicit();
+                    foreach [||] (var a in list)
                     {
-                        var list = new List();
-                        foreach [||](var a in list)
-                        {
-                            Console.WriteLine(a);
-                        }
-
-                    }
-                }
-
-                class List : IList
-                {
-                    public object this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-                    public bool IsReadOnly => throw new NotImplementedException();
-                    public bool IsFixedSize => throw new NotImplementedException();
-                    public int Count => throw new NotImplementedException();
-                    public object SyncRoot => throw new NotImplementedException();
-                    public bool IsSynchronized => throw new NotImplementedException();
-                    public int Add(object value) => throw new NotImplementedException();
-                    public void Clear() => throw new NotImplementedException();
-                    public bool Contains(object value) => throw new NotImplementedException();
-                    public void CopyTo(Array array, int index) => throw new NotImplementedException();
-                    public IEnumerator GetEnumerator() => throw new NotImplementedException();
-                    public int IndexOf(object value) => throw new NotImplementedException();
-                    public void Insert(int index, object value) => throw new NotImplementedException();
-                    public void Remove(object value) => throw new NotImplementedException();
-                    public void RemoveAt(int index) => throw new NotImplementedException();
-                }
-                """;
-            var expected = """
-                using System;
-                using System.Collections;
+                        Console.WriteLine(a);
+                    }
+                }
+            }
 
-                class Test
-                {
-                    void Method()
-                    {
-                        var list = new List();
-                        for (int {|Rename:i|} = 0; i < list.Count; i++)
-                        {
-                            object a = list[i];
-                            Console.WriteLine(a);
-                        }
-
-                    }
-                }
-
-                class List : IList
-                {
-                    public object this[int index] { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-                    public bool IsReadOnly => throw new NotImplementedException();
-                    public bool IsFixedSize => throw new NotImplementedException();
-                    public int Count => throw new NotImplementedException();
-                    public object SyncRoot => throw new NotImplementedException();
-                    public bool IsSynchronized => throw new NotImplementedException();
-                    public int Add(object value) => throw new NotImplementedException();
-                    public void Clear() => throw new NotImplementedException();
-                    public bool Contains(object value) => throw new NotImplementedException();
-                    public void CopyTo(Array array, int index) => throw new NotImplementedException();
-                    public IEnumerator GetEnumerator() => throw new NotImplementedException();
-                    public int IndexOf(object value) => throw new NotImplementedException();
-                    public void Insert(int index, object value) => throw new NotImplementedException();
-                    public void Remove(object value) => throw new NotImplementedException();
-                    public void RemoveAt(int index) => throw new NotImplementedException();
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/29740")]
-        public async Task ImmutableArray()
-        {
-            var text = """
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                    <MetadataReference>
-                """ + typeof(ImmutableArray<>).Assembly.Location + """
-                </MetadataReference>
-                        <Document>
-                using System;
-                using System.Collections.Immutable;
+            class Explicit : IReadOnlyList<int>, IReadOnlyList<string>
+            {
+                int IReadOnlyList<int>.this[int index] => throw new NotImplementedException();
+                int IReadOnlyCollection<int>.Count => throw new NotImplementedException();
+                IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
+                IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
 
-                class Test
+                string IReadOnlyList<string>.this[int index] => throw new NotImplementedException();
+                int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
+                IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
+            }
+            """;
+        await TestMissingInRegularAndScriptAsync(text);
+    }
+
+    [Fact]
+    public async Task DoubleExplicitInterfaceWithExplicitType()
+    {
+        var text = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var list = new Explicit();
+                    foreach [||] (int a in list)
                     {
-                        var list = ImmutableArray.Create(1);
-                        foreach [||](var a in list)
-                        {
-                            Console.WriteLine(a);
-                        }
+                        Console.WriteLine(a);
                     }
-                }</Document>
-                    </Project>
-                </Workspace>
-                """;
+                }
+            }
 
-            var expected = """
-                using System;
-                using System.Collections.Immutable;
+            class Explicit : IReadOnlyList<int>, IReadOnlyList<string>
+            {
+                int IReadOnlyList<int>.this[int index] => throw new NotImplementedException();
+                int IReadOnlyCollection<int>.Count => throw new NotImplementedException();
+                IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
+                IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
 
-                class Test
-                {
-                    void Method()
-                    {
-                        var list = ImmutableArray.Create(1);
-                        for (int {|Rename:i|} = 0; i < list.Length; i++)
-                        {
-                            int a = list[i];
-                            Console.WriteLine(a);
-                        }
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task ExplicitInterface()
-        {
-            var text = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
+                string IReadOnlyList<string>.this[int index] => throw new NotImplementedException();
+                int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
+                IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
+            }
+            """;
 
-                class Test
+        var expected = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var list = new Explicit();
+                    IReadOnlyList<int> {|Rename:list1|} = list;
+                    for (int {|Rename:i|} = 0; i < list1.Count; i++)
                     {
-                        var list = new Explicit();
-                        foreach [||] (var a in list)
-                        {
-                            Console.WriteLine(a);
-                        }
+                        int a = list1[i];
+                        Console.WriteLine(a);
                     }
                 }
+            }
 
-                class Explicit : IReadOnlyList<int>
-                {
-                    int IReadOnlyList<int>.this[int index] => throw new NotImplementedException();
-                    int IReadOnlyCollection<int>.Count => throw new NotImplementedException();
-                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
-                    IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
-                }
-                """;
+            class Explicit : IReadOnlyList<int>, IReadOnlyList<string>
+            {
+                int IReadOnlyList<int>.this[int index] => throw new NotImplementedException();
+                int IReadOnlyCollection<int>.Count => throw new NotImplementedException();
+                IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
+                IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
 
-            var expected = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
+                string IReadOnlyList<string>.this[int index] => throw new NotImplementedException();
+                int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
+                IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-                class Test
+    [Fact]
+    public async Task MixedInterfaceImplementation()
+    {
+        var text = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var list = new Mixed();
+                    foreach [||] (var a in list)
                     {
-                        var list = new Explicit();
-                        IReadOnlyList<int> {|Rename:list1|} = list;
-                        for (int {|Rename:i|} = 0; i < list1.Count; i++)
-                        {
-                            int a = list1[i];
-                            Console.WriteLine(a);
-                        }
+                        Console.WriteLine(a);
                     }
                 }
+            }
 
-                class Explicit : IReadOnlyList<int>
-                {
-                    int IReadOnlyList<int>.this[int index] => throw new NotImplementedException();
-                    int IReadOnlyCollection<int>.Count => throw new NotImplementedException();
-                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
-                    IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            class Mixed : IReadOnlyList<int>, IReadOnlyList<string>
+            {
+                public int this[int index] => throw new NotImplementedException();
+                public int Count => throw new NotImplementedException();
+                public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
+                IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
 
-        [Fact]
-        public async Task DoubleExplicitInterface()
-        {
-            var text = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
+                string IReadOnlyList<string>.this[int index] => throw new NotImplementedException();
+                int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
+                IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
+            }
+            """;
 
-                class Test
+        var expected = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var list = new Mixed();
+                    for (int {|Rename:i|} = 0; i < list.Count; i++)
                     {
-                        var list = new Explicit();
-                        foreach [||] (var a in list)
-                        {
-                            Console.WriteLine(a);
-                        }
+                        int a = list[i];
+                        Console.WriteLine(a);
                     }
                 }
+            }
 
-                class Explicit : IReadOnlyList<int>, IReadOnlyList<string>
-                {
-                    int IReadOnlyList<int>.this[int index] => throw new NotImplementedException();
-                    int IReadOnlyCollection<int>.Count => throw new NotImplementedException();
-                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
-                    IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+            class Mixed : IReadOnlyList<int>, IReadOnlyList<string>
+            {
+                public int this[int index] => throw new NotImplementedException();
+                public int Count => throw new NotImplementedException();
+                public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
+                IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
 
-                    string IReadOnlyList<string>.this[int index] => throw new NotImplementedException();
-                    int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
-                    IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
-                }
-                """;
-            await TestMissingInRegularAndScriptAsync(text);
-        }
+                string IReadOnlyList<string>.this[int index] => throw new NotImplementedException();
+                int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
+                IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-        [Fact]
-        public async Task DoubleExplicitInterfaceWithExplicitType()
-        {
-            var text = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
+    [Fact]
+    public async Task MixedInterfaceImplementationWithExplicitType()
+    {
+        var text = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
 
-                class Test
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var list = new Mixed();
+                    foreach [||] (string a in list)
                     {
-                        var list = new Explicit();
-                        foreach [||] (int a in list)
-                        {
-                            Console.WriteLine(a);
-                        }
+                        Console.WriteLine(a);
                     }
                 }
+            }
 
-                class Explicit : IReadOnlyList<int>, IReadOnlyList<string>
-                {
-                    int IReadOnlyList<int>.this[int index] => throw new NotImplementedException();
-                    int IReadOnlyCollection<int>.Count => throw new NotImplementedException();
-                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
-                    IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+            class Mixed : IReadOnlyList<int>, IReadOnlyList<string>
+            {
+                public int this[int index] => throw new NotImplementedException();
+                public int Count => throw new NotImplementedException();
+                public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
+                IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
 
-                    string IReadOnlyList<string>.this[int index] => throw new NotImplementedException();
-                    int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
-                    IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
-                }
-                """;
+                string IReadOnlyList<string>.this[int index] => throw new NotImplementedException();
+                int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
+                IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
+            }
+            """;
 
-            var expected = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
+        var expected = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
 
-                class Test
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var list = new Mixed();
+                    IReadOnlyList<string> {|Rename:list1|} = list;
+                    for (int {|Rename:i|} = 0; i < list1.Count; i++)
                     {
-                        var list = new Explicit();
-                        IReadOnlyList<int> {|Rename:list1|} = list;
-                        for (int {|Rename:i|} = 0; i < list1.Count; i++)
-                        {
-                            int a = list1[i];
-                            Console.WriteLine(a);
-                        }
+                        string a = list1[i];
+                        Console.WriteLine(a);
                     }
                 }
+            }
 
-                class Explicit : IReadOnlyList<int>, IReadOnlyList<string>
-                {
-                    int IReadOnlyList<int>.this[int index] => throw new NotImplementedException();
-                    int IReadOnlyCollection<int>.Count => throw new NotImplementedException();
-                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
-                    IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+            class Mixed : IReadOnlyList<int>, IReadOnlyList<string>
+            {
+                public int this[int index] => throw new NotImplementedException();
+                public int Count => throw new NotImplementedException();
+                public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
+                IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
 
-                    string IReadOnlyList<string>.this[int index] => throw new NotImplementedException();
-                    int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
-                    IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+                string IReadOnlyList<string>.this[int index] => throw new NotImplementedException();
+                int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
+                IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-        [Fact]
-        public async Task MixedInterfaceImplementation()
-        {
-            var text = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
+    [Fact]
+    public async Task PreserveUserExpression()
+    {
+        var text = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
 
+            namespace NS
+            {
                 class Test
                 {
                     void Method()
                     {
-                        var list = new Mixed();
-                        foreach [||] (var a in list)
+                        foreach [||] (string a in new NS.Mixed())
                         {
                             Console.WriteLine(a);
                         }
@@ -1362,21 +1495,24 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
                     int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
                     IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
                 }
-                """;
+            }
+            """;
 
-            var expected = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
+        var expected = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
 
+            namespace NS
+            {
                 class Test
                 {
                     void Method()
                     {
-                        var list = new Mixed();
+                        IReadOnlyList<string> {|Rename:list|} = new NS.Mixed();
                         for (int {|Rename:i|} = 0; i < list.Count; i++)
                         {
-                            int a = list[i];
+                            string a = list[i];
                             Console.WriteLine(a);
                         }
                     }
@@ -1393,627 +1529,489 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForEachToFor
                     int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
                     IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
                 }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-        [Fact]
-        public async Task MixedInterfaceImplementationWithExplicitType()
-        {
-            var text = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
-
-                class Test
+    [Fact]
+    public async Task EmbededStatement()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        var list = new Mixed();
-                        foreach [||] (string a in list)
-                        {
-                            Console.WriteLine(a);
-                        }
-                    }
+                    if (true)
+                        foreach [||] (var a in new int[] {});
                 }
+            }
+            """;
+        await TestMissingInRegularAndScriptAsync(text);
+    }
 
-                class Mixed : IReadOnlyList<int>, IReadOnlyList<string>
+    [Fact]
+    public async Task EmbededStatement2()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
                 {
-                    public int this[int index] => throw new NotImplementedException();
-                    public int Count => throw new NotImplementedException();
-                    public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
-                    IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
-
-                    string IReadOnlyList<string>.this[int index] => throw new NotImplementedException();
-                    int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
-                    IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
+                    var array = new int[] { 1, 3, 4 };
+                    if (true)
+                        foreach [||] (var a in array) Console.WriteLine(a);
                 }
-                """;
-
-            var expected = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
-
-                class Test
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
-                    {
-                        var list = new Mixed();
-                        IReadOnlyList<string> {|Rename:list1|} = list;
-                        for (int {|Rename:i|} = 0; i < list1.Count; i++)
-                        {
-                            string a = list1[i];
-                            Console.WriteLine(a);
-                        }
-                    }
-                }
-
-                class Mixed : IReadOnlyList<int>, IReadOnlyList<string>
-                {
-                    public int this[int index] => throw new NotImplementedException();
-                    public int Count => throw new NotImplementedException();
-                    public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
-                    IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
-
-                    string IReadOnlyList<string>.this[int index] => throw new NotImplementedException();
-                    int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
-                    IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task PreserveUserExpression()
-        {
-            var text = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
-
-                namespace NS
-                {
-                    class Test
-                    {
-                        void Method()
-                        {
-                            foreach [||] (string a in new NS.Mixed())
-                            {
-                                Console.WriteLine(a);
-                            }
-                        }
-                    }
-
-                    class Mixed : IReadOnlyList<int>, IReadOnlyList<string>
-                    {
-                        public int this[int index] => throw new NotImplementedException();
-                        public int Count => throw new NotImplementedException();
-                        public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
-                        IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
-
-                        string IReadOnlyList<string>.this[int index] => throw new NotImplementedException();
-                        int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
-                        IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
-                    }
-                }
-                """;
-
-            var expected = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
-
-                namespace NS
-                {
-                    class Test
-                    {
-                        void Method()
-                        {
-                            IReadOnlyList<string> {|Rename:list|} = new NS.Mixed();
-                            for (int {|Rename:i|} = 0; i < list.Count; i++)
-                            {
-                                string a = list[i];
-                                Console.WriteLine(a);
-                            }
-                        }
-                    }
-
-                    class Mixed : IReadOnlyList<int>, IReadOnlyList<string>
-                    {
-                        public int this[int index] => throw new NotImplementedException();
-                        public int Count => throw new NotImplementedException();
-                        public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
-                        IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
-
-                        string IReadOnlyList<string>.this[int index] => throw new NotImplementedException();
-                        int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
-                        IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task EmbededStatement()
-        {
-            var text = """
-                class Test
-                {
-                    void Method()
-                    {
-                        if (true)
-                            foreach [||] (var a in new int[] {});
-                    }
-                }
-                """;
-            await TestMissingInRegularAndScriptAsync(text);
-        }
-
-        [Fact]
-        public async Task EmbededStatement2()
-        {
-            var text = """
-                class Test
-                {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        if (true)
-                            foreach [||] (var a in array) Console.WriteLine(a);
-                    }
-                }
-                """;
-            var expected = """
-                class Test
-                {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        if (true)
-                            for (int {|Rename:i|} = 0; i < array.Length; i++)
-                            {
-                                int a = array[i];
-                                Console.WriteLine(a);
-                            }
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task IndexConflict2()
-        {
-            var text = """
-                class Test
-                {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        foreach [||] (var i in array)
-                        {
-                            Console.WriteLine(i);
-                        }
-                    }
-                }
-                """;
-            var expected = """
-                class Test
-                {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        for (int {|Rename:i1|} = 0; i1 < array.Length; i1++)
-                        {
-                            int i = array[i1];
-                            Console.WriteLine(i);
-                        }
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task UseTypeAsUsedInForeach()
-        {
-            var text = """
-                class Test
-                {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
-                        foreach [||] (int a in array)
-                        {
-                            Console.WriteLine(i);
-                        }
-                    }
-                }
-                """;
-            var expected = """
-                class Test
-                {
-                    void Method()
-                    {
-                        var array = new int[] { 1, 3, 4 };
+                    var array = new int[] { 1, 3, 4 };
+                    if (true)
                         for (int {|Rename:i|} = 0; i < array.Length; i++)
                         {
                             int a = array[i];
-                            Console.WriteLine(i);
-                        }
-                    }
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task String()
-        {
-            var text = """
-                class Test
-                {
-                    void Method()
-                    {
-                        foreach [||] (var a in "test")
-                        {
                             Console.WriteLine(a);
                         }
-                    }
                 }
-                """;
-            var expected = """
-                class Test
-                {
-                    void Method()
-                    {
-                        string {|Rename:str|} = "test";
-                        for (int {|Rename:i|} = 0; i < str.Length; i++)
-                        {
-                            char a = str[i];
-                            Console.WriteLine(a);
-                        }
-                    }
-                }
-                """;
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task StringLocalConst()
-        {
-            var text = """
-                class Test
+    [Fact]
+    public async Task IndexConflict2()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var array = new int[] { 1, 3, 4 };
+                    foreach [||] (var i in array)
                     {
-                        const string test = "test";
-                        foreach [||] (var a in test)
-                        {
-                            Console.WriteLine(a);
-                        }
+                        Console.WriteLine(i);
                     }
                 }
-                """;
-            var expected = """
-                class Test
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var array = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i1|} = 0; i1 < array.Length; i1++)
                     {
-                        const string test = "test";
-                        for (int {|Rename:i|} = 0; i < test.Length; i++)
-                        {
-                            char a = test[i];
-                            Console.WriteLine(a);
-                        }
+                        int i = array[i1];
+                        Console.WriteLine(i);
                     }
                 }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-        [Fact]
-        public async Task StringConst()
-        {
-            var text = """
-                class Test
+    [Fact]
+    public async Task UseTypeAsUsedInForeach()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    foreach [||] (int a in array)
+                    {
+                        Console.WriteLine(i);
+                    }
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    var array = new int[] { 1, 3, 4 };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++)
+                    {
+                        int a = array[i];
+                        Console.WriteLine(i);
+                    }
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact]
+    public async Task String()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
+                {
+                    foreach [||] (var a in "test")
+                    {
+                        Console.WriteLine(a);
+                    }
+                }
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
+                {
+                    string {|Rename:str|} = "test";
+                    for (int {|Rename:i|} = 0; i < str.Length; i++)
+                    {
+                        char a = str[i];
+                        Console.WriteLine(a);
+                    }
+                }
+            }
+            """;
+
+        await TestInRegularAndScriptAsync(text, expected);
+    }
+
+    [Fact]
+    public async Task StringLocalConst()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
                 {
                     const string test = "test";
-
-                    void Method()
+                    foreach [||] (var a in test)
                     {
-                        foreach [||] (var a in test)
-                        {
-                            Console.WriteLine(a);
-                        }
+                        Console.WriteLine(a);
                     }
                 }
-                """;
-            var expected = """
-                class Test
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
                 {
                     const string test = "test";
-
-                    void Method()
+                    for (int {|Rename:i|} = 0; i < test.Length; i++)
                     {
-                        for (int {|Rename:i|} = 0; i < test.Length; i++)
-                        {
-                            char a = test[i];
-                            Console.WriteLine(a);
-                        }
+                        char a = test[i];
+                        Console.WriteLine(a);
                     }
                 }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-        [Fact]
-        public async Task ElementExplicitCast()
-        {
-            var text = """
-                class Test
+    [Fact]
+    public async Task StringConst()
+    {
+        var text = """
+            class Test
+            {
+                const string test = "test";
+
+                void Method()
                 {
-                    void Method()
+                    foreach [||] (var a in test)
                     {
-                        var array = new object[] { 1, 2, 3 };
-                        foreach [||] (string a in array)
-                        {
-                            Console.WriteLine(a);
-                        }
+                        Console.WriteLine(a);
                     }
                 }
-                """;
-            var expected = """
-                class Test
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                const string test = "test";
+
+                void Method()
                 {
-                    void Method()
+                    for (int {|Rename:i|} = 0; i < test.Length; i++)
                     {
-                        var array = new object[] { 1, 2, 3 };
-                        for (int {|Rename:i|} = 0; i < array.Length; i++)
-                        {
-                            string a = (string)array[i];
-                            Console.WriteLine(a);
-                        }
+                        char a = test[i];
+                        Console.WriteLine(a);
                     }
                 }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50469")]
-        public async Task PreventExplicitCastToVar()
-        {
-            var text = """
-                class Test
+    [Fact]
+    public async Task ElementExplicitCast()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var array = new object[] { 1, 2, 3 };
+                    foreach [||] (string a in array)
                     {
-                        var items = new[] { new { x = 1 } };
-
-                        foreach [||] (var item in items)
-                        {
-                        }
+                        Console.WriteLine(a);
                     }
                 }
-                """;
-            var expected = """
-                class Test
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var array = new object[] { 1, 2, 3 };
+                    for (int {|Rename:i|} = 0; i < array.Length; i++)
                     {
-                        var items = new[] { new { x = 1 } };
-
-                        for (int {|Rename:i|} = 0; i < items.Length; i++)
-                        {
-                            var item = items[i];
-                        }
+                        string a = (string)array[i];
+                        Console.WriteLine(a);
                     }
                 }
-                """;
-            await TestInRegularAndScriptAsync(text, expected);
-        }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-        [Fact]
-        public async Task NotAssignable()
-        {
-            var text = """
-                class Test
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50469")]
+    public async Task PreventExplicitCastToVar()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var items = new[] { new { x = 1 } };
+
+                    foreach [||] (var item in items)
                     {
-                        var array = new int[] { 1, 2, 3 };
-                        foreach [||] (string a in array)
-                        {
-                            Console.WriteLine(a);
-                        }
                     }
                 }
-                """;
-            await TestMissingInRegularAndScriptAsync(text);
-        }
-
-        [Fact]
-        public async Task ElementMissing()
-        {
-            var text = """
-                class Test
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var items = new[] { new { x = 1 } };
+
+                    for (int {|Rename:i|} = 0; i < items.Length; i++)
                     {
-                        var array = new int[] { 1, 2, 3 };
-                        foreach [||] (in array)
-                        {
-                            Console.WriteLine(a);
-                        }
+                        var item = items[i];
                     }
                 }
-                """;
-            await TestMissingInRegularAndScriptAsync(text);
-        }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-        [Fact]
-        public async Task ElementMissing2()
-        {
-            var text = """
-                class Test
+    [Fact]
+    public async Task NotAssignable()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var array = new int[] { 1, 2, 3 };
+                    foreach [||] (string a in array)
                     {
-                        foreach [||] (string a in )
-                        {
-                            Console.WriteLine(a);
-                        }
+                        Console.WriteLine(a);
                     }
                 }
-                """;
-            await TestMissingInRegularAndScriptAsync(text);
-        }
+            }
+            """;
+        await TestMissingInRegularAndScriptAsync(text);
+    }
 
-        [Fact]
-        public async Task StringExplicitType()
-        {
-            var text = """
-                class Test
+    [Fact]
+    public async Task ElementMissing()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var array = new int[] { 1, 2, 3 };
+                    foreach [||] (in array)
                     {
-                        foreach [||] (int a in "test")
-                        {
-                            Console.WriteLine(a);
-                        }
+                        Console.WriteLine(a);
                     }
                 }
-                """;
-            var expected = """
-                class Test
+            }
+            """;
+        await TestMissingInRegularAndScriptAsync(text);
+    }
+
+    [Fact]
+    public async Task ElementMissing2()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    foreach [||] (string a in )
                     {
-                        string {|Rename:str|} = "test";
-                        for (int {|Rename:i|} = 0; i < str.Length; i++)
-                        {
-                            int a = str[i];
-                            Console.WriteLine(a);
-                        }
+                        Console.WriteLine(a);
                     }
                 }
-                """;
+            }
+            """;
+        await TestMissingInRegularAndScriptAsync(text);
+    }
 
-            await TestInRegularAndScriptAsync(text, expected);
-        }
-
-        [Fact]
-        public async Task Var()
-        {
-            var text = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
-
-                class Test
+    [Fact]
+    public async Task StringExplicitType()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    foreach [||] (int a in "test")
                     {
-                        var list = new Explicit();
-                        foreach [||] (var a in list)
-                        {
-                            Console.WriteLine(a);
-                        }
+                        Console.WriteLine(a);
                     }
                 }
-
-                class Explicit : IReadOnlyList<int>
+            }
+            """;
+        var expected = """
+            class Test
+            {
+                void Method()
                 {
-                    int IReadOnlyList<int>.this[int index] => throw new NotImplementedException();
-                    int IReadOnlyCollection<int>.Count => throw new NotImplementedException();
-                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
-                    IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
-                }
-                """;
-
-            var expected = """
-                using System;
-                using System.Collections;
-                using System.Collections.Generic;
-
-                class Test
-                {
-                    void Method()
+                    string {|Rename:str|} = "test";
+                    for (int {|Rename:i|} = 0; i < str.Length; i++)
                     {
-                        var list = new Explicit();
-                        var {|Rename:list1|} = (IReadOnlyList<int>)list;
-                        for (var {|Rename:i|} = 0; i < list1.Count; i++)
-                        {
-                            var a = list1[i];
-                            Console.WriteLine(a);
-                        }
+                        int a = str[i];
+                        Console.WriteLine(a);
                     }
                 }
+            }
+            """;
 
-                class Explicit : IReadOnlyList<int>
-                {
-                    int IReadOnlyList<int>.this[int index] => throw new NotImplementedException();
-                    int IReadOnlyCollection<int>.Count => throw new NotImplementedException();
-                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
-                    IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
-                }
-                """;
-            await TestInRegularAndScriptAsync(text, expected, options: ImplicitTypeEverywhere);
-        }
+        await TestInRegularAndScriptAsync(text, expected);
+    }
 
-        [Fact]
-        public async Task ArrayRank2()
-        {
-            var text = """
-                class Test
+    [Fact]
+    public async Task Var()
+    {
+        var text = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var list = new Explicit();
+                    foreach [||] (var a in list)
                     {
-                        foreach [||] (int a in new int[,] { {1, 2} })
-                        {
-                            Console.WriteLine(a);
-                        }
+                        Console.WriteLine(a);
                     }
                 }
-                """;
-            await TestMissingAsync(text);
-        }
+            }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48950")]
-        public async Task NullableReferenceVar()
-        {
-            var text = """
-                #nullable enable
-                class Test
+            class Explicit : IReadOnlyList<int>
+            {
+                int IReadOnlyList<int>.this[int index] => throw new NotImplementedException();
+                int IReadOnlyCollection<int>.Count => throw new NotImplementedException();
+                IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
+                IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+            }
+            """;
+
+        var expected = """
+            using System;
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    var list = new Explicit();
+                    var {|Rename:list1|} = (IReadOnlyList<int>)list;
+                    for (var {|Rename:i|} = 0; i < list1.Count; i++)
                     {
-                        foreach [||] (var s in new string[10])
-                        {
-                            Console.WriteLine(s);
-                        }
+                        var a = list1[i];
+                        Console.WriteLine(a);
                     }
                 }
-                """;
-            var expected = """
-                #nullable enable
-                class Test
+            }
+
+            class Explicit : IReadOnlyList<int>
+            {
+                int IReadOnlyList<int>.this[int index] => throw new NotImplementedException();
+                int IReadOnlyCollection<int>.Count => throw new NotImplementedException();
+                IEnumerator<int> IEnumerable<int>.GetEnumerator() => throw new NotImplementedException();
+                IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected, options: ImplicitTypeEverywhere);
+    }
+
+    [Fact]
+    public async Task ArrayRank2()
+    {
+        var text = """
+            class Test
+            {
+                void Method()
                 {
-                    void Method()
+                    foreach [||] (int a in new int[,] { {1, 2} })
                     {
-                        var {|Rename:array|} = new string[10];
-                        for (var {|Rename:i|} = 0; i < array.Length; i++)
-                        {
-                            var s = array[i];
-                            Console.WriteLine(s);
-                        }
+                        Console.WriteLine(a);
                     }
                 }
-                """;
-            await TestInRegularAndScriptAsync(text, expected, options: ImplicitTypeEverywhere);
-        }
+            }
+            """;
+        await TestMissingAsync(text);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48950")]
+    public async Task NullableReferenceVar()
+    {
+        var text = """
+            #nullable enable
+            class Test
+            {
+                void Method()
+                {
+                    foreach [||] (var s in new string[10])
+                    {
+                        Console.WriteLine(s);
+                    }
+                }
+            }
+            """;
+        var expected = """
+            #nullable enable
+            class Test
+            {
+                void Method()
+                {
+                    var {|Rename:array|} = new string[10];
+                    for (var {|Rename:i|} = 0; i < array.Length; i++)
+                    {
+                        var s = array[i];
+                        Console.WriteLine(s);
+                    }
+                }
+            }
+            """;
+        await TestInRegularAndScriptAsync(text, expected, options: ImplicitTypeEverywhere);
     }
 }

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Collections
     /// collection uses segmented arrays to avoid placing objects on the Large Object Heap.
     /// </summary>
     /// <typeparam name="T">The type of elements stored in the array.</typeparam>
-    internal readonly struct SegmentedArray<T> : ICloneable, IList, IStructuralComparable, IStructuralEquatable, IList<T>, IReadOnlyList<T>, IEquatable<SegmentedArray<T>>
+    internal readonly partial struct SegmentedArray<T> : ICloneable, IList, IStructuralComparable, IStructuralEquatable, IList<T>, IReadOnlyList<T>, IEquatable<SegmentedArray<T>>
     {
         /// <summary>
         /// The number of elements in each page of the segmented array of type <typeparamref name="T"/>.
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Collections
             var ret = 0;
             for (var i = Length >= 8 ? Length - 8 : 0; i < Length; i++)
             {
-#if NETCOREAPP
+#if NET
                 ret = HashCode.Combine(comparer.GetHashCode(this[i]!), ret);
 #else
                 ret = unchecked((ret * (int)0xA5555529) + comparer.GetHashCode(this[i]!));
@@ -364,9 +364,6 @@ namespace Microsoft.CodeAnalysis.Collections
 
             return ret;
         }
-
-        internal TestAccessor GetTestAccessor()
-            => new(this);
 
         public struct Enumerator : IEnumerator<T>
         {
@@ -419,18 +416,9 @@ namespace Microsoft.CodeAnalysis.Collections
             }
         }
 
-        internal readonly struct TestAccessor
+        internal static class TestAccessor
         {
-            private readonly SegmentedArray<T> _array;
-
-            public TestAccessor(SegmentedArray<T> array)
-            {
-                _array = array;
-            }
-
             public static int SegmentSize => SegmentedArray<T>.SegmentSize;
-
-            public T[][] Items => _array._items;
         }
     }
 }

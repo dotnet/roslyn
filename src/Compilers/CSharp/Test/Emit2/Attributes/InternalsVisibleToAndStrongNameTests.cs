@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -115,7 +116,7 @@ public class Test
 
                 foreach (var attrData in m.ContainingAssembly.GetAttributes())
                 {
-                    if (attrData.IsTargetAttribute(m.ContainingAssembly, AttributeDescription.AssemblyKeyFileAttribute))
+                    if (attrData.IsTargetAttribute(AttributeDescription.AssemblyKeyFileAttribute))
                     {
                         haveAttribute = true;
                         break;
@@ -209,8 +210,11 @@ public class Test
             var compilation = CreateCompilation(code, options: options, parseOptions: TestOptions.Regular);
             compilation.VerifyEmitDiagnostics();
 
-            compilation = CreateCompilation(code, options: options, parseOptions: TestOptions.RegularWithLegacyStrongName);
-            compilation.VerifyEmitDiagnostics();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                compilation = CreateCompilation(code, options: options, parseOptions: TestOptions.RegularWithLegacyStrongName);
+                compilation.VerifyEmitDiagnostics();
+            }
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestHasWindowsPaths)]
@@ -258,7 +262,7 @@ public class Test
 
                 foreach (var attrData in m.ContainingAssembly.GetAttributes())
                 {
-                    if (attrData.IsTargetAttribute(m.ContainingAssembly, AttributeDescription.AssemblyKeyNameAttribute))
+                    if (attrData.IsTargetAttribute(AttributeDescription.AssemblyKeyNameAttribute))
                     {
                         haveAttribute = true;
                         break;
@@ -2078,15 +2082,16 @@ public class C : B
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.SigningReleaseDll, assemblyName: "asm1", parseOptions: parseOptions);
+            var comp1 = CreateCompilationWithMscorlib461(source1, options: TestOptions.SigningReleaseDll, assemblyName: "asm1", parseOptions: parseOptions);
             comp1.VerifyDiagnostics();
             var ref1 = new CSharpCompilationReference(comp1);
 
-            var comp2 = CreateCompilationWithMscorlib45(source2, new[] { ref1 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm2", parseOptions: parseOptions);
+            var comp2 = CreateCompilationWithMscorlib461(source2, new[] { ref1 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm2", parseOptions: parseOptions);
             comp2.VerifyDiagnostics();
             var ref2 = new CSharpCompilationReference(comp2);
 
-            var comp3 = CreateCompilationWithMscorlib45(source3, new[] { SystemCoreRef, ref1, ref2 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm3", parseOptions: parseOptions);
+            var comp3 = CreateCompilationWithMscorlib461(source3, new[] { SystemCoreRef, ref1, ref2 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm3", parseOptions: parseOptions);
+            comp3.MakeMemberMissing(SpecialMember.System_Array__Empty);
             comp3.VerifyDiagnostics();
 
             // Note: calls B.M, not A.M, since asm1 is not accessible.
@@ -2196,19 +2201,20 @@ public class D : C
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.SigningReleaseDll, assemblyName: "asm1", parseOptions: parseOptions);
+            var comp1 = CreateCompilationWithMscorlib461(source1, options: TestOptions.SigningReleaseDll, assemblyName: "asm1", parseOptions: parseOptions);
             comp1.VerifyDiagnostics();
             var ref1 = new CSharpCompilationReference(comp1);
 
-            var comp2 = CreateCompilationWithMscorlib45(source2, new[] { ref1 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm2", parseOptions: parseOptions);
+            var comp2 = CreateCompilationWithMscorlib461(source2, new[] { ref1 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm2", parseOptions: parseOptions);
             comp2.VerifyDiagnostics();
             var ref2 = new CSharpCompilationReference(comp2);
 
-            var comp3 = CreateCompilationWithMscorlib45(source3, new[] { ref1, ref2 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm3", parseOptions: parseOptions);
+            var comp3 = CreateCompilationWithMscorlib461(source3, new[] { ref1, ref2 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm3", parseOptions: parseOptions);
             comp3.VerifyDiagnostics();
             var ref3 = new CSharpCompilationReference(comp3);
 
-            var comp4 = CreateCompilationWithMscorlib45(source4, new[] { SystemCoreRef, ref1, ref2, ref3 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm4", parseOptions: parseOptions);
+            var comp4 = CreateCompilationWithMscorlib461(source4, new[] { SystemCoreRef, ref1, ref2, ref3 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm4", parseOptions: parseOptions);
+            comp4.MakeMemberMissing(SpecialMember.System_Array__Empty);
             comp4.VerifyDiagnostics();
 
             // Note: calls C.M, not A.M, since asm2 is not accessible (stops search).
@@ -2795,7 +2801,7 @@ class B
             {
                 var assembly = module.ContainingAssembly;
                 Assert.NotNull(assembly);
-                Assert.False(assembly.GetAttributes().Any(attr => attr.IsTargetAttribute(assembly, AttributeDescription.InternalsVisibleToAttribute)));
+                Assert.False(assembly.GetAttributes().Any(attr => attr.IsTargetAttribute(AttributeDescription.InternalsVisibleToAttribute)));
             });
         }
 

@@ -342,7 +342,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
             if (typeParameterSymbol.ConstraintTypes.Length == 0 &&
                 !typeParameterSymbol.HasConstructorConstraint &&
                 !typeParameterSymbol.HasReferenceTypeConstraint &&
-                !typeParameterSymbol.HasValueTypeConstraint)
+                !typeParameterSymbol.HasValueTypeConstraint &&
+                !typeParameterSymbol.AllowsRefLikeType)
             {
                 return;
             }
@@ -396,6 +397,17 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ObjectBrowser
                 }
 
                 AddText("new()");
+                isFirst = false;
+            }
+
+            if (typeParameterSymbol.AllowsRefLikeType)
+            {
+                if (!isFirst)
+                {
+                    AddComma();
+                }
+
+                AddText("allows ref struct");
             }
         }
 

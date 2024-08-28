@@ -355,7 +355,7 @@ class C
 }";
             var assembly0 = GenerateTupleAssembly();
             var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
-            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib45AndCSharp(source, references: new[] { reference0 });
+            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib461AndCSharp(source, references: new[] { reference0 });
             var assembly1 = compilation1.EmitToArray();
             var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
             using (runtime.Load())
@@ -391,7 +391,7 @@ class C
 }";
             var assembly0 = GenerateTupleAssembly();
             var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
-            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib45AndCSharp(source, references: new[] { reference0 });
+            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib461AndCSharp(source, references: new[] { reference0 });
             var assembly1 = compilation1.EmitToArray();
             var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
             using (runtime.Load())
@@ -423,7 +423,7 @@ class C
 }";
             var assembly0 = GenerateTupleAssembly();
             var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
-            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib45AndCSharp(source, references: new[] { reference0 });
+            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib461AndCSharp(source, references: new[] { reference0 });
             var assembly1 = compilation1.EmitToArray();
             var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
             using (runtime.Load())
@@ -475,7 +475,7 @@ class C
 }";
             var assembly0 = GenerateTupleAssembly();
             var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
-            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib45AndCSharp(source, references: new[] { reference0 });
+            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib461AndCSharp(source, references: new[] { reference0 });
             var assembly1 = compilation1.EmitToArray();
             var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
             using (runtime.Load())
@@ -504,7 +504,7 @@ class C
 }";
             var assembly0 = GenerateTupleAssembly();
             var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
-            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib45AndCSharp(source, references: new[] { reference0 });
+            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib461AndCSharp(source, references: new[] { reference0 });
             var assembly1 = compilation1.EmitToArray();
             var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
             using (runtime.Load())
@@ -550,7 +550,7 @@ class C
 }";
             var assembly0 = GenerateTupleAssembly();
             var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
-            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib45AndCSharp(source, references: new[] { reference0 });
+            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib461AndCSharp(source, references: new[] { reference0 });
             var assembly1 = compilation1.EmitToArray();
             var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
             using (runtime.Load())
@@ -590,7 +590,7 @@ class C
 }";
             var assembly0 = GenerateTupleAssembly();
             var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
-            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib45AndCSharp(source, references: new[] { reference0 });
+            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib461AndCSharp(source, references: new[] { reference0 });
             var assembly1 = compilation1.EmitToArray();
             var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
             using (runtime.Load())
@@ -658,7 +658,7 @@ class B
 }";
             var assembly0 = GenerateTupleAssembly();
             var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
-            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib45AndCSharp(source, references: new[] { reference0 });
+            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib461AndCSharp(source, references: new[] { reference0 });
             var assembly1 = compilation1.EmitToArray();
             var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
             using (runtime.Load())
@@ -749,7 +749,7 @@ class C
 }";
             var assembly0 = GenerateTupleAssembly();
             var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
-            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib45AndCSharp(source, references: new[] { reference0 });
+            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib461AndCSharp(source, references: new[] { reference0 });
             var assembly1 = compilation1.EmitToArray();
             var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
             using (runtime.Load())
@@ -824,7 +824,7 @@ class C
 }";
             var assembly0 = GenerateTupleAssembly();
             var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
-            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib45AndCSharp(source, references: new[] { reference0 });
+            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib461AndCSharp(source, references: new[] { reference0 });
             var assembly1 = compilation1.EmitToArray();
             var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
             using (runtime.Load())
@@ -1049,7 +1049,7 @@ class async
             using (runtime.Load())
             {
                 var type = runtime.GetType("System.ValueTuple`2", typeof(int), typeof(int));
-                var value = type.Instantiate(new object[] { 1, 2, });
+                var value = type.Instantiate([1, 2,]);
 
                 // Empty custom type info id.
                 var typeInfo = DkmClrCustomTypeInfo.Create(Guid.Empty, new ReadOnlyCollection<byte>(new byte[0]));
@@ -1156,7 +1156,7 @@ class B
 }";
             var assembly0 = GenerateTupleAssembly();
             var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
-            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib45AndCSharp(source, references: new[] { reference0 });
+            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib461AndCSharp(source, references: new[] { reference0 });
             var assembly1 = compilation1.EmitToArray();
             DkmClrRuntimeInstance runtime = null;
             runtime = new DkmClrRuntimeInstance(
@@ -1199,7 +1199,7 @@ class E : System.Exception
 }";
             var assembly0 = GenerateTupleAssembly();
             var reference0 = AssemblyMetadata.CreateFromImage(assembly0).GetReference();
-            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib45AndCSharp(source, references: new[] { reference0 });
+            var compilation1 = CSharpTestBase.CreateCompilationWithMscorlib461AndCSharp(source, references: new[] { reference0 });
             var assembly1 = compilation1.EmitToArray();
             var runtime = new DkmClrRuntimeInstance(ReflectionUtilities.GetMscorlib(ReflectionUtilities.Load(assembly0), ReflectionUtilities.Load(assembly1)));
             using (runtime.Load())

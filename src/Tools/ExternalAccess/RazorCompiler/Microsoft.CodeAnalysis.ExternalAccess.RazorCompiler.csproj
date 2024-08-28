@@ -2,8 +2,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler</RootNamespace>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>$(NetRoslynSourceBuild);netstandard2.0</TargetFrameworks>
 
     <!-- Used by Razor source generator which is included in source build. -->
     <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
@@ -19,12 +20,16 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.UnitTests" />
-  
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTests" />
+
     <!--
       ⚠ ONLY RAZOR ASSEMBLIES MAY BE ADDED HERE ⚠
     -->
     <InternalsVisibleTo Include="Microsoft.NET.Sdk.Razor.SourceGenerators" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Compiler" Key="$(RazorKey)" />
     <InternalsVisibleTo Include="Microsoft.NET.Sdk.Razor.SourceGenerators.Test" Key="$(RazorKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Compiler.Tests" Key="$(RazorKey)" />
   </ItemGroup>
 
   <ItemGroup>

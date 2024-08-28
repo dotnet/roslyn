@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.CodeDom.Compiler;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Flag indicating if the <see cref="Analyzers"/> include any <see cref="DiagnosticSuppressor"/>
         /// which can suppress reported analyzer/compiler diagnostics.
         /// </summary>
-        private readonly bool _hasDiagnosticSuppressors;
+        internal readonly bool HasDiagnosticSuppressors;
 
         /// <summary>
         /// Filtered diagnostic severities in the compilation, i.e. diagnostics with effective severity from this set should not be reported.
@@ -182,17 +183,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <seealso cref="AnalyzerActions"/>
         private AnalyzerActions _lazyAnalyzerActions;
 
-        private ImmutableHashSet<DiagnosticAnalyzer>? _lazyNonConfigurableAnalyzers;
+        private ImmutableHashSet<DiagnosticAnalyzer>? _lazyNonConfigurableAndCustomConfigurableAnalyzers;
 
         /// <summary>
-        /// Set of unsuppressed analyzers that report non-configurable diagnostics that cannot be suppressed with end user configuration.
+        /// Set of unsuppressed analyzers that report non-configurable or custom configurable diagnostics that cannot be suppressed with end user configuration.
         /// </summary>
-        private ImmutableHashSet<DiagnosticAnalyzer> NonConfigurableAnalyzers
+        private ImmutableHashSet<DiagnosticAnalyzer> NonConfigurableAndCustomConfigurableAnalyzers
         {
             get
             {
-                Debug.Assert(_lazyNonConfigurableAnalyzers != null);
-                return _lazyNonConfigurableAnalyzers;
+                Debug.Assert(_lazyNonConfigurableAndCustomConfigurableAnalyzers != null);
+                return _lazyNonConfigurableAndCustomConfigurableAnalyzers;
             }
         }
 
@@ -376,9 +377,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.AnalyzerManager = analyzerManager;
             _isGeneratedCode = (tree, ct) => GeneratedCodeUtilities.IsGeneratedCode(tree, isComment, ct);
             _severityFilter = severityFilter;
-            _hasDiagnosticSuppressors = this.Analyzers.Any(static a => a is DiagnosticSuppressor);
-            _programmaticSuppressions = _hasDiagnosticSuppressors ? new ConcurrentSet<Suppression>() : null;
-            _diagnosticsProcessedForProgrammaticSuppressions = _hasDiagnosticSuppressors ? new ConcurrentSet<Diagnostic>(ReferenceEqualityComparer.Instance) : null;
+            HasDiagnosticSuppressors = this.Analyzers.Any(static a => a is DiagnosticSuppressor);
+            _programmaticSuppressions = HasDiagnosticSuppressors ? new ConcurrentSet<Suppression>() : null;
+            _diagnosticsProcessedForProgrammaticSuppressions = HasDiagnosticSuppressors ? new ConcurrentSet<Diagnostic>(ReferenceEqualityComparer.Instance) : null;
             _lazyAnalyzerGateMap = ImmutableSegmentedDictionary<DiagnosticAnalyzer, SemaphoreSlim>.Empty;
         }
 
@@ -409,7 +410,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     (_lazyAnalyzerActions, _lazyUnsuppressedAnalyzers) = await GetAnalyzerActionsAsync(Analyzers, AnalyzerManager, analyzerExecutor, analysisScope, _severityFilter, cancellationToken).ConfigureAwait(false);
                     _lazyAnalyzerGateMap = await CreateAnalyzerGateMapAsync(UnsuppressedAnalyzers, AnalyzerManager, analyzerExecutor, analysisScope, _severityFilter, cancellationToken).ConfigureAwait(false);
-                    _lazyNonConfigurableAnalyzers = ComputeNonConfigurableAnalyzers(UnsuppressedAnalyzers, cancellationToken);
+                    _lazyNonConfigurableAndCustomConfigurableAnalyzers = ComputeNonConfigurableAndCustomConfigurableAnalyzers(UnsuppressedAnalyzers, cancellationToken);
                     _lazySymbolStartAnalyzers = ComputeSymbolStartAnalyzers(UnsuppressedAnalyzers);
                     _lazyGeneratedCodeAnalysisFlagsMap = await CreateGeneratedCodeAnalysisFlagsMapAsync(UnsuppressedAnalyzers, AnalyzerManager, analyzerExecutor, analysisScope, _severityFilter, cancellationToken).ConfigureAwait(false);
                     _lazyTreatAllCodeAsNonGeneratedCode = ComputeShouldTreatAllCodeAsNonGeneratedCode(UnsuppressedAnalyzers, GeneratedCodeAnalysisFlagsMap);
@@ -509,7 +510,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzerExecutor = AnalyzerExecutor.Create(
                 compilation, analysisOptions.Options ?? AnalyzerOptions.Empty, addNotCategorizedDiagnostic, newOnAnalyzerException, analysisOptions.AnalyzerExceptionFilter,
                 IsCompilerAnalyzer, AnalyzerManager, ShouldSkipAnalysisOnGeneratedCode, ShouldSuppressGeneratedCodeDiagnostic, IsGeneratedOrHiddenCodeLocation, IsAnalyzerSuppressedForTree, GetAnalyzerGate,
-                getSemanticModel: GetOrCreateSemanticModel,
+                getSemanticModel: GetOrCreateSemanticModel, _severityFilter,
                 analysisOptions.LogAnalyzerExecutionTime, addCategorizedLocalDiagnostic, addCategorizedNonLocalDiagnostic, s => _programmaticSuppressions!.Add(s));
 
             Initialize(analyzerExecutor, diagnosticQueue, compilationData, analysisScope, suppressedDiagnosticIds, cancellationToken);
@@ -527,7 +528,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return null;
         }
 
-        private ImmutableHashSet<DiagnosticAnalyzer> ComputeNonConfigurableAnalyzers(ImmutableHashSet<DiagnosticAnalyzer> unsuppressedAnalyzers, CancellationToken cancellationToken)
+        private ImmutableHashSet<DiagnosticAnalyzer> ComputeNonConfigurableAndCustomConfigurableAnalyzers(ImmutableHashSet<DiagnosticAnalyzer> unsuppressedAnalyzers, CancellationToken cancellationToken)
         {
             var builder = ImmutableHashSet.CreateBuilder<DiagnosticAnalyzer>();
             foreach (var analyzer in unsuppressedAnalyzers)
@@ -535,7 +536,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var descriptors = AnalyzerManager.GetSupportedDiagnosticDescriptors(analyzer, AnalyzerExecutor, cancellationToken);
                 foreach (var descriptor in descriptors)
                 {
-                    if (descriptor.IsNotConfigurable())
+                    if (descriptor.IsNotConfigurable() || descriptor.IsCustomSeverityConfigurable())
                     {
                         builder.Add(analyzer);
                         break;
@@ -927,13 +928,75 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     var isDiagnosticIdEverSuppressed = isAnalyzerEverSuppressed ||
                         SuppressedDiagnosticIdsForUnsuppressedAnalyzers.Contains(descriptor.Id);
 
-                    var info = new DiagnosticDescriptorErrorLoggerInfo(analyzerExecutionTime, executionPercentage, isDiagnosticIdEverSuppressed);
+                    var effectiveSeverities = GetEffectiveSeverities(descriptor, AnalyzerExecutor.Compilation, AnalyzerExecutor.AnalyzerOptions, cancellationToken);
+                    var info = new DiagnosticDescriptorErrorLoggerInfo(analyzerExecutionTime, executionPercentage, effectiveSeverities, isDiagnosticIdEverSuppressed);
                     builder.Add((descriptor, info));
                 }
             }
 
             uniqueDiagnosticIds.Free();
             return builder.ToImmutableAndFree();
+
+            static ImmutableHashSet<ReportDiagnostic> GetEffectiveSeverities(
+                DiagnosticDescriptor descriptor,
+                Compilation compilation,
+                AnalyzerOptions analyzerOptions,
+                CancellationToken cancellationToken)
+            {
+                var defaultSeverity = descriptor.IsEnabledByDefault ?
+                    DiagnosticDescriptor.MapSeverityToReport(descriptor.DefaultSeverity) :
+                    ReportDiagnostic.Suppress;
+
+                if (descriptor.IsNotConfigurable())
+                    return ImmutableHashSet.Create(defaultSeverity);
+
+                if (compilation.Options.SpecificDiagnosticOptions.TryGetValue(descriptor.Id, out var severity) ||
+                    compilation.Options.SyntaxTreeOptionsProvider?.TryGetGlobalDiagnosticValue(descriptor.Id, cancellationToken, out severity) == true)
+                {
+                    if (severity != ReportDiagnostic.Default)
+                    {
+                        defaultSeverity = severity;
+                    }
+                }
+
+                // Handle /warnaserror
+                if (defaultSeverity == ReportDiagnostic.Warn &&
+                    compilation.Options.GeneralDiagnosticOption == ReportDiagnostic.Error)
+                {
+                    defaultSeverity = ReportDiagnostic.Error;
+                }
+
+                if (compilation.Options.SyntaxTreeOptionsProvider is not { } syntaxTreeProvider ||
+                    compilation.SyntaxTrees.IsEmpty())
+                {
+                    return ImmutableHashSet.Create(defaultSeverity);
+                }
+
+                var builder = ImmutableHashSet.CreateBuilder<ReportDiagnostic>();
+                foreach (var tree in compilation.SyntaxTrees)
+                {
+                    var severityForTree = defaultSeverity;
+
+                    if (syntaxTreeProvider.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out severity) ||
+                        analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, cancellationToken, out severity))
+                    {
+                        Debug.Assert(severity != ReportDiagnostic.Default);
+
+                        // Handle /warnaserror
+                        if (severity == ReportDiagnostic.Warn &&
+                            compilation.Options.GeneralDiagnosticOption == ReportDiagnostic.Error)
+                        {
+                            severity = ReportDiagnostic.Error;
+                        }
+
+                        severityForTree = severity;
+                    }
+
+                    builder.Add(severityForTree);
+                }
+
+                return builder.ToImmutable();
+            }
         }
 
         private SemanticModel GetOrCreateSemanticModel(SyntaxTree tree)
@@ -949,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public void ApplyProgrammaticSuppressions(DiagnosticBag reportedDiagnostics, Compilation compilation, CancellationToken cancellationToken)
         {
             Debug.Assert(!reportedDiagnostics.IsEmptyWithoutResolution);
-            if (!_hasDiagnosticSuppressors)
+            if (!HasDiagnosticSuppressors)
             {
                 return;
             }
@@ -962,7 +1025,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public ImmutableArray<Diagnostic> ApplyProgrammaticSuppressions(ImmutableArray<Diagnostic> reportedDiagnostics, Compilation compilation, CancellationToken cancellationToken)
         {
             if (reportedDiagnostics.IsEmpty ||
-                !_hasDiagnosticSuppressors)
+                !HasDiagnosticSuppressors)
             {
                 return reportedDiagnostics;
             }
@@ -972,7 +1035,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private ImmutableArray<Diagnostic> ApplyProgrammaticSuppressionsCore(ImmutableArray<Diagnostic> reportedDiagnostics, Compilation compilation, CancellationToken cancellationToken)
         {
-            Debug.Assert(_hasDiagnosticSuppressors);
+            Debug.Assert(HasDiagnosticSuppressors);
             Debug.Assert(!reportedDiagnostics.IsEmpty);
             Debug.Assert(_programmaticSuppressions != null);
             Debug.Assert(_diagnosticsProcessedForProgrammaticSuppressions != null);
@@ -1088,24 +1151,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             static ImmutableDictionary<Diagnostic, ProgrammaticSuppressionInfo> createProgrammaticSuppressionsByDiagnosticMap(ConcurrentSet<Suppression> programmaticSuppressions)
             {
-                var programmaticSuppressionsBuilder = PooledDictionary<Diagnostic, ImmutableHashSet<(string, LocalizableString)>.Builder>.GetInstance();
+                var programmaticSuppressionsBuilder = PooledDictionary<Diagnostic, ArrayBuilder<Suppression>>.GetInstance();
+
                 foreach (var programmaticSuppression in programmaticSuppressions)
                 {
-                    if (!programmaticSuppressionsBuilder.TryGetValue(programmaticSuppression.SuppressedDiagnostic, out var set))
+                    if (!programmaticSuppressionsBuilder.TryGetValue(programmaticSuppression.SuppressedDiagnostic, out var array))
                     {
-                        set = ImmutableHashSet.CreateBuilder<(string, LocalizableString)>();
-                        programmaticSuppressionsBuilder.Add(programmaticSuppression.SuppressedDiagnostic, set);
+                        array = ArrayBuilder<Suppression>.GetInstance();
+                        programmaticSuppressionsBuilder.Add(programmaticSuppression.SuppressedDiagnostic, array);
                     }
 
-                    set.Add((programmaticSuppression.Descriptor.Id, programmaticSuppression.Descriptor.Justification));
+                    if (!array.Contains(programmaticSuppression))
+                        array.Add(programmaticSuppression);
                 }
 
                 var mapBuilder = ImmutableDictionary.CreateBuilder<Diagnostic, ProgrammaticSuppressionInfo>();
                 foreach (var (diagnostic, set) in programmaticSuppressionsBuilder)
                 {
-                    mapBuilder.Add(diagnostic, new ProgrammaticSuppressionInfo(set.ToImmutable()));
+                    mapBuilder.Add(diagnostic, new ProgrammaticSuppressionInfo(set.ToImmutableAndFree()));
                 }
 
+                programmaticSuppressionsBuilder.Free();
                 return mapBuilder.ToImmutable();
             }
         }
@@ -1251,16 +1317,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 static ImmutableHashSet<ISymbol> computeGeneratedCodeSymbolsInTree(SyntaxTree tree, Compilation compilation, INamedTypeSymbol generatedCodeAttribute, CancellationToken cancellationToken)
                 {
+                    var root = tree.GetRoot(cancellationToken);
+
                     // PERF: Bail out early if file doesn't have "GeneratedCode" text.
-                    var walker = new GeneratedCodeTokenWalker(cancellationToken);
-                    walker.Visit(tree.GetRoot(cancellationToken));
-                    if (!walker.HasGeneratedCodeIdentifier)
-                    {
+                    if (!containsGeneratedCodeToken(root))
                         return ImmutableHashSet<ISymbol>.Empty;
-                    }
 
                     var model = compilation.GetSemanticModel(tree);
-                    var root = tree.GetRoot(cancellationToken);
                     var span = root.FullSpan;
                     var declarationInfoBuilder = ArrayBuilder<DeclarationInfo>.GetInstance();
                     model.ComputeDeclarationsInSpan(span, getSymbol: true, builder: declarationInfoBuilder, cancellationToken: cancellationToken);
@@ -1279,6 +1342,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     declarationInfoBuilder.Free();
                     return generatedSymbolsBuilder != null ? generatedSymbolsBuilder.ToImmutable() : ImmutableHashSet<ISymbol>.Empty;
+                }
+
+                static bool containsGeneratedCodeToken(SyntaxNode root)
+                {
+                    return root.DescendantTokens().Any(static token => string.Equals(token.ValueText, "GeneratedCode", StringComparison.Ordinal) ||
+                                                                       string.Equals(token.ValueText, nameof(GeneratedCodeAttribute), StringComparison.Ordinal));
                 }
             }
         }
@@ -1303,9 +1372,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableHashSet<DiagnosticAnalyzer>.Builder? suppressedAnalyzersBuilder = null;
             foreach (var analyzer in UnsuppressedAnalyzers)
             {
-                if (NonConfigurableAnalyzers.Contains(analyzer))
+                if (NonConfigurableAndCustomConfigurableAnalyzers.Contains(analyzer))
                 {
-                    // Analyzers reporting non-configurable diagnostics cannot be suppressed as user configuration is ignored for these analyzers.
+                    // Analyzers reporting non-configurable or custom configurable diagnostics cannot be suppressed as user configuration is ignored for these analyzers.
                     continue;
                 }
 
@@ -2244,7 +2313,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 //     generated_code = true | false
                 // If there is no explicit user configuration, fallback to our generated code heuristic.
                 var options = AnalyzerExecutor.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
-                return GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(options) ??
+                return GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(options).ToNullable() ??
                     _isGeneratedCode(tree, cancellationToken);
             }
         }
@@ -2890,8 +2959,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 break;
 
                             case OperationKind.ExpressionStatement:
-                                // For constructor initializer, we generate an IInvocationOperation with an implicit IExpressionStatementOperation parent.
-                                Debug.Assert(operationBlock.Kind == OperationKind.Invocation);
+                                // For constructor initializer, we generate an IInvocationOperation (or invalid
+                                // operation in the case of an error) with an implicit IExpressionStatementOperation parent.
+                                Debug.Assert(operationBlock.Kind is OperationKind.Invocation or OperationKind.Invalid);
                                 Debug.Assert(operationBlock.Parent.IsImplicit);
                                 Debug.Assert(operationBlock.Parent.Parent is IConstructorBodyOperation ctorBody &&
                                     ctorBody.Initializer == operationBlock.Parent);

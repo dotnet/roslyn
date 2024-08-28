@@ -192,9 +192,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        internal sealed override ImmutableBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
+        internal sealed override ReadOnlyBindingDiagnostic<AssemblySymbol> GetConstantValueDiagnostics(BoundExpression boundInitValue)
         {
-            return ImmutableBindingDiagnostic<AssemblySymbol>.Empty;
+            return ReadOnlyBindingDiagnostic<AssemblySymbol>.Empty;
         }
 
 #if DEBUG

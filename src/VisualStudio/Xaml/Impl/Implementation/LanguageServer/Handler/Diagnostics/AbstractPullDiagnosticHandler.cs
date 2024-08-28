@@ -15,10 +15,10 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Diagnostics;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Handler.Diagnostics
 {
@@ -135,14 +135,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                 Tags = ConvertTags(d),
                 Source = d.Tool,
                 CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(d.GetHelpLinkUri()),
-                Projects = new[]
-                {
+                Projects =
+                [
                     new VSDiagnosticProjectInformation
                     {
                         ProjectIdentifier = project.Id.Id.ToString(),
                         ProjectName = project.Name,
                     },
-                },
+                ],
             }).ToArray();
         }
 

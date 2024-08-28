@@ -154,6 +154,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitArrayElementLoad((BoundArrayAccess)expression, used);
                     break;
 
+                case BoundKind.RefArrayAccess:
+                    EmitArrayElementRefLoad((BoundRefArrayAccess)expression, used);
+                    break;
+
                 case BoundKind.ArrayLength:
                     EmitArrayLength((BoundArrayLength)expression, used);
                     break;
@@ -236,6 +240,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.ModuleVersionIdString:
                     Debug.Assert(used);
                     EmitModuleVersionIdStringLoad();
+                    break;
+
+                case BoundKind.ThrowIfModuleCancellationRequested:
+                    Debug.Assert(!used);
+                    EmitThrowIfModuleCancellationRequested(expression.Syntax);
+                    break;
+
+                case BoundKind.ModuleCancellationTokenExpression:
+                    Debug.Assert(used);
+                    EmitModuleCancellationTokenLoad(expression.Syntax);
                     break;
 
                 case BoundKind.InstrumentationPayloadRoot:
@@ -1089,6 +1103,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitPopIfUnused(used);
         }
 
+        private void EmitArrayElementRefLoad(BoundRefArrayAccess refArrayAccess, bool used)
+        {
+            if (used)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            EmitArrayElementAddress(refArrayAccess.ArrayAccess, AddressKind.Writeable);
+            _builder.EmitOpCode(ILOpCode.Pop);
+        }
+
         private void EmitFieldLoad(BoundFieldAccess fieldAccess, bool used)
         {
             var field = fieldAccess.FieldSymbol;
@@ -1870,7 +1895,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // receiver is generic and method must come from the base or an interface or a generic constraint
                     // if the receiver is actually a value type it would need to be boxed.
                     // let .constrained sort this out. 
-                    callKind = receiverType.IsReferenceType && !IsRef(receiver) ?
+                    callKind = receiverType.IsReferenceType &&
+                               (!IsRef(receiver) ||
+                                (!ReceiverIsKnownToReferToTempIfReferenceType(receiver) && !IsSafeToDereferenceReceiverRefAfterEvaluatingArguments(call.Arguments))) ?
                                 CallKind.CallVirt :
                                 CallKind.ConstrainedCallVirt;
 
@@ -2282,9 +2309,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             var containingType = method.ContainingType;
-            // overrides in structs that are special types can be called directly.
-            // we can assume that special types will not be removing overrides
-            return containingType.SpecialType != SpecialType.None;
+            // Overrides in structs of some special types can be called directly.
+            // We can assume that these special types will not be removing overrides.
+            // This pattern can probably be applied to all special types,
+            // but that would introduce a silent change every time a new special type is added,
+            // so we constrain the check to a fixed range of types
+            return containingType.SpecialType.CanOptimizeBehavior();
         }
 
         /// <summary>
@@ -2365,24 +2395,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitConvertedStackAllocExpression(BoundConvertedStackAllocExpression expression, bool used)
         {
-            EmitExpression(expression.Count, used);
-
-            // the only sideeffect of a localloc is a nondeterministic and generally fatal StackOverflow.
-            // we can ignore that if the actual result is unused
+            var initializer = expression.InitializerOpt;
             if (used)
             {
-                _sawStackalloc = true;
-                _builder.EmitOpCode(ILOpCode.Localloc);
+                EmitStackAlloc(expression.Type, initializer, expression.Count);
             }
-
-            var initializer = expression.InitializerOpt;
-            if (initializer != null)
+            else
             {
-                if (used)
-                {
-                    EmitStackAllocInitializers(expression.Type, initializer);
-                }
-                else
+                // the only sideeffect of a localloc is a nondeterministic and generally fatal StackOverflow.
+                // we can ignore that if the actual result is unused
+                EmitExpression(expression.Count, used: false);
+
+                if (initializer != null)
                 {
                     // If not used, just emit initializer elements to preserve possible sideeffects
                     foreach (var init in initializer.Initializers)
@@ -2415,7 +2439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 // ReadOnlySpan may just refer to the blob, if possible.
-                if (TryEmitReadonlySpanAsBlobWrapper(expression, used, inPlaceTarget: null, out _))
+                if (TryEmitOptimizedReadonlySpan(expression, used, inPlaceTarget: null, out _))
                 {
                     return;
                 }
@@ -2434,7 +2458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private bool TryEmitReadonlySpanAsBlobWrapper(BoundObjectCreationExpression expression, bool used, BoundExpression inPlaceTarget, out bool avoidInPlace)
+        private bool TryEmitOptimizedReadonlySpan(BoundObjectCreationExpression expression, bool used, BoundExpression inPlaceTarget, out bool avoidInPlace)
         {
             int argumentsLength = expression.Arguments.Length;
             avoidInPlace = false;
@@ -2442,7 +2466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                      expression.Constructor.OriginalDefinition == (object)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)) ||
                     (argumentsLength == 3 &&
                      expression.Constructor.OriginalDefinition == (object)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length))) &&
-                   TryEmitReadonlySpanAsBlobWrapper((NamedTypeSymbol)expression.Type, expression.Arguments[0], used, inPlaceTarget, out avoidInPlace,
+                   TryEmitOptimizedReadonlySpanCreation((NamedTypeSymbol)expression.Type, expression.Arguments[0], used, inPlaceTarget, out avoidInPlace,
                            start: argumentsLength == 3 ? expression.Arguments[1] : null,
                            length: argumentsLength == 3 ? expression.Arguments[2] : null);
         }
@@ -2664,7 +2688,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             Debug.Assert(TargetIsNotOnHeap(target), "in-place construction target should not be on heap");
 
             // ReadOnlySpan may just refer to the blob, if possible.
-            if (TryEmitReadonlySpanAsBlobWrapper(objCreation, used, target, out bool avoidInPlace))
+            if (TryEmitOptimizedReadonlySpan(objCreation, used, target, out bool avoidInPlace))
             {
                 return true;
             }
@@ -2758,6 +2782,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                             !assignmentOperator.IsRef)
                         {
                             EmitFieldLoadNoIndirection(left, used: true);
+                            lhsUsesStack = true;
                         }
                         else if (!left.FieldSymbol.IsStatic)
                         {
@@ -3574,7 +3599,43 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitModuleVersionIdToken(BoundModuleVersionId node)
         {
-            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(
+                _module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag),
+                node.Syntax,
+                _diagnostics.DiagnosticBag);
+        }
+
+        private void EmitThrowIfModuleCancellationRequested(SyntaxNode syntax)
+        {
+            var cancellationTokenType = _module.CommonCompilation.CommonGetWellKnownType(WellKnownType.System_Threading_CancellationToken);
+
+            _builder.EmitOpCode(ILOpCode.Ldsflda);
+            _builder.EmitToken(
+                _module.GetModuleCancellationToken(_module.Translate(cancellationTokenType, syntax, _diagnostics.DiagnosticBag), syntax, _diagnostics.DiagnosticBag),
+                syntax,
+                _diagnostics.DiagnosticBag);
+
+            var throwMethod = (MethodSymbol)_module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_Threading_CancellationToken__ThrowIfCancellationRequested);
+
+            // BoundThrowIfModuleCancellationRequested should not be created if the method doesn't exist.
+            Debug.Assert(throwMethod != null);
+
+            _builder.EmitOpCode(ILOpCode.Call, -1);
+            _builder.EmitToken(
+                _module.Translate(throwMethod, syntax, _diagnostics.DiagnosticBag),
+                syntax,
+                _diagnostics.DiagnosticBag);
+        }
+
+        private void EmitModuleCancellationTokenLoad(SyntaxNode syntax)
+        {
+            var cancellationTokenType = _module.CommonCompilation.CommonGetWellKnownType(WellKnownType.System_Threading_CancellationToken);
+
+            _builder.EmitOpCode(ILOpCode.Ldsfld);
+            _builder.EmitToken(
+                _module.GetModuleCancellationToken(_module.Translate(cancellationTokenType, syntax, _diagnostics.DiagnosticBag), syntax, _diagnostics.DiagnosticBag),
+                syntax,
+                _diagnostics.DiagnosticBag);
         }
 
         private void EmitModuleVersionIdStringLoad()
@@ -3682,8 +3743,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // Generate branchless IL for (b ? 1 : 0).
             if (used && _ilEmitStyle != ILEmitStyle.Debug &&
                 (IsNumeric(expr.Type) || expr.Type.PrimitiveTypeCode == Cci.PrimitiveTypeCode.Boolean) &&
-                hasIntegralValueZeroOrOne(expr.Consequence, out var isConsequenceOne) &&
-                hasIntegralValueZeroOrOne(expr.Alternative, out var isAlternativeOne) &&
+                expr.Consequence.ConstantValueOpt?.IsIntegralValueZeroOrOne(out bool isConsequenceOne) == true &&
+                expr.Alternative.ConstantValueOpt?.IsIntegralValueZeroOrOne(out bool isAlternativeOne) == true &&
                 isConsequenceOne != isAlternativeOne &&
                 TryEmitComparison(expr.Condition, sense: isConsequenceOne))
             {
@@ -3759,33 +3820,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             _builder.MarkLabel(doneLabel);
-
-            static bool hasIntegralValueZeroOrOne(BoundExpression expr, out bool isOne)
-            {
-                if (expr.ConstantValueOpt is { } constantValue)
-                {
-                    if (constantValue is { IsIntegral: true, UInt64Value: (1 or 0) and var i })
-                    {
-                        isOne = i == 1;
-                        return true;
-                    }
-
-                    if (constantValue is { IsBoolean: true, BooleanValue: var b })
-                    {
-                        isOne = b;
-                        return true;
-                    }
-
-                    if (constantValue is { IsChar: true, CharValue: ((char)1 or (char)0) and var c })
-                    {
-                        isOne = c == 1;
-                        return true;
-                    }
-                }
-
-                isOne = false;
-                return false;
-            }
         }
 
         /// <summary>

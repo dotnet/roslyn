@@ -4,77 +4,73 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+
+internal abstract class AbstractEntryPointFinder : SymbolVisitor
 {
-    internal abstract class AbstractEntryPointFinder : SymbolVisitor
+    protected readonly HashSet<INamedTypeSymbol> EntryPoints = [];
+
+    public override void VisitNamespace(INamespaceSymbol symbol)
     {
-        protected readonly HashSet<INamedTypeSymbol> EntryPoints = new();
-
-        public override void VisitNamespace(INamespaceSymbol symbol)
+        foreach (var member in symbol.GetMembers())
         {
-            foreach (var member in symbol.GetMembers())
-            {
-                member.Accept(this);
-            }
+            member.Accept(this);
+        }
+    }
+
+    public override void VisitNamedType(INamedTypeSymbol symbol)
+    {
+        foreach (var member in symbol.GetMembers())
+        {
+            member.Accept(this);
+        }
+    }
+
+    public override void VisitMethod(IMethodSymbol symbol)
+    {
+        // named Main
+        if (!MatchesMainMethodName(symbol.Name))
+        {
+            return;
         }
 
-        public override void VisitNamedType(INamedTypeSymbol symbol)
+        // static
+        if (!symbol.IsStatic)
         {
-            foreach (var member in symbol.GetMembers())
-            {
-                member.Accept(this);
-            }
+            return;
         }
 
-        public override void VisitMethod(IMethodSymbol symbol)
+        // returns void or int
+        if (!symbol.ReturnsVoid && symbol.ReturnType.SpecialType != SpecialType.System_Int32)
         {
-            // named Main
-            if (!MatchesMainMethodName(symbol.Name))
-            {
-                return;
-            }
+            return;
+        }
 
-            // static
-            if (!symbol.IsStatic)
+        // parameterless or takes a string[]
+        if (symbol.Parameters.Length == 1)
+        {
+            var parameter = symbol.Parameters.Single();
+            if (parameter.Type is IArrayTypeSymbol)
             {
-                return;
-            }
+                var elementType = ((IArrayTypeSymbol)parameter.Type).ElementType;
+                var specialType = elementType.SpecialType;
 
-            // returns void or int
-            if (!symbol.ReturnsVoid && symbol.ReturnType.SpecialType != SpecialType.System_Int32)
-            {
-                return;
-            }
-
-            // parameterless or takes a string[]
-            if (symbol.Parameters.Length == 1)
-            {
-                var parameter = symbol.Parameters.Single();
-                if (parameter.Type is IArrayTypeSymbol)
+                if (specialType == SpecialType.System_String)
                 {
-                    var elementType = ((IArrayTypeSymbol)parameter.Type).ElementType;
-                    var specialType = elementType.SpecialType;
-
-                    if (specialType == SpecialType.System_String)
-                    {
-                        EntryPoints.Add(symbol.ContainingType);
-                    }
+                    EntryPoints.Add(symbol.ContainingType);
                 }
             }
-
-            if (!symbol.Parameters.Any())
-            {
-                EntryPoints.Add(symbol.ContainingType);
-            }
         }
 
-        protected abstract bool MatchesMainMethodName(string name);
+        if (!symbol.Parameters.Any())
+        {
+            EntryPoints.Add(symbol.ContainingType);
+        }
     }
+
+    protected abstract bool MatchesMainMethodName(string name);
 }

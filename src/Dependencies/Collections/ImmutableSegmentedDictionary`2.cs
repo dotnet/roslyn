@@ -147,9 +147,9 @@ namespace Microsoft.CodeAnalysis.Collections
             if (self.Contains(new KeyValuePair<TKey, TValue>(key, value)))
                 return self;
 
-            var dictionary = new SegmentedDictionary<TKey, TValue>(self._dictionary, self._dictionary.Comparer);
-            dictionary.Add(key, value);
-            return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary);
+            var builder = ToValueBuilder();
+            builder.Add(key, value);
+            return builder.ToImmutable();
         }
 
         public ImmutableSegmentedDictionary<TKey, TValue> AddRange(IEnumerable<KeyValuePair<TKey, TValue>> pairs)
@@ -162,21 +162,9 @@ namespace Microsoft.CodeAnalysis.Collections
                 return other;
             }
 
-            SegmentedDictionary<TKey, TValue>? dictionary = null;
-            foreach (var pair in pairs)
-            {
-                ICollection<KeyValuePair<TKey, TValue>> collectionToCheck = dictionary ?? self._dictionary;
-                if (collectionToCheck.Contains(pair))
-                    continue;
-
-                dictionary ??= new SegmentedDictionary<TKey, TValue>(self._dictionary, self._dictionary.Comparer);
-                dictionary.Add(pair.Key, pair.Value);
-            }
-
-            if (dictionary is null)
-                return self;
-
-            return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary);
+            var builder = ToValueBuilder();
+            builder.AddRange(pairs);
+            return builder.ToImmutable();
         }
 
         public ImmutableSegmentedDictionary<TKey, TValue> Clear()
@@ -211,9 +199,9 @@ namespace Microsoft.CodeAnalysis.Collections
             if (!self._dictionary.ContainsKey(key))
                 return self;
 
-            var dictionary = new SegmentedDictionary<TKey, TValue>(self._dictionary, self._dictionary.Comparer);
-            dictionary.Remove(key);
-            return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary);
+            var builder = ToValueBuilder();
+            builder.Remove(key);
+            return builder.ToImmutable();
         }
 
         public ImmutableSegmentedDictionary<TKey, TValue> RemoveRange(IEnumerable<TKey> keys)
@@ -221,7 +209,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (keys is null)
                 throw new ArgumentNullException(nameof(keys));
 
-            var result = ToBuilder();
+            var result = ToValueBuilder();
             result.RemoveRange(keys);
             return result.ToImmutable();
         }
@@ -234,9 +222,9 @@ namespace Microsoft.CodeAnalysis.Collections
                 return self;
             }
 
-            var dictionary = new SegmentedDictionary<TKey, TValue>(self._dictionary, self._dictionary.Comparer);
-            dictionary[key] = value;
-            return new ImmutableSegmentedDictionary<TKey, TValue>(dictionary);
+            var builder = ToValueBuilder();
+            builder[key] = value;
+            return builder.ToImmutable();
         }
 
         public ImmutableSegmentedDictionary<TKey, TValue> SetItems(IEnumerable<KeyValuePair<TKey, TValue>> items)
@@ -244,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (items is null)
                 throw new ArgumentNullException(nameof(items));
 
-            var result = ToBuilder();
+            var result = ToValueBuilder();
             foreach (var item in items)
             {
                 result[item.Key] = item.Value;
@@ -302,6 +290,9 @@ namespace Microsoft.CodeAnalysis.Collections
         }
 
         public Builder ToBuilder()
+            => new(this);
+
+        private ValueBuilder ToValueBuilder()
             => new(this);
 
         public override int GetHashCode()

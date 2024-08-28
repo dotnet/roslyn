@@ -9,18 +9,18 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfToSwitch
-{
-    [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-    public class ConvertIfToSwitchFixAllTests : AbstractCSharpCodeActionTest
-    {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new CSharpConvertIfToSwitchCodeRefactoringProvider();
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfToSwitch;
 
-        [Fact]
-        public async Task ConvertIfToSwitchStatement_FixAllInDocument()
-        {
-            await TestInRegularAndScriptAsync(
+[Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+public class ConvertIfToSwitchFixAllTests : AbstractCSharpCodeActionTest_NoEditor
+{
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
+        => new CSharpConvertIfToSwitchCodeRefactoringProvider();
+
+    [Fact]
+    public async Task ConvertIfToSwitchStatement_FixAllInDocument()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int i)
@@ -83,12 +83,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task ConvertIfToSwitchExpression_FixAllInDocument()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task ConvertIfToSwitchExpression_FixAllInDocument()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int i)
@@ -143,12 +143,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         };
     }
 }", index: 1);
-        }
+    }
 
-        [Fact]
-        public async Task ConvertIfToSwitchStatement_Nested_FixAllInDocument()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task ConvertIfToSwitchStatement_Nested_FixAllInDocument()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int i, int j)
@@ -193,12 +193,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertIfTo
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task ConvertIfToSwitchStatement_FixAllInProject()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task ConvertIfToSwitchStatement_FixAllInProject()
+    {
+        await TestInRegularAndScriptAsync(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -322,12 +322,12 @@ class C3
         </Document>
     </Project>
 </Workspace>");
-        }
+    }
 
-        [Fact]
-        public async Task ConvertIfToSwitchStatement_FixAllInSolution()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task ConvertIfToSwitchStatement_FixAllInSolution()
+    {
+        await TestInRegularAndScriptAsync(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -452,12 +452,12 @@ class C3
         </Document>
     </Project>
 </Workspace>");
-        }
+    }
 
-        [Fact]
-        public async Task ConvertIfToSwitchStatement_FixAllInContainingMember()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task ConvertIfToSwitchStatement_FixAllInContainingMember()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int i)
@@ -519,12 +519,12 @@ class C3
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task ConvertIfToSwitchStatement_FixAllInContainingType()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task ConvertIfToSwitchStatement_FixAllInContainingType()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     int M(int i)
@@ -621,6 +621,5 @@ class C2
         }
     }
 }");
-        }
     }
 }

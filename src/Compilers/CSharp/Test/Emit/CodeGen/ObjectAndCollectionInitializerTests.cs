@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -950,7 +951,7 @@ class A
             var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("A.Main()", @"
 {
-  // Code size       86 (0x56)
+  // Code size       84 (0x54)
   .maxstack  3
   .locals init (int V_0, //x
                 A V_1,
@@ -985,16 +986,14 @@ class A
   IL_003c:  newobj     ""A..ctor()""
   IL_0041:  pop
   IL_0042:  ldloc.0
-  IL_0043:  dup
-  IL_0044:  ldc.i4.1
-  IL_0045:  add
-  IL_0046:  stloc.0
-  IL_0047:  pop
-  IL_0048:  ldc.i4.s   45
-  IL_004a:  call       ""void System.Console.WriteLine(char)""
-  IL_004f:  ldloc.0
-  IL_0050:  call       ""void System.Console.WriteLine(int)""
-  IL_0055:  ret
+  IL_0043:  ldc.i4.1
+  IL_0044:  add
+  IL_0045:  stloc.0
+  IL_0046:  ldc.i4.s   45
+  IL_0048:  call       ""void System.Console.WriteLine(char)""
+  IL_004d:  ldloc.0
+  IL_004e:  call       ""void System.Console.WriteLine(int)""
+  IL_0053:  ret
 }
 ");
         }
@@ -1042,7 +1041,7 @@ class A
             var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("A.Main()", @"
 {
-  // Code size      113 (0x71)
+  // Code size      111 (0x6f)
   .maxstack  5
   .locals init (int V_0, //x
                 A V_1,
@@ -1092,18 +1091,193 @@ class A
   IL_0057:  newobj     ""A..ctor()""
   IL_005c:  pop
   IL_005d:  ldloc.0
-  IL_005e:  dup
-  IL_005f:  ldc.i4.1
-  IL_0060:  add
-  IL_0061:  stloc.0
-  IL_0062:  pop
-  IL_0063:  ldc.i4.s   45
-  IL_0065:  call       ""void System.Console.WriteLine(char)""
-  IL_006a:  ldloc.0
-  IL_006b:  call       ""void System.Console.WriteLine(int)""
-  IL_0070:  ret
+  IL_005e:  ldc.i4.1
+  IL_005f:  add
+  IL_0060:  stloc.0
+  IL_0061:  ldc.i4.s   45
+  IL_0063:  call       ""void System.Console.WriteLine(char)""
+  IL_0068:  ldloc.0
+  IL_0069:  call       ""void System.Console.WriteLine(int)""
+  IL_006e:  ret
 }
 ");
+            var comp = compVerifier.Compilation;
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<Syntax.ObjectCreationExpressionSyntax>().Last();
+            Assert.Equal("new A {[x++] = { } }", node.ToString());
+
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    Locals: [System.Int32 x]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'x = 1')
+              Left:
+                ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'x = 1')
+              Right:
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Next (Regular) Block[B2]
+            Entering: {R2}
+    .locals {R2}
+    {
+        CaptureIds: [0]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new A {[x++ ... , Z = 1 } }')
+                  Value:
+                    IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: A) (Syntax: 'new A {[x++ ... , Z = 1 } }')
+                      Arguments(0)
+                      Initializer:
+                        null
+            Next (Regular) Block[B3]
+                Entering: {R3}
+        .locals {R3}
+        {
+            CaptureIds: [1]
+            Block[B3] - Block
+                Predecessors: [B2]
+                Statements (4)
+                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '[x++]')
+                      Value:
+                        IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsImplicit) (Syntax: '[x++]')
+                          Dimension Sizes(1):
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsImplicit) (Syntax: '[x++]')
+                          Initializer:
+                            IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsImplicit) (Syntax: '[x++]')
+                              Element Values(1):
+                                  IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32) (Syntax: 'x++')
+                                    Target:
+                                      ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'X = 1')
+                      Left:
+                        IFieldReferenceOperation: System.Int32 A.X (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'X')
+                          Instance Receiver:
+                            IPropertyReferenceOperation: A A.this[params System.Int32[] x] { get; } (OperationKind.PropertyReference, Type: A) (Syntax: '[x++]')
+                              Instance Receiver:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new A {[x++ ... , Z = 1 } }')
+                              Arguments(1):
+                                  IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: x) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[x++]')
+                                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32[], IsImplicit) (Syntax: '[x++]')
+                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Right:
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'Y = 1')
+                      Left:
+                        IFieldReferenceOperation: System.Int32 A.Y (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Y')
+                          Instance Receiver:
+                            IPropertyReferenceOperation: A A.this[params System.Int32[] x] { get; } (OperationKind.PropertyReference, Type: A) (Syntax: '[x++]')
+                              Instance Receiver:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new A {[x++ ... , Z = 1 } }')
+                              Arguments(1):
+                                  IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: x) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[x++]')
+                                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32[], IsImplicit) (Syntax: '[x++]')
+                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Right:
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'Z = 1')
+                      Left:
+                        IFieldReferenceOperation: System.Int32 A.Z (OperationKind.FieldReference, Type: System.Int32) (Syntax: 'Z')
+                          Instance Receiver:
+                            IPropertyReferenceOperation: A A.this[params System.Int32[] x] { get; } (OperationKind.PropertyReference, Type: A) (Syntax: '[x++]')
+                              Instance Receiver:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new A {[x++ ... , Z = 1 } }')
+                              Arguments(1):
+                                  IArgumentOperation (ArgumentKind.ParamArray, Matching Parameter: x) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '[x++]')
+                                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: System.Int32[], IsImplicit) (Syntax: '[x++]')
+                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                      Right:
+                        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                Next (Regular) Block[B4]
+                    Leaving: {R3}
+        }
+        Block[B4] - Block
+            Predecessors: [B3]
+            Statements (1)
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'new A {[x++ ...  Z = 1 } };')
+                  Expression:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new A {[x++ ... , Z = 1 } }')
+            Next (Regular) Block[B5]
+                Leaving: {R2}
+    }
+    Block[B5] - Block
+        Predecessors: [B4]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine('-');')
+              Expression:
+                IInvocationOperation (void System.Console.WriteLine(System.Char value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine('-')')
+                  Instance Receiver:
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: ''-'')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: -) (Syntax: ''-'')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Next (Regular) Block[B6]
+            Entering: {R4}
+    .locals {R4}
+    {
+        CaptureIds: [2]
+        Block[B6] - Block
+            Predecessors: [B5]
+            Statements (3)
+                IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new A {[x++] = { } }')
+                  Value:
+                    IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: A) (Syntax: 'new A {[x++] = { } }')
+                      Arguments(0)
+                      Initializer:
+                        null
+                IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32) (Syntax: 'x++')
+                  Target:
+                    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+                IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'new A {[x++] = { } };')
+                  Expression:
+                    IFlowCaptureReferenceOperation: 2 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new A {[x++] = { } }')
+            Next (Regular) Block[B7]
+                Leaving: {R4}
+    }
+    Block[B7] - Block
+        Predecessors: [B6]
+        Statements (2)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine('-');')
+              Expression:
+                IInvocationOperation (void System.Console.WriteLine(System.Char value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine('-')')
+                  Instance Receiver:
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: ''-'')
+                        ILiteralOperation (OperationKind.Literal, Type: System.Char, Constant: -) (Syntax: ''-'')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(x);')
+              Expression:
+                IInvocationOperation (void System.Console.WriteLine(System.Int32 value)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(x)')
+                  Instance Receiver:
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'x')
+                        ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Next (Regular) Block[B8]
+            Leaving: {R1}
+}
+Block[B8] - Exit
+    Predecessors: [B7]
+    Statements (0)
+""",
+                graph, symbol);
         }
 
         [Fact]
@@ -1209,7 +1383,7 @@ class A
 -
 5";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
@@ -1252,7 +1426,7 @@ class A
 -
 3";
 
-            var compVerifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1306,7 +1480,7 @@ class A
 -
 5";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
@@ -1643,7 +1817,7 @@ get
 get
 3";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
@@ -3377,12 +3551,17 @@ unsafe class C
 
             fixed (int** pp = array2 )
             {
-                new C(pp) { X = {[Index] = {[0] = 2, [1] = 3} } };
+                M(pp);
             }
         }
 
         System.Console.WriteLine(array[0]); 
         System.Console.WriteLine(array[1]); 
+    }
+
+    static C M(int** pp)
+    {
+        return new C(pp) { X = {[Index] = {[0] = 2, [1] = 3} } };
     }
 
     static int Index
@@ -3399,10 +3578,78 @@ unsafe class C
         X = x;
     }
 }";
-            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), verify: Verification.Fails, expectedOutput:
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), verify: Verification.Fails, expectedOutput:
 @"get_Index
 2
 3");
+
+            var comp = verifier.Compilation;
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<Syntax.ObjectCreationExpressionSyntax>().Single();
+            Assert.Equal("new C(pp) { X = {[Index] = {[0] = 2, [1] = 3} } }", node.ToString());
+
+            var (graph, symbol) = ControlFlowGraphVerifier.GetControlFlowGraph(node.Parent.Parent, model);
+            ControlFlowGraphVerifier.VerifyGraph(comp, """
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (3)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new C(pp) { ... 1] = 3} } }')
+              Value:
+                IObjectCreationOperation (Constructor: C..ctor(System.Int32** x)) (OperationKind.ObjectCreation, Type: C) (Syntax: 'new C(pp) { ... 1] = 3} } }')
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: x) (OperationKind.Argument, Type: null) (Syntax: 'pp')
+                        IParameterReferenceOperation: pp (OperationKind.ParameterReference, Type: System.Int32**) (Syntax: 'pp')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Initializer:
+                    null
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '[0] = 2')
+              Left:
+                IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: '[0]')
+                  Children(2):
+                      IOperation:  (OperationKind.None, Type: System.Int32*) (Syntax: '[Index]')
+                        Children(2):
+                            IFieldReferenceOperation: System.Int32** C.X (OperationKind.FieldReference, Type: System.Int32**) (Syntax: 'X')
+                              Instance Receiver:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'new C(pp) { ... 1] = 3} } }')
+                            IPropertyReferenceOperation: System.Int32 C.Index { get; } (Static) (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Index')
+                              Instance Receiver:
+                                null
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+              Right:
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: '[1] = 3')
+              Left:
+                IOperation:  (OperationKind.None, Type: System.Int32) (Syntax: '[1]')
+                  Children(2):
+                      IOperation:  (OperationKind.None, Type: System.Int32*) (Syntax: '[Index]')
+                        Children(2):
+                            IFieldReferenceOperation: System.Int32** C.X (OperationKind.FieldReference, Type: System.Int32**) (Syntax: 'X')
+                              Instance Receiver:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'new C(pp) { ... 1] = 3} } }')
+                            IPropertyReferenceOperation: System.Int32 C.Index { get; } (Static) (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Index')
+                              Instance Receiver:
+                                null
+                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+              Right:
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+        Next (Return) Block[B2]
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'new C(pp) { ... 1] = 3} } }')
+            Leaving: {R1}
+}
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+""",
+                graph, symbol);
         }
 
         [Fact]
