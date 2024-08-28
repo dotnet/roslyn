@@ -83,13 +83,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         {
             if (!_processes.TryGetValue(buildHostKind, out var buildHostProcess))
             {
-                var processStartInfo = buildHostKind switch
-                {
-                    BuildHostProcessKind.NetCore => CreateDotNetCoreBuildHostStartInfo(),
-                    BuildHostProcessKind.NetFramework => CreateDotNetFrameworkBuildHostStartInfo(),
-                    BuildHostProcessKind.Mono => CreateMonoBuildHostStartInfo(),
-                    _ => throw ExceptionUtilities.UnexpectedValue(buildHostKind)
-                };
+                var processStartInfo = CreateBuildHostStartInfo(buildHostKind);
 
                 var process = Process.Start(processStartInfo);
                 Contract.ThrowIfNull(process, "Process.Start failed to launch a process.");
@@ -109,6 +103,17 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
             return buildHostProcess.BuildHost;
         }
+    }
+
+    internal ProcessStartInfo CreateBuildHostStartInfo(BuildHostProcessKind buildHostKind)
+    {
+        return buildHostKind switch
+        {
+            BuildHostProcessKind.NetCore => CreateDotNetCoreBuildHostStartInfo(),
+            BuildHostProcessKind.NetFramework => CreateDotNetFrameworkBuildHostStartInfo(),
+            BuildHostProcessKind.Mono => CreateMonoBuildHostStartInfo(),
+            _ => throw ExceptionUtilities.UnexpectedValue(buildHostKind)
+        };
     }
 
     private void BuildHostProcess_Disconnected(object? sender, EventArgs e)
