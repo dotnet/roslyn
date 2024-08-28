@@ -14322,13 +14322,6 @@ namespace System.Runtime.CompilerServices
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
         public void Cycle_16()
         {
-            if (CompilationExtensions.EnableVerifyIOperation &&
-                ExecutionConditionUtil.Configuration == ExecutionConfiguration.Debug)
-            {
-                // A debug assert fails but an invalid operation is correctly created otherwise.
-                return;
-            }
-
             var source = """
                 using System.Collections;
                 using System.Collections.Generic;
@@ -14358,13 +14351,6 @@ namespace System.Runtime.CompilerServices
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
         public void Cycle_17()
         {
-            if (CompilationExtensions.EnableVerifyIOperation &&
-                ExecutionConditionUtil.Configuration == ExecutionConfiguration.Debug)
-            {
-                // A debug assert fails but an invalid operation is correctly created otherwise.
-                return;
-            }
-
             var source = """
                 using System.Collections;
                 using System.Collections.Generic;

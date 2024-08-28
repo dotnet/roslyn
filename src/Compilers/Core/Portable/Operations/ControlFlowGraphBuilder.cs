@@ -6585,7 +6585,6 @@ oneMoreTime:
                     }
                     else
                     {
-                        Debug.Fail("This code path should not be reachable.");
                         return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
                     }
 
