@@ -87,14 +87,6 @@ public static class TestReferences
             public static PortableExecutableReference minasynccorlib => s_minasynccorlib.Value;
         }
 
-        public static class ValueTuple
-        {
-            private static readonly Lazy<PortableExecutableReference> s_tuplelib = new Lazy<PortableExecutableReference>(
-                () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.ValueTuple.tuplelib).GetReference(display: "System.ValueTuple.dll"),
-                LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference tuplelib => s_tuplelib.Value;
-        }
-
         public static class silverlight_v5_0_5_0
         {
             private static readonly Lazy<PortableExecutableReference> s_system = new Lazy<PortableExecutableReference>(

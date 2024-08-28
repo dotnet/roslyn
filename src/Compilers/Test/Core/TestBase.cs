@@ -235,7 +235,7 @@ namespace Roslyn.Test.Utilities
 
         public static MetadataReference MinAsyncCorlibRef => TestReferences.NetFx.Minimal.minasynccorlib;
 
-        public static MetadataReference ValueTupleRef => TestReferences.NetFx.ValueTuple.tuplelib;
+        public static MetadataReference ValueTupleRef => NetFramework.SystemValueTuple;
 
         public static MetadataReference MsvbRef => NetFramework.MicrosoftVisualBasic;
 

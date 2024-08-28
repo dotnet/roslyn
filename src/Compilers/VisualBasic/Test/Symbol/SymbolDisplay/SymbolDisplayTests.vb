@@ -5020,7 +5020,7 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Punctuation},
-                references:={MetadataReference.CreateFromImage(TestResources.NetFX.ValueTuple.tuplelib)})
+                references:={Net461.ExtraReferences.SystemValueTuple})
         End Sub
 
         <Fact()>
