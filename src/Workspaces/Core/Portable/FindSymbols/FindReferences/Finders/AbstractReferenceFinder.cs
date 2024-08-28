@@ -900,10 +900,10 @@ internal abstract partial class AbstractReferenceFinder<TSymbol> : AbstractRefer
             if (compilation is null)
                 continue;
 
-            var allDocuments = await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
+            var allDocuments = project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
 
-            foreach (var document in allDocuments)
+            await foreach (var document in allDocuments)
             {
                 if (!document.SupportsSemanticModel)
                     continue;
