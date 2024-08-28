@@ -11,6 +11,8 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public interface IAnalyzerAssemblyResolver
     {
+        string? RedirectPath(string fullPath);
+
         /// <summary>
         /// Attempts to resolve an assembly by name.
         /// </summary>

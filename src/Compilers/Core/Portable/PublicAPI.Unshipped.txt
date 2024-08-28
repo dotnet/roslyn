@@ -1,5 +1,4 @@
-Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.OriginalFullPath.get -> string?
-Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.OriginalFullPath.init -> void
+Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.GetAssemblyLocation() -> string!
 Microsoft.CodeAnalysis.GeneratorDriver.RunGenerators(Microsoft.CodeAnalysis.Compilation! compilation) -> Microsoft.CodeAnalysis.GeneratorDriver!
 Microsoft.CodeAnalysis.GeneratorDriver.RunGenerators(Microsoft.CodeAnalysis.Compilation! compilation, System.Func<Microsoft.CodeAnalysis.GeneratorFilterContext, bool>? generatorFilter, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.GeneratorDriver!
 Microsoft.CodeAnalysis.GeneratorDriver.RunGenerators(Microsoft.CodeAnalysis.Compilation! compilation, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.GeneratorDriver!
@@ -11,12 +10,14 @@ Microsoft.CodeAnalysis.GeneratorFilterContext.GeneratorFilterContext() -> void
 Microsoft.CodeAnalysis.GeneratorRunResult.HostOutputs.get -> System.Collections.Immutable.ImmutableDictionary<string!, object!>!
 Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind.Host = 8 -> Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind
 Microsoft.CodeAnalysis.IAnalyzerAssemblyResolver
+Microsoft.CodeAnalysis.IAnalyzerAssemblyResolver.RedirectPath(string! fullPath) -> string?
 Microsoft.CodeAnalysis.IAnalyzerAssemblyResolver.ResolveAssembly(System.Reflection.AssemblyName! assemblyName, string! assemblyOriginalDirectory) -> System.Reflection.Assembly?
 Microsoft.CodeAnalysis.IPropertySymbol.PartialDefinitionPart.get -> Microsoft.CodeAnalysis.IPropertySymbol?
 Microsoft.CodeAnalysis.IPropertySymbol.PartialImplementationPart.get -> Microsoft.CodeAnalysis.IPropertySymbol?
 Microsoft.CodeAnalysis.IPropertySymbol.IsPartialDefinition.get -> bool
 Microsoft.CodeAnalysis.ITypeParameterSymbol.AllowsRefLikeType.get -> bool
 Microsoft.CodeAnalysis.RuntimeCapability.ByRefLikeGenerics = 8 -> Microsoft.CodeAnalysis.RuntimeCapability
+override Microsoft.CodeAnalysis.Diagnostics.AnalyzerFileReference.ToString() -> string!
 static Microsoft.CodeAnalysis.GeneratorExtensions.AsIncrementalGenerator(this Microsoft.CodeAnalysis.ISourceGenerator! sourceGenerator) -> Microsoft.CodeAnalysis.IIncrementalGenerator!
 static Microsoft.CodeAnalysis.GeneratorExtensions.GetGeneratorType(this Microsoft.CodeAnalysis.IIncrementalGenerator! generator) -> System.Type!
 [RSEXPERIMENTAL004]Microsoft.CodeAnalysis.HostOutputProductionContext

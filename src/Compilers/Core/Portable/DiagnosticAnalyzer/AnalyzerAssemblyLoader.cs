@@ -423,5 +423,30 @@ namespace Microsoft.CodeAnalysis
             }
             return null;
         }
+
+        internal string? RedirectAssemblyPathExternally(string fullPath)
+        {
+            CheckIfDisposed();
+
+            if (!_externalResolvers.IsDefaultOrEmpty)
+            {
+                foreach (var resolver in _externalResolvers)
+                {
+                    try
+                    {
+                        if (resolver.RedirectPath(fullPath) is { } redirectedPath)
+                        {
+                            return redirectedPath;
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore if the external resolver throws
+                    }
+                }
+            }
+
+            return null;
+        }
     }
 }

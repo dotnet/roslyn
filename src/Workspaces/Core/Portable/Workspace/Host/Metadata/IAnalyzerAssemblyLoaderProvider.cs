@@ -20,8 +20,6 @@ internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
 {
     IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader { get; }
 
-    IAnalyzerAssemblyLoaderInternal SharedDirectLoader { get; }
-
 #if NET
     /// <summary>
     /// Creates a fresh shadow copying loader that will load all <see cref="AnalyzerReference"/>s and <see
@@ -39,28 +37,20 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
 {
     private readonly ImmutableArray<IAnalyzerAssemblyResolver> _externalResolvers;
     private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _shadowCopyLoader;
-    private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _directLoader;
 
     public AbstractAnalyzerAssemblyLoaderProvider(IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
     {
         _externalResolvers = externalResolvers.ToImmutableArray();
         _shadowCopyLoader = new(CreateNewShadowCopyLoader);
-        _directLoader = new(CreateDirectLoader);
     }
 
     public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader
         => _shadowCopyLoader.Value;
 
-    public IAnalyzerAssemblyLoaderInternal SharedDirectLoader
-        => _directLoader.Value;
-
     public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
         => this.WrapLoader(DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
                 Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader"),
                 _externalResolvers));
-
-    private IAnalyzerAssemblyLoaderInternal CreateDirectLoader()
-        => this.WrapLoader(new DefaultAnalyzerAssemblyLoader(_externalResolvers));
 
     protected virtual IAnalyzerAssemblyLoaderInternal WrapLoader(IAnalyzerAssemblyLoaderInternal loader)
         => loader;

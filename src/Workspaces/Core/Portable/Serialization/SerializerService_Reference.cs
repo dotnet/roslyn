@@ -69,7 +69,7 @@ internal partial class SerializerService
             switch (reference)
             {
                 case AnalyzerFileReference fileReference:
-                    writer.WriteString(fileReference.OriginalFullPath ?? fileReference.FullPath);
+                    writer.WriteString(fileReference.GetAssemblyLocation());
                     writer.WriteGuid(TryGetAnalyzerFileReferenceMvid(fileReference));
                     break;
 
@@ -119,12 +119,7 @@ internal partial class SerializerService
         {
             case AnalyzerFileReference fileReference:
                 writer.WriteString(nameof(AnalyzerFileReference));
-                var location = TryGetAssemblyLocation(fileReference);
-                var (fullPath, originalFullPath) = string.IsNullOrEmpty(location)
-                    ? (fileReference.FullPath, fileReference.OriginalFullPath)
-                    : (location, fileReference.FullPath);
-                writer.WriteString(fullPath);
-                writer.WriteString(originalFullPath);
+                writer.WriteString(fileReference.GetAssemblyLocation());
 
                 // Note: it is intentional that we are not writing the MVID of the analyzer file reference over in (even
                 // though we mixed it into the checksum).  We don't actually need the data on the other side as it will
@@ -166,12 +161,7 @@ internal partial class SerializerService
                 // Rehydrate the analyzer file reference with the simple shared shadow copy loader.  Note: we won't
                 // actually use this instance we create.  Instead, the caller will use create an IsolatedAssemblyReferenceSet
                 // from these to ensure that all the types can be safely loaded into their own ALC.
-                var fullPath = reader.ReadRequiredString();
-                var originalFullPath = reader.ReadString();
-                return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.SharedDirectLoader)
-                {
-                    OriginalFullPath = originalFullPath,
-                };
+                return new AnalyzerFileReference(reader.ReadRequiredString(), _analyzerLoaderProvider.SharedShadowCopyLoader);
 
             case nameof(AnalyzerImageReference):
                 var guid = reader.ReadGuid();
@@ -516,25 +506,13 @@ internal partial class SerializerService
     {
         try
         {
-            return AssemblyUtilities.ReadMvid(file.OriginalFullPath ?? file.FullPath);
+            return AssemblyUtilities.ReadMvid(file.GetAssemblyLocation());
         }
         catch
         {
             // We have a reference but the file the reference is pointing to might not actually exist on disk. In that
             // case, rather than crashing, we will handle it gracefully.
             return Guid.Empty;
-        }
-    }
-
-    private static string? TryGetAssemblyLocation(AnalyzerFileReference file)
-    {
-        try
-        {
-            return file.GetAssembly().Location;
-        }
-        catch
-        {
-            return null;
         }
     }
 

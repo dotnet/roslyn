@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private delegate ImmutableArray<string> AttributeLanguagesFunc(PEModule module, CustomAttributeHandle attribute);
 
         public override string FullPath { get; }
-        public string? OriginalFullPath { get; init; }
 
         private readonly IAnalyzerAssemblyLoader _assemblyLoader;
         private readonly Extensions<DiagnosticAnalyzer> _diagnosticAnalyzers;
@@ -43,6 +42,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private string? _lazyDisplay;
         private object? _lazyIdentity;
         private Assembly? _lazyAssembly;
+        private string? _lazyAssemblyLocation;
 
         public event EventHandler<AnalyzerLoadFailureEventArgs>? AnalyzerLoadFailed;
 
@@ -106,6 +106,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override int GetHashCode()
             => Hash.Combine(RuntimeHelpers.GetHashCode(_assemblyLoader), FullPath.GetHashCode());
+
+        public override string ToString()
+            => $"{nameof(AnalyzerFileReference)}({nameof(FullPath)} = {FullPath}, {nameof(GetAssemblyLocation)} = {GetAssemblyLocation()})";
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
         {
@@ -677,6 +680,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return _lazyAssembly;
+        }
+
+        public string GetAssemblyLocation()
+        {
+            if (_lazyAssemblyLocation == null)
+            {
+                var location = _lazyAssembly?.Location;
+
+                if (string.IsNullOrEmpty(location))
+                {
+                    location = (string?)_assemblyLoader.GetType()
+                        .GetMethod("RedirectAssemblyPathExternally")?
+                        .Invoke(_assemblyLoader, [FullPath]);
+
+                    if (string.IsNullOrEmpty(location))
+                    {
+                        location = FullPath;
+                    }
+                }
+
+                _lazyAssemblyLocation = location;
+            }
+
+            return _lazyAssemblyLocation;
         }
     }
 }
