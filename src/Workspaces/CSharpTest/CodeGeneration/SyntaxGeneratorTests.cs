@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         public static Compilation Compile(string code)
         {
             return CSharpCompilation.Create("test")
-                .AddReferences(NetFramework.mscorlib, NetFramework.System, NetFramework.SystemCore, NetFramework.SystemRuntime, TestReferences.NetFx.ValueTuple.tuplelib)
+                .AddReferences(NetFramework.mscorlib, NetFramework.System, NetFramework.SystemCore, NetFramework.SystemRuntime, NetFramework.SystemValueTuple)
                 .AddSyntaxTrees(ParseSyntaxTree(code));
         }
 
