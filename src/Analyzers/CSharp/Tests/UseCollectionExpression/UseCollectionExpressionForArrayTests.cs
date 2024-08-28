@@ -1179,6 +1179,66 @@ public class UseCollectionExpressionForArrayTests
     }
 
     [Fact]
+    public async Task TestNonTargetTypedAttributeArgument1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                [X(new string[] { })]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public XAttribute(object values) { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNonTargetTypedAttributeArgument2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                [X(new string[] { "" })]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public XAttribute(object values) { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNonTargetTypedAttributeArgument3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                [X(new[] { "" })]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public XAttribute(object values) { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestTargetTypedReturn1()
     {
         await new VerifyCS.Test
