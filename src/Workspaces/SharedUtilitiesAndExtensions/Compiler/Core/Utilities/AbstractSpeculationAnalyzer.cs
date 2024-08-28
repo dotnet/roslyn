@@ -425,37 +425,37 @@ internal abstract class AbstractSpeculationAnalyzer<
             if (methodSymbol.MethodKind != newMethodSymbol.MethodKind)
                 return false;
 
-            if (!Equals(methodSymbol.ContainingType, newMethodSymbol.ContainingType))
-                return false;
-
             if (!Equals(methodSymbol.Name, newMethodSymbol.Name))
                 return false;
 
-            if (methodSymbol.Parameters.Length != newMethodSymbol.Parameters.Length)
+            //if (methodSymbol.Parameters.Length != newMethodSymbol.Parameters.Length)
+            //    return false;
+
+            //if (!methodSymbol.Parameters.Any(static p => p.Type is IArrayTypeSymbol))
+            //    return false;
+
+            //if (!newMethodSymbol.Parameters.Any(static p => p.Type.IsReadOnlySpan()))
+            //    return false;
+
+            if (!s_arrayAndReadOnlySpanCompareEqually.Equals(methodSymbol, newMethodSymbol))
                 return false;
 
-            if (!methodSymbol.Parameters.Any(static p => p.Type is IArrayTypeSymbol))
-                return false;
+            //for (int i = 0, n = methodSymbol.Parameters.Length; i < n; i++)
+            //{
+            //    var oldMethodParameter = methodSymbol.Parameters[i];
+            //    var newMethodParameter = newMethodSymbol.Parameters[i];
 
-            if (!newMethodSymbol.Parameters.Any(static p => p.Type.IsReadOnlySpan()))
-                return false;
-
-            for (int i = 0, n = methodSymbol.Parameters.Length; i < n; i++)
-            {
-                var oldMethodParameter = methodSymbol.Parameters[i];
-                var newMethodParameter = newMethodSymbol.Parameters[i];
-
-                if (oldMethodParameter.Type is IArrayTypeSymbol && newMethodParameter.Type.IsReadOnlySpan())
-                {
-                    if (!s_arrayAndReadOnlySpanCompareEqually.ParameterEquivalenceComparer.Equals(oldMethodParameter, newMethodParameter))
-                        return false;
-                }
-                else
-                {
-                    if (!CompareAcrossSemanticModels(oldMethodParameter, newMethodParameter))
-                        return false;
-                }
-            }
+            //    if (oldMethodParameter.Type is IArrayTypeSymbol && newMethodParameter.Type.IsReadOnlySpan())
+            //    {
+            //        if (!s_arrayAndReadOnlySpanCompareEqually.ParameterEquivalenceComparer.Equals(oldMethodParameter, newMethodParameter))
+            //            return false;
+            //    }
+            //    else
+            //    {
+            //        if (!CompareAcrossSemanticModels(oldMethodParameter, newMethodParameter))
+            //            return false;
+            //    }
+            //}
 
             return true;
         }
