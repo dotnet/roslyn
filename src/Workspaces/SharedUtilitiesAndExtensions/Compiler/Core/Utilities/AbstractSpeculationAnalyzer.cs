@@ -406,59 +406,21 @@ internal abstract class AbstractSpeculationAnalyzer<
                 }
             }
 
-            if (IsCompatibleOverloadDifferingOnlyBetweenArrayAndReadOnlySpan(methodSymbol, newMethodSymbol))
-                return true;
-        }
-
-        return false;
-
-        static bool IsCompatibleOverloadDifferingOnlyBetweenArrayAndReadOnlySpan(
-            IMethodSymbol methodSymbol, IMethodSymbol newMethodSymbol)
-        {
             // We consider two method overloads compatible if one takes a T[] array for a particular parameter, and the
             // other takes a ReadOnlySpan<T> for the same parameter.  This is a considered a supported and desirable API
             // upgrade story for API authors.  Specifically, they start with an array-based method, and then add a
             // sibling ROS method.  In that case, the language will prefer the latter when both are applicable.  So if
             // we make a code change that makes the second compatible, then we are ok with that, as the expectation is
             // that the new method has the same semantics and it is desirable for code to now call that.
-
-            if (methodSymbol.MethodKind != newMethodSymbol.MethodKind)
-                return false;
-
-            if (!Equals(methodSymbol.Name, newMethodSymbol.Name))
-                return false;
-
-            //if (methodSymbol.Parameters.Length != newMethodSymbol.Parameters.Length)
-            //    return false;
-
-            //if (!methodSymbol.Parameters.Any(static p => p.Type is IArrayTypeSymbol))
-            //    return false;
-
-            //if (!newMethodSymbol.Parameters.Any(static p => p.Type.IsReadOnlySpan()))
-            //    return false;
-
-            if (!s_arrayAndReadOnlySpanCompareEqually.Equals(methodSymbol, newMethodSymbol))
-                return false;
-
-            //for (int i = 0, n = methodSymbol.Parameters.Length; i < n; i++)
-            //{
-            //    var oldMethodParameter = methodSymbol.Parameters[i];
-            //    var newMethodParameter = newMethodSymbol.Parameters[i];
-
-            //    if (oldMethodParameter.Type is IArrayTypeSymbol && newMethodParameter.Type.IsReadOnlySpan())
-            //    {
-            //        if (!s_arrayAndReadOnlySpanCompareEqually.ParameterEquivalenceComparer.Equals(oldMethodParameter, newMethodParameter))
-            //            return false;
-            //    }
-            //    else
-            //    {
-            //        if (!CompareAcrossSemanticModels(oldMethodParameter, newMethodParameter))
-            //            return false;
-            //    }
-            //}
-
-            return true;
+            if (methodSymbol.MethodKind == newMethodSymbol.MethodKind &&
+                Equals(methodSymbol.Name, newMethodSymbol.Name) &&
+                s_arrayAndReadOnlySpanCompareEqually.Equals(methodSymbol, newMethodSymbol))
+            {
+                return true;
+            }
         }
+
+        return false;
     }
 
     private static bool CompareAcrossSemanticModels(ISymbol symbol, ISymbol newSymbol)
