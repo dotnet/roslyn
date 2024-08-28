@@ -99,7 +99,7 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         if (document is null)
             return false;
 
-        _ = ExecuteAsync(view, textBuffer, document, span).ReportNonFatalErrorAsync();
+        _ = ExecuteAsync(view, textBuffer, document, span, context).ReportNonFatalErrorAsync();
         return true;
     }
 
@@ -107,7 +107,8 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         ITextView view,
         ITextBuffer textBuffer,
         Document document,
-        SnapshotSpan span)
+        SnapshotSpan span,
+        CommandExecutionContext context)
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
@@ -116,7 +117,7 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         if (_renameService.ActiveSession != null)
         {
             // ConfigureAwait(true) to make sure the next wait indicator would be created correctly.
-            await _renameService.ActiveSession.CommitAsync(previewChanges: false).ConfigureAwait(true);
+            await _renameService.ActiveSession.CommitAsync(previewChanges: false, context.OperationContext).ConfigureAwait(true);
         }
 
         var indicatorFactory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();

@@ -6,6 +6,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor;
 
@@ -51,5 +52,5 @@ internal interface IInlineRenameSession
     /// Dismisses the rename session, completing the rename operation across all files.
     /// </summary>
     /// <remarks>It would only be async when InlineRenameSessionOptionsStorage.RenameAsynchronously is set to true</remarks>
-    Task CommitAsync(bool previewChanges);
+    Task CommitAsync(bool previewChanges, IUIThreadOperationContext editorOperationContext = null);
 }

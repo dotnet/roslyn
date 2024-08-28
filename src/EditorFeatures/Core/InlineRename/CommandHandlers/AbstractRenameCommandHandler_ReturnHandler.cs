@@ -9,6 +9,7 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Roslyn.Utilities;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
@@ -25,16 +26,17 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             // Prevent Editor's typing responsiveness auto canceling the rename operation.
             // InlineRenameSession will call IUIThreadOperationExecutor to sets up our own IUIThreadOperationContext
             context.OperationContext.TakeOwnership();
-            _ = CommitAndSetFocusAsync(_renameService.ActiveSession, args.TextView).ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
+            _ = CommitAndSetFocusAsync(_renameService.ActiveSession, args.TextView, context.OperationContext).ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
             return true;
         }
 
         return false;
     }
 
-    protected virtual async Task CommitAndSetFocusAsync(InlineRenameSession activeSession, ITextView textView)
+    protected virtual async Task CommitAndSetFocusAsync(InlineRenameSession activeSession, ITextView textView, IUIThreadOperationContext operationContext)
     {
-        await activeSession.CommitAsync(previewChanges: false).ConfigureAwait(true);
+        // ConfigureAwait(true) because it needs to set focus in UI later.
+        await CommitAsync(operationContext).ConfigureAwait(true);
         SetFocusToTextView(textView);
     }
 }

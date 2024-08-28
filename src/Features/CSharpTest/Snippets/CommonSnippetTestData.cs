@@ -38,4 +38,14 @@ public static class CommonSnippetTestData
         "private protected",
         "protected internal",
     };
+
+    public static TheoryData<string> CommonEnumerableTypes => new()
+    {
+        "string",
+        "System.Collections.Generic.List<int>",
+        "int[]",
+        "System.Collections.Generic.IEnumerable<int>",
+        "System.Collections.ArrayList",
+        "System.Collections.IEnumerable",
+    };
 }

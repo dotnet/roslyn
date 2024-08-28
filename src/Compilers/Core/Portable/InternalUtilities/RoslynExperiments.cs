@@ -17,4 +17,7 @@ internal static class RoslynExperiments
 
     internal const string SyntaxTokenParser = "RSEXPERIMENTAL003";
     internal const string SyntaxTokenParser_Url = "https://github.com/dotnet/roslyn/issues/73002";
+
+    internal const string GeneratorHostOutputs = "RSEXPERIMENTAL004";
+    internal const string GeneratorHostOutputs_Url = "https://github.com/dotnet/roslyn/issues/74753";
 }

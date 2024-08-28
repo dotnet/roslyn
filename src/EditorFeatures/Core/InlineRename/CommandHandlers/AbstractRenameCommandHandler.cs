@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -12,6 +13,8 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
@@ -56,7 +59,7 @@ internal abstract partial class AbstractRenameCommandHandler
     private CommandState GetCommandState()
         => _renameService.ActiveSession != null ? CommandState.Available : CommandState.Unspecified;
 
-    private void HandlePossibleTypingCommand<TArgs>(TArgs args, Action nextHandler, Action<InlineRenameSession, SnapshotSpan> actionIfInsideActiveSpan)
+    private void HandlePossibleTypingCommand<TArgs>(TArgs args, Action nextHandler, IUIThreadOperationContext operationContext, Action<InlineRenameSession, IUIThreadOperationContext, SnapshotSpan> actionIfInsideActiveSpan)
         where TArgs : EditorCommandArgs
     {
         if (_renameService.ActiveSession == null)
@@ -84,14 +87,14 @@ internal abstract partial class AbstractRenameCommandHandler
         if (_renameService.ActiveSession.TryGetContainingEditableSpan(singleSpan.Start, out var containingSpan) &&
             containingSpan.Contains(singleSpan))
         {
-            actionIfInsideActiveSpan(_renameService.ActiveSession, containingSpan);
+            actionIfInsideActiveSpan(_renameService.ActiveSession, operationContext, containingSpan);
         }
         else if (_renameService.ActiveSession.IsInOpenTextBuffer(singleSpan.Start))
         {
             // It's in a read-only area that is open, so let's commit the rename 
             // and then let the character go through
 
-            CommitIfActiveAndCallNextHandler(args, nextHandler);
+            CommitIfActiveAndCallNextHandler(args, nextHandler, operationContext);
         }
         else
         {
@@ -100,13 +103,13 @@ internal abstract partial class AbstractRenameCommandHandler
         }
     }
 
-    private void CommitIfActive(EditorCommandArgs args)
+    private void CommitIfActive(EditorCommandArgs args, IUIThreadOperationContext operationContext)
     {
         if (_renameService.ActiveSession != null)
         {
             var selection = args.TextView.Selection.VirtualSelectedSpans.First();
 
-            _renameService.ActiveSession.Commit();
+            CommitAsync(operationContext);
 
             var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
             args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
@@ -114,9 +117,15 @@ internal abstract partial class AbstractRenameCommandHandler
         }
     }
 
-    private void CommitIfActiveAndCallNextHandler(EditorCommandArgs args, Action nextHandler)
+    private void CommitIfActiveAndCallNextHandler(EditorCommandArgs args, Action nextHandler, IUIThreadOperationContext operationContext)
     {
-        CommitIfActive(args);
+        CommitIfActive(args, operationContext);
         nextHandler();
+    }
+
+    private Task CommitAsync(IUIThreadOperationContext operationContext)
+    {
+        RoslynDebug.AssertNotNull(_renameService.ActiveSession);
+        return _renameService.ActiveSession.CommitAsync(previewChanges: false, operationContext);
     }
 }

@@ -16,7 +16,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
 Imports Xunit
-Imports Roslyn.Test.Utilities.TestMetadata
 Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting

@@ -2,27 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression;
 
-[ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseCoalesceExpressionForIfNullStatementCheck), Shared]
-[ExtensionOrder(Before = PredefinedCodeFixProviderNames.AddBraces)]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class UseCoalesceExpressionForIfNullStatementCheckCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseCoalesceExpressionForIfNullCheckDiagnosticId];
@@ -33,10 +26,16 @@ internal class UseCoalesceExpressionForIfNullStatementCheckCodeFixProvider() : S
         return Task.CompletedTask;
     }
 
-    protected override Task FixAllAsync(
+    protected virtual ITypeSymbol? TryGetExplicitCast(
+        SemanticModel semanticModel, SyntaxNode expressionToCoalesce,
+        SyntaxNode leftAssignmentPart, SyntaxNode rightAssignmentPart,
+        CancellationToken cancellationToken) => null;
+
+    protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var generator = editor.Generator;
 
@@ -50,11 +49,34 @@ internal class UseCoalesceExpressionForIfNullStatementCheckCodeFixProvider() : S
             editor.ReplaceNode(
                 expressionToCoalesce,
                 generator.CoalesceExpression(
-                    expressionToCoalesce.WithoutTrivia(),
+                    TryAddExplicitCast(expressionToCoalesce, whenTrueStatement).WithoutTrivia(),
                     GetWhenNullExpression(whenTrueStatement).WithoutTrailingTrivia()).WithTriviaFrom(expressionToCoalesce));
         }
 
-        return Task.CompletedTask;
+        return;
+
+        SyntaxNode TryAddExplicitCast(SyntaxNode expressionToCoalesce, SyntaxNode whenTrueStatement)
+        {
+            // This can be either SimpleAssignmentStatement or ThrowStatement
+            // We only care about casting in the former case since the two
+            // types being coalesce-d might not be the same and might result in broken
+            // code without the cast.
+            // In the latter case something like
+            // _ = myParameter ?? throw new ArgumentNullException(nameof(myParameter));
+            // will be always valid.
+            if (!syntaxFacts.IsSimpleAssignmentStatement(whenTrueStatement))
+                return expressionToCoalesce;
+
+            syntaxFacts.GetPartsOfAssignmentStatement(whenTrueStatement, out var left, out var right);
+
+            var castTo = TryGetExplicitCast(semanticModel, expressionToCoalesce, left, right, cancellationToken);
+            if (castTo is null)
+            {
+                return expressionToCoalesce;
+            }
+
+            return generator.CastExpression(castTo, expressionToCoalesce);
+        }
 
         SyntaxNode GetWhenNullExpression(SyntaxNode whenTrueStatement)
         {
