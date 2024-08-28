@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection.Metadata;
-using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -54,15 +53,24 @@ internal partial class SerializerService
 
     protected virtual Checksum CreateChecksum(AnalyzerReference reference)
     {
+#if NET
+        // If we're in the oop side and we're being asked to produce our local checksum (so we can compare it to the
+        // host checksum), then we want to just defer to the underlying analyzer reference of our isolated reference.
+        // This underlying reference corresponds to the reference that the host has, and we do not want to make any
+        // changes as long as they're both in agreement.
+        if (reference is IsolatedAnalyzerFileReference { UnderlyingAnalyzerFileReference: var underlyingReference })
+            reference = underlyingReference;
+#endif
+
         using var stream = SerializableBytes.CreateWritableStream();
 
         using (var writer = new ObjectWriter(stream, leaveOpen: true))
         {
             switch (reference)
             {
-                case AnalyzerFileReference file:
-                    writer.WriteString(file.OriginalFullPath ?? file.FullPath);
-                    writer.WriteGuid(TryGetAnalyzerFileReferenceMvid(file));
+                case AnalyzerFileReference fileReference:
+                    writer.WriteString(fileReference.OriginalFullPath ?? fileReference.FullPath);
+                    writer.WriteGuid(TryGetAnalyzerFileReferenceMvid(fileReference));
                     break;
 
                 case AnalyzerImageReference analyzerImageReference:
@@ -109,16 +117,16 @@ internal partial class SerializerService
     {
         switch (reference)
         {
-            case AnalyzerFileReference file:
+            case AnalyzerFileReference fileReference:
                 writer.WriteString(nameof(AnalyzerFileReference));
-                var location = TryGetAssemblyLocation(file);
+                var location = TryGetAssemblyLocation(fileReference);
                 var (fullPath, originalFullPath) = string.IsNullOrEmpty(location)
-                    ? (file.FullPath, file.OriginalFullPath)
-                    : (location, file.FullPath);
+                    ? (fileReference.FullPath, fileReference.OriginalFullPath)
+                    : (location, fileReference.FullPath);
                 writer.WriteString(fullPath);
                 writer.WriteString(originalFullPath);
 
-                // Note: it is intentional that we are not writing the MVID of the analyzer file reference over (even
+                // Note: it is intentional that we are not writing the MVID of the analyzer file reference over in (even
                 // though we mixed it into the checksum).  We don't actually need the data on the other side as it will
                 // be read out from the file itself.  So the flow is as follows when an analyzer-file-reference changes:
                 //
@@ -155,6 +163,9 @@ internal partial class SerializerService
         switch (reader.ReadString())
         {
             case nameof(AnalyzerFileReference):
+                // Rehydrate the analyzer file reference with the simple shared shadow copy loader.  Note: we won't
+                // actually use this instance we create.  Instead, the caller will use create an IsolatedAssemblyReferenceSet
+                // from these to ensure that all the types can be safely loaded into their own ALC.
                 var fullPath = reader.ReadRequiredString();
                 var originalFullPath = reader.ReadString();
                 return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.SharedDirectLoader)
@@ -295,7 +306,7 @@ internal partial class SerializerService
         // so that we can put xml doc comment as part of snapshot. but until we believe that is necessary,
         // it will go with simpler approach
         var documentProvider = filePath != null && _documentationService != null ?
-            _documentationService.GetDocumentationProvider(filePath) : XmlDocumentationProvider.Default;
+            _documentationService.GetDocumentationProvider(filePath) : DocumentationProvider.Default;
 
         return new SerializedPortableExecutableReference(
             properties, filePath, metadata, storageHandles, documentProvider);
