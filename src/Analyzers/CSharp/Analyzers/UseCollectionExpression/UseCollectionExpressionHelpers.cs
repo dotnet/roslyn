@@ -817,6 +817,7 @@ internal static class UseCollectionExpressionHelpers
     public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches<TArrayCreationExpressionSyntax>(
         SemanticModel semanticModel,
         TArrayCreationExpressionSyntax expression,
+        CollectionExpressionSyntax replacementExpression,
         INamedTypeSymbol? expressionType,
         bool isSingletonInstance,
         bool allowSemanticsChange,
@@ -926,7 +927,7 @@ internal static class UseCollectionExpressionHelpers
         }
 
         if (!CanReplaceWithCollectionExpression(
-                semanticModel, expression, expressionType, isSingletonInstance, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
+                semanticModel, expression, replacementExpression, expressionType, isSingletonInstance, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
         {
             return default;
         }

@@ -71,6 +71,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         var matches = UseCollectionExpressionHelpers.TryGetMatches(
             semanticModel,
             expression,
+            replacementExpression,
             expressionType,
             isSingletonInstance: false,
             allowSemanticsChange,
