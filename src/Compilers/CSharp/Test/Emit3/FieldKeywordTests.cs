@@ -3409,7 +3409,71 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (4,19): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                //     public string Prop { get => field; set => field = value; } // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Prop").WithArguments("property", "Prop").WithLocation(4, 19));
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Nullable_NotResilient_NotInitialized_02()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    public string Prop => field.ToString() ?? "a";
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,19): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                //     public string Prop => field.ToString() ?? "a";
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Prop").WithArguments("property", "Prop").WithLocation(4, 19));
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
+        public void Nullable_NotResilient_NotInitialized_03()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    public string Prop
+                    {
+                        get
+                        {
+                            string unrelated = null;
+                            return field ??= "a";
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,19): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                //     public string Prop
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Prop").WithArguments("property", "Prop").WithLocation(4, 19),
+                // (8,20): warning CS0219: The variable 'unrelated' is assigned but its value is never used
+                //             string unrelated = null;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "unrelated").WithArguments("unrelated").WithLocation(8, 20),
+                // (8,32): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //             string unrelated = null;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(8, 32));
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -3425,6 +3489,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -3439,10 +3507,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (4,19): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
-                //     public string Prop { get => field; set => field = value; } // 1
-                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Prop").WithArguments("property", "Prop").WithLocation(4, 19));
+            comp.VerifyEmitDiagnostics();
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
 
         [Fact]
@@ -3458,6 +3527,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics();
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.Annotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
         }
     }
 }
