@@ -171,7 +171,7 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
         var results2 = await RunGetRelatedDocumentsAsync(
             testLspServer,
             project.Documents.First().GetURI(),
-            previousResultId: results.Single().ResultId,
+            previousResultId: results1.Single().ResultId,
             useProgress: useProgress);
 
         AssertJsonEquals(results2, new VSInternalRelatedDocumentReport[]
