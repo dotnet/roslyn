@@ -200,8 +200,6 @@ namespace Roslyn.Test.Utilities
             Net461.References.SystemRuntime,
             Net461.ExtraReferences.SystemValueTuple,
         ];
-
-
         public static ImmutableArray<MetadataReference> Mscorlib40References { get; } =
         [
             Net40.References.mscorlib
