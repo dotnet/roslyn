@@ -133,7 +133,7 @@ namespace Roslyn.Test.Utilities
         {
             var expectedWithoutWhitespace = Regex.Replace(expected, @"\s+", string.Empty);
             var actualWithoutWhitespace = Regex.Replace(actual, @"\s+", string.Empty);
-            Assert.Equal(expectedWithoutWhitespace, actualWithoutWhitespace);
+            AssertEx.Equal(expectedWithoutWhitespace, actualWithoutWhitespace);
         }
 
         /// <summary>
