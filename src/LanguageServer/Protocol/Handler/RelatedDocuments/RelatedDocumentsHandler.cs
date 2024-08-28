@@ -88,55 +88,54 @@ internal sealed class RelatedDocumentsHandler
         if (relatedDocumentsService == null)
         {
             context.TraceInformation($"Ignoring document '{document.FilePath}' because it does not support related documents");
+            return;
+        }
+
+        var documentToPreviousParams = new Dictionary<Document, PreviousPullResult>();
+        if (requestParams.PreviousResultId != null)
+            documentToPreviousParams.Add(document, new PreviousPullResult(requestParams.PreviousResultId, requestParams.TextDocument));
+
+        var newResultId = await _versionedCache.GetNewResultIdAsync(
+            documentToPreviousParams,
+            document,
+            computeVersionAsync: async () => await ComputeChecksumsAsync(document, cancellationToken).ConfigureAwait(false),
+            cancellationToken).ConfigureAwait(false);
+        if (newResultId != null)
+        {
+            context.TraceInformation($"Version was changed for document: {document.FilePath}");
+
+            var linePosition = requestParams.Position is null
+                ? new LinePosition(0, 0)
+                : ProtocolConversions.PositionToLinePosition(requestParams.Position);
+
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var position = text.Lines.GetPosition(linePosition);
+
+            await relatedDocumentsService.GetRelatedDocumentIdsAsync(
+                document,
+                position,
+                (relatedDocumentIds, cancellationToken) =>
+                {
+                    // As the related docs services reports document ids to us, stream those immediately through our
+                    // progress reporter.
+                    progress.Report(new VSInternalRelatedDocumentReport
+                    {
+                        ResultId = newResultId,
+                        FilePaths = relatedDocumentIds.Select(id => solution.GetRequiredDocument(id).FilePath).WhereNotNull().ToArray(),
+                    });
+
+                    return ValueTaskFactory.CompletedTask;
+                },
+                cancellationToken).ConfigureAwait(false);
         }
         else
         {
-            var documentToPreviousParams = new Dictionary<Document, PreviousPullResult>();
-            if (requestParams.PreviousResultId != null)
-                documentToPreviousParams.Add(document, new PreviousPullResult(requestParams.PreviousResultId, requestParams.TextDocument));
+            context.TraceInformation($"Version was unchanged for document: {document.FilePath}");
 
-            var newResultId = await _versionedCache.GetNewResultIdAsync(
-                documentToPreviousParams,
-                document,
-                computeVersionAsync: async () => await ComputeChecksumsAsync(document, cancellationToken).ConfigureAwait(false),
-                cancellationToken).ConfigureAwait(false);
-            if (newResultId != null)
-            {
-                context.TraceInformation($"Version was changed for document: {document.FilePath}");
-
-                var linePosition = requestParams.Position is null
-                    ? new LinePosition(0, 0)
-                    : ProtocolConversions.PositionToLinePosition(requestParams.Position);
-
-                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var position = text.Lines.GetPosition(linePosition);
-
-                await relatedDocumentsService.GetRelatedDocumentIdsAsync(
-                    document,
-                    position,
-                    (relatedDocumentIds, cancellationToken) =>
-                    {
-                        // As the related docs services reports document ids to us, stream those immediately through our
-                        // progress reporter.
-                        progress.Report(new VSInternalRelatedDocumentReport
-                        {
-                            ResultId = newResultId,
-                            FilePaths = relatedDocumentIds.Select(id => solution.GetRequiredDocument(id).FilePath).WhereNotNull().ToArray(),
-                        });
-
-                        return ValueTaskFactory.CompletedTask;
-                    },
-                    cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                context.TraceInformation($"Version was unchanged for document: {document.FilePath}");
-
-                // Nothing changed between the last request and this one.  Report a (null-file-paths, same-result-id)
-                // response to the client as that means they should just preserve the current related file paths they
-                // have for this file.
-                progress.Report(new VSInternalRelatedDocumentReport { ResultId = requestParams.PreviousResultId });
-            }
+            // Nothing changed between the last request and this one.  Report a (null-file-paths, same-result-id)
+            // response to the client as that means they should just preserve the current related file paths they
+            // have for this file.
+            progress.Report(new VSInternalRelatedDocumentReport { ResultId = requestParams.PreviousResultId });
         }
 
         // If we had a progress object, then we will have been reporting to that.  Otherwise, take what we've been
