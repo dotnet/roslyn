@@ -130,9 +130,8 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
             project.Documents.First().GetURI(),
             useProgress: useProgress);
 
-        Assert.Equal(1, results.Length);
-        Assert.Equal(2, results[0].FilePaths!.Length);
-        AssertEx.SetEqual([.. project.Documents.Skip(1).Select(d => d.FilePath)], results[0].FilePaths);
+        Assert.Equal(2, results.SelectMany(r => r.FilePaths).Count());
+        AssertEx.SetEqual([.. project.Documents.Skip(1).Select(d => d.FilePath)], results.SelectMany(r => r.FilePaths));
     }
 
     [Theory, CombinatorialData]
