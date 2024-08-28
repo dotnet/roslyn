@@ -412,12 +412,12 @@ internal abstract class AbstractSpeculationAnalyzer<
             // sibling ROS method.  In that case, the language will prefer the latter when both are applicable.  So if
             // we make a code change that makes the second compatible, then we are ok with that, as the expectation is
             // that the new method has the same semantics and it is desirable for code to now call that.
-            if (methodSymbol.MethodKind == newMethodSymbol.MethodKind &&
-                Equals(methodSymbol.Name, newMethodSymbol.Name) &&
-                s_arrayAndReadOnlySpanCompareEqually.Equals(methodSymbol, newMethodSymbol))
-            {
+            //
+            // Note: this comparer will check the method kinds, name, containing type, arity, and virtually everything
+            // else about the methods.  The only difference it will allow between the methods is that parameter types
+            // can be different if they are an array vs a ReadOnlySpan.
+            if (s_arrayAndReadOnlySpanCompareEqually.Equals(methodSymbol, newMethodSymbol))
                 return true;
-            }
         }
 
         return false;
