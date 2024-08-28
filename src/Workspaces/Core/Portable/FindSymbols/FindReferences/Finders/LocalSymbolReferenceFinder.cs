@@ -13,7 +13,7 @@ internal sealed class LocalSymbolReferenceFinder : AbstractMemberScopedReference
 {
     protected override bool TokensMatch(FindReferencesDocumentState state, SyntaxToken token, string name)
         => IdentifiersMatch(state.SyntaxFacts, name, token);
-        
+
     protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(ILocalSymbol symbol, Solution solution, FindReferencesSearchOptions options, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<ISymbol>.GetInstance(out var symbols);

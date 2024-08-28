@@ -92,10 +92,10 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
         var definitionWarning = GetDefinitionIssues(propertyReferences);
         var definitionToBackingField = CreateDefinitionToBackingFieldMap(propertyReferences);
 
-            var q = from r in propertyReferences
-                    where IsReplaceablePropertyReference(r, out _)
-                    from loc in r.Locations
-                    select (property: (IPropertySymbol)r.Definition, location: loc);
+        var q = from r in propertyReferences
+                where IsReplaceablePropertyReference(r, out _)
+                from loc in r.Locations
+                select (property: (IPropertySymbol)r.Definition, location: loc);
 
         var referencesByDocument = q.ToLookup(t => t.location.Document);
 
@@ -120,25 +120,25 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
     {
         var definitionToBackingField = ImmutableDictionary.CreateBuilder<IPropertySymbol, IFieldSymbol?>(SymbolEquivalenceComparer.Instance);
 
-            foreach (var reference in propertyReferences)
-            {
-                if (IsReplaceablePropertyReference(reference, out var property))
-                {
-                    var backingField = GetBackingField(property);
-                    definitionToBackingField[property] = backingField;
-                }
-            }
-
-            return definitionToBackingField.ToImmutable();
-        }
-
-        private static bool IsReplaceablePropertyReference(ReferencedSymbol reference, [NotNullWhen(true)] out IPropertySymbol? property)
+        foreach (var reference in propertyReferences)
         {
-            property = null;
-            if (reference.Definition is IPropertySymbol { ContainingType.IsAnonymousType: false } prop)
-                property = prop;
-            return property is not null;
+            if (IsReplaceablePropertyReference(reference, out var property))
+            {
+                var backingField = GetBackingField(property);
+                definitionToBackingField[property] = backingField;
+            }
         }
+
+        return definitionToBackingField.ToImmutable();
+    }
+
+    private static bool IsReplaceablePropertyReference(ReferencedSymbol reference, [NotNullWhen(true)] out IPropertySymbol? property)
+    {
+        property = null;
+        if (reference.Definition is IPropertySymbol { ContainingType.IsAnonymousType: false } prop)
+            property = prop;
+        return property is not null;
+    }
 
     private static bool HasAnyMatchingGetOrSetMethods(IPropertySymbol property, string name)
     {
@@ -318,32 +318,32 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
         return updatedSolution;
     }
 
-        private static async Task<MultiDictionary<DocumentId, IPropertySymbol>> GetDefinitionsByDocumentIdAsync(
-           Solution originalSolution,
-           IEnumerable<ReferencedSymbol> referencedSymbols,
-           CancellationToken cancellationToken)
+    private static async Task<MultiDictionary<DocumentId, IPropertySymbol>> GetDefinitionsByDocumentIdAsync(
+        Solution originalSolution,
+        IEnumerable<ReferencedSymbol> referencedSymbols,
+        CancellationToken cancellationToken)
+    {
+        var result = new MultiDictionary<DocumentId, IPropertySymbol>();
+        foreach (var referencedSymbol in referencedSymbols)
         {
-            var result = new MultiDictionary<DocumentId, IPropertySymbol>();
-            foreach (var referencedSymbol in referencedSymbols)
+            if (!IsReplaceablePropertyReference(referencedSymbol, out var definition))
+                continue;
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (definition.DeclaringSyntaxReferences.Length > 0)
             {
-                if (!IsReplaceablePropertyReference(referencedSymbol, out var definition))
-                    continue;
-
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (definition.DeclaringSyntaxReferences.Length > 0)
+                var syntax = await definition.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+                if (syntax != null)
                 {
-                    var syntax = await definition.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
-                    if (syntax != null)
+                    var document = originalSolution.GetDocument(syntax.SyntaxTree);
+                    if (document != null)
                     {
-                        var document = originalSolution.GetDocument(syntax.SyntaxTree);
-                        if (document != null)
-                        {
-                            result.Add(document.Id, definition);
-                        }
+                        result.Add(document.Id, definition);
                     }
                 }
             }
+        }
 
         return result;
     }
