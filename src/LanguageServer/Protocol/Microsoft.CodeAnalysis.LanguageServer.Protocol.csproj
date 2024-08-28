@@ -117,10 +117,6 @@
     </EmbeddedResource>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Handler\RelatedDocuments\" />
-  </ItemGroup>
-
   <Import Project="..\Microsoft.CommonLanguageServerProtocol.Framework\Microsoft.CommonLanguageServerProtocol.Framework.Shared.projitems" Label="Shared" />
 
 </Project>
