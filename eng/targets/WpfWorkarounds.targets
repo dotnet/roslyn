@@ -4,7 +4,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <_WindowsDesktopSDKDir>$(NuGetPackageRoot)Microsoft.NET.Sdk.WindowsDesktop\9.0.0-rc.1.24425.3\</_WindowsDesktopSDKDir>
+    <_WindowsDesktopSDKDir>$(NuGetPackageRoot)microsoft.net.sdk.windowsdesktop\9.0.0-rc.1.24425.3\</_WindowsDesktopSDKDir>
     <_PresentationBuildTasksTfm Condition="'$(MSBuildRuntimeType)' == 'Core'">net9.0</_PresentationBuildTasksTfm>
     <_PresentationBuildTasksTfm Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_PresentationBuildTasksTfm>
     <_PresentationBuildTasksAssembly Condition="'$(_PresentationBuildTasksAssembly)'==''">$([MSBuild]::Unescape($([System.IO.Path]::GetFullPath('$(_WindowsDesktopSDKDir)tools\$(_PresentationBuildTasksTfm)\PresentationBuildTasks.dll'))))</_PresentationBuildTasksAssembly>
