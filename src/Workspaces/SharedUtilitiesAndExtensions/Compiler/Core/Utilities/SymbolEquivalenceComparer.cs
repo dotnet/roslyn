@@ -79,24 +79,20 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         using var equivalenceVisitors = TemporaryArray<EquivalenceVisitor>.Empty;
         using var getHashCodeVisitors = TemporaryArray<GetHashCodeVisitor>.Empty;
 
-        foreach (var compareMethodTypeParametersByIndex in new[] { true, false })
-        {
-            foreach (var objectAndDynamicCompareEquallySwitch in new[] { true, false })
-            {
-                foreach (var arrayAndReadOnlySpanCompareEquallySwitch in new[] { true, false })
-                    AddVisitors(compareMethodTypeParametersByIndex, objectAndDynamicCompareEquallySwitch, arrayAndReadOnlySpanCompareEquallySwitch);
-            }
-        }
+        AddVisitors(compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: true);
+        AddVisitors(compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: false);
+        AddVisitors(compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: true);
+        AddVisitors(compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false);
 
         _equivalenceVisitors = equivalenceVisitors.ToImmutableAndClear();
         _getHashCodeVisitors = getHashCodeVisitors.ToImmutableAndClear();
 
         return;
 
-        void AddVisitors(bool compareMethodTypeParametersByIndex, bool objectAndDynamicCompareEqually, bool arrayAndReadOnlySpanCompareEquallySwitch)
+        void AddVisitors(bool compareMethodTypeParametersByIndex, bool objectAndDynamicCompareEqually)
         {
-            equivalenceVisitors.Add(new(this, compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually, arrayAndReadOnlySpanCompareEquallySwitch));
-            getHashCodeVisitors.Add(new(this, compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually, arrayAndReadOnlySpanCompareEquallySwitch));
+            equivalenceVisitors.Add(new(this, compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually));
+            getHashCodeVisitors.Add(new(this, compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually));
         }
     }
 
@@ -134,21 +130,21 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
     // here.  So, instead, when asking if parameters are equal, we pass an appropriate flag so
     // that method type parameters are just compared by index and nothing else.
     private EquivalenceVisitor GetEquivalenceVisitor(
-        bool compareMethodTypeParametersByIndex = false, bool objectAndDynamicCompareEqually = false, bool arrayAndReadOnlySpanCompareEqually = false)
+        bool compareMethodTypeParametersByIndex = false, bool objectAndDynamicCompareEqually = false)
     {
-        var visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually, arrayAndReadOnlySpanCompareEqually);
+        var visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually);
         return _equivalenceVisitors[visitorIndex];
     }
 
     private GetHashCodeVisitor GetGetHashCodeVisitor(
-        bool compareMethodTypeParametersByIndex, bool objectAndDynamicCompareEqually, bool arrayAndReadOnlySpanCompareEqually)
+        bool compareMethodTypeParametersByIndex, bool objectAndDynamicCompareEqually)
     {
-        var visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually, arrayAndReadOnlySpanCompareEqually);
+        var visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually);
         return _getHashCodeVisitors[visitorIndex];
     }
 
     private static int GetVisitorIndex(bool compareMethodTypeParametersByIndex, bool objectAndDynamicCompareEqually)
-        => (compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually, arrayAndReadOnlySpanCompareEqually) switch
+        => (compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually) switch
         {
             (true, true) => 0,
             (true, false) => 1,

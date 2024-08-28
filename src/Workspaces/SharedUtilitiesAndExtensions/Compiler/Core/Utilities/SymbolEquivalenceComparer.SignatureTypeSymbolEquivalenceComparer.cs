@@ -14,13 +14,7 @@ internal partial class SymbolEquivalenceComparer
             => this.Equals(x, y, null);
 
         public bool Equals(ITypeSymbol? x, ITypeSymbol? y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
-        {
-            var visitor = symbolEquivalenceComparer.GetEquivalenceVisitor(
-                compareMethodTypeParametersByIndex: true,
-                symbolEquivalenceComparer._objectAndDynamicCompareEqually,
-                symbolEquivalenceComparer._arrayAndReadOnlySpanCompareEqually);
-            return visitor.AreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
-        }
+            => symbolEquivalenceComparer.GetEquivalenceVisitor(compareMethodTypeParametersByIndex: true, symbolEquivalenceComparer._objectAndDynamicCompareEqually).AreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
 
         public int GetHashCode(ITypeSymbol? x)
             => symbolEquivalenceComparer.GetGetHashCodeVisitor(compareMethodTypeParametersByIndex: true, symbolEquivalenceComparer._objectAndDynamicCompareEqually).GetHashCode(x, currentHash: 0);

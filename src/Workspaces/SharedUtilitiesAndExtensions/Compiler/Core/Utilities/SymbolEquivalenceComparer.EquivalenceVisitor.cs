@@ -41,9 +41,14 @@ internal partial class SymbolEquivalenceComparer
                 // want to bail out using the above check.
                 if (objectAndDynamicCompareEqually)
                 {
-                    return (xKind == SymbolKind.DynamicType && IsObjectType(y)) ||
-                           (yKind == SymbolKind.DynamicType && IsObjectType(x));
+                    if ((xKind == SymbolKind.DynamicType && IsObjectType(y)) ||
+                        (yKind == SymbolKind.DynamicType && IsObjectType(x)))
+                    {
+                        return true;
+                    }
                 }
+
+                if (symbolEquivalenceComparer._arrayAndReadOnlySpanCompareEqually)
 
                 return false;
             }
