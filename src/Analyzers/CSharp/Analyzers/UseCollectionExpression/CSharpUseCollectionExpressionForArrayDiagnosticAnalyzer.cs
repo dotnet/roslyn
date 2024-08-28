@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
-using static SyntaxFactory;
+using static UseCollectionExpressionHelpers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer()
@@ -79,7 +79,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         if (matches.IsDefault)
             return default;
 
-        if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
+        if (!CanReplaceWithCollectionExpression(
                 semanticModel, expression, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
         {
             return default;
@@ -101,7 +101,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             if (ienumerableType is null)
                 return default;
 
-            if (!UseCollectionExpressionHelpers.IsConstructibleCollectionType(
+            if (!IsConstructibleCollectionType(
                     semanticModel.Compilation, ienumerableType.TypeArguments.Single()))
             {
                 return default;
@@ -122,7 +122,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
     {
         // if we have `new[] { ... }` we have no subsequent matches to add to the collection. All values come
         // from within the initializer.
-        if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
+        if (!CanReplaceWithCollectionExpression(
                 semanticModel, expression, replacementExpression, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
         {
             return default;
@@ -155,11 +155,10 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
 
         // Have to actually examine what would happen when we do the replacement, as the replaced value may interact
         // with inference based on the values within.
-        var replacementCollectionExpression = CollectionExpression(
-            [.. initializer.Expressions.Select(ExpressionElement)]);
+        var replacementCollectionExpression = CreateReplacementCollectionExpressionForAnalysis(initializer);
 
         var allowSemanticsChange = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
-        if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
+        if (!CanReplaceWithCollectionExpression(
                 semanticModel, arrayCreationExpression, replacementCollectionExpression,
                 expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken,
                 out var changesSemantics))

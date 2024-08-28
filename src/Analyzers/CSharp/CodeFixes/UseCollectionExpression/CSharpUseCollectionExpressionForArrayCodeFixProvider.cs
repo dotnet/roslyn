@@ -103,7 +103,7 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider()
             {
                 ImplicitArrayCreationExpressionSyntax arrayCreation
                     => CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(
-                        semanticModel, arrayCreation, expressionType, allowSemanticsChange: true, cancellationToken, out _),
+                        semanticModel, arrayCreation, CreateReplacementCollectionExpressionForAnalysis(arrayCreation.Initializer), expressionType, allowSemanticsChange: true, cancellationToken, out _),
 
                 ArrayCreationExpressionSyntax arrayCreation
                     => CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(

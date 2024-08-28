@@ -1234,4 +1234,7 @@ internal static class UseCollectionExpressionHelpers
             : SeparatedList<ArgumentSyntax>(initializer.Expressions.GetWithSeparators().Select(
                 nodeOrToken => nodeOrToken.IsToken ? nodeOrToken : Argument((ExpressionSyntax)nodeOrToken.AsNode()!)));
     }
+
+    public static CollectionExpressionSyntax CreateReplacementCollectionExpressionForAnalysis(InitializerExpressionSyntax initializer)
+        => CollectionExpression([.. initializer.Expressions.Select(ExpressionElement)]);
 }
