@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -53,8 +54,8 @@ internal sealed partial class ProjectSystemProjectFactory
         ImmutableDictionary<ProjectId, ProjectReferenceInformation> ProjectReferenceInfos,
         ImmutableArray<PortableExecutableReference> RemovedMetadataReferences,
         ImmutableArray<PortableExecutableReference> AddedMetadataReferences,
-        ImmutableArray<AnalyzerFileReference> RemovedAnalyzerReferences,
-        ImmutableArray<AnalyzerFileReference> AddedAnalyzerReferences)
+        ImmutableArray<string> RemovedAnalyzerReferences,
+        ImmutableArray<string> AddedAnalyzerReferences)
     {
         public static ProjectUpdateState Empty = new(
             ImmutableDictionary<string, ImmutableArray<ProjectId>>.Empty.WithComparers(StringComparer.OrdinalIgnoreCase),
@@ -120,11 +121,17 @@ internal sealed partial class ProjectSystemProjectFactory
         public ProjectUpdateState WithIncrementalMetadataReferenceAdded(PortableExecutableReference reference)
             => this with { AddedMetadataReferences = AddedMetadataReferences.Add(reference) };
 
-        public ProjectUpdateState WithIncrementalAnalyzerReferenceRemoved(AnalyzerFileReference reference)
+        public ProjectUpdateState WithIncrementalAnalyzerReferenceRemoved(string reference)
             => this with { RemovedAnalyzerReferences = RemovedAnalyzerReferences.Add(reference) };
 
-        public ProjectUpdateState WithIncrementalAnalyzerReferenceAdded(AnalyzerFileReference reference)
+        public ProjectUpdateState WithIncrementalAnalyzerReferencesRemoved(List<string> references)
+            => this with { RemovedAnalyzerReferences = RemovedAnalyzerReferences.AddRange(references) };
+
+        public ProjectUpdateState WithIncrementalAnalyzerReferenceAdded(string reference)
             => this with { AddedAnalyzerReferences = AddedAnalyzerReferences.Add(reference) };
+
+        public ProjectUpdateState WithIncrementalAnalyzerReferencesAdded(List<string> references)
+            => this with { AddedAnalyzerReferences = AddedAnalyzerReferences.AddRange(references) };
 
         /// <summary>
         /// Returns a new instance with any incremental state that should not be saved between updates cleared.

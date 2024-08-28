@@ -9,20 +9,19 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 
-namespace Microsoft.VisualStudio.LanguageServices.Telemetry
-{
-    [ExportWorkspaceService(typeof(IWorkspaceTelemetryService)), Shared]
-    internal sealed class RemoteWorkspaceTelemetryService : AbstractWorkspaceTelemetryService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteWorkspaceTelemetryService()
-        {
-        }
+namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
 
-        protected override ILogger CreateLogger(TelemetrySession telemetrySession, bool logDelta)
-            => AggregateLogger.Create(
-                TelemetryLogger.Create(telemetrySession, logDelta),
-                Logger.GetLogger());
+[ExportWorkspaceService(typeof(IWorkspaceTelemetryService)), Shared]
+internal sealed class RemoteWorkspaceTelemetryService : AbstractWorkspaceTelemetryService
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RemoteWorkspaceTelemetryService()
+    {
     }
+
+    protected override ILogger CreateLogger(TelemetrySession telemetrySession, bool logDelta)
+        => AggregateLogger.Create(
+            TelemetryLogger.Create(telemetrySession, logDelta),
+            Logger.GetLogger());
 }
