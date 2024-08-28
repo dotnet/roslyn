@@ -5785,7 +5785,49 @@ public class UseCollectionExpressionForArrayTests
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/74931")]
-    public async Task AllowSwitchToReadOnlySpanGeneric(bool whenTypesLooselyMatch)
+    public async Task AllowSwitchToReadOnlySpanGeneric1(bool whenTypesLooselyMatch)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M(char c)
+                    {
+                        Split([|[|new|][]|] { c });
+                    }
+
+                    void Split<T>(T[] p) { }
+                    void Split<T>(ReadOnlySpan<T> p) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class C
+                {
+                    void M(char c)
+                    {
+                        Split([c]);
+                    }
+                
+                    void Split<T>(T[] p) { }
+                    void Split<T>(ReadOnlySpan<T> p) { }
+                }
+                """,
+            EditorConfig = $$"""
+                [*]
+                dotnet_style_prefer_collection_expression={{(whenTypesLooselyMatch ? "when_types_loosely_match" : "when_types_exactly_match")}}
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/74931")]
+    public async Task AllowSwitchToReadOnlySpanGeneric2(bool whenTypesLooselyMatch)
     {
         await new VerifyCS.Test
         {
