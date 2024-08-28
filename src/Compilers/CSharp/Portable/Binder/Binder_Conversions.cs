@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (current?.Flags.Includes(BinderFlags.CollectionInitializerAddMethod) == true)
             {
                 if (current is CollectionInitializerAddMethodBinder binder &&
-                    binder.Syntax.FullSpan.Equals(syntax.FullSpan) &&
+                    binder.Syntax == syntax &&
                     binder.CollectionType.OriginalDefinition.Equals(targetType.OriginalDefinition, TypeCompareKind.AllIgnoreOptions))
                 {
                     return true;
