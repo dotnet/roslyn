@@ -4,6 +4,7 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
+    using System;
     using System.Text.Json.Serialization;
 
     /// <summary>
@@ -11,13 +12,26 @@ namespace Roslyn.LanguageServer.Protocol
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentColorParams">Language Server Protocol specification</see> for additional information.
     /// </summary>
-    internal class DocumentColorParams : ITextDocumentParams
+    internal class DocumentColorParams :
+        ITextDocumentParams,
+        IPartialResultParams<ColorInformation[]>
     {
         /// <summary>
-        /// Gets or sets the <see cref="TextDocumentIdentifier"/> to provide links for.
+        /// Gets or sets the <see cref="TextDocumentIdentifier"/> to provide colors for.
         /// </summary>
         [JsonPropertyName("textDocument")]
         public TextDocumentIdentifier TextDocument
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
+        /// Gets or sets the value of the PartialResultToken instance.
+        /// </summary>
+        [JsonPropertyName("partialResultToken")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public IProgress<ColorInformation[]>? PartialResultToken
         {
             get;
             set;

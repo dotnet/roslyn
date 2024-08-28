@@ -125,6 +125,11 @@ namespace Roslyn.LanguageServer.Protocol
         public const string TextDocumentDocumentColorName = "textDocument/documentColor";
 
         /// <summary>
+        /// Method name for 'textDocument/colorPresentation'.
+        /// </summary>
+        public const string TextDocumentColorPresentationName = "textDocument/colorPresentation";
+
+        /// <summary>
         /// Method name for 'textDocument/documentSymbol'.
         /// </summary>
         public const string TextDocumentDocumentSymbolName = "textDocument/documentSymbol";

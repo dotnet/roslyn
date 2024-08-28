@@ -157,6 +157,17 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
+        /// Gets or sets the setting which determines if colorProvider can be dynamically registered.
+        /// </summary>
+        [JsonPropertyName("colorProvider")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public DynamicRegistrationSetting? ColorProvider
+        {
+            get;
+            set;
+        }
+
+        /// <summary>
         /// Gets or sets the setting which determines if formatting can be dynamically registered.
         /// </summary>
         [JsonPropertyName("formatting")]

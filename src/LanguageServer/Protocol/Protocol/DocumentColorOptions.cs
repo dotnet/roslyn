@@ -7,7 +7,7 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class which represents workspace symbols capabilities.
+    /// Class which represents document color capabilities.
     ///
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentColorOptions">Language Server Protocol specification</see> for additional information.
     /// </summary>
