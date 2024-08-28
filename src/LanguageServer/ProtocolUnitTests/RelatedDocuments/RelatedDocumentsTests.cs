@@ -153,12 +153,12 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
         await using var testLspServer = await CreateTestLspServerAsync([markup1, markup2], mutatingLspWorkspace);
 
         var project = testLspServer.TestWorkspace.CurrentSolution.Projects.Single();
-        var results = await RunGetRelatedDocumentsAsync(
+        var results1 = await RunGetRelatedDocumentsAsync(
             testLspServer,
             project.Documents.First().GetURI(),
             useProgress: useProgress);
 
-        AssertJsonEquals(results, new VSInternalRelatedDocumentReport[]
+        AssertJsonEquals(results1, new VSInternalRelatedDocumentReport[]
         {
             new()
             {
@@ -168,13 +168,13 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
         });
 
         // Calling again, without a change, should return the old result id and no filepaths.
-        var results1 = await RunGetRelatedDocumentsAsync(
+        var results2 = await RunGetRelatedDocumentsAsync(
             testLspServer,
             project.Documents.First().GetURI(),
             previousResultId: results.Single().ResultId,
             useProgress: useProgress);
 
-        AssertJsonEquals(results, new VSInternalRelatedDocumentReport[]
+        AssertJsonEquals(results2, new VSInternalRelatedDocumentReport[]
         {
             new()
             {
