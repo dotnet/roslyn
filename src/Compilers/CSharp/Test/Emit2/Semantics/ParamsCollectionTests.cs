@@ -14453,6 +14453,104 @@ namespace System.Runtime.CompilerServices
             CreateCompilation(source).VerifyEmitDiagnostics();
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
+        public void Cycle_21()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class MyCollection1<T> : IEnumerable<T>
+                {
+                    public IEnumerator<T> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add(params MyCollection1<T> c) {}
+                }
+
+                public class C
+                {
+                    MyCollection1<object> M() => [1];
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (13,35): error CS9222: Collection initializer results in an infinite chain of instantiations of collection 'MyCollection1<object>'.
+                //     MyCollection1<object> M() => [1];
+                Diagnostic(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, "1").WithArguments("MyCollection1<object>").WithLocation(13, 35));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
+        public void Cycle_22()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class MyCollection1<T> : IEnumerable<T>
+                {
+                    public IEnumerator<T> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add(params MyCollection1<object> c) {}
+                }
+
+                public class C
+                {
+                    MyCollection1<object> M() => [1];
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (13,35): error CS9222: Collection initializer results in an infinite chain of instantiations of collection 'MyCollection1<object>'.
+                //     MyCollection1<object> M() => [1];
+                Diagnostic(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, "1").WithArguments("MyCollection1<object>").WithLocation(13, 35));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
+        public void Cycle_23()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class MyCollection1<T> : IEnumerable<T>
+                {
+                    public IEnumerator<T> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add(T x) {}
+                    public void Add(params MyCollection1<T> c) {}
+                }
+
+                public class C
+                {
+                    MyCollection1<object> M() => [1];
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
+        public void Cycle_24()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class MyCollection1<T> : IEnumerable<T>
+                {
+                    public IEnumerator<T> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add(params MyCollection1<int> c) {}
+                }
+
+                public class C
+                {
+                    MyCollection1<object> M() => [1];
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (13,35): error CS9222: Collection initializer results in an infinite chain of instantiations of collection 'MyCollection1<int>'.
+                //     MyCollection1<object> M() => [1];
+                Diagnostic(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, "1").WithArguments("MyCollection1<int>").WithLocation(13, 35));
+        }
+
         [Fact]
         public void InvalidParamsTypeInPartialMethod()
         {
