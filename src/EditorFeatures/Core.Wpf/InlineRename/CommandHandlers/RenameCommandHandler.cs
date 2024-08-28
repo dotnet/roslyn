@@ -100,7 +100,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             try
             {
-                await base.CommitAndSetFocusAsync(activeSession, textView, operationContext);
+                // ConfigureAwait(true) in case exception needs to be reported.
+                await base.CommitAndSetFocusAsync(activeSession, textView, operationContext).ConfigureAwait(true);
             }
             catch (NotSupportedException ex)
             {
