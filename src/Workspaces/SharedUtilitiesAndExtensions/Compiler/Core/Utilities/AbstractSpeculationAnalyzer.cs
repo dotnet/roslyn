@@ -455,10 +455,8 @@ internal abstract class AbstractSpeculationAnalyzer<
                    CompareAcrossSemanticModels(parameterSymbol.Type, newParameterSymbol.Type);
         }
 
-        if (symbol is IMethodSymbol methodSymbol &&
-            newSymbol is IMethodSymbol newMethodSymbol &&
-            methodSymbol.IsLocalFunction() &&
-            newMethodSymbol.IsLocalFunction())
+        if (symbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction } methodSymbol &&
+            newSymbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction } newMethodSymbol)
         {
             return symbol.Name == newSymbol.Name &&
                    methodSymbol.Parameters.Length == newMethodSymbol.Parameters.Length &&
