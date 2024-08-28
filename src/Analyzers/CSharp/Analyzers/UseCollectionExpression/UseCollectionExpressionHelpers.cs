@@ -33,6 +33,8 @@ internal static class UseCollectionExpressionHelpers
         distinguishRefFromOut: true,
         // Not relevant.  We are not comparing method signatures.
         objectAndDynamicCompareEqually: false,
+        // Not relevant.  We are not comparing method signatures.
+        arrayAndReadOnlySpanCompareEqually: false,
         // The value we're tweaking.
         tupleNamesMustMatch: false,
         // We do not want to ignore this.  `ImmutableArray<string?>` should not be convertible to `ImmutableArray<string>`

@@ -13,12 +13,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
 internal partial class SymbolEquivalenceComparer
 {
-    private class EquivalenceVisitor(
+    private sealed class EquivalenceVisitor(
         SymbolEquivalenceComparer symbolEquivalenceComparer,
         bool compareMethodTypeParametersByIndex,
         bool objectAndDynamicCompareEqually)
     {
-
         public bool AreEquivalent(ISymbol? x, ISymbol? y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
         {
             if (ReferenceEquals(x, y))

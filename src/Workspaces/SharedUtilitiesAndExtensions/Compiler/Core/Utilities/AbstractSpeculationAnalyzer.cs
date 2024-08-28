@@ -53,7 +53,10 @@ internal abstract class AbstractSpeculationAnalyzer<
     private SemanticModel? _lazySpeculativeSemanticModel;
 
     private static readonly SymbolEquivalenceComparer s_includeNullabilityComparer =
-        SymbolEquivalenceComparer.Create(distinguishRefFromOut: true, tupleNamesMustMatch: true, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: false);
+        SymbolEquivalenceComparer.Create(distinguishRefFromOut: true, tupleNamesMustMatch: true, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: false, arrayAndReadOnlySpanCompareEqually: false);
+
+    private static readonly SymbolEquivalenceComparer s_arrayAndReadOnlySpanCompareEqually = s_includeNullabilityComparer.With(arrayAndReadOnlySpanCompareEqually: true);
+
 
     /// <summary>
     /// Creates a semantic analyzer for speculative syntax replacement.
@@ -402,6 +405,21 @@ internal abstract class AbstractSpeculationAnalyzer<
                         return true;
                     }
                 }
+            }
+
+            if (methodSymbol.MethodKind == newMethodSymbol.MethodKind &&
+                Equals(methodSymbol.ContainingType, newMethodSymbol.ContainingType) &&
+                Equals(methodSymbol.Name, newMethodSymbol.Name))
+            {
+                // We consider two method overloads compatible if one takes a T[] array for a particular parameter, and
+                // the other takes a ReadOnlySpan<T> for the same parameter.  This is a considered a supported and
+                // desirable API upgrade story for API authors.  Specifically, they start with an array-based method,
+                // and then add a sibling ROS method.  In that case, the language will prefer the latter when both are
+                // applicable.  So if we make a code change that makes the second compatible, then we are ok with that,
+                // as the expectation is that the new method has the same semantics and it is desirable for code to now
+                // call that.
+                if (methodSymbol.Parameters.SequenceEqual(newMethodSymbol.Parameters, s_arrayAndReadOnlySpanCompareEqually.ParameterEquivalenceComparer))
+                    return true;
             }
         }
 
