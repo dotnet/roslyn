@@ -2569,7 +2569,124 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void ReadOnly_05(bool useStatic)
+        public void ReadOnly_05(bool useInit)
+        {
+            string setter = useInit ? "init" : "set";
+            string source = $$"""
+                struct S
+                {
+                    object P1 { readonly get; }
+                    object P2 { readonly {{setter}}; }
+                    object P3 { readonly get; {{setter}}; }
+                    object P4 { get; readonly {{setter}}; }
+                    object P5 { readonly get; readonly {{setter}}; }
+                    object Q1 { readonly get => field; }
+                    object Q2 { readonly {{setter}} { _ = field; } }
+                    object Q3 { readonly get => field; {{setter}}; }
+                    object Q4 { get; readonly {{setter}} { } }
+                    object Q5 { readonly get => field; readonly {{setter}} { } }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            if (useInit)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,12): error CS8664: 'S.P1': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                    //     object P1 { readonly get; }
+                    Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P1").WithArguments("S.P1").WithLocation(3, 12),
+                    // (4,12): error CS8664: 'S.P2': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                    //     object P2 { readonly init; }
+                    Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P2").WithArguments("S.P2").WithLocation(4, 12),
+                    // (4,26): error CS8903: 'init' accessors cannot be marked 'readonly'. Mark 'S.P2' readonly instead.
+                    //     object P2 { readonly init; }
+                    Diagnostic(ErrorCode.ERR_InitCannotBeReadonly, "init").WithArguments("S.P2").WithLocation(4, 26),
+                    // (4,26): error CS8051: Auto-implemented properties must have get accessors.
+                    //     object P2 { readonly init; }
+                    Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "init").WithLocation(4, 26),
+                    // (6,31): error CS8903: 'init' accessors cannot be marked 'readonly'. Mark 'S.P4' readonly instead.
+                    //     object P4 { get; readonly init; }
+                    Diagnostic(ErrorCode.ERR_InitCannotBeReadonly, "init").WithArguments("S.P4").WithLocation(6, 31),
+                    // (7,12): error CS8661: Cannot specify 'readonly' modifiers on both accessors of property or indexer 'S.P5'. Instead, put a 'readonly' modifier on the property itself.
+                    //     object P5 { readonly get; readonly init; }
+                    Diagnostic(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, "P5").WithArguments("S.P5").WithLocation(7, 12),
+                    // (7,40): error CS8903: 'init' accessors cannot be marked 'readonly'. Mark 'S.P5' readonly instead.
+                    //     object P5 { readonly get; readonly init; }
+                    Diagnostic(ErrorCode.ERR_InitCannotBeReadonly, "init").WithArguments("S.P5").WithLocation(7, 40),
+                    // (8,12): error CS8664: 'S.Q1': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                    //     object Q1 { readonly get => field; }
+                    Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "Q1").WithArguments("S.Q1").WithLocation(8, 12),
+                    // (9,12): error CS8664: 'S.Q2': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                    //     object Q2 { readonly init { _ = field; } }
+                    Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "Q2").WithArguments("S.Q2").WithLocation(9, 12),
+                    // (9,26): error CS8903: 'init' accessors cannot be marked 'readonly'. Mark 'S.Q2' readonly instead.
+                    //     object Q2 { readonly init { _ = field; } }
+                    Diagnostic(ErrorCode.ERR_InitCannotBeReadonly, "init").WithArguments("S.Q2").WithLocation(9, 26),
+                    // (11,31): error CS8903: 'init' accessors cannot be marked 'readonly'. Mark 'S.Q4' readonly instead.
+                    //     object Q4 { get; readonly init { } }
+                    Diagnostic(ErrorCode.ERR_InitCannotBeReadonly, "init").WithArguments("S.Q4").WithLocation(11, 31),
+                    // (12,12): error CS8661: Cannot specify 'readonly' modifiers on both accessors of property or indexer 'S.Q5'. Instead, put a 'readonly' modifier on the property itself.
+                    //     object Q5 { readonly get => field; readonly init { } }
+                    Diagnostic(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, "Q5").WithArguments("S.Q5").WithLocation(12, 12),
+                    // (12,49): error CS8903: 'init' accessors cannot be marked 'readonly'. Mark 'S.Q5' readonly instead.
+                    //     object Q5 { readonly get => field; readonly init { } }
+                    Diagnostic(ErrorCode.ERR_InitCannotBeReadonly, "init").WithArguments("S.Q5").WithLocation(12, 49));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,12): error CS8664: 'S.P1': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                    //     object P1 { readonly get; }
+                    Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P1").WithArguments("S.P1").WithLocation(3, 12),
+                    // (4,12): error CS8664: 'S.P2': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                    //     object P2 { readonly set; }
+                    Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P2").WithArguments("S.P2").WithLocation(4, 12),
+                    // (4,26): error CS8658: Auto-implemented 'set' accessor 'S.P2.set' cannot be marked 'readonly'.
+                    //     object P2 { readonly set; }
+                    Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P2.set").WithLocation(4, 26),
+                    // (4,26): error CS8051: Auto-implemented properties must have get accessors.
+                    //     object P2 { readonly set; }
+                    Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithLocation(4, 26),
+                    // (6,31): error CS8658: Auto-implemented 'set' accessor 'S.P4.set' cannot be marked 'readonly'.
+                    //     object P4 { get; readonly set; }
+                    Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P4.set").WithLocation(6, 31),
+                    // (7,12): error CS8661: Cannot specify 'readonly' modifiers on both accessors of property or indexer 'S.P5'. Instead, put a 'readonly' modifier on the property itself.
+                    //     object P5 { readonly get; readonly set; }
+                    Diagnostic(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, "P5").WithArguments("S.P5").WithLocation(7, 12),
+                    // (7,40): error CS8658: Auto-implemented 'set' accessor 'S.P5.set' cannot be marked 'readonly'.
+                    //     object P5 { readonly get; readonly set; }
+                    Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P5.set").WithLocation(7, 40),
+                    // (8,12): error CS8664: 'S.Q1': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                    //     object Q1 { readonly get => field; }
+                    Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "Q1").WithArguments("S.Q1").WithLocation(8, 12),
+                    // (9,12): error CS8664: 'S.Q2': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                    //     object Q2 { readonly set { _ = field; } }
+                    Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "Q2").WithArguments("S.Q2").WithLocation(9, 12),
+                    // (12,12): error CS8661: Cannot specify 'readonly' modifiers on both accessors of property or indexer 'S.Q5'. Instead, put a 'readonly' modifier on the property itself.
+                    //     object Q5 { readonly get => field; readonly set { } }
+                    Diagnostic(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, "Q5").WithArguments("S.Q5").WithLocation(12, 12));
+            }
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("S").GetMembers().OfType<FieldSymbol>().Select(f => $"{f.ToTestDisplayString()}: {f.IsReadOnly}");
+            // PROTOTYPE: When constructing the backing field in SourcePropertySymbolBase..ctor(),
+            // we're currently ignoring the readonly modifier on accessors.
+            var expectedMembers = new[]
+            {
+                $"System.Object S.<P1>k__BackingField: True",
+                $"System.Object S.<P2>k__BackingField: {useInit}",
+                $"System.Object S.<P3>k__BackingField: {useInit}",
+                $"System.Object S.<P4>k__BackingField: {useInit}",
+                $"System.Object S.<P5>k__BackingField: {useInit}",
+                $"System.Object S.<Q1>k__BackingField: False",
+                $"System.Object S.<Q2>k__BackingField: {useInit}",
+                $"System.Object S.<Q3>k__BackingField: False",
+                $"System.Object S.<Q4>k__BackingField: {useInit}",
+                $"System.Object S.<Q5>k__BackingField: False",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ReadOnly_06(bool useStatic)
         {
             string propertyModifier = useStatic ? "static" : "      ";
             string source = $$"""
@@ -2636,7 +2753,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void ReadOnly_06()
+        public void ReadOnly_07()
         {
             string source = """
                 struct S0

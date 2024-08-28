@@ -193,6 +193,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
+                    // PROTOTYPE: We could treat the field as readonly if all manually implemented get and set
+                    // accessors are declared readonly. Although, to do so, we might need to bind the accessor
+                    // declarations before creating the backing field. See FieldKeywordTests.ReadOnly_05().
                     isReadOnly = false;
                 }
 
