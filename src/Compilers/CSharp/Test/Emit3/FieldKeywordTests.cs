@@ -3496,6 +3496,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void Nullable_NotResilient_Initialized_02()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    public C() { Prop = "a"; }
+                    public string Prop { get => field; set => field = value; }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var prop = comp.GetMember<SourcePropertySymbol>("C.Prop");
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.GetInferredNullableAnnotation());
+            Assert.Equal(NullableAnnotation.NotAnnotated, prop.BackingField.TypeWithAnnotations.NullableAnnotation);
+        }
+
+        [Fact]
         public void Nullable_Resilient_NotInitialized_01()
         {
             var source = """
