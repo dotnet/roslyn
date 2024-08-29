@@ -5772,6 +5772,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isRef)
             {
+                Debug.Assert(node is not BoundConditionalOperator { WasTargetTyped: true }, """
+                    Unexpected ref target typed conditional operator.
+                    Should not do type inference below in this case.
+                    """);
+
                 TypeWithAnnotations consequenceLValue;
                 TypeWithAnnotations alternativeLValue;
 
@@ -5780,20 +5785,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (alternativeLValue, alternativeRValue) = visitConditionalRefOperand(alternativeState, originalAlternative);
                 Join(ref this.State, ref consequenceState);
 
+                var lValueAnnotation = consequenceLValue.NullableAnnotation.EnsureCompatible(alternativeLValue.NullableAnnotation);
+                var rValueState = consequenceRValue.State.Join(alternativeRValue.State);
+
                 TypeSymbol? refResultType = node.Type?.SetUnknownNullabilityForReferenceTypes();
-                if (!node.IsSuppressed && !originalConsequence.IsSuppressed && !originalAlternative.IsSuppressed &&
-                    IsNullabilityMismatch(consequenceLValue, alternativeLValue))
+                if (IsNullabilityMismatch(consequenceLValue, alternativeLValue))
                 {
-                    // l-value types must match
-                    ReportNullabilityMismatchInAssignment(node.Syntax, consequenceLValue, alternativeLValue);
+                    // If there is a mismatch between the operands, use type inference to determine the target type.
+                    BoundExpression consequencePlaceholder = CreatePlaceholderIfNecessary(originalConsequence, consequenceLValue);
+                    BoundExpression alternativePlaceholder = CreatePlaceholderIfNecessary(originalAlternative, alternativeLValue);
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    refResultType = BestTypeInferrer.InferBestTypeForConditionalOperator(consequencePlaceholder, alternativePlaceholder, _conversions, out _, ref discardedUseSiteInfo);
+
+                    // Report warning for each operand that is not convertible to the target type.
+                    var refResultTypeWithAnnotations = TypeWithAnnotations.Create(refResultType, lValueAnnotation);
+                    reportMismatchIfNecessary(originalConsequence, consequenceLValue, refResultTypeWithAnnotations);
+                    reportMismatchIfNecessary(originalAlternative, alternativeLValue, refResultTypeWithAnnotations);
+
+                    // Set "not null" top-level nullability. Consistent with equivalent method type inference or non-ref ternary scenarios.
+                    lValueAnnotation = NullableAnnotation.NotAnnotated;
+                    rValueState = NullableFlowState.NotNull;
+
+                    void reportMismatchIfNecessary(BoundExpression node, TypeWithAnnotations source, TypeWithAnnotations destination)
+                    {
+                        if (!node.IsSuppressed && IsNullabilityMismatch(source, destination))
+                        {
+                            ReportNullabilityMismatchInAssignment(node.Syntax, source, destination);
+                        }
+                    }
                 }
                 else if (!node.HasErrors)
                 {
                     refResultType = consequenceRValue.Type!.MergeEquivalentTypes(alternativeRValue.Type, VarianceKind.None);
                 }
-
-                var lValueAnnotation = consequenceLValue.NullableAnnotation.EnsureCompatible(alternativeLValue.NullableAnnotation);
-                var rValueState = consequenceRValue.State.Join(alternativeRValue.State);
 
                 SetResult(node, TypeWithState.Create(refResultType, rValueState), TypeWithAnnotations.Create(refResultType, lValueAnnotation));
                 return null;
