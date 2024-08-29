@@ -213,7 +213,7 @@ internal sealed class CSharpDeclareAsNullableCodeFixProvider() : SyntaxEditorBas
         if (node.Parent is ArgumentSyntax argument && argument.Parent?.Parent is InvocationExpressionSyntax invocation)
         {
             var symbol = model.GetSymbolInfo(invocation.Expression, cancellationToken).Symbol;
-            if (symbol is not IMethodSymbol method || method.PartialImplementationPart is not null)
+            if (symbol is not IMethodSymbol method/* || method.PartialImplementationPart is not null*/)
             {
                 // https://github.com/dotnet/roslyn/issues/73772: should we also bail out on a partial property?
                 // We don't handle partial methods yet
