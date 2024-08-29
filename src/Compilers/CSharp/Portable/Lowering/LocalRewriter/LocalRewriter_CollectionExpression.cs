@@ -1092,7 +1092,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var useSiteInfo = GetNewCompoundUseSiteInfo();
                         conversion = _compilation.Conversions.ClassifyConversionFromType(type, addRangeMethod.Parameters[0].Type, isChecked: false, ref useSiteInfo);
                         _diagnostics.Add(rewrittenSpreadOperand.Syntax, useSiteInfo);
-                        if (conversion.IsIdentity || (conversion.IsImplicit && conversion.IsReference))
+                        if (conversion.Kind is ConversionKind.Identity or ConversionKind.ImplicitReference)
                         {
                             conversion.MarkUnderlyingConversionsCheckedRecursive();
                             sideEffects.Add(_factory.Call(listTemp, addRangeMethod, rewrittenSpreadOperand));
