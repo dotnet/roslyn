@@ -661,17 +661,18 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
-        if (TryDismissUIAndRollbackEdits_MustBeCalledOnUIThread())
-            EndRenameSessions_MustBeCalledOnUIThread(outcome, previewChanges);
+        DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(outcome, previewChanges, applyChangesOpt: null);
     }
 
     /// <summary>
-    /// Dismisses the UI, rolls back any edits, and ends the rename session.  Will only do work the first time this is
-    /// called.  If this returns <see langword="true"/> the caller should then call <see
-    /// cref="EndRenameSessions_MustBeCalledOnUIThread"/> (after optionally making any changes it wants to the workspace).
+    /// Dismisses the UI, rolls back any edits, and ends the rename session.
     /// </summary>
-    private bool TryDismissUIAndRollbackEdits_MustBeCalledOnUIThread()
-    {        // Note: this entire sequence of steps is not cancellable.  We must perform it all to get back to a correct
+    private bool DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(
+        RenameLogMessage.UserActionOutcome outcome,
+        bool previewChanges,
+        Action applyChangesOpt)
+    {
+        // Note: this entire sequence of steps is not cancellable.  We must perform it all to get back to a correct
         // state for all the editors the user is interacting with.
         var cancellationToken = CancellationToken.None;
         _threadingContext.ThrowIfNotOnUIThread();
@@ -690,6 +691,18 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
         // Close the keep alive session we have open with OOP, allowing it to release the solution it is holding onto.
         _keepAliveSession.Dispose();
+
+        // Make any changes to the workspace if requested.
+        applyChangesOpt?.Invoke();
+
+        // Log the result so we know how well rename is going in practice.
+        LogRenameSession(outcome, previewChanges);
+
+        // Remove all our rename trackers from the text buffer properties.
+        RenameTrackingDismisser.DismissRenameTracking(Workspace, Workspace.GetOpenDocumentIds());
+
+        // Log how long the full rename took.
+        _inlineRenameSessionDurationLogBlock.Dispose();
 
         return true;
 
@@ -719,24 +732,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
             RenameService.ActiveSession = null;
         }
-    }
-
-    /// <summary>
-    /// Call after <see cref="TryDismissUIAndRollbackEdits_MustBeCalledOnUIThread"/> is called, and optionally after any
-    /// changes are actually applied to the workspace.
-    /// </summary>
-    private void EndRenameSessions_MustBeCalledOnUIThread(
-        RenameLogMessage.UserActionOutcome outcome,
-        bool previewChanges)
-    {
-        // Log the result so we know how well rename is going in practice.
-        LogRenameSession(outcome, previewChanges);
-
-        // Remove all our rename trackers from the text buffer properties.
-        RenameTrackingDismisser.DismissRenameTracking(Workspace, Workspace.GetOpenDocumentIds());
-
-        // Log how long the full rename took.
-        _inlineRenameSessionDurationLogBlock.Dispose();
     }
 
     /// <remarks>
@@ -892,9 +887,10 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             cancellationToken = CancellationToken.None;
 
             // Dismiss the rename UI and rollback any linked edits made.
-            if (TryDismissUIAndRollbackEdits_MustBeCalledOnUIThread())
-            {
-                try
+            DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(
+                RenameLogMessage.UserActionOutcome.Committed,
+                previewChanges,
+                applyChangesOpt: () =>
                 {
                     // Now try to apply that change we computed to the workspace.
                     var error = TryApplyRename(documentChanges);
@@ -904,12 +900,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                         notificationService.SendNotification(
                             error.Value.message, EditorFeaturesResources.Rename_Symbol, error.Value.severity);
                     }
-                }
-                finally
-                {
-                    this.EndRenameSessions_MustBeCalledOnUIThread(RenameLogMessage.UserActionOutcome.Committed, previewChanges);
-                }
-            }
+                });
         }
 
         static async Task<ImmutableArray<(DocumentId documentId, string newName, SyntaxNode newRoot, SourceText newText)>> CalculateFinalDocumentChangesAsync(
