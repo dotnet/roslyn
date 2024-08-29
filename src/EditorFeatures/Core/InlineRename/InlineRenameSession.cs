@@ -655,16 +655,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             RenameLogMessage.UserActionOutcome.Canceled, previewChanges: false);
     }
 
-    private void DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(
-        RenameLogMessage.UserActionOutcome outcome,
-        bool previewChanges)
-    {
-        _threadingContext.ThrowIfNotOnUIThread();
-
-        DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(
-            outcome, previewChanges);
-    }
-
     /// <summary>
     /// Dismisses the UI, rolls back any edits, and ends the rename session.
     /// </summary>
