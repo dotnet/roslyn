@@ -2666,8 +2666,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, "Q5").WithArguments("S.Q5").WithLocation(12, 12));
             }
             var actualMembers = comp.GetMember<NamedTypeSymbol>("S").GetMembers().OfType<FieldSymbol>().Select(f => $"{f.ToTestDisplayString()}: {f.IsReadOnly}");
-            // PROTOTYPE: When constructing the backing field in SourcePropertySymbolBase..ctor(),
-            // we're currently ignoring the readonly modifier on accessors.
+            // PROTOTYPE: When determining whether the backing field should be readonly in
+            // SourcePropertySymbolBase..ctor(), we're ignoring the readonly modifier on accessors.
             var expectedMembers = new[]
             {
                 $"System.Object S.<P1>k__BackingField: True",
