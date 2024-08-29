@@ -34950,6 +34950,45 @@ partial class Program
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71217")]
+        public void List_SingleSpread_IEnumerable_PropertyAccess()
+        {
+            var source = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    private IEnumerable<int> E { get; set; }
+
+                    static void Main()
+                    {
+                        var c = new C()
+                        {
+                            E = [1, 2, 3]
+                        };
+
+                        M(c).Report();
+                    }
+
+                    static List<int> M(C c) => [.. c.E];
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, s_collectionExtensions], expectedOutput: "[1, 2, 3],", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C.M", """
+                {
+                  // Code size       12 (0xc)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  callvirt   "System.Collections.Generic.IEnumerable<int> C.E.get"
+                  IL_0006:  call       "System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)"
+                  IL_000b:  ret
+                }
+                """);
+        }
+
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71217")]
         [InlineData("ICollection<int>")]
         [InlineData("IList<int>")]

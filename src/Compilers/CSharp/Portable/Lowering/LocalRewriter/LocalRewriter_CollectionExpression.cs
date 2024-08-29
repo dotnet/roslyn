@@ -180,7 +180,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            result = _factory.Call(receiver: null, toListOfElementType, singleSpread.Expression);
+            var rewrittenSpreadExpression = VisitExpression(singleSpread.Expression);
+            result = _factory.Call(receiver: null, toListOfElementType, rewrittenSpreadExpression);
             return true;
         }
 
