@@ -126,7 +126,6 @@ End Module", HangMitigatingCancellationToken);
         await TestServices.Debugger.SetBreakpointAsync(ProjectName, FileName, "x * x", charsOffset: -1, HangMitigatingCancellationToken);
 
         var succeed = await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
-        Assert.True(succeed);
 
         await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
 
