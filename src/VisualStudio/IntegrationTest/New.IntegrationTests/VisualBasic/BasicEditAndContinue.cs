@@ -11,6 +11,7 @@ using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.Test.Utilities;
 using Xunit;
+using System;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
 
@@ -123,6 +124,14 @@ End Module", HangMitigatingCancellationToken);
 
         await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.Workspace, HangMitigatingCancellationToken);
         await TestServices.Debugger.SetBreakpointAsync(ProjectName, FileName, "x * x", charsOffset: -1, HangMitigatingCancellationToken);
+
+        var succeed = await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
+        Assert.True(succeed);
+
+        await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
+
+        var errors = await TestServices.ErrorList.GetBuildErrorsAsync(HangMitigatingCancellationToken);
+        AssertEx.EqualOrDiff(string.Empty, string.Join(Environment.NewLine, errors));
 
         await TestServices.Debugger.GoAsync(waitForBreakMode: true, HangMitigatingCancellationToken);
         await TestServices.Editor.ActivateAsync(HangMitigatingCancellationToken);
