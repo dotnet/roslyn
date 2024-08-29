@@ -15,7 +15,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 [ExportCSharpVisualBasicLspServiceFactory(typeof(OnInitializedService)), Shared]
 internal sealed class OnInitializedServiceFactory : ILspServiceFactory
 {
+#pragma warning disable CS0618 // Type or member is obsolete
     private readonly IInitializationService? _initializationService;
+#pragma warning restore CS0618 // Type or member is obsolete
     private readonly IOnInitializedService? _onInitializedService;
 
     [ImportingConstructor]
@@ -37,11 +39,15 @@ internal sealed class OnInitializedServiceFactory : ILspServiceFactory
 
     private class OnInitializedService : ILspService, IOnInitialized
     {
+#pragma warning disable CS0618 // Type or member is obsolete
         private readonly IInitializationService? _initializationService;
+#pragma warning restore CS0618 // Type or member is obsolete
         private readonly IOnInitializedService? _onInitializedService;
         private readonly IClientLanguageServerManager _clientLanguageServerManager;
 
+#pragma warning disable CS0618 // Type or member is obsolete
         public OnInitializedService(IInitializationService? initializationService, IOnInitializedService? onInitializedService, IClientLanguageServerManager clientLanguageServerManager)
+#pragma warning restore CS0618 // Type or member is obsolete
         {
             _initializationService = initializationService;
             _onInitializedService = onInitializedService;
