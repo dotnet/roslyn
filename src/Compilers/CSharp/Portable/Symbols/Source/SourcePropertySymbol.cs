@@ -63,8 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 out _);
 
-            bool allowAutoPropertyAccessors = (modifiers & (DeclarationModifiers.Partial | DeclarationModifiers.Abstract | DeclarationModifiers.Extern | DeclarationModifiers.Indexer)) == 0 &&
-                (!containingType.IsInterface || (modifiers & DeclarationModifiers.Static) != 0);
+            bool allowAutoPropertyAccessors = (modifiers & (DeclarationModifiers.Abstract | DeclarationModifiers.Extern | DeclarationModifiers.Indexer)) == 0 &&
+                (!containingType.IsInterface || (modifiers & DeclarationModifiers.Static) != 0) &&
+                ((modifiers & DeclarationModifiers.Partial) == 0 || hasGetAccessorImplementation || hasSetAccessorImplementation);
             bool hasAutoPropertyGet = allowAutoPropertyAccessors && getSyntax != null && !hasGetAccessorImplementation;
             bool hasAutoPropertySet = allowAutoPropertyAccessors && setSyntax != null && !hasSetAccessorImplementation;
 

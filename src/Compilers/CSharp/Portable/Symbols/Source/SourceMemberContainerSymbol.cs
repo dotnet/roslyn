@@ -4991,7 +4991,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.GetMethod);
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.SetMethod);
-                            FieldSymbol backingField = property.BackingField;
+                            FieldSymbol backingField = property.BackingField; // PROTOTYPE: Only add this after merging partial parts.
 
                             // TODO: can we leave this out of the member list?
                             // From the 10/12/11 design notes:

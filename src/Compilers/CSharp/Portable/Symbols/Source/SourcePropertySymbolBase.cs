@@ -321,7 +321,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_InstancePropertyInitializerInInterface, Location);
             }
-            else if (!IsAutoPropertyOrUsesFieldKeyword)
+            // PROTOTYPE: Review all uses of IsAutoProperty, IsAutoPropertyOrUsesFieldKeyword, and BackingField for use from IsPartialDefinition.
+            else if (!((this as SourcePropertySymbol)?.SourcePartialImplementationPart ?? this).IsAutoPropertyOrUsesFieldKeyword)
             {
                 diagnostics.Add(ErrorCode.ERR_InitializerOnNonAutoProperty, Location);
             }
@@ -668,6 +669,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return data?.HasSkipLocalsInitAttribute == true;
             }
         }
+
+        // PROTOTYPE: Do partial property parts have to return consistent values for
+        // IsAutoProperty, IsAutoPropertyOrUsesFieldKeyword, and BackingField?
 
         internal bool IsAutoPropertyOrUsesFieldKeyword
             => IsAutoProperty || UsesFieldKeyword;
@@ -1156,7 +1160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // When partial properties get the ability to have a backing field,
                 // the implementer will have to decide how the BackingField symbol works in 'copyFrom' scenarios.
-                Debug.Assert(!IsAutoProperty);
+                //Debug.Assert(!IsAutoProperty); // PROTOTYPE: ...
 
                 var attributesBag = copyFrom.GetAttributesBag();
                 bagCreatedOnThisThread = Interlocked.CompareExchange(ref _lazyCustomAttributesBag, attributesBag, null) == null;
