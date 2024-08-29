@@ -903,17 +903,15 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                 });
         }
 
-        static async Task<ImmutableArray<(DocumentId documentId, string newName, SyntaxNode newRoot, SourceText newText)>> CalculateFinalDocumentChangesAsync(
-            Solution baseSolution,
-            Solution newSolution,
-            CancellationToken cancellationToken)
+        async Task<ImmutableArray<(DocumentId documentId, string newName, SyntaxNode newRoot, SourceText newText)>> CalculateFinalDocumentChangesAsync(
+            Solution newSolution, CancellationToken cancellationToken)
         {
-            var solutionChanges = baseSolution.GetChanges(newSolution);
-            var changedDocumentIDs = solutionChanges.GetProjectChanges().SelectManyAsArray(c => c.GetChangedDocuments());
+            var changes = _baseSolution.GetChanges(newSolution);
+            var changedDocumentIDs = changes.GetProjectChanges().SelectManyAsArray(c => c.GetChangedDocuments());
 
             using var _ = PooledObjects.ArrayBuilder<(DocumentId documentId, string newName, SyntaxNode newRoot, SourceText newText)>.GetInstance(out var result);
 
-            foreach (var documentId in solutionChanges.GetProjectChanges().SelectMany(c => c.GetChangedDocuments()))
+            foreach (var documentId in changes.GetProjectChanges().SelectMany(c => c.GetChangedDocuments()))
             {
                 // If the document supports syntax tree, then create the new solution from the updated syntax root.
                 // This should ensure that annotations are preserved, and prevents the solution from having to reparse
