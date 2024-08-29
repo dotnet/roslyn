@@ -39,7 +39,6 @@ using Xunit;
 using Basic.Reference.Assemblies;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
@@ -10463,6 +10462,44 @@ class C
             void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
 
+        [Fact]
+        public void Compiler_DoesNot_RunHostOutputs()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            bool hostOutputRan = false;
+            bool sourceOutputRan = false;
+
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+#pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+                ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, value) =>
+                {
+                    hostOutputRan = true;
+                    hostCtx.AddOutput("output", "value");
+                });
+#pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, po) =>
+                {
+                    sourceOutputRan = true;
+                    spc.AddSource("output.cs", "//value");
+                });
+            });
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview" }, generators: new[] { generator.AsSourceGenerator() }, analyzers: null);
+
+            Assert.False(hostOutputRan);
+            Assert.True(sourceOutputRan);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
         private static int OccurrenceCount(string source, string word)
         {
             var n = 0;
@@ -12250,9 +12287,9 @@ public class TestAnalyzer : DiagnosticAnalyzer
         }
 
         [Theory]
-        [InlineData(@"/features:InterceptorsPreviewNamespaces=NS1.NS2;NS3.NS4")]
-        [InlineData(@"/features:""InterceptorsPreviewNamespaces=NS1.NS2;NS3.NS4""")]
-        public void FeaturesInterceptorsPreviewNamespaces_OptionParsing(string features)
+        [InlineData(@"/features:InterceptorsNamespaces=NS1.NS2;NS3.NS4")]
+        [InlineData(@"/features:""InterceptorsNamespaces=NS1.NS2;NS3.NS4""")]
+        public void FeaturesInterceptorsNamespaces_OptionParsing(string features)
         {
             var tempDir = Temp.CreateDirectory();
             var workingDir = Temp.CreateDirectory();
@@ -12263,31 +12300,52 @@ public class TestAnalyzer : DiagnosticAnalyzer
             var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             var options = comp.SyntaxTrees[0].Options;
             Assert.Equal(1, options.Features.Count);
-            Assert.Equal("NS1.NS2;NS3.NS4", options.Features["InterceptorsPreviewNamespaces"]);
+            Assert.Equal("NS1.NS2;NS3.NS4", options.Features["InterceptorsNamespaces"]);
 
-            var previewNamespaces = ((CSharpParseOptions)options).InterceptorsPreviewNamespaces;
+            var previewNamespaces = ((CSharpParseOptions)options).InterceptorsNamespaces;
             Assert.Equal(2, previewNamespaces.Length);
             Assert.Equal(new[] { "NS1", "NS2" }, previewNamespaces[0]);
             Assert.Equal(new[] { "NS3", "NS4" }, previewNamespaces[1]);
         }
 
         [Fact]
-        public void FeaturesInterceptorsPreviewNamespaces_Duplicate()
+        public void FeaturesInterceptorsNamespaces_Duplicate()
         {
             var tempDir = Temp.CreateDirectory();
             var workingDir = Temp.CreateDirectory();
             workingDir.CreateFile("a.cs");
 
             var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
-            var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { @"/features:InterceptorsPreviewNamespaces=NS1.NS2", @"/features:InterceptorsPreviewNamespaces=NS3.NS4", "a.cs" });
+            var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { @"/features:InterceptorsNamespaces=NS1.NS2", @"/features:InterceptorsNamespaces=NS3.NS4", "a.cs" });
             var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             var options = comp.SyntaxTrees[0].Options;
             Assert.Equal(1, options.Features.Count);
-            Assert.Equal("NS3.NS4", options.Features["InterceptorsPreviewNamespaces"]);
+            Assert.Equal("NS3.NS4", options.Features["InterceptorsNamespaces"]);
 
-            var previewNamespaces = ((CSharpParseOptions)options).InterceptorsPreviewNamespaces;
+            var previewNamespaces = ((CSharpParseOptions)options).InterceptorsNamespaces;
             Assert.Equal(1, previewNamespaces.Length);
             Assert.Equal(new[] { "NS3", "NS4" }, previewNamespaces[0]);
+        }
+
+        [Fact]
+        public void FeaturesInterceptorsPreviewNamespaces_NotRecognizedInCommandLine()
+        {
+            // '<InterceptorsPreviewNamespaces>' is recognized in the build task and passed through as a '/features:InterceptorsNamespaces=...' argument.
+            // '/features:InterceptorsPreviewNamespaces=...' is included in the Features dictionary but does not enable the interceptors feature.
+            var tempDir = Temp.CreateDirectory();
+            var workingDir = Temp.CreateDirectory();
+            workingDir.CreateFile("a.cs");
+
+            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
+            var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { @"/features:InterceptorsPreviewNamespaces=NS1.NS2", "a.cs" });
+            var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
+            var options = comp.SyntaxTrees[0].Options;
+
+            Assert.Equal(1, options.Features.Count);
+            Assert.Equal("NS1.NS2", options.Features["InterceptorsPreviewNamespaces"]);
+
+            Assert.False(options.Features.ContainsKey("InterceptorsNamespaces"));
+            Assert.Empty(((CSharpParseOptions)options).InterceptorsNamespaces);
         }
 
         public class QuotedArgumentTests : CommandLineTestBase
@@ -14373,7 +14431,7 @@ class C
                 """;
             var generator = new SingleFileTestGenerator(generatedSource, "Generated.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", "/out:embed.exe", "/features:InterceptorsPreviewNamespaces=Generated"], generators: [generator], analyzers: null);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", "/out:embed.exe", "/features:InterceptorsNamespaces=Generated"], generators: [generator], analyzers: null);
             ValidateWrittenSources([]);
 
             // Clean up temp files
@@ -14432,7 +14490,7 @@ class C
             var generator = new SingleFileTestGenerator(generatedSource, "Generated.cs");
             var objDir = dir.CreateDirectory("obj");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", $"/out:{objDir.Path}/embed.exe", "/features:InterceptorsPreviewNamespaces=Generated"], generators: [generator], analyzers: null);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", $"/out:{objDir.Path}/embed.exe", "/features:InterceptorsNamespaces=Generated"], generators: [generator], analyzers: null);
             ValidateWrittenSources([]);
 
             // Clean up temp files
@@ -14502,7 +14560,7 @@ class C
                     "/generatedfilesout:" + objDir.Path,
                     "/langversion:preview",
                     "/out:embed.exe",
-                    "/features:InterceptorsPreviewNamespaces=Generated",
+                    "/features:InterceptorsNamespaces=Generated",
                     .. string.IsNullOrEmpty(pathMapArgument) ? default(Span<string>) : [pathMapArgument]
                     ],
                 generators: [generator],
