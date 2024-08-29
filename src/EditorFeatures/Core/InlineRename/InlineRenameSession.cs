@@ -757,7 +757,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         // which at least will allow the user to cancel the rename if they want.
         //
         // In the future we should remove this entrypoint and have all callers use CommitAsync instead.
-        return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: false, editorOperationContext));
+        return _threadingContext.JoinableTaskFactory.Run(() => StartCommitAsync(previewChanges, canUseBackgroundWorkIndicator: false, editorOperationContext));
     }
 
     /// <remarks>
@@ -788,13 +788,10 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         // One session should only start one commit task.
         // Start the task if 
         // 1. commit never starts in this session. (_commitTask is null)
-        // 2. There is no in-progress task. This would include
-        //    a. Commit operation starts before, user previews the result, and cancel the commit
-        //    b. In async commit operation while waiting the background task completed (user triggers the commit by enter key), then user's input might trigger Commit() again. Example: SaveCommandHandler.
-        //       In this case we don't want to trigger commit again.
+        // 2. User choose to preview & cancel the result. (_commitTask is completed)
         if (_commitTask is null || !IsCommitInProgress)
         {
-            _commitTask = CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator, editorOperationContext);
+            _commitTask ??= CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator, editorOperationContext);
         }
 
         return await _commitTask.ConfigureAwait(false);

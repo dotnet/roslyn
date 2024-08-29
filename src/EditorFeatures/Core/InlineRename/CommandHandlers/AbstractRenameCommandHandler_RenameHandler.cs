@@ -79,7 +79,7 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             {
                 // Otherwise, commit the existing session and start a new one.
                 // ConfigureAwait(true) because we need to create another IBackgroundWorkIndicatorContext later.
-                await CommitAsync(editorOperationContext).ConfigureAwait(true);
+                await _renameService.ActiveSession.CommitAsync(previewChanges: false, editorOperationContext).ConfigureAwait(true);
             }
         }
 

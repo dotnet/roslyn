@@ -108,7 +108,7 @@ internal abstract partial class AbstractRenameCommandHandler
         {
             var selection = args.TextView.Selection.VirtualSelectedSpans.First();
 
-            CommitAsync(operationContext);
+            Commit(operationContext);
 
             var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
             args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
@@ -122,9 +122,14 @@ internal abstract partial class AbstractRenameCommandHandler
         nextHandler();
     }
 
-    private Task CommitAsync(IUIThreadOperationContext operationContext)
+    private void Commit(IUIThreadOperationContext operationContext)
     {
         RoslynDebug.AssertNotNull(_renameService.ActiveSession);
-        return _renameService.ActiveSession.CommitAsync(previewChanges: false, operationContext);
+        if (_renameService.ActiveSession.IsCommitInProgress)
+        {
+            return;
+        }
+
+        _renameService.ActiveSession.Commit(previewChanges: false, operationContext);
     }
 }
