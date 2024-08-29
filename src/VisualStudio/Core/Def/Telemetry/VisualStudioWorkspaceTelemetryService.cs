@@ -44,6 +44,11 @@ internal sealed class VisualStudioWorkspaceTelemetryService(
         var cancellationToken = _threadingContext.DisposalToken;
         _ = Task.Run(async () =>
         {
+            // Don't initialize remote telemetry until the workspace is fully loaded.  We don't want to cause all the
+            // OOP machinery to spin up and contend with the resources being used to load the solution.
+            var statusService = _workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+            await statusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+            
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
                 return;
