@@ -4,8 +4,6 @@
 
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Telemetry;
@@ -20,8 +18,7 @@ internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryS
 
     protected abstract ILogger CreateLogger(TelemetrySession telemetrySession, bool logDelta);
 
-    public void InitializeTelemetrySession(
-        TelemetrySession telemetrySession, bool logDelta)
+    public void InitializeTelemetrySession(TelemetrySession telemetrySession, bool logDelta)
     {
         Contract.ThrowIfFalse(CurrentSession is null);
 
