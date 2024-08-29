@@ -725,8 +725,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     /// Call after <see cref="TryDismissUIAndRollbackEdits_MustBeCalledOnUIThread"/> is called, and optionally after any
     /// changes are actually applied to the workspace.
     /// </summary>
-    /// <param name="outcome"></param>
-    /// <param name="previewChanges"></param>
     private void EndRenameSessions_MustBeCalledOnUIThread(
         RenameLogMessage.UserActionOutcome outcome,
         bool previewChanges)
