@@ -549,7 +549,7 @@ public class CSharpTestMethodFinderTests
 
     private static async Task TestAsync(string code, string testAttributeDefinitionsCode, params string[] expectedTestNames)
     {
-        var workspace = TestWorkspace.CreateCSharp(new[] { code, testAttributeDefinitionsCode });
+        var workspace = TestWorkspace.CreateCSharp([code, testAttributeDefinitionsCode]);
 
         var testDocument = workspace.Documents.First();
         var span = testDocument.CursorPosition != null ? new TextSpan(testDocument.CursorPosition.Value, 0) : testDocument.SelectedSpans.Single();
@@ -563,7 +563,7 @@ public class CSharpTestMethodFinderTests
 
     private static async Task TestMatchAsync(string code, string testAttributeDefinitionsCode, params string[] expectedTestNames)
     {
-        var workspace = TestWorkspace.CreateCSharp(new[] { code, testAttributeDefinitionsCode });
+        var workspace = TestWorkspace.CreateCSharp([code, testAttributeDefinitionsCode]);
 
         var testDocument = workspace.Documents.First();
         var span = testDocument.CursorPosition != null ? new TextSpan(testDocument.CursorPosition.Value, 0) : testDocument.SelectedSpans.Single();

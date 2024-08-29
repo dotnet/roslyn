@@ -335,7 +335,7 @@ class {|Identifier:A|}
 {
 }";
             var markup2 = "";
-            await using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 }, mutatingLspWorkspace);
+            await using var testLspServer = await CreateTestLspServerAsync([markup1, markup2], mutatingLspWorkspace);
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
@@ -408,7 +408,7 @@ class {|Identifier:A|}
 {
 }";
             var markup2 = "";
-            await using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 }, mutatingLspWorkspace);
+            await using var testLspServer = await CreateTestLspServerAsync([markup1, markup2], mutatingLspWorkspace);
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
@@ -446,7 +446,7 @@ class {|Identifier:A|}
 {
 }";
             var markup2 = "";
-            await using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 }, mutatingLspWorkspace);
+            await using var testLspServer = await CreateTestLspServerAsync([markup1, markup2], mutatingLspWorkspace);
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
@@ -482,7 +482,7 @@ class {|Identifier:A|}
 
 ";
             var markup2 = "";
-            await using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 }, mutatingLspWorkspace);
+            await using var testLspServer = await CreateTestLspServerAsync([markup1, markup2], mutatingLspWorkspace);
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 
@@ -535,7 +535,7 @@ class {|Identifier:A|}
 {
 }";
             var markup2 = "";
-            await using var testLspServer = await CreateTestLspServerAsync(new[] { markup1, markup2 }, mutatingLspWorkspace);
+            await using var testLspServer = await CreateTestLspServerAsync([markup1, markup2], mutatingLspWorkspace);
 
             var results = await RunGetWorkspaceSpellCheckSpansAsync(testLspServer);
 

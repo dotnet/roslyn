@@ -53,16 +53,16 @@ public abstract class AbstractCodeGenerationTests
             codeDefFactory.NamespaceImportDeclaration(codeDefFactory.IdentifierName("System")),
             codeDefFactory.ClassDeclaration(
                 "C",
-                members: new[]
-                {
+                members:
+                [
                     codeDefFactory.MethodDeclaration(
                         "Dummy",
                         returnType: null,
-                        statements: new[]
-                        {
+                        statements:
+                        [
                             codeDefFactory.LocalDeclarationStatement("test", expression)
-                        })
-                })
+                        ])
+                ])
             );
     }
 

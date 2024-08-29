@@ -34,7 +34,7 @@ public class SymbolFinderTests : TestBase
             projectName,
             projectName,
             languageName,
-            metadataReferences: new[] { metadataReference },
+            metadataReferences: [metadataReference],
             projectReferences: projectReferences.Select(p => new ProjectReference(p)));
         return solution.AddProject(pi).AddDocument(did, $"{projectName}.{suffix}", SourceText.From(code));
     }
