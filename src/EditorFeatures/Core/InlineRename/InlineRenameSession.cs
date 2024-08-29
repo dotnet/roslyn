@@ -884,6 +884,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             // While on the background, attempt to figure out the actual changes to make to the workspace's current solution.
             var documentChanges = await CalculateFinalDocumentChangesAsync(_baseSolution, newSolution, cancellationToken).ConfigureAwait(false);
 
+            // Now jump back to the UI thread to actually apply those changes.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             // We're about to make irrevocable changes to the workspace and UI.  We're no longer cancellable at this point.
@@ -911,7 +912,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             }
         }
 
-        static async Task<ImmutableArray<(DocumentId documentId, SyntaxNode newRoot, SourceText newText, string newName)>> CalculateFinalDocumentChangesAsync(
+        static async Task<ImmutableArray<(DocumentId documentId, string newName, SyntaxNode newRoot, SourceText newText)>> CalculateFinalDocumentChangesAsync(
             Solution baseSolution,
             Solution newSolution,
             CancellationToken cancellationToken)
@@ -919,7 +920,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             var solutionChanges = baseSolution.GetChanges(newSolution);
             var changedDocumentIDs = solutionChanges.GetProjectChanges().SelectManyAsArray(c => c.GetChangedDocuments());
 
-            using var _ = PooledObjects.ArrayBuilder<(DocumentId documentId, SyntaxNode newRoot, SourceText newText, string newName)>.GetInstance(out var result);
+            using var _ = PooledObjects.ArrayBuilder<(DocumentId documentId, string newName, SyntaxNode newRoot, SourceText newText)>.GetInstance(out var result);
 
             foreach (var documentId in solutionChanges.GetProjectChanges().SelectMany(c => c.GetChangedDocuments()))
             {
@@ -929,77 +930,70 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                 // text of the document.
                 var newDocument = newSolution.GetDocument(documentId);
 
-                if (newDocument.SupportsSyntaxTree)
-                {
-                    var root = await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    result.Add((documentId, root, newText: null, newDocument.Name));
-                }
-                else
-                {
-                    var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    result.Add((documentId, newRoot: null, newText, newDocument.Name));
-                }
+                result.Add(newDocument.SupportsSyntaxTree
+                    ? (documentId, newDocument.Name, await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false), newText: null)
+                    : (documentId, newDocument.Name, newRoot: null, await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false)));
             }
 
             return result.ToImmutableAndClear();
         }
+    }
 
-        // Returns non-null error message if renaming fails.
-        (NotificationSeverity severity, string message)? TryApplyRename(
-            ImmutableArray<(DocumentId documentId, SyntaxNode newRoot, SourceText newText, string newName)> documentChanges)
+    // Returns non-null error message if renaming fails.
+    private (NotificationSeverity severity, string message)? TryApplyRename(
+        ImmutableArray<(DocumentId documentId, string newName, SyntaxNode newRoot, SourceText newText)> documentChanges)
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
+
+        using var undoTransaction = Workspace.OpenGlobalUndoTransaction(EditorFeaturesResources.Inline_Rename);
+
+        if (!RenameInfo.TryOnBeforeGlobalSymbolRenamed(Workspace, documentChanges.SelectAsArray(t => t.documentId), this.ReplacementText))
+            return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid);
+
+        // Grab the workspace's current solution, and make the document changes to it we computed.
+        var finalSolution = Workspace.CurrentSolution;
+        foreach (var (documentId, newName, newRoot, newText) in documentChanges)
         {
-            _threadingContext.ThrowIfNotOnUIThread();
-
-            using var undoTransaction = Workspace.OpenGlobalUndoTransaction(EditorFeaturesResources.Inline_Rename);
-
-            if (!RenameInfo.TryOnBeforeGlobalSymbolRenamed(Workspace, documentChanges.SelectAsArray(t => t.documentId), this.ReplacementText))
-                return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid);
-
-            // Grab the workspace's current solution, and make the document changes to it we computed.
-            var finalSolution = Workspace.CurrentSolution;
-            foreach (var (documentId, newRoot, newText, newName) in documentChanges)
+            if (newRoot != null)
             {
-                if (newRoot != null)
-                {
-                    finalSolution = finalSolution.WithDocumentSyntaxRoot(documentId, newRoot);
-                }
-                else if (newText != null)
-                {
-                    finalSolution = finalSolution.WithDocumentText(documentId, newText);
-                }
-
-                finalSolution = finalSolution.WithDocumentName(documentId, newName);
+                finalSolution = finalSolution.WithDocumentSyntaxRoot(documentId, newRoot);
+            }
+            else if (newText != null)
+            {
+                finalSolution = finalSolution.WithDocumentText(documentId, newText);
             }
 
-            // Now actually go and apply the changes to the workspace.  We expect this to succeed as we're on the UI
-            // thread, and nothing else should have been able to make a change to workspace since we we grabbed its
-            // current solution and forked it.
-            if (!Workspace.TryApplyChanges(finalSolution))
-                return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
+            finalSolution = finalSolution.WithDocumentName(documentId, newName);
+        }
 
-            try
-            {
-                // Since rename can apply file changes as well, and those file
-                // changes can generate new document ids, include added documents
-                // as well as changed documents. This also ensures that any document
-                // that was removed is not included
-                var finalChanges = Workspace.CurrentSolution.GetChanges(_baseSolution);
+        // Now actually go and apply the changes to the workspace.  We expect this to succeed as we're on the UI
+        // thread, and nothing else should have been able to make a change to workspace since we we grabbed its
+        // current solution and forked it.
+        if (!Workspace.TryApplyChanges(finalSolution))
+            return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
 
-                var finalChangedIds = finalChanges
-                    .GetProjectChanges()
-                    .SelectManyAsArray(c => c.GetChangedDocuments().Concat(c.GetAddedDocuments()));
+        try
+        {
+            // Since rename can apply file changes as well, and those file
+            // changes can generate new document ids, include added documents
+            // as well as changed documents. This also ensures that any document
+            // that was removed is not included
+            var finalChanges = Workspace.CurrentSolution.GetChanges(_baseSolution);
 
-                if (!RenameInfo.TryOnAfterGlobalSymbolRenamed(Workspace, finalChangedIds, this.ReplacementText))
-                    return (NotificationSeverity.Information, EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated);
+            var finalChangedIds = finalChanges
+                .GetProjectChanges()
+                .SelectManyAsArray(c => c.GetChangedDocuments().Concat(c.GetAddedDocuments()));
 
-                return null;
-            }
-            finally
-            {
-                // If we successfully updated the workspace then make sure the undo transaction is committed and is
-                // always able to undo anything any other external listener did.
-                undoTransaction.Commit();
-            }
+            if (!RenameInfo.TryOnAfterGlobalSymbolRenamed(Workspace, finalChangedIds, this.ReplacementText))
+                return (NotificationSeverity.Information, EditorFeaturesResources.Rename_operation_was_not_properly_completed_Some_file_might_not_have_been_updated);
+
+            return null;
+        }
+        finally
+        {
+            // If we successfully updated the workspace then make sure the undo transaction is committed and is
+            // always able to undo anything any other external listener did.
+            undoTransaction.Commit();
         }
     }
 
