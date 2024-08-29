@@ -884,10 +884,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             await TaskScheduler.Default;
 
             // While on the background, attempt to figure out the actual changes to make to the workspace's current solution.
-            var changes = _baseSolution.GetChanges(newSolution);
-            var changedDocumentIDs = changes.GetProjectChanges().SelectManyAsArray(c => c.GetChangedDocuments());
-            var finalSolution = await CalculateFinalSolutionAsync(
-                newSolution, newSolution.Workspace.CurrentSolution, changedDocumentIDs, cancellationToken).ConfigureAwait(false);
+            var documentChanges = await CalculateFinalDocumentChangesAsync(_baseSolution, newSolution, cancellationToken).ConfigureAwait(false);
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
@@ -901,8 +898,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                 try
                 {
                     // Now try to apply that change we computed to the workspace.
-                    var error = await TryApplyRenameAsync(finalSolution, changedDocumentIDs, cancellationToken).ConfigureAwait(true);
-
+                    var error = TryApplyRename(documentChanges);
                     if (error is not null)
                     {
                         var notificationService = Workspace.Services.GetService<INotificationService>();
@@ -917,65 +913,71 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             }
         }
 
-        static async Task<Solution> CalculateFinalSolutionAsync(
+        static async Task<ImmutableArray<(DocumentId documentId, SyntaxNode newRoot, SourceText newText, string newName)>> CalculateFinalDocumentChangesAsync(
+            Solution baseSolution,
             Solution newSolution,
-            Solution currentSolution,
-            ImmutableArray<DocumentId> changedDocumentIDs,
             CancellationToken cancellationToken)
         {
-            var finalSolution = currentSolution;
-            foreach (var id in changedDocumentIDs)
+            var solutionChanges = baseSolution.GetChanges(newSolution);
+            var changedDocumentIDs = solutionChanges.GetProjectChanges().SelectManyAsArray(c => c.GetChangedDocuments());
+
+            using var _ = PooledObjects.ArrayBuilder<(DocumentId documentId, SyntaxNode newRoot, SourceText newText, string newName)>.GetInstance(out var result);
+
+            foreach (var documentId in solutionChanges.GetProjectChanges().SelectMany(c => c.GetChangedDocuments()))
             {
-                // If the document supports syntax tree, then create the new solution from the
-                // updated syntax root.  This should ensure that annotations are preserved, and
-                // prevents the solution from having to reparse documents when we already have
-                // the trees for them.  If we don't support syntax, then just use the text of
-                // the document.
-                var newDocument = newSolution.GetDocument(id);
+                // If the document supports syntax tree, then create the new solution from the updated syntax root.
+                // This should ensure that annotations are preserved, and prevents the solution from having to reparse
+                // documents when we already have the trees for them.  If we don't support syntax, then just use the
+                // text of the document.
+                var newDocument = newSolution.GetDocument(documentId);
 
                 if (newDocument.SupportsSyntaxTree)
                 {
                     var root = await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    finalSolution = finalSolution.WithDocumentSyntaxRoot(id, root);
+                    result.Add((documentId, root, newText: null, newDocument.Name));
                 }
                 else
                 {
                     var newText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    finalSolution = finalSolution.WithDocumentText(id, newText);
+                    result.Add((documentId, newRoot: null, newText, newDocument.Name));
                 }
-
-                // Make sure to include any document rename as well
-                finalSolution = finalSolution.WithDocumentName(id, newDocument.Name);
             }
 
-            return finalSolution;
+            return result.ToImmutableAndClear();
         }
 
         // Returns non-null error message if renaming fails.
-        async Task<(NotificationSeverity severity, string message)?> TryApplyRenameAsync(
-            Solution finalSolution,
-            ImmutableArray<DocumentId> changedDocumentIDs,
-            CancellationToken cancellationToken)
+        (NotificationSeverity severity, string message)? TryApplyRename(
+            ImmutableArray<(DocumentId documentId, SyntaxNode newRoot, SourceText newText, string newName)> documentChanges)
         {
+            _threadingContext.ThrowIfNotOnUIThread();
+
             using var undoTransaction = Workspace.OpenGlobalUndoTransaction(EditorFeaturesResources.Inline_Rename);
 
-            if (!RenameInfo.TryOnBeforeGlobalSymbolRenamed(Workspace, changedDocumentIDs, this.ReplacementText))
+            if (!RenameInfo.TryOnBeforeGlobalSymbolRenamed(Workspace, documentChanges.SelectAsArray(t => t.documentId), this.ReplacementText))
                 return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_was_cancelled_or_is_not_valid);
 
-            if (!Workspace.TryApplyChanges(finalSolution))
+            // Grab the workspace's current solution, and make the document changes to it we computed.
+            var finalSolution = Workspace.CurrentSolution;
+            foreach (var (documentId, newRoot, newText, newName) in documentChanges)
             {
-                // If the workspace changed in TryOnBeforeGlobalSymbolRenamed retry, this prevents rename from failing for cases
-                // where text changes to other files or workspace state change doesn't impact the text changes being applied. 
-                Logger.Log(FunctionId.Rename_TryApplyRename_WorkspaceChanged, message: null, LogLevel.Information);
+                if (newRoot != null)
+                {
+                    finalSolution = finalSolution.WithDocumentSyntaxRoot(documentId, newRoot);
+                }
+                else if (newText != null)
+                {
+                    finalSolution = finalSolution.WithDocumentText(documentId, newText);
+                }
 
-                // Try one more time, computing the final state of the workspace even with the modifications that
-                // TryOnBeforeGlobalSymbolRenamed may have made.
-                finalSolution = await CalculateFinalSolutionAsync(
-                    finalSolution, finalSolution.Workspace.CurrentSolution, changedDocumentIDs, cancellationToken).ConfigureAwait(true);
-
-                if (!Workspace.TryApplyChanges(finalSolution))
-                    return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
+                finalSolution = finalSolution.WithDocumentName(documentId, newName);
             }
+
+            // Now actually go and apply the changes to the workspace.  We expect this to succeed as we're on the UI
+            // thread, and nothing else should have been able to make a change to workspace since we we grabbed its
+            // current solution and forked it.
+            if (!Workspace.TryApplyChanges(finalSolution))
+                return (NotificationSeverity.Error, EditorFeaturesResources.Rename_operation_could_not_complete_due_to_external_change_to_workspace);
 
             try
             {
