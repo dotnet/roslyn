@@ -92,7 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly IVsService<IBrokeredServiceContainer> _brokeredServiceContainer;
         private readonly AsynchronousOperationListenerProvider _listenerProvider;
         private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
-        private readonly TaskCompletionSource<bool> _clientCreationSource = new();
+        private readonly TaskCompletionSource<bool> _clientCreationSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         private VisualStudioRemoteHostClientProvider(
             SolutionServices services,
