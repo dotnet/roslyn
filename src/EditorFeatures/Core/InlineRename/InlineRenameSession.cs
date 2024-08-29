@@ -789,7 +789,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         // One session should only start one commit task.
         // Start the task if 
         // 1. commit never starts in this session. (_commitTask is null)
-        // 2. User choose to preview & cancel the result. (_commitTask is completed)
+        // 2. User chooses to preview & cancel the result. (_commitTask is completed)
         if (_commitTask is null || !IsCommitInProgress)
         {
             _commitTask ??= CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator, editorOperationContext);
