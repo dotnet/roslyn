@@ -5108,8 +5108,8 @@ class C1 : IEnumerable<char>
 
         [Theory]
         [InlineData("System.ReadOnlySpan<int>", "System.Span<int>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Span<object>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Span<int?>", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<int>", "System.Span<object>", null)]
+        [InlineData("System.ReadOnlySpan<int>", "System.Span<int?>", null)]
         [InlineData("System.ReadOnlySpan<object>", "System.Span<int>", null)] // cannot convert object to int
         [InlineData("System.ReadOnlySpan<int?>", "System.Span<int>", null)] // cannot convert int? to int
         [InlineData("System.ReadOnlySpan<int>", "System.ReadOnlySpan<object>", null)]
@@ -5119,24 +5119,24 @@ class C1 : IEnumerable<char>
         [InlineData("System.Span<int>", "System.Span<int?>", null)]
         [InlineData("System.Span<object>", "System.Span<int?>", null)]
         [InlineData("System.ReadOnlySpan<object>", "System.ReadOnlySpan<long>", null)]
-        [InlineData("System.Span<int>", "int?[]", "System.Span<System.Int32>")]
-        [InlineData("System.Span<int>", "System.Collections.Generic.IEnumerable<int?>", "System.Span<System.Int32>")]
-        [InlineData("System.Span<int>", "System.Collections.Generic.IReadOnlyCollection<int?>", "System.Span<System.Int32>")]
-        [InlineData("System.Span<int>", "System.Collections.Generic.IReadOnlyList<int?>", "System.Span<System.Int32>")]
-        [InlineData("System.Span<int>", "System.Collections.Generic.ICollection<int?>", "System.Span<System.Int32>")]
-        [InlineData("System.Span<int>", "System.Collections.Generic.IList<int?>", "System.Span<System.Int32>")]
+        [InlineData("System.Span<int>", "int?[]", null)]
+        [InlineData("System.Span<int>", "System.Collections.Generic.IEnumerable<int?>", null)]
+        [InlineData("System.Span<int>", "System.Collections.Generic.IReadOnlyCollection<int?>", null)]
+        [InlineData("System.Span<int>", "System.Collections.Generic.IReadOnlyList<int?>", null)]
+        [InlineData("System.Span<int>", "System.Collections.Generic.ICollection<int?>", null)]
+        [InlineData("System.Span<int>", "System.Collections.Generic.IList<int?>", null)]
         [InlineData("System.Span<int?>", "int[]", null)] // cannot convert int? to int
         [InlineData("System.Span<int?>", "System.Collections.Generic.IEnumerable<int>", null)] // cannot convert int? to int
         [InlineData("System.Span<int?>", "System.Collections.Generic.IReadOnlyCollection<int>", null)] // cannot convert int? to int
         [InlineData("System.Span<int?>", "System.Collections.Generic.IReadOnlyList<int>", null)] // cannot convert int? to int
         [InlineData("System.Span<int?>", "System.Collections.Generic.ICollection<int>", null)] // cannot convert int? to int
         [InlineData("System.Span<int?>", "System.Collections.Generic.IList<int>", null)] // cannot convert int? to int
-        [InlineData("System.ReadOnlySpan<int>", "object[]", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IEnumerable<object>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IReadOnlyCollection<object>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IReadOnlyList<object>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.ICollection<object>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IList<object>", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<int>", "object[]", null)]
+        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IEnumerable<object>", null)]
+        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IReadOnlyCollection<object>", null)]
+        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IReadOnlyList<object>", null)]
+        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.ICollection<object>", null)]
+        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IList<object>", null)]
         [InlineData("System.ReadOnlySpan<object>", "int[]", null)] // cannot convert object to int
         [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IEnumerable<int>", null)] // cannot convert object to int
         [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IReadOnlyCollection<int>", null)] // cannot convert object to int
@@ -5451,25 +5451,11 @@ class C1 : IEnumerable<char>
                     }
                 }
                 """;
+
+            // Both calls are ambiguous for collection expressions due to different betterness among arguments.
             CreateCompilation(
                 new[] { source, CollectionExpressionTests.s_collectionExtensionsWithSpan },
                 targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // Inline collection expression works in this case.
-                // For 'params' case it fails because:
-                //    - For the first argument, 'int[]' and 'Span<object>' -> neither is better
-                //    - For the second argument, 'int' and 'int' -> neither is better vs. 'int[]' and 'ReadOnlySpan<int>' -> ReadOnlySpan<int> for a collection expression 
-                // Parameters type sequences are different, tie-breaking rules do not apply.   
-
-                // 0.cs(10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(int[], params int[])' and 'Program.F1(Span<object>, params ReadOnlySpan<int>)'
-                //         F1([1], 2);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments("Program.F1(int[], params int[])", "Program.F1(System.Span<object>, params System.ReadOnlySpan<int>)").WithLocation(10, 9),
-
-                // Inline collection expression works in this case.
-                // For 'params' case it fails because:
-                //    - For the first argument, 'object' and 'string' -> string
-                //    - For the second argument, 'string' and 'object' -> string (different direction) vs. 'string[]' and 'Span<object>' -> neither is better for a collection expression 
-                // Parameters type sequences are different, tie-breaking rules do not apply.   
-
                 // 0.cs(11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(object, params string[])' and 'Program.F2(string, params Span<object>)'
                 //         F2("3", "4");
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(object, params string[])", "Program.F2(string, params System.Span<object>)").WithLocation(11, 9)

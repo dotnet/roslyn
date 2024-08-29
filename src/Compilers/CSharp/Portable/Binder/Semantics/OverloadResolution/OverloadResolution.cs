@@ -2416,13 +2416,10 @@ outerDefault:
 
                     if (!Conversions.HasIdentityConversion(t1, t2))
                     {
-                        if (IsBetterParamsCollectionType(t1, t2, ref useSiteInfo))
+                        var betterResult = IsBetterParamsCollectionType(t1, t2, ref useSiteInfo);
+                        if (betterResult != BetterResult.Neither)
                         {
-                            return BetterResult.Left;
-                        }
-                        if (IsBetterParamsCollectionType(t2, t1, ref useSiteInfo))
-                        {
-                            return BetterResult.Right;
+                            return betterResult;
                         }
                     }
                 }
@@ -2867,9 +2864,29 @@ outerDefault:
             return BetterConversionTarget(node, t1, conv1, t2, conv2, ref useSiteInfo, out okToDowngradeToNeither);
         }
 
+        private BetterResult BetterCollectionExpressionConversion(
+            BoundUnconvertedCollectionExpression collectionExpression,
+            TypeSymbol t1, Conversion conv1,
+            TypeSymbol t2, Conversion conv2,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            var kind1 = conv1.GetCollectionExpressionTypeKind(out TypeSymbol elementType1, out _, out _);
+            var kind2 = conv2.GetCollectionExpressionTypeKind(out TypeSymbol elementType2, out _, out _);
+
+            return BetterCollectionExpressionConversion(
+                collectionExpression.Elements,
+                t1, kind1, elementType1, conv1.UnderlyingConversions,
+                t2, kind2, elementType2, conv2.UnderlyingConversions,
+                ref useSiteInfo);
+        }
+
         // Implements the rules for
         // - E is a collection expression and one of the following holds: ...
-        private BetterResult BetterCollectionExpressionConversion(BoundUnconvertedCollectionExpression collectionExpression, TypeSymbol t1, Conversion conv1, TypeSymbol t2, Conversion conv2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private BetterResult BetterCollectionExpressionConversion(
+            ImmutableArray<BoundNode> collectionExpressionElements,
+            TypeSymbol t1, CollectionExpressionTypeKind kind1, TypeSymbol elementType1, ImmutableArray<Conversion> underlyingElementConversions1,
+            TypeSymbol t2, CollectionExpressionTypeKind kind2, TypeSymbol elementType2, ImmutableArray<Conversion> underlyingElementConversions2,
+            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // Given:
             // - `E` is a collection expression with element expressions `[EL₁, EL₂, ..., ELₙ]`
@@ -2878,9 +2895,6 @@ outerDefault:
             // - `E₂` is the element type of `T₂`
             // - `CE₁ᵢ` are the series of conversions from `ELᵢ` to `E₁`
             // - `CE₂ᵢ` are the series of conversions from `ELᵢ` to `E₂`
-
-            var kind1 = conv1.GetCollectionExpressionTypeKind(out TypeSymbol elementType1, out _, out _);
-            var kind2 = conv2.GetCollectionExpressionTypeKind(out TypeSymbol elementType2, out _, out _);
 
             var t1IsSpanType = kind1 is CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span;
             var t2IsSpanType = kind2 is CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span;
@@ -2910,20 +2924,12 @@ outerDefault:
             if (!Conversions.HasIdentityConversion(elementType1, elementType2))
             {
                 var betterResult = BetterResult.Neither;
-                var e1Results = conv1.UnderlyingConversions;
-                var e2Results = conv2.UnderlyingConversions;
-                Debug.Assert(e1Results.Length == e2Results.Length && e1Results.Length == collectionExpression.Elements.Length);
+                Debug.Assert(underlyingElementConversions1.Length == underlyingElementConversions2.Length && underlyingElementConversions1.Length == collectionExpressionElements.Length);
 
-                // PROTOTYPE: Confirm empty rule with LDM
-                if (e1Results.Length == 0)
-                {
-                    return BetterConversionTarget(elementType1, elementType2, ref useSiteInfo);
-                }
-
-                for (int i = 0; i < e1Results.Length; i++)
+                for (int i = 0; i < underlyingElementConversions1.Length; i++)
                 {
                     // Conversion comparisons are made using better conversion from expression if `ELᵢ` is not a spread element. If `ELᵢ` is a spread element, we use better conversion from the element type of the spread collection to `E₁` or `E₂`, respectively.
-                    var element = collectionExpression.Elements[i];
+                    var element = collectionExpressionElements[i];
 
                     BetterResult elementBetterResult;
                     if (element is BoundCollectionExpressionSpreadElement { Conversion: var spreadConversion })
@@ -2939,7 +2945,7 @@ outerDefault:
                     }
                     else
                     {
-                        elementBetterResult = BetterConversionFromExpression((BoundExpression)element, elementType1, e1Results[i], elementType2, e2Results[i], ref useSiteInfo, out _);
+                        elementBetterResult = BetterConversionFromExpression((BoundExpression)element, elementType1, underlyingElementConversions1[i], elementType2, underlyingElementConversions2[i], ref useSiteInfo, out _);
                     }
 
                     if (elementBetterResult == BetterResult.Neither)
@@ -2990,6 +2996,7 @@ outerDefault:
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(!Conversions.HasIdentityConversion(t1, t2));
+            Debug.Assert(Conversions.HasIdentityConversion(elementType1, elementType2));
 
             // - T1 is System.ReadOnlySpan<E1>, and T2 is System.Span<E2>, and an implicit conversion exists from E1 to E2
             if (kind1 is CollectionExpressionTypeKind.ReadOnlySpan &&
@@ -3020,12 +3027,26 @@ outerDefault:
                 Conversions.ClassifyImplicitConversionFromType(source, destination, ref useSiteInfo).IsImplicit;
         }
 
-        private bool IsBetterParamsCollectionType(TypeSymbol t1, TypeSymbol t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private BetterResult IsBetterParamsCollectionType(TypeSymbol t1, TypeSymbol t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             CollectionExpressionTypeKind kind1 = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, t1, out TypeWithAnnotations elementType1);
             CollectionExpressionTypeKind kind2 = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, t2, out TypeWithAnnotations elementType2);
 
-            return IsBetterCollectionExpressionConversion(t1, kind1, elementType1.Type, t2, kind2, elementType2.Type, ref useSiteInfo);
+            if (kind1 is CollectionExpressionTypeKind.CollectionBuilder or CollectionExpressionTypeKind.ImplementsIEnumerable)
+            {
+                _binder.TryGetCollectionIterationType(CSharpSyntaxTree.Dummy.GetRoot(), t1, out elementType1);
+            }
+
+            if (kind2 is CollectionExpressionTypeKind.CollectionBuilder or CollectionExpressionTypeKind.ImplementsIEnumerable)
+            {
+                _binder.TryGetCollectionIterationType(CSharpSyntaxTree.Dummy.GetRoot(), t2, out elementType2);
+            }
+
+            return BetterCollectionExpressionConversion(
+                collectionExpressionElements: [],
+                t1, kind1, elementType1.Type, underlyingElementConversions1: [],
+                t2, kind2, elementType2.Type, underlyingElementConversions2: [],
+                ref useSiteInfo);
         }
 
         private static bool IsSZArrayOrArrayInterface(TypeSymbol type, out TypeSymbol elementType)
