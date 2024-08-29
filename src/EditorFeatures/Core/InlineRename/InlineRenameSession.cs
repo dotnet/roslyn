@@ -878,7 +878,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             await TaskScheduler.Default;
 
             // While on the background, attempt to figure out the actual changes to make to the workspace's current solution.
-            var documentChanges = await CalculateFinalDocumentChangesAsync(_baseSolution, newSolution, cancellationToken).ConfigureAwait(false);
+            var documentChanges = await CalculateFinalDocumentChangesAsync(newSolution, cancellationToken).ConfigureAwait(false);
 
             // Now jump back to the UI thread to actually apply those changes.
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
