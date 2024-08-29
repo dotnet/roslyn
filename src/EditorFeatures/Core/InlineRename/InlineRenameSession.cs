@@ -662,7 +662,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         _threadingContext.ThrowIfNotOnUIThread();
 
         DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(
-            outcome, previewChanges, finalCommitAction: null);
+            outcome, previewChanges);
     }
 
     /// <summary>
@@ -671,7 +671,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     private void DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(
         RenameLogMessage.UserActionOutcome outcome,
         bool previewChanges,
-        Action finalCommitAction)
+        Action finalCommitAction = null)
     {
         // Note: this entire sequence of steps is not cancellable.  We must perform it all to get back to a correct
         // state for all the editors the user is interacting with.
