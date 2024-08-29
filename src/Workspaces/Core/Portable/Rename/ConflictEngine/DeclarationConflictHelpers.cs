@@ -61,7 +61,8 @@ internal static class DeclarationConflictHelpers
                     if (!(conflictingMethod.PartialDefinitionPart != null && Equals(conflictingMethod.PartialDefinitionPart, renamedMethod)) &&
                         !(conflictingMethod.PartialImplementationPart != null && Equals(conflictingMethod.PartialImplementationPart, renamedMethod)))
                     {
-                        builder.AddRange(conflictingSymbol.Locations);
+                        // TODO2: blanking out functionality to find tests which depend on this behavior
+                        // builder.AddRange(conflictingSymbol.Locations);
                     }
                 }
                 else

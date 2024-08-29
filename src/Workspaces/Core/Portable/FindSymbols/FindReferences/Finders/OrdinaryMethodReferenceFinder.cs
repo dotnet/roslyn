@@ -35,11 +35,12 @@ internal sealed class OrdinaryMethodReferenceFinder : AbstractMethodOrPropertyOr
     private static ImmutableArray<ISymbol> GetOtherPartsOfPartial(IMethodSymbol symbol)
     {
         // https://github.com/dotnet/roslyn/issues/73772: define/use a similar helper for PropertySymbolReferenceFinder+PropertyAccessorSymbolReferenceFinder?
-        if (symbol.PartialDefinitionPart != null)
-            return [symbol.PartialDefinitionPart];
+        // TODO2: blanking out functionality to find tests which depend on this behavior
+        // if (symbol.PartialDefinitionPart != null)
+        //     return [symbol.PartialDefinitionPart];
 
-        if (symbol.PartialImplementationPart != null)
-            return [symbol.PartialImplementationPart];
+        // if (symbol.PartialImplementationPart != null)
+        //     return [symbol.PartialImplementationPart];
 
         return [];
     }

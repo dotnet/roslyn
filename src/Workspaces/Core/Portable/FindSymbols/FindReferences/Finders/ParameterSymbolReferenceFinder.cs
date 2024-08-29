@@ -242,14 +242,15 @@ internal sealed class ParameterSymbolReferenceFinder : AbstractReferenceFinder<I
         ArrayBuilder<ISymbol> results)
     {
         // https://github.com/dotnet/roslyn/issues/73772: also cascade partial indexer parameters
+        // TODO2: blanking out functionality to find tests which depend on this behavior
         if (parameter.ContainingSymbol is IMethodSymbol method)
         {
-            var ordinal = parameter.Ordinal;
-            if (ordinal < method.PartialDefinitionPart?.Parameters.Length)
-                results.Add(method.PartialDefinitionPart.Parameters[ordinal]);
+            // var ordinal = parameter.Ordinal;
+            // if (ordinal < method.PartialDefinitionPart?.Parameters.Length)
+            //     results.Add(method.PartialDefinitionPart.Parameters[ordinal]);
 
-            if (ordinal < method.PartialImplementationPart?.Parameters.Length)
-                results.Add(method.PartialImplementationPart.Parameters[ordinal]);
+            // if (ordinal < method.PartialImplementationPart?.Parameters.Length)
+            //     results.Add(method.PartialImplementationPart.Parameters[ordinal]);
         }
     }
 }
