@@ -668,7 +668,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     /// <summary>
     /// Dismisses the UI, rolls back any edits, and ends the rename session.
     /// </summary>
-    private bool DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(
+    private void DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(
         RenameLogMessage.UserActionOutcome outcome,
         bool previewChanges,
         Action applyChangesOpt)
@@ -679,7 +679,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         _threadingContext.ThrowIfNotOnUIThread();
 
         if (_dismissed)
-            return false;
+            return;
 
         _dismissed = true;
 
