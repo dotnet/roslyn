@@ -1077,7 +1077,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             // If collection has a struct enumerator but doesn't implement ICollection<T>
                             // then manual `foreach` is always more efficient then using `AddRange` method
-                            if (enumeratorInfo.GetEnumeratorInfo.Method.ReturnType.IsValueType )
+                            if (enumeratorInfo.GetEnumeratorInfo.Method.ReturnType.IsValueType)
                             {
                                 conversion = _compilation.Conversions.ClassifyBuiltInConversion(enumeratorInfo.CollectionType, iCollectionOfElementType, isChecked: false, ref discardedUseSiteInfo);
                                 if (!(conversion.Kind is ConversionKind.Identity or ConversionKind.ImplicitReference))
