@@ -671,7 +671,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     private void DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(
         RenameLogMessage.UserActionOutcome outcome,
         bool previewChanges,
-        Action applyChangesOpt)
+        Action finalCommitAction)
     {
         // Note: this entire sequence of steps is not cancellable.  We must perform it all to get back to a correct
         // state for all the editors the user is interacting with.
@@ -694,7 +694,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         _keepAliveSession.Dispose();
 
         // Perform the actual commit step if we've been asked to.
-        applyChangesOpt?.Invoke();
+        finalCommitAction?.Invoke();
 
         // Log the result so we know how well rename is going in practice.
         LogRenameSession(outcome, previewChanges);
