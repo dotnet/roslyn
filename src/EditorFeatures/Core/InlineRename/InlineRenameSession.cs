@@ -693,7 +693,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         // Close the keep alive session we have open with OOP, allowing it to release the solution it is holding onto.
         _keepAliveSession.Dispose();
 
-        // Make any changes to the workspace if requested.
+        // Perform the actual commit step if we've been asked to.
         applyChangesOpt?.Invoke();
 
         // Log the result so we know how well rename is going in practice.
@@ -705,7 +705,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         // Log how long the full rename took.
         _inlineRenameSessionDurationLogBlock.Dispose();
 
-        return true;
+        return;
 
         void DismissUIAndRollbackEdits()
         {
