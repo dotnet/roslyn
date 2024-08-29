@@ -14,7 +14,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
 [ExportWorkspaceService(typeof(IWorkspaceTelemetryService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RemoteWorkspaceTelemetryService() : AbstractVisualStudioWorkspaceTelemetryService
+internal sealed class RemoteWorkspaceTelemetryService() : AbstractWorkspaceTelemetryService
 {
     protected override ILogger CreateLogger(TelemetrySession telemetrySession, bool logDelta)
         => AggregateLogger.Create(

@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
 internal sealed class VisualStudioWorkspaceTelemetryService(
     IThreadingContext threadingContext,
     VisualStudioWorkspace workspace,
-    IGlobalOptionService globalOptions) : AbstractVisualStudioWorkspaceTelemetryService
+    IGlobalOptionService globalOptions) : AbstractWorkspaceTelemetryService
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly VisualStudioWorkspace _workspace = workspace;
@@ -47,7 +47,7 @@ internal sealed class VisualStudioWorkspaceTelemetryService(
 
             // Wait until the remote host was created by some other party (we don't want to cause it to happen ourselves
             // in the call to RemoteHostClient below).
-            await this.IsInitializedAsync().ConfigureAwait(false);
+            await RemoteHostClient.WaitForFirstConnection(_workspace, cancellationToken).ConfigureAwait(false);
 
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)

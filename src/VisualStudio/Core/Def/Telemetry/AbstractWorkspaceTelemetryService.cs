@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
 
-internal abstract class AbstractVisualStudioWorkspaceTelemetryService : AbstractWorkspaceTelemetryService
+internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryService
 {
     public TelemetrySession? CurrentSession { get; private set; }
 
@@ -35,18 +35,18 @@ internal abstract class AbstractVisualStudioWorkspaceTelemetryService : Abstract
     }
 
     [MemberNotNullWhen(true, nameof(CurrentSession))]
-    public override bool HasActiveSession
+    public bool HasActiveSession
         => CurrentSession != null && CurrentSession.IsOptedIn;
 
-    public override bool IsUserMicrosoftInternal
+    public bool IsUserMicrosoftInternal
         => HasActiveSession && CurrentSession.IsUserMicrosoftInternal;
 
-    public override string? SerializeCurrentSessionSettings()
+    public string? SerializeCurrentSessionSettings()
         => CurrentSession?.SerializeSettings();
 
-    public override void RegisterUnexpectedExceptionLogger(TraceSource logger)
+    public void RegisterUnexpectedExceptionLogger(TraceSource logger)
         => FaultReporter.RegisterLogger(logger);
 
-    public override void UnregisterUnexpectedExceptionLogger(TraceSource logger)
+    public void UnregisterUnexpectedExceptionLogger(TraceSource logger)
         => FaultReporter.UnregisterLogger(logger);
 }

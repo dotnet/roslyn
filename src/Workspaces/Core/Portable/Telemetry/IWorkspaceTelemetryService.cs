@@ -41,21 +41,3 @@ internal interface IWorkspaceTelemetryService : IWorkspaceService
     /// </summary>
     void UnregisterUnexpectedExceptionLogger(TraceSource logger);
 }
-
-internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryService
-{
-    private readonly TaskCompletionSource<bool> _isInitializedSource = new();
-
-    protected Task<bool> IsInitializedAsync()
-        => _isInitializedSource.Task;
-
-    public abstract bool HasActiveSession { get; }
-    public abstract bool IsUserMicrosoftInternal { get; }
-
-    public abstract string? SerializeCurrentSessionSettings();
-    public abstract void RegisterUnexpectedExceptionLogger(TraceSource logger);
-    public abstract void UnregisterUnexpectedExceptionLogger(TraceSource logger);
-
-    public void SetInitialized()
-        => _isInitializedSource.TrySetResult(true);
-}

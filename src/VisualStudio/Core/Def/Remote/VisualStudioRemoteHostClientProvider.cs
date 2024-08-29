@@ -91,6 +91,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly IVsService<IBrokeredServiceContainer> _brokeredServiceContainer;
         private readonly AsynchronousOperationListenerProvider _listenerProvider;
         private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
+        private readonly TaskCompletionSource<bool> _clientCreationSource = new();
 
         private VisualStudioRemoteHostClientProvider(
             SolutionServices services,
@@ -133,9 +134,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 return null;
             }
+            finally
+            {
+                _clientCreationSource.SetResult(true);
+            }
         }
 
         public Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
             => _lazyClient.GetValueAsync(cancellationToken);
+
+        public Task WaitForClientCreationAsync(CancellationToken cancellationToken)
+            => _clientCreationSource.Task;
     }
 }

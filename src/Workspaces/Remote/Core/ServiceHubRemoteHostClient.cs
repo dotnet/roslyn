@@ -76,11 +76,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     (service, cancellationToken) => service.InitializeAsync(workspaceConfigurationService.Options, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                // Let the telemetry service know we've created our oop connection, and it can now initialize it with
-                // any telemetry session data it has.
-                var telemetryService = (AbstractWorkspaceTelemetryService)services.GetRequiredService<IWorkspaceTelemetryService>();
-                telemetryService.SetInitialized();
-
                 if (remoteProcessId.HasValue)
                 {
                     try
