@@ -954,14 +954,9 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         var finalSolution = Workspace.CurrentSolution;
         foreach (var (documentId, newName, newRoot, newText) in documentChanges)
         {
-            if (newRoot != null)
-            {
-                finalSolution = finalSolution.WithDocumentSyntaxRoot(documentId, newRoot);
-            }
-            else if (newText != null)
-            {
-                finalSolution = finalSolution.WithDocumentText(documentId, newText);
-            }
+            finalSolution = newRoot != null
+                ? finalSolution.WithDocumentSyntaxRoot(documentId, newRoot)
+                : finalSolution.WithDocumentText(documentId, newText);
 
             finalSolution = finalSolution.WithDocumentName(documentId, newName);
         }
