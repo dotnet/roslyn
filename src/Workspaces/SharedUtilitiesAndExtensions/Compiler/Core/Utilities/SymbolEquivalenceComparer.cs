@@ -41,14 +41,17 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
     private readonly ImmutableArray<EquivalenceVisitor> _equivalenceVisitors;
     private readonly ImmutableArray<GetHashCodeVisitor> _getHashCodeVisitors;
 
-    public static readonly SymbolEquivalenceComparer Instance = Create(distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
-    public static readonly SymbolEquivalenceComparer TupleNamesMustMatchInstance = Create(distinguishRefFromOut: false, tupleNamesMustMatch: true, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
-    public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new(assemblyComparer: null, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
+    public static readonly SymbolEquivalenceComparer Instance = Create(distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false);
+    public static readonly SymbolEquivalenceComparer TupleNamesMustMatchInstance = Create(distinguishRefFromOut: false, tupleNamesMustMatch: true, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false);
+    public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new(assemblyComparer: null, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false);
 
     private readonly IEqualityComparer<IAssemblySymbol>? _assemblyComparer;
+
+    private readonly bool _distinguishRefFromOut;
     private readonly bool _tupleNamesMustMatch;
     private readonly bool _ignoreNullableAnnotations;
     private readonly bool _objectAndDynamicCompareEqually;
+    private readonly bool _arrayAndReadOnlySpanCompareEqually;
 
     public ParameterSymbolEqualityComparer ParameterEquivalenceComparer { get; }
     public SignatureTypeSymbolEquivalenceComparer SignatureTypeEquivalenceComparer { get; }
@@ -58,12 +61,15 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         bool distinguishRefFromOut,
         bool tupleNamesMustMatch,
         bool ignoreNullableAnnotations,
-        bool objectAndDynamicCompareEqually)
+        bool objectAndDynamicCompareEqually,
+        bool arrayAndReadOnlySpanCompareEqually)
     {
         _assemblyComparer = assemblyComparer;
+        _distinguishRefFromOut = distinguishRefFromOut;
         _tupleNamesMustMatch = tupleNamesMustMatch;
         _ignoreNullableAnnotations = ignoreNullableAnnotations;
         _objectAndDynamicCompareEqually = objectAndDynamicCompareEqually;
+        _arrayAndReadOnlySpanCompareEqually = arrayAndReadOnlySpanCompareEqually;
 
         this.ParameterEquivalenceComparer = new ParameterSymbolEqualityComparer(this, distinguishRefFromOut);
         this.SignatureTypeEquivalenceComparer = new SignatureTypeSymbolEquivalenceComparer(this);
@@ -92,9 +98,26 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         bool distinguishRefFromOut,
         bool tupleNamesMustMatch,
         bool ignoreNullableAnnotations,
-        bool objectAndDynamicCompareEqually)
+        bool objectAndDynamicCompareEqually,
+        bool arrayAndReadOnlySpanCompareEqually)
     {
-        return new(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut, tupleNamesMustMatch, ignoreNullableAnnotations, objectAndDynamicCompareEqually);
+        return new(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut, tupleNamesMustMatch, ignoreNullableAnnotations, objectAndDynamicCompareEqually, arrayAndReadOnlySpanCompareEqually);
+    }
+
+    public SymbolEquivalenceComparer With(
+        Optional<bool> distinguishRefFromOut = default,
+        Optional<bool> tupleNamesMustMatch = default,
+        Optional<bool> ignoreNullableAnnotations = default,
+        Optional<bool> objectAndDynamicCompareEqually = default,
+        Optional<bool> arrayAndReadOnlySpanCompareEqually = default)
+    {
+        var newDistinguishRefFromOut = distinguishRefFromOut.HasValue ? distinguishRefFromOut.Value : _distinguishRefFromOut;
+        var newTupleNamesMustMatch = tupleNamesMustMatch.HasValue ? tupleNamesMustMatch.Value : _tupleNamesMustMatch;
+        var newIgnoreNullableAnnotations = ignoreNullableAnnotations.HasValue ? ignoreNullableAnnotations.Value : _ignoreNullableAnnotations;
+        var newObjectAndDynamicCompareEqually = objectAndDynamicCompareEqually.HasValue ? objectAndDynamicCompareEqually.Value : _objectAndDynamicCompareEqually;
+        var newArrayAndReadOnlySpanCompareEqually = arrayAndReadOnlySpanCompareEqually.HasValue ? arrayAndReadOnlySpanCompareEqually.Value : _arrayAndReadOnlySpanCompareEqually;
+
+        return new(_assemblyComparer, newDistinguishRefFromOut, newTupleNamesMustMatch, newIgnoreNullableAnnotations, newObjectAndDynamicCompareEqually, newArrayAndReadOnlySpanCompareEqually);
     }
 
     // Very subtle logic here.  When checking if two parameters are the same, we can end up with

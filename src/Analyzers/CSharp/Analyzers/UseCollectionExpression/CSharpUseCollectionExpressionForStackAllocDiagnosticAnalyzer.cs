@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
+using static UseCollectionExpressionHelpers;
+
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnosticAnalyzer
     : AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
@@ -127,6 +129,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         return UseCollectionExpressionHelpers.TryGetMatches(
             semanticModel,
             expression,
+            CreateReplacementCollectionExpressionForAnalysis(expression.Initializer),
             expressionType,
             isSingletonInstance: false,
             allowSemanticsChange,
