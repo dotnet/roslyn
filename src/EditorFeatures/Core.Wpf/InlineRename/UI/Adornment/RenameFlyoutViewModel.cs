@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -223,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public void Cancel()
         {
             SmartRenameViewModel?.Cancel();
-            Session.Cancel();
+            _ = Session.CancelAsync();
         }
 
         public void Dispose()

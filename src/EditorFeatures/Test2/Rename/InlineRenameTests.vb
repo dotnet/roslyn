@@ -725,7 +725,7 @@ End Class
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub SimpleEditAndCancel(host As RenameTestHost)
+        Public Async Function SimpleEditAndCancel(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -750,7 +750,7 @@ End Class
 
                 textBuffer.Insert(caretPosition, "Bar")
 
-                session.Cancel()
+                Await session.CancelAsync()
 
                 ' Assert the file is what it started as
                 Assert.Equal(initialTextSnapshot.GetText(), textBuffer.CurrentSnapshot.GetText())
@@ -758,7 +758,7 @@ End Class
                 ' Assert the file name didn't change
                 VerifyFileName(workspace, "Test1.cs")
             End Using
-        End Sub
+        End Function
 
         <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539513")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
@@ -793,7 +793,7 @@ End Class
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub ReadOnlyRegionsCreated(host As RenameTestHost)
+        Public Async Function ReadOnlyRegionsCreated(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -820,17 +820,17 @@ End Class
                 Assert.True(buffer.IsReadOnly(0))
                 Assert.True(buffer.IsReadOnly(buffer.CurrentSnapshot.Length))
 
-                session.Cancel()
+                Await session.CancelAsync()
 
                 ' Assert the file name didn't change
                 VerifyFileName(workspace, "Test1.cs")
             End Using
-        End Sub
+        End Function
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543018")>
-        Public Sub ReadOnlyRegionsCreatedWhichHandleBeginningOfFileEdgeCase(host As RenameTestHost)
+        Public Async Function ReadOnlyRegionsCreatedWhichHandleBeginningOfFileEdgeCase(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -848,11 +848,11 @@ End Class
                 ' Replacing our span should work
                 Assert.False(buffer.IsReadOnly(New Span(workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value, length:=1)))
 
-                session.Cancel()
+                Await session.CancelAsync()
 
                 VerifyFileName(workspace, "Test1.cs")
             End Using
-        End Sub
+        End Function
 
         <Theory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
@@ -1027,7 +1027,7 @@ End Class
                 Await WaitForRename(workspace)
                 Await VerifyTagsAreCorrect(workspace)
 
-                session.Cancel()
+                Await session.CancelAsync()
                 Await VerifyNoRenameTrackingTags(renameTrackingTagger, workspace, document)
 
                 VerifyFileName(workspace, "Test1.cs")

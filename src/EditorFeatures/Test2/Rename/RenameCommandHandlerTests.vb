@@ -191,7 +191,7 @@ End Class
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
-        Public Sub TypingSpaceDuringRename(host As RenameTestHost)
+        Public Async Function TypingSpaceDuringRename(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
@@ -214,9 +214,9 @@ End Class
                                               Sub() AssertEx.Fail("Space should not have been passed to the editor."),
                                               Utilities.TestCommandExecutionContext.Create())
 
-                session.Cancel()
+                Await session.CancelAsync()
             End Using
-        End Sub
+        End Function
 
         <WpfTheory>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
@@ -258,7 +258,7 @@ End Class
 
                 Assert.Equal(3, view.Caret.Position.BufferPosition.GetContainingLineNumber())
 
-                session.Cancel()
+                Await session.CancelAsync()
             End Using
         End Function
 
@@ -450,7 +450,7 @@ Goo f;
                                               Utilities.TestCommandExecutionContext.Create())
                 Assert.Equal(Span.FromBounds(startPosition + 1, lineEnd), view.Selection.SelectedSpans.Single().Span)
 #End Region
-                session.Cancel()
+                Await session.CancelAsync()
             End Using
         End Function
 
@@ -481,7 +481,7 @@ Goo f;
 
                 Await VerifyTagsAreCorrect(workspace)
 
-                session.Cancel()
+                Await session.CancelAsync()
             End Using
         End Function
 
@@ -568,7 +568,7 @@ Goo f;
                 Await VerifyTagsAreCorrect(workspace)
                 Assert.NotNull(workspace.GetService(Of IInlineRenameService).ActiveSession)
 
-                session.Cancel()
+                Await session.CancelAsync()
             End Using
         End Function
 
@@ -605,7 +605,7 @@ Goo f;
                 Await VerifyTagsAreCorrect(workspace)
                 Assert.NotNull(workspace.GetService(Of IInlineRenameService).ActiveSession)
 
-                session.Cancel()
+                Await session.CancelAsync()
             End Using
         End Function
 

@@ -653,7 +653,7 @@ class D : B
                     Assert.True(QuickInfoSession.Dismissed)
                 End Using
 
-                sessionInfo.Session.Cancel()
+                Await sessionInfo.Session.CancelAsync()
             End Using
         End Function
 

@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Assert.True(Not sessionCommit Or Not sessionCancel)
 
                 If sessionCancel Then
-                    session.Cancel()
+                    Await session.CancelAsync()
                     VerifyBufferContentsInWorkspace(actualWorkspace, actualWorkspace)
                 ElseIf sessionCommit Then
                     Await session.CommitAsync(previewChanges:=False)
@@ -136,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 Dim session = StartSession(workspace)
 
                 Await VerifyTaggedSpans(HighlightTags.RenameFieldBackgroundAndBorderTag.Instance, workspace, renameService)
-                session.Cancel()
+                Await session.CancelAsync()
             End Using
         End Function
 
@@ -1610,7 +1610,7 @@ static class E
                 Dim conflictTaggedSpans = Await GetTagsOfType(RenameConflictTag.Instance, workspace, renameService)
                 Dim conflictExpectedSpans = workspace.Documents.Single(Function(d) d.AnnotatedSpans.Count > 0).AnnotatedSpans("conflict").Select(Function(ts) ts.ToSpan())
 
-                session.Cancel()
+                Await session.CancelAsync()
 
                 AssertEx.Equal(validExpectedSpans, validTaggedSpans)
                 AssertEx.Equal(conflictExpectedSpans, conflictTaggedSpans)
@@ -1643,7 +1643,7 @@ static class E
                 Dim conflictTaggedSpans = Await GetTagsOfType(RenameConflictTag.Instance, workspace, renameService)
                 Dim conflictExpectedSpans = workspace.Documents.Single(Function(d) d.AnnotatedSpans.Count > 0).AnnotatedSpans("conflict").Select(Function(ts) ts.ToSpan())
 
-                session.Cancel()
+                Await session.CancelAsync()
 
                 AssertEx.Equal(validExpectedSpans, validTaggedSpans)
                 AssertEx.Equal(conflictExpectedSpans, conflictTaggedSpans)

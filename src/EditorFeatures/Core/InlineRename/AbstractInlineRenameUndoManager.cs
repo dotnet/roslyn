@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
@@ -154,7 +155,7 @@ internal abstract class AbstractInlineRenameUndoManager<TBufferState>
         }
         else
         {
-            this.InlineRenameService.ActiveSession.Cancel();
+            this.InlineRenameService.ActiveSession.CancelAsync().ReportNonFatalErrorAsync();
         }
     }
 

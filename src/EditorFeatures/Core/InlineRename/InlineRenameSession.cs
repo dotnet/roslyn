@@ -397,7 +397,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                     m["Kind"] = Enum.GetName(typeof(WorkspaceChangeKind), args.Kind);
                 }));
 
-                Cancel();
+                _ = CancelAsync().ReportNonFatalErrorAsync();
             }
         }
     }
@@ -647,15 +647,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         }
     }
 
-    public void Cancel()
-    {
-        _threadingContext.ThrowIfNotOnUIThread();
-
-        // This wait is safe.  We are not passing the async callback to DismissUIAndRollbackEditsAndEndRenameSessionAsync.
-        // So everything in that method will happen synchronously.
-        DismissUIAndRollbackEditsAndEndRenameSessionAsync(
-            RenameLogMessage.UserActionOutcome.Canceled, previewChanges: false).Wait();
-    }
+    public Task CancelAsync() => DismissUIAndRollbackEditsAndEndRenameSessionAsync(RenameLogMessage.UserActionOutcome.Canceled, previewChanges: false);
 
     private async Task DismissUIAndRollbackEditsAndEndRenameSessionAsync(
         RenameLogMessage.UserActionOutcome outcome,
@@ -782,7 +774,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         if (this.ReplacementText == string.Empty ||
             this.ReplacementText == _initialRenameText)
         {
-            Cancel();
+            await CancelAsync().ConfigureAwait(false);
             return false;
         }
 

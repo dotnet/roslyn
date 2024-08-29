@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
@@ -320,7 +321,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
-            _model.Session.Cancel();
+            _ = CancelAsync();
+        }
+
+        private async Task CancelAsync()
+        {
+            //.ConfigureAwait(true) because we need to set focus later
+            await _model.Session.CancelAsync().ConfigureAwait(true);
             _textView.VisualElement.Focus();
         }
 

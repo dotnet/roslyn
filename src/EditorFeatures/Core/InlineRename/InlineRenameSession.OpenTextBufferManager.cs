@@ -146,7 +146,7 @@ internal partial class InlineRenameSession
             var view = sender as ITextView;
             view.Closed -= OnTextViewClosed;
             _textViews.Remove(view);
-            _session.Cancel();
+            _ = _session.CancelAsync().ReportNonFatalErrorAsync();
         }
 
         internal void ConnectToView(ITextView textView)

@@ -46,7 +46,7 @@ internal interface IInlineRenameSession
     /// <summary>
     /// Cancels the rename session, and undoes any edits that had been performed by the session.
     /// </summary>
-    void Cancel();
+    Task CancelAsync();
 
     /// <summary>
     /// Dismisses the rename session, completing the rename operation across all files.

@@ -108,11 +108,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
             Private Class MockInlineRenameSession
                 Implements IInlineRenameSession
 
-                Public Sub Cancel() Implements IInlineRenameSession.Cancel
-                    Throw New NotImplementedException()
-                End Sub
-
                 Public Function CommitAsync(previewChanges As Boolean, Optional editorOperationContext As IUIThreadOperationContext = Nothing) As Task Implements IInlineRenameSession.CommitAsync
+                    Throw New NotImplementedException()
+                End Function
+
+                Public Function CancelAsync() As Task Implements IInlineRenameSession.CancelAsync
                     Throw New NotImplementedException()
                 End Function
             End Class
