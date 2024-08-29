@@ -7,11 +7,6 @@
         <target state="translated">无法设置 {0} 特定选项 {1}，因为已为其他语言配置了这些选项。</target>
         <note />
       </trans-unit>
-      <trans-unit id="CollectibleAssembliesNotSupported">
-        <source>The current platform does not support collectible assemblies</source>
-        <target state="new">The current platform does not support collectible assemblies</target>
-        <note />
-      </trans-unit>
       <trans-unit id="StackOverflowWhileEvaluating">
         <source>!&lt;Stack overflow while evaluating object&gt;</source>
         <target state="translated">!&lt;计算对象时堆栈溢出&gt;</target>

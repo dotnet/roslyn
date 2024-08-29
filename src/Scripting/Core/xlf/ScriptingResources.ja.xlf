@@ -7,11 +7,6 @@
         <target state="translated">{0} 固有のオプション {1} を設定できません。オプションが異なる言語用に既に構成されているためです。</target>
         <note />
       </trans-unit>
-      <trans-unit id="CollectibleAssembliesNotSupported">
-        <source>The current platform does not support collectible assemblies</source>
-        <target state="new">The current platform does not support collectible assemblies</target>
-        <note />
-      </trans-unit>
       <trans-unit id="StackOverflowWhileEvaluating">
         <source>!&lt;Stack overflow while evaluating object&gt;</source>
         <target state="translated">!&lt;オブジェクトの評価中にスタック オーバーフローが発生しました&gt;</target>

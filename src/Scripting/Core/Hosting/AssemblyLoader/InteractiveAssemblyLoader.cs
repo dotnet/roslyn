@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             private string GetDebuggerDisplay() => IsDefault ? "uninitialized" : Identity.GetDisplayName() + (Location != null ? " @ " + Location : "");
         }
 
-        public InteractiveAssemblyLoader(MetadataShadowCopyProvider? shadowCopyProvider = null, bool isCollectible = false)
+        public InteractiveAssemblyLoader(MetadataShadowCopyProvider? shadowCopyProvider = null)
         {
             _shadowCopyProvider = shadowCopyProvider;
 
@@ -90,16 +90,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             _loadedAssembliesBySimpleName = new Dictionary<string, List<LoadedAssemblyInfo>>(AssemblyIdentityComparer.SimpleNameComparer);
             _dependenciesWithLocationBySimpleName = new Dictionary<string, List<AssemblyIdentityAndLocation>>();
 
-#if NET
-            _runtimeAssemblyLoader = new CoreAssemblyLoaderImpl(this, isCollectible);
-#else
-            if (isCollectible)
-            {
-                throw new InteractiveAssemblyLoaderException(ScriptingResources.CollectibleAssembliesNotSupported);
-            }
-
-            _runtimeAssemblyLoader = new DesktopAssemblyLoaderImpl(this);
-#endif
+            _runtimeAssemblyLoader = AssemblyLoaderImpl.Create(this);
         }
 
         public void Dispose()

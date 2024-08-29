@@ -1,1 +1,0 @@
-Microsoft.CodeAnalysis.Scripting.Hosting.InteractiveAssemblyLoader.InteractiveAssemblyLoader(Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider shadowCopyProvider = null, bool isCollectible = false) -> void

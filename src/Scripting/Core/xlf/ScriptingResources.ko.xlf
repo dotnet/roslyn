@@ -7,11 +7,6 @@
         <target state="translated">옵션이 다른 언어에 대해 이미 구성되어 있으므로 {0} 특정 옵션 {1}을(를) 설정할 수 없습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CollectibleAssembliesNotSupported">
-        <source>The current platform does not support collectible assemblies</source>
-        <target state="new">The current platform does not support collectible assemblies</target>
-        <note />
-      </trans-unit>
       <trans-unit id="StackOverflowWhileEvaluating">
         <source>!&lt;Stack overflow while evaluating object&gt;</source>
         <target state="translated">!&lt;개체를 평가하는 동안 스택 오버플로가 발생함&gt;</target>

@@ -12,6 +12,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     {
         internal readonly InteractiveAssemblyLoader Loader = loader;
 
+        public static AssemblyLoaderImpl Create(InteractiveAssemblyLoader loader)
+#if NET
+            => new CoreAssemblyLoaderImpl(loader);
+#else
+            => new DesktopAssemblyLoaderImpl(loader);
+#endif 
+
         public abstract Assembly LoadFromStream(Stream peStream, Stream pdbStream);
         public abstract AssemblyAndLocation LoadFromPath(string path);
         public abstract void Dispose();

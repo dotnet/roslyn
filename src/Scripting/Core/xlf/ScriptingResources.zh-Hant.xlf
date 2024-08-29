@@ -7,11 +7,6 @@
         <target state="translated">因為選項已經針對其他語言設定，所以無法設定 {0} 特定選項 {1}。</target>
         <note />
       </trans-unit>
-      <trans-unit id="CollectibleAssembliesNotSupported">
-        <source>The current platform does not support collectible assemblies</source>
-        <target state="new">The current platform does not support collectible assemblies</target>
-        <note />
-      </trans-unit>
       <trans-unit id="StackOverflowWhileEvaluating">
         <source>!&lt;Stack overflow while evaluating object&gt;</source>
         <target state="translated">!&lt;評估物件時發生堆疊溢位&gt;</target>

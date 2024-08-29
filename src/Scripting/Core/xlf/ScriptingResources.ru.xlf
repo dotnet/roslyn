@@ -7,11 +7,6 @@
         <target state="translated">Не удается задать параметр {1}, связанный с {0}, так как эти параметры уже настроены для другого языка.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CollectibleAssembliesNotSupported">
-        <source>The current platform does not support collectible assemblies</source>
-        <target state="new">The current platform does not support collectible assemblies</target>
-        <note />
-      </trans-unit>
       <trans-unit id="StackOverflowWhileEvaluating">
         <source>!&lt;Stack overflow while evaluating object&gt;</source>
         <target state="translated">!&lt;Переполнение стека при вычислении объекта&gt;</target>

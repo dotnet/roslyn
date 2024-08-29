@@ -7,11 +7,6 @@
         <target state="translated">Pro {0} nelze nastavit specifickou možnost {1}, protože možnosti už byly nakonfigurovány pro jiný jazyk.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CollectibleAssembliesNotSupported">
-        <source>The current platform does not support collectible assemblies</source>
-        <target state="new">The current platform does not support collectible assemblies</target>
-        <note />
-      </trans-unit>
       <trans-unit id="StackOverflowWhileEvaluating">
         <source>!&lt;Stack overflow while evaluating object&gt;</source>
         <target state="translated">!&lt;Přetečení zásobníku během vyhodnocování objektu&gt;</target>
