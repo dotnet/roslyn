@@ -93,7 +93,6 @@ internal abstract partial class AbstractRenameCommandHandler
         {
             // It's in a read-only area that is open, so let's commit the rename 
             // and then let the character go through
-
             CommitIfActiveAndCallNextHandler(args, nextHandler, operationContext);
         }
         else
