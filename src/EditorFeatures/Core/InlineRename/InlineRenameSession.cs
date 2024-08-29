@@ -651,11 +651,11 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
-        DismissUIAndRollbackEditsAndEndRenameSession(
+        DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(
             RenameLogMessage.UserActionOutcome.Canceled, previewChanges: false);
     }
 
-    private void DismissUIAndRollbackEditsAndEndRenameSession(
+    private void DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(
         RenameLogMessage.UserActionOutcome outcome,
         bool previewChanges)
     {
@@ -839,9 +839,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         catch (OperationCanceledException)
         {
             // We've used CA(true) consistently in this method.  So we should always be on the UI thread.
-            _threadingContext.ThrowIfNotOnUIThread();
-
-            DismissUIAndRollbackEditsAndEndRenameSession(
+            DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(
                 RenameLogMessage.UserActionOutcome.Canceled | RenameLogMessage.UserActionOutcome.Committed, previewChanges);
             return false;
         }
