@@ -3,7 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.Telemetry;
 
@@ -37,4 +40,22 @@ internal interface IWorkspaceTelemetryService : IWorkspaceService
     /// Removes a <see cref="TraceSource"/> used to log unexpected exceptions.
     /// </summary>
     void UnregisterUnexpectedExceptionLogger(TraceSource logger);
+}
+
+internal abstract class AbstractWorkspaceTelemetryService : IWorkspaceTelemetryService
+{
+    private readonly TaskCompletionSource<bool> _isInitializedSource = new();
+
+    protected Task<bool> IsInitializedAsync()
+        => _isInitializedSource.Task;
+
+    public abstract bool HasActiveSession { get; }
+    public abstract bool IsUserMicrosoftInternal { get; }
+
+    public abstract string? SerializeCurrentSessionSettings();
+    public abstract void RegisterUnexpectedExceptionLogger(TraceSource logger);
+    public abstract void UnregisterUnexpectedExceptionLogger(TraceSource logger);
+
+    public void SetInitialized()
+        => _isInitializedSource.TrySetResult(true);
 }

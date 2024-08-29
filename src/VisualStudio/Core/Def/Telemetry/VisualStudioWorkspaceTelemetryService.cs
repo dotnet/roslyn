@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
 internal sealed class VisualStudioWorkspaceTelemetryService(
     IThreadingContext threadingContext,
     VisualStudioWorkspace workspace,
-    IGlobalOptionService globalOptions) : AbstractWorkspaceTelemetryService
+    IGlobalOptionService globalOptions) : AbstractVisualStudioWorkspaceTelemetryService
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly VisualStudioWorkspace _workspace = workspace;
@@ -44,11 +44,11 @@ internal sealed class VisualStudioWorkspaceTelemetryService(
         var cancellationToken = _threadingContext.DisposalToken;
         _ = Task.Run(async () =>
         {
-            // Don't initialize remote telemetry until the workspace is fully loaded.  We don't want to cause all the
-            // OOP machinery to spin up and contend with the resources being used to load the solution.
-            var statusService = _workspace.Services.GetRequiredService<IWorkspaceStatusService>();
-            await statusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-            
+
+            // Wait until the remote host was created by some other party (we don't want to cause it to happen ourselves
+            // in the call to RemoteHostClient below).
+            await this.IsInitializedAsync().ConfigureAwait(false);
+
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
                 return;
@@ -58,7 +58,6 @@ internal sealed class VisualStudioWorkspaceTelemetryService(
 
             // Only log "delta" property for block end events if feature flag is enabled.
             var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
-
 
             // initialize session in the remote service
             _ = await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
