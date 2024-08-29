@@ -889,8 +889,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
             // Dismiss the rename UI and rollback any linked edits made.
             DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(
-                RenameLogMessage.UserActionOutcome.Committed,
-                previewChanges,
+                RenameLogMessage.UserActionOutcome.Committed, previewChanges,
                 applyChangesOpt: () =>
                 {
                     // Now try to apply that change we computed to the workspace.
