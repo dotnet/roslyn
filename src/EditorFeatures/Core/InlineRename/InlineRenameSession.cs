@@ -661,22 +661,25 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
-        // Because we are passing null for finalCommitAction, we know this must complete synchronously.
-        DismissUIAndRollbackEditsAndEndRenameSession_OnlyCallOnUIThreadAsync(outcome, previewChanges, finalCommitAction: null).VerifyCompleted();
+        // Because we are passing null for finalSolution, we know this must complete synchronously.
+        DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThreadAsync(outcome, previewChanges, finalSolution: null).VerifyCompleted();
     }
 
     /// <summary>
-    /// If this function is called without <paramref name="finalCommitAction"/>, it will
-    /// complete synchronously.  It must be called on the UI thread.
+    /// Dismisses the UI, rolls back any edits, and ends the rename session. If a <paramref name="finalSolution"/> is
+    /// provided, the workspace will be updated to its contents.  If <see langword="null"/> is pass for <paramref
+    /// name="finalSolution"/>, no change will be made to the workspace, and the call will complete synchronously after
+    /// resetting the UI state to what it was when the session started.
     /// </summary>
-    private async Task DismissUIAndRollbackEditsAndEndRenameSession_OnlyCallOnUIThreadAsync(
+    private async Task DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThreadAsync(
         RenameLogMessage.UserActionOutcome outcome,
         bool previewChanges,
-        Func<Task> finalCommitAction = null)
+        Solution finalSolution)
     {
         // Note: this entire sequence of steps is not cancellable.  We must perform it all to get back to a correct
         // state for all the editors the user is interacting with.
         var cancellationToken = CancellationToken.None;
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (_dismissed)
             return;
@@ -694,11 +697,8 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         _keepAliveSession.Dispose();
 
         // Perform the actual commit step if we've been asked to.
-        if (finalCommitAction != null)
-        {
-            // ConfigureAwait(true) so we come back to the UI thread to finish work.
-            await finalCommitAction().ConfigureAwait(true);
-        }
+        if (finalSolution != null)
+            await ApplyChangesAsync(finalSolution).ConfigureAwait(true);
 
         // Log the result so we know how well rename is going in practice.
         LogRenameSession(outcome, previewChanges);
@@ -736,6 +736,19 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             }
 
             RenameService.ActiveSession = null;
+        }
+
+        async Task ApplyChangesAsync(Solution finalSolution)
+        {
+            _threadingContext.ThrowIfNotOnUIThread();
+            var error = await TryApplyRenameAsync(finalSolution, cancellationToken).ConfigureAwait(true);
+
+            if (error is not null)
+            {
+                var notificationService = Workspace.Services.GetService<INotificationService>();
+                notificationService.SendNotification(
+                    error.Value.message, EditorFeaturesResources.Rename_Symbol, error.Value.severity);
+            }
         }
     }
 
@@ -883,20 +896,8 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
-            await DismissUIAndRollbackEditsAndEndRenameSession_OnlyCallOnUIThreadAsync(
-                RenameLogMessage.UserActionOutcome.Committed, previewChanges,
-                async () =>
-                {
-                    _threadingContext.ThrowIfNotOnUIThread();
-                    var error = await TryApplyRenameAsync(newSolution, cancellationToken).ConfigureAwait(true);
-
-                    if (error is not null)
-                    {
-                        var notificationService = Workspace.Services.GetService<INotificationService>();
-                        notificationService.SendNotification(
-                            error.Value.message, EditorFeaturesResources.Rename_Symbol, error.Value.severity);
-                    }
-                }).ConfigureAwait(true);
+            await DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThreadAsync(
+                RenameLogMessage.UserActionOutcome.Committed, previewChanges, newSolution).ConfigureAwait(true);
         }
     }
 
