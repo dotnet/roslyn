@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private string? _lazyDisplay;
         private object? _lazyIdentity;
         private Assembly? _lazyAssembly;
-        private string? _lazyAssemblyLocation;
 
         public event EventHandler<AnalyzerLoadFailureEventArgs>? AnalyzerLoadFailed;
 
@@ -55,8 +54,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
 
-            FullPath = fullPath;
             _assemblyLoader = assemblyLoader ?? throw new ArgumentNullException(nameof(assemblyLoader));
+            FullPath = getAssemblyLocation(fullPath, assemblyLoader);
 
             _diagnosticAnalyzers = new(this, typeof(DiagnosticAnalyzerAttribute), GetDiagnosticsAnalyzerSupportedLanguages, allowNetFramework: true);
             _generators = new(this, typeof(GeneratorAttribute), GetGeneratorSupportedLanguages, allowNetFramework: false, coerceFunction: CoerceGeneratorType);
@@ -64,6 +63,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // Note this analyzer full path as a dependency location, so that the analyzer loader
             // can correctly load analyzer dependencies.
             assemblyLoader.AddDependencyLocation(fullPath);
+
+            static string getAssemblyLocation(string fullPath, IAnalyzerAssemblyLoader assemblyLoader)
+            {
+                // We use reflection because AnalyzerAssemblyLoader can come from a different assembly (it's source-shared).
+                var location = (string?)assemblyLoader.GetType()
+                    .GetMethod(
+                        nameof(AnalyzerAssemblyLoader.RedirectAssemblyPathExternally),
+                        BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)?
+                    .Invoke(assemblyLoader, [fullPath]);
+
+                if (!string.IsNullOrEmpty(location))
+                {
+                    return location;
+                }
+
+                return fullPath;
+            }
         }
 
         public IAnalyzerAssemblyLoader AssemblyLoader => _assemblyLoader;
@@ -108,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             => Hash.Combine(RuntimeHelpers.GetHashCode(_assemblyLoader), FullPath.GetHashCode());
 
         public override string ToString()
-            => $"{nameof(AnalyzerFileReference)}({nameof(FullPath)} = {FullPath}, {nameof(GetAssemblyLocation)} = {GetAssemblyLocation()})";
+            => $"{nameof(AnalyzerFileReference)}({nameof(FullPath)} = {FullPath})";
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
         {
@@ -680,30 +696,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return _lazyAssembly;
-        }
-
-        public string GetAssemblyLocation()
-        {
-            if (_lazyAssemblyLocation == null)
-            {
-                var location = _lazyAssembly?.Location;
-
-                if (string.IsNullOrEmpty(location))
-                {
-                    location = (string?)_assemblyLoader.GetType()
-                        .GetMethod("RedirectAssemblyPathExternally")?
-                        .Invoke(_assemblyLoader, [FullPath]);
-
-                    if (string.IsNullOrEmpty(location))
-                    {
-                        location = FullPath;
-                    }
-                }
-
-                _lazyAssemblyLocation = location;
-            }
-
-            return _lazyAssemblyLocation;
         }
     }
 }
