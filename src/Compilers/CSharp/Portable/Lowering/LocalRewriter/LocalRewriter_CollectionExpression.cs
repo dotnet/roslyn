@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(singleSpread.Expression.Type is not null);
 
-            if (!ShouldUseAddRangeOrToListMethod(singleSpread.Expression.Type, toListOfElementType.Parameters[0].Type, singleSpread.EnumeratorInfoOpt?.GetEnumeratorInfo.Method, listElementType))
+            if (!ShouldUseAddRangeOrToListMethod(singleSpread.Expression.Type, toListOfElementType.Parameters[0].Type, singleSpread.EnumeratorInfoOpt?.GetEnumeratorInfo.Method))
             {
                 return false;
             }
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private bool ShouldUseAddRangeOrToListMethod(TypeSymbol spreadType, TypeSymbol targetEnumerableType, MethodSymbol? getEnumeratorMethod, TypeWithAnnotations elementType)
+        private bool ShouldUseAddRangeOrToListMethod(TypeSymbol spreadType, TypeSymbol targetEnumerableType, MethodSymbol? getEnumeratorMethod)
         {
             Debug.Assert(targetEnumerableType.OriginalDefinition == (object)_compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T));
 
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (getEnumeratorMethod?.ReturnType.IsValueType == true)
             {
                 var iCollectionOfTType = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T);
-                var iCollectionOfElementType = iCollectionOfTType.Construct([elementType]);
+                var iCollectionOfElementType = iCollectionOfTType.Construct(((NamedTypeSymbol)targetEnumerableType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
 
                 if (!spreadType.ImplementsInterface(iCollectionOfElementType, ref discardedUseSiteInfo))
                 {
@@ -1130,7 +1130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (addRangeMethod is null)
                             return false;
 
-                        if (!ShouldUseAddRangeOrToListMethod(rewrittenSpreadOperand.Type, addRangeMethod.Parameters[0].Type, spreadElement.EnumeratorInfoOpt?.GetEnumeratorInfo.Method, elementType))
+                        if (!ShouldUseAddRangeOrToListMethod(rewrittenSpreadOperand.Type, addRangeMethod.Parameters[0].Type, spreadElement.EnumeratorInfoOpt?.GetEnumeratorInfo.Method))
                         {
                             return false;
                         }
