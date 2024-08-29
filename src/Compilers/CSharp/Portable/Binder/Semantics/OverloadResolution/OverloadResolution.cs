@@ -2850,7 +2850,7 @@ outerDefault:
             if (conv1.Kind == ConversionKind.CollectionExpression &&
                 conv2.Kind == ConversionKind.CollectionExpression)
             {
-                return IsBetterCollectionExpressionConversion((BoundUnconvertedCollectionExpression)node, t1, conv1, t2, conv2, ref useSiteInfo);
+                return BetterCollectionExpressionConversion((BoundUnconvertedCollectionExpression)node, t1, conv1, t2, conv2, ref useSiteInfo);
                 // if (IsBetterCollectionExpressionConversion( t1, conv1, t2, conv2, ref useSiteInfo))
                 // {
                 //     return BetterResult.Left;
@@ -2869,7 +2869,7 @@ outerDefault:
 
         // Implements the rules for
         // - E is a collection expression and one of the following holds: ...
-        private BetterResult IsBetterCollectionExpressionConversion(BoundUnconvertedCollectionExpression collectionExpression, TypeSymbol t1, Conversion conv1, TypeSymbol t2, Conversion conv2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private BetterResult BetterCollectionExpressionConversion(BoundUnconvertedCollectionExpression collectionExpression, TypeSymbol t1, Conversion conv1, TypeSymbol t2, Conversion conv2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             // Given:
             // - `E` is a collection expression with element expressions `[EL₁, EL₂, ..., ELₙ]`
@@ -2923,17 +2923,23 @@ outerDefault:
                 for (int i = 0; i < e1Results.Length; i++)
                 {
                     // Conversion comparisons are made using better conversion from expression if `ELᵢ` is not a spread element. If `ELᵢ` is a spread element, we use better conversion from the element type of the spread collection to `E₁` or `E₂`, respectively.
-                    var node = collectionExpression.Elements[i];
+                    var element = collectionExpression.Elements[i];
 
                     BetterResult elementBetterResult;
-                    if (node is BoundCollectionExpressionSpreadElement { Conversion: var spreadConversion })
+                    if (element is BoundCollectionExpressionSpreadElement { Conversion: var spreadConversion })
                     {
-                        // PROTOTYPE
-                        elementBetterResult = BetterResult.Neither;
+                        if (spreadConversion is null)
+                        {
+                            // There were errors, don't attempt to compare for better error recovery
+                            Debug.Assert(element.HasErrors);
+                            continue;
+                        }
+
+                        elementBetterResult = BetterConversionTarget(spreadConversion.Type, elementType1, ref useSiteInfo);
                     }
                     else
                     {
-                        elementBetterResult = BetterConversionFromExpression((BoundExpression)node, elementType1, e1Results[i], elementType2, e2Results[i], ref useSiteInfo, out _);
+                        elementBetterResult = BetterConversionFromExpression((BoundExpression)element, elementType1, e1Results[i], elementType2, e2Results[i], ref useSiteInfo, out _);
                     }
 
                     if (elementBetterResult == BetterResult.Neither)
@@ -2960,20 +2966,18 @@ outerDefault:
             // - `T₁` is `System.ReadOnlySpan<E₁>`, and `T₂` is `System.Span<E₂>`, or
             // - `T₁` is `System.ReadOnlySpan<E₁>` or `System.Span<E₁>`, and `T₂` is an *array_or_array_interface* with *element type* `E₂`
 
-            if (!t1IsSpanType || !t2IsSpanType)
+            if (t1IsSpanType || t2IsSpanType)
             {
-                return BetterResult.Neither;
-            }
+                switch ((kind1, kind2))
+                {
+                    case (CollectionExpressionTypeKind.ReadOnlySpan, CollectionExpressionTypeKind.Span):
+                    case (CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span, _) when IsSZArrayOrArrayInterface(t2, out _):
+                        return BetterResult.Left;
 
-            switch ((kind1, kind2))
-            {
-                case (CollectionExpressionTypeKind.ReadOnlySpan, CollectionExpressionTypeKind.Span):
-                case (CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span, _) when IsSZArrayOrArrayInterface(t2, out _):
-                    return BetterResult.Left;
-
-                case (CollectionExpressionTypeKind.Span, CollectionExpressionTypeKind.ReadOnlySpan):
-                case (_, CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span) when IsSZArrayOrArrayInterface(t1, out _):
-                    return BetterResult.Right;
+                    case (CollectionExpressionTypeKind.Span, CollectionExpressionTypeKind.ReadOnlySpan):
+                    case (_, CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span) when IsSZArrayOrArrayInterface(t1, out _):
+                        return BetterResult.Right;
+                }
             }
 
             return BetterResult.Neither;
