@@ -211,7 +211,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
         var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
-        telemetryService.InitializeTelemetrySessionAsync(telemetrySession, logDelta);
+        telemetryService.InitializeTelemetrySession(telemetrySession, logDelta);
 
         Logger.Log(FunctionId.Run_Environment,
             KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
@@ -221,9 +221,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         // This must be called after the _openFileTracker was assigned; this way we know that a file added from the project system either got checked
         // in CheckForAddedFileBeingOpenMaybeAsync, or we catch it here.
         openFileTracker.CheckForOpenFilesThatWeMissed();
-
-        // Switch to a background thread to avoid loading option providers on UI thread (telemetry is reading options).
-        await TaskScheduler.Default;
     }
 
     public Task CheckForAddedFileBeingOpenMaybeAsync(bool useAsync, ImmutableArray<string> newFileNames)
