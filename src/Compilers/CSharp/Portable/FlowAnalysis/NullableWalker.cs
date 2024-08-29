@@ -2150,10 +2150,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // Backing field shares a slot with the property itself
-            // TODO2: suspect this is needed for constructors but needs to be restated
-            //if (symbol is SynthesizedBackingFieldSymbol backingField)
-            //    symbol = backingField.AssociatedSymbol;
+            // TODO2: further refine based on static-ness of related member and constructor?
+            // TODO2: what about autoprops marked MaybeNull etc in constructors?
+            // TODO2: will we enter this block when analyzing initializers?
+            // In constructors, we want to treat reads and writes of field-backed property as really reads and writes of the backing field.
+            if ((_symbol as MethodSymbol)?.IsConstructor() == true
+                && (containingSlot == 0 || (containingSlot > 0 && _variables[containingSlot].Symbol is ThisParameterSymbol)))
+            {
+                // Either the variable is not contained in anything (static field, local, etc.),
+                // or, it is a member of 'this'.
+                // In that case, if the symbol has an associated field, then use the slot for that field instead.
+                if (symbol is SourcePropertySymbolBase { BackingField: { } propertyField })
+                    symbol = propertyField;
+                else if (symbol is SourceFieldLikeEventSymbol { AssociatedEventField: { } eventField })
+                    symbol = eventField;
+            }
 
             return base.GetOrCreateSlot(symbol, containingSlot, forceSlotEvenIfEmpty, createIfMissing);
         }
