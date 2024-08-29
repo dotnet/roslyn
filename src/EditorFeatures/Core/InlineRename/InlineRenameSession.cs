@@ -661,7 +661,8 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
-        DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(outcome, previewChanges, applyChangesOpt: null);
+        DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(
+            outcome, previewChanges, applyChangesOpt: null);
     }
 
     /// <summary>
