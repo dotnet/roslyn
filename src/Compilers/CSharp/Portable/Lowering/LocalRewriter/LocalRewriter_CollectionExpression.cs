@@ -1067,6 +1067,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (addRangeMethod is null)
                             return false;
 
+                        Conversion conversion;
+
                         if (spreadElement.EnumeratorInfoOpt is { } enumeratorInfo)
                         {
                             var iCollectionOfTType = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T);
@@ -1075,17 +1077,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             // If collection has a struct enumerator but doesn't implement ICollection<T>
                             // then manual `foreach` is always more efficient then using `AddRange` method
-                            if (enumeratorInfo.GetEnumeratorInfo.Method.ReturnType.IsValueType &&
-                                !enumeratorInfo.CollectionType.ImplementsInterface(iCollectionOfElementType, ref discardedUseSiteInfo))
+                            if (enumeratorInfo.GetEnumeratorInfo.Method.ReturnType.IsValueType )
                             {
-                                return false;
+                                conversion = _compilation.Conversions.ClassifyBuiltInConversion(enumeratorInfo.CollectionType, iCollectionOfElementType, isChecked: false, ref discardedUseSiteInfo);
+                                if (!(conversion.Kind is ConversionKind.Identity or ConversionKind.ImplicitReference))
+                                {
+                                    return false;
+                                }
                             }
                         }
 
                         var type = rewrittenSpreadOperand.Type!;
 
                         var useSiteInfo = GetNewCompoundUseSiteInfo();
-                        var conversion = _compilation.Conversions.ClassifyConversionFromType(type, addRangeMethod.Parameters[0].Type, isChecked: false, ref useSiteInfo);
+                        conversion = _compilation.Conversions.ClassifyConversionFromType(type, addRangeMethod.Parameters[0].Type, isChecked: false, ref useSiteInfo);
                         _diagnostics.Add(rewrittenSpreadOperand.Syntax, useSiteInfo);
                         if (conversion.IsIdentity || (conversion.IsImplicit && conversion.IsReference))
                         {
