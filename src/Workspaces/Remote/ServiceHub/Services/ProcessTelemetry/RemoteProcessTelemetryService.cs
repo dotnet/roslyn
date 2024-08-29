@@ -35,6 +35,7 @@ internal sealed partial class RemoteProcessTelemetryService(
 
 #pragma warning disable IDE0052 // Remove unread private members
     private PerformanceReporter? _performanceReporter;
+#pragma warning restore
 
     /// <summary>
     /// Remote API. Initializes ServiceHub process global state.
