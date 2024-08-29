@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             AddReferencesToCommandLine(commandLine, References);
-            AddInterceptorsPreviewNamespaces(commandLine, InterceptorsPreviewNamespaces);
+            AddInterceptorsNamespaces(commandLine, InterceptorsNamespaces, InterceptorsPreviewNamespaces);
 
             base.AddResponseFileCommands(commandLine);
 
@@ -280,19 +280,28 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal override RequestLanguage Language => RequestLanguage.CSharpCompile;
 
-        /// <param name="interceptorsNamespaces">
-        /// The value of the &lt;InterceptorsPreviewNamespaces&gt; property.
-        /// </param>
-        internal static void AddInterceptorsPreviewNamespaces(CommandLineBuilderExtension commandLine, string? interceptorsNamespaces)
+        internal static void AddInterceptorsNamespaces(CommandLineBuilderExtension commandLine, string? interceptorsNamespaces, string? interceptorsPreviewNamespaces)
         {
-            if (string.IsNullOrEmpty(interceptorsNamespaces))
+            var interceptorsNamespacesIsNullOrEmpty = string.IsNullOrEmpty(interceptorsNamespaces);
+            var interceptorsPreviewNamespacesIsNullOrEmpty = string.IsNullOrEmpty(interceptorsPreviewNamespaces);
+            if (interceptorsNamespacesIsNullOrEmpty && interceptorsPreviewNamespacesIsNullOrEmpty)
             {
                 return;
             }
 
-            commandLine.AppendSwitchIfNotNull("/features:", $"InterceptorsPreviewNamespaces={interceptorsNamespaces}");
+            var featureValue = interceptorsNamespacesIsNullOrEmpty ? interceptorsPreviewNamespaces
+                : interceptorsPreviewNamespacesIsNullOrEmpty ? interceptorsNamespaces
+                : $"{interceptorsNamespaces};{interceptorsPreviewNamespaces}";
+            commandLine.AppendSwitchIfNotNull("/features:", $"InterceptorsNamespaces={featureValue}");
         }
 
+        public string? InterceptorsNamespaces
+        {
+            set { _store[nameof(InterceptorsNamespaces)] = value; }
+            get { return (string?)_store[nameof(InterceptorsNamespaces)]; }
+        }
+
+        /// <remarks>Alias for <see cref="InterceptorsNamespaces"/>.</remarks>
         public string? InterceptorsPreviewNamespaces
         {
             set { _store[nameof(InterceptorsPreviewNamespaces)] = value; }
