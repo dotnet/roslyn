@@ -35283,13 +35283,35 @@ partial class Program
                 }
                 struct MyEnumerator<T>
                 {
-                    public T Current => default;
-                    public bool MoveNext() => false;
+                    private readonly List<T> _list;
+                    private int _index;
+                    public MyEnumerator(List<T> list) { _list = list; _index = -1; }
+                    public T Current => _list[_index];
+                    public bool MoveNext()
+                    {
+                        if (_index < _list.Count) _index++;
+                        return _index < _list.Count;
+                    }
+                }
+                class MyEnumerable<T> : List<T>, IMyEnumerable<T>
+                {
+                    MyEnumerator<T> IMyEnumerable<T>.GetEnumerator() => new(this);
+                }
+                class MyCollection<T> : List<T>, IMyCollection<T>
+                {
+                    MyEnumerator<T> IMyCollection<T>.GetEnumerator() => new(this);
                 }
                 class Program
                 {
                     static void Main()
                     {
+                        MyEnumerable<object> x = [1, 2];
+                        MyCollection<object> y = [1, 2];
+                        object z = 3;
+                        M1(x, z).Report();
+                        M2(y, z).Report();
+                        M3(x, z).Report();
+                        M4(y, z).Report();
                     }
                     static List<object> M1(IMyEnumerable<object> x, object y)
                     {
@@ -35317,6 +35339,7 @@ partial class Program
             var verifier = CompileAndVerify(
                 [source, s_collectionExtensions],
                 targetFramework: TargetFramework.Standard,
+                expectedOutput: "[1, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2, 3], ",
                 verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.M1", """
