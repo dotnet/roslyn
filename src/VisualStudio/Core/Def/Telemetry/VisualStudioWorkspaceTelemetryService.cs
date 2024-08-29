@@ -44,10 +44,9 @@ internal sealed class VisualStudioWorkspaceTelemetryService(
         var cancellationToken = _threadingContext.DisposalToken;
         _ = Task.Run(async () =>
         {
-
             // Wait until the remote host was created by some other party (we don't want to cause it to happen ourselves
             // in the call to RemoteHostClient below).
-            await RemoteHostClient.WaitForFirstConnection(_workspace, cancellationToken).ConfigureAwait(false);
+            await RemoteHostClient.WaitForClientCreationAsync(_workspace, cancellationToken).ConfigureAwait(false);
 
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
