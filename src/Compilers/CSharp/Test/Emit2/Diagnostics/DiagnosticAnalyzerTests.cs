@@ -3231,7 +3231,7 @@ static partial class B
         }
 
         [Theory, CombinatorialData, WorkItem(32702, "https://github.com/dotnet/roslyn/issues/71149")]
-        public async Task TestPartialFileSymbolEndDiagnosticsAsync(bool separateFiles)
+        public async Task TestPartialMethodFileSymbolEndDiagnosticsAsync(bool separateFiles)
         {
             string definition1 = @"
 internal partial class Test
@@ -3243,6 +3243,52 @@ internal partial class Test
 internal partial class Test
 {
     private partial object Method() => new();
+}";
+
+            string source1, source2;
+            if (separateFiles)
+            {
+                source1 = definition1;
+                source2 = definition2;
+            }
+            else
+            {
+                source1 = definition1 + definition2;
+                source2 = string.Empty;
+            }
+
+            var compilation = CreateCompilationWithMscorlib461([source1, source2]);
+            compilation.VerifyDiagnostics();
+
+            var tree1 = compilation.SyntaxTrees[0];
+            var semanticModel1 = compilation.GetSemanticModel(tree1);
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new SymbolStartAnalyzer(topLevelAction: false, SymbolKind.NamedType));
+            var compilationWithAnalyzers = compilation.WithAnalyzers(analyzers);
+
+            // Requesting diagnostics on a single tree should run the SymbolStart/End actions on all the partials across the compilation
+            // and the analysis result should contain the diagnostics reported at SymbolEnd action.
+            var analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(semanticModel1, filterSpan: null, analyzers, CancellationToken.None);
+            Assert.Empty(analysisResult.SyntaxDiagnostics);
+            Assert.Empty(analysisResult.SemanticDiagnostics);
+            var compilationDiagnostics = analysisResult.CompilationDiagnostics[analyzers[0]];
+            compilationDiagnostics.Verify(
+                Diagnostic("SymbolStartRuleId").WithArguments("Test", "Analyzer1").WithLocation(1, 1)
+            );
+        }
+
+        [Theory, CombinatorialData, WorkItem(32702, "https://github.com/dotnet/roslyn/issues/71149")]
+        public async Task TestPartialPropertyFileSymbolEndDiagnosticsAsync(bool separateFiles)
+        {
+            string definition1 = @"
+internal partial class Test
+{
+    private partial object Prop { get; set; }
+    public Test(object _) { }
+}";
+            string definition2 = @"
+internal partial class Test
+{
+    private partial object Prop { get => new(); set { } }
 }";
 
             string source1, source2;
