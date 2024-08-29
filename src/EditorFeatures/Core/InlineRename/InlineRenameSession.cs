@@ -662,7 +662,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         _threadingContext.ThrowIfNotOnUIThread();
 
         DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(
-            outcome, previewChanges, applyChangesOpt: null);
+            outcome, previewChanges, finalCommitAction: null);
     }
 
     /// <summary>
@@ -890,7 +890,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             // Dismiss the rename UI and rollback any linked edits made.
             DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(
                 RenameLogMessage.UserActionOutcome.Committed, previewChanges,
-                applyChangesOpt: () =>
+                () =>
                 {
                     // Now try to apply that change we computed to the workspace.
                     var error = TryApplyRename(documentChanges);
