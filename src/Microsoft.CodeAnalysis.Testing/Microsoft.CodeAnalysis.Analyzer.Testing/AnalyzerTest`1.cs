@@ -844,18 +844,17 @@ namespace Microsoft.CodeAnalysis.Testing
         private static string FormatDiagnostics(ImmutableArray<DiagnosticAnalyzer> analyzers, string defaultFilePath, params Diagnostic[] diagnostics)
         {
             var builder = new StringBuilder();
-            for (var i = 0; i < diagnostics.Length; ++i)
+            foreach (var diagnostic in diagnostics)
             {
-                var diagnosticsId = diagnostics[i].Id;
-                var location = diagnostics[i].Location;
+                var location = diagnostic.Location;
 
-                builder.Append("// ").AppendLine(diagnostics[i].ToString());
+                builder.Append("// ").AppendLine(diagnostic.ToString());
 
-                var applicableAnalyzer = analyzers.FirstOrDefault(a => a.SupportedDiagnostics.Any(dd => dd.Id == diagnosticsId));
+                var applicableAnalyzer = analyzers.FirstOrDefault(a => a.SupportedDiagnostics.Any(dd => dd.Id == diagnostic.Id));
                 if (applicableAnalyzer != null)
                 {
                     var analyzerType = applicableAnalyzer.GetType();
-                    var rule = location != Location.None && location.IsInSource && applicableAnalyzer.SupportedDiagnostics.Length == 1 ? string.Empty : $"{analyzerType.Name}.{diagnosticsId}";
+                    var rule = location != Location.None && location.IsInSource && applicableAnalyzer.SupportedDiagnostics.Length == 1 ? string.Empty : $"{analyzerType.Name}.{diagnostic.Id}";
 
                     if (location == Location.None || !location.IsInSource)
                     {
@@ -870,11 +869,11 @@ namespace Microsoft.CodeAnalysis.Testing
                 else
                 {
                     builder.Append(
-                        diagnostics[i].Severity switch
+                        diagnostic.Severity switch
                         {
-                            DiagnosticSeverity.Error => $"{nameof(DiagnosticResult)}.{nameof(DiagnosticResult.CompilerError)}(\"{diagnostics[i].Id}\")",
-                            DiagnosticSeverity.Warning => $"{nameof(DiagnosticResult)}.{nameof(DiagnosticResult.CompilerWarning)}(\"{diagnostics[i].Id}\")",
-                            var severity => $"new {nameof(DiagnosticResult)}(\"{diagnostics[i].Id}\", {nameof(DiagnosticSeverity)}.{severity})",
+                            DiagnosticSeverity.Error => $"{nameof(DiagnosticResult)}.{nameof(DiagnosticResult.CompilerError)}(\"{diagnostic.Id}\")",
+                            DiagnosticSeverity.Warning => $"{nameof(DiagnosticResult)}.{nameof(DiagnosticResult.CompilerWarning)}(\"{diagnostic.Id}\")",
+                            var severity => $"new {nameof(DiagnosticResult)}(\"{diagnostic.Id}\", {nameof(DiagnosticSeverity)}.{severity})",
                         });
                 }
 
@@ -885,10 +884,10 @@ namespace Microsoft.CodeAnalysis.Testing
                 else
                 {
                     // The unnecessary code designator is ignored for the primary diagnostic location.
-                    AppendLocation(diagnostics[i].Location, isUnnecessary: false);
+                    AppendLocation(diagnostic.Location, isUnnecessary: false);
 
                     int[] unnecessaryIndices = { };
-                    if (diagnostics[i].Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out var encodedUnnecessaryLocations))
+                    if (diagnostic.Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out var encodedUnnecessaryLocations))
                     {
                         var match = EncodedIndicesSyntax.Match(encodedUnnecessaryLocations);
                         if (match.Success)
@@ -897,14 +896,14 @@ namespace Microsoft.CodeAnalysis.Testing
                         }
                     }
 
-                    for (var j = 0; j < diagnostics[i].AdditionalLocations.Count; j++)
+                    for (var i = 0; i < diagnostic.AdditionalLocations.Count; i++)
                     {
-                        var additionalLocation = diagnostics[i].AdditionalLocations[j];
-                        AppendLocation(additionalLocation, isUnnecessary: unnecessaryIndices.Contains(j));
+                        var additionalLocation = diagnostic.AdditionalLocations[i];
+                        AppendLocation(additionalLocation, isUnnecessary: unnecessaryIndices.Contains(i));
                     }
                 }
 
-                var arguments = diagnostics[i].Arguments();
+                var arguments = diagnostic.Arguments();
                 if (arguments.Count > 0)
                 {
                     builder.Append($".{nameof(DiagnosticResult.WithArguments)}(");
@@ -912,7 +911,7 @@ namespace Microsoft.CodeAnalysis.Testing
                     builder.Append(")");
                 }
 
-                if (diagnostics[i].IsSuppressed())
+                if (diagnostic.IsSuppressed())
                 {
                     builder.Append($".{nameof(DiagnosticResult.WithIsSuppressed)}(true)");
                 }
