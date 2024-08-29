@@ -54,6 +54,8 @@ internal sealed class VisualStudioWorkspaceTelemetryService(
             // Only log "delta" property for block end events if feature flag is enabled.
             var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
 
+            // Don't initialize remote telemetry until the workspace is fully loaded.  We don't want to cause all the
+            // OOP machinery to spin up and contend with the resources being used to load the solution.
             var statusService = _workspace.Services.GetRequiredService<IWorkspaceStatusService>();
             await statusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
 
