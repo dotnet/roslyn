@@ -209,6 +209,13 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             _memoryListener = memoryListener;
         }
 
+        var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
+        var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
+        telemetryService.InitializeTelemetrySessionAsync(telemetrySession, logDelta);
+
+        Logger.Log(FunctionId.Run_Environment,
+            KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
+
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
 
         // This must be called after the _openFileTracker was assigned; this way we know that a file added from the project system either got checked
@@ -217,13 +224,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         // Switch to a background thread to avoid loading option providers on UI thread (telemetry is reading options).
         await TaskScheduler.Default;
-
-        var logDelta = _globalOptions.GetOption(DiagnosticOptionsStorage.LogTelemetryForBackgroundAnalyzerExecution);
-        var telemetryService = (VisualStudioWorkspaceTelemetryService)Services.GetRequiredService<IWorkspaceTelemetryService>();
-        telemetryService.InitializeTelemetrySession(telemetrySession, logDelta);
-
-        Logger.Log(FunctionId.Run_Environment,
-            KeyValueLogMessage.Create(m => m["Version"] = FileVersionInfo.GetVersionInfo(typeof(VisualStudioWorkspace).Assembly.Location).FileVersion));
     }
 
     public Task CheckForAddedFileBeingOpenMaybeAsync(bool useAsync, ImmutableArray<string> newFileNames)

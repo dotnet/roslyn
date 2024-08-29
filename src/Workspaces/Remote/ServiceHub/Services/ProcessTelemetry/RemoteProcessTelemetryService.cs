@@ -21,7 +21,9 @@ using RoslynLogger = Microsoft.CodeAnalysis.Internal.Log.Logger;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
-internal sealed partial class RemoteProcessTelemetryService : BrokeredServiceBase, IRemoteProcessTelemetryService
+internal sealed partial class RemoteProcessTelemetryService(
+    BrokeredServiceBase.ServiceConstructionArguments arguments)
+    : BrokeredServiceBase(arguments), IRemoteProcessTelemetryService
 {
     internal sealed class Factory : FactoryBase<IRemoteProcessTelemetryService>
     {
@@ -33,12 +35,6 @@ internal sealed partial class RemoteProcessTelemetryService : BrokeredServiceBas
 
 #pragma warning disable IDE0052 // Remove unread private members
     private PerformanceReporter? _performanceReporter;
-#pragma warning restore
-
-    public RemoteProcessTelemetryService(ServiceConstructionArguments arguments)
-        : base(arguments)
-    {
-    }
 
     /// <summary>
     /// Remote API. Initializes ServiceHub process global state.
