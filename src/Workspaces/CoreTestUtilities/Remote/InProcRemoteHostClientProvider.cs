@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Remote;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote.Testing
@@ -112,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Remote.Testing
             => Task.FromResult<RemoteHostClient?>(_lazyClient.Value);
 
         public Task WaitForClientCreationAsync(CancellationToken cancellationToken)
-            => _clientCreationSource.Task;
+            => _clientCreationSource.Task.WithCancellation(cancellationToken);
     }
 #pragma warning restore CA1416 // Validate platform compatibility
 }
