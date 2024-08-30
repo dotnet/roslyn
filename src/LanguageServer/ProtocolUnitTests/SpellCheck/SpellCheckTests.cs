@@ -18,11 +18,9 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.SpellCheck
 {
-    public class SpellCheckTests : AbstractLanguageServerProtocolTests
+    public sealed class SpellCheckTests(ITestOutputHelper testOutputHelper)
+        : AbstractLanguageServerProtocolTests(testOutputHelper)
     {
-        public SpellCheckTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
-        {
-        }
 
         #region Document
 

@@ -218,12 +218,14 @@ There is an experimental public API `GetInterceptorMethod(this SemanticModel, In
 
 ### User opt-in
 
-To use interceptors, the user project must specify the property `<InterceptorsPreviewNamespaces>`. This is a list of namespaces which are allowed to contain interceptors.
+To use interceptors, the user project must specify the property `<InterceptorsNamespaces>`. This is a list of namespaces which are allowed to contain interceptors.
 ```xml
-<InterceptorsPreviewNamespaces>$(InterceptorsPreviewNamespaces);Microsoft.AspNetCore.Http.Generated;MyLibrary.Generated</InterceptorsPreviewNamespaces>
+<InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.AspNetCore.Http.Generated;MyLibrary.Generated</InterceptorsNamespaces>
 ```
 
-It's expected that each entry in the `InterceptorsPreviewNamespaces` list roughly corresponds to one source generator. Well-behaved components are expected to not insert interceptors into namespaces they do not own.
+It's expected that each entry in the `InterceptorsNamespaces` list roughly corresponds to one source generator. Well-behaved components are expected to not insert interceptors into namespaces they do not own.
+
+For compatibility, the property `<InterceptorsPreviewNamespaces>` can be used as an alias for `<InterceptorsNamespaces>`. If both properties have non-empty values, they will be concatenated together in the order `$(InterceptorsNamespaces);$(InterceptorsPreviewNamespaces)` when passed to the compiler.
 
 ### Implementation strategy
 

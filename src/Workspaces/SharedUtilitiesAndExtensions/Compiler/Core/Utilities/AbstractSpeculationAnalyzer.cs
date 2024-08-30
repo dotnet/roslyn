@@ -53,7 +53,9 @@ internal abstract class AbstractSpeculationAnalyzer<
     private SemanticModel? _lazySpeculativeSemanticModel;
 
     private static readonly SymbolEquivalenceComparer s_includeNullabilityComparer =
-        SymbolEquivalenceComparer.Create(distinguishRefFromOut: true, tupleNamesMustMatch: true, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: false);
+        SymbolEquivalenceComparer.Create(distinguishRefFromOut: true, tupleNamesMustMatch: true, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: false, arrayAndReadOnlySpanCompareEqually: false);
+
+    private static readonly SymbolEquivalenceComparer s_arrayAndReadOnlySpanCompareEqually = s_includeNullabilityComparer.With(arrayAndReadOnlySpanCompareEqually: true);
 
     /// <summary>
     /// Creates a semantic analyzer for speculative syntax replacement.
@@ -403,6 +405,19 @@ internal abstract class AbstractSpeculationAnalyzer<
                     }
                 }
             }
+
+            // We consider two method overloads compatible if one takes a T[] array for a particular parameter, and the
+            // other takes a ReadOnlySpan<T> for the same parameter.  This is a considered a supported and desirable API
+            // upgrade story for API authors.  Specifically, they start with an array-based method, and then add a
+            // sibling ROS method.  In that case, the language will prefer the latter when both are applicable.  So if
+            // we make a code change that makes the second compatible, then we are ok with that, as the expectation is
+            // that the new method has the same semantics and it is desirable for code to now call that.
+            //
+            // Note: this comparer will check the method kinds, name, containing type, arity, and virtually everything
+            // else about the methods.  The only difference it will allow between the methods is that parameter types
+            // can be different if they are an array vs a ReadOnlySpan.
+            if (s_arrayAndReadOnlySpanCompareEqually.Equals(methodSymbol, newMethodSymbol))
+                return true;
         }
 
         return false;
@@ -440,10 +455,8 @@ internal abstract class AbstractSpeculationAnalyzer<
                    CompareAcrossSemanticModels(parameterSymbol.Type, newParameterSymbol.Type);
         }
 
-        if (symbol is IMethodSymbol methodSymbol &&
-            newSymbol is IMethodSymbol newMethodSymbol &&
-            methodSymbol.IsLocalFunction() &&
-            newMethodSymbol.IsLocalFunction())
+        if (symbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction } methodSymbol &&
+            newSymbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction } newMethodSymbol)
         {
             return symbol.Name == newSymbol.Name &&
                    methodSymbol.Parameters.Length == newMethodSymbol.Parameters.Length &&
