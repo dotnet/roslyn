@@ -6,9 +6,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
@@ -46,4 +48,11 @@ internal static class CodeGenerationOptionsProviders
         var service = document.GetRequiredLanguageService<ICodeGenerationService>();
         return service.GetInfo(context, options, document.Project.ParseOptions);
     }
+
+    public static CodeCleanupOptions GetDefault(LanguageServices languageServices)
+        => new()
+        {
+            FormattingOptions = SyntaxFormattingOptions.GetDefault(languageServices),
+            SimplifierOptions = SimplifierOptions.GetDefault(languageServices)
+        };
 }

@@ -6,11 +6,7 @@ using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.AddImport;
-
-#if !CODE_STYLE
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.OrganizeImports;
-#endif
 
 namespace Microsoft.CodeAnalysis.CodeCleanup;
 
@@ -22,14 +18,6 @@ internal sealed record class CodeCleanupOptions
     [DataMember] public AddImportPlacementOptions AddImportOptions { get; init; } = AddImportPlacementOptions.Default;
     [DataMember] public DocumentFormattingOptions DocumentFormattingOptions { get; init; } = DocumentFormattingOptions.Default;
 
-#if !CODE_STYLE
-    public static CodeCleanupOptions GetDefault(LanguageServices languageServices)
-        => new()
-        {
-            FormattingOptions = SyntaxFormattingOptions.GetDefault(languageServices),
-            SimplifierOptions = SimplifierOptions.GetDefault(languageServices)
-        };
-
     public OrganizeImportsOptions GetOrganizeImportsOptions()
         => new()
         {
@@ -37,5 +25,4 @@ internal sealed record class CodeCleanupOptions
             PlaceSystemNamespaceFirst = AddImportOptions.PlaceSystemNamespaceFirst,
             NewLine = FormattingOptions.LineFormatting.NewLine,
         };
-#endif
 }
