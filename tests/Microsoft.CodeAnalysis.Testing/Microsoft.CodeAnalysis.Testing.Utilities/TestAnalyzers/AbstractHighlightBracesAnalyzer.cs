@@ -9,8 +9,8 @@ namespace Microsoft.CodeAnalysis.Testing.TestAnalyzers
 {
     public abstract class AbstractHighlightBracesAnalyzer : AbstractHighlightTokensAnalyzer
     {
-        protected AbstractHighlightBracesAnalyzer(string id = "Brace")
-            : base(id, (int)CSharpSyntaxKind.OpenBraceToken, (int)VisualBasicSyntaxKind.OpenBraceToken)
+        protected AbstractHighlightBracesAnalyzer(string id = "Brace", string[]? customTags = null)
+            : base(id, customTags ?? new string[0], (int)CSharpSyntaxKind.OpenBraceToken, (int)VisualBasicSyntaxKind.OpenBraceToken)
         {
         }
     }

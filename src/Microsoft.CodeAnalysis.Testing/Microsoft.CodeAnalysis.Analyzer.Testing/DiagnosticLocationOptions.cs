@@ -37,5 +37,10 @@ namespace Microsoft.CodeAnalysis.Testing
         /// </list>
         /// </summary>
         InterpretAsMarkupKey = 2,
+
+        /// <summary>
+        /// The diagnostic location is marked as unnecessary code.
+        /// </summary>
+        UnnecessaryCode = 4,
     }
 }

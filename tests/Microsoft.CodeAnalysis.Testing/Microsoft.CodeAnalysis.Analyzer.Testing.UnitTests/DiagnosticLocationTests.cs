@@ -245,6 +245,120 @@ namespace Microsoft.CodeAnalysis.Testing
             new DefaultVerifier().EqualOrDiff(expected, exception.Message);
         }
 
+        [Fact]
+        public async Task TestAdditionalUnnecessaryLocations()
+        {
+            await new CSharpAnalyzerTest<HighlightBraceSpanWithEndMarkedUnnecessaryAnalyzer>
+            {
+                TestCode = @"class TestClass {|#0:{|} {|#1:}|}",
+                ExpectedDiagnostics =
+                {
+                    Diagnostic<HighlightBraceSpanWithEndMarkedUnnecessaryAnalyzer>().WithLocation(0).WithLocation(1, DiagnosticLocationOptions.UnnecessaryCode),
+                },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestAdditionalUnnecessaryLocationsIgnored()
+        {
+            await new CSharpAnalyzerTest<HighlightBraceSpanWithEndMarkedUnnecessaryAnalyzer>
+            {
+                TestCode = @"class TestClass {|#0:{|} {|#1:}|}",
+                ExpectedDiagnostics =
+                {
+                    Diagnostic<HighlightBraceSpanWithEndMarkedUnnecessaryAnalyzer>().WithLocation(0).WithOptions(DiagnosticOptions.IgnoreAdditionalLocations),
+                },
+            }.RunAsync();
+        }
+
+        [Fact]
+        public async Task TestAdditionalUnnecessaryLocationRequiresExpectedMarkedUnnecessary()
+        {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await new CSharpAnalyzerTest<HighlightBraceSpanWithEndMarkedUnnecessaryAnalyzer>
+                {
+                    TestCode = @"class TestClass {|#0:{|} {|#1:}|}",
+                    ExpectedDiagnostics =
+                    {
+                        Diagnostic<HighlightBraceSpanWithEndMarkedUnnecessaryAnalyzer>().WithLocation(0).WithLocation(1),
+                    },
+                }.RunAsync();
+            });
+
+            var expected =
+                """
+                Expected diagnostic additional location index "0" to not be marked unnecessary, but was instead marked unnecessary.
+                """.ReplaceLineEndings();
+            new DefaultVerifier().EqualOrDiff(expected, exception.Message);
+        }
+
+        [Fact]
+        public async Task TestAdditionalUnnecessaryLocationRequiresDescriptorMarkedUnnecessary()
+        {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await new CSharpAnalyzerTest<HighlightBraceSpanWithEndMarkedUnnecessaryButDescriptorNotAnalyzer>
+                {
+                    TestCode = @"class TestClass {|#0:{|} {|#1:}|}",
+                    ExpectedDiagnostics =
+                    {
+                        Diagnostic<HighlightBraceSpanWithEndMarkedUnnecessaryButDescriptorNotAnalyzer>().WithLocation(0).WithLocation(1, DiagnosticLocationOptions.UnnecessaryCode),
+                    },
+                }.RunAsync();
+            });
+
+            var expected =
+                """
+                Diagnostic reported extended unnecessary locations, but the descriptor is not marked as unnecessary code.
+                """.ReplaceLineEndings();
+            new DefaultVerifier().EqualOrDiff(expected, exception.Message);
+        }
+
+        [Fact]
+        public async Task TestAdditionalUnnecessaryLocationNotJsonArray()
+        {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await new CSharpAnalyzerTest<HighlightBraceSpanWithEndMarkedUnnecessaryNotJsonArrayAnalyzer>
+                {
+                    TestCode = @"class TestClass {|#0:{|} {|#1:}|}",
+                    ExpectedDiagnostics =
+                    {
+                        Diagnostic<HighlightBraceSpanWithEndMarkedUnnecessaryNotJsonArrayAnalyzer>().WithLocation(0).WithLocation(1, DiagnosticLocationOptions.UnnecessaryCode),
+                    },
+                }.RunAsync();
+            });
+
+            var expected =
+                """
+                Expected encoded unnecessary locations to be a valid JSON array of non-negative integers: Text
+                """.ReplaceLineEndings();
+            new DefaultVerifier().EqualOrDiff(expected, exception.Message);
+        }
+
+        [Fact]
+        public async Task TestAdditionalUnnecessaryLocationIndexOutOfRange()
+        {
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            {
+                await new CSharpAnalyzerTest<HighlightBraceSpanWithEndMarkedUnnecessaryIndexOutOfRangeAnalyzer>
+                {
+                    TestCode = @"class TestClass {|#0:{|} {|#1:}|}",
+                    ExpectedDiagnostics =
+                    {
+                        Diagnostic<HighlightBraceSpanWithEndMarkedUnnecessaryIndexOutOfRangeAnalyzer>().WithLocation(0).WithLocation(1, DiagnosticLocationOptions.UnnecessaryCode),
+                    },
+                }.RunAsync();
+            });
+
+            var expected =
+                """
+                All unnecessary indices in the diagnostic must be valid indices in AdditionalLocations [0-1): [1]
+                """.ReplaceLineEndings();
+            new DefaultVerifier().EqualOrDiff(expected, exception.Message);
+        }
+
         [DiagnosticAnalyzer(LanguageNames.CSharp)]
         private class HighlightBracePositionAnalyzer : AbstractHighlightBracesAnalyzer
         {
@@ -261,6 +375,55 @@ namespace Microsoft.CodeAnalysis.Testing
             protected override Diagnostic CreateDiagnostic(SyntaxToken token)
             {
                 return CodeAnalysis.Diagnostic.Create(Descriptor, token.GetLocation());
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        private class HighlightBraceSpanWithEndMarkedUnnecessaryAnalyzer : AbstractHighlightBraceSpanWithEndMarkedUnnecessaryAnalyzer
+        {
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        private class HighlightBraceSpanWithEndMarkedUnnecessaryNotJsonArrayAnalyzer : AbstractHighlightBraceSpanWithEndMarkedUnnecessaryAnalyzer
+        {
+            protected override string UnnecessaryLocationsValue => "Text";
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        private class HighlightBraceSpanWithEndMarkedUnnecessaryIndexOutOfRangeAnalyzer : AbstractHighlightBraceSpanWithEndMarkedUnnecessaryAnalyzer
+        {
+            protected override string UnnecessaryLocationsValue => "[1]";
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        private class HighlightBraceSpanWithEndMarkedUnnecessaryButDescriptorNotAnalyzer : AbstractHighlightBraceSpanWithEndMarkedUnnecessaryAnalyzer
+        {
+            public HighlightBraceSpanWithEndMarkedUnnecessaryButDescriptorNotAnalyzer()
+                : base(customTags: new string[0])
+            {
+            }
+        }
+
+        private abstract class AbstractHighlightBraceSpanWithEndMarkedUnnecessaryAnalyzer : AbstractHighlightBracesAnalyzer
+        {
+            public AbstractHighlightBraceSpanWithEndMarkedUnnecessaryAnalyzer(string[]? customTags = null)
+                : base(customTags: customTags ?? new[] { WellKnownDiagnosticTags.Unnecessary })
+            {
+            }
+
+            protected virtual string UnnecessaryLocationsValue => "[0]";
+
+            protected override Diagnostic CreateDiagnostic(SyntaxToken token)
+            {
+                var endLocation = token.Parent switch
+                {
+                    CSharp.Syntax.ClassDeclarationSyntax classDeclaration => classDeclaration.CloseBraceToken.GetLocation(),
+                    _ => throw new NotSupportedException(),
+                };
+
+                var additionalLocations = new[] { endLocation };
+                var properties = ImmutableDictionary.Create<string, string?>().Add(WellKnownDiagnosticTags.Unnecessary, UnnecessaryLocationsValue);
+                return CodeAnalysis.Diagnostic.Create(Descriptor, token.GetLocation(), additionalLocations, properties);
             }
         }
 

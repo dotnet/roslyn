@@ -10,8 +10,13 @@ namespace Microsoft.CodeAnalysis.Testing.TestAnalyzers
     public abstract class AbstractHighlightTokensAnalyzer : DiagnosticAnalyzer
     {
         protected AbstractHighlightTokensAnalyzer(string id, params int[] tokenKinds)
+            : this(id, customTags: new string[0], tokenKinds)
         {
-            Descriptor = new DiagnosticDescriptor(id, "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true);
+        }
+
+        protected AbstractHighlightTokensAnalyzer(string id, string[] customTags, params int[] tokenKinds)
+        {
+            Descriptor = new DiagnosticDescriptor(id, "title", "message", "category", DiagnosticSeverity.Warning, isEnabledByDefault: true, customTags: customTags);
             Tokens = ImmutableHashSet.CreateRange(tokenKinds);
         }
 
