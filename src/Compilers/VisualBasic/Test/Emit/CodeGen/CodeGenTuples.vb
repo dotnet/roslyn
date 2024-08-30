@@ -19359,7 +19359,7 @@ Interface I
 End Interface
     </file>
 </compilation>,
-                references:={ValueTupleLefacyRef})
+                references:={ValueTupleLegacyRef})
             comp.AssertTheseEmitDiagnostics(
 <errors>
 BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
@@ -20066,7 +20066,7 @@ Module C
 End Module
 
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleLefacyRef})
+</compilation>, additionalRefs:={ValueTupleLegacyRef})
 
             Assert.Equal(TypeKind.Class, comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).TypeKind)
 
@@ -20121,7 +20121,7 @@ Public Class C
     End Function
 End Class
     </file>
-</compilation>, additionalRefs:={ValueTupleLefacyRef})
+</compilation>, additionalRefs:={ValueTupleLegacyRef})
 
             comp.AssertTheseEmitDiagnostics(
 <errors>

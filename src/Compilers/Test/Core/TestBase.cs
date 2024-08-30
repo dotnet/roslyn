@@ -247,14 +247,14 @@ namespace Roslyn.Test.Utilities
         /// This is a legacy copy of System.ValueTuple. The origin is unclear as this does not appear to be a released
         /// binary on nuget.org (possible a pre-release copy). This does have a few properties that were interesting
         /// for a particular style of bug in VS that cannot be reproduced with modern TFMs. Specifically that it 
-        /// dependes on System.Runtime for parts of the impl and can't complie with only a reference to mscorlib. As
+        /// depends on System.Runtime for parts of the impl and can't compile with only a reference to mscorlib. As
         /// such this is kept around for those tests.
         ///
         /// Related issues
         ///   - https://github.com/dotnet/roslyn/issues/14888
         ///   - https://github.com/dotnet/roslyn/issues/14267
         /// </summary>
-        public static MetadataReference ValueTupleLefacyRef => TestReferences.NetFx.ValueTuple.tuplelib;
+        public static MetadataReference ValueTupleLegacyRef => TestReferences.NetFx.ValueTuple.tuplelib;
 
         private static readonly Lazy<MetadataReference> s_desktopCSharpRef = new Lazy<MetadataReference>(
             () => AssemblyMetadata.CreateFromImage(Net461.Resources.MicrosoftCSharp).GetReference(display: "Microsoft.CSharp.v4.0.30319.dll"),

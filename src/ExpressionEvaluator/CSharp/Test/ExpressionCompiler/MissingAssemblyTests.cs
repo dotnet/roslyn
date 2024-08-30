@@ -896,10 +896,10 @@ LanguageVersion.CSharp7_1);
             LanguageVersion languageVersion = LanguageVersion.CSharp7)
         {
             var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
-                references: [Net461.References.mscorlib, Net461.References.SystemRuntime, ValueTupleLefacyRef], options: TestOptions.DebugDll);
+                references: [Net461.References.mscorlib, Net461.References.SystemRuntime, ValueTupleLegacyRef], options: TestOptions.DebugDll);
             using (var systemRuntime = SystemRuntimeFacadeRef.ToModuleInstance())
             {
-                WithRuntimeInstance(comp, [Net461.References.mscorlib, ValueTupleLefacyRef], runtime =>
+                WithRuntimeInstance(comp, [Net461.References.mscorlib, ValueTupleLegacyRef], runtime =>
                 {
                     ImmutableArray<MetadataBlock> blocks;
                     Guid moduleVersionId;

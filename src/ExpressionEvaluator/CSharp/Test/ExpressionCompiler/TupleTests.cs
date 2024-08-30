@@ -434,8 +434,8 @@ class C
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib40(source, new[] { ValueTupleLefacyRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
-            WithRuntimeInstance(comp, new[] { ValueTupleLefacyRef, SystemRuntimeFacadeRef, MscorlibRef }, runtime =>
+            var comp = CreateCompilationWithMscorlib40(source, new[] { ValueTupleLegacyRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugDll);
+            WithRuntimeInstance(comp, new[] { ValueTupleLegacyRef, SystemRuntimeFacadeRef, MscorlibRef }, runtime =>
             {
                 var context = CreateMethodContext(
                     runtime,
@@ -499,8 +499,8 @@ class C
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib40(source, new[] { SystemRuntimeFacadeRef, ValueTupleLefacyRef }, options: TestOptions.DebugDll);
-            WithRuntimeInstance(comp, new[] { MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleLefacyRef }, runtime =>
+            var comp = CreateCompilationWithMscorlib40(source, new[] { SystemRuntimeFacadeRef, ValueTupleLegacyRef }, options: TestOptions.DebugDll);
+            WithRuntimeInstance(comp, new[] { MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleLegacyRef }, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
                 var alias = new Alias(

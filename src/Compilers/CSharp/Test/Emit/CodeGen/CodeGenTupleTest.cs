@@ -23145,7 +23145,7 @@ namespace System
 {
     ((int, int), (int, int)) F();
 }";
-            var comp = CreateCompilationWithMscorlib40(source, references: [ValueTupleLefacyRef]);
+            var comp = CreateCompilationWithMscorlib40(source, references: [ValueTupleLegacyRef]);
             comp.VerifyEmitDiagnostics(
                 // (3,6): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
                 //     ((int, int), (int, int)) F();
@@ -23923,7 +23923,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source, references: [ValueTupleLefacyRef]);
+            var compilation = CreateCompilationWithMscorlib40(source, references: [ValueTupleLegacyRef]);
 
             Assert.Equal(TypeKind.Class, compilation.GetWellKnownType(WellKnownType.System_ValueTuple_T2).TypeKind);
 
@@ -23978,7 +23978,7 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleLefacyRef });
+            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleLegacyRef });
             compilation.VerifyEmitDiagnostics(
                 // (6,24): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
                 //     public IEnumerable<(int, int)> entries()
