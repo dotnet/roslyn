@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Formatting
 
             var cleanupOptions =
                 options?.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions: false) ??
-                CodeCleanupOptionsProviders.GetDefault(languageServices);
+                await document.GetCodeCleanupOptionsAsync(CancellationToken.None);
 
             var formattingService = document.GetRequiredLanguageService<INewDocumentFormattingService>();
             var formattedDocument = await formattingService.FormatNewDocumentAsync(document, hintDocument: null, cleanupOptions, CancellationToken.None);
