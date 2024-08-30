@@ -95,6 +95,8 @@ stages:
       displayName: Create Roslyn Copy
     - powershell: $(Pipeline.Workspace)\RoslynTestAssets\Restore.cmd
       displayName: "Restore TestAssets"
+    - powershell: Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1
+      displayName: "Enable long path"
     - template: eng/pipelines/test-integration-job.yml
       parameters:
         configuration: $(_configuration)
