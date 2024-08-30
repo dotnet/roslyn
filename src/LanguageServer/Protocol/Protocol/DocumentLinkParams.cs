@@ -4,17 +4,19 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
+    using System;
     using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the parameters sent for a textDocument/documentLink request.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentLinkParams">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
-    internal class DocumentLinkParams : ITextDocumentParams
+    internal class DocumentLinkParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<DocumentLink[]>
     {
         /// <summary>
-        /// Gets or sets the <see cref="TextDocumentIdentifier"/> to provide links for.
+        /// The <see cref="TextDocumentIdentifier"/> to provide links for.
         /// </summary>
         [JsonPropertyName("textDocument")]
         public TextDocumentIdentifier TextDocument
@@ -22,5 +24,15 @@ namespace Roslyn.LanguageServer.Protocol
             get;
             set;
         }
+
+        /// <inheritdoc/>
+        [JsonPropertyName(Methods.WorkDoneTokenName)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }
+
+        /// <inheritdoc/>
+        [JsonPropertyName(Methods.PartialResultTokenName)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public IProgress<DocumentLink[]>? PartialResultToken { get; set; }
     }
 }

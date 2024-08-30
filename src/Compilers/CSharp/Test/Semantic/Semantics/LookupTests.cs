@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal List<string> GetLookupNames(string testSrc)
         {
             var parseOptions = TestOptions.Regular;
-            var compilation = CreateCompilationWithMscorlib45(testSrc, parseOptions: parseOptions);
+            var compilation = CreateCompilationWithMscorlib461(testSrc, parseOptions: parseOptions);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var position = testSrc.Contains("/*<bind>*/") ? GetPositionForBinding(tree) : GetPositionForBinding(testSrc);
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal List<ISymbol> GetLookupSymbols(string testSrc, NamespaceOrTypeSymbol container = null, string name = null, int? arity = null, bool isScript = false, IEnumerable<string> globalUsings = null)
         {
             var tree = Parse(testSrc, options: isScript ? TestOptions.Script : TestOptions.Regular);
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree }, options: TestOptions.ReleaseDll.WithUsings(globalUsings));
+            var compilation = CreateCompilationWithMscorlib461(new[] { tree }, options: TestOptions.ReleaseDll.WithUsings(globalUsings));
             var model = compilation.GetSemanticModel(tree);
             var position = testSrc.Contains("/*<bind>*/") ? GetPositionForBinding(tree) : GetPositionForBinding(testSrc);
             return model.LookupSymbols(position, container.GetPublicSymbol(), name).Where(s => !arity.HasValue || arity == s.GetSymbol().GetMemberArity()).ToList();

@@ -26,7 +26,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
     private static readonly DiagnosticDescriptorComparer s_comparer = new();
 
     private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
-    private readonly BulkObservableCollection<BaseItem> _items = new();
+    private readonly BulkObservableCollection<BaseItem> _items = [];
 
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly AsyncBatchingWorkQueue _workQueue;
@@ -103,7 +103,16 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
             this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
             _cancellationTokenSource.Cancel();
-            _items.Clear();
+
+            // Note: mutating _items will be picked up automatically by clients who are bound to the collection.  We do
+            // not need to notify them through some other mechanism.
+            if (_items.Count > 0)
+            {
+                // Go back to UI thread to update the observable collection.  Otherwise, it enqueue its own UI work that we cannot track.
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                _items.Clear();
+            }
+
             return;
         }
 
@@ -115,6 +124,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         if (_items.SequenceEqual([.. newDiagnosticItems, .. newSourceGeneratorItems]))
             return;
 
+        // Go back to UI thread to update the observable collection.  Otherwise, it enqueue its own UI work that we cannot track.
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         _items.BeginBulkOperation();

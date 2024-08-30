@@ -1936,7 +1936,7 @@ class Program
 ";
             //EDMAURER ensure that we use System.Environment.CurrentManagedThreadId when compiling against 4.5
             var parsed = new[] { Parse(source) };
-            var comp = CreateCompilationWithMscorlib45(parsed);
+            var comp = CreateCompilationWithMscorlib461(parsed);
             var verifier = this.CompileAndVerify(comp);
             var il = verifier.VisualizeIL("Program.<Goo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
             Assert.Contains("System.Environment.CurrentManagedThreadId.get", il, StringComparison.Ordinal);

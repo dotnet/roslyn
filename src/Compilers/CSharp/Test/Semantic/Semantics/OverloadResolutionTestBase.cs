@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using Roslyn.Test.Utilities;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // from it the nodes that describe the method symbols. We then compare the description of
             // the symbols given to the comment that follows the call.
 
-            var mscorlibRef = AssemblyMetadata.CreateFromImage(TestMetadata.ResourcesNet451.mscorlib).GetReference(display: "mscorlib");
+            var mscorlibRef = AssemblyMetadata.CreateFromImage(Net461.Resources.mscorlib).GetReference(display: "mscorlib");
             var references = new[] { mscorlibRef }.Concat(additionalRefs ?? Array.Empty<MetadataReference>());
 
             var compilation = CreateEmptyCompilation(source, references, TestOptions.ReleaseDll);

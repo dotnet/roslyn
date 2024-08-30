@@ -309,13 +309,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static LSP.TextDocumentIdentifier DocumentToTextDocumentIdentifier(TextDocument document)
-            => new LSP.TextDocumentIdentifier { Uri = document.GetURI() };
+            => new() { Uri = document.GetURI() };
 
         public static LSP.VersionedTextDocumentIdentifier DocumentToVersionedTextDocumentIdentifier(Document document)
-            => new LSP.VersionedTextDocumentIdentifier { Uri = document.GetURI() };
+            => new() { Uri = document.GetURI() };
 
         public static LinePosition PositionToLinePosition(LSP.Position position)
-            => new LinePosition(position.Line, position.Character);
+            => new(position.Line, position.Character);
+
         public static LinePositionSpan RangeToLinePositionSpan(LSP.Range range)
             => new(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
 
@@ -453,7 +454,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 }
             }
 
-            var documentEdits = uriToTextEdits.GroupBy(uriAndEdit => uriAndEdit.Uri, uriAndEdit => uriAndEdit.TextEdit, (uri, edits) => new LSP.TextDocumentEdit
+            var documentEdits = uriToTextEdits.GroupBy(uriAndEdit => uriAndEdit.Uri, uriAndEdit => new LSP.SumType<LSP.TextEdit, LSP.AnnotatedTextEdit>(uriAndEdit.TextEdit), (uri, edits) => new LSP.TextDocumentEdit
             {
                 TextDocument = new LSP.OptionalVersionedTextDocumentIdentifier { Uri = uri },
                 Edits = edits.ToArray(),

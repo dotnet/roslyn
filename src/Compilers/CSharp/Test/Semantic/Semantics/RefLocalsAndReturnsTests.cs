@@ -2639,7 +2639,7 @@ public class Test
     }
 }";
             var options = TestOptions.Regular;
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: options);
+            var comp = CreateCompilationWithMscorlib461(text, parseOptions: options);
             comp.VerifyDiagnostics(
                 // (14,13): error CS8149: By-reference returns may only be used in methods that return by reference
                 //             return ref b;
@@ -2681,7 +2681,7 @@ public class Test
     }
 }";
             var options = TestOptions.Regular;
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: options);
+            var comp = CreateCompilationWithMscorlib461(text, parseOptions: options);
             comp.VerifyDiagnostics(
                 // (9,50): error CS8149: By-reference returns may only be used in methods that return by reference
                 //         char Goo1(ref char a, ref char b) => ref b;
@@ -2732,7 +2732,7 @@ class C
     public int this[int i] => 1;
 }
 ";
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics(
                 // (7,13): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         j = a[ref i];    // error 1
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a[ref i]").WithArguments("object", "int").WithLocation(7, 13),
@@ -3492,7 +3492,7 @@ class TestClass
         Write(ref Save(await Task.FromResult(0)), await Task.FromResult(1));
     }
 }";
-            CreateCompilationWithMscorlib45(code).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib461(code).VerifyEmitDiagnostics(
                 // (26,19): error CS8178: A reference returned by a call to 'TestClass.Save(int)' cannot be preserved across 'await' or 'yield' boundary.
                 //         Write(ref Save(await Task.FromResult(0)), await Task.FromResult(1));
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "Save(await Task.FromResult(0))").WithArguments("TestClass.Save(int)").WithLocation(26, 19)
@@ -4407,7 +4407,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib461(text).VerifyEmitDiagnostics(
                 // (32,17): error CS8178: A reference returned by a call to 'S.Instance.get' cannot be preserved across 'await' or 'yield' boundary.
                 //         var a = S.Instance.Echo(await Do(i - 1));
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "S.Instance").WithArguments("S.Instance.get").WithLocation(32, 17),
@@ -4458,7 +4458,7 @@ class TestClass
         inst[1, 2] = await Task.FromResult(1);
     }
 }";
-            CreateCompilationWithMscorlib45(code).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib461(code).VerifyEmitDiagnostics(
                 // (28,9): error CS8178: A reference returned by a call to 'TestClass.Save(int)' cannot be preserved across 'await' or 'yield' boundary.
                 //         Save(1) = await Task.FromResult(0);
                 Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "Save(1)").WithArguments("TestClass.Save(int)").WithLocation(28, 9),
@@ -4471,7 +4471,7 @@ class TestClass
         [Fact]
         public void RefReadOnlyInAsyncMethodDisallowed()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 using System.Threading.Tasks;
 class Test
 {
@@ -4489,7 +4489,7 @@ class Test
         [Fact]
         public void RefReadOnlyInIteratorMethodsDisallowed()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 using System.Collections.Generic;
 class Test
 {

@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var (analyzer, fixer) = CreateDiagnosticProviderAndFixer(workspace);
 
             var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
             var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
             var root = document.GetSyntaxRootAsync().GetAwaiter().GetResult();

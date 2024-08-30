@@ -8,13 +8,14 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class which represents synchronization initialization setting.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentSyncClientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class SynchronizationSetting : DynamicRegistrationSetting
     {
         /// <summary>
-        /// Gets or sets a value indicating whether WillSave event is supported.
+        /// Whether the client supports sending <c>textDocument/willSave</c> notifications.
         /// </summary>
         [JsonPropertyName("willSave")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
@@ -25,7 +26,9 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether WillSaveWaitUntil event is supported.
+        /// Whether the client supports sending <c>textDocument/willSaveWaitUntil</c>
+        /// notifications and waits for a response providing text edits which will be
+        /// applied to the document before it is saved.
         /// </summary>
         [JsonPropertyName("willSaveWaitUntil")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
@@ -36,7 +39,7 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether DidSave event is supported.
+        /// Whether the client supports sending <c>textDocument/didSave</c> notifications.
         /// </summary>
         [JsonPropertyName("didSave")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]

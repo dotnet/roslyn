@@ -20410,7 +20410,7 @@ class C1(string p1)
 {
 }
 ";
-            var comp = CreateCompilation(src1, targetFramework: TargetFramework.DesktopLatestExtended);
+            var comp = CreateCompilation(src1, targetFramework: TargetFramework.Mscorlib461Extended);
             comp.VerifyDiagnostics(
                 // (7,13): error CS9136: Cannot use primary constructor parameter of type 'ArgIterator' inside an instance member
                 //         _ = a;
@@ -22121,6 +22121,96 @@ internal partial class EditorDocumentManagerListener
 ";
             var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
             comp.VerifyEmitDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74726")]
+        public void PrimaryCtorNullableFieldWarning(string typeKind)
+        {
+            var source = $$"""
+                #nullable enable
+
+                public {{typeKind}} C()
+                {
+                    public string Text { get; set; } // 1
+                    public C(bool ignored) : this() { }
+                }
+
+                public {{typeKind}} C2
+                {
+                    public string Text { get; set; }
+                    public C2() { } // 2
+                }
+
+                public {{typeKind}} C3()
+                {
+                    public string Text { get; set; } = "a";
+                    public C3(bool ignored) : this() { }
+                }
+
+                public {{typeKind}} C4
+                {
+                    public string Text { get; set; }
+                    public C4() { Text = "a"; }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,19): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                //     public string Text { get; set; } // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text").WithLocation(5, 19),
+                // (12,12): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                //     public C2() { } // 2
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C2").WithArguments("property", "Text").WithLocation(12, 12)
+                );
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74726")]
+        public void RecordPrimaryCtorNullableFieldWarning(string typeKind)
+        {
+            var source = $$"""
+                #nullable enable
+
+                public record {{typeKind}} C()
+                {
+                    public string Text { get; set; } // 1
+                    public C(bool ignored) : this() { }
+                }
+
+                public record {{typeKind}} C2
+                {
+                    public string Text { get; set; }
+                    public C2() { } // 2
+                }
+
+                public record {{typeKind}} C3()
+                {
+                    public string Text { get; set; } = "a";
+                    public C3(bool ignored) : this() { }
+                }
+
+                public record {{typeKind}} C4
+                {
+                    public string Text { get; set; }
+                    public C4() { Text = "a"; }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,19): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                //     public string Text { get; set; } // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "Text").WithArguments("property", "Text").WithLocation(5, 19),
+                // (12,12): warning CS8618: Non-nullable property 'Text' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                //     public C2() { } // 2
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C2").WithArguments("property", "Text").WithLocation(12, 12)
+                );
         }
     }
 }

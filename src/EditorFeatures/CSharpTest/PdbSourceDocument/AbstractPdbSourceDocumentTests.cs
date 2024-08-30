@@ -155,6 +155,14 @@ public abstract class AbstractPdbSourceDocumentTests
 
             var masWorkspace = service.TryGetWorkspace();
 
+            using var fileStream = File.OpenRead(file.FilePath);
+            var sourceText = SourceText.From(fileStream);
+            var text = SourceText.From(File.ReadAllText(file.FilePath));
+
+            var pdbService = (PdbSourceDocumentMetadataAsSourceFileProvider)workspace.ExportProvider.GetExportedValues<IMetadataAsSourceFileProvider>().Single(s => s is PdbSourceDocumentMetadataAsSourceFileProvider);
+
+            var documentInfo = pdbService.GetTestAccessor().Documents[file.FilePath];
+            masWorkspace!.OnDocumentAdded(documentInfo.DocumentInfo);
             var document = masWorkspace!.CurrentSolution.Projects.First().Documents.First(d => d.FilePath == file.FilePath);
 
             // Mapping the project from the generated document should map back to the original project
@@ -329,5 +337,16 @@ public abstract class AbstractPdbSourceDocumentTests
     protected static string GetPdbPath(string path)
     {
         return Path.Combine(path, "reference.pdb");
+    }
+
+    private class StaticSourceTextContainer(SourceText sourceText) : SourceTextContainer
+    {
+        public override SourceText CurrentText => sourceText;
+
+        public override event EventHandler<TextChangeEventArgs> TextChanged
+        {
+            add { }
+            remove { }
+        }
     }
 }
