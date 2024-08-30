@@ -1737,6 +1737,11 @@
         <target state="translated">Une propriété partielle ne peut pas avoir plusieurs déclarations d'implémentation</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateInitializer">
+        <source>A partial property cannot have an initializer on both the definition and implementation.</source>
+        <target state="new">A partial property cannot have an initializer on both the definition and implementation.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialPropertyInitMismatch">
         <source>Property accessor '{0}' must be '{1}' to match the definition part</source>
         <target state="translated">L’accesseur de propriété « {0} » doit être « {1} » pour correspondre à la partie définition</target>

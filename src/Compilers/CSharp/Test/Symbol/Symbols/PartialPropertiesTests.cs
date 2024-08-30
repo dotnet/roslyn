@@ -1524,9 +1524,6 @@ public partial class C
                 // (11,30): error CS8799: Both partial member declarations must have identical accessibility modifiers.
                 //     partial int P1 { private get => 1; private set; }
                 Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "get").WithLocation(11, 30),
-                // (11,48): error CS0501: 'C.P1.set' must declare a body because it is not marked abstract, extern, or partial
-                //     partial int P1 { private get => 1; private set; }
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("C.P1.set").WithLocation(11, 48),
                 // (11,48): error CS8799: Both partial member declarations must have identical accessibility modifiers.
                 //     partial int P1 { private get => 1; private set; }
                 Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "set").WithLocation(11, 48));
@@ -3780,9 +3777,32 @@ public partial class C
                 // (9,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public partial string P3 { get; set; } = "c";
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(9, 27),
+                // (10,27): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //     public partial string P3 { get => ""; set { } } = "d";
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P3").WithLocation(10, 27),
                 // (10,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public partial string P3 { get => ""; set { } } = "d";
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(10, 27));
+
+            AssertEx.Equal([
+                "System.String C.<P1>k__BackingField",
+                "System.String C.P1 { get; set; }",
+                "System.String C.P1.get",
+                "void C.P1.set",
+                "System.String C.P2 { get; set; }",
+                "System.String C.P2.get",
+                "void C.P2.set",
+                "System.String C.<P2>k__BackingField",
+                "System.String C.<P3>k__BackingField",
+                "System.String C.P3 { get; set; }",
+                "System.String C.P3.get",
+                "void C.P3.set",
+                "C..ctor()"],
+                comp.GetMember<NamedTypeSymbol>("C").GetMembers().SelectAsArray(m => m.ToTestDisplayString()));
+
+            Assert.Empty(comp.GetMember<FieldSymbol>("C.<P1>k__BackingField").GetAttributes());
+            Assert.Empty(comp.GetMember<FieldSymbol>("C.<P2>k__BackingField").GetAttributes());
+            Assert.Empty(comp.GetMember<FieldSymbol>("C.<P3>k__BackingField").GetAttributes());
         }
 
         [Fact]
@@ -3822,12 +3842,35 @@ public partial class C
                 // (9,46): error CS0103: The name 'ERROR' does not exist in the current context
                 //     public partial string P3 { get; set; } = ERROR;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(9, 46),
+                // (10,27): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //     public partial string P3 { get => ""; set { } } = ERROR;
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P3").WithLocation(10, 27),
                 // (10,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public partial string P3 { get => ""; set { } } = ERROR;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(10, 27),
                 // (10,55): error CS0103: The name 'ERROR' does not exist in the current context
                 //     public partial string P3 { get => ""; set { } } = ERROR;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(10, 55));
+
+            AssertEx.Equal([
+                "System.String C.<P1>k__BackingField",
+                "System.String C.P1 { get; set; }",
+                "System.String C.P1.get",
+                "void C.P1.set",
+                "System.String C.P2 { get; set; }",
+                "System.String C.P2.get",
+                "void C.P2.set",
+                "System.String C.<P2>k__BackingField",
+                "System.String C.<P3>k__BackingField",
+                "System.String C.P3 { get; set; }",
+                "System.String C.P3.get",
+                "void C.P3.set",
+                "C..ctor()"],
+                comp.GetMember<NamedTypeSymbol>("C").GetMembers().SelectAsArray(m => m.ToTestDisplayString()));
+
+            Assert.Empty(comp.GetMember<FieldSymbol>("C.<P1>k__BackingField").GetAttributes());
+            Assert.Empty(comp.GetMember<FieldSymbol>("C.<P2>k__BackingField").GetAttributes());
+            Assert.Empty(comp.GetMember<FieldSymbol>("C.<P3>k__BackingField").GetAttributes());
         }
 
         [Fact]
@@ -3886,6 +3929,9 @@ public partial class C
                 // (18,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
                 //     [field: Attr2]
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(18, 6),
+                // (19,27): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //     public partial string P3 { get => ""; set { } } = "d";
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P3").WithLocation(19, 27),
                 // (19,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public partial string P3 { get => ""; set { } } = "d";
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(19, 27));
@@ -3903,17 +3949,12 @@ public partial class C
                 "System.String C.P3 { get; set; }",
                 "System.String C.P3.get",
                 "void C.P3.set",
-                "System.String C.<P3>k__BackingField",
                 "C..ctor()"],
                 comp.GetMember<NamedTypeSymbol>("C").GetMembers().SelectAsArray(m => m.ToTestDisplayString()));
 
             Assert.Empty(comp.GetMember<FieldSymbol>("C.<P1>k__BackingField").GetAttributes());
             Assert.Empty(comp.GetMember<FieldSymbol>("C.<P2>k__BackingField").GetAttributes());
-
-            var p3Fields = comp.GetMembers("C.<P3>k__BackingField");
-            Assert.Equal(2, p3Fields.Length);
-            Assert.Empty(p3Fields[0].GetAttributes());
-            Assert.Empty(p3Fields[1].GetAttributes());
+            Assert.Empty(comp.GetMember<FieldSymbol>("C.<P3>k__BackingField").GetAttributes());
         }
 
         [Theory]
@@ -4992,13 +5033,7 @@ public partial class C
                 """;
 
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (4,42): error CS0501: 'C.Prop1.set' must declare a body because it is not marked abstract, extern, or partial
-                //     public partial int Prop1 { get => 1; set; }
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("C.Prop1.set").WithLocation(4, 42),
-                // (7,32): error CS0501: 'C.Prop2.get' must declare a body because it is not marked abstract, extern, or partial
-                //     public partial int Prop2 { get; set { } }
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("C.Prop2.get").WithLocation(7, 32));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74679")]

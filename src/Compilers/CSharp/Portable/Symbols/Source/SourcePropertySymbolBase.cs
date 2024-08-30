@@ -57,6 +57,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private SymbolCompletionState _state;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeWithAnnotations.Boxed _lazyType;
+#nullable enable
+        private SynthesizedBackingFieldSymbolBase? _lazyBackingField;
+#nullable disable
 
         private string _lazySourceName;
 
@@ -71,6 +74,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public Location Location { get; }
 
 #nullable enable
+        // PROTOTYPE: Review and update implemented members.
+        // PROTOTYPE: Derive from FieldSymbol instead.
+        private sealed class UnknownSynthesizedBackingFieldSymbol : SynthesizedBackingFieldSymbolBase
+        {
+            internal static readonly UnknownSynthesizedBackingFieldSymbol Instance = new UnknownSynthesizedBackingFieldSymbol();
+
+            private UnknownSynthesizedBackingFieldSymbol() :
+                base("__unknown", isReadOnly: false, isStatic: false)
+            {
+            }
+
+            public override RefKind RefKind => throw new NotImplementedException();
+
+            public override ImmutableArray<CustomModifier> RefCustomModifiers => throw new NotImplementedException();
+
+            public override Symbol AssociatedSymbol => throw new NotImplementedException();
+
+            public override Symbol ContainingSymbol => throw new NotImplementedException();
+
+            public override ImmutableArray<Location> Locations => throw new NotImplementedException();
+
+            protected override IAttributeTargetSymbol AttributeOwner => throw new NotImplementedException();
+
+            internal override bool HasInitializer => throw new NotImplementedException();
+
+            internal override Location ErrorLocation => throw new NotImplementedException();
+
+            protected override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+            {
+                throw new NotImplementedException();
+            }
+
+            internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         protected SourcePropertySymbolBase(
             SourceMemberContainerTypeSymbol containingType,
             CSharpSyntaxNode syntax,
@@ -85,7 +126,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasAutoPropertyGet,
             bool hasAutoPropertySet,
             bool isExpressionBodied,
-            bool isInitOnly,
             bool accessorsHaveImplementation,
             bool usesFieldKeyword,
             RefKind refKind,
@@ -171,36 +211,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (usesFieldKeyword || hasAutoPropertyGet || hasAutoPropertySet || hasInitializer)
             {
                 Debug.Assert(!IsIndexer);
-                string fieldName = GeneratedNames.MakeBackingFieldName(_name);
-
-                // The backing field is readonly if any of the following holds:
-                // - The containing type is declared readonly and the property is an instance property.
-                bool isReadOnly;
-                if (!IsStatic && containingType.IsReadOnly)
-                {
-                    isReadOnly = true;
-                }
-                // - The property is declared readonly.
-                else if (HasReadOnlyModifier)
-                {
-                    isReadOnly = true;
-                }
-                // - The property has no set accessor (but may have an init accessor) and
-                // the get accessor, if any, is automatically implemented.
-                else if ((!hasSetAccessor || isInitOnly) && (!hasGetAccessor || hasAutoPropertyGet))
-                {
-                    isReadOnly = true;
-                }
-                else
-                {
-                    // PROTOTYPE: We could treat the field as readonly if all manually implemented get and set
-                    // accessors are declared readonly. Although, to do so, we might need to bind the accessor
-                    // declarations before creating the backing field. See FieldKeywordTests.ReadOnly_05().
-                    isReadOnly = false;
-                }
-
-                BackingField = new SynthesizedBackingFieldSymbol(this, fieldName, isReadOnly: isReadOnly, this.IsStatic, hasInitializer);
+                _lazyBackingField = UnknownSynthesizedBackingFieldSymbol.Instance;
             }
+            else
+            {
+                _lazyBackingField = null;
+            }
+
+            // PROTOTYPE: Assert we're not calculating the BackingField before the constructor
+            // completes and before the property is added to the containing type.
 
             if (hasGetAccessor)
             {
@@ -693,7 +712,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// a property with an accessor using the 'field' keyword, or
         /// a property with an initializer.
         /// </summary>
-        internal SynthesizedBackingFieldSymbol BackingField { get; }
+        internal SynthesizedBackingFieldSymbol BackingField
+        {
+            get
+            {
+                if ((object)_lazyBackingField == UnknownSynthesizedBackingFieldSymbol.Instance)
+                {
+                    Interlocked.CompareExchange(ref _lazyBackingField, CreateBackingField(), UnknownSynthesizedBackingFieldSymbol.Instance);
+                }
+                return (SynthesizedBackingFieldSymbol)_lazyBackingField;
+            }
+        }
+
+        internal SynthesizedBackingFieldSymbol GetBackingFieldPreferringDefinitionPart()
+        {
+            // PROTOTYPE: Where else are we using BackingField from the property implementation rather than definition?
+            // PROTOTYPE: This two-step lookup is too fragile. Both parts should be pointing to the same BackingField.
+            return (this as SourcePropertySymbol)?.SourcePartialDefinitionPart?.BackingField ?? BackingField;
+        }
+
+        private SynthesizedBackingFieldSymbol CreateBackingField()
+        {
+            string fieldName = GeneratedNames.MakeBackingFieldName(_name);
+
+            // The backing field is readonly if any of the following holds:
+            // - The containing type is declared readonly and the property is an instance property.
+            bool isReadOnly;
+            if (!IsStatic && ContainingType.IsReadOnly)
+            {
+                isReadOnly = true;
+            }
+            // - The property is declared readonly.
+            else if (HasReadOnlyModifier)
+            {
+                isReadOnly = true;
+            }
+            // - The property has no set accessor (but may have an init accessor) and
+            // the get accessor, if any, is automatically implemented.
+            else if ((_setMethod is null || _setMethod.IsInitOnly) && (_getMethod is null || (_propertyFlags & Flags.HasAutoPropertyGet) != 0))
+            {
+                isReadOnly = true;
+            }
+            else
+            {
+                // PROTOTYPE: We could treat the field as readonly if all manually implemented get and set
+                // accessors are declared readonly. Although, to do so, we might need to bind the accessor
+                // declarations before creating the backing field. See FieldKeywordTests.ReadOnly_05().
+                isReadOnly = false;
+            }
+
+            // PROTOTYPE: Improve this check. We shouldn't have to reach into the derived type.
+            //if (this is SourcePropertySymbol { IsPartialDefinition: true })
+            //{
+            //    // Do not create a backing field for a partial definition, even if the definition has an initializer.
+            //    // Instead, a backing field will be created for the partial implementation if that part has an
+            //    // auto-implemented accessor, or uses `field`; otherwise an error is reported for the initializer.
+            //    return null;
+            //}
+
+            return new SynthesizedBackingFieldSymbol(this, fieldName, isReadOnly: isReadOnly, isStatic: this.IsStatic, hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0);
+        }
 
         internal override bool MustCallMethodsDirectly
         {

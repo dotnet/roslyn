@@ -3674,7 +3674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         membersByName = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>(membersByName, ReadOnlyMemoryOfCharComparer.Instance);
                     }
 
-                    membersByName[name] = FixPartialMember(membersByName[name], prevMethod, currentMethod);
+                    membersByName[name] = FixPartialMethod(membersByName[name], prevMethod, currentMethod);
                 }
             }
 
@@ -3712,7 +3712,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         membersByName = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>(membersByName, ReadOnlyMemoryOfCharComparer.Instance);
                     }
 
-                    membersByName[name] = FixPartialMember(membersByName[name], prevProperty, currentProperty);
+                    FixPartialProperty(ref membersByName, name, prevProperty, currentProperty);
+
+                    if (prevProperty.BackingField?.HasInitializer == true && currentProperty.BackingField?.HasInitializer == true)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_PartialPropertyDuplicateInitializer, currentProperty.GetFirstLocation());
+                    }
                 }
 
                 void mergeAccessors(ref Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName, ReadOnlyMemory<char> name, SourcePropertyAccessorSymbol? currentAccessor, SourcePropertyAccessorSymbol? prevAccessor)
@@ -3738,7 +3743,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>Links together the definition and implementation parts of a partial method. Returns a member list which has the implementation part removed.</summary>
-        private static ImmutableArray<Symbol> FixPartialMember(ImmutableArray<Symbol> symbols, SourceOrdinaryMethodSymbol part1, SourceOrdinaryMethodSymbol part2)
+        private static ImmutableArray<Symbol> FixPartialMethod(ImmutableArray<Symbol> symbols, SourceOrdinaryMethodSymbol part1, SourceOrdinaryMethodSymbol part2)
         {
             SourceOrdinaryMethodSymbol definition;
             SourceOrdinaryMethodSymbol implementation;
@@ -3760,7 +3765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>Links together the definition and implementation parts of a partial property. Returns a member list which has the implementation part removed.</summary>
-        private static ImmutableArray<Symbol> FixPartialMember(ImmutableArray<Symbol> symbols, SourcePropertySymbol part1, SourcePropertySymbol part2)
+        private static void FixPartialProperty(ref Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName, ReadOnlyMemory<char> name, SourcePropertySymbol part1, SourcePropertySymbol part2)
         {
             SourcePropertySymbol definition;
             SourcePropertySymbol implementation;
@@ -3778,7 +3783,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SourcePropertySymbol.InitializePartialPropertyParts(definition, implementation);
 
             // a partial property is represented in the member list by its definition part:
-            return Remove(symbols, implementation);
+            membersByName[name] = Remove(membersByName[name], implementation);
+
+            if (implementation.BackingField is { } field && definition.BackingField is { })
+            {
+                var fieldName = field.Name.AsMemory();
+                membersByName[fieldName] = Remove(membersByName[fieldName], field);
+            }
         }
 
         private static ImmutableArray<Symbol> Remove(ImmutableArray<Symbol> symbols, Symbol symbol)
@@ -4991,7 +5002,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.GetMethod);
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.SetMethod);
-                            FieldSymbol backingField = property.BackingField; // PROTOTYPE: Only add this after merging partial parts.
+                            FieldSymbol backingField = property.BackingField;
 
                             // TODO: can we leave this out of the member list?
                             // From the 10/12/11 design notes:

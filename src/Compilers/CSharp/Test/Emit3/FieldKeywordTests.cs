@@ -16,7 +16,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class FieldKeywordTests : CSharpTestBase
     {
+        // PROTOTYPE: Remove overload.
         private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
+
+        private static string IncludeExpectedOutput(bool useInit, string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr || !useInit ? expectedOutput : null;
 
         [Fact]
         public void Field_01()
@@ -3701,11 +3704,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 [sourceA, sourceB],
                 targetFramework: GetTargetFramework(useInit),
                 verify: Verification.Skipped,
-                expectedOutput: """
+                expectedOutput: IncludeExpectedOutput(useInit, """
                     (, )
                     <P3>k__BackingField
                     <P4>k__BackingField
-                    """);
+                    """));
             verifier.VerifyDiagnostics();
             var comp = (CSharpCompilation)verifier.Compilation;
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
@@ -3760,14 +3763,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 reverseOrder ? [sourceC, sourceB, sourceA] : [sourceA, sourceB, sourceC],
                 targetFramework: GetTargetFramework(useInit),
                 verify: Verification.Skipped,
-                expectedOutput: """
+                expectedOutput: IncludeExpectedOutput(useInit, """
                     (3, 4, 5)
                     <P1>k__BackingField
                     <P2>k__BackingField
                     <P3>k__BackingField
                     <P4>k__BackingField
                     <P5>k__BackingField
-                    """);
+                    """));
             verifier.VerifyDiagnostics();
             var comp = (CSharpCompilation)verifier.Compilation;
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
@@ -3781,6 +3784,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
+
+        // PROTOTYPE: Test initializers with static partial properties.
 
         [Theory]
         [CombinatorialData]
@@ -3916,11 +3921,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public partial object P3 { get; {{setter}}; } = 3;
                     public partial object P4 { get; {{setter}}; } = 4;
                     public partial object P5 { get; {{setter}}; } = 5;
+                    public partial object P6 { get; {{setter}}; } = 6;
+                    public partial object P7 { get; {{setter}}; } = 7;
                     public partial object Q1 { get => field; } = 1;
                     public partial object Q2 { {{setter}} { field = value; } } = 2;
                     public partial object Q3 { get; {{setter}} { field = value; } } = 3;
                     public partial object Q4 { get => field; {{setter}}; } = 4;
                     public partial object Q5 { get => field; {{setter}} { field = value; } } = 5;
+                    public partial object Q6 { get; {{setter}} { } } = 6;
+                    public partial object Q7 { get => null; {{setter}}; } = 7;
                 }
                 """;
             string sourceB = $$"""
@@ -3931,11 +3940,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public partial object P3 { get; {{setter}} { field = value; } }
                     public partial object P4 { get => field; {{setter}}; }
                     public partial object P5 { get => field; {{setter}} { field = value; } }
+                    public partial object P6 { get; {{setter}} { } }
+                    public partial object P7 { get => null; {{setter}}; }
                     public partial object Q1 { get; }
                     public partial object Q2 { {{setter}}; }
                     public partial object Q3 { get; {{setter}}; }
                     public partial object Q4 { get; {{setter}}; }
                     public partial object Q5 { get; {{setter}}; }
+                    public partial object Q6 { get; {{setter}}; }
+                    public partial object Q7 { get; {{setter}}; }
                 }
                 """;
             string sourceC = """
@@ -3945,8 +3958,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
-                        var c = new C { P2 = 2, P3 = 3, P4 = 4, P5 = 5, Q2 = 2, Q3 = 3, Q4 = 4, Q5 = 5 };
-                        Console.WriteLine((c.P3, c.P4, c.P5, c.Q3, c.Q4, c.Q5));
+                        var c = new C();
+                        Console.WriteLine((c.P1, c.P3, c.P4, c.P5, c.P6, c.P7, c.Q1, c.Q3, c.Q4, c.Q5, c.Q6, c.Q7));
                         foreach (var field in typeof(C).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
                             Console.WriteLine("{0}", field.Name);
                     }
@@ -3956,19 +3969,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 reverseOrder ? [sourceC, sourceB, sourceA] : [sourceA, sourceB, sourceC],
                 targetFramework: GetTargetFramework(useInit),
                 verify: Verification.Skipped,
-                expectedOutput: """
-                    (3, 4, 5, 3, 4, 5)
+                expectedOutput: IncludeExpectedOutput(useInit, """
+                    (1, 3, 4, 5, 6, , 1, 3, 4, 5, 6, )
                     <P1>k__BackingField
                     <P2>k__BackingField
                     <P3>k__BackingField
                     <P4>k__BackingField
                     <P5>k__BackingField
+                    <P6>k__BackingField
+                    <P7>k__BackingField
                     <Q1>k__BackingField
                     <Q2>k__BackingField
                     <Q3>k__BackingField
                     <Q4>k__BackingField
                     <Q5>k__BackingField
-                    """);
+                    <Q6>k__BackingField
+                    <Q7>k__BackingField
+                    """));
             verifier.VerifyDiagnostics();
             var comp = (CSharpCompilation)verifier.Compilation;
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
@@ -3979,11 +3996,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Object C.<P3>k__BackingField",
                 "System.Object C.<P4>k__BackingField",
                 "System.Object C.<P5>k__BackingField",
+                "System.Object C.<P6>k__BackingField",
+                "System.Object C.<P7>k__BackingField",
                 "System.Object C.<Q1>k__BackingField",
                 "System.Object C.<Q2>k__BackingField",
                 "System.Object C.<Q3>k__BackingField",
                 "System.Object C.<Q4>k__BackingField",
                 "System.Object C.<Q5>k__BackingField",
+                "System.Object C.<Q6>k__BackingField",
+                "System.Object C.<Q7>k__BackingField",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
             // PROTOTYPE: Use symbol model to get all properties and check IsAutoProperty, IsAutoPropertyOrUsesFieldKeyword.
@@ -4014,18 +4035,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 reverseOrder ? [sourceB, sourceA] : [sourceA, sourceB],
                 targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
+                // (3,20): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //     partial object P1 { get => null; } = 1;
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P1").WithLocation(3, 20),
                 // (3,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     partial object P1 { get; } = 1;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 20),
                 // (3,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     partial object P1 { get => null; } = 1;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 20),
+                // (4,20): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //     partial object P2 { set { } } = 2;
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P2").WithLocation(4, 20),
                 // (4,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     partial object P2 { set; } = 2;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(4, 20),
                 // (4,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     partial object P2 { set { } } = 2;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(4, 20),
+                // (5,20): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //     partial object P3 { get => null; set { } } = 3;
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P3").WithLocation(5, 20),
                 // (5,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     partial object P3 { get; set; } = 3;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(5, 20),
@@ -4042,6 +4072,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertEx.Equal(expectedMembers, actualMembers);
             // PROTOTYPE: Use symbol model to get all properties and check IsAutoProperty, IsAutoPropertyOrUsesFieldKeyword.
         }
+
+        // PROTOTYPE: Test partial property with 3 parts, with one, two, or three with initializers.
+
+        // PROTOTYPE: Test `field` reference in `static` lambda or local function allowed if property is `static`.
 
         // PROTOTYPE: If we drop duplicate initializers, what about semantic info associated with those initializer expressions,
         // and what about captured primary constructor parameters? (Compare with how we handle method bodies that are
@@ -4074,8 +4108,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(
                 reverseOrder ? [sourceB, sourceA] : [sourceA, sourceB],
                 targetFramework: TargetFramework.Net80);
-            // PROTOTYPE: Should report an error for duplicate initializers.
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (3,27): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //     public partial object P1 { get => field; } = 1;
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P1").WithLocation(3, 27),
+                // (4,27): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //     public partial object P2 { set { field = value; } } = 2;
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P2").WithLocation(4, 27),
+                // (5,27): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //     public partial object P3 { get; set { field = value; } } = 3;
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P3").WithLocation(5, 27),
+                // (6,27): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //     public partial object P4 { get => field; set; } = 4;
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P4").WithLocation(6, 27),
+                // (7,27): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //     public partial object P5 { get => field; set { field = value; } } = 5;
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P5").WithLocation(7, 27));
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
             var expectedMembers = new[]
             {

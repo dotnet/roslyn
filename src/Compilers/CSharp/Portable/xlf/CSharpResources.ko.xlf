@@ -1737,6 +1737,11 @@
         <target state="translated">부분 속성에는 하나의 구현 선언만 사용할 수 있음</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateInitializer">
+        <source>A partial property cannot have an initializer on both the definition and implementation.</source>
+        <target state="new">A partial property cannot have an initializer on both the definition and implementation.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialPropertyInitMismatch">
         <source>Property accessor '{0}' must be '{1}' to match the definition part</source>
         <target state="translated">속성 접근자 '{0}'은(는) 정의 부분과 일치하려면 '{1}'이어야 합니다.</target>

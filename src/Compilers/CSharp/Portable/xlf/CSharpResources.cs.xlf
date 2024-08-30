@@ -1737,6 +1737,11 @@
         <target state="translated">Částečná vlastnost nesmí mít víc implementujících deklarací.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateInitializer">
+        <source>A partial property cannot have an initializer on both the definition and implementation.</source>
+        <target state="new">A partial property cannot have an initializer on both the definition and implementation.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialPropertyInitMismatch">
         <source>Property accessor '{0}' must be '{1}' to match the definition part</source>
         <target state="translated">Přístupový objekt vlastnosti {0} musí být {1}, aby odpovídal definiční části.</target>

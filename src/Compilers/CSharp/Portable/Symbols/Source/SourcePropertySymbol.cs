@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 out bool hasGetAccessorImplementation,
                 out bool hasSetAccessorImplementation,
                 out bool usesFieldKeyword,
-                out bool isInitOnly,
                 out var getSyntax,
                 out var setSyntax);
 
@@ -87,7 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasAutoPropertyGet: hasAutoPropertyGet,
                 hasAutoPropertySet: hasAutoPropertySet,
                 isExpressionBodied: isExpressionBodied,
-                isInitOnly: isInitOnly,
                 accessorsHaveImplementation: accessorsHaveImplementation,
                 usesFieldKeyword: usesFieldKeyword,
                 memberName,
@@ -108,7 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasAutoPropertyGet,
             bool hasAutoPropertySet,
             bool isExpressionBodied,
-            bool isInitOnly,
             bool accessorsHaveImplementation,
             bool usesFieldKeyword,
             string memberName,
@@ -128,7 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasAutoPropertyGet: hasAutoPropertyGet,
                 hasAutoPropertySet: hasAutoPropertySet,
                 isExpressionBodied: isExpressionBodied,
-                isInitOnly: isInitOnly,
                 accessorsHaveImplementation: accessorsHaveImplementation,
                 usesFieldKeyword: usesFieldKeyword,
                 syntax.Type.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
@@ -217,7 +213,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool hasGetAccessorImplementation,
             out bool hasSetAccessorImplementation,
             out bool usesFieldKeyword,
-            out bool isInitOnly,
             out AccessorDeclarationSyntax? getSyntax,
             out AccessorDeclarationSyntax? setSyntax)
         {
@@ -225,7 +220,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             isExpressionBodied = syntax.AccessorList is null;
             getSyntax = null;
             setSyntax = null;
-            isInitOnly = false;
 
             if (!isExpressionBodied)
             {
@@ -253,10 +247,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 setSyntax = accessor;
                                 hasSetAccessorImplementation = hasImplementation(accessor);
-                                if (accessor.Keyword.IsKind(SyntaxKind.InitKeyword))
-                                {
-                                    isInitOnly = true;
-                                }
                             }
                             else
                             {
