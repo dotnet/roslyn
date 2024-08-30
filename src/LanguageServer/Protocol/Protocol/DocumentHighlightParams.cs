@@ -9,22 +9,20 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing the parameters sent for a textDocument/documentHighlight request.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentHighlightParams">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
-    internal class DocumentHighlightParams
-        : TextDocumentPositionParams,
-        IPartialResultParams<DocumentHighlight[]>
+    internal class DocumentHighlightParams : TextDocumentPositionParams, IWorkDoneProgressParams, IPartialResultParams<DocumentHighlight[]>
     {
-        /// <summary>
-        /// Gets or sets the value of the PartialResultToken instance.
-        /// </summary>
-        [JsonPropertyName("partialResultToken")]
+        /// <inheritdoc/>
+        [JsonPropertyName(Methods.PartialResultTokenName)]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public IProgress<DocumentHighlight[]>? PartialResultToken
-        {
-            get;
-            set;
-        }
+        public IProgress<DocumentHighlight[]>? PartialResultToken { get; set; }
+
+        /// <inheritdoc/>
+        [JsonPropertyName(Methods.WorkDoneTokenName)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }
     }
 }

@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             await AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.CSharp);
         }
 
-        [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
+        [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/74827")]
         [MemberData(nameof(GetVisualBasicProjectTemplateNames), DisableDiscoveryEnumeration = false)]
         public async Task ValidateVisualBasicTemplateProjects(string templateName)
         {
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             var result = RunDotNet($"new list --type project --language {language}", output: null);
 
-            var lines = result.Output.Split(new[] { "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            var lines = result.Output.Split(["\r", "\n"], StringSplitOptions.RemoveEmptyEntries);
 
             TheoryData<string> templateNames = [];
             var foundDivider = false;
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                     continue;
                 }
 
-                var columns = line.Split(new[] { "  " }, StringSplitOptions.RemoveEmptyEntries)
+                var columns = line.Split(["  "], StringSplitOptions.RemoveEmptyEntries)
                     .Select(c => c.Trim())
                     .ToArray();
 

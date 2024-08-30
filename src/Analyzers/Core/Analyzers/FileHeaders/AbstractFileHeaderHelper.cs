@@ -71,7 +71,7 @@ internal abstract class AbstractFileHeaderHelper
                 fileHeaderStart = Math.Min(trivia.FullSpan.Start, fileHeaderStart);
                 fileHeaderEnd = trivia.FullSpan.End;
 
-#if NETCOREAPP
+#if NET
                 sb.Append(commentText).AppendLine();
 #else
                 sb.AppendLine(commentText.ToString());

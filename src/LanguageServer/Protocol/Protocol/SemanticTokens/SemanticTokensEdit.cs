@@ -10,9 +10,11 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class representing an individual edit incrementally applied to a previous
     /// semantic tokens response from the Document provider.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensEdit">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CA1036:Override methods on comparable types", Justification = "Pending implementation of IComparable")]
     internal class SemanticTokensEdit : IComparable<SemanticTokensEdit>
     {
@@ -21,6 +23,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// to begin the edit.
         /// </summary>
         [JsonPropertyName("start")]
+        [JsonRequired]
         public int Start { get; set; }
 
         /// <summary>
@@ -28,6 +31,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// from the previous response.
         /// </summary>
         [JsonPropertyName("deleteCount")]
+        [JsonRequired]
         public int DeleteCount { get; set; }
 
         /// <summary>

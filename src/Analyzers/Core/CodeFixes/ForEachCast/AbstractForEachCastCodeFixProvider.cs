@@ -96,7 +96,7 @@ internal abstract class AbstractForEachCastCodeFixProvider<TForEachStatementSynt
                     collection,
                     generator.GenericName(
                         nameof(Enumerable.Cast),
-                        new[] { iterationVariableType })));
+                        [iterationVariableType])));
         }
         else
         {

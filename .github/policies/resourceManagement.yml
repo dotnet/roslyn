@@ -160,10 +160,16 @@ configuration:
       - isPullRequest
       - filesMatchPattern:
           pattern: 'src/(Analyzers|CodeStyle|Features|LanguageServer|Workspaces)/.*\.(cs|vb)$'
-      - not:
-          isActivitySender:
-            user: dotnet-bot
-            issueAuthor: False
+          matchAny: true
+      - and:
+        - not:
+            isActivitySender:
+              user: dotnet-bot
+              issueAuthor: False
+        - not:
+            isActivitySender:
+              user: github-actions
+              issueAuthor: False
       - or:
         - isAction:
             action: Opened
@@ -184,6 +190,7 @@ configuration:
       - isPullRequest
       - filesMatchPattern:
           pattern: '.*\.[xX][aA][mM][lL]$'
+          matchAny: true
       - and:
         - not:
             hasLabel:
@@ -230,6 +237,7 @@ configuration:
       - isPullRequest
       - filesMatchPattern:
           pattern: '.*/PublicAPI\.(Shipped|Unshipped)\.txt'
+          matchAny: true
       - not:
           isActivitySender:
             user: dotnet-bot

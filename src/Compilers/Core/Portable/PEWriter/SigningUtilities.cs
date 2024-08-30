@@ -19,23 +19,25 @@ namespace Microsoft.CodeAnalysis
     {
         internal static byte[] CalculateRsaSignature(IEnumerable<Blob> content, RSAParameters privateKey)
         {
-            var hash = CalculateSha1(content);
+            var hash = calculateSha1(content);
 
             using (var rsa = RSA.Create())
             {
                 rsa.ImportParameters(privateKey);
+                // CodeQL [SM02196] ECMA-335 requires us to use SHA-1 and there is no alternative.
                 var signature = rsa.SignHash(hash, HashAlgorithmName.SHA1, RSASignaturePadding.Pkcs1);
                 Array.Reverse(signature);
                 return signature;
             }
-        }
 
-        internal static byte[] CalculateSha1(IEnumerable<Blob> content)
-        {
-            using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
+            static byte[] calculateSha1(IEnumerable<Blob> content)
             {
-                hash.AppendData(content);
-                return hash.GetHashAndReset();
+                // CodeQL [SM02196] ECMA-335 requires us to use SHA-1 and there is no alternative.
+                using (var hash = IncrementalHash.CreateHash(HashAlgorithmName.SHA1))
+                {
+                    hash.AppendData(content);
+                    return hash.GetHashAndReset();
+                }
             }
         }
 

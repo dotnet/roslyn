@@ -66,7 +66,7 @@ internal sealed partial class VisualStudioRuleSetManager
                         includes = [FilePath];
                     }
 
-                    _fileChangeContext = fileChangeWatcher.CreateContext();
+                    _fileChangeContext = fileChangeWatcher.CreateContext([]);
                     _fileChangeContext.FileChanged += IncludeUpdated;
 
                     foreach (var include in includes)

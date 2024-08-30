@@ -134,6 +134,9 @@ internal sealed partial class StreamingFindUsagesPresenter : IStreamingFindUsage
     public IClassificationFormatMap ClassificationFormatMap
         => _lazyClassificationFormatMap.Value;
 
+    private static bool IsPrimary(DefinitionItem definition)
+        => definition.Properties.ContainsKey(DefinitionItem.Primary);
+
     private static IEnumerable<ITableColumnDefinition> GetCustomColumns(IEnumerable<Lazy<ITableColumnDefinition, NameMetadata>> columns)
     {
         foreach (var column in columns)

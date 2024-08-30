@@ -42,8 +42,7 @@ End Class
 
         Assert.Collection(
             results,
-            new Action<ITableEntryHandle2>[]
-            {
+            [
                 reference =>
                 {
                     Assert.Equal(expected: "Dim local = 1", actual: reference.GetText());
@@ -56,7 +55,7 @@ End Class
                     Assert.Equal(expected: 4, actual: reference.GetLine());
                     Assert.Equal(expected: 24, actual: reference.GetColumn());
                 }
-            });
+            ]);
     }
 
     [IdeFact]
@@ -85,8 +84,7 @@ End Class
 
         Assert.Collection(
             results,
-            new Action<ITableEntryHandle2>[]
-            {
+            [
                 reference =>
                 {
                     Assert.Equal(expected: "Public Shared Alpha As Int32", actual: reference.GetText());
@@ -99,7 +97,7 @@ End Class
                     Assert.Equal(expected: 3, actual: reference.GetLine());
                     Assert.Equal(expected: 34, actual: reference.GetColumn());
                 }
-            });
+            ]);
 
         await TestServices.FindReferencesWindow.NavigateToAsync(results[0], isPreview: false, shouldActivate: true, HangMitigatingCancellationToken);
 
