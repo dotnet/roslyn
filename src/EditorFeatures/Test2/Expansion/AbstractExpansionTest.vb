@@ -5,10 +5,8 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeCleanup
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.Text
@@ -30,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
 
                 Dim root = Await document.GetSyntaxRootAsync()
 
-                Dim cleanupOptions = Await document.getcodecleanupoptionsasync(CancellationToken.None)
+                Dim cleanupOptions = Await document.GetCodeCleanupOptionsAsync(CancellationToken.None)
 
                 Dim spans As ImmutableArray(Of TextSpan) = Nothing
                 If hostDocument.AnnotatedSpans.TryGetValue("Expand", spans) Then
