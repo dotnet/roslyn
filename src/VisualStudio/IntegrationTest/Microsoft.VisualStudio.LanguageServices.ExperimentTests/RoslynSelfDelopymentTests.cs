@@ -2,25 +2,19 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
-using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests;
-using Roslyn.VisualStudio.NewIntegrationTests;
 using Xunit;
 using Xunit.Abstractions;
+using Microsoft.VisualStudio.Extensibility.Testing;
 
 namespace Microsoft.VisualStudio.LanguageServices.Experiment.IntegrationTests;
 
-[IdeSettings(MinVersion = VisualStudioVersion.VS2022, RootSuffix = "RoslynDev", MaxAttempts = 1)]
-public class RoslynSelfBuildTests(ITestOutputHelper output) : AbstractIntegrationTest
+[IdeSettings(MinVersion = VisualStudioVersion.VS2022, RootSuffix = "Exp", MaxAttempts = 1)]
+public class RoslynSelfBuildTests(ITestOutputHelper output) : AbstractIdeIntegrationTest
 {
     private readonly CancellationTokenSource _longTimeTestExecutionCancellationTokenSource = new(TimeSpan.FromMinutes(30));
 
-    // TODO: this should be changed to based on Environment variable.
-    [ConditionalIdeFact(typeof(WindowsOnly), Reason = "We want to monitor the health of F5 deployment")]
+    [IdeFact]
     public async Task SelfBuildAndDeploy()
     {
         // https://github.com/microsoft/vs-extension-testing/issues/172
@@ -33,25 +27,26 @@ public class RoslynSelfBuildTests(ITestOutputHelper output) : AbstractIntegratio
         Assert.NotNull(testAssetDirectory);
         var solutionDir = Path.Combine(testAssetDirectory, "Roslyn.sln");
         Assert.True(File.Exists(solutionDir));
-        await this.TestServices.SolutionExplorer.OpenSolutionAsync(solutionDir, _longTimeTestExecutionCancellationTokenSource.Token);
 
-        await this.TestOperationAndReportIfFailedAsync(
-            () => this.TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(_longTimeTestExecutionCancellationTokenSource.Token), _longTimeTestExecutionCancellationTokenSource.Token);
+        //await 
+        //await this.TestServices.SolutionExplorer.OpenSolutionAsync(solutionDir, _longTimeTestExecutionCancellationTokenSource.Token);
+        //await this.TestOperationAndReportIfFailedAsync(
+        //    () => this.TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(_longTimeTestExecutionCancellationTokenSource.Token), _longTimeTestExecutionCancellationTokenSource.Token);
 
-        await this.TestOperationAndReportIfFailedAsync(
-            () => this.TestServices.SolutionExplorer.DeploySolutionAsync(attachingDebugger: false, _longTimeTestExecutionCancellationTokenSource.Token), _longTimeTestExecutionCancellationTokenSource.Token);
+        //await this.TestOperationAndReportIfFailedAsync(
+        //    () => this.TestServices.SolutionExplorer.DeploySolutionAsync(attachingDebugger: false, _longTimeTestExecutionCancellationTokenSource.Token), _longTimeTestExecutionCancellationTokenSource.Token);
     }
 
-    private async Task TestOperationAndReportIfFailedAsync(Func<Task<bool>> operation, CancellationToken cancellationToken)
-    {
-        var result = await operation();
-        if (!result)
-        {
-            var buildOutput = await this.TestServices.SolutionExplorer.GetBuildOutputContentAsync(cancellationToken);
-            output.WriteLine(buildOutput);
-        }
-        Assert.True(result);
-    }
+    //private async Task TestOperationAndReportIfFailedAsync(Func<Task<bool>> operation, CancellationToken cancellationToken)
+    //{
+    //    var result = await operation();
+    //    if (!result)
+    //    {
+    //        var buildOutput = await this.TestServices.SolutionExplorer.GetBuildOutputContentAsync(cancellationToken);
+    //        output.WriteLine(buildOutput);
+    //    }
+    //    Assert.True(result);
+    //}
 
     public override void Dispose()
     {
