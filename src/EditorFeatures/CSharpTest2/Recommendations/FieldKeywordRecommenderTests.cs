@@ -80,6 +80,36 @@ public sealed class FieldKeywordRecommenderTests : KeywordRecommenderTests
             """);
     }
 
+    [Fact]
+    public async Task TestNotInAttributeArgumentInsideClass1()
+    {
+        await VerifyAbsenceAsync(
+            """
+            class C {
+                [field: $$
+            """);
+    }
+
+    [Fact]
+    public async Task TestNotInAttributeArgumentInsideClass2()
+    {
+        await VerifyAbsenceAsync(
+            """
+            class C {
+                [field: Goo($$)]
+            """);
+    }
+
+    [Fact]
+    public async Task TestNotInAttributeArgumentInsideClass3()
+    {
+        await VerifyAbsenceAsync(
+            """
+            class C {
+                [field: Goo($$)] int Prop { get; }
+            """);
+    }
+
     [Theory]
     [InlineData("record")]
     [InlineData("record class")]
