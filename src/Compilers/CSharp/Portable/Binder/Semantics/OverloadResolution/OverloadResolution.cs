@@ -2873,11 +2873,27 @@ outerDefault:
             var kind1 = conv1.GetCollectionExpressionTypeKind(out TypeSymbol elementType1, out _, out _);
             var kind2 = conv2.GetCollectionExpressionTypeKind(out TypeSymbol elementType2, out _, out _);
 
-            return BetterCollectionExpressionConversion(
-                collectionExpression.Elements,
-                t1, kind1, elementType1, conv1.UnderlyingConversions,
-                t2, kind2, elementType2, conv2.UnderlyingConversions,
-                ref useSiteInfo);
+            if (Compilation.LanguageVersion < LanguageVersion.CSharp13)
+            {
+                if (IsBetterCollectionExpressionConversion_CSharp12(t1, kind1, elementType1, t2, kind2, elementType2, ref useSiteInfo))
+                {
+                    return BetterResult.Left;
+                }
+                if (IsBetterCollectionExpressionConversion_CSharp12(t2, kind2, elementType2, t1, kind1, elementType1, ref useSiteInfo))
+                {
+                    return BetterResult.Right;
+                }
+
+                return BetterResult.Neither;
+            }
+            else
+            {
+                return BetterCollectionExpressionConversion(
+                    collectionExpression.Elements,
+                    t1, kind1, elementType1, conv1.UnderlyingConversions,
+                    t2, kind2, elementType2, conv2.UnderlyingConversions,
+                    ref useSiteInfo);
+            }
         }
 
         // Implements the rules for
@@ -2989,14 +3005,12 @@ outerDefault:
             return BetterResult.Neither;
         }
 
-        // PROTOTYPE: remove? Condition on C# 12?
-        private bool IsBetterCollectionExpressionConversion(
+        private bool IsBetterCollectionExpressionConversion_CSharp12(
             TypeSymbol t1, CollectionExpressionTypeKind kind1, TypeSymbol elementType1,
             TypeSymbol t2, CollectionExpressionTypeKind kind2, TypeSymbol elementType2,
             ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             Debug.Assert(!Conversions.HasIdentityConversion(t1, t2));
-            Debug.Assert(Conversions.HasIdentityConversion(elementType1, elementType2));
 
             // - T1 is System.ReadOnlySpan<E1>, and T2 is System.Span<E2>, and an implicit conversion exists from E1 to E2
             if (kind1 is CollectionExpressionTypeKind.ReadOnlySpan &&
