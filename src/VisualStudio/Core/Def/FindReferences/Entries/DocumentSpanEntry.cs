@@ -183,7 +183,7 @@ internal partial class StreamingFindUsagesPresenter
             var controlService = document.Project.Solution.Services.GetRequiredService<IContentControlService>();
             var sourceText = document.GetTextSynchronously(CancellationToken.None);
 
-            var excerptService = document.Services.GetService<IDocumentExcerptService>();
+            var excerptService = document.DocumentServiceProvider.GetService<IDocumentExcerptService>();
             if (excerptService != null)
             {
                 var classificationOptions = Presenter._globalOptions.GetClassificationOptions(document.Project.Language);

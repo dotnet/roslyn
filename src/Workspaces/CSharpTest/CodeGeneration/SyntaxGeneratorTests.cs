@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
     public sealed class SyntaxGeneratorTests
     {
         private readonly CSharpCompilation _emptyCompilation = CSharpCompilation.Create("empty",
-            references: [TestMetadata.Net451.mscorlib, TestMetadata.Net451.System]);
+            references: [NetFramework.mscorlib, NetFramework.System]);
 
         private Workspace _workspace;
         private SyntaxGenerator _generator;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         public static Compilation Compile(string code)
         {
             return CSharpCompilation.Create("test")
-                .AddReferences(TestMetadata.Net451.mscorlib, TestMetadata.Net451.System, TestMetadata.Net451.SystemCore, TestMetadata.Net451.SystemRuntime, TestReferences.NetFx.ValueTuple.tuplelib)
+                .AddReferences(NetFramework.mscorlib, NetFramework.System, NetFramework.SystemCore, NetFramework.SystemRuntime, TestReferences.NetFx.ValueTuple.tuplelib)
                 .AddSyntaxTrees(ParseSyntaxTree(code));
         }
 
@@ -971,13 +971,13 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         [Fact, WorkItem(63410, "https://github.com/dotnet/roslyn/issues/63410")]
         public void TestCheckedOperator()
         {
-            var comp = CSharpCompilation.Create(null, new[] { SyntaxFactory.ParseSyntaxTree("""
+            var comp = CSharpCompilation.Create(null, [SyntaxFactory.ParseSyntaxTree("""
                 public class C
                 {
                     public static C operator checked ++(C x) => x;
                     public static C operator ++(C x) => x;
                 }
-                """) });
+                """)]);
             var operatorSymbol = (IMethodSymbol)comp.GetTypeByMetadataName("C").GetMembers(WellKnownMemberNames.CheckedIncrementOperatorName).Single();
             VerifySyntax<OperatorDeclarationSyntax>(Generator.OperatorDeclaration(operatorSymbol), "public static global::C operator checked ++(global::C x)\r\n{\r\n}");
         }
@@ -2611,7 +2611,7 @@ public class C { } // end").Members[0];
         }
 
         private void AssertNamesEqual(string name, IEnumerable<SyntaxNode> actualNodes)
-            => AssertNamesEqual(new[] { name }, actualNodes);
+            => AssertNamesEqual([name], actualNodes);
 
         private void AssertMemberNamesEqual(string[] expectedNames, SyntaxNode declaration)
             => AssertNamesEqual(expectedNames, Generator.GetMembers(declaration));
@@ -2710,7 +2710,7 @@ public class C
             var cls = cu.Members[0];
             var text = cls.DescendantNodes(descendIntoTrivia: true).OfType<XmlTextSyntax>().First();
 
-            var newCu = Generator.InsertNodesAfter(cu, text, new SyntaxNode[] { text });
+            var newCu = Generator.InsertNodesAfter(cu, text, [text]);
 
             VerifySyntaxRaw<CompilationUnitSyntax>(
                 newCu, @"
@@ -2733,7 +2733,7 @@ public class C
             var cls = cu.Members[0];
             var text = cls.DescendantNodes(descendIntoTrivia: true).OfType<XmlTextSyntax>().First();
 
-            var newCu = Generator.InsertNodesBefore(cu, text, new SyntaxNode[] { text });
+            var newCu = Generator.InsertNodesBefore(cu, text, [text]);
 
             VerifySyntaxRaw<CompilationUnitSyntax>(
                 newCu, @"
@@ -3382,7 +3382,7 @@ public class C
             VerifySyntax<AccessorDeclarationSyntax>(newGetAccessor,
 @"get;");
 
-            var newNewGetAccessor = Generator.WithStatements(newGetAccessor, new SyntaxNode[] { });
+            var newNewGetAccessor = Generator.WithStatements(newGetAccessor, []);
             VerifySyntax<AccessorDeclarationSyntax>(newNewGetAccessor,
 @"get
 {
@@ -3544,10 +3544,10 @@ public class C
             Assert.Equal(0, Generator.GetStatements(Generator.ConstructorDeclaration()).Count);
             Assert.Equal(2, Generator.GetStatements(Generator.ConstructorDeclaration(statements: stmts)).Count);
 
-            Assert.Equal(0, Generator.GetStatements(Generator.VoidReturningLambdaExpression(new SyntaxNode[] { })).Count);
+            Assert.Equal(0, Generator.GetStatements(Generator.VoidReturningLambdaExpression([])).Count);
             Assert.Equal(2, Generator.GetStatements(Generator.VoidReturningLambdaExpression(stmts)).Count);
 
-            Assert.Equal(0, Generator.GetStatements(Generator.ValueReturningLambdaExpression(new SyntaxNode[] { })).Count);
+            Assert.Equal(0, Generator.GetStatements(Generator.ValueReturningLambdaExpression([])).Count);
             Assert.Equal(2, Generator.GetStatements(Generator.ValueReturningLambdaExpression(stmts)).Count);
 
             Assert.Equal(0, Generator.GetStatements(Generator.IdentifierName("x")).Count);
@@ -3567,8 +3567,8 @@ public class C
 
             Assert.Equal(2, Generator.GetStatements(Generator.WithStatements(Generator.MethodDeclaration("m"), stmts)).Count);
             Assert.Equal(2, Generator.GetStatements(Generator.WithStatements(Generator.ConstructorDeclaration(), stmts)).Count);
-            Assert.Equal(2, Generator.GetStatements(Generator.WithStatements(Generator.VoidReturningLambdaExpression(new SyntaxNode[] { }), stmts)).Count);
-            Assert.Equal(2, Generator.GetStatements(Generator.WithStatements(Generator.ValueReturningLambdaExpression(new SyntaxNode[] { }), stmts)).Count);
+            Assert.Equal(2, Generator.GetStatements(Generator.WithStatements(Generator.VoidReturningLambdaExpression([]), stmts)).Count);
+            Assert.Equal(2, Generator.GetStatements(Generator.WithStatements(Generator.ValueReturningLambdaExpression([]), stmts)).Count);
 
             Assert.Equal(0, Generator.GetStatements(Generator.WithStatements(Generator.IdentifierName("x"), stmts)).Count);
         }
@@ -3996,7 +3996,7 @@ $@"public class C
 @"public record struct C;
 ";
             var comp = CSharpCompilation.Create("test")
-                .AddReferences(TestMetadata.Net451.mscorlib)
+                .AddReferences(NetFramework.mscorlib)
                 .AddSyntaxTrees(ParseSyntaxTree(src, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)));
 
             var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();

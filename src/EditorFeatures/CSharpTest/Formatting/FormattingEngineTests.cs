@@ -2221,7 +2221,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         var root = tree.GetRoot();
 
         var entry = SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression), SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression));
-        var newRoot = root.InsertNodesBefore(root.DescendantNodes().Last(), new[] { entry });
+        var newRoot = root.InsertNodesBefore(root.DescendantNodes().Last(), [entry]);
         AssertFormatOnArbitraryNode(newRoot, expected);
     }
 

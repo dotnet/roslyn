@@ -8,9 +8,11 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class which represents color information.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#colorInformation">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.6</remarks>
     internal class ColorInformation
     {
         /// <summary>

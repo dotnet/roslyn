@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   }
 }";
             var q = new AsyncQueue<CompilationEvent>();
-            CreateCompilationWithMscorlib45(source)
+            CreateCompilationWithMscorlib461(source)
                 .WithEventQueue(q)
                 .VerifyDiagnostics(
                     // (12,18): warning CS8826: Partial method declarations 'void C<T1>.M(int x1)' and 'void C<T1>.M(int x2)' have signature differences.
@@ -146,12 +146,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
   }
 }";
             var q = new AsyncQueue<CompilationEvent>();
-            var comp = CreateCompilationWithMscorlib45(source).WithEventQueue(q);
+            var comp = CreateCompilationWithMscorlib461(source).WithEventQueue(q);
             comp.GetUsedAssemblyReferences();
             VerifyEvents(q);
 
             q = new AsyncQueue<CompilationEvent>();
-            comp = CreateCompilationWithMscorlib45(source).WithEventQueue(q);
+            comp = CreateCompilationWithMscorlib461(source).WithEventQueue(q);
             comp.VerifyDiagnostics(
                 // (12,18): warning CS8826: Partial method declarations 'void C<T1>.M(int x1)' and 'void C<T1>.M(int x2)' have signature differences.
                 //     partial void M(int x2) {}
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyEvents(q);
 
             q = new AsyncQueue<CompilationEvent>();
-            comp = CreateCompilationWithMscorlib45(source).WithEventQueue(q);
+            comp = CreateCompilationWithMscorlib461(source).WithEventQueue(q);
             comp.GetUsedAssemblyReferences();
             comp.VerifyDiagnostics(
                 // (12,18): warning CS8826: Partial method declarations 'void C<T1>.M(int x1)' and 'void C<T1>.M(int x2)' have signature differences.
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             VerifyEvents(q);
 
             q = new AsyncQueue<CompilationEvent>();
-            comp = CreateCompilationWithMscorlib45(source).WithEventQueue(q);
+            comp = CreateCompilationWithMscorlib461(source).WithEventQueue(q);
             comp.GetUsedAssemblyReferences();
             comp.GetUsedAssemblyReferences();
             VerifyEvents(q);

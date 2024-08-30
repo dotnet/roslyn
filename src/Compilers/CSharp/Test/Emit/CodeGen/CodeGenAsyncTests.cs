@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -23,10 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
             options = options ?? TestOptions.ReleaseExe;
 
-            IEnumerable<MetadataReference> asyncRefs = new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp };
+            IEnumerable<MetadataReference> asyncRefs = new[] { NetFramework.System, NetFramework.SystemCore, NetFramework.MicrosoftCSharp };
             references = (references != null) ? references.Concat(asyncRefs) : asyncRefs;
 
-            return CreateCompilationWithMscorlib45(source, options: options, references: references);
+            return CreateCompilationWithMscorlib461(source, options: options, references: references);
         }
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = default)
@@ -54,7 +54,7 @@ class Test
         F(123).Wait();
     }
 }";
-            var c = CreateCompilationWithMscorlib45(source);
+            var c = CreateCompilationWithMscorlib461(source);
 
             CompilationOptions options;
 
@@ -3304,7 +3304,7 @@ class C
 }
 ";
 
-            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.References.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
 
             // CONSIDER: It would be nice if we didn't squiggle the whole method body, but this is a corner case.
             comp.VerifyEmitDiagnostics(
@@ -3334,7 +3334,7 @@ class C
 {
     async Task M() {}
 }";
-            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.References.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
             comp.VerifyEmitDiagnostics(
                 // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async Task M() {}
@@ -3365,7 +3365,7 @@ class C
 {
     async Task<int> F() => 3;
 }";
-            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { Net40.References.mscorlib }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
             comp.VerifyEmitDiagnostics(
                 // (4,21): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async Task<int> F() => 3;
@@ -3703,7 +3703,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         {
             // Builder
             var libB = @"public class B { }";
-            var cB = CreateCompilationWithMscorlib45(libB);
+            var cB = CreateCompilationWithMscorlib461(libB);
             var rB = cB.EmitToImageReference();
 
             // Tasklike
@@ -3714,7 +3714,7 @@ using System.Runtime.CompilerServices;
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var cT = CreateCompilationWithMscorlib45(libT, references: new[] { rB });
+            var cT = CreateCompilationWithMscorlib461(libT, references: new[] { rB });
             var rT = cT.EmitToImageReference();
 
             // Consumer, fails to reference builder
@@ -3726,7 +3726,7 @@ class Program {
     async T f() => await Task.Delay(1);
 }
 ";
-            var c = CreateCompilationWithMscorlib45(source, references: new[] { rT });
+            var c = CreateCompilationWithMscorlib461(source, references: new[] { rT });
             c.VerifyEmitDiagnostics(
                 // (6,17): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async T f() => await Task.Delay(1);
@@ -4023,7 +4023,7 @@ class Mismatch2MethodBuilder<T>
 }
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
             comp.VerifyEmitDiagnostics(
                 // (5,30): error CS8940: A generic task-like return type was expected, but the type 'Mismatch1MethodBuilder' found in 'AsyncMethodBuilder' attribute was not suitable. It must be an unbound generic type of arity one, and its containing type (if any) must be non-generic.
                 //     async Mismatch1<int> f() { await (Task)null; return 1; }
@@ -4501,7 +4501,7 @@ namespace CompilerCrashRepro2
         {
             var source =
 @"System.Console.WriteLine(await System.Threading.Tasks.Task.FromResult(1));";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -4510,7 +4510,7 @@ namespace CompilerCrashRepro2
         {
             var source =
 @"await System.Threading.Tasks.Task.FromResult(4);";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -4520,7 +4520,7 @@ namespace CompilerCrashRepro2
             var source =
 @"int x = await System.Threading.Tasks.Task.Run(() => 2);
 System.Console.WriteLine(x);";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -4564,7 +4564,7 @@ System.Console.WriteLine(x);";
     await System.Threading.Tasks.Task.FromResult(1);
 int y = x +
     await System.Threading.Tasks.Task.FromResult(2);";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (2,5): error CS8100: The 'await' operator cannot be used in a static script variable initializer.
                 //     await System.Threading.Tasks.Task.FromResult(1);

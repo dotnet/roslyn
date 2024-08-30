@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using static Roslyn.Test.Utilities.TestMetadata;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
 
@@ -2049,7 +2049,7 @@ class Program
     {
         var resolver = new TestMetadataReferenceResolver(assemblyNames: new Dictionary<string, PortableExecutableReference>()
         {
-            { "exprs", AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemCore).GetReference() }
+            { "exprs", AssemblyMetadata.CreateFromImage(Net461.Resources.SystemCore).GetReference() }
         });
 
         await TestAsync(

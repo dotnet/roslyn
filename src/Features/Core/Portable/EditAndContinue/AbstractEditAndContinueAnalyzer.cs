@@ -426,9 +426,12 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap,
         SyntaxNode oldActiveStatement,
         DeclarationBody oldBody,
+        SemanticModel oldModel,
         SyntaxNode newActiveStatement,
         DeclarationBody newBody,
-        bool isNonLeaf);
+        SemanticModel newModel,
+        bool isNonLeaf,
+        CancellationToken cancellationToken);
 
     internal abstract void ReportInsertedMemberSymbolRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, ISymbol newSymbol, SyntaxNode newNode, bool insertingIntoExistingContainingType);
     internal abstract void ReportStateMachineSuspensionPointRudeEdits(DiagnosticContext diagnosticContext, SyntaxNode oldNode, SyntaxNode newNode);
@@ -1185,8 +1188,9 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 TextSpan newSpan;
                 if (hasMatching)
                 {
-                    Debug.Assert(newStatementSyntax != null);
-                    Debug.Assert(newBody != null);
+                    Contract.ThrowIfNull(newStatementSyntax);
+                    Contract.ThrowIfNull(newBody);
+                    Contract.ThrowIfNull(oldModel);
 
                     // The matching node doesn't produce sequence points.
                     // E.g. "const" keyword is inserted into a local variable declaration with an initializer.
@@ -1204,9 +1208,12 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                         enclosingBodyMap.Reverse,
                         oldStatementSyntax,
                         oldBody,
+                        oldModel,
                         newStatementSyntax,
                         newBody,
-                        isNonLeaf);
+                        newModel,
+                        isNonLeaf,
+                        cancellationToken);
                 }
                 else if (enclosingBodyMap.Forward.IsEmpty())
                 {
@@ -1775,6 +1782,15 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         }
     }
 
+    protected void AddRudeTypeUpdateAroundActiveStatement(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newNode, ITypeSymbol oldType, ITypeSymbol newType)
+    {
+        diagnostics.Add(new RudeEditDiagnostic(
+            RudeEditKind.TypeUpdateAroundActiveStatement,
+            GetDiagnosticSpan(newNode, EditKind.Update),
+            newNode,
+            [GetDisplayName(newNode, EditKind.Update), oldType.ToDisplayString(), newType.ToDisplayString()]));
+    }
+
     protected void AddRudeUpdateAroundActiveStatement(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newNode)
     {
         diagnostics.Add(new RudeEditDiagnostic(
@@ -1805,13 +1821,17 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
     protected void ReportUnmatchedStatements<TSyntaxNode>(
         ArrayBuilder<RudeEditDiagnostic> diagnostics,
         IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap,
-        Func<SyntaxNode, bool> nodeSelector,
         SyntaxNode oldActiveStatement,
         SyntaxNode oldEncompassingAncestor,
+        SemanticModel oldModel,
         SyntaxNode newActiveStatement,
         SyntaxNode newEncompassingAncestor,
+        SemanticModel newModel,
+        Func<SyntaxNode, bool> nodeSelector,
+        Func<TSyntaxNode, OneOrMany<SyntaxNode>> getTypedNodes,
         Func<TSyntaxNode, TSyntaxNode, bool> areEquivalent,
-        Func<TSyntaxNode, TSyntaxNode, bool>? areSimilar)
+        Func<TSyntaxNode, TSyntaxNode, bool>? areSimilar,
+        CancellationToken cancellationToken)
         where TSyntaxNode : SyntaxNode
     {
         var newNodes = GetAncestors(newEncompassingAncestor, newActiveStatement, nodeSelector);
@@ -1825,12 +1845,12 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         int matchCount;
         if (oldNodes != null)
         {
-            matchCount = MatchNodes(oldNodes, newNodes, diagnostics: null, reverseMap, comparer: areEquivalent);
+            matchCount = MatchNodes(oldNodes, oldModel, newNodes, newModel, diagnostics, reverseMap, getTypedNodes, comparer: areEquivalent, exactMatch: true, cancellationToken);
 
             // Do another pass over the nodes to improve error messages.
             if (areSimilar != null && matchCount < Math.Min(oldNodes.Count, newNodes.Count))
             {
-                matchCount += MatchNodes(oldNodes, newNodes, diagnostics, reverseMap: null, comparer: areSimilar);
+                matchCount += MatchNodes(oldNodes, oldModel, newNodes, newModel, diagnostics, reverseMap: null, getTypedNodes, comparer: areSimilar, exactMatch: false, cancellationToken);
             }
         }
         else
@@ -1871,10 +1891,15 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
     private int MatchNodes<TSyntaxNode>(
         List<SyntaxNode?> oldNodes,
+        SemanticModel oldModel,
         List<SyntaxNode?> newNodes,
-        ArrayBuilder<RudeEditDiagnostic>? diagnostics,
+        SemanticModel newModel,
+        ArrayBuilder<RudeEditDiagnostic> diagnostics,
         IReadOnlyDictionary<SyntaxNode, SyntaxNode>? reverseMap,
-        Func<TSyntaxNode, TSyntaxNode, bool> comparer)
+        Func<TSyntaxNode, OneOrMany<SyntaxNode>> getTypedNodes,
+        Func<TSyntaxNode, TSyntaxNode, bool> comparer,
+        bool exactMatch,
+        CancellationToken cancellationToken)
         where TSyntaxNode : SyntaxNode
     {
         var matchCount = 0;
@@ -1918,15 +1943,44 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
             if (i >= 0)
             {
-                // we have an update or an exact match:
-                oldNodes[i] = null;
-                newNodes[newIndex] = null;
-                matchCount++;
+                // An update or an exact match.
 
-                if (diagnostics != null)
+                oldNode = oldNodes[i];
+                Contract.ThrowIfNull(oldNode);
+
+                // If the nodes don't match exactly report rude edit right away,
+                // otherwise check if the types of temp variable the node generates (if any) changed.
+
+                if (!exactMatch)
                 {
                     AddRudeUpdateAroundActiveStatement(diagnostics, newNode);
                 }
+                else
+                {
+                    var oldTypedNodes = getTypedNodes((TSyntaxNode)oldNode);
+                    var newTypedNodes = getTypedNodes((TSyntaxNode)newNode);
+
+                    // nodes are syntactically equivallent, so they should yield the same amount of types:
+                    Contract.ThrowIfFalse(oldTypedNodes.Count == newTypedNodes.Count);
+
+                    for (var t = 0; t < oldTypedNodes.Count; t++)
+                    {
+                        var oldType = oldModel.GetTypeInfo(oldTypedNodes[t], cancellationToken).Type;
+                        var newType = newModel.GetTypeInfo(newTypedNodes[t], cancellationToken).Type;
+
+                        Contract.ThrowIfNull(oldType);
+                        Contract.ThrowIfNull(newType);
+
+                        if (!TypesEquivalent(oldType, newType, exact: false))
+                        {
+                            AddRudeTypeUpdateAroundActiveStatement(diagnostics, newNode, oldType, newType);
+                        }
+                    }
+                }
+
+                oldNodes[i] = null;
+                newNodes[newIndex] = null;
+                matchCount++;
             }
         }
 
@@ -2302,10 +2356,10 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
     // They only affect custom attributes or metadata flags emitted on the members - all runtimes are expected to accept
     // these updates in metadata deltas, even if they do not have any observable effect.
     private static readonly SymbolEquivalenceComparer s_runtimeSymbolEqualityComparer = new(
-        AssemblyEqualityComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
+        AssemblyEqualityComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true, arrayAndReadOnlySpanCompareEqually: false);
 
     private static readonly SymbolEquivalenceComparer s_exactSymbolEqualityComparer = new(
-        AssemblyEqualityComparer.Instance, distinguishRefFromOut: true, tupleNamesMustMatch: true, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: false);
+        AssemblyEqualityComparer.Instance, distinguishRefFromOut: true, tupleNamesMustMatch: true, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: false, arrayAndReadOnlySpanCompareEqually: false);
 
     protected static bool SymbolsEquivalent(ISymbol oldSymbol, ISymbol newSymbol)
         => s_exactSymbolEqualityComparer.Equals(oldSymbol, newSymbol);

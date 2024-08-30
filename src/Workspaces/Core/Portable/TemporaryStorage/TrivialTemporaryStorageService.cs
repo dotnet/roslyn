@@ -48,7 +48,7 @@ internal sealed class TrivialTemporaryStorageService : ITemporaryStorageServiceI
             Identifier = new TemporaryStorageIdentifier(Guid.NewGuid().ToString(), 0, _stream.Length);
         }
 
-        public Stream ReadFromTemporaryStorage(CancellationToken cancellationToken)
+        public Stream ReadFromTemporaryStorage()
         {
             // Return a read-only view of the underlying buffer to prevent users from overwriting or directly
             // disposing the backing storage.

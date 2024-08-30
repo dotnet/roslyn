@@ -3582,7 +3582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode BindPrimaryConstructorBody(TypeDeclarationSyntax typeDecl, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(typeDecl.ParameterList is object);
-            Debug.Assert(typeDecl.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.ClassDeclaration);
+            Debug.Assert(typeDecl.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.ClassDeclaration or SyntaxKind.RecordStructDeclaration or SyntaxKind.StructDeclaration);
 
             BoundExpressionStatement initializer;
             ImmutableArray<LocalSymbol> constructorLocals;

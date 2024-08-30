@@ -42,10 +42,7 @@ internal abstract class AbstractSpeculationAnalyzer<
     where TInvocationExpressionSyntax : TExpressionSyntax
     where TConversion : struct
 {
-    private readonly TExpressionSyntax _expression;
     private readonly TExpressionSyntax _newExpressionForReplace;
-    private readonly SemanticModel _semanticModel;
-    private readonly CancellationToken _cancellationToken;
     private readonly bool _skipVerificationForReplacedNode;
     private readonly bool _failOnOverloadResolutionFailuresInOriginalCode;
     private readonly bool _isNewSemanticModelSpeculativeModel;
@@ -56,7 +53,9 @@ internal abstract class AbstractSpeculationAnalyzer<
     private SemanticModel? _lazySpeculativeSemanticModel;
 
     private static readonly SymbolEquivalenceComparer s_includeNullabilityComparer =
-        SymbolEquivalenceComparer.Create(distinguishRefFromOut: true, tupleNamesMustMatch: true, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: false);
+        SymbolEquivalenceComparer.Create(distinguishRefFromOut: true, tupleNamesMustMatch: true, ignoreNullableAnnotations: false, objectAndDynamicCompareEqually: false, arrayAndReadOnlySpanCompareEqually: false);
+
+    private static readonly SymbolEquivalenceComparer s_arrayAndReadOnlySpanCompareEqually = s_includeNullabilityComparer.With(arrayAndReadOnlySpanCompareEqually: true);
 
     /// <summary>
     /// Creates a semantic analyzer for speculative syntax replacement.
@@ -81,10 +80,10 @@ internal abstract class AbstractSpeculationAnalyzer<
         bool skipVerificationForReplacedNode = false,
         bool failOnOverloadResolutionFailuresInOriginalCode = false)
     {
-        _expression = expression;
+        OriginalExpression = expression;
         _newExpressionForReplace = newExpression;
-        _semanticModel = semanticModel;
-        _cancellationToken = cancellationToken;
+        OriginalSemanticModel = semanticModel;
+        CancellationToken = cancellationToken;
         _skipVerificationForReplacedNode = skipVerificationForReplacedNode;
         _failOnOverloadResolutionFailuresInOriginalCode = failOnOverloadResolutionFailuresInOriginalCode;
         _isNewSemanticModelSpeculativeModel = true;
@@ -100,7 +99,7 @@ internal abstract class AbstractSpeculationAnalyzer<
     /// <summary>
     /// Original expression to be replaced.
     /// </summary>
-    public TExpressionSyntax OriginalExpression => _expression;
+    public TExpressionSyntax OriginalExpression { get; }
 
     SyntaxNode ISpeculationAnalyzer.OriginalExpression => OriginalExpression;
 
@@ -126,7 +125,7 @@ internal abstract class AbstractSpeculationAnalyzer<
     /// <summary>
     /// Semantic model for the syntax tree corresponding to <see cref="OriginalExpression"/>
     /// </summary>
-    public SemanticModel OriginalSemanticModel => _semanticModel;
+    public SemanticModel OriginalSemanticModel { get; }
 
     /// <summary>
     /// Node which replaces the <see cref="OriginalExpression"/>.
@@ -170,7 +169,7 @@ internal abstract class AbstractSpeculationAnalyzer<
         }
     }
 
-    public CancellationToken CancellationToken => _cancellationToken;
+    public CancellationToken CancellationToken { get; }
 
     protected abstract SyntaxNode GetSemanticRootForSpeculation(TExpressionSyntax expression);
 
@@ -205,7 +204,7 @@ internal abstract class AbstractSpeculationAnalyzer<
         if (_lazySpeculativeSemanticModel == null)
         {
             var nodeToSpeculate = this.SemanticRootOfReplacedExpression;
-            _lazySpeculativeSemanticModel = CreateSpeculativeSemanticModel(this.SemanticRootOfOriginalExpression, nodeToSpeculate, _semanticModel);
+            _lazySpeculativeSemanticModel = CreateSpeculativeSemanticModel(this.SemanticRootOfOriginalExpression, nodeToSpeculate, OriginalSemanticModel);
             ValidateSpeculativeSemanticModel(_lazySpeculativeSemanticModel, nodeToSpeculate);
         }
     }
@@ -406,6 +405,19 @@ internal abstract class AbstractSpeculationAnalyzer<
                     }
                 }
             }
+
+            // We consider two method overloads compatible if one takes a T[] array for a particular parameter, and the
+            // other takes a ReadOnlySpan<T> for the same parameter.  This is a considered a supported and desirable API
+            // upgrade story for API authors.  Specifically, they start with an array-based method, and then add a
+            // sibling ROS method.  In that case, the language will prefer the latter when both are applicable.  So if
+            // we make a code change that makes the second compatible, then we are ok with that, as the expectation is
+            // that the new method has the same semantics and it is desirable for code to now call that.
+            //
+            // Note: this comparer will check the method kinds, name, containing type, arity, and virtually everything
+            // else about the methods.  The only difference it will allow between the methods is that parameter types
+            // can be different if they are an array vs a ReadOnlySpan.
+            if (s_arrayAndReadOnlySpanCompareEqually.Equals(methodSymbol, newMethodSymbol))
+                return true;
         }
 
         return false;
@@ -443,10 +455,8 @@ internal abstract class AbstractSpeculationAnalyzer<
                    CompareAcrossSemanticModels(parameterSymbol.Type, newParameterSymbol.Type);
         }
 
-        if (symbol is IMethodSymbol methodSymbol &&
-            newSymbol is IMethodSymbol newMethodSymbol &&
-            methodSymbol.IsLocalFunction() &&
-            newMethodSymbol.IsLocalFunction())
+        if (symbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction } methodSymbol &&
+            newSymbol is IMethodSymbol { MethodKind: MethodKind.LocalFunction } newMethodSymbol)
         {
             return symbol.Name == newSymbol.Name &&
                    methodSymbol.Parameters.Length == newMethodSymbol.Parameters.Length &&
@@ -650,7 +660,7 @@ internal abstract class AbstractSpeculationAnalyzer<
             // semantics.  We could potentially support this, but we'd have to do the analysis the instance invoked
             // on and the instance passed as the first parameter are identical.
 
-            var originalIsStaticAccess = IsStaticAccess(_semanticModel.GetSymbolInfo(originalExpression, CancellationToken).Symbol);
+            var originalIsStaticAccess = IsStaticAccess(OriginalSemanticModel.GetSymbolInfo(originalExpression, CancellationToken).Symbol);
             var replacedIsStaticAccess = IsStaticAccess(this.SpeculativeSemanticModel.GetSymbolInfo(newExpression, CancellationToken).Symbol);
             if (originalIsStaticAccess != replacedIsStaticAccess)
                 return false;
@@ -751,16 +761,16 @@ internal abstract class AbstractSpeculationAnalyzer<
     {
         var forEachExpression = GetForEachStatementExpression(forEachStatement);
         if (forEachExpression.IsMissing ||
-            !forEachExpression.Span.Contains(_expression.SpanStart))
+            !forEachExpression.Span.Contains(OriginalExpression.SpanStart))
         {
             return false;
         }
 
         // inferred variable type compatible
-        if (IsForEachTypeInferred(forEachStatement, _semanticModel))
+        if (IsForEachTypeInferred(forEachStatement, OriginalSemanticModel))
         {
-            var local = (ILocalSymbol)_semanticModel.GetRequiredDeclaredSymbol(forEachStatement, _cancellationToken);
-            var newLocal = (ILocalSymbol)this.SpeculativeSemanticModel.GetRequiredDeclaredSymbol(newForEachStatement, _cancellationToken);
+            var local = (ILocalSymbol)OriginalSemanticModel.GetRequiredDeclaredSymbol(forEachStatement, CancellationToken);
+            var newLocal = (ILocalSymbol)this.SpeculativeSemanticModel.GetRequiredDeclaredSymbol(newForEachStatement, CancellationToken);
             if (!SymbolsAreCompatible(local.Type, newLocal.Type))
             {
                 return true;
@@ -804,7 +814,7 @@ internal abstract class AbstractSpeculationAnalyzer<
             // GetEnumerator method on a specific type.
             if (getEnumerator.IsImplementableMember())
             {
-                var expressionType = this.SpeculativeSemanticModel.GetTypeInfo(newForEachStatementExpression, _cancellationToken).ConvertedType;
+                var expressionType = this.SpeculativeSemanticModel.GetTypeInfo(newForEachStatementExpression, CancellationToken).ConvertedType;
                 if (expressionType != null)
                 {
                     var implementationMember = expressionType.FindImplementationForInterfaceMember(getEnumerator);
@@ -847,7 +857,7 @@ internal abstract class AbstractSpeculationAnalyzer<
         ISymbol? newSymbol;
         if (useSpeculativeModel)
         {
-            newSymbol = this.SpeculativeSemanticModel.GetSymbolInfo(newType, _cancellationToken).Symbol;
+            newSymbol = this.SpeculativeSemanticModel.GetSymbolInfo(newType, CancellationToken).Symbol;
         }
         else
         {
@@ -875,7 +885,7 @@ internal abstract class AbstractSpeculationAnalyzer<
 
     private bool ReplacementBreaksExpression(TExpressionSyntax expression, TExpressionSyntax newExpression)
     {
-        var originalSymbolInfo = _semanticModel.GetSymbolInfo(expression);
+        var originalSymbolInfo = OriginalSemanticModel.GetSymbolInfo(expression);
         if (_failOnOverloadResolutionFailuresInOriginalCode && originalSymbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
         {
             return true;

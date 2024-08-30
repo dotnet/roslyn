@@ -31,6 +31,9 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
 {
     internal static readonly CSharpSyntaxFacts Instance = new();
 
+    // Specifies false for trimOnFree as these objects commonly exceed the default ObjectPool threshold
+    private static readonly ObjectPool<List<SyntaxNode>> s_syntaxNodeListPool = new ObjectPool<List<SyntaxNode>>(() => [], trimOnFree: false);
+
     protected CSharpSyntaxFacts()
     {
     }
@@ -896,41 +899,51 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
         }
     }
 
-    public void AddTopLevelAndMethodLevelMembers(SyntaxNode? root, ArrayBuilder<SyntaxNode> list)
+    public PooledObject<List<SyntaxNode>> GetTopLevelAndMethodLevelMembers(SyntaxNode? root)
     {
+        var pooledObject = s_syntaxNodeListPool.GetPooledObject();
+        var list = pooledObject.Object;
+
         AppendMembers(root, list, topLevel: true, methodLevel: true);
+
+        return pooledObject;
     }
 
-    public void AddMethodLevelMembers(SyntaxNode? root, ArrayBuilder<SyntaxNode> list)
+    public PooledObject<List<SyntaxNode>> GetMethodLevelMembers(SyntaxNode? root)
     {
+        var pooledObject = s_syntaxNodeListPool.GetPooledObject();
+        var list = pooledObject.Object;
+
         AppendMembers(root, list, topLevel: false, methodLevel: true);
+
+        return pooledObject;
     }
 
     public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
         => ((TypeDeclarationSyntax)typeDeclaration).Members;
 
-    private void AppendMembers(SyntaxNode? node, ArrayBuilder<SyntaxNode> list, bool topLevel, bool methodLevel)
+    private void AppendMembers(SyntaxNode? node, List<SyntaxNode> list, bool topLevel, bool methodLevel)
     {
         Debug.Assert(topLevel || methodLevel);
 
-        foreach (var member in node.GetMembers())
-        {
-            if (IsTopLevelNodeWithMembers(member))
+        node.ForEachMember(static (member, arg) =>
             {
-                if (topLevel)
+                var (@this, list, topLevel, methodLevel) = arg;
+                if (@this.IsTopLevelNodeWithMembers(member))
+                {
+                    if (topLevel)
+                    {
+                        list.Add(member);
+                    }
+
+                    @this.AppendMembers(member, list, topLevel, methodLevel);
+                }
+                else if (methodLevel && @this.IsMethodLevelMember(member))
                 {
                     list.Add(member);
                 }
-
-                AppendMembers(member, list, topLevel, methodLevel);
-                continue;
-            }
-
-            if (methodLevel && IsMethodLevelMember(member))
-            {
-                list.Add(member);
-            }
-        }
+            },
+            (this, list, topLevel, methodLevel));
     }
 
     public TextSpan GetMemberBodySpanForSpeculativeBinding(SyntaxNode node)

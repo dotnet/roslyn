@@ -16,30 +16,26 @@ namespace Microsoft.CodeAnalysis;
 [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
 public sealed class ProjectReference : IEquatable<ProjectReference>
 {
-    private readonly ProjectId _projectId;
-    private readonly ImmutableArray<string> _aliases;
-    private readonly bool _embedInteropTypes;
-
     public ProjectReference(ProjectId projectId, ImmutableArray<string> aliases = default, bool embedInteropTypes = false)
     {
         Contract.ThrowIfNull(projectId);
 
-        _projectId = projectId;
-        _aliases = aliases.NullToEmpty();
-        _embedInteropTypes = embedInteropTypes;
+        ProjectId = projectId;
+        Aliases = aliases.NullToEmpty();
+        EmbedInteropTypes = embedInteropTypes;
     }
 
-    public ProjectId ProjectId => _projectId;
+    public ProjectId ProjectId { get; }
 
     /// <summary>
     /// Aliases for the reference. Empty if the reference has no aliases.
     /// </summary>
-    public ImmutableArray<string> Aliases => _aliases;
+    public ImmutableArray<string> Aliases { get; }
 
     /// <summary>
     /// True if interop types defined in the referenced project should be embedded into the referencing project.
     /// </summary>
-    public bool EmbedInteropTypes => _embedInteropTypes;
+    public bool EmbedInteropTypes { get; }
 
     public override bool Equals(object obj)
         => this.Equals(obj as ProjectReference);
@@ -52,9 +48,9 @@ public sealed class ProjectReference : IEquatable<ProjectReference>
         }
 
         return reference is object &&
-               _projectId == reference._projectId &&
-               _aliases.SequenceEqual(reference._aliases) &&
-               _embedInteropTypes == reference._embedInteropTypes;
+               ProjectId == reference.ProjectId &&
+               Aliases.SequenceEqual(reference.Aliases) &&
+               EmbedInteropTypes == reference.EmbedInteropTypes;
     }
 
     public static bool operator ==(ProjectReference left, ProjectReference right)
@@ -64,8 +60,8 @@ public sealed class ProjectReference : IEquatable<ProjectReference>
         => !(left == right);
 
     public override int GetHashCode()
-        => Hash.CombineValues(_aliases, Hash.Combine(_projectId, _embedInteropTypes.GetHashCode()));
+        => Hash.CombineValues(Aliases, Hash.Combine(ProjectId, EmbedInteropTypes.GetHashCode()));
 
     private string GetDebuggerDisplay()
-        => _projectId.ToString();
+        => ProjectId.ToString();
 }

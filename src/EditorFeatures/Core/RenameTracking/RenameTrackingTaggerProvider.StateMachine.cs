@@ -38,7 +38,6 @@ internal sealed partial class RenameTrackingTaggerProvider
 
         private readonly IInlineRenameService _inlineRenameService;
         private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly ITextBuffer _buffer;
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
 
         // Store committed sessions so they can be restored on undo/redo. The undo transactions
@@ -50,7 +49,7 @@ internal sealed partial class RenameTrackingTaggerProvider
 
         public readonly IGlobalOptionService GlobalOptions;
         public TrackingSession TrackingSession { get; private set; }
-        public ITextBuffer Buffer => _buffer;
+        public ITextBuffer Buffer { get; }
 
         public event Action TrackingSessionUpdated = delegate { };
         public event Action<ITrackingSpan> TrackingSessionCleared = delegate { };
@@ -64,8 +63,8 @@ internal sealed partial class RenameTrackingTaggerProvider
             IAsynchronousOperationListener asyncListener)
         {
             ThreadingContext = threadingContext;
-            _buffer = buffer;
-            _buffer.Changed += Buffer_Changed;
+            Buffer = buffer;
+            Buffer.Changed += Buffer_Changed;
             _inlineRenameService = inlineRenameService;
             _asyncListener = asyncListener;
             _diagnosticAnalyzerService = diagnosticAnalyzerService;
@@ -132,7 +131,7 @@ internal sealed partial class RenameTrackingTaggerProvider
             ThreadingContext.ThrowIfNotOnUIThread();
             if (this.TrackingSession.IsDefinitelyRenamableIdentifier())
             {
-                this.TrackingSession.CheckNewIdentifier(this, _buffer.CurrentSnapshot);
+                this.TrackingSession.CheckNewIdentifier(this, Buffer.CurrentSnapshot);
                 TrackingSessionUpdated();
             }
         }
@@ -232,7 +231,7 @@ internal sealed partial class RenameTrackingTaggerProvider
 
             if (this.TrackingSession != null && this.TrackingSession.IsDefinitelyRenamableIdentifier())
             {
-                var document = _buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = Buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
                     // When rename tracking is dismissed via escape, we no longer wish to
@@ -349,7 +348,7 @@ internal sealed partial class RenameTrackingTaggerProvider
             // Can be called on a background thread
 
             syntaxFactsService = null;
-            var document = _buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = Buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
             {
                 syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
@@ -363,7 +362,7 @@ internal sealed partial class RenameTrackingTaggerProvider
             // Can be called on a background thread
 
             languageHeuristicsService = null;
-            var document = _buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            var document = Buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
             {
                 languageHeuristicsService = document.GetLanguageService<IRenameTrackingLanguageHeuristicsService>();

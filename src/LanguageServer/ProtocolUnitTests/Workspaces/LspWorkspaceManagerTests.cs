@@ -55,7 +55,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     {
         var markupOne = "One";
         var markupTwo = "Two";
-        await using var testLspServer = await CreateTestLspServerAsync(new string[] { markupOne, markupTwo }, mutatingLspWorkspace);
+        await using var testLspServer = await CreateTestLspServerAsync([markupOne, markupTwo], mutatingLspWorkspace);
         var firstDocumentUri = testLspServer.GetCurrentSolution().Projects.First().Documents.Single(d => d.FilePath!.Contains("test1")).GetURI();
         var secondDocumentUri = testLspServer.GetCurrentSolution().Projects.First().Documents.Single(d => d.FilePath!.Contains("test2")).GetURI();
 
@@ -107,7 +107,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     {
         var markupOne = "One";
         var markupTwo = "Two";
-        await using var testLspServer = await CreateTestLspServerAsync(new string[] { markupOne, markupTwo }, mutatingLspWorkspace);
+        await using var testLspServer = await CreateTestLspServerAsync([markupOne, markupTwo], mutatingLspWorkspace);
         var firstDocumentUri = testLspServer.GetCurrentSolution().Projects.First().Documents.Single(d => d.FilePath!.Contains("test1")).GetURI();
 
         var secondDocument = testLspServer.GetCurrentSolution().Projects.First().Documents.Single(d => d.FilePath!.Contains("test2"));

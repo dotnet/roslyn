@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -22,6 +23,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
     {
         private static Workspace CreateWorkspace(Type[] additionalParts = null)
             => new AdhocWorkspace(FeaturesTestCompositions.Features.AddParts(additionalParts).GetHostServices());
+
+        private static Solution AddProjectWithMetadataReferences(Solution solution, string projectName, string languageName, string code, IEnumerable<MetadataReference> metadataReference, params ProjectId[] projectReferences)
+        {
+            var suffix = languageName == LanguageNames.CSharp ? "cs" : "vb";
+            var pid = ProjectId.CreateNewId();
+            var did = DocumentId.CreateNewId(pid);
+            var pi = ProjectInfo.Create(
+                pid,
+                VersionStamp.Default,
+                projectName,
+                projectName,
+                languageName,
+                metadataReferences: metadataReference,
+                projectReferences: projectReferences.Select(p => new ProjectReference(p)));
+            return solution.AddProject(pi).AddDocument(did, $"{projectName}.{suffix}", SourceText.From(code));
+        }
 
         private static Solution AddProjectWithMetadataReferences(Solution solution, string projectName, string languageName, string code, MetadataReference metadataReference, params ProjectId[] projectReferences)
         {
@@ -105,7 +122,7 @@ public class C {
             var solution = workspace.CurrentSolution
                            .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                            .AddMetadataReference(pid, MscorlibRef)
-                           .AddMetadataReference(pid, ((PortableExecutableReference)MscorlibRef).WithAliases(new[] { "X" }))
+                           .AddMetadataReference(pid, ((PortableExecutableReference)MscorlibRef).WithAliases(["X"]))
                            .AddDocument(did, "goo.cs", SourceText.From(text));
 
             var project = solution.Projects.First();
@@ -352,9 +369,9 @@ namespace N
     {
         System.Uri Get();
     }
-}", NetStandard20Ref);
+}", NetStandard20.References.All);
 
-            solution = AddProjectWithMetadataReferences(solution, "DesktopProject", LanguageNames.CSharp, @"
+            solution = AddProjectWithMetadataReferences(solution, "NetCoreProject", LanguageNames.CSharp, @"
 using N;
 
 namespace N2 
@@ -366,12 +383,9 @@ namespace N2
             return null;
         }
     }
-}", SystemRef_v46, solution.Projects.Single(pid => pid.Name == "NetStandardProject").Id);
+}", NetCoreApp.References, solution.Projects.Single(pid => pid.Name == "NetStandardProject").Id);
 
-            var desktopProject = solution.Projects.First(p => p.Name == "DesktopProject");
-            solution = solution.AddMetadataReferences(desktopProject.Id, [MscorlibRef_v46, Net46StandardFacade]);
-
-            desktopProject = solution.GetProject(desktopProject.Id);
+            var netCoreProject = solution.Projects.First(p => p.Name == "NetCoreProject");
             var netStandardProject = solution.Projects.First(p => p.Name == "NetStandardProject");
 
             var interfaceMethod = (IMethodSymbol)(await netStandardProject.GetCompilationAsync()).GetTypeByMetadataName("N.I").GetMembers("Get").First();
@@ -383,7 +397,7 @@ namespace N2
             foreach (var r in references)
                 projectIds.Add(solution.GetOriginatingProjectId(r.Definition));
 
-            Assert.True(projectIds.Contains(desktopProject.Id));
+            Assert.True(projectIds.Contains(netCoreProject.Id));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/35786")]
@@ -416,7 +430,7 @@ namespace N2
 
             using var workspace = CreateWorkspace();
             var solution = GetMultipleDocumentSolution(workspace, [implText, interface1Text, interface2Text]);
-            solution = solution.AddMetadataReferences(solution.ProjectIds.Single(), [MscorlibRef_v46, Net46StandardFacade, SystemRef_v46, NetStandard20Ref]);
+            solution = solution.AddMetadataReferences(solution.ProjectIds.Single(), NetFramework.References);
 
             var project = solution.Projects.Single();
             var compilation = await project.GetCompilationAsync();
