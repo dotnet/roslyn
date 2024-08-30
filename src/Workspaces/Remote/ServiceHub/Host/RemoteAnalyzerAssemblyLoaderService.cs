@@ -18,5 +18,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RemoteAnalyzerAssemblyLoaderService(
-    [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
-    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers.ToImmutableArray());
+    [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers,
+    [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> externalRedirectors)
+    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers.ToImmutableArray(), externalRedirectors.ToImmutableArray());

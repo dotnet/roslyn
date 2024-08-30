@@ -17,8 +17,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 internal sealed class VSCodeAnalyzerLoaderProviderFactory(
     ExtensionAssemblyManager extensionAssemblyManager,
     ILoggerFactory loggerFactory,
-    [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
-    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers)
+    [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers,
+    [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> externalRedirectors)
+    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers, externalRedirectors)
 {
     protected override IAnalyzerAssemblyLoaderInternal WrapLoader(IAnalyzerAssemblyLoaderInternal baseLoader)
         => new VSCodeExtensionAssemblyAnalyzerLoader(baseLoader, extensionAssemblyManager, loggerFactory.CreateLogger<VSCodeExtensionAssemblyAnalyzerLoader>());

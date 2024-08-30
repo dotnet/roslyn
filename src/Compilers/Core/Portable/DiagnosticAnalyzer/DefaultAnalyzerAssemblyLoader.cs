@@ -17,19 +17,19 @@ namespace Microsoft.CodeAnalysis
     internal sealed class DefaultAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
     {
         internal DefaultAnalyzerAssemblyLoader()
-            : base([])
+            : base(default, default)
         {
         }
 
-        internal DefaultAnalyzerAssemblyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
-            : base(externalResolvers)
+        internal DefaultAnalyzerAssemblyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers, ImmutableArray<IAnalyzerAssemblyRedirector> externalRedirectors)
+            : base(externalResolvers, externalRedirectors)
         {
         }
 
 #if NET
 
-        internal DefaultAnalyzerAssemblyLoader(System.Runtime.Loader.AssemblyLoadContext? compilerLoadContext = null, AnalyzerLoadOption loadOption = AnalyzerLoadOption.LoadFromDisk, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
-            : base(compilerLoadContext, loadOption, externalResolvers ?? [])
+        internal DefaultAnalyzerAssemblyLoader(System.Runtime.Loader.AssemblyLoadContext? compilerLoadContext = null, AnalyzerLoadOption loadOption = AnalyzerLoadOption.LoadFromDisk, ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers = default, ImmutableArray<IAnalyzerAssemblyRedirector> externalRedirectors = default)
+            : base(compilerLoadContext, loadOption, externalResolvers, externalRedirectors)
         {
         }
 
@@ -57,12 +57,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="windowsShadowPath">A shadow copy path will be created on Windows and this value 
         /// will be the base directory where shadow copy assemblies are stored. </param>
-        internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(string windowsShadowPath, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
+        internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(string windowsShadowPath, ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers = default, ImmutableArray<IAnalyzerAssemblyRedirector> externalRedirectors = default)
         {
 #if NET
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                return new DefaultAnalyzerAssemblyLoader(loadOption: AnalyzerLoadOption.LoadFromStream, externalResolvers: externalResolvers);
+                return new DefaultAnalyzerAssemblyLoader(loadOption: AnalyzerLoadOption.LoadFromStream, externalResolvers: externalResolvers, externalRedirectors: externalRedirectors);
             }
 #endif
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException("Must be a full path.", nameof(windowsShadowPath));
             }
 
-            return new ShadowCopyAnalyzerAssemblyLoader(windowsShadowPath, externalResolvers);
+            return new ShadowCopyAnalyzerAssemblyLoader(windowsShadowPath, externalResolvers, externalRedirectors);
         }
     }
 }

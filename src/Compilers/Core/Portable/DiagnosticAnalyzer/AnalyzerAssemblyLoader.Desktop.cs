@@ -29,9 +29,10 @@ namespace Microsoft.CodeAnalysis
     {
         private bool _hookedAssemblyResolve;
 
-        internal AnalyzerAssemblyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+        internal AnalyzerAssemblyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers, ImmutableArray<IAnalyzerAssemblyRedirector> externalRedirectors)
         {
             _externalResolvers = externalResolvers;
+            _externalRedirectors = externalRedirectors;
         }
 
         private partial void DisposeWorker()

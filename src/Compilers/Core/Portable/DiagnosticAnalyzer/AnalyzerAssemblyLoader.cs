@@ -76,6 +76,8 @@ namespace Microsoft.CodeAnalysis
         /// <see cref="Assembly"/> winning.</remarks>
         private readonly ImmutableArray<IAnalyzerAssemblyResolver> _externalResolvers;
 
+        private readonly ImmutableArray<IAnalyzerAssemblyRedirector> _externalRedirectors;
+
         /// <summary>
         /// Whether or not we're disposed.  Once disposed, all functionality on this type should throw.
         /// </summary>
@@ -428,22 +430,33 @@ namespace Microsoft.CodeAnalysis
         {
             CheckIfDisposed();
 
-            if (!_externalResolvers.IsDefaultOrEmpty)
+            if (!_externalRedirectors.IsDefaultOrEmpty)
             {
-                foreach (var resolver in _externalResolvers)
+                string? redirectedPath = null;
+
+                foreach (IAnalyzerAssemblyRedirector redirector in _externalRedirectors)
                 {
                     try
                     {
-                        if (resolver.RedirectPath(fullPath) is { } redirectedPath)
+                        if (redirector.RedirectPath(fullPath) is { } currentlyRedirectedPath)
                         {
-                            return redirectedPath;
+                            if (redirectedPath == null)
+                            {
+                                redirectedPath = currentlyRedirectedPath;
+                            }
+                            else if (redirectedPath != currentlyRedirectedPath)
+                            {
+                                throw new InvalidOperationException($"Multiple redirectors disagree on the path to redirect '{fullPath}' to ('{redirectedPath}' vs '{currentlyRedirectedPath}').");
+                            }
                         }
                     }
                     catch
                     {
-                        // Ignore if the external resolver throws
+                        // Ignore if the external redirector throws.
                     }
                 }
+
+                return redirectedPath;
             }
 
             return null;

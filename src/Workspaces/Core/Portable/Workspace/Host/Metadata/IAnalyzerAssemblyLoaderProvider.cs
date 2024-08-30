@@ -36,11 +36,13 @@ internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
 internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemblyLoaderProvider
 {
     private readonly ImmutableArray<IAnalyzerAssemblyResolver> _externalResolvers;
+    private readonly ImmutableArray<IAnalyzerAssemblyRedirector> _externalRedirectors;
     private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _shadowCopyLoader;
 
-    public AbstractAnalyzerAssemblyLoaderProvider(IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
+    public AbstractAnalyzerAssemblyLoaderProvider(IEnumerable<IAnalyzerAssemblyResolver> externalResolvers, IEnumerable<IAnalyzerAssemblyRedirector> externalRedirectors)
     {
         _externalResolvers = externalResolvers.ToImmutableArray();
+        _externalRedirectors = externalRedirectors.ToImmutableArray();
         _shadowCopyLoader = new(CreateNewShadowCopyLoader);
     }
 
@@ -50,7 +52,7 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
     public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
         => this.WrapLoader(DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
                 Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader"),
-                _externalResolvers));
+                _externalResolvers, _externalRedirectors));
 
     protected virtual IAnalyzerAssemblyLoaderInternal WrapLoader(IAnalyzerAssemblyLoaderInternal loader)
         => loader;
@@ -60,5 +62,6 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DefaultAnalyzerAssemblyLoaderProvider(
-    [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
-    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers);
+    [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers,
+    [ImportMany] IEnumerable<IAnalyzerAssemblyRedirector> externalRedirectors)
+    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers, externalRedirectors);

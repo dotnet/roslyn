@@ -9,10 +9,8 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Allows a host to override how assembly resolution is performed by the <see cref="AnalyzerAssemblyLoader"/>.
     /// </summary>
-    public interface IAnalyzerAssemblyResolver
+    internal interface IAnalyzerAssemblyResolver
     {
-        string? RedirectPath(string fullPath);
-
         /// <summary>
         /// Attempts to resolve an assembly by name.
         /// </summary>

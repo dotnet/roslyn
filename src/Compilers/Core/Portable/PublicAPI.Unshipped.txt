@@ -7,10 +7,9 @@ Microsoft.CodeAnalysis.GeneratorFilterContext.CancellationToken.get -> System.Th
 Microsoft.CodeAnalysis.GeneratorFilterContext.Generator.get -> Microsoft.CodeAnalysis.ISourceGenerator!
 Microsoft.CodeAnalysis.GeneratorFilterContext.GeneratorFilterContext() -> void
 Microsoft.CodeAnalysis.GeneratorRunResult.HostOutputs.get -> System.Collections.Immutable.ImmutableDictionary<string!, object!>!
+Microsoft.CodeAnalysis.IAnalyzerAssemblyRedirector
+Microsoft.CodeAnalysis.IAnalyzerAssemblyRedirector.RedirectPath(string! fullPath) -> string?
 Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind.Host = 8 -> Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind
-Microsoft.CodeAnalysis.IAnalyzerAssemblyResolver
-Microsoft.CodeAnalysis.IAnalyzerAssemblyResolver.RedirectPath(string! fullPath) -> string?
-Microsoft.CodeAnalysis.IAnalyzerAssemblyResolver.ResolveAssembly(System.Reflection.AssemblyName! assemblyName, string! assemblyOriginalDirectory) -> System.Reflection.Assembly?
 Microsoft.CodeAnalysis.IPropertySymbol.PartialDefinitionPart.get -> Microsoft.CodeAnalysis.IPropertySymbol?
 Microsoft.CodeAnalysis.IPropertySymbol.PartialImplementationPart.get -> Microsoft.CodeAnalysis.IPropertySymbol?
 Microsoft.CodeAnalysis.IPropertySymbol.IsPartialDefinition.get -> bool

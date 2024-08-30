@@ -45,16 +45,17 @@ namespace Microsoft.CodeAnalysis
         internal AssemblyLoadContext CompilerLoadContext => _compilerLoadContext;
         internal AnalyzerLoadOption AnalyzerLoadOption => _loadOption;
 
-        internal AnalyzerAssemblyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
-            : this(null, AnalyzerLoadOption.LoadFromDisk, externalResolvers)
+        internal AnalyzerAssemblyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers, ImmutableArray<IAnalyzerAssemblyRedirector> externalRedirectors)
+            : this(null, AnalyzerLoadOption.LoadFromDisk, externalResolvers, externalRedirectors)
         {
         }
 
-        internal AnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, AnalyzerLoadOption loadOption, ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+        internal AnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, AnalyzerLoadOption loadOption, ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers, ImmutableArray<IAnalyzerAssemblyRedirector> externalRedirectors)
         {
             _loadOption = loadOption;
             _compilerLoadContext = compilerLoadContext ?? AssemblyLoadContext.GetLoadContext(typeof(AnalyzerAssemblyLoader).GetTypeInfo().Assembly)!;
-            _externalResolvers = [.. externalResolvers, new CompilerAnalyzerAssemblyResolver(_compilerLoadContext)];
+            _externalResolvers = [.. externalResolvers.NullToEmpty(), new CompilerAnalyzerAssemblyResolver(_compilerLoadContext)];
+            _externalRedirectors = externalRedirectors;
         }
 
         public bool IsHostAssembly(Assembly assembly)
