@@ -11,13 +11,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Remote;
 
-internal sealed class DefaultRemoteHostClientProvider : IRemoteHostClientProvider
+[method: Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+internal sealed class DefaultRemoteHostClientProvider() : IRemoteHostClientProvider
 {
-    [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-    public DefaultRemoteHostClientProvider()
-    {
-    }
-
     public Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
         => SpecializedTasks.Null<RemoteHostClient>();
+
+    public Task WaitForClientCreationAsync(CancellationToken cancellationToken)
+        => Task.CompletedTask;
 }
