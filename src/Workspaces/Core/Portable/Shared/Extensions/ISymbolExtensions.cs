@@ -94,18 +94,40 @@ internal static partial class ISymbolExtensions
         EditorBrowsableInfo editorBrowsableInfo)
     {
         var attributes = symbol.GetAttributes();
-        if (attributes.Length == 0)
+        var isEditorBrowsableStateAdvanced = false;
+
+        if (attributes.Length != 0)
         {
-            return (isProhibited: false, isEditorBrowsableStateAdvanced: false);
+            (var isProhibited, isEditorBrowsableStateAdvanced) = IsBrowsingProhibitedByEditorBrowsableAttribute(attributes, hideAdvancedMembers, editorBrowsableInfo.EditorBrowsableAttributeConstructor);
+
+            if (isProhibited
+                || IsBrowsingProhibitedByTypeLibTypeAttribute(attributes, editorBrowsableInfo.TypeLibTypeAttributeConstructors)
+                || IsBrowsingProhibitedByTypeLibFuncAttribute(attributes, editorBrowsableInfo.TypeLibFuncAttributeConstructors)
+                || IsBrowsingProhibitedByTypeLibVarAttribute(attributes, editorBrowsableInfo.TypeLibVarAttributeConstructors)
+                || IsBrowsingProhibitedByHideModuleNameAttribute(symbol, editorBrowsableInfo.HideModuleNameAttribute, attributes))
+            {
+                return (isProhibited: true, isEditorBrowsableStateAdvanced);
+            }
         }
 
-        var (isProhibited, isEditorBrowsableStateAdvanced) = IsBrowsingProhibitedByEditorBrowsableAttribute(attributes, hideAdvancedMembers, editorBrowsableInfo.EditorBrowsableAttributeConstructor);
+        if (symbol is IPropertySymbol propertySymbol)
+        {
+            // TypeLibFuncAttribute is specified on property methods
+            var getterSymbol = propertySymbol.GetMethod;
+            var setterSymbol = propertySymbol.SetMethod;
 
-        return ((isProhibited
-            || IsBrowsingProhibitedByTypeLibTypeAttribute(attributes, editorBrowsableInfo.TypeLibTypeAttributeConstructors)
-            || IsBrowsingProhibitedByTypeLibFuncAttribute(attributes, editorBrowsableInfo.TypeLibFuncAttributeConstructors)
-            || IsBrowsingProhibitedByTypeLibVarAttribute(attributes, editorBrowsableInfo.TypeLibVarAttributeConstructors)
-            || IsBrowsingProhibitedByHideModuleNameAttribute(symbol, editorBrowsableInfo.HideModuleNameAttribute, attributes)), isEditorBrowsableStateAdvanced);
+            if (getterSymbol != null || setterSymbol != null)
+            {
+                // indicate isProhibited if neither allows browsing
+                if ((getterSymbol == null || IsBrowsingProhibitedByTypeLibFuncAttribute(getterSymbol.GetAttributes(), editorBrowsableInfo.TypeLibFuncAttributeConstructors))
+                    && (setterSymbol == null || IsBrowsingProhibitedByTypeLibFuncAttribute(setterSymbol.GetAttributes(), editorBrowsableInfo.TypeLibFuncAttributeConstructors)))
+                {
+                    return (isProhibited: true, isEditorBrowsableStateAdvanced);
+                }
+            }
+        }
+
+        return (isProhibited: false, isEditorBrowsableStateAdvanced);
     }
 
     private static bool IsBrowsingProhibitedByHideModuleNameAttribute(
