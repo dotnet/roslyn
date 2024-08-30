@@ -193,7 +193,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             await VerifyWorkerAsync(text, absent: true, options: scriptOptions ?? Options.Script);
         }
 
-        protected async Task VerifyAbsenceAsync(SourceCodeKind kind, string text)
+        protected async Task VerifyAbsenceAsync(
+            SourceCodeKind kind,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string text)
         {
             switch (kind)
             {
