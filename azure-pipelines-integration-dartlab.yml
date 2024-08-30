@@ -27,10 +27,10 @@ resources:
 parameters:
   - name: prNumber
     type: string
-    default: ''
+    default: ' '
   - name: sha
     type: string
-    default: ''
+    default: ' '
 
 variables:
 - name: XUNIT_LOGS
@@ -103,7 +103,7 @@ stages:
         skipCheckout: true
         runExperimentTest: true
 
-- ${{ if ne(parameters.prNumber, '') }}:
+- ${{ if ne(parameters.prNumber, ' ') }}:
   - stage: GitHubCommentCompleted
     condition: always()
     dependsOn: VSIntegration
