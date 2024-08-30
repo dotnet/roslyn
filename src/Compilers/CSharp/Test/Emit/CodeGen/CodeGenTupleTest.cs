@@ -775,7 +775,7 @@ val: -2
 .assembly extern System.ValueTuple
 {
   .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )
-  .ver 4:0:1:0
+  .ver 4:0:3:0
 }
 
 .class public auto ansi C
@@ -871,7 +871,7 @@ val: -2
 .assembly extern System.ValueTuple
 {
   .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )
-  .ver 4:0:1:0
+  .ver 4:0:3:0
 }
 
 .class public auto ansi C
@@ -969,7 +969,7 @@ val: -2
 .assembly extern System.ValueTuple
 {
   .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )
-  .ver 4:0:1:0
+  .ver 4:0:3:0
 }
 
 .class public auto ansi beforefieldinit Base`1<T>
@@ -21205,7 +21205,7 @@ public class D
 .assembly extern System.ValueTuple
 {
   .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )
-  .ver 4:0:1:0
+  .ver 4:0:3:0
 }
 
 .class public auto ansi beforefieldinit Base
@@ -22273,9 +22273,9 @@ public class B
 
             var comp = CreateCompilationWithMscorlib40(source, references: new[] { lib.ToMetadataReference() });
             comp.VerifyDiagnostics(
-                // (4,24): error CS0012: The type '(, )' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'.
+                // (4,24): error CS0012: The type '(, )' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'.
                 //     void M2() { return A.M(); }
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "A.M").WithArguments("(, )", "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "A.M").WithArguments("(, )", "System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").WithLocation(4, 24)
                 );
 
             var methodM = comp.GetMember<MethodSymbol>("A.M");
@@ -22313,9 +22313,9 @@ public class B
 
             var comp = CreateCompilationWithMscorlib40(source, references: new[] { lib.ToMetadataReference() });
             comp.VerifyDiagnostics(
-                // (4,24): error CS0012: The type '(, )' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'.
+                // (4,24): error CS0012: The type '(, )' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51'.
                 //     void M2() { return A.M(); }
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "A.M").WithArguments("(, )", "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").WithLocation(4, 24)
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "A.M").WithArguments("(, )", "System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51").WithLocation(4, 24)
                 );
 
             var methodM = comp.GetMember<MethodSymbol>("A.M");
@@ -23146,16 +23146,7 @@ namespace System
     ((int, int), (int, int)) F();
 }";
             var comp = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef });
-            comp.VerifyEmitDiagnostics(
-                // (3,6): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
-                //     ((int, int), (int, int)) F();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "(int, int)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(3, 6),
-                // (3,18): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
-                //     ((int, int), (int, int)) F();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "(int, int)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(3, 18),
-                // (3,5): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
-                //     ((int, int), (int, int)) F();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "((int, int), (int, int))").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(3, 5));
+            comp.VerifyEmitDiagnostics();
         }
 
         [WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")]
@@ -23766,7 +23757,7 @@ implicit operator AA
 .assembly extern System.ValueTuple
 {
   .publickeytoken = (CC 7B 13 FF CD 2D DD 51 )                         // .{...-.Q
-  .ver 4:0:1:0
+  .ver 4:0:3:0
 }
 
 // =============== CLASS MEMBERS DECLARATION ===================
@@ -23926,13 +23917,12 @@ class C
             var compilation = CreateCompilationWithMscorlib40(source,
                 references: new[] { ValueTupleRef });
 
-            Assert.Equal(TypeKind.Class, compilation.GetWellKnownType(WellKnownType.System_ValueTuple_T2).TypeKind);
+            Assert.Equal(TypeKind.Struct, compilation.GetWellKnownType(WellKnownType.System_ValueTuple_T2).TypeKind);
 
             compilation.VerifyDiagnostics(
-                // (6,17): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                // (6,13): warning CS0219: The variable 'o' is assigned but its value is never used
                 //         var o = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "(1, 2)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(6, 17)
-                );
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(6, 13));
         }
 
         [Fact]
@@ -23969,7 +23959,6 @@ public class C
         public void Iterator_02()
         {
             var source = @"
-using System;
 using System.Collections.Generic;
 
 public class C
@@ -23981,17 +23970,8 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source,
-                references: new[] { ValueTupleRef });
-
-            compilation.VerifyEmitDiagnostics(
-                // (7,24): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
-                //     public IEnumerable<(int, int)> entries()
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "(int, int)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(7, 24),
-                // (9,22): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
-                //         yield return (1, 2);
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "(1, 2)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(9, 22)
-                );
+            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef });
+            compilation.VerifyEmitDiagnostics();
         }
 
         [Fact]

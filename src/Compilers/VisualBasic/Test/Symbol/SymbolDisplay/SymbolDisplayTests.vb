@@ -5014,7 +5014,7 @@ End Class
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.StructName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
