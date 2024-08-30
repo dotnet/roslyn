@@ -12,9 +12,10 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.CodeCleanup;
 
-#if !CODE_STYLE
 using Microsoft.CodeAnalysis.Host;
-#endif
+//#if !CODE_STYLE
+//using Microsoft.CodeAnalysis.Host;
+//#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
