@@ -38,13 +38,5 @@ internal static class CodeCleanupOptionsProviders
             FormattingOptions = SyntaxFormattingOptionsProviders.GetDefault(languageServices),
             SimplifierOptions = SimplifierOptionsProviders.GetDefault(languageServices)
         };
-
-    public OrganizeImportsOptions GetOrganizeImportsOptions()
-        => new()
-        {
-            SeparateImportDirectiveGroups = FormattingOptions.SeparateImportDirectiveGroups,
-            PlaceSystemNamespaceFirst = AddImportOptions.PlaceSystemNamespaceFirst,
-            NewLine = FormattingOptions.LineFormatting.NewLine,
-        };
 }
 
