@@ -412,5 +412,226 @@ partial class Program
 </Workspace>
             Await TestAPIAndFeature(input, kind, host)
         End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/52621")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestImplicitlyNamedTuples(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferencesNetCoreApp="true">
+        <Document><![CDATA[
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        int {|Definition:x|} = 4, y = 5;
+        var z = ($$[|{|Definition:x|}|], y);
+        z = ([|x|]: 0, y: 1);
+        z = ([|x|]: y, y: [|x|]);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/52621")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestImplicitTupleSwitchStatement(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferencesNetCoreApp="true">
+        <Document><![CDATA[
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        int {|Definition:x|} = 4, y = 5;
+        int z = 3;
+        switch ($$[|{|Definition:x|}|], y)
+        {
+            case (1, 0):
+                z += [|x|];
+                break;
+            case (1, 1):
+                z += [|x|];
+                break;
+            default:
+                break;
+        }
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/52621")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestTupleDeconstruction(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferencesNetCoreApp="true">
+        <Document><![CDATA[
+using System;
+
+class C
+{
+    (int, int) M()
+    {
+        return (1, 1);
+    }
+
+    void M2()
+    {
+        int {|Definition:x|};
+        int y;
+
+        ($$[|{|Definition:x|}|], y) = M();
+
+        [|x|] = 0;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/52621")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestTupleSwappedFields(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferencesNetCoreApp="true">
+        <Document><![CDATA[
+using System;
+
+class C
+{
+    void M(int {|Definition:left|}, int right)
+    {
+        var r = ($$[|{|Definition:left|}|], right);
+        r = (right, [|{|Definition:left|}|]);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/52621")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestTupleNonLocal(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferencesNetCoreApp="true">
+        <Document><![CDATA[
+using System;
+
+class C
+{
+    int {|Definition:Property|} { get; set; }
+
+    void M(string a)
+    {
+        var r = (a.Length, $$[|{|Definition:Property|}|]);
+        r = ([|Property|], [|Property|]: [|Property|]);
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/52621")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestTupleExplicitNames(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferencesNetCoreApp="true">
+        <Document><![CDATA[
+using System;
+
+class C
+{
+    void M(int a, int b)
+    {
+        var t = ($$[|{|Definition:x|}|]: a, y: b);
+        t = ([|x|]: b, y: a);
+        b = t.[|x|];
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/52621")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestTupleExplicitNamesSameAsLocals01(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferencesNetCoreApp="true">
+        <Document><![CDATA[
+using System;
+
+class C
+{
+    void M(int x, int y)
+    {
+        var t = ($$[|{|Definition:x|}|]: x, y: y);
+        t = ([|x|]: y, y: x);
+        t = ([|x|]: x, y: y);
+        b = t.[|x|];
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
+
+        <WorkItem("https://github.com/dotnet/roslyn/issues/52621")>
+        <WpfTheory, CombinatorialData>
+        Public Async Function TestTupleExplicitNamesSameAsLocals02(kind As TestKind, host As TestHost) As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferencesNetCoreApp="true">
+        <Document><![CDATA[
+using System;
+
+class C
+{
+    void M(int {|Definition:x|}, int y)
+    {
+        var t = (x: $$[|x|], y: y);
+        t = (x: y, y: [|x|]);
+        t = (x: [|x|], y: y);
+        b = t.x;
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAPIAndFeature(input, kind, host)
+        End Function
     End Class
 End Namespace
