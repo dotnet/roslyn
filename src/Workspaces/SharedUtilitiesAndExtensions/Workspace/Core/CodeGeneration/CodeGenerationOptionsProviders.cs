@@ -35,7 +35,11 @@ internal static class CodeGenerationOptionsProviders
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetCodeGenerationOptions(document.Project.GetExtendedLanguageServices().LanguageServices);
+#pragma warning disable CS0618 // Type or member is obsolete
+#pragma warning disable RS0030 // Do not use banned APIs
+        return configOptions.GetCodeGenerationOptions(document.Project.LanguageServices.LanguageServices);
+#pragma warning restore RS0030 // Do not use banned APIs
+#pragma warning restore CS0618 // Type or member is obsolete
     }
 
     public static async ValueTask<CodeGenerationContextInfo> GetCodeGenerationInfoAsync(this Document document, CodeGenerationContext context, CancellationToken cancellationToken)
