@@ -34,24 +34,22 @@ internal sealed class FieldKeywordRecommender()
         // upgrade their project if they way.
         if (context.IsAnyExpressionContext || context.IsStatementContext)
         {
-            if (!context.IsNameOfContext && IsInPropertyAccessor(context.TargetToken.Parent))
+            if (!context.IsNameOfContext && IsInPropertyAccessor(context.TargetToken))
                 return true;
         }
 
         return false;
     }
 
-    private static bool IsInPropertyAccessor(SyntaxNode? node)
+    private static bool IsInPropertyAccessor(SyntaxToken targetToken)
     {
-        while (node != null)
+        for (var node = targetToken.Parent; node != null; node = node.Parent)
         {
             if (node is ArrowExpressionClauseSyntax { Parent: PropertyDeclarationSyntax })
                 return true;
 
             if (node is AccessorDeclarationSyntax { Parent: AccessorListSyntax { Parent: PropertyDeclarationSyntax } })
                 return true;
-
-            node = node.Parent;
         }
 
         return false;
