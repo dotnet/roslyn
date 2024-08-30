@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
                     "test",
                     "test.dll",
                     LanguageNames.CSharp,
-                    metadataReferences: new[] { NetFramework.mscorlib }));
+                    metadataReferences: [NetFramework.mscorlib]));
 
             var doc = emptyProject.AddDocument("test.cs", code);
 
@@ -781,7 +781,7 @@ class C
                     "test",
                     "test.dll",
                     LanguageNames.CSharp,
-                    metadataReferences: new[] { NetFramework.mscorlib }));
+                    metadataReferences: [NetFramework.mscorlib]));
 
             var project = emptyProject
                 .AddMetadataReferences([otherAssemblyReference])

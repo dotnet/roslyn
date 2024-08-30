@@ -92,7 +92,7 @@ internal abstract class DebugInformationReaderProvider : IDisposable
             var symReader = Interlocked.Exchange(ref _symReader, null);
             if (symReader != null && Marshal.IsComObject(symReader))
             {
-#if NETCOREAPP
+#if NET
                 Debug.Assert(OperatingSystem.IsWindows());
 #endif
                 Marshal.ReleaseComObject(symReader);

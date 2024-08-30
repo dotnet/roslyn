@@ -115,7 +115,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 solution = solution.WithProjectFilePath(project.Id, PathRoot + project.Name);
             }
 
-            solution = solution.WithAnalyzerReferences(new[] { new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()) });
+            solution = solution.WithAnalyzerReferences([new TestAnalyzerReferenceByLanguage(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap())]);
             await workspace.ChangeSolutionAsync(solution);
 
             // Important: We must wait for workspace creation operations to finish.

@@ -148,7 +148,7 @@ internal abstract class AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<TSynta
         var relativeDirectoryPath = PathUtilities.GetRelativePath(
             projectDir,
             PathUtilities.GetDirectoryName(namespaceDeclaration.SyntaxTree.FilePath)!);
-        var folders = relativeDirectoryPath.Split(new[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+        var folders = relativeDirectoryPath.Split([Path.DirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries);
 
         var expectedNamespace = PathMetadataUtilities.TryBuildNamespaceFromFolders(folders, GetSyntaxFacts(), rootNamespace);
 

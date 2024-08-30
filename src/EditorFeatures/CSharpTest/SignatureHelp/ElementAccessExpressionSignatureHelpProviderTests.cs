@@ -817,7 +817,7 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
             </Workspace>
             """;
         var expectedDescription = new SignatureHelpTestItem($"int C[int z]\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0);
-        await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
+        await VerifyItemWithReferenceWorkerAsync(markup, [expectedDescription], false);
     }
 
     [Fact]
@@ -859,7 +859,7 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
             """;
 
         var expectedDescription = new SignatureHelpTestItem($"int C[int z]\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0);
-        await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
+        await VerifyItemWithReferenceWorkerAsync(markup, [expectedDescription], false);
     }
 
     [Trait(Traits.Feature, Traits.Features.SignatureHelp)]
@@ -979,7 +979,7 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                     {
                         (null as System.Collections.Generic.List<int>)?[$$ }
                 }
-                """, new[] { new SignatureHelpTestItem("int System.Collections.Generic.List<int>[int index]") });
+                """, [new SignatureHelpTestItem("int System.Collections.Generic.List<int>[int index]")]);
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]
@@ -1012,7 +1012,7 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                     }
                 }
                 """;
-            await TestAsync(markup, new[] { new SignatureHelpTestItem("int WithIndexer[int index]") }, usePreviousCharAsTrigger: true);
+            await TestAsync(markup, [new SignatureHelpTestItem("int WithIndexer[int index]")], usePreviousCharAsTrigger: true);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20507")]
@@ -1032,7 +1032,7 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                     }
                 }
                 """;
-            await TestAsync(markup, new[] { new SignatureHelpTestItem("Indexable Indexable[int x]") }, usePreviousCharAsTrigger: false);
+            await TestAsync(markup, [new SignatureHelpTestItem("Indexable Indexable[int x]")], usePreviousCharAsTrigger: false);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/20507")]
@@ -1052,7 +1052,7 @@ public class ElementAccessExpressionSignatureHelpProviderTests : AbstractCSharpS
                     }
                 }
                 """;
-            await TestAsync(markup, new[] { new SignatureHelpTestItem("Indexable Indexable[int x]") }, usePreviousCharAsTrigger: false);
+            await TestAsync(markup, [new SignatureHelpTestItem("Indexable Indexable[int x]")], usePreviousCharAsTrigger: false);
         }
     }
 }

@@ -875,4 +875,107 @@ public sealed class CSharpForSnippetProviderTests : AbstractCSharpSnippetProvide
             }
             """);
     }
+
+    [Theory]
+    [InlineData("MyType")]
+    [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
+    public async Task NoInlineForSnippetForTypeItselfTest(string validTypes)
+    {
+        await VerifySnippetIsAbsentAsync($$"""
+            class C
+            {
+                void M()
+                {
+                    {{validTypes}}.$$
+                }
+            }
+
+            class MyType
+            {
+                public int Count => 0;
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData("MyType")]
+    [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
+    public async Task NoInlineForSnippetForTypeItselfTest_Parenthesized(string validTypes)
+    {
+        await VerifySnippetIsAbsentAsync($$"""
+            class C
+            {
+                void M()
+                {
+                    ({{validTypes}}).$$
+                }
+            }
+
+            class MyType
+            {
+                public int Count => 0;
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData("MyType")]
+    [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
+    public async Task NoInlineForSnippetForTypeItselfTest_BeforeContextualKeyword(string validTypes)
+    {
+        await VerifySnippetIsAbsentAsync($$"""
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async void M()
+                {
+                    {{validTypes}}.$$
+                    await Task.Delay(10);
+                }
+            }
+
+            class MyType
+            {
+                public int Count => 0;
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task InsertInlineForSnippetForVariableNamedLikeTypeTest()
+    {
+        await VerifySnippetAsync("""
+            class C
+            {
+                void M()
+                {
+                    MyType MyType = default;
+                    MyType.$$
+                }
+            }
+
+            class MyType
+            {
+                public int Length => 0;
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    MyType MyType = default;
+                    for (int {|0:i|} = 0; {|0:i|} < MyType.Length; {|0:i|}++)
+                    {
+                        $$
+                    }
+                }
+            }
+
+            class MyType
+            {
+                public int Length => 0;
+            }
+            """);
+    }
 }
