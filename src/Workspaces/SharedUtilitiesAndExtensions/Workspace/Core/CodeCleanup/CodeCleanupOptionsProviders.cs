@@ -24,16 +24,10 @@ internal static class CodeCleanupOptionsProviders
             DocumentFormattingOptions = options.GetDocumentFormattingOptions(),
         };
 
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     public static async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, CancellationToken cancellationToken)
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     {
-#if CODE_STYLE
-        return GetDefault(document.Project.GetExtendedLanguageServices().LanguageServices);
-#else
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetCodeCleanupOptions(document.Project.Services, document.AllowImportsInHiddenRegions());
-#endif
+        return configOptions.GetCodeCleanupOptions(document.Project.GetExtendedLanguageServices().LanguageServices, document.AllowImportsInHiddenRegions());
     }
 
     public static CodeCleanupOptions GetDefault(LanguageServices languageServices)
