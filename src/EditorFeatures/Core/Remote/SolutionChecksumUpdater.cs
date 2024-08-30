@@ -164,6 +164,11 @@ internal sealed class SolutionChecksumUpdater
     private async ValueTask SynchronizePrimaryWorkspaceAsync(CancellationToken cancellationToken)
     {
         var solution = _workspace.CurrentSolution;
+
+        // Wait for the remote side to actually become available (without being the cause of its creation ourselves). We
+        // want to wait for some feature to kick this off, then we'll start syncing this data once that has happened.
+        await RemoteHostClient.WaitForClientCreationAsync(_workspace, cancellationToken).ConfigureAwait(false);
+
         var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
         if (client == null)
             return;
@@ -180,6 +185,10 @@ internal sealed class SolutionChecksumUpdater
     private async ValueTask SynchronizeActiveDocumentAsync(CancellationToken cancellationToken)
     {
         var activeDocument = _documentTrackingService.TryGetActiveDocument();
+
+        // Wait for the remote side to actually become available (without being the cause of its creation ourselves). We
+        // want to wait for some feature to kick this off, then we'll start syncing this data once that has happened.
+        await RemoteHostClient.WaitForClientCreationAsync(_workspace, cancellationToken).ConfigureAwait(false);
 
         var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
         if (client == null)

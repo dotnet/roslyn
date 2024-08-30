@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using static TestReferences.NetFx;
-using static Roslyn.Test.Utilities.TestMetadata;
 using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Basic.Reference.Assemblies;
 using Roslyn.Utilities;
@@ -254,12 +253,6 @@ namespace Roslyn.Test.Utilities
             LazyThreadSafetyMode.PublicationOnly);
 
         public static MetadataReference NetStandard20Ref => s_std20Ref.Value;
-
-        private static readonly Lazy<MetadataReference> s_46NetStandardFacade = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesBuildExtensions.NetStandardToNet461).GetReference(display: "netstandard20.netstandard.dll"),
-            LazyThreadSafetyMode.PublicationOnly);
-
-        public static MetadataReference Net46StandardFacade => s_46NetStandardFacade.Value;
 
         private static readonly Lazy<MetadataReference> s_systemRef = new Lazy<MetadataReference>(
             () => AssemblyMetadata.CreateFromImage(Net461.Resources.System).GetReference(display: "System.v4_0_30319.dll"),

@@ -21,7 +21,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 using Microsoft.CodeAnalysis.VisualBasic;
-#if NETCOREAPP
+#if NET
 using Roslyn.Test.Utilities.CoreClr;
 using System.Runtime.Loader;
 #else
@@ -31,7 +31,7 @@ using Roslyn.Test.Utilities.Desktop;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
 
-#if NETCOREAPP
+#if NET
 
     public sealed class InvokeUtil
     {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var compilerContextCount = compilerContext.Assemblies.Count();
 
             using var tempRoot = new TempRoot();
-            AnalyzerAssemblyLoader loader = kind switch
+            using AnalyzerAssemblyLoader loader = kind switch
             {
                 AnalyzerTestKind.LoadDirect => new DefaultAnalyzerAssemblyLoader(compilerContext, AnalyzerLoadOption.LoadFromDisk, externalResolvers.ToImmutableArray()),
                 AnalyzerTestKind.LoadStream => new DefaultAnalyzerAssemblyLoader(compilerContext, AnalyzerLoadOption.LoadFromStream, externalResolvers.ToImmutableArray()),
@@ -60,7 +60,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
             finally
             {
-                loader.UnloadAll();
                 testOutputHelper.WriteLine($"Test fixture root: {fixture.TempDirectory}");
 
                 foreach (var context in loader.GetDirectoryLoadContextsSnapshot())

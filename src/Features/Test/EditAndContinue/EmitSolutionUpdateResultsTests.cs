@@ -128,14 +128,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var updateStatus = ModuleUpdateStatus.Blocked;
             var actual = await EmitSolutionUpdateResults.GetAllDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, updateStatus, CancellationToken.None);
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $@"Warning CS0001: {razorPath1} (10,10)-(10,15): warning",
                 $@"Error CS0012: {razorPath2} (10,10)-(10,15): error",
                 $@"Error CS0002: {sourcePath} (0,1)-(0,5): syntax error",
                 $@"RestartRequired ENC0021: {sourcePath} (0,1)-(0,10): {string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, "a")}",
                 $@"RestartRequired ENC0033: {sourcePath} (0,1)-(0,10): {string.Format(FeaturesResources.Deleting_0_requires_restarting_the_application, "b")}",
-            }, actual.Select(d => $"{d.Severity} {d.Id}: {d.FilePath} {d.Span.GetDebuggerDisplay()}: {d.Message}"));
+            ], actual.Select(d => $"{d.Severity} {d.Id}: {d.FilePath} {d.Span.GetDebuggerDisplay()}: {d.Message}"));
         }
 
         [Fact]

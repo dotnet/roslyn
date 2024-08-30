@@ -31,7 +31,7 @@ internal class UnitTestingReferencesService
         var callerMethods = await callbackService.InvokeAsync<ImmutableArray<ReferenceMethodDescriptor>?>(
             provider,
             nameof(ICodeLensContext.FindReferenceMethodsAsync),
-            new object[] { descriptor, descriptorContext },
+            [descriptor, descriptorContext],
             cancellationToken).ConfigureAwait(false);
 
         if (!callerMethods.HasValue || callerMethods.Value.IsEmpty)

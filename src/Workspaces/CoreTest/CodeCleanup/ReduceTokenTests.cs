@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.CodeCleanup
     [Trait(Traits.Feature, Traits.Features.ReduceTokens)]
     public class ReduceTokenTests
     {
-#if NETCOREAPP
+#if NET
         private static bool IsNetCoreApp => true;
 #else
         private static bool IsNetCoreApp => false;
