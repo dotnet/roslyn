@@ -90,6 +90,7 @@
     <Content Include="NetFX\Minimal\minasync.cs" />
     <EmbeddedResource Include="NetFX\Minimal\minasynccorlib.dll" />
     <Content Include="NetFX\Minimal\mincorlib.cs" />
+    <EmbeddedResource Include="NetFX\ValueTuple\System.ValueTuple.dll" />
     <EmbeddedResource Include="SymbolsTests\Metadata\public-and-private.dll" />
     <EmbeddedResource Include="SymbolsTests\CustomModifiers\GenericMethodWithModifiers.dll" />
     <Content Include="SymbolsTests\NoPia\ParametersWithoutNames.cs" />

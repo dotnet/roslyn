@@ -243,6 +243,15 @@ namespace Roslyn.Test.Utilities
 
         public static MetadataReference CSharpRef => CSharpDesktopRef;
 
+        /// <summary>
+        /// This is a legacy copy of System.ValueTuple. The origin is unclear as this does not appear to be a released
+        /// binary on nuget.org (possible a pre-release copy). This does have a few properties that were interesting
+        /// for a particular style of bug in VS that cannot be reproduced with modern TFMs. Specifically that it 
+        /// dependes on System.Runtime for parts of the impl and can't complie with only a reference to mscorlib. As
+        /// such this is kept around for those tests.
+        /// </summary>
+        public static MetadataReference ValueTupleLefacyRef => TestReferences.NetFx.ValueTuple.tuplelib;
+
         private static readonly Lazy<MetadataReference> s_desktopCSharpRef = new Lazy<MetadataReference>(
             () => AssemblyMetadata.CreateFromImage(Net461.Resources.MicrosoftCSharp).GetReference(display: "Microsoft.CSharp.v4.0.30319.dll"),
             LazyThreadSafetyMode.PublicationOnly);
