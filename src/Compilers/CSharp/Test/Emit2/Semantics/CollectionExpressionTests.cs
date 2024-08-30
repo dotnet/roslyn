@@ -1667,6 +1667,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("System.Collections.Generic.List<int>", "System.Collections.Generic.IEnumerable<int>", "System.Collections.Generic.List<System.Int32>")]
         [InlineData("int[]", "object[]", null)] // rule requires span
         [InlineData("int[]", "System.Collections.Generic.IReadOnlyList<object>", null)] // rule requires span
+        [InlineData("System.Collections.Generic.List<int>", "System.Collections.Generic.List<byte>", null)]
+        [InlineData("System.Collections.Generic.List<int?>", "System.Collections.Generic.List<long>", null)]
+        [InlineData("System.Collections.Generic.List<int?>", "System.Collections.Generic.List<ulong>", null)]
+        [InlineData("System.Collections.Generic.List<short>", "System.Collections.Generic.List<long>", null)]
+        [InlineData("System.Collections.Generic.IEnumerable<int>", "System.Collections.Generic.List<byte>", null)]
+        [InlineData("int[]", "System.Collections.Generic.List<byte>", null)]
+        [InlineData("System.Collections.Generic.HashSet<short>", "System.Span<long>", null)]
+        [InlineData("System.Collections.Generic.HashSet<short>", "System.ReadOnlySpan<long>", null)]
+        [InlineData("System.Collections.Generic.HashSet<long>", "System.Span<short>", null)]
+        [InlineData("System.Collections.Generic.HashSet<long>", "System.ReadOnlySpan<short>", null)]
         public void BetterConversionFromExpression_01B_CSharp12(string type1, string type2, string expectedType)
         {
             string source = $$"""
