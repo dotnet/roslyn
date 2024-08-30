@@ -34,8 +34,7 @@ internal sealed class FieldKeywordRecommender()
         // upgrade their project if they way.
         if (context.IsAnyExpressionContext || context.IsStatementContext)
         {
-            var token = context.TargetToken;
-            if (IsInPropertyAccessor(token.Parent))
+            if (!context.IsNameOfContext && IsInPropertyAccessor(context.TargetToken.Parent))
                 return true;
         }
 

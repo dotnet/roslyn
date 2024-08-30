@@ -288,6 +288,66 @@ public sealed class FieldKeywordRecommenderTests : KeywordRecommenderTests
     }
 
     [Fact]
+    public async Task TestInPropertyStatement()
+    {
+        await VerifyKeywordAsync(
+            """
+            class C
+            {
+                int Goo { get { $$ } }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInPropertyExpressionContext()
+    {
+        await VerifyKeywordAsync(
+            """
+            class C
+            {
+                int Goo { get { var v = 1 + $$ } }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInPropertyArgument1()
+    {
+        await VerifyKeywordAsync(
+            """
+            class C
+            {
+                int Goo { get { Bar($$) } }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInPropertyArgument2()
+    {
+        await VerifyKeywordAsync(
+            """
+            class C
+            {
+                int Goo { get { Bar(ref $$) } }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNotInPropertyNameof()
+    {
+        await VerifyAbsenceAsync(
+            """
+            class C
+            {
+                int Goo { get { Bar(nameof($$)) } }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestInLocalFunctionInProperty()
     {
         await VerifyKeywordAsync(
