@@ -84,7 +84,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
 
         // Go from one analyzer reference to the other
-        project = project.WithAnalyzerReferences(new[] { analyzerReference2 });
+        project = project.WithAnalyzerReferences([analyzerReference2]);
 
         Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
 
@@ -132,12 +132,12 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
 
         // Go from one generator to two.
-        project = project.WithAnalyzerReferences(new[] { generatorReferenceToKeep, analyzerReferenceToAddAndRemove });
+        project = project.WithAnalyzerReferences([generatorReferenceToKeep, analyzerReferenceToAddAndRemove]);
 
         Assert.Equal(2, (await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees.Count());
 
         // And go back to one
-        project = project.WithAnalyzerReferences(new[] { generatorReferenceToKeep });
+        project = project.WithAnalyzerReferences([generatorReferenceToKeep]);
 
         Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
     }
@@ -154,7 +154,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         var generatorReference2 = new TestGeneratorReference(new SingleFileTestGenerator("", hintName: "DuplicateFile"), analyzerFilePath: "Z:\\B.dll");
 
         var project = AddEmptyProject(workspace.CurrentSolution)
-            .AddAnalyzerReferences(new[] { generatorReference1, generatorReference2 });
+            .AddAnalyzerReferences([generatorReference1, generatorReference2]);
 
         Assert.Equal(2, (await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees.Count());
 

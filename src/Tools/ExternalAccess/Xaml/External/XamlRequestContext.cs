@@ -20,10 +20,11 @@ internal struct XamlRequestContext
         _context = context;
     }
 
-    internal readonly LSP.ClientCapabilities ClientCapabilities => _context.GetRequiredClientCapabilities();
+    public readonly LSP.ClientCapabilities ClientCapabilities => _context.GetRequiredClientCapabilities();
 
     public readonly TextDocument? TextDocument => _context.TextDocument;
 
+    [Obsolete("Use ClientCapabilities instead.")]
     public readonly IClientCapabilityProvider ClientCapabilityProvider => new ClientCapabilityProvider(_context.GetRequiredClientCapabilities());
 
     public object ToCachedResolveData(object data, Uri uri)
