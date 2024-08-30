@@ -249,6 +249,10 @@ namespace Roslyn.Test.Utilities
         /// for a particular style of bug in VS that cannot be reproduced with modern TFMs. Specifically that it 
         /// dependes on System.Runtime for parts of the impl and can't complie with only a reference to mscorlib. As
         /// such this is kept around for those tests.
+        ///
+        /// Related issues
+        ///   - https://github.com/dotnet/roslyn/issues/14888
+        ///   - https://github.com/dotnet/roslyn/issues/14267
         /// </summary>
         public static MetadataReference ValueTupleLefacyRef => TestReferences.NetFx.ValueTuple.tuplelib;
 

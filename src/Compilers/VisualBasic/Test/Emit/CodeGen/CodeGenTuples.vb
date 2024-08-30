@@ -19359,8 +19359,19 @@ Interface I
 End Interface
     </file>
 </compilation>,
-                references:={ValueTupleRef})
-            comp.AssertTheseEmitDiagnostics()
+                references:={ValueTupleLefacyRef})
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
+    Function F() As ((Integer, Integer), (Integer, Integer))
+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
+    Function F() As ((Integer, Integer), (Integer, Integer))
+                     ~~~~~~~~~~~~~~~~~~
+BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
+    Function F() As ((Integer, Integer), (Integer, Integer))
+                                         ~~~~~~~~~~~~~~~~~~
+</errors>)
         End Sub
 
         <WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")>
@@ -20051,16 +20062,20 @@ Module C
 
     Sub Main()
         Dim o = (1, 2)
-        Console.WriteLine(o)
     End Sub
 End Module
 
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef})
+</compilation>, additionalRefs:={ValueTupleLefacyRef})
 
-            Assert.Equal(TypeKind.Struct, comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).TypeKind)
+            Assert.Equal(TypeKind.Class, comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).TypeKind)
 
-            comp.AssertTheseDiagnostics()
+            comp.AssertTheseDiagnostics(
+<errors>
+BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
+        Dim o = (1, 2)
+                ~~~~~~
+</errors>)
         End Sub
 
         <Fact>
@@ -20106,9 +20121,17 @@ Public Class C
     End Function
 End Class
     </file>
-</compilation>, additionalRefs:={ValueTupleRef})
+</compilation>, additionalRefs:={ValueTupleLefacyRef})
 
-            comp.AssertTheseEmitDiagnostics()
+            comp.AssertTheseEmitDiagnostics(
+<errors>
+BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
+    Iterator Function Test() As IEnumerable(Of (integer, integer))
+                                               ~~~~~~~~~~~~~~~~~~
+BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
+        yield (1, 2)
+              ~~~~~~
+</errors>)
         End Sub
 
         <Fact>

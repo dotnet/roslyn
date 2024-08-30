@@ -23145,8 +23145,17 @@ namespace System
 {
     ((int, int), (int, int)) F();
 }";
-            var comp = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef });
-            comp.VerifyEmitDiagnostics();
+            var comp = CreateCompilationWithMscorlib40(source, references: [ValueTupleLefacyRef]);
+            comp.VerifyEmitDiagnostics(
+                // (3,6): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                //     ((int, int), (int, int)) F();
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(int, int)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(3, 6),
+                // (3,18): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                //     ((int, int), (int, int)) F();
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(int, int)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(3, 18),
+                // (3,5): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                //     ((int, int), (int, int)) F();
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "((int, int), (int, int))").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(3, 5));
         }
 
         [WorkItem(16879, "https://github.com/dotnet/roslyn/issues/16879")]
@@ -23914,15 +23923,14 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source,
-                references: new[] { ValueTupleRef });
+            var compilation = CreateCompilationWithMscorlib40(source, references: [ValueTupleLefacyRef]);
 
-            Assert.Equal(TypeKind.Struct, compilation.GetWellKnownType(WellKnownType.System_ValueTuple_T2).TypeKind);
+            Assert.Equal(TypeKind.Class, compilation.GetWellKnownType(WellKnownType.System_ValueTuple_T2).TypeKind);
 
             compilation.VerifyDiagnostics(
-                // (6,13): warning CS0219: The variable 'o' is assigned but its value is never used
-                //         var o = (1, 2);
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "o").WithArguments("o").WithLocation(6, 13));
+                    // (6,17): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                    //         var o = (1, 2);
+                    Diagnostic(ErrorCode.ERR_NoTypeDef, "(1, 2)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(6, 17));
         }
 
         [Fact]
@@ -23970,8 +23978,14 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef });
-            compilation.VerifyEmitDiagnostics();
+            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleLefacyRef });
+            compilation.VerifyEmitDiagnostics(
+                // (6,24): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                //     public IEnumerable<(int, int)> entries()
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(int, int)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(6, 24),
+                // (8,22): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a'.
+                //         yield return (1, 2);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(1, 2)").WithArguments("System.ValueType", "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a").WithLocation(8, 22));
         }
 
         [Fact]
