@@ -13,22 +13,19 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
 internal partial class SymbolEquivalenceComparer
 {
-    private class GetHashCodeVisitor
+    private sealed class GetHashCodeVisitor
     {
         private readonly SymbolEquivalenceComparer _symbolEquivalenceComparer;
         private readonly bool _compareMethodTypeParametersByIndex;
-        private readonly bool _objectAndDynamicCompareEqually;
         private readonly Func<int, IParameterSymbol, int> _parameterAggregator;
         private readonly Func<int, ISymbol, int> _symbolAggregator;
 
         public GetHashCodeVisitor(
             SymbolEquivalenceComparer symbolEquivalenceComparer,
-            bool compareMethodTypeParametersByIndex,
-            bool objectAndDynamicCompareEqually)
+            bool compareMethodTypeParametersByIndex)
         {
             _symbolEquivalenceComparer = symbolEquivalenceComparer;
             _compareMethodTypeParametersByIndex = compareMethodTypeParametersByIndex;
-            _objectAndDynamicCompareEqually = objectAndDynamicCompareEqually;
             _parameterAggregator = (acc, sym) => Hash.Combine(symbolEquivalenceComparer.ParameterEquivalenceComparer.GetHashCode(sym), acc);
             _symbolAggregator = (acc, sym) => GetHashCode(sym, acc);
         }
@@ -45,7 +42,7 @@ internal partial class SymbolEquivalenceComparer
             // want to bail out using the above check.
 
             if (x.Kind == SymbolKind.DynamicType ||
-                (_objectAndDynamicCompareEqually && IsObjectType(x)))
+                (_symbolEquivalenceComparer._objectAndDynamicCompareEqually && IsObjectType(x)))
             {
                 return Hash.Combine(GetNullableAnnotationsHashCode((ITypeSymbol)x), Hash.Combine(typeof(IDynamicTypeSymbol), currentHash));
             }

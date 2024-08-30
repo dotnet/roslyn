@@ -39,11 +39,10 @@ internal abstract partial class CSharpSelectionResult : SelectionResult<Statemen
         var root = await document.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var newDocument = await SemanticDocument.CreateAsync(document.Document.WithSyntaxRoot(AddAnnotations(
             root,
-            new[]
-            {
+            [
                 (firstToken, firstTokenAnnotation),
                 (lastToken, lastTokenAnnotation)
-            })), cancellationToken).ConfigureAwait(false);
+            ])), cancellationToken).ConfigureAwait(false);
 
         if (selectionInExpression)
         {

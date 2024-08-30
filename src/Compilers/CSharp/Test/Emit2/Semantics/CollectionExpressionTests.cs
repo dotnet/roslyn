@@ -9103,66 +9103,11 @@ static class Program
                 verifier.VerifyIL("Program.F",
                     """
                     {
-                      // Code size      141 (0x8d)
-                      .maxstack  9
-                      .locals init (System.Collections.Generic.List<object> V_0,
-                                    System.Collections.Generic.List<dynamic>.Enumerator V_1,
-                                    object V_2)
-                      IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
-                      IL_0005:  stloc.0
-                      IL_0006:  ldarg.0
-                      IL_0007:  callvirt   "System.Collections.Generic.List<dynamic>.Enumerator System.Collections.Generic.List<dynamic>.GetEnumerator()"
-                      IL_000c:  stloc.1
-                      .try
-                      {
-                        IL_000d:  br.s       IL_0072
-                        IL_000f:  ldloca.s   V_1
-                        IL_0011:  call       "dynamic System.Collections.Generic.List<dynamic>.Enumerator.Current.get"
-                        IL_0016:  stloc.2
-                        IL_0017:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Collections.Generic.List<object>, dynamic>> Program.<>o__0.<>p__0"
-                        IL_001c:  brtrue.s   IL_005c
-                        IL_001e:  ldc.i4     0x100
-                        IL_0023:  ldstr      "Add"
-                        IL_0028:  ldnull
-                        IL_0029:  ldtoken    "Program"
-                        IL_002e:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                        IL_0033:  ldc.i4.2
-                        IL_0034:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
-                        IL_0039:  dup
-                        IL_003a:  ldc.i4.0
-                        IL_003b:  ldc.i4.1
-                        IL_003c:  ldnull
-                        IL_003d:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
-                        IL_0042:  stelem.ref
-                        IL_0043:  dup
-                        IL_0044:  ldc.i4.1
-                        IL_0045:  ldc.i4.0
-                        IL_0046:  ldnull
-                        IL_0047:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
-                        IL_004c:  stelem.ref
-                        IL_004d:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
-                        IL_0052:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Collections.Generic.List<object>, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Collections.Generic.List<object>, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                        IL_0057:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Collections.Generic.List<object>, dynamic>> Program.<>o__0.<>p__0"
-                        IL_005c:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Collections.Generic.List<object>, dynamic>> Program.<>o__0.<>p__0"
-                        IL_0061:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, System.Collections.Generic.List<object>, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Collections.Generic.List<object>, dynamic>>.Target"
-                        IL_0066:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Collections.Generic.List<object>, dynamic>> Program.<>o__0.<>p__0"
-                        IL_006b:  ldloc.0
-                        IL_006c:  ldloc.2
-                        IL_006d:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, System.Collections.Generic.List<object>, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Collections.Generic.List<object>, dynamic)"
-                        IL_0072:  ldloca.s   V_1
-                        IL_0074:  call       "bool System.Collections.Generic.List<dynamic>.Enumerator.MoveNext()"
-                        IL_0079:  brtrue.s   IL_000f
-                        IL_007b:  leave.s    IL_008b
-                      }
-                      finally
-                      {
-                        IL_007d:  ldloca.s   V_1
-                        IL_007f:  constrained. "System.Collections.Generic.List<dynamic>.Enumerator"
-                        IL_0085:  callvirt   "void System.IDisposable.Dispose()"
-                        IL_008a:  endfinally
-                      }
-                      IL_008b:  ldloc.0
-                      IL_008c:  ret
+                      // Code size        7 (0x7)
+                      .maxstack  1
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "System.Collections.Generic.List<object> System.Linq.Enumerable.ToList<object>(System.Collections.Generic.IEnumerable<object>)"
+                      IL_0006:  ret
                     }
                     """);
             }
@@ -20279,67 +20224,12 @@ partial class Program
             verifier.VerifyIL("Program.F1",
                 """
                 {
-                  // Code size      141 (0x8d)
-                  .maxstack  9
-                  .locals init (System.Collections.Generic.List<object> V_0,
-                                System.Collections.Generic.List<dynamic>.Enumerator V_1,
-                                object V_2)
-                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
-                  IL_0005:  stloc.0
-                  IL_0006:  ldarg.0
-                  IL_0007:  callvirt   "System.Collections.Generic.List<dynamic>.Enumerator System.Collections.Generic.List<dynamic>.GetEnumerator()"
-                  IL_000c:  stloc.1
-                  .try
-                  {
-                    IL_000d:  br.s       IL_0072
-                    IL_000f:  ldloca.s   V_1
-                    IL_0011:  call       "dynamic System.Collections.Generic.List<dynamic>.Enumerator.Current.get"
-                    IL_0016:  stloc.2
-                    IL_0017:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Collections.Generic.List<object>, dynamic>> Program.<>o__0.<>p__0"
-                    IL_001c:  brtrue.s   IL_005c
-                    IL_001e:  ldc.i4     0x100
-                    IL_0023:  ldstr      "Add"
-                    IL_0028:  ldnull
-                    IL_0029:  ldtoken    "Program"
-                    IL_002e:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-                    IL_0033:  ldc.i4.2
-                    IL_0034:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
-                    IL_0039:  dup
-                    IL_003a:  ldc.i4.0
-                    IL_003b:  ldc.i4.1
-                    IL_003c:  ldnull
-                    IL_003d:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
-                    IL_0042:  stelem.ref
-                    IL_0043:  dup
-                    IL_0044:  ldc.i4.1
-                    IL_0045:  ldc.i4.0
-                    IL_0046:  ldnull
-                    IL_0047:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
-                    IL_004c:  stelem.ref
-                    IL_004d:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
-                    IL_0052:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Collections.Generic.List<object>, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Collections.Generic.List<object>, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-                    IL_0057:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Collections.Generic.List<object>, dynamic>> Program.<>o__0.<>p__0"
-                    IL_005c:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Collections.Generic.List<object>, dynamic>> Program.<>o__0.<>p__0"
-                    IL_0061:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, System.Collections.Generic.List<object>, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Collections.Generic.List<object>, dynamic>>.Target"
-                    IL_0066:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, System.Collections.Generic.List<object>, dynamic>> Program.<>o__0.<>p__0"
-                    IL_006b:  ldloc.0
-                    IL_006c:  ldloc.2
-                    IL_006d:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, System.Collections.Generic.List<object>, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Collections.Generic.List<object>, dynamic)"
-                    IL_0072:  ldloca.s   V_1
-                    IL_0074:  call       "bool System.Collections.Generic.List<dynamic>.Enumerator.MoveNext()"
-                    IL_0079:  brtrue.s   IL_000f
-                    IL_007b:  leave.s    IL_008b
-                  }
-                  finally
-                  {
-                    IL_007d:  ldloca.s   V_1
-                    IL_007f:  constrained. "System.Collections.Generic.List<dynamic>.Enumerator"
-                    IL_0085:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_008a:  endfinally
-                  }
-                  IL_008b:  ldloc.0
-                  IL_008c:  ret
-                                }
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.List<object> System.Linq.Enumerable.ToList<object>(System.Collections.Generic.IEnumerable<object>)"
+                  IL_0006:  ret
+                }
                 """);
             verifier.VerifyIL("Program.F2",
                 """
@@ -35561,7 +35451,7 @@ partial class Program
                   IL_0006:  ret
                 }
                 """);
-            verifier.VerifyIL("C.M2", """
+            var expectedILForObject = """
                 {
                   // Code size        7 (0x7)
                   .maxstack  1
@@ -35569,45 +35459,185 @@ partial class Program
                   IL_0001:  call       "System.Collections.Generic.List<object> System.Linq.Enumerable.ToList<object>(System.Collections.Generic.IEnumerable<object>)"
                   IL_0006:  ret
                 }
-                """);
-            // This should be the same as M2. See https://github.com/dotnet/roslyn/issues/74894
-            verifier.VerifyIL("C.M3", """
+                """;
+            verifier.VerifyIL("C.M2", expectedILForObject);
+            verifier.VerifyIL("C.M3", expectedILForObject);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74894")]
+        public void List_Spread_StructEnumerator()
+        {
+            var source = """
+                using System.Collections.Generic;
+                interface IMyEnumerable<T> : IEnumerable<T>
                 {
-                  // Code size       63 (0x3f)
+                    new MyEnumerator<T> GetEnumerator();
+                }
+                interface IMyCollection<T> : ICollection<T>
+                {
+                    new MyEnumerator<T> GetEnumerator();
+                }
+                struct MyEnumerator<T>
+                {
+                    private readonly List<T> _list;
+                    private int _index;
+                    public MyEnumerator(List<T> list) { _list = list; _index = -1; }
+                    public T Current => _list[_index];
+                    public bool MoveNext()
+                    {
+                        if (_index < _list.Count) _index++;
+                        return _index < _list.Count;
+                    }
+                }
+                class MyEnumerable<T> : List<T>, IMyEnumerable<T>
+                {
+                    MyEnumerator<T> IMyEnumerable<T>.GetEnumerator() => new(this);
+                }
+                class MyCollection<T> : List<T>, IMyCollection<T>
+                {
+                    MyEnumerator<T> IMyCollection<T>.GetEnumerator() => new(this);
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyEnumerable<object> x = [1, 2];
+                        MyCollection<object> y = [1, 2];
+                        object z = 3;
+                        M1(x, z).Report();
+                        M2(y, z).Report();
+                        M3(x, z).Report();
+                        M4(y, z).Report();
+                    }
+                    static List<object> M1(IMyEnumerable<object> x, object y)
+                    {
+                        return [..x, y];
+                    }
+                    static List<object> M2(IMyCollection<object> x, object y)
+                    {
+                        return [..x, y];
+                    }
+                #nullable enable
+                    static List<U?> M3<T, U>(T x, U y)
+                        where T : class, IMyEnumerable<U>
+                        where U : class
+                    {
+                        return [..x, y];
+                    }
+                    static List<U?> M4<T, U>(T x, U y)
+                        where T : class, IMyCollection<U>
+                        where U : class
+                    {
+                        return [..x, y];
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                targetFramework: TargetFramework.Standard,
+                expectedOutput: "[1, 2, 3], [1, 2, 3], [1, 2, 3], [1, 2, 3], ",
+                verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.M1", """
+                {
+                  // Code size       48 (0x30)
                   .maxstack  2
                   .locals init (System.Collections.Generic.List<object> V_0,
-                                MyCollection<object>.Enumerator V_1,
+                                MyEnumerator<object> V_1,
                                 object V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "MyEnumerator<object> IMyEnumerable<object>.GetEnumerator()"
+                  IL_000c:  stloc.1
+                  IL_000d:  br.s       IL_001e
+                  IL_000f:  ldloca.s   V_1
+                  IL_0011:  call       "object MyEnumerator<object>.Current.get"
+                  IL_0016:  stloc.2
+                  IL_0017:  ldloc.0
+                  IL_0018:  ldloc.2
+                  IL_0019:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_001e:  ldloca.s   V_1
+                  IL_0020:  call       "bool MyEnumerator<object>.MoveNext()"
+                  IL_0025:  brtrue.s   IL_000f
+                  IL_0027:  ldloc.0
+                  IL_0028:  ldarg.1
+                  IL_0029:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_002e:  ldloc.0
+                  IL_002f:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.M2", """
+                {
+                  // Code size       30 (0x1e)
+                  .maxstack  3
+                  .locals init (IMyCollection<object> V_0)
                   IL_0000:  ldarg.0
-                  IL_0001:  dup
-                  IL_0002:  callvirt   "int MyCollection<object>.Count.get"
-                  IL_0007:  newobj     "System.Collections.Generic.List<object>..ctor(int)"
-                  IL_000c:  stloc.0
-                  IL_000d:  callvirt   "MyCollection<object>.Enumerator MyCollection<object>.GetEnumerator()"
-                  IL_0012:  stloc.1
-                  .try
-                  {
-                    IL_0013:  br.s       IL_0024
-                    IL_0015:  ldloca.s   V_1
-                    IL_0017:  call       "object MyCollection<object>.Enumerator.Current.get"
-                    IL_001c:  stloc.2
-                    IL_001d:  ldloc.0
-                    IL_001e:  ldloc.2
-                    IL_001f:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
-                    IL_0024:  ldloca.s   V_1
-                    IL_0026:  call       "bool MyCollection<object>.Enumerator.MoveNext()"
-                    IL_002b:  brtrue.s   IL_0015
-                    IL_002d:  leave.s    IL_003d
-                  }
-                  finally
-                  {
-                    IL_002f:  ldloca.s   V_1
-                    IL_0031:  constrained. "MyCollection<object>.Enumerator"
-                    IL_0037:  callvirt   "void System.IDisposable.Dispose()"
-                    IL_003c:  endfinally
-                  }
-                  IL_003d:  ldloc.0
-                  IL_003e:  ret
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.i4.1
+                  IL_0003:  ldloc.0
+                  IL_0004:  callvirt   "int System.Collections.Generic.ICollection<object>.Count.get"
+                  IL_0009:  add
+                  IL_000a:  newobj     "System.Collections.Generic.List<object>..ctor(int)"
+                  IL_000f:  dup
+                  IL_0010:  ldloc.0
+                  IL_0011:  callvirt   "void System.Collections.Generic.List<object>.AddRange(System.Collections.Generic.IEnumerable<object>)"
+                  IL_0016:  dup
+                  IL_0017:  ldarg.1
+                  IL_0018:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                  IL_001d:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.M3<T, U>(T, U)", """
+                {
+                  // Code size       53 (0x35)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<U> V_0,
+                                MyEnumerator<U> V_1,
+                                U V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<U>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  box        "T"
+                  IL_000c:  callvirt   "MyEnumerator<U> IMyEnumerable<U>.GetEnumerator()"
+                  IL_0011:  stloc.1
+                  IL_0012:  br.s       IL_0023
+                  IL_0014:  ldloca.s   V_1
+                  IL_0016:  call       "U MyEnumerator<U>.Current.get"
+                  IL_001b:  stloc.2
+                  IL_001c:  ldloc.0
+                  IL_001d:  ldloc.2
+                  IL_001e:  callvirt   "void System.Collections.Generic.List<U>.Add(U)"
+                  IL_0023:  ldloca.s   V_1
+                  IL_0025:  call       "bool MyEnumerator<U>.MoveNext()"
+                  IL_002a:  brtrue.s   IL_0014
+                  IL_002c:  ldloc.0
+                  IL_002d:  ldarg.1
+                  IL_002e:  callvirt   "void System.Collections.Generic.List<U>.Add(U)"
+                  IL_0033:  ldloc.0
+                  IL_0034:  ret
+                }
+                """);
+            verifier.VerifyIL("Program.M4<T, U>(T, U)", """
+                {
+                  // Code size       35 (0x23)
+                  .maxstack  3
+                  .locals init (T V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.i4.1
+                  IL_0003:  ldloc.0
+                  IL_0004:  box        "T"
+                  IL_0009:  callvirt   "int System.Collections.Generic.ICollection<U>.Count.get"
+                  IL_000e:  add
+                  IL_000f:  newobj     "System.Collections.Generic.List<U>..ctor(int)"
+                  IL_0014:  dup
+                  IL_0015:  ldloc.0
+                  IL_0016:  callvirt   "void System.Collections.Generic.List<U>.AddRange(System.Collections.Generic.IEnumerable<U>)"
+                  IL_001b:  dup
+                  IL_001c:  ldarg.1
+                  IL_001d:  callvirt   "void System.Collections.Generic.List<U>.Add(U)"
+                  IL_0022:  ret
                 }
                 """);
         }

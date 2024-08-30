@@ -1044,7 +1044,7 @@ new TestParameters(options: Option(CodeStyleOptions2.QualifyFieldAccess, CodeSty
                 }
             }
             """,
-chosenSymbols: new[] { "a" });
+chosenSymbols: ["a"]);
     }
 
     [Fact]
@@ -1072,7 +1072,7 @@ chosenSymbols: new[] { "a" });
                 }
             }
             """,
-chosenSymbols: new[] { "a" });
+chosenSymbols: ["a"]);
     }
 
     [Fact]
@@ -1115,7 +1115,7 @@ chosenSymbols: new[] { "a" });
                 }
             }
             """,
-chosenSymbols: new string[] { });
+chosenSymbols: []);
     }
 
     [Fact]
@@ -1147,7 +1147,7 @@ chosenSymbols: new string[] { });
                 }
             }
             """,
-chosenSymbols: new string[] { "b", "a" });
+chosenSymbols: ["b", "a"]);
     }
 
     [Fact]
@@ -1181,7 +1181,7 @@ chosenSymbols: new string[] { "b", "a" });
                 }
             }
             """,
-chosenSymbols: new string[] { "a", "b" },
+chosenSymbols: ["a", "b"],
 optionsCallback: options => options[0].Value = true);
     }
 
@@ -1221,7 +1221,7 @@ optionsCallback: options => options[0].Value = true);
                 }
             }
             """,
-chosenSymbols: new string[] { "a", "b", "c" },
+chosenSymbols: ["a", "b", "c"],
 optionsCallback: options => options[0].Value = true);
     }
 
@@ -1261,7 +1261,7 @@ optionsCallback: options => options[0].Value = true);
                 }
             }
             """,
-chosenSymbols: new string[] { "a", "b", "c" },
+chosenSymbols: ["a", "b", "c"],
 optionsCallback: options => options[0].Value = true);
     }
 
@@ -1301,7 +1301,7 @@ optionsCallback: options => options[0].Value = true);
                 }
             }
             """,
-chosenSymbols: new string[] { "a", "b" },
+chosenSymbols: ["a", "b"],
 optionsCallback: options => options[0].Value = true,
 parameters: new TestParameters(options:
 Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithSilentEnforcement)));
@@ -1338,7 +1338,7 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 }
             }
             """,
-chosenSymbols: new string[] { "a", "b" },
+chosenSymbols: ["a", "b"],
 optionsCallback: options => options[0].Value = true,
 parameters: new TestParameters(options:
 Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithSilentEnforcement)));
@@ -1380,7 +1380,7 @@ Option(CSharpCodeStyleOptions.PreferThrowExpression, CodeStyleOption2.FalseWithS
                 }
             }
             """,
-chosenSymbols: new string[] { "a", "b" },
+chosenSymbols: ["a", "b"],
 optionsCallback: options => options[0].Value = true,
 parameters: new TestParameters(
 parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6),

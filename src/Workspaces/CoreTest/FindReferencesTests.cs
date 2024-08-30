@@ -122,7 +122,7 @@ public class C {
             var solution = workspace.CurrentSolution
                            .AddProject(pid, "goo", "goo.dll", LanguageNames.CSharp)
                            .AddMetadataReference(pid, MscorlibRef)
-                           .AddMetadataReference(pid, ((PortableExecutableReference)MscorlibRef).WithAliases(new[] { "X" }))
+                           .AddMetadataReference(pid, ((PortableExecutableReference)MscorlibRef).WithAliases(["X"]))
                            .AddDocument(did, "goo.cs", SourceText.From(text));
 
             var project = solution.Projects.First();

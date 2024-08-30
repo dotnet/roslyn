@@ -22,7 +22,7 @@ public class SymbolTreeInfoTests
         var project = solution.Projects.Single();
 
         var reference1 = (PortableExecutableReference)project.MetadataReferences.First();
-        var reference2 = reference1.WithAliases(new[] { "Alias" });
+        var reference2 = reference1.WithAliases(["Alias"]);
 
         var info1 = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
             solution, reference1, checksum: null, CancellationToken.None);
@@ -43,7 +43,7 @@ public class SymbolTreeInfoTests
         var project = solution.Projects.Single();
 
         var reference1 = (PortableExecutableReference)project.MetadataReferences.First();
-        var reference2 = reference1.WithAliases(new[] { "Alias" });
+        var reference2 = reference1.WithAliases(["Alias"]);
 
         var checksum1 = SymbolTreeInfo.GetMetadataChecksum(solution.Services, reference1, CancellationToken.None);
         var info1 = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
@@ -66,7 +66,7 @@ public class SymbolTreeInfoTests
         var project = solution.Projects.Single();
 
         var reference1 = (PortableExecutableReference)project.MetadataReferences.First();
-        var reference2 = reference1.WithAliases(new[] { "Alias" });
+        var reference2 = reference1.WithAliases(["Alias"]);
 
         var checksum1 = SymbolTreeInfo.GetMetadataChecksum(solution.Services, reference1, CancellationToken.None);
         var info1 = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
@@ -88,7 +88,7 @@ public class SymbolTreeInfoTests
         var project = solution.Projects.Single();
 
         var reference1 = (PortableExecutableReference)project.MetadataReferences.First();
-        var reference2 = reference1.WithAliases(new[] { "Alias" });
+        var reference2 = reference1.WithAliases(["Alias"]);
 
         var info1 = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
             solution, reference1, checksum: null, CancellationToken.None);

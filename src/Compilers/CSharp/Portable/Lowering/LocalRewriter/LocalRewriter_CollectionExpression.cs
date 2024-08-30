@@ -191,6 +191,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 
+            Conversion conversion;
+
             // If collection has a struct enumerator but doesn't implement ICollection<T>
             // then manual `foreach` is always more efficient then using `ToList` or `AddRange` methods
             if (getEnumeratorMethod?.ReturnType.IsValueType == true)
@@ -198,13 +200,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var iCollectionOfTType = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T);
                 var iCollectionOfElementType = iCollectionOfTType.Construct(((NamedTypeSymbol)targetEnumerableType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
 
-                if (!spreadType.ImplementsInterface(iCollectionOfElementType, ref discardedUseSiteInfo))
+                conversion = _compilation.Conversions.ClassifyBuiltInConversion(spreadType, iCollectionOfElementType, isChecked: false, ref discardedUseSiteInfo);
+                if (conversion.Kind is not (ConversionKind.Identity or ConversionKind.ImplicitReference))
                 {
                     return false;
                 }
             }
 
-            var conversion = _compilation.Conversions.ClassifyImplicitConversionFromType(spreadType, targetEnumerableType, ref discardedUseSiteInfo);
+            conversion = _compilation.Conversions.ClassifyImplicitConversionFromType(spreadType, targetEnumerableType, ref discardedUseSiteInfo);
             if (conversion.Kind is not (ConversionKind.Identity or ConversionKind.ImplicitReference))
             {
                 return false;
