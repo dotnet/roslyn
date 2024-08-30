@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
 
                 Dim root = Await document.GetSyntaxRootAsync()
 
-                Dim cleanupOptions = CodeCleanupOptions.GetDefault(document.Project.Services)
+                Dim cleanupOptions = Await document.getcodecleanupoptionsasync(CancellationToken.None)
 
                 Dim spans As ImmutableArray(Of TextSpan) = Nothing
                 If hostDocument.AnnotatedSpans.TryGetValue("Expand", spans) Then
