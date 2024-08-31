@@ -35464,6 +35464,124 @@ partial class Program
             verifier.VerifyIL("C.M3", expectedILForObject);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71217")]
+        public void List_SingleSpread_Generics_Nullability()
+        {
+            var source = """
+                using System.Collections.Generic;
+                interface IMyEnumerable<T> : IEnumerable<T>
+                {
+                    new MyEnumerator<T> GetEnumerator();
+                }
+                interface IMyCollection<T> : ICollection<T>
+                {
+                    new MyEnumerator<T> GetEnumerator();
+                }
+                struct MyEnumerator<T>
+                {
+                    private readonly List<T> _list;
+                    private int _index;
+                    public MyEnumerator(List<T> list) { _list = list; _index = -1; }
+                    public T Current => _list[_index];
+                    public bool MoveNext()
+                    {
+                        if (_index < _list.Count) _index++;
+                        return _index < _list.Count;
+                    }
+                }
+                class MyEnumerable<T> : List<T>, IMyEnumerable<T>
+                {
+                    MyEnumerator<T> IMyEnumerable<T>.GetEnumerator() => new(this);
+                }
+                class MyCollection<T> : List<T>, IMyCollection<T>
+                {
+                    MyEnumerator<T> IMyCollection<T>.GetEnumerator() => new(this);
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyEnumerable<string> e = ["a", "b", "c"];
+                        MyCollection<string> c = ["a", "b", "c"];
+                        M1<MyEnumerable<string>, string>(e).Report();
+                        M2<MyEnumerable<string>, string>(e).Report();
+                        M3<MyCollection<string>, string>(c).Report();
+                        M4<MyCollection<string>, string>(c).Report();
+                    }
+                #nullable enable
+                    static List<U> M1<T, U>(T c)
+                        where T : class, IMyEnumerable<U>
+                        where U : class
+                    {
+                        return [..c];
+                    }
+                    static List<U?> M2<T, U>(T c)
+                        where T : class, IMyEnumerable<U>
+                        where U : class
+                    {
+                        return [..c];
+                    }
+                    static List<U> M3<T, U>(T c)
+                        where T : class, IMyCollection<U>
+                        where U : class
+                    {
+                        return [..c];
+                    }
+                    static List<U?> M4<T, U>(T c)
+                        where T : class, IMyCollection<U>
+                        where U : class
+                    {
+                        return [..c];
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, s_collectionExtensions], expectedOutput: "[a, b, c], [a, b, c], [a, b, c], [a, b, c], ", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+
+            var expectedILForMyEnumerator = """
+                {
+                  // Code size       46 (0x2e)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<U> V_0,
+                                MyEnumerator<U> V_1,
+                                U V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<U>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  box        "T"
+                  IL_000c:  callvirt   "MyEnumerator<U> IMyEnumerable<U>.GetEnumerator()"
+                  IL_0011:  stloc.1
+                  IL_0012:  br.s       IL_0023
+                  IL_0014:  ldloca.s   V_1
+                  IL_0016:  call       "U MyEnumerator<U>.Current.get"
+                  IL_001b:  stloc.2
+                  IL_001c:  ldloc.0
+                  IL_001d:  ldloc.2
+                  IL_001e:  callvirt   "void System.Collections.Generic.List<U>.Add(U)"
+                  IL_0023:  ldloca.s   V_1
+                  IL_0025:  call       "bool MyEnumerator<U>.MoveNext()"
+                  IL_002a:  brtrue.s   IL_0014
+                  IL_002c:  ldloc.0
+                  IL_002d:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.M1<T, U>", expectedILForMyEnumerator);
+            verifier.VerifyIL("Program.M2<T, U>", expectedILForMyEnumerator);
+
+            var expectedILForMyCollection = """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.List<U> System.Linq.Enumerable.ToList<U>(System.Collections.Generic.IEnumerable<U>)"
+                  IL_0006:  ret
+                }
+                """;
+            verifier.VerifyIL("Program.M3<T, U>", expectedILForMyCollection);
+            verifier.VerifyIL("Program.M4<T, U>", expectedILForMyCollection);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74894")]
         public void List_Spread_StructEnumerator()
         {
