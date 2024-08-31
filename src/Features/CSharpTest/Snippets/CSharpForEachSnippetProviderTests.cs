@@ -794,7 +794,8 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                     Console.WriteLine();
                 }
             }
-            """);
+            """,
+            referenceAssemblies: ReferenceAssemblies.Net.Net80);
     }
 
     [Fact]
@@ -810,7 +811,8 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                     ints.$$ToString();
                 }
             }
-            """);
+            """,
+            referenceAssemblies: ReferenceAssemblies.Net.Net80);
     }
 
     [Fact]
@@ -826,7 +828,8 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                     ints.$$var a = 0;
                 }
             }
-            """);
+            """,
+            referenceAssemblies: ReferenceAssemblies.Net.Net80);
     }
 
     [Theory]
