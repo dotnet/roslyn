@@ -208,12 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             conversion = _compilation.Conversions.ClassifyImplicitConversionFromType(spreadType, targetEnumerableType, ref discardedUseSiteInfo);
-            if (conversion.Kind is not (ConversionKind.Identity or ConversionKind.ImplicitReference))
-            {
-                return false;
-            }
-
-            return true;
+            return conversion.Kind is ConversionKind.Identity or ConversionKind.ImplicitReference;
         }
 
         private static bool CanOptimizeSingleSpreadAsCollectionBuilderArgument(BoundCollectionExpression node, [NotNullWhen(true)] out BoundExpression? spreadExpression)
