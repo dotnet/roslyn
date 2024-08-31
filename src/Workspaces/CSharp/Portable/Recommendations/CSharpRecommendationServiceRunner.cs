@@ -268,17 +268,63 @@ internal partial class CSharpRecommendationService
 
         private ImmutableArray<ISymbol> GetSymbolsForTypeArgumentOfConstraintClause()
         {
-            var enclosingSymbol = _context.LeftToken.GetRequiredParent()
+            var (enclosingSymbolDeclaration, enclosingSymbol) = _context.LeftToken.GetRequiredParent()
                 .AncestorsAndSelf()
-                .Select(n => _context.SemanticModel.GetDeclaredSymbol(n, _cancellationToken))
-                .WhereNotNull()
+                .Select(n => (node: n, declaredSymbol: _context.SemanticModel.GetDeclaredSymbol(n, _cancellationToken)))
+                .Where(static s => s.declaredSymbol is not null)
                 .FirstOrDefault();
 
-            var symbols = enclosingSymbol != null
-                ? enclosingSymbol.GetTypeArguments()
-                : [];
+            if (enclosingSymbol is null)
+                return [];
 
-            return ImmutableArray<ISymbol>.CastUp(symbols);
+            var typeParameters = enclosingSymbol.GetTypeParameters();
+            if (typeParameters is [])
+                return [];
+
+            var usedNames = GetConstrainedTypeParameterNames(enclosingSymbolDeclaration);
+            var filtered = ExceptTypeParametersByNames(typeParameters, usedNames);
+
+            return ImmutableArray<ISymbol>.CastUp(filtered);
+        }
+
+        private static ImmutableArray<ITypeParameterSymbol> ExceptTypeParametersByNames(ImmutableArray<ITypeParameterSymbol> source, ImmutableArray<string> names)
+        {
+            if (names is [])
+                return source;
+
+            using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(source.Length, out var filtered);
+
+            foreach (var parameter in source)
+            {
+                if (!names.Contains(parameter.Name))
+                    filtered.Add(parameter);
+            }
+
+            return filtered.ToImmutableAndClear();
+        }
+
+        private ImmutableArray<string> GetConstrainedTypeParameterNames(SyntaxNode enclosingSymbolDeclaration)
+        {
+            var constraints = GetConstraintClauses(enclosingSymbolDeclaration);
+
+            return constraints
+                .Select(static s => s.Name.Identifier)
+                .Where(identifier => identifier != _context.LeftToken)
+                .Select(static s => s.Text)
+                .Where(static s => s.Length > 0)
+                .ToImmutableArray();
+        }
+
+        private static SyntaxList<TypeParameterConstraintClauseSyntax> GetConstraintClauses(SyntaxNode node)
+        {
+            return node switch
+            {
+                MethodDeclarationSyntax method => method.ConstraintClauses,
+                LocalFunctionStatementSyntax localFunction => localFunction.ConstraintClauses,
+                TypeDeclarationSyntax typeDeclaration => typeDeclaration.ConstraintClauses,
+                DelegateDeclarationSyntax delegateDeclaration => delegateDeclaration.ConstraintClauses,
+                _ => throw ExceptionUtilities.UnexpectedValue(node.Kind()),
+            };
         }
 
         private RecommendedSymbols GetSymbolsOffOfAlias(IdentifierNameSyntax alias)
