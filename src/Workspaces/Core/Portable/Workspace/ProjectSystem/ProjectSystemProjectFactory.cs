@@ -879,7 +879,7 @@ internal sealed partial class ProjectSystemProjectFactory
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (getFilePath(oldReference) == fullFilePath)
+                    if (fullFilePath.Equals(getFilePath(oldReference), StringComparison.OrdinalIgnoreCase))
                     {
                         var newSolution = solutionChanges.Solution;
                         (newSolution, projectUpdateState) = update(
