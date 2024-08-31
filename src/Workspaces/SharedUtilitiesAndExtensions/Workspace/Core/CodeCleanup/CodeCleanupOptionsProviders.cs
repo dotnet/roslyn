@@ -27,11 +27,7 @@ internal static class CodeCleanupOptionsProviders
     public static async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-#pragma warning disable CS0618 // Type or member is obsolete
-#pragma warning disable RS0030 // Do not use banned APIs
-        return configOptions.GetCodeCleanupOptions(document.Project.LanguageServices.LanguageServices, document.AllowImportsInHiddenRegions());
-#pragma warning restore RS0030 // Do not use banned APIs
-#pragma warning restore CS0618 // Type or member is obsolete
+        return configOptions.GetCodeCleanupOptions(document.Project.GetExtendedLanguageServices().LanguageServices, document.AllowImportsInHiddenRegions());
     }
 
     public static CodeCleanupOptions GetDefault(LanguageServices languageServices)
