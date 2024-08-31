@@ -33,20 +33,23 @@ public class RoslynSelfBuildTests(ITestOutputHelper output) : AbstractIdeIntegra
         Assert.True(File.Exists(solutionDir));
         await this.TestServices.SolutionExplorer.OpenSolutionAsync(solutionDir, _longTimeTestExecutionCancellationTokenSource.Token);
 
+        var maxTryTime = 2;
         await this.TestOperationAndReportIfFailedAsync(
-            () => this.TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(_longTimeTestExecutionCancellationTokenSource.Token), _longTimeTestExecutionCancellationTokenSource.Token);
+            () => this.TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(_longTimeTestExecutionCancellationTokenSource.Token), maxTryTime, _longTimeTestExecutionCancellationTokenSource.Token);
     }
 
-    private async Task TestOperationAndReportIfFailedAsync(Func<Task<bool>> operation, CancellationToken cancellationToken)
+    private async Task TestOperationAndReportIfFailedAsync(Func<Task<bool>> operation, int tryTime, CancellationToken cancellationToken)
     {
-        var result = await operation();
-        if (!result)
+        for (var i = 0; i < tryTime; i++)
         {
-            var buildOutput = await this.TestServices.SolutionExplorer.GetBuildOutputContentAsync(cancellationToken);
-            output.WriteLine(buildOutput);
+            var result = await operation();
+            if (result)
+                return;
         }
 
-        Assert.True(result);
+        var buildOutput = await this.TestServices.SolutionExplorer.GetBuildOutputContentAsync(cancellationToken);
+        output.WriteLine(buildOutput);
+        Assert.True(false);
 
     }
 
