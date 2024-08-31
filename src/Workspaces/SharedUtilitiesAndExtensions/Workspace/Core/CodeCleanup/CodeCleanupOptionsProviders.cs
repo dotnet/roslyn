@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup;
@@ -23,12 +24,17 @@ internal static class CodeCleanupOptionsProviders
             DocumentFormattingOptions = options.GetDocumentFormattingOptions(),
         };
 
-#if !CODE_STYLE
     public static async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetCodeCleanupOptions(document.Project.Services, document.AllowImportsInHiddenRegions());
+        return configOptions.GetCodeCleanupOptions(document.Project.GetExtendedLanguageServices().LanguageServices, document.AllowImportsInHiddenRegions());
     }
-#endif
+
+    public static CodeCleanupOptions GetDefault(LanguageServices languageServices)
+        => new()
+        {
+            FormattingOptions = SyntaxFormattingOptionsProviders.GetDefault(languageServices),
+            SimplifierOptions = SimplifierOptionsProviders.GetDefault(languageServices)
+        };
 }
 

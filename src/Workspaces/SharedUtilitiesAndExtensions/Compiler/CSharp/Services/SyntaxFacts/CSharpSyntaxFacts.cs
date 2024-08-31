@@ -19,12 +19,6 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
-using Microsoft.CodeAnalysis.Editing;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
 
 internal class CSharpSyntaxFacts : ISyntaxFacts

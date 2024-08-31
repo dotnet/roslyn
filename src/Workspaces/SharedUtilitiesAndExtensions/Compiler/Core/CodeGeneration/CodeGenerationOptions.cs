@@ -3,18 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.CodeCleanup;
-
-#if !CODE_STYLE
-using Microsoft.CodeAnalysis.Host;
-#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
@@ -38,28 +30,4 @@ internal record CodeGenerationOptions
     {
         NamingStyle = options.GetOption(NamingStyleOptions.NamingPreferences, language);
     }
-
-#if !CODE_STYLE
-    public static CodeGenerationOptions GetDefault(LanguageServices languageServices)
-        => languageServices.GetRequiredService<ICodeGenerationService>().DefaultOptions;
-#endif
-}
-
-[DataContract]
-internal readonly record struct CodeAndImportGenerationOptions
-{
-    [DataMember]
-    public required CodeGenerationOptions GenerationOptions { get; init; }
-
-    [DataMember]
-    public required AddImportPlacementOptions AddImportOptions { get; init; }
-
-#if !CODE_STYLE
-    internal static CodeAndImportGenerationOptions GetDefault(LanguageServices languageServices)
-        => new()
-        {
-            GenerationOptions = CodeGenerationOptions.GetDefault(languageServices),
-            AddImportOptions = AddImportPlacementOptions.Default
-        };
-#endif
 }
