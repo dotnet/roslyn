@@ -270,7 +270,7 @@ internal sealed class DebuggingSession : IDisposable
             catch (Exception e)
             {
                 var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
-                return (Mvid: Guid.Empty, Error: Diagnostic.Create(descriptor, Location.None, new[] { outputs.AssemblyDisplayPath, e.Message }));
+                return (Mvid: Guid.Empty, Error: Diagnostic.Create(descriptor, Location.None, [outputs.AssemblyDisplayPath, e.Message]));
             }
         }
 
@@ -412,7 +412,7 @@ internal sealed class DebuggingSession : IDisposable
             EditAndContinueService.Log.Write("Failed to create baseline for '{0}': {1}", projectId, e.Message);
 
             var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
-            diagnostics = [Diagnostic.Create(descriptor, Location.None, new[] { fileBeingRead, e.Message })];
+            diagnostics = [Diagnostic.Create(descriptor, Location.None, [fileBeingRead, e.Message])];
         }
         finally
         {

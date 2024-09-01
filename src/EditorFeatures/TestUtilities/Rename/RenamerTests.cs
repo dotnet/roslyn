@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Renamer
             solution = solution
                     .AddProject(projectInfo);
 
-            var remainingErrors = new HashSet<string>(expectedErrors ?? new string[0]);
+            var remainingErrors = new HashSet<string>(expectedErrors ?? []);
 
             for (var i = 0; i < startDocuments.Length; i++)
             {

@@ -255,11 +255,11 @@ class C
         var f = m2.DescendantNodes().OfType<LocalFunctionStatementSyntax>().Single(m => m.Identifier.ValueText == "f");
 
         AssertEx.Empty(SyntaxUtilities.GetSuspensionPoints(x.Initializer));
-        AssertEx.Equal(new[] { "yield return 1;" }, SyntaxUtilities.GetSuspensionPoints(m1.Body).Select(n => n.ToString()));
+        AssertEx.Equal(["yield return 1;"], SyntaxUtilities.GetSuspensionPoints(m1.Body).Select(n => n.ToString()));
         AssertEx.Empty(SyntaxUtilities.GetSuspensionPoints(m2.Body));
 
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             "yield return 1;",
             "await Task.FromResult(1)",
             "await foreach (var x in F()) { }",
@@ -267,6 +267,6 @@ class C
             "x1 = F1()",
             "x2 = F2()",
             "x3 = F3()",
-        }, SyntaxUtilities.GetSuspensionPoints(f.Body).Select(n => n.ToString()));
+        ], SyntaxUtilities.GetSuspensionPoints(f.Body).Select(n => n.ToString()));
     }
 }

@@ -15,7 +15,7 @@ public class TestOutputLogger : ILogger
     public TestOutputLogger(ITestOutputHelper testOutputHelper)
     {
         _testOutputHelper = testOutputHelper;
-        Factory = new LoggerFactory(new[] { new TestLoggerProvider(this) });
+        Factory = new LoggerFactory([new TestLoggerProvider(this)]);
     }
 
     public IDisposable BeginScope<TState>(TState state) where TState : notnull
