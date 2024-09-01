@@ -134,6 +134,11 @@ internal abstract class AbstractTriviaFormatter
     protected abstract bool IsVisualBasicComment(SyntaxTrivia trivia);
 
     /// <summary>
+    /// checks whether given trivia is a regular (non-doc) comment
+    /// </summary>
+    protected abstract bool IsComment(SyntaxTrivia trivia);
+
+    /// <summary>
     /// check whether given string is either null or whitespace
     /// </summary>
     protected bool IsNullOrWhitespace([NotNullWhen(true)] string? text)
@@ -575,7 +580,7 @@ internal abstract class AbstractTriviaFormatter
                 LineColumnRule.IndentationOperations.Absolute => Math.Max(0, rule.Indentation),
                 LineColumnRule.IndentationOperations.Default => this.Context.GetBaseIndentation(trivia2.RawKind == 0 ? this.EndPosition : trivia2.SpanStart),
                 LineColumnRule.IndentationOperations.Given => (trivia2.RawKind == 0) ? this.Spaces : Math.Max(0, _indentation),
-                LineColumnRule.IndentationOperations.Follow when existingWhitespaceBetween.Spaces == this.Context.GetBaseIndentation(trivia2.RawKind == 0 ? this.EndPosition : trivia2.SpanStart) => existingWhitespaceBetween.Spaces, // keep comments in-line if they are already in-line (e.g., commented field after comment further indented)
+                LineColumnRule.IndentationOperations.Follow when IsComment(trivia2) && existingWhitespaceBetween.Spaces == this.Context.GetBaseIndentation(trivia2.RawKind == 0 ? this.EndPosition : trivia2.SpanStart) => existingWhitespaceBetween.Spaces, // keep comments in-line if they are already in-line (e.g., commented field after comment further indented)
                 LineColumnRule.IndentationOperations.Follow => Math.Max(0, lineColumnBeforeTrivia1.Column),
                 LineColumnRule.IndentationOperations.Preserve => existingWhitespaceBetween.Spaces,
                 _ => throw ExceptionUtilities.UnexpectedValue(rule.IndentationOperation),
