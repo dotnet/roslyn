@@ -14477,7 +14477,7 @@ partial class Program
 
             static ImmutableArray<string> getInlineArrayTypeNames(ModuleSymbol module)
             {
-                return module.GlobalNamespace.GetTypeMembers().WhereAsArray(t => t.Name.StartsWith("<>y__InlineArray")).SelectAsArray(t => t.Name);
+                return module.GlobalNamespace.GetTypeMembers().WhereAsArray(t => t.Name.StartsWith("<>y__InlineArray", StringComparison.Ordinal)).SelectAsArray(t => t.Name);
             }
         }
 
