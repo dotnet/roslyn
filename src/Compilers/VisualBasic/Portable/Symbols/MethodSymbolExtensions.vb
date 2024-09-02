@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="method">The method</param>
         <Extension()>
         Friend Function IsPartialWithoutImplementation(method As MethodSymbol) As Boolean
-            Dim sourceMethod = TryCast(method, SourceMemberMethodSymbol)
+            Dim sourceMethod = TryCast(method.OriginalDefinition, SourceMemberMethodSymbol)
             Return sourceMethod IsNot Nothing AndAlso sourceMethod.IsPartial AndAlso sourceMethod.OtherPartOfPartial Is Nothing
         End Function
 

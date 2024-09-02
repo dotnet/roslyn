@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
             Debug.Assert(diagnostics.DiagnosticBag != null);
-            Debug.Assert(stateMachineStateDebugInfoBuilder.IsEmpty());
+            Debug.Assert(stateMachineStateDebugInfoBuilder.IsEmpty);
 
             this.body = body;
             this.method = method;

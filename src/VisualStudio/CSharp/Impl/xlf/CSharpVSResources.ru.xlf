@@ -57,6 +57,16 @@
         <target state="translated">C# Interactive</target>
         <note />
       </trans-unit>
+      <trans-unit id="CancelQuery">
+        <source>Cancel Query</source>
+        <target state="translated">Отменить запрос</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CancelQueryCommandToolTip">
+        <source>Cancel (Escape)</source>
+        <target state="translated">Отмена (Escape)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">
         <source>Collapse usings on file open</source>
         <target state="translated">Сворачивать директивы using при открытии файлов</target>
@@ -170,6 +180,21 @@
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
         <target state="translated">Удалить ненужные директивы using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RunQuery">
+        <source>Run Query</source>
+        <target state="translated">Выполнить запрос</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RunQueryCommandToolTip">
+        <source>Run (Ctrl+Enter)</source>
+        <target state="translated">Выполнить (CTRL+ВВОД)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticSearch">
+        <source>Semantic Search</source>
+        <target state="translated">Семантический поиск</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">

@@ -88,9 +88,7 @@ internal abstract partial class AbstractPartialTypeCompletionProvider<TSyntaxCon
         var semanticModel = context.SemanticModel;
 
         if (declaredSymbol.ContainingSymbol is not INamespaceOrTypeSymbol containingSymbol)
-        {
-            return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
-        }
+            return [];
 
         return semanticModel.LookupNamespacesAndTypes(context.Position, containingSymbol)
                             .OfType<INamedTypeSymbol>()

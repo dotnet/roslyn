@@ -10,6 +10,7 @@ using System.Linq;
 using System.IO.Pipes;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Text;
 
 namespace PrepareTests;
 internal class TestDiscovery
@@ -85,13 +86,21 @@ internal class TestDiscovery
             pipeClient.StartInfo.FileName = pathToWorker;
         }
 
+        var errorOutput = new StringBuilder();
+
         using (var pipeServer = new AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.Inheritable))
         {
             // Pass the client process a handle to the server.
             arguments.Add(pipeServer.GetClientHandleAsString());
             pipeClient.StartInfo.Arguments = string.Join(" ", arguments);
             pipeClient.StartInfo.UseShellExecute = false;
+
+            // Errors will be logged to stderr, redirect to us so we can capture it.
+            pipeClient.StartInfo.RedirectStandardError = true;
+            pipeClient.ErrorDataReceived += PipeClient_ErrorDataReceived;
             pipeClient.Start();
+
+            pipeClient.BeginErrorReadLine();
 
             pipeServer.DisposeLocalCopyOfClientHandle();
 
@@ -120,10 +129,15 @@ internal class TestDiscovery
 
         if (!success)
         {
-            Console.WriteLine($"Failed to discover tests in {pathToAssembly}");
+            Console.WriteLine($"Failed to discover tests in {pathToAssembly}:{Environment.NewLine}{errorOutput}");
         }
 
         return success;
+
+        void PipeClient_ErrorDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            errorOutput.AppendLine(e.Data);
+        }
     }
 
     private static List<string> GetAssemblies(string binDirectory, bool isUnix)

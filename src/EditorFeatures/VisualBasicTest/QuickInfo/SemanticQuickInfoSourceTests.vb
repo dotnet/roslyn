@@ -1046,8 +1046,7 @@ End Module
                 Documentation(VBWorkspaceResources.If_condition_returns_True_the_function_calculates_and_returns_expressionIfTrue_Otherwise_it_returns_expressionIfFalse))
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957082")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957082")>
         Public Async Function TestAddHandlerStatement() As Task
             Await TestInMethodAsync("$$AddHandler goo, bar",
                 MainDescription($"AddHandler {VBWorkspaceResources.event_}, {VBWorkspaceResources.handler}"),
@@ -1055,8 +1054,7 @@ End Module
                 SymbolGlyph(Glyph.Keyword))
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957082")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/957082")>
         Public Async Function TestRemoveHandlerStatement() As Task
             Await TestInMethodAsync("$$RemoveHandler goo, bar",
                 MainDescription($"RemoveHandler {VBWorkspaceResources.event_}, {VBWorkspaceResources.handler}"),
@@ -1071,8 +1069,7 @@ End Module
                 Documentation(VBWorkspaceResources.Returns_a_System_Type_object_for_the_specified_type_name))
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544140")>
-        <WpfFact>
+        <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544140")>
         Public Async Function TestGetXmlNamespaceExpression() As Task
             Await TestWithReferencesAsync(
                 <text>

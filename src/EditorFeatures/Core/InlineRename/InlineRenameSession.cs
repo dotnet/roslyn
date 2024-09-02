@@ -49,7 +49,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
     private readonly IAsynchronousOperationListener _asyncListener;
     private readonly Solution _baseSolution;
-    private readonly Document _triggerDocument;
     private readonly ITextView _triggerView;
     private readonly IDisposable _inlineRenameSessionDurationLogBlock;
     private readonly IThreadingContext _threadingContext;
@@ -61,6 +60,11 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     private SymbolRenameOptions _options;
     private bool _previewChanges;
     private readonly Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = [];
+
+    /// <summary>
+    /// The original <see cref="Document"/> where rename was triggered
+    /// </summary>
+    public Document TriggerDocument { get; }
 
     /// <summary>
     /// The original <see cref="SnapshotSpan"/> for the identifier that rename was triggered on
@@ -89,6 +93,17 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     /// of the rename operation, as determined by the language
     /// </summary>
     public InlineRenameFileRenameInfo FileRenameInfo { get; }
+
+    /// <summary>
+    /// Information about this rename session.
+    /// </summary>
+    public IInlineRenameInfo RenameInfo => _renameInfo;
+
+    /// <summary>
+    /// The task which computes the main rename locations against the original workspace
+    /// snapshot.
+    /// </summary>
+    public JoinableTask<IInlineRenameLocationSet> AllRenameLocationsTask => _allRenameLocationsTask;
 
     /// <summary>
     /// Keep-alive session held alive with the OOP server.  This allows us to pin the initial solution snapshot over on
@@ -148,8 +163,8 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         _renameInfo = renameInfo;
 
         TriggerSpan = triggerSpan;
-        _triggerDocument = triggerSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-        if (_triggerDocument == null)
+        TriggerDocument = triggerSpan.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
+        if (TriggerDocument == null)
         {
             throw new InvalidOperationException(EditorFeaturesResources.The_triggerSpan_is_not_included_in_the_given_workspace);
         }
@@ -180,7 +195,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         _initialRenameText = triggerSpan.GetText();
         this.ReplacementText = _initialRenameText;
 
-        _baseSolution = _triggerDocument.Project.Solution;
+        _baseSolution = TriggerDocument.Project.Solution;
         this.UndoManager = workspace.Services.GetService<IInlineRenameUndoManager>();
 
         FileRenameInfo = _renameInfo.GetFileRenameInfo();
@@ -247,7 +262,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         }
 
         this.UndoManager.CreateInitialState(this.ReplacementText, _triggerView.Selection, new SnapshotSpan(triggerSpan.Snapshot, startingSpan));
-        _openTextBuffers[triggerSpan.Snapshot.TextBuffer].SetReferenceSpans(SpecializedCollections.SingletonEnumerable(startingSpan.ToTextSpan()));
+        _openTextBuffers[triggerSpan.Snapshot.TextBuffer].SetReferenceSpans([startingSpan.ToTextSpan()]);
 
         UpdateReferenceLocationsTask();
 
@@ -319,7 +334,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             // https://github.com/dotnet/roslyn/issues/40890
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
 
-            RaiseSessionSpansUpdated(inlineRenameLocations.Locations.ToImmutableArray());
+            RaiseSessionSpansUpdated([.. inlineRenameLocations.Locations]);
 
             return inlineRenameLocations;
         });
@@ -422,7 +437,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
             if (!documents.Any(static (d, locationsByDocument) => locationsByDocument.Contains(d.Id), locationsByDocument))
             {
-                _openTextBuffers[textBuffer].SetReferenceSpans(SpecializedCollections.EmptyEnumerable<TextSpan>());
+                _openTextBuffers[textBuffer].SetReferenceSpans([]);
             }
             else
             {
@@ -632,7 +647,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                 outcome,
                 conflictResolutionFinishedComputing,
                 previewChanges,
-                SpecializedCollections.EmptyList<InlineRenameReplacementKind>()));
+                replacementKinds: []));
         }
     }
 
@@ -824,7 +839,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                     _renameInfo.FullDisplayName,
                     _renameInfo.Glyph,
                     newSolution,
-                    _triggerDocument.Project.Solution);
+                    TriggerDocument.Project.Solution);
 
                 if (newSolution == null)
                 {

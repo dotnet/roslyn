@@ -34,28 +34,22 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
     [Order(After = Microsoft.CodeAnalysis.Editor.PredefinedCommandHandlerNames.SignatureHelpAfterCompletion)]
     [Order(Before = nameof(CompleteStatementCommandHandler))]
     [Order(Before = Microsoft.CodeAnalysis.Editor.PredefinedCommandHandlerNames.AutomaticLineEnder)]
-    internal sealed class SnippetCommandHandler :
-        AbstractSnippetCommandHandler,
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class SnippetCommandHandler(
+        IThreadingContext threadingContext,
+        IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
+        IVsService<SVsTextManager, IVsTextManager2> textManager,
+        EditorOptionsService editorOptionsService) :
+        AbstractSnippetCommandHandler(threadingContext, editorOptionsService, textManager),
         ICommandHandler<SurroundWithCommandArgs>,
         IChainedCommandHandler<TypeCharCommandArgs>
     {
-        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SnippetCommandHandler(
-            IThreadingContext threadingContext,
-            IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
-            IVsService<SVsTextManager, IVsTextManager2> textManager,
-            EditorOptionsService editorOptionsService)
-            : base(threadingContext, editorOptionsService, textManager)
-        {
-            _editorAdaptersFactoryService = editorAdaptersFactoryService;
-        }
+        private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService = editorAdaptersFactoryService;
 
         public bool ExecuteCommand(SurroundWithCommandArgs args, CommandExecutionContext context)
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
 
             if (!AreSnippetsEnabled(args))
             {
@@ -67,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
         public CommandState GetCommandState(SurroundWithCommandArgs args)
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
 
             if (!AreSnippetsEnabled(args))
             {
@@ -90,7 +84,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Snippets
 
         public void ExecuteCommand(TypeCharCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
         {
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
             if (args.TypedChar == ';'
                 && AreSnippetsEnabledWithClient(args, out var snippetExpansionClient)
                 && snippetExpansionClient.IsFullMethodCallSnippet)

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// Allows asking semantic questions about a tree of syntax nodes in a Compilation. Typically,
-    /// an instance is obtained by a call to GetBinding on a Compilation or Compilation.
+    /// an instance is obtained by a call to <see cref="Compilation.GetSemanticModel(SyntaxTree, SemanticModelOptions)"/>.
     /// </summary>
     /// <remarks>
     /// <para>An instance of SemanticModel caches local symbols and semantic information. Thus, it

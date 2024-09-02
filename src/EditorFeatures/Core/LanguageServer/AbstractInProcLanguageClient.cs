@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -33,7 +34,9 @@ internal abstract partial class AbstractInProcLanguageClient(
     AbstractLanguageClientMiddleLayer? middleLayer = null) : ILanguageClient, ILanguageServerFactory, ICapabilitiesProvider, ILanguageClientCustomMessage2
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
+#pragma warning disable CS0618 // Type or member is obsolete - blocked on Razor switching to new APIs for STJ - https://github.com/dotnet/roslyn/issues/73317
     private readonly ILanguageClientMiddleLayer? _middleLayer = middleLayer;
+#pragma warning restore CS0618 // Type or member is obsolete
     private readonly ILspServiceLoggerFactory _lspLoggerFactory = lspLoggerFactory;
     private readonly ExportProvider _exportProvider = exportProvider;
 
@@ -153,6 +156,7 @@ internal abstract partial class AbstractInProcLanguageClient(
             serverStream,
             ServerKind,
             _lspLoggerFactory,
+            typeRefResolver: null,
             cancellationToken).ConfigureAwait(false);
 
         return new Connection(clientStream, clientStream);
@@ -196,12 +200,12 @@ internal abstract partial class AbstractInProcLanguageClient(
         Stream outputStream,
         WellKnownLspServerKinds serverKind,
         ILspServiceLoggerFactory lspLoggerFactory,
+        AbstractTypeRefResolver? typeRefResolver,
         CancellationToken cancellationToken)
     {
-        var jsonMessageFormatter = new JsonMessageFormatter();
-        VSInternalExtensionUtilities.AddVSInternalExtensionConverters(jsonMessageFormatter.JsonSerializer);
+        var messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
 
-        var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter))
+        var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, messageFormatter))
         {
             ExceptionStrategy = ExceptionProcessing.ISerializable,
         };
@@ -213,10 +217,12 @@ internal abstract partial class AbstractInProcLanguageClient(
         var hostServices = VisualStudioMefHostServices.Create(_exportProvider);
         var server = Create(
             jsonRpc,
+            messageFormatter.JsonSerializerOptions,
             languageClient,
             serverKind,
             logger,
-            hostServices);
+            hostServices,
+            typeRefResolver);
 
         jsonRpc.StartListening();
         return server;
@@ -224,19 +230,23 @@ internal abstract partial class AbstractInProcLanguageClient(
 
     public virtual AbstractLanguageServer<RequestContext> Create(
         JsonRpc jsonRpc,
+        JsonSerializerOptions options,
         ICapabilitiesProvider capabilitiesProvider,
         WellKnownLspServerKinds serverKind,
         AbstractLspLogger logger,
-        HostServices hostServices)
+        HostServices hostServices,
+        AbstractTypeRefResolver? typeRefResolver = null)
     {
         var server = new RoslynLanguageServer(
             LspServiceProvider,
             jsonRpc,
+            options,
             capabilitiesProvider,
             logger,
             hostServices,
             SupportedLanguages,
-            serverKind);
+            serverKind,
+            typeRefResolver);
 
         return server;
     }

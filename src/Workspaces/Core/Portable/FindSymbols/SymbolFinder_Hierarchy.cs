@@ -54,10 +54,8 @@ public static partial class SymbolFinder
                     var sourceMember = await FindSourceDefinitionAsync(m, solution, cancellationToken).ConfigureAwait(false);
                     var bestMember = sourceMember ?? m;
 
-                    if (await IsOverrideAsync(solution, bestMember, symbol, cancellationToken).ConfigureAwait(false))
-                    {
+                    if (IsOverride(solution, bestMember, symbol))
                         results.Add(bestMember);
-                    }
                 }
             }
         }
@@ -65,11 +63,11 @@ public static partial class SymbolFinder
         return results.ToImmutableAndFree();
     }
 
-    internal static async Task<bool> IsOverrideAsync(Solution solution, ISymbol member, ISymbol symbol, CancellationToken cancellationToken)
+    internal static bool IsOverride(Solution solution, ISymbol member, ISymbol symbol)
     {
         for (var current = member; current != null; current = current.GetOverriddenMember())
         {
-            if (await OriginalSymbolsMatchAsync(solution, current.GetOverriddenMember(), symbol.OriginalDefinition, cancellationToken).ConfigureAwait(false))
+            if (OriginalSymbolsMatch(solution, current.GetOverriddenMember(), symbol.OriginalDefinition))
                 return true;
         }
 
@@ -133,7 +131,7 @@ public static partial class SymbolFinder
                     var containingType = symbol.ContainingType.OriginalDefinition;
                     var derivedClasses = includeImplementationsThroughDerivedTypes
                         ? await FindDerivedClassesAsync(containingType, solution, projects, cancellationToken).ConfigureAwait(false)
-                        : SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
+                        : [];
                     var allTypes = derivedClasses.Concat(containingType);
 
                     using var _ = ArrayBuilder<ISymbol>.GetInstance(out var builder);
@@ -159,8 +157,7 @@ public static partial class SymbolFinder
                                     var sourceMethod = await FindSourceDefinitionAsync(interfaceMember, solution, cancellationToken).ConfigureAwait(false);
                                     var bestMethod = sourceMethod ?? interfaceMember;
 
-                                    var implementations = await type.FindImplementationsForInterfaceMemberAsync(
-                                        bestMethod, solution, cancellationToken).ConfigureAwait(false);
+                                    var implementations = type.FindImplementationsForInterfaceMember(bestMethod, solution, cancellationToken);
                                     foreach (var implementation in implementations)
                                     {
                                         if (implementation != null &&
@@ -361,7 +358,7 @@ public static partial class SymbolFinder
         using var _ = ArrayBuilder<ISymbol>.GetInstance(out var results);
         foreach (var t in allTypes)
         {
-            var implementations = await t.FindImplementationsForInterfaceMemberAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+            var implementations = t.FindImplementationsForInterfaceMember(symbol, solution, cancellationToken);
             foreach (var implementation in implementations)
             {
                 var sourceDef = await FindSourceDefinitionAsync(implementation, solution, cancellationToken).ConfigureAwait(false);

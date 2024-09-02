@@ -4,11 +4,10 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.MSBuild;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
-namespace Microsoft.CodeAnalysis.VisualBasic
+namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal class VisualBasicCommandLineArgumentReader : CommandLineArgumentReader
     {

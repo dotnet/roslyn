@@ -13,8 +13,9 @@ namespace Microsoft.CodeAnalysis.Host;
 
 internal abstract class AbstractPersistentStorage : IChecksummedPersistentStorage
 {
+    public SolutionKey SolutionKey { get; }
+
     public string WorkingFolderPath { get; }
-    public string SolutionFilePath { get; }
 
     public string DatabaseFile { get; }
     public string DatabaseDirectory => Path.GetDirectoryName(DatabaseFile) ?? throw ExceptionUtilities.UnexpectedValue(DatabaseFile);
@@ -22,12 +23,12 @@ internal abstract class AbstractPersistentStorage : IChecksummedPersistentStorag
     private bool _isDisabled;
 
     protected AbstractPersistentStorage(
+        SolutionKey solutionKey,
         string workingFolderPath,
-        string solutionFilePath,
         string databaseFile)
     {
+        this.SolutionKey = solutionKey;
         this.WorkingFolderPath = workingFolderPath;
-        this.SolutionFilePath = solutionFilePath;
         this.DatabaseFile = databaseFile;
 
         if (!Directory.Exists(this.DatabaseDirectory))
@@ -41,9 +42,6 @@ internal abstract class AbstractPersistentStorage : IChecksummedPersistentStorag
 
     protected void DisableStorage()
         => Volatile.Write(ref _isDisabled, true);
-
-    public abstract void Dispose();
-    public abstract ValueTask DisposeAsync();
 
     public abstract Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken);
     public abstract Task<Stream?> ReadStreamAsync(string name, Checksum? checksum, CancellationToken cancellationToken);

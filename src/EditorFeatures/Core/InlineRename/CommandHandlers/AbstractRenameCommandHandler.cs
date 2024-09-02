@@ -4,7 +4,6 @@
 
 using System;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;

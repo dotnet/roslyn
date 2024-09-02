@@ -14,9 +14,10 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Operations;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor;
+
+using static SyntaxFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertForEachToFor), Shared]
 internal sealed class CSharpConvertForEachToForCodeRefactoringProvider :
@@ -84,19 +85,19 @@ internal sealed class CSharpConvertForEachToForCodeRefactoringProvider :
         var bodyStatement = GetForLoopBody(generator, foreachInfo, collectionVariable, indexVariable, donotCastElement);
 
         // create for statement from foreach statement
-        var forStatement = SyntaxFactory.ForStatement(
-            SyntaxFactory.VariableDeclaration(
+        var forStatement = ForStatement(
+            VariableDeclaration(
                 model.Compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(),
-                [SyntaxFactory.VariableDeclarator(
+                [VariableDeclarator(
                     indexVariable.WithAdditionalAnnotations(RenameAnnotation.Create()),
                     argumentList: null,
-                    SyntaxFactory.EqualsValueClause((ExpressionSyntax)generator.LiteralExpression(0)))]),
+                    EqualsValueClause((ExpressionSyntax)generator.LiteralExpression(0)))]),
             initializers: [],
             (ExpressionSyntax)generator.LessThanExpression(
                 generator.IdentifierName(indexVariable),
                 generator.MemberAccessExpression(collectionVariable, foreachInfo.CountName)),
-            [SyntaxFactory.PostfixUnaryExpression(
-                SyntaxKind.PostIncrementExpression, SyntaxFactory.IdentifierName(indexVariable))],
+            [PostfixUnaryExpression(
+                SyntaxKind.PostIncrementExpression, IdentifierName(indexVariable))],
             bodyStatement);
 
         if (!foreachInfo.RequireCollectionStatement)
@@ -127,7 +128,7 @@ internal sealed class CSharpConvertForEachToForCodeRefactoringProvider :
             foreachStatement.Identifier, donotCastElement ? null : foreachInfo.ForEachElementType,
             collectionVariableName, indexVariable);
 
-        var bodyBlock = foreachStatement.Statement is BlockSyntax block ? block : SyntaxFactory.Block(foreachStatement.Statement);
+        var bodyBlock = foreachStatement.Statement is BlockSyntax block ? block : Block(foreachStatement.Statement);
         if (bodyBlock.Statements.Count == 0)
         {
             // If the block was empty, still put the new variable inside of it. This handles the case where the user
@@ -144,7 +145,7 @@ internal sealed class CSharpConvertForEachToForCodeRefactoringProvider :
 
             return bodyBlock.InsertNodesBefore(
                 bodyBlock.Statements[0],
-                SpecializedCollections.SingletonEnumerable(variableStatement));
+                [variableStatement]);
         }
     }
 

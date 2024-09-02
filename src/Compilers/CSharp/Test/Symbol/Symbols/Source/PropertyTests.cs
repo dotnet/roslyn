@@ -2922,14 +2922,14 @@ unsafe class Test
     class C
     {
         int field = 0;
-        ref int P { get { return ref field; } set { } } 
+        ref int P { get { return ref @field; } set { } } 
     }
     ";
 
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (5,47): error CS8081: Properties with by-reference returns cannot have set accessors.
-                //         ref int P { get { return ref field; } set { } } 
-                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(5, 47));
+                // (5,48): error CS8147: Properties which return by reference cannot have set accessors
+                //         ref int P { get { return ref @field; } set { } } 
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(5, 48));
         }
 
         [Fact, WorkItem(4696, "https://github.com/dotnet/roslyn/issues/4696")]

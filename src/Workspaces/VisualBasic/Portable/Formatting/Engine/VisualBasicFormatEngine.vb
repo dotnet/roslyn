@@ -2,7 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Diagnostics
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.LanguageService
@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Public Sub New(node As SyntaxNode,
                        options As SyntaxFormattingOptions,
-                       formattingRules As IEnumerable(Of AbstractFormattingRule),
+                       formattingRules As ImmutableArray(Of AbstractFormattingRule),
                        startToken As SyntaxToken,
                        endToken As SyntaxToken)
             MyBase.New(TreeData.Create(node),
@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Friend Overrides ReadOnly Property HeaderFacts As IHeaderFacts = VisualBasicHeaderFacts.Instance
 
         Protected Overrides Function CreateTriviaFactory() As AbstractTriviaDataFactory
-            Return New TriviaDataFactory(Me.TreeData, Me.Options)
+            Return New TriviaDataFactory(Me.TreeData, Me.Options.LineFormatting)
         End Function
 
         Protected Overrides Function CreateFormattingResult(tokenStream As TokenStream) As AbstractFormattingResult

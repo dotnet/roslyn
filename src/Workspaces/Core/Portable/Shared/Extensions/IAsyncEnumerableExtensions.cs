@@ -26,13 +26,20 @@ internal static class IAsyncEnumerableExtensions
 #pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
     }
 
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+    internal static async IAsyncEnumerable<T> SingletonAsync<T>(T value)
+    {
+        yield return value;
+    }
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+
     public static async Task<ImmutableArray<T>> ToImmutableArrayAsync<T>(this IAsyncEnumerable<T> values, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<T>.GetInstance(out var result);
         await foreach (var value in values.WithCancellation(cancellationToken).ConfigureAwait(false))
             result.Add(value);
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     /// <summary>
@@ -92,5 +99,15 @@ internal static class IAsyncEnumerableExtensions
         task.ContinueWith(
             static (task, channel) => ((Channel<T>)channel!).Writer.Complete(task.Exception),
             channel, CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+    }
+
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+#pragma warning disable VSTHRD200 // Use "Async" suffix for async methods
+    public static async IAsyncEnumerable<TSource> AsAsyncEnumerable<TSource>(this IEnumerable<TSource> source)
+#pragma warning restore VSTHRD200 // Use "Async" suffix for async methods
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+    {
+        foreach (var item in source)
+            yield return item;
     }
 }

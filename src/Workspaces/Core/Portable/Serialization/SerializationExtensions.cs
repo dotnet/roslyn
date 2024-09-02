@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.IO;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
@@ -19,8 +18,6 @@ internal static class SerializationExtensions
             SolutionCompilationStateChecksums => WellKnownSynchronizationKind.SolutionCompilationState,
             SolutionStateChecksums => WellKnownSynchronizationKind.SolutionState,
             ProjectStateChecksums => WellKnownSynchronizationKind.ProjectState,
-            DocumentStateChecksums => WellKnownSynchronizationKind.DocumentState,
-            ChecksumCollection => WellKnownSynchronizationKind.ChecksumCollection,
             SolutionInfo.SolutionAttributes => WellKnownSynchronizationKind.SolutionAttributes,
             ProjectInfo.ProjectAttributes => WellKnownSynchronizationKind.ProjectAttributes,
             DocumentInfo.DocumentAttributes => WellKnownSynchronizationKind.DocumentAttributes,
@@ -30,8 +27,8 @@ internal static class SerializationExtensions
             MetadataReference => WellKnownSynchronizationKind.MetadataReference,
             AnalyzerReference => WellKnownSynchronizationKind.AnalyzerReference,
             SerializableSourceText => WellKnownSynchronizationKind.SerializableSourceText,
-            SourceText => WellKnownSynchronizationKind.SourceText,
             SourceGeneratedDocumentIdentity => WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity,
+            SourceGeneratorExecutionVersionMap => WellKnownSynchronizationKind.SourceGeneratorExecutionVersionMap,
             _ => throw ExceptionUtilities.UnexpectedValue(value),
         };
 

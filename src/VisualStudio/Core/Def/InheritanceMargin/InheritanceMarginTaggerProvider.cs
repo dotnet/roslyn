@@ -12,15 +12,12 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.InheritanceMargin;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
@@ -35,24 +32,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 [ContentType(ContentTypeNames.RoslynContentType)]
 [Name(nameof(InheritanceMarginTaggerProvider))]
 [TextViewRole(PredefinedTextViewRoles.Document)]
-internal sealed class InheritanceMarginTaggerProvider : AsynchronousViewportTaggerProvider<InheritanceMarginTag>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class InheritanceMarginTaggerProvider(TaggerHost taggerHost)
+    : AsynchronousViewportTaggerProvider<InheritanceMarginTag>(taggerHost, FeatureAttribute.InheritanceMargin)
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public InheritanceMarginTaggerProvider(
-        IThreadingContext threadingContext,
-        IGlobalOptionService globalOptions,
-        [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListenerProvider listenerProvider)
-        : base(
-            threadingContext,
-            globalOptions,
-            visibilityTracker,
-            listenerProvider.GetListener(FeatureAttribute.InheritanceMargin))
-    {
-    }
-
     protected override TaggerDelay EventChangeDelay => TaggerDelay.OnIdle;
+
+    /// <summary>
+    /// We support frozen partial semantics, so we can quickly get inheritance margin items without building SG docs.
+    /// We will still run a tagging pass after the frozen-pass where we run again on non-frozen docs.
+    /// </summary>
+    protected override bool SupportsFrozenPartialSemantics => true;
 
     protected override bool CanCreateTagger(ITextView textView, ITextBuffer buffer)
     {
@@ -68,11 +59,12 @@ internal sealed class InheritanceMarginTaggerProvider : AsynchronousViewportTagg
         // Note: Also generate tags when InheritanceMarginOptions.InheritanceMarginCombinedWithIndicatorMargin is changed,
         // because we want to refresh the glyphs in indicator margin.
         return TaggerEventSources.Compose(
-           TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
-           TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
-           TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-           TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InheritanceMarginOptionsStorage.ShowInheritanceMargin),
-           TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin));
+            TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
+            TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
+            TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
+            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, static option =>
+                option.Equals(InheritanceMarginOptionsStorage.ShowInheritanceMargin) ||
+                option.Equals(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin)));
     }
 
     protected override async Task ProduceTagsAsync(
@@ -96,17 +88,13 @@ internal sealed class InheritanceMarginTaggerProvider : AsynchronousViewportTagg
 
         var includeGlobalImports = GlobalOptions.GetOption(InheritanceMarginOptionsStorage.InheritanceMarginIncludeGlobalImports, document.Project.Language);
 
-        // Use FrozenSemantics Version of document to get the semantics ready, therefore we could have faster
-        // response. (Since the full load might take a long time)
-        document = document.WithFrozenPartialSemantics(cancellationToken);
-
         var spanToSearch = spanToTag.SnapshotSpan.Span.ToTextSpan();
         var stopwatch = SharedStopwatch.StartNew();
         var inheritanceMemberItems = await inheritanceMarginInfoService.GetInheritanceMemberItemsAsync(
             document,
             spanToSearch,
             includeGlobalImports,
-            frozenPartialSemantics: true,
+            context.FrozenPartialSemantics,
             cancellationToken).ConfigureAwait(false);
         var elapsed = stopwatch.Elapsed;
 

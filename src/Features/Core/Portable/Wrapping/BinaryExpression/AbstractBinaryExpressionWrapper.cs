@@ -8,10 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Precedence;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+
 #if DEBUG
 using System.Diagnostics;
 #endif
@@ -98,7 +98,7 @@ internal abstract partial class AbstractBinaryExpressionWrapper<TBinaryExpressio
     {
         using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var result);
         AddExpressionsAndOperators(precedence, binaryExpr, result);
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private void AddExpressionsAndOperators(
@@ -109,9 +109,8 @@ internal abstract partial class AbstractBinaryExpressionWrapper<TBinaryExpressio
         var stack = pooledStack.Object;
         stack.Push(expr);
 
-        while (!stack.IsEmpty())
+        while (stack.TryPop(out var currentNodeOrToken))
         {
-            var currentNodeOrToken = stack.Pop();
             if (currentNodeOrToken.IsNode && IsValidBinaryExpression(precedence, currentNodeOrToken.AsNode()))
             {
                 _syntaxFacts.GetPartsOfBinaryExpression(currentNodeOrToken.AsNode()!, out var left, out var opToken, out var right);

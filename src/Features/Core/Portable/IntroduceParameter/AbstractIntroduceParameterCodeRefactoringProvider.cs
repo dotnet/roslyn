@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.IntroduceParameter;
@@ -241,17 +242,26 @@ internal abstract partial class AbstractIntroduceParameterCodeRefactoringProvide
         var rewriter = new IntroduceParameterDocumentRewriter(this, originalDocument,
             expression, methodSymbol, containingMethod, selectedCodeAction, fallbackOptions, allOccurrences);
 
-        foreach (var (project, projectCallSites) in methodCallSites.GroupBy(kvp => kvp.Key.Project))
-        {
-            var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            foreach (var (document, invocations) in projectCallSites)
+        var changedRoots = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
+            source: methodCallSites.GroupBy(kvp => kvp.Key.Project),
+            produceItems: static async (tuple, callback, rewriter, cancellationToken) =>
             {
-                var newRoot = await rewriter.RewriteDocumentAsync(compilation, document, invocations, cancellationToken).ConfigureAwait(false);
-                modifiedSolution = modifiedSolution.WithDocumentSyntaxRoot(document.Id, newRoot);
-            }
-        }
+                var (project, projectCallSites) = tuple;
+                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                await RoslynParallel.ForEachAsync(
+                    projectCallSites,
+                    cancellationToken,
+                    async (tuple, cancellationToken) =>
+                    {
+                        var (document, invocations) = tuple;
+                        var newRoot = await rewriter.RewriteDocumentAsync(compilation, document, invocations, cancellationToken).ConfigureAwait(false);
+                        callback((document.Id, newRoot));
+                    }).ConfigureAwait(false);
+            },
+            args: rewriter,
+            cancellationToken).ConfigureAwait(false);
 
-        return modifiedSolution;
+        return modifiedSolution.WithDocumentSyntaxRoots(changedRoots);
     }
 
     /// <summary>

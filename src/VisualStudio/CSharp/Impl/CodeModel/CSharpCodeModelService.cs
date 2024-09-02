@@ -30,11 +30,12 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
-using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 {
+    using static CSharpSyntaxTokens;
+
     internal partial class CSharpCodeModelService : AbstractCodeModelService
     {
         private static readonly SyntaxTree s_emptyTree = SyntaxFactory.ParseSyntaxTree(SourceText.From("", encoding: null, SourceHashAlgorithms.Default));
@@ -275,17 +276,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
         }
 
         public override IEnumerable<SyntaxNode> GetOptionNodes(SyntaxNode parent)
-        {
             // Only VB has Option statements
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-        }
+            => [];
 
         public override IEnumerable<SyntaxNode> GetImportNodes(SyntaxNode parent)
             => parent switch
             {
                 CompilationUnitSyntax compilationUnit => compilationUnit.Usings,
                 BaseNamespaceDeclarationSyntax baseNamespace => baseNamespace.Usings,
-                _ => SpecializedCollections.EmptyEnumerable<SyntaxNode>(),
+                _ => [],
             };
 
         private static IEnumerable<SyntaxNode> GetAttributeNodes(SyntaxList<AttributeListSyntax> attributeDeclarationList)
@@ -343,7 +342,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return GetAttributeNodes(accessor.AttributeLists);
             }
 
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+            return [];
         }
 
         public override IEnumerable<SyntaxNode> GetAttributeArgumentNodes(SyntaxNode parent)
@@ -351,26 +350,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             if (parent is AttributeSyntax attribute)
             {
                 if (attribute.ArgumentList == null)
-                {
-                    return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-                }
+                    return [];
 
                 return attribute.ArgumentList.Arguments;
             }
 
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+            return [];
         }
 
         public override IEnumerable<SyntaxNode> GetInheritsNodes(SyntaxNode parent)
         {
             // Only VB has Inherits statements
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+            return [];
         }
 
         public override IEnumerable<SyntaxNode> GetImplementsNodes(SyntaxNode parent)
         {
             // Only VB has Implements statements
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+            return [];
         }
 
         private static bool IsContainerNode(SyntaxNode container)
@@ -1465,7 +1462,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                 return delegateDecl.ParameterList.Parameters;
             }
 
-            return SpecializedCollections.EmptyEnumerable<ParameterSyntax>();
+            return [];
         }
 
         public override bool IsExpressionBodiedProperty(SyntaxNode node)
@@ -1916,11 +1913,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             switch (kind)
             {
                 case EnvDTE80.vsCMParameterKind.vsCMParameterKindOut:
-                    newModifiers = [SyntaxFactory.Token(SyntaxKind.OutKeyword)];
+                    newModifiers = [OutKeyword];
                     break;
 
                 case EnvDTE80.vsCMParameterKind.vsCMParameterKindRef:
-                    newModifiers = [SyntaxFactory.Token(SyntaxKind.RefKeyword)];
+                    newModifiers = [RefKeyword];
                     break;
 
                 case EnvDTE80.vsCMParameterKind.vsCMParameterKindIn:
@@ -1934,7 +1931,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
                         if (parameterList.Parameters.LastOrDefault() == parameter &&
                             parameter.Type is ArrayTypeSyntax)
                         {
-                            newModifiers = [SyntaxFactory.Token(SyntaxKind.ParamsKeyword)];
+                            newModifiers = [ParamsKeyword];
                             break;
                         }
 

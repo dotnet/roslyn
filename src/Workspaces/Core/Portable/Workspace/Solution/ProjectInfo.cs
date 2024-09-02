@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -515,7 +514,6 @@ public sealed class ProjectInfo
             VersionStamp? version = null,
             string? name = null,
             string? assemblyName = null,
-            string? language = null,
             Optional<string?> filePath = default,
             Optional<string?> outputPath = default,
             Optional<string?> outputRefPath = default,
@@ -530,7 +528,6 @@ public sealed class ProjectInfo
             var newVersion = version ?? Version;
             var newName = name ?? Name;
             var newAssemblyName = assemblyName ?? AssemblyName;
-            var newLanguage = language ?? Language;
             var newFilePath = filePath.HasValue ? filePath.Value : FilePath;
             var newOutputPath = outputPath.HasValue ? outputPath.Value : OutputFilePath;
             var newOutputRefPath = outputRefPath.HasValue ? outputRefPath.Value : OutputRefFilePath;
@@ -545,7 +542,6 @@ public sealed class ProjectInfo
             if (newVersion == Version &&
                 newName == Name &&
                 newAssemblyName == AssemblyName &&
-                newLanguage == Language &&
                 newFilePath == FilePath &&
                 newOutputPath == OutputFilePath &&
                 newOutputRefPath == OutputRefFilePath &&
@@ -565,7 +561,7 @@ public sealed class ProjectInfo
                 newVersion,
                 newName,
                 newAssemblyName,
-                newLanguage,
+                Language,
                 newCompilationOutputPaths,
                 newChecksumAlgorithm,
                 defaultNamespace: newDefaultNamespace,

@@ -18,6 +18,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConditionalExpressionInStringInterpolation;
 
+using static CSharpSyntaxTokens;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddParenthesesAroundConditionalExpressionInInterpolatedString), Shared]
 internal class CSharpAddParenthesesAroundConditionalExpressionInInterpolatedStringCodeFixProvider : CodeFixProvider
 {
@@ -119,7 +121,7 @@ internal class CSharpAddParenthesesAroundConditionalExpressionInInterpolatedStri
         }
 
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var newCloseParen = SyntaxFactory.Token(SyntaxKind.CloseParenToken).WithTriviaFrom(parenthesizedExpression.CloseParenToken);
+        var newCloseParen = CloseParenToken.WithTriviaFrom(parenthesizedExpression.CloseParenToken);
         var parenthesizedExpressionWithClosingParen = parenthesizedExpression.WithCloseParenToken(newCloseParen);
         var newRoot = root.ReplaceNode(parenthesizedExpression, parenthesizedExpressionWithClosingParen);
         return document.WithSyntaxRoot(newRoot);

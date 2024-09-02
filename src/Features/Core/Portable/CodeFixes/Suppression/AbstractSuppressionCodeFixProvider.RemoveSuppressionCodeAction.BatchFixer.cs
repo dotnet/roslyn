@@ -33,18 +33,18 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
 
             protected override async Task AddDocumentFixesAsync(
                 Document document, ImmutableArray<Diagnostic> diagnostics,
-                ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
+                Action<(Diagnostic diagnostic, CodeAction action)> onItemFound,
                 FixAllState fixAllState, CancellationToken cancellationToken)
             {
                 // Batch all the pragma remove suppression fixes by executing them sequentially for the document.
-                var pragmaActionsBuilder = ArrayBuilder<IPragmaBasedCodeAction>.GetInstance();
-                var pragmaDiagnosticsBuilder = ArrayBuilder<Diagnostic>.GetInstance();
+                using var _1 = ArrayBuilder<IPragmaBasedCodeAction>.GetInstance(out var pragmaActionsBuilder);
+                using var _2 = ArrayBuilder<Diagnostic>.GetInstance(out var pragmaDiagnosticsBuilder);
 
                 foreach (var diagnostic in diagnostics.Where(d => d.Location.IsInSource && d.IsSuppressed))
                 {
                     var span = diagnostic.Location.SourceSpan;
                     var removeSuppressionFixes = await _suppressionFixProvider.GetFixesAsync(
-                        document, span, SpecializedCollections.SingletonEnumerable(diagnostic), fixAllState.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
+                        document, span, [diagnostic], fixAllState.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
                     var removeSuppressionFix = removeSuppressionFixes.SingleOrDefault();
                     if (removeSuppressionFix != null)
                     {
@@ -62,7 +62,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                             }
                             else
                             {
-                                fixes.Add((diagnostic, codeAction));
+                                onItemFound((diagnostic, codeAction));
                             }
                         }
                     }
@@ -73,11 +73,11 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 {
                     var pragmaBatchFix = PragmaBatchFixHelpers.CreateBatchPragmaFix(
                         _suppressionFixProvider, document,
-                        pragmaActionsBuilder.ToImmutableAndFree(),
-                        pragmaDiagnosticsBuilder.ToImmutableAndFree(),
+                        pragmaActionsBuilder.ToImmutableAndClear(),
+                        pragmaDiagnosticsBuilder.ToImmutableAndClear(),
                         fixAllState, cancellationToken);
 
-                    fixes.Add((diagnostic: null, pragmaBatchFix));
+                    onItemFound((diagnostic: null, pragmaBatchFix));
                 }
             }
 
@@ -89,7 +89,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 foreach (var diagnostic in diagnostics.Where(d => !d.Location.IsInSource && d.IsSuppressed))
                 {
                     var removeSuppressionFixes = await _suppressionFixProvider.GetFixesAsync(
-                        project, SpecializedCollections.SingletonEnumerable(diagnostic), fixAllState.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
+                        project, [diagnostic], fixAllState.CodeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
                     if (removeSuppressionFixes.SingleOrDefault()?.Action is RemoveSuppressionCodeAction removeSuppressionCodeAction)
                     {
                         if (fixAllState.IsFixMultiple)
@@ -153,19 +153,19 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 }
 
                 return await base.TryGetMergedFixAsync(
-                    newBatchOfFixes.ToImmutableArray(), fixAllState, progressTracker, cancellationToken).ConfigureAwait(false);
+                    [.. newBatchOfFixes], fixAllState, progressTracker, cancellationToken).ConfigureAwait(false);
             }
 
             private static async Task<ImmutableArray<SyntaxNode>> GetAttributeNodesToFixAsync(ImmutableArray<AttributeRemoveAction> attributeRemoveFixes, CancellationToken cancellationToken)
             {
-                using var _ = ArrayBuilder<SyntaxNode>.GetInstance(attributeRemoveFixes.Length, out var builder);
+                var builder = new FixedSizeArrayBuilder<SyntaxNode>(attributeRemoveFixes.Length);
                 foreach (var attributeRemoveFix in attributeRemoveFixes)
                 {
                     var attributeToRemove = await attributeRemoveFix.GetAttributeToRemoveAsync(cancellationToken).ConfigureAwait(false);
                     builder.Add(attributeToRemove);
                 }
 
-                return builder.ToImmutableAndClear();
+                return builder.MoveToImmutable();
             }
         }
     }

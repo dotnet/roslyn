@@ -37,7 +37,7 @@ internal sealed class DocumentDebugInfoReader : IDisposable
     {
         var documentHandles = SymbolSourceDocumentFinder.FindDocumentHandles(entityHandle, _dllReader, _pdbReader);
 
-        using var _ = ArrayBuilder<SourceDocument>.GetInstance(out var sourceDocuments);
+        var sourceDocuments = new FixedSizeArrayBuilder<SourceDocument>(documentHandles.Count);
 
         foreach (var handle in documentHandles)
         {
@@ -54,7 +54,7 @@ internal sealed class DocumentDebugInfoReader : IDisposable
             sourceDocuments.Add(new SourceDocument(filePath, hashAlgorithm, checksum, embeddedTextBytes, sourceLinkUrl));
         }
 
-        return sourceDocuments.ToImmutable();
+        return sourceDocuments.MoveToImmutable();
     }
 
     private string? TryGetSourceLinkUrl(DocumentHandle handle)

@@ -8,9 +8,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature;
 
@@ -38,11 +35,9 @@ internal class ChangeSignatureCodeAction(AbstractChangeSignatureService changeSi
             var changeSignatureResult = await _changeSignatureService.ChangeSignatureWithContextAsync(_context, changeSignatureOptions, cancellationToken).ConfigureAwait(false);
 
             if (changeSignatureResult.Succeeded)
-            {
-                return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ChangeSignatureCodeActionOperation(changeSignatureResult.UpdatedSolution, changeSignatureResult.ConfirmationMessage));
-            }
+                return [new ChangeSignatureCodeActionOperation(changeSignatureResult.UpdatedSolution, changeSignatureResult.ConfirmationMessage)];
         }
 
-        return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
+        return [];
     }
 }

@@ -209,12 +209,12 @@ public static partial class Simplifier
         }
 
 #pragma warning disable RS0030 // Do not used banned APIs
-        return ReduceAsync(document, SpecializedCollections.SingletonEnumerable(span), optionSet, cancellationToken);
+        return ReduceAsync(document, [span], optionSet, cancellationToken);
     }
 #pragma warning restore
 
     internal static Task<Document> ReduceAsync(Document document, TextSpan span, SimplifierOptions options, CancellationToken cancellationToken)
-        => ReduceAsync(document, SpecializedCollections.SingletonEnumerable(span), options, cancellationToken);
+        => ReduceAsync(document, [span], options, cancellationToken);
 
     /// <summary>
     /// Reduce the sub-trees annotated with <see cref="Annotation" /> found within the specified spans.

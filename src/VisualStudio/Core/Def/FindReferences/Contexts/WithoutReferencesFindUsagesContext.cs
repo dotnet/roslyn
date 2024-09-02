@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Options;
@@ -63,8 +62,8 @@ internal partial class StreamingFindUsagesPresenter
 
             lock (Gate)
             {
-                EntriesWhenGroupingByDefinition = EntriesWhenGroupingByDefinition.Add(entry);
-                EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.Add(entry);
+                EntriesWhenGroupingByDefinition.Add(entry);
+                EntriesWhenNotGroupingByDefinition.Add(entry);
                 CurrentVersionNumber++;
             }
 
@@ -77,7 +76,11 @@ internal partial class StreamingFindUsagesPresenter
 
             using var _ = ArrayBuilder<Entry>.GetInstance(out var entries);
 
-            if (definition.SourceSpans.Length == 1 && definition.MetadataLocations.IsEmpty)
+            if (definition.SourceSpans.IsEmpty && definition.MetadataLocations.IsEmpty)
+            {
+                entries.Add(new NonNavigableDefinitionItemEntry(this, definitionBucket));
+            }
+            else if (definition.SourceSpans.Length == 1 && definition.MetadataLocations.IsEmpty)
             {
                 // If we only have a single location, then use the DisplayParts of the
                 // definition as what to show.  That way we show enough information for things
@@ -104,8 +107,8 @@ internal partial class StreamingFindUsagesPresenter
             {
                 lock (Gate)
                 {
-                    EntriesWhenGroupingByDefinition = EntriesWhenGroupingByDefinition.AddRange(entries);
-                    EntriesWhenNotGroupingByDefinition = EntriesWhenNotGroupingByDefinition.AddRange(entries);
+                    AddRange(EntriesWhenGroupingByDefinition, entries);
+                    AddRange(EntriesWhenNotGroupingByDefinition, entries);
                     CurrentVersionNumber++;
                 }
 

@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
@@ -51,8 +50,5 @@ internal partial class ObjectCreationExpressionSignatureHelpProvider
     }
 
     private static IList<SymbolDisplayPart> GetNormalTypePostambleParts()
-    {
-        return SpecializedCollections.SingletonList(
-            Punctuation(SyntaxKind.CloseParenToken));
-    }
+        => [Punctuation(SyntaxKind.CloseParenToken)];
 }

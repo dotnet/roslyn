@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -42,7 +43,7 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
         return new WrappingFormattingRule(newOptions);
     }
 
-    public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+    public override void AddSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
     {
         nextOperation.Invoke();
 
@@ -88,7 +89,7 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
         };
     }
 
-    private static void AddSpecificNodesSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+    private static void AddSpecificNodesSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         var (firstToken, lastToken) = GetSpecificNodeSuppressionTokenRange(node);
         if (!firstToken.IsKind(SyntaxKind.None) || !lastToken.IsKind(SyntaxKind.None))
@@ -97,7 +98,7 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
         }
     }
 
-    private static void AddStatementExceptBlockSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+    private static void AddStatementExceptBlockSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         if (node is not StatementSyntax statementNode || statementNode.Kind() == SyntaxKind.Block)
         {
@@ -110,7 +111,7 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
         AddSuppressWrappingIfOnSingleLineOperation(list, firstToken, lastToken);
     }
 
-    private static void RemoveSuppressOperationForStatementMethodDeclaration(List<SuppressOperation> list, SyntaxNode node)
+    private static void RemoveSuppressOperationForStatementMethodDeclaration(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         if (!(node is not StatementSyntax statementNode || statementNode.Kind() == SyntaxKind.Block))
         {
@@ -133,7 +134,7 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
         }
     }
 
-    private static void RemoveSuppressOperationForBlock(List<SuppressOperation> list, SyntaxNode node)
+    private static void RemoveSuppressOperationForBlock(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         var bracePair = GetBracePair(node);
         if (!bracePair.IsValidBracketOrBracePair())
@@ -175,7 +176,7 @@ internal sealed class WrappingFormattingRule : BaseFormattingRule
     }
 
     private static void RemoveSuppressOperation(
-        List<SuppressOperation> list,
+        ArrayBuilder<SuppressOperation> list,
         SyntaxToken startToken,
         SyntaxToken endToken)
     {

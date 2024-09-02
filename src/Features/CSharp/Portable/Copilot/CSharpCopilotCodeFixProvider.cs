@@ -56,13 +56,17 @@ internal sealed partial class CSharpCopilotCodeFixProvider() : CodeFixProvider
         var document = context.Document;
         var cancellationToken = context.CancellationToken;
 
-        var copilotService = document.GetLanguageService<ICopilotCodeAnalysisService>();
-        if (copilotService is null || !await copilotService.IsCodeAnalysisOptionEnabledAsync().ConfigureAwait(false))
+        if (document.GetLanguageService<ICopilotOptionsService>() is not { } copilotOptionsService ||
+            await copilotOptionsService.IsCodeAnalysisOptionEnabledAsync().ConfigureAwait(false) is false)
+        {
             return;
+        }
 
-        var isAvailable = await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false);
-        if (!isAvailable)
+        if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
+            await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
+        {
             return;
+        }
 
         var promptTitles = await copilotService.GetAvailablePromptTitlesAsync(document, cancellationToken).ConfigureAwait(false);
         if (promptTitles.IsEmpty)

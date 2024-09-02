@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeFixes.UseExpressionBodyForLambda;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -168,13 +168,11 @@ internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : CodeRe
     {
         var lambdaNode = await document.TryGetRelevantNodeAsync<LambdaExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
         if (lambdaNode == null)
-        {
             return [];
-        }
 
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        using var resultDisposer = ArrayBuilder<CodeAction>.GetInstance(out var result);
+        using var result = TemporaryArray<CodeAction>.Empty;
         if (UseExpressionBodyForLambdaHelpers.CanOfferUseExpressionBody(option, lambdaNode, root.GetLanguageVersion(), cancellationToken))
         {
             var title = UseExpressionBodyForLambdaHelpers.UseExpressionBodyTitle.ToString();
@@ -194,7 +192,7 @@ internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : CodeRe
                 title));
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static async Task<Document> UpdateDocumentAsync(

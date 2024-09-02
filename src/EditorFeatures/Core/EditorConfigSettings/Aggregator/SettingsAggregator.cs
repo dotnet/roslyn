@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
@@ -93,7 +92,7 @@ internal partial class SettingsAggregator : ISettingsAggregator
             TryAddProviderForLanguage(LanguageNames.VisualBasic, workspace, providers);
         }
 
-        return new CombinedOptionsProviderFactory<T>(providers.ToImmutableArray());
+        return new CombinedOptionsProviderFactory<T>([.. providers]);
 
         static void TryAddProviderForLanguage(string language, Workspace workspace, List<ISettingsProviderFactory<T>> providers)
         {

@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Runtime
         private static string WithHelpers(string source)
             => source + s_helpers;
 
-        private static readonly TargetFramework s_targetFramework = TargetFramework.Net70;
+        private const TargetFramework s_targetFramework = TargetFramework.Net70;
 
         private static readonly Verification s_verification = Verification.Fails with
         {
@@ -180,13 +180,13 @@ namespace Microsoft.CodeAnalysis.Runtime
             """
         };
 
-        private CompilationVerifier CompileAndVerify(string source, string? ilVerifyMessage = null, string? expectedOutput = null)
+        private CompilationVerifier CompileAndVerify(string source, string? ilVerifyMessage = null, string? expectedOutput = null, TargetFramework targetFramework = s_targetFramework)
             => CompileAndVerify(
                 source,
                 options: (expectedOutput != null) ? TestOptions.UnsafeDebugExe : TestOptions.UnsafeDebugDll,
                 emitOptions: s_emitOptions,
                 verify: s_verification with { ILVerifyMessage = ilVerifyMessage + Environment.NewLine + s_verification.ILVerifyMessage },
-                targetFramework: s_targetFramework,
+                targetFramework: targetFramework,
                 expectedOutput: expectedOutput);
 
         // Only used to diagnose test verification failures (rename CompileAndVerify to CompileAndVerifyFails and rerun).
@@ -1684,6 +1684,82 @@ F: Returned
   // sequence point: }
   IL_0066:  ret
 }");
+        }
+
+        [Fact]
+        public void RefStructTypeParameter()
+        {
+            var source = WithHelpers("""
+S.F(new S());
+
+ref struct S
+{
+    ref int X;
+
+    public static void F<T>(T p)
+        where T : struct, allows ref struct
+    {
+        int a = 1;
+        var x = p = default(T);
+    }
+}
+""");
+            var verifier = CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.Net90,
+                expectedOutput: @"
+<Main>$: Entered
+<Main>$: P'args'[0] = System.String[]
+F: Entered
+F: L1 = 1
+F: Returned
+<Main>$: Returned
+");
+
+            // writes to x and p are not logged since we can't invoke ToString()
+            verifier.VerifyMethodBody("S.F<T>(T)", @"
+{
+  // Code size       46 (0x2e)
+  .maxstack  3
+  .locals init (Microsoft.CodeAnalysis.Runtime.LocalStoreTracker V_0,
+            int V_1, //a
+            T V_2) //x
+  // sequence point: <hidden>
+  IL_0000:  ldtoken    ""void S.F<T>(T)""
+  IL_0005:  call       ""Microsoft.CodeAnalysis.Runtime.LocalStoreTracker Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogMethodEntry(int)""
+  IL_000a:  stloc.0
+  .try
+  {
+    // sequence point: {
+    IL_000b:  nop
+    // sequence point: int a = 1;
+    IL_000c:  ldloca.s   V_0
+    IL_000e:  ldc.i4.1
+    IL_000f:  dup
+    IL_0010:  stloc.1
+    IL_0011:  ldc.i4.1
+    IL_0012:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogLocalStore(uint, int)""
+    IL_0017:  nop
+    // sequence point: var x = p = default(T);
+    IL_0018:  ldarga.s   V_0
+    IL_001a:  initobj    ""T""
+    IL_0020:  ldarg.0
+    IL_0021:  stloc.2
+    // sequence point: }
+    IL_0022:  leave.s    IL_002d
+  }
+  finally
+  {
+    // sequence point: <hidden>
+    IL_0024:  ldloca.s   V_0
+    IL_0026:  call       ""void Microsoft.CodeAnalysis.Runtime.LocalStoreTracker.LogReturn()""
+    IL_002b:  nop
+    IL_002c:  endfinally
+  }
+  // sequence point: }
+  IL_002d:  ret
+}
+");
         }
 
         [Fact]
@@ -5524,7 +5600,7 @@ class C
 Main: Entered
 Main: L'a' = 1
 Main: L'b' = 2
-Main: L4 = System.Linq.Enumerable+SelectArrayIterator`2[System.Int32,System.Int32]
+Main: L4 = System.Linq.Enumerable+ArraySelectIterator`2[System.Int32,System.Int32]
 Main: Entered lambda '<Main>b__0'
 <Main>b__0: P'item'[0] = 10
 <Main>b__0: Returned

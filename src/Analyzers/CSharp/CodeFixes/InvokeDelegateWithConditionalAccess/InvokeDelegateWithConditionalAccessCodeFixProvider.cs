@@ -22,6 +22,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess;
 
+using static SyntaxFactory;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.InvokeDelegateWithConditionalAccess), Shared]
 internal partial class InvokeDelegateWithConditionalAccessCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
@@ -93,13 +95,13 @@ internal partial class InvokeDelegateWithConditionalAccessCodeFixProvider : Synt
         var (invokedExpression, invokeName) =
             invocationExpression.Expression is MemberAccessExpressionSyntax { Name: IdentifierNameSyntax { Identifier.ValueText: nameof(Action.Invoke) } } memberAccessExpression
                 ? (memberAccessExpression.Expression, memberAccessExpression.Name)
-                : (invocationExpression.Expression, SyntaxFactory.IdentifierName(nameof(Action.Invoke)));
+                : (invocationExpression.Expression, IdentifierName(nameof(Action.Invoke)));
 
         StatementSyntax newStatement = expressionStatement.WithExpression(
-            SyntaxFactory.ConditionalAccessExpression(
+            ConditionalAccessExpression(
                 invokedExpression,
-                SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberBindingExpression(invokeName), invocationExpression.ArgumentList)));
+                InvocationExpression(
+                    MemberBindingExpression(invokeName), invocationExpression.ArgumentList)));
         newStatement = newStatement.WithPrependedLeadingTrivia(ifStatement.GetLeadingTrivia());
 
         if (ifStatement.Parent.IsKind(SyntaxKind.ElseClause) &&
@@ -140,13 +142,13 @@ internal partial class InvokeDelegateWithConditionalAccessCodeFixProvider : Synt
         var invokeName =
             invocationExpression.Expression is MemberAccessExpressionSyntax { Name: IdentifierNameSyntax { Identifier.ValueText: nameof(Action.Invoke) } } memberAccessExpression
                 ? memberAccessExpression.Name
-                : SyntaxFactory.IdentifierName(nameof(Action.Invoke));
+                : IdentifierName(nameof(Action.Invoke));
 
         var newStatement = expressionStatement.WithExpression(
-            SyntaxFactory.ConditionalAccessExpression(
+            ConditionalAccessExpression(
                 localDeclarationStatement.Declaration.Variables[0].Initializer!.Value.Parenthesize(),
-                SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberBindingExpression(invokeName), invocationExpression.ArgumentList)));
+                InvocationExpression(
+                    MemberBindingExpression(invokeName), invocationExpression.ArgumentList)));
 
         newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);
         newStatement = AppendTriviaWithoutEndOfLines(newStatement, ifStatement);

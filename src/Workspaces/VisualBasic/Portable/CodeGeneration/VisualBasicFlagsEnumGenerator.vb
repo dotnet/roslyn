@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 constantValue As Object) As SyntaxNode
             Dim expression = ExpressionGenerator.GenerateNonEnumValueExpression(
                 enumType.EnumUnderlyingType, constantValue, canUseFieldReference:=True)
-            Dim constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingSpecialType)
+            Dim constantValueULong = underlyingSpecialType.ConvertUnderlyingValueToUInt64(constantValue)
             If constantValueULong = 0 Then
                 Return expression
             End If

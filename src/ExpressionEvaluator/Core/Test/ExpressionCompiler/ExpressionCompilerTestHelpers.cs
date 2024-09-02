@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             actual.Free();
             expected.Free();
 
-            void sort(ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)> builder)
+            static void sort(ArrayBuilder<(AssemblyIdentity, AssemblyIdentity, int)> builder)
             {
                 builder.Sort((x, y) => AssemblyIdentityComparer.SimpleNameComparer.Compare(x.Item1.GetDisplayName(), y.Item1.GetDisplayName()));
             }

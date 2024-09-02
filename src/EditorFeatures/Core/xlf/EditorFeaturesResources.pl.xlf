@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pl" original="../EditorFeaturesResources.resx">
     <body>
+      <trans-unit id="An_error_occurred_while_generating_documentation_for_this_code">
+        <source>An error occurred while generating documentation for this code.</source>
+        <target state="translated">Wystąpił błąd podczas generowania dokumentacji dla tego kodu.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
         <target state="translated">Wbudowana sesja zmieniania nazwy jest aktywna dla identyfikatora „{0}”. Wywołaj ponownie wbudowane zmienianie nazwy, aby uzyskać dostęp do dodatkowych opcji. W dowolnym momencie możesz kontynuować edytowanie identyfikatora, którego nazwa jest zmieniana.</target>
@@ -20,6 +25,21 @@
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">Obliczanie informacji „Hermetyzuj pole”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copilot">
+        <source>Copilot</source>
+        <target state="translated">Copilot</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copilot_thinking">
+        <source>Copilot thinking...</source>
+        <target state="translated">Funkcja Copilot myśli...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Describe_with_Copilot">
+        <source>Describe with Copilot</source>
+        <target state="translated">Opisz za pomocą funkcji Copilot</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -56,6 +76,11 @@
         <source>Filter</source>
         <target state="translated">Filtr</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
+      </trans-unit>
+      <trans-unit id="Generate_summary_with_Copilot">
+        <source>Generate summary with Copilot (might be inaccurate)</source>
+        <target state="translated">Wygeneruj podsumowanie za pomocą funkcji Copilot (może być niedokładne)</target>
+        <note />
       </trans-unit>
       <trans-unit id="Get_help_for_0">
         <source>Get help for '{0}'</source>
@@ -202,6 +227,16 @@
         <target state="translated">Nie</target>
         <note />
       </trans-unit>
+      <trans-unit id="Obsolete_symbol">
+        <source>Obsolete symbol</source>
+        <target state="translated">Przestarzały symbol</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="On_the_fly_documentation">
+        <source>On-the-fly documentation</source>
+        <target state="translated">Dokumentacja na bieżąco</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
         <target state="translated">Operator — przeciążony</target>
@@ -290,6 +325,11 @@
       <trans-unit id="Roslyn_Test_Code_Markup">
         <source>Roslyn Test Code Markup</source>
         <target state="translated">Adiustacja kodu testowego Roslyn</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run">
+        <source>Run</source>
+        <target state="translated">Uruchom</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_comment">
@@ -595,6 +635,11 @@
       <trans-unit id="_0_implemented_members">
         <source>'{0}' implemented members</source>
         <target state="translated">Zaimplementowane składowe: „{0}”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_intercepted_locations">
+        <source>'{0}' intercepted locations</source>
+        <target state="translated">Przechwycone lokalizacje: „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">

@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -19,9 +18,7 @@ internal static class ILanguageServiceProviderExtensions
         where TMetadata : ILanguageMetadata
     {
         if (items == null)
-        {
-            return SpecializedCollections.EmptyEnumerable<Lazy<T, TMetadata>>();
-        }
+            return [];
 
         return items.Where(lazy => lazy.Metadata.Language == serviceProvider.Language);
     }

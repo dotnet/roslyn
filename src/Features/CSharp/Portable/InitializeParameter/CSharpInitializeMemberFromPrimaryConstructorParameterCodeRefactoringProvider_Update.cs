@@ -18,6 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InitializeParameter;
 
+using static CSharpSyntaxTokens;
 using static InitializeParameterHelpers;
 using static InitializeParameterHelpersCore;
 using static SyntaxFactory;
@@ -234,7 +235,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
                     editor.ReplaceNode(
                         propertyDeclaration,
                         newPropertyDeclaration.WithoutTrailingTrivia()
-                            .WithSemicolonToken(Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(newPropertyDeclaration.GetTrailingTrivia()))
+                            .WithSemicolonToken(SemicolonToken.WithTrailingTrivia(newPropertyDeclaration.GetTrailingTrivia()))
                             .WithInitializer(initializer));
                     break;
                 }

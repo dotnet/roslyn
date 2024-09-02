@@ -412,7 +412,7 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
                 result.Add((property, declaration));
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static async Task<SyntaxNode?> GetPropertyDeclarationAsync(

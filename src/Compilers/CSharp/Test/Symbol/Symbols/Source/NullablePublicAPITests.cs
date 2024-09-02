@@ -1557,7 +1557,7 @@ class C
 
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
-                // (5,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                // (5,12): warning CS8618: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 //     public C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "Prop").WithLocation(5, 12));
 
@@ -1651,7 +1651,7 @@ class C
 
             var comp = CreateCompilation(source, options: WithNullableEnable());
             comp.VerifyDiagnostics(
-                // (6,27): warning CS8618: Non-nullable field 's_data' must contain a non-null value when exiting constructor. Consider declaring the field as nullable.
+                // (6,27): warning CS8618: Non-nullable field 's_data' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the field as nullable.
                 //     private static string s_data;
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "s_data").WithArguments("field", "s_data").WithLocation(6, 27),
                 // (6,27): warning CS0649: Field 'C.s_data' is never assigned to, and will always have its default value null

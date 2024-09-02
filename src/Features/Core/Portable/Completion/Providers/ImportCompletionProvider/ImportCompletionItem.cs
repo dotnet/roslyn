@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Tags;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -46,19 +47,19 @@ internal static class ImportCompletionItem
 
             if (extensionMethodData.HasValue)
             {
-                builder.Add(new KeyValuePair<string, string>(MethodKey, extensionMethodData.Value.methodSymbolKey));
-                builder.Add(new KeyValuePair<string, string>(ReceiverKey, extensionMethodData.Value.receiverTypeSymbolKey));
+                builder.Add(KeyValuePairUtil.Create(MethodKey, extensionMethodData.Value.methodSymbolKey));
+                builder.Add(KeyValuePairUtil.Create(ReceiverKey, extensionMethodData.Value.receiverTypeSymbolKey));
 
                 if (extensionMethodData.Value.overloadCount > 0)
                 {
-                    builder.Add(new KeyValuePair<string, string>(OverloadCountKey, extensionMethodData.Value.overloadCount.ToString()));
+                    builder.Add(KeyValuePairUtil.Create(OverloadCountKey, extensionMethodData.Value.overloadCount.ToString()));
                 }
             }
             else
             {
                 // We don't need arity to recover symbol if we already have SymbolKeyData or it's 0.
                 // (but it still needed below to decide whether to show generic suffix)
-                builder.Add(new KeyValuePair<string, string>(TypeAritySuffixName, ArityUtilities.GetMetadataAritySuffix(arity)));
+                builder.Add(KeyValuePairUtil.Create(TypeAritySuffixName, ArityUtilities.GetMetadataAritySuffix(arity)));
             }
 
             properties = builder.ToImmutable();
@@ -97,9 +98,9 @@ internal static class ImportCompletionItem
         var attributeItems = attributeItem.GetProperties();
 
         // Remember the full type name so we can get the symbol when description is displayed.
-        using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(attributeItems.Length + 1, out var builder);
+        var builder = new FixedSizeArrayBuilder<KeyValuePair<string, string>>(attributeItems.Length + 1);
         builder.AddRange(attributeItems);
-        builder.Add(new KeyValuePair<string, string>(AttributeFullName, attributeItem.DisplayText));
+        builder.Add(KeyValuePairUtil.Create(AttributeFullName, attributeItem.DisplayText));
 
         var sortTextBuilder = PooledStringBuilder.GetInstance();
         sortTextBuilder.Builder.AppendFormat(GetSortTextFormatString(attributeItem.InlineDescription), attributeNameWithoutSuffix, attributeItem.InlineDescription);
@@ -107,7 +108,7 @@ internal static class ImportCompletionItem
         var item = CompletionItem.CreateInternal(
              displayText: attributeNameWithoutSuffix,
              sortText: sortTextBuilder.ToStringAndFree(),
-             properties: builder.ToImmutable(),
+             properties: builder.MoveToImmutable(),
              tags: attributeItem.Tags,
              rules: attributeItem.Rules,
              displayTextPrefix: attributeItem.DisplayTextPrefix,
@@ -219,12 +220,8 @@ internal static class ImportCompletionItem
     public static CompletionItem MarkItemToAlwaysFullyQualify(CompletionItem item)
     {
         var itemProperties = item.GetProperties();
-
-        using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(itemProperties.Length + 1, out var builder);
-        builder.AddRange(itemProperties);
-        builder.Add(new KeyValuePair<string, string>(AlwaysFullyQualifyKey, AlwaysFullyQualifyKey));
-
-        return item.WithProperties(builder.ToImmutable());
+        ImmutableArray<KeyValuePair<string, string>> properties = [.. itemProperties, KeyValuePairUtil.Create(AlwaysFullyQualifyKey, AlwaysFullyQualifyKey)];
+        return item.WithProperties(properties);
     }
 
     public static bool ShouldAlwaysFullyQualify(CompletionItem item) => item.TryGetProperty(AlwaysFullyQualifyKey, out var _);

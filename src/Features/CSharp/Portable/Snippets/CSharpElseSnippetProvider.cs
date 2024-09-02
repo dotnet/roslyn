@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
@@ -17,13 +16,13 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-internal class CSharpElseSnippetProvider : AbstractElseSnippetProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpElseSnippetProvider() : AbstractElseSnippetProvider<ElseClauseSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpElseSnippetProvider()
-    {
-    }
+    public override string Identifier => CSharpSnippetIdentifiers.Else;
+
+    public override string Description => FeaturesResources.else_statement;
 
     protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
     {
@@ -61,20 +60,16 @@ internal class CSharpElseSnippetProvider : AbstractElseSnippetProvider
         return Task.FromResult(new TextChange(TextSpan.FromBounds(position, position), elseClause.ToFullString()));
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-    {
-        return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<ElseClauseSyntax>(
-            caretTarget,
+    protected override int GetTargetCaretPosition(ElseClauseSyntax elseClause, SourceText sourceText)
+        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
+            elseClause,
             static c => (BlockSyntax)c.Statement,
             sourceText);
-    }
 
-    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-    {
-        return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<ElseClauseSyntax>(
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, ElseClauseSyntax elseClause, CancellationToken cancellationToken)
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync(
             document,
-            FindSnippetAnnotation,
+            elseClause,
             static c => (BlockSyntax)c.Statement,
             cancellationToken);
-    }
 }

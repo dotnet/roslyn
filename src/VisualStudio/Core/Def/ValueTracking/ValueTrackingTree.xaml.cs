@@ -114,7 +114,7 @@ internal partial class ValueTrackingTree : UserControl
     {
         if (ValueTrackingTreeView.SelectedItem is null)
         {
-            return (TreeViewItemBase)ValueTrackingTreeView.Items[ValueTrackingTreeView.Items.Count - 1];
+            return (TreeViewItemBase)ValueTrackingTreeView.Items[^1];
         }
 
         var item = (TreeViewItemBase)ValueTrackingTreeView.SelectedItem;

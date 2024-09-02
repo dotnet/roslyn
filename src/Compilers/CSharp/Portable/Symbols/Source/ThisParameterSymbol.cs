@@ -7,10 +7,122 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class ThisParameterSymbol : ParameterSymbol
+    internal abstract class ThisParameterSymbolBase : ParameterSymbol
     {
         internal const string SymbolName = "this";
 
+        public sealed override string Name => SymbolName;
+
+        public sealed override bool IsDiscard => false;
+
+        public sealed override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+        {
+            get { return ImmutableArray<SyntaxReference>.Empty; }
+        }
+
+        internal sealed override ConstantValue? ExplicitDefaultConstantValue
+        {
+            get { return null; }
+        }
+
+        internal sealed override bool IsMetadataOptional
+        {
+            get { return false; }
+        }
+
+        public sealed override bool IsParamsArray
+        {
+            get { return false; }
+        }
+
+        public sealed override bool IsParamsCollection
+        {
+            get { return false; }
+        }
+
+        internal sealed override bool IsIDispatchConstant
+        {
+            get { return false; }
+        }
+
+        internal sealed override bool IsIUnknownConstant
+        {
+            get { return false; }
+        }
+
+        internal sealed override bool IsCallerFilePath
+        {
+            get { return false; }
+        }
+
+        internal sealed override bool IsCallerLineNumber
+        {
+            get { return false; }
+        }
+
+        internal sealed override bool IsCallerMemberName
+        {
+            get { return false; }
+        }
+
+        internal sealed override int CallerArgumentExpressionParameterIndex
+        {
+            get { return -1; }
+        }
+
+        internal sealed override FlowAnalysisAnnotations FlowAnalysisAnnotations
+        {
+            get { return FlowAnalysisAnnotations.None; }
+        }
+
+        internal sealed override ImmutableHashSet<string> NotNullIfParameterNotNull
+        {
+            get { return ImmutableHashSet<string>.Empty; }
+        }
+
+        public sealed override int Ordinal
+        {
+            get { return -1; }
+        }
+
+        public sealed override ImmutableArray<CustomModifier> RefCustomModifiers
+        {
+            get { return ImmutableArray<CustomModifier>.Empty; }
+        }
+
+        public sealed override bool IsThis
+        {
+            get { return true; }
+        }
+
+        // "this" is never explicitly declared.
+        public sealed override bool IsImplicitlyDeclared
+        {
+            get { return true; }
+        }
+
+        internal sealed override bool IsMetadataIn
+        {
+            get { return false; }
+        }
+
+        internal sealed override bool IsMetadataOut
+        {
+            get { return false; }
+        }
+
+        internal sealed override MarshalPseudoCustomAttributeData? MarshallingInformation
+        {
+            get { return null; }
+        }
+
+        internal sealed override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;
+
+        internal sealed override bool HasInterpolatedStringHandlerArgumentError => false;
+    }
+
+    internal sealed class ThisParameterSymbol : ThisParameterSymbolBase
+    {
         private readonly MethodSymbol? _containingMethod;
         private readonly TypeSymbol _containingType;
 
@@ -24,10 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _containingMethod = forMethod;
             _containingType = containingType;
         }
-
-        public override string Name => SymbolName;
-
-        public override bool IsDiscard => false;
 
         public override TypeWithAnnotations TypeWithAnnotations
             => TypeWithAnnotations.Create(_containingType, NullableAnnotation.NotAnnotated);
@@ -60,116 +168,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _containingMethod is not null ? _containingMethod.Locations : ImmutableArray<Location>.Empty; }
         }
 
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get { return ImmutableArray<SyntaxReference>.Empty; }
-        }
-
         public override Symbol ContainingSymbol
         {
             get { return (Symbol?)_containingMethod ?? _containingType; }
         }
-
-        internal override ConstantValue? ExplicitDefaultConstantValue
-        {
-            get { return null; }
-        }
-
-        internal override bool IsMetadataOptional
-        {
-            get { return false; }
-        }
-
-        public override bool IsParamsArray
-        {
-            get { return false; }
-        }
-
-        public override bool IsParamsCollection
-        {
-            get { return false; }
-        }
-
-        internal override bool IsIDispatchConstant
-        {
-            get { return false; }
-        }
-
-        internal override bool IsIUnknownConstant
-        {
-            get { return false; }
-        }
-
-        internal override bool IsCallerFilePath
-        {
-            get { return false; }
-        }
-
-        internal override bool IsCallerLineNumber
-        {
-            get { return false; }
-        }
-
-        internal override bool IsCallerMemberName
-        {
-            get { return false; }
-        }
-
-        internal override int CallerArgumentExpressionParameterIndex
-        {
-            get { return -1; }
-        }
-
-        internal override FlowAnalysisAnnotations FlowAnalysisAnnotations
-        {
-            get { return FlowAnalysisAnnotations.None; }
-        }
-
-        internal override ImmutableHashSet<string> NotNullIfParameterNotNull
-        {
-            get { return ImmutableHashSet<string>.Empty; }
-        }
-
-        public override int Ordinal
-        {
-            get { return -1; }
-        }
-
-        public override ImmutableArray<CustomModifier> RefCustomModifiers
-        {
-            get { return ImmutableArray<CustomModifier>.Empty; }
-        }
-
-        // TODO: structs
-        public override bool IsThis
-        {
-            get { return true; }
-        }
-
-        // "this" is never explicitly declared.
-        public override bool IsImplicitlyDeclared
-        {
-            get { return true; }
-        }
-
-        internal override bool IsMetadataIn
-        {
-            get { return false; }
-        }
-
-        internal override bool IsMetadataOut
-        {
-            get { return false; }
-        }
-
-        internal override MarshalPseudoCustomAttributeData? MarshallingInformation
-        {
-            get { return null; }
-        }
-
-        internal override ImmutableArray<int> InterpolatedStringHandlerArgumentIndexes => ImmutableArray<int>.Empty;
-
-        internal override bool HasInterpolatedStringHandlerArgumentError => false;
 
         internal override ScopedKind EffectiveScope
         {

@@ -5,21 +5,15 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.BraceMatching
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.Tagging
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Tagging
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
-
     <[UseExportProvider]>
     <Trait(Traits.Feature, Traits.Features.BraceHighlighting)>
     Public Class BraceHighlightingTests
-
         Private Shared Function Enumerable(Of t)(ParamArray array() As t) As IEnumerable(Of t)
             Return array
         End Function
@@ -28,15 +22,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.BraceMatching
             WpfTestRunner.RequireWpfFact($"{NameOf(BraceHighlightingTests)}.{NameOf(Me.ProduceTagsAsync)} creates asynchronous taggers")
 
             Dim producer = New BraceHighlightingViewTaggerProvider(
-                workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
-                workspace.GetService(Of IBraceMatchingService),
-                workspace.GetService(Of IGlobalOptionService),
-                visibilityTracker:=Nothing,
-                AsynchronousOperationListenerProvider.NullProvider)
+                workspace.GetService(Of TaggerHost),
+                workspace.GetService(Of IBraceMatchingService))
 
             Dim doc = buffer.CurrentSnapshot.GetRelatedDocumentsWithChanges().FirstOrDefault()
             Dim context = New TaggerContext(Of BraceHighlightTag)(
-                doc, buffer.CurrentSnapshot, New SnapshotPoint(buffer.CurrentSnapshot, position))
+                doc, buffer.CurrentSnapshot, frozenPartialSemantics:=False, New SnapshotPoint(buffer.CurrentSnapshot, position))
             Await producer.GetTestAccessor().ProduceTagsAsync(context)
             Return context.TagSpans
         End Function

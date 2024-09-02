@@ -71,7 +71,7 @@ internal static class MiscellaneousFileUtilities
                 hasAllInformation: sourceCodeKind == SourceCodeKind.Script),
             compilationOptions: compilationOptions,
             parseOptions: parseOptions,
-            documents: SpecializedCollections.SingletonEnumerable(documentInfo),
+            documents: [documentInfo],
             metadataReferences: metadataReferences);
 
         return projectInfo;

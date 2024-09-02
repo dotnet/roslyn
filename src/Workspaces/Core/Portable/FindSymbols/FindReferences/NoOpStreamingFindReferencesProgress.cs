@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -26,9 +28,7 @@ internal class NoOpStreamingFindReferencesProgress : IStreamingFindReferencesPro
     public ValueTask OnCompletedAsync(CancellationToken cancellationToken) => default;
     public ValueTask OnStartedAsync(CancellationToken cancellationToken) => default;
     public ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken) => default;
-    public ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken) => default;
-    public ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken) => default;
-    public ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken) => default;
+    public ValueTask OnReferencesFoundAsync(ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken) => default;
 
     private class NoOpProgressTracker : IStreamingProgressTracker
     {

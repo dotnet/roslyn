@@ -14,11 +14,12 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement;
+
+using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.EmbeddedStatementPlacement), Shared]
 internal sealed class EmbeddedStatementPlacementCodeFixProvider : CodeFixProvider
@@ -52,7 +53,7 @@ internal sealed class EmbeddedStatementPlacementCodeFixProvider : CodeFixProvide
 
         var options = await document.GetCSharpCodeFixOptionsProviderAsync(codeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
 
-        var endOfLineTrivia = SyntaxFactory.ElasticEndOfLine(options.NewLine);
+        var endOfLineTrivia = ElasticEndOfLine(options.NewLine);
 
         foreach (var diagnostic in diagnostics)
             FixOne(editor, diagnostic, endOfLineTrivia, cancellationToken);
@@ -95,7 +96,7 @@ internal sealed class EmbeddedStatementPlacementCodeFixProvider : CodeFixProvide
                         blockSyntax.Statements.Count == 0)
                     {
                         updatedStatement = blockSyntax.WithCloseBraceToken(
-                            AddLeadingTrivia(blockSyntax.CloseBraceToken, SyntaxFactory.ElasticMarker));
+                            AddLeadingTrivia(blockSyntax.CloseBraceToken, ElasticMarker));
                     }
 
                     return updatedStatement;
@@ -118,11 +119,11 @@ internal sealed class EmbeddedStatementPlacementCodeFixProvider : CodeFixProvide
                     if (!EmbeddedStatementPlacementDiagnosticAnalyzer.ContainsEndOfLineBetween(previousToken, openBrace))
                     {
                         currentBlock = currentBlock.WithOpenBraceToken(
-                            AddLeadingTrivia(currentBlock.OpenBraceToken, SyntaxFactory.ElasticMarker));
+                            AddLeadingTrivia(currentBlock.OpenBraceToken, ElasticMarker));
                     }
 
                     return currentBlock.WithCloseBraceToken(
-                        AddLeadingTrivia(currentBlock.CloseBraceToken, SyntaxFactory.ElasticMarker));
+                        AddLeadingTrivia(currentBlock.CloseBraceToken, ElasticMarker));
                 });
         }
     }

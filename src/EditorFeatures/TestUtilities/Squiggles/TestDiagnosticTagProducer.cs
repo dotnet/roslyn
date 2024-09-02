@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
@@ -18,11 +17,11 @@ internal sealed class TestDiagnosticTagProducer<TProvider, TTag>
     where TProvider : AbstractDiagnosticsTaggerProvider<TTag>
     where TTag : class, ITag
 {
-    internal static Task<(ImmutableArray<DiagnosticData>, ImmutableArray<ITagSpan<TTag>>)> GetDiagnosticsAndErrorSpans(
+    internal static Task<ImmutableArray<TagSpan<TTag>>> GetTagSpansAsync(
         EditorTestWorkspace workspace,
         IReadOnlyDictionary<string, ImmutableArray<DiagnosticAnalyzer>>? analyzerMap = null)
     {
-        return SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<TProvider, TTag>(workspace, analyzerMap);
+        return SquiggleUtilities.GetTagSpansAsync<TProvider, TTag>(workspace, analyzerMap);
     }
 
     internal static DiagnosticData CreateDiagnosticData(EditorTestHostDocument document, TextSpan span)

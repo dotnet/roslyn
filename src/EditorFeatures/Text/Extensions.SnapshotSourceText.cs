@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         private class SnapshotSourceText : SourceText
         {
-            private static readonly Func<int, int, string> s_textLog = (v1, v2) => string.Format("FullRange : from {0} to {1}", v1, v2);
 
             /// <summary>
             /// The <see cref="ITextImage"/> backing the SourceText instance
@@ -361,7 +360,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
                 else
                 {
-                    return GetChangeRanges(oldImage, newImage, forward: oldImage.Version.VersionNumber <= newImage.Version.VersionNumber);
+                    return ITextImageHelpers.GetChangeRanges(oldImage, newImage);
                 }
             }
 
@@ -373,78 +372,6 @@ namespace Microsoft.CodeAnalysis.Text
                 return oldSnapshot != null && newSnapshot != null && oldSnapshot.Version.ReiteratedVersionNumber == newSnapshot.Version.ReiteratedVersionNumber;
             }
 
-            private static readonly Func<ITextChange, TextChangeRange> s_forwardTextChangeRange = c => CreateTextChangeRange(c, forward: true);
-            private static readonly Func<ITextChange, TextChangeRange> s_backwardTextChangeRange = c => CreateTextChangeRange(c, forward: false);
-
-            private static IReadOnlyList<TextChangeRange> GetChangeRanges(ITextImage snapshot1, ITextImage snapshot2, bool forward)
-            {
-                var oldSnapshot = forward ? snapshot1 : snapshot2;
-                var newSnapshot = forward ? snapshot2 : snapshot1;
-
-                INormalizedTextChangeCollection? changes = null;
-                for (var oldVersion = oldSnapshot.Version;
-                    oldVersion != newSnapshot.Version;
-                    oldVersion = oldVersion.Next)
-                {
-                    if (oldVersion.Changes.Count != 0)
-                    {
-                        if (changes != null)
-                        {
-                            // Oops - more than one "textual" change between these snapshots, bail and try to find smallest changes span
-                            Logger.Log(FunctionId.Workspace_SourceText_GetChangeRanges, s_textLog, snapshot1.Version.VersionNumber, snapshot2.Version.VersionNumber);
-
-                            return [GetChangeRanges(oldSnapshot.Version, newSnapshot.Version, forward)];
-                        }
-                        else
-                        {
-                            changes = oldVersion.Changes;
-                        }
-                    }
-                }
-
-                if (changes == null)
-                {
-                    return ImmutableArray.Create<TextChangeRange>();
-                }
-                else
-                {
-                    return ImmutableArray.CreateRange(changes.Select(forward ? s_forwardTextChangeRange : s_backwardTextChangeRange));
-                }
-            }
-
-            private static TextChangeRange GetChangeRanges(ITextImageVersion oldVersion, ITextImageVersion newVersion, bool forward)
-            {
-                TextChangeRange? range = null;
-                var iterator = GetMultipleVersionTextChanges(oldVersion, newVersion, forward);
-                foreach (var changes in forward ? iterator : iterator.Reverse())
-                {
-                    range = range.Accumulate(changes);
-                }
-
-                RoslynDebug.Assert(range.HasValue);
-                return range.Value;
-            }
-
-            private static IEnumerable<IEnumerable<TextChangeRange>> GetMultipleVersionTextChanges(
-                ITextImageVersion oldVersion, ITextImageVersion newVersion, bool forward)
-            {
-                for (var version = oldVersion; version != newVersion; version = version.Next)
-                {
-                    yield return version.Changes.Select(forward ? s_forwardTextChangeRange : s_backwardTextChangeRange);
-                }
-            }
-
-            private static TextChangeRange CreateTextChangeRange(ITextChange change, bool forward)
-            {
-                if (forward)
-                {
-                    return new TextChangeRange(new TextSpan(change.OldSpan.Start, change.OldSpan.Length), change.NewLength);
-                }
-                else
-                {
-                    return new TextChangeRange(new TextSpan(change.NewSpan.Start, change.NewSpan.Length), change.OldLength);
-                }
-            }
             #endregion
         }
     }

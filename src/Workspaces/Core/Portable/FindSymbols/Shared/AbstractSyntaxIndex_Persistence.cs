@@ -17,7 +17,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 internal partial class AbstractSyntaxIndex<TIndex>
 {
     private static readonly string s_persistenceName = typeof(TIndex).Name;
-    private static readonly Checksum s_serializationFormatChecksum = CodeAnalysis.Checksum.Create("39");
+
+    /// <summary>
+    /// Increment this whenever the data format of the <see cref="AbstractSyntaxIndex{TIndex}"/> changes.  This ensures
+    /// that we will not try to read previously cached data from a prior version of roslyn with a different format and
+    /// will instead regenerate all the indices with the new format.
+    /// </summary>
+    private static readonly Checksum s_serializationFormatChecksum = CodeAnalysis.Checksum.Create("41");
 
     /// <summary>
     /// Cache of ParseOptions to a checksum for the <see cref="ParseOptions.PreprocessorSymbolNames"/> contained
@@ -64,14 +70,13 @@ internal partial class AbstractSyntaxIndex<TIndex>
         try
         {
             var storage = await storageService.GetStorageAsync(documentKey.Project.Solution, cancellationToken).ConfigureAwait(false);
-            await using var _ = storage.ConfigureAwait(false);
 
             // attempt to load from persisted state
             using var stream = await storage.ReadStreamAsync(documentKey, s_persistenceName, checksum, cancellationToken).ConfigureAwait(false);
             if (stream != null)
             {
                 using var gzipStream = new GZipStream(stream, CompressionMode.Decompress, leaveOpen: true);
-                using var reader = ObjectReader.TryGetReader(gzipStream, cancellationToken: cancellationToken);
+                using var reader = ObjectReader.TryGetReader(gzipStream);
                 if (reader != null)
                     return read(stringTable, reader, checksum);
             }
@@ -156,22 +161,19 @@ internal partial class AbstractSyntaxIndex<TIndex>
         try
         {
             var storage = await persistentStorageService.GetStorageAsync(solutionKey, cancellationToken).ConfigureAwait(false);
-            await using var _ = storage.ConfigureAwait(false);
 
-            using (var stream = SerializableBytes.CreateWritableStream())
+            using var stream = SerializableBytes.CreateWritableStream();
+            using (var gzipStream = new GZipStream(stream, CompressionLevel.Optimal, leaveOpen: true))
+            using (var writer = new ObjectWriter(gzipStream, leaveOpen: true))
             {
-                using (var gzipStream = new GZipStream(stream, CompressionLevel.Optimal, leaveOpen: true))
-                using (var writer = new ObjectWriter(gzipStream, leaveOpen: true, cancellationToken))
-                {
-                    WriteTo(writer);
-                    gzipStream.Flush();
-                }
-
-                stream.Position = 0;
-
-                var documentKey = DocumentKey.ToDocumentKey(ProjectKey.ToProjectKey(solutionKey, project), document);
-                return await storage.WriteStreamAsync(documentKey, s_persistenceName, stream, this.Checksum, cancellationToken).ConfigureAwait(false);
+                WriteTo(writer);
+                gzipStream.Flush();
             }
+
+            stream.Position = 0;
+
+            var documentKey = DocumentKey.ToDocumentKey(ProjectKey.ToProjectKey(solutionKey, project), document);
+            return await storage.WriteStreamAsync(documentKey, s_persistenceName, stream, this.Checksum, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception e) when (IOUtilities.IsNormalIOException(e))
         {

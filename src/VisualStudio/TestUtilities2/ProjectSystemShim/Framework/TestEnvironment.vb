@@ -62,10 +62,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 GetType(ProjectCodeModelFactory),
                 GetType(CPSProjectFactory),
                 GetType(VisualStudioRuleSetManagerFactory),
-                GetType(VsMetadataServiceFactory),
+                GetType(VisualStudioMetadataServiceFactory),
                 GetType(VisualStudioMetadataReferenceManagerFactory),
                 GetType(MockWorkspaceEventListenerProvider),
-                GetType(HostDiagnosticUpdateSource),
                 GetType(HierarchyItemToProjectIdMap),
                 GetType(DiagnosticAnalyzerService))
 

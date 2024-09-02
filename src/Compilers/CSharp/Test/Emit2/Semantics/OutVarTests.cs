@@ -19581,9 +19581,9 @@ public class Cls
                 // (11,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
                 //     static object Test1(out System.ArgIterator x)
                 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator x").WithArguments("System.ArgIterator").WithLocation(11, 25),
-                // (8,25): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or async lambda expressions.
+                // (8,25): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         Test2(Test1(out var x1), x1);
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.ArgIterator").WithLocation(8, 25),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 25),
                 // (6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async void Test()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Test").WithLocation(6, 16)
@@ -19630,12 +19630,12 @@ public class Cls
                 // (12,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
                 //     static object Test1(out System.ArgIterator x)
                 Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator x").WithArguments("System.ArgIterator").WithLocation(12, 25),
-                // (8,25): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or async lambda expressions.
+                // (8,25): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         Test2(Test1(out System.ArgIterator x1), x1);
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(8, 25),
-                // (9,9): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or async lambda expressions.
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.ArgIterator").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 25),
+                // (9,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 //         var x = default(System.ArgIterator);
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.ArgIterator").WithLocation(9, 9),
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(9, 9),
                 // (9,13): warning CS0219: The variable 'x' is assigned but its value is never used
                 //         var x = default(System.ArgIterator);
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(9, 13),
@@ -36342,9 +36342,9 @@ public class MyAttribute : System.Attribute
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,16): error CS1660: Cannot convert lambda expression to type 'string' because it is not a delegate type
+                // (6,41): error CS1002: ; expected
                 //         [My(() => { [My(M2(out var x))] static string M2(out int x) => throw null; })]
-                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "=>").WithArguments("lambda expression", "string").WithLocation(6, 16),
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "static").WithLocation(6, 41),
                 // (7,14): warning CS8321: The local function 'local' is declared but never used
                 //         void local(int parameter) { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "local").WithArguments("local").WithLocation(7, 14));
@@ -36356,7 +36356,7 @@ public class MyAttribute : System.Attribute
             var method = tree2.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
             Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(method.Body.SpanStart, method, out var speculativeModel));
 
-            var invocation = tree2.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            var invocation = tree2.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Skip(1).First();
             Assert.Equal("M2(out var x)", invocation.ToString());
             var symbolInfo = speculativeModel.GetSymbolInfo(invocation);
             Assert.Equal("System.String M2(out System.Int32 x)", symbolInfo.Symbol.ToTestDisplayString());

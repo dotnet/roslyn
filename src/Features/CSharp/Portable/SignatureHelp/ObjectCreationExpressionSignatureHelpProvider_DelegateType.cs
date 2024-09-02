@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.SignatureHelp;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
@@ -70,17 +69,13 @@ internal partial class ObjectCreationExpressionSignatureHelpProvider
         parts.Add(Space());
         parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, null, TargetName));
 
-        return SpecializedCollections.SingletonList(
-            new SignatureHelpSymbolParameter(
-                TargetName,
-                isOptional: false,
-                documentationFactory: null,
-                displayParts: parts));
+        return [new SignatureHelpSymbolParameter(
+            TargetName,
+            isOptional: false,
+            documentationFactory: null,
+            displayParts: parts)];
     }
 
     private static IList<SymbolDisplayPart> GetDelegateTypePostambleParts()
-    {
-        return SpecializedCollections.SingletonList(
-            Punctuation(SyntaxKind.CloseParenToken));
-    }
+        => [Punctuation(SyntaxKind.CloseParenToken)];
 }

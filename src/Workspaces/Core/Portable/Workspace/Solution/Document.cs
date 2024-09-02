@@ -326,63 +326,59 @@ public class Document : TextDocument
     /// </returns>
     private async Task<SemanticModel?> GetSemanticModelHelperAsync(bool disableNullableAnalysis, CancellationToken cancellationToken)
     {
-        try
+        if (!this.SupportsSemanticModel)
+            return null;
+
+        var semanticModel = await GetSemanticModelWorkerAsync().ConfigureAwait(false);
+        this.Project.Solution.OnSemanticModelObtained(this.Id, semanticModel);
+        return semanticModel;
+
+        async Task<SemanticModel> GetSemanticModelWorkerAsync()
         {
-            if (!this.SupportsSemanticModel)
+            try
             {
-                return null;
-            }
-
-            SemanticModel? semanticModel;
-            if (disableNullableAnalysis)
-            {
-                if (this.TryGetNullableDisabledSemanticModel(out semanticModel))
+                if (disableNullableAnalysis)
                 {
-                    return semanticModel;
+                    if (this.TryGetNullableDisabledSemanticModel(out var semanticModel))
+                        return semanticModel;
                 }
-            }
-            else
-            {
-                if (this.TryGetSemanticModel(out semanticModel))
+                else
                 {
-                    return semanticModel;
+                    if (this.TryGetSemanticModel(out var semanticModel))
+                        return semanticModel;
                 }
-            }
 
-            // <Metalama>
-            var compilation = (await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
-            var syntaxTree = compilation.SyntaxTrees.SingleOrDefault(tree => DocumentState.GetDocumentIdForTree(tree) == this.Id) ??
-                compilation.SyntaxTrees.Single(tree => tree.FilePath == this.FilePath);
-            // </Metalama>
+                // <Metalama>
+                var compilation = (await this.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false))!;
+                var syntaxTree = compilation.SyntaxTrees.SingleOrDefault(tree => DocumentState.GetDocumentIdForTree(tree) == this.Id) ??
+                    compilation.SyntaxTrees.Single(tree => tree.FilePath == this.FilePath);
+                // </Metalama>
 
 #pragma warning disable RSEXPERIMENTAL001 // sym-shipped usage of experimental API
-            var result = compilation.GetSemanticModel(syntaxTree, disableNullableAnalysis ? SemanticModelOptions.DisableNullableAnalysis : SemanticModelOptions.None);
+                var result = compilation.GetSemanticModel(syntaxTree, disableNullableAnalysis ? SemanticModelOptions.DisableNullableAnalysis : SemanticModelOptions.None);
 #pragma warning restore RSEXPERIMENTAL001
-            Contract.ThrowIfNull(result);
-            var original = Interlocked.CompareExchange(ref disableNullableAnalysis ? ref _nullableDisabledModel : ref _model, new WeakReference<SemanticModel>(result), null);
+                Contract.ThrowIfNull(result);
+                var original = Interlocked.CompareExchange(ref disableNullableAnalysis ? ref _nullableDisabledModel : ref _model, new WeakReference<SemanticModel>(result), null);
 
-            // okay, it is first time.
-            if (original == null)
-            {
-                return result;
-            }
+                // okay, it is first time.
+                if (original == null)
+                    return result;
 
-            // It looks like someone has set it. Try to reuse same semantic model, or assign the new model if that
-            // fails. The lock is required since there is no compare-and-set primitive for WeakReference<T>.
-            lock (original)
-            {
-                if (original.TryGetTarget(out semanticModel))
+                // It looks like someone has set it. Try to reuse same semantic model, or assign the new model if that
+                // fails. The lock is required since there is no compare-and-set primitive for WeakReference<T>.
+                lock (original)
                 {
-                    return semanticModel;
-                }
+                    if (original.TryGetTarget(out var semanticModel))
+                        return semanticModel;
 
-                original.SetTarget(result);
-                return result;
+                    original.SetTarget(result);
+                    return result;
+                }
             }
-        }
-        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-        {
-            throw ExceptionUtilities.Unreachable();
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
         }
     }
 
@@ -436,11 +432,9 @@ public class Document : TextDocument
         {
             using (Logger.LogBlock(FunctionId.Workspace_Document_GetTextChanges, this.Name, cancellationToken))
             {
+                // no changes
                 if (oldDocument == this)
-                {
-                    // no changes
-                    return SpecializedCollections.EmptyEnumerable<TextChange>();
-                }
+                    return [];
 
                 if (this.Id != oldDocument.Id)
                 {
@@ -451,9 +445,7 @@ public class Document : TextDocument
                 if (this.TryGetText(out var text) && oldDocument.TryGetText(out var oldText))
                 {
                     if (text == oldText)
-                    {
-                        return SpecializedCollections.EmptyEnumerable<TextChange>();
-                    }
+                        return [];
 
                     var container = text.Container;
                     if (container != null)

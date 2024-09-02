@@ -58,6 +58,6 @@ internal readonly struct TaskListItemDescriptor(string text, TaskListItemPriorit
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 }

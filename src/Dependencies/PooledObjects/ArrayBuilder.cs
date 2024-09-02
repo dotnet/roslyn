@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 {
     [DebuggerDisplay("Count = {Count,nq}")]
     [DebuggerTypeProxy(typeof(ArrayBuilder<>.DebuggerProxy))]
-    internal sealed partial class ArrayBuilder<T> : IReadOnlyCollection<T>, IReadOnlyList<T>
+    internal sealed partial class ArrayBuilder<T> : IReadOnlyCollection<T>, IReadOnlyList<T>, ICollection<T>
     {
         /// <summary>
         /// See <see cref="Free()"/> for an explanation of this constant value.
@@ -138,6 +138,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 _builder[index] = value;
             }
         }
+
+        public bool IsReadOnly
+            => false;
+
+        public bool IsEmpty
+            => Count == 0;
 
         /// <summary>
         /// Write <paramref name="value"/> to slot <paramref name="index"/>. 
@@ -263,6 +269,30 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             _builder.RemoveAt(_builder.Count - 1);
         }
 
+        public void RemoveAll(Predicate<T> match)
+        {
+            _builder.RemoveAll(match);
+        }
+
+        public void RemoveAll<TArg>(Func<T, TArg, bool> match, TArg arg)
+        {
+            var i = 0;
+            for (var j = 0; j < _builder.Count; j++)
+            {
+                if (!match(_builder[j], arg))
+                {
+                    if (i != j)
+                    {
+                        _builder[i] = _builder[j];
+                    }
+
+                    i++;
+                }
+            }
+
+            Clip(i);
+        }
+
         public void ReverseContents()
         {
             _builder.Reverse();
@@ -279,7 +309,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         }
 
         public void Sort(Comparison<T> compare)
-            => Sort(Comparer<T>.Create(compare));
+        {
+            if (this.Count <= 1)
+                return;
+
+            Sort(Comparer<T>.Create(compare));
+        }
 
         public void Sort(int startIndex, IComparer<T> comparer)
         {

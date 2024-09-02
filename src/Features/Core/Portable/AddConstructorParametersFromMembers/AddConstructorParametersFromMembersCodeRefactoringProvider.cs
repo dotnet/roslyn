@@ -5,11 +5,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -108,7 +106,7 @@ internal partial class AddConstructorParametersFromMembersCodeRefactoringProvide
             actions.Add(result.OptionalParameterActions.Single());
         }
 
-        return actions.ToImmutable();
+        return actions.ToImmutableAndClear();
     }
 
     private static AddConstructorParameterResult CreateCodeActions(Document document, CodeGenerationContextInfo info, State state)
@@ -181,7 +179,7 @@ internal partial class AddConstructorParametersFromMembersCodeRefactoringProvide
             return [];
         }
 
-        using var _ = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);
+        var results = new FixedSizeArrayBuilder<IntentProcessorResult>(actions.Length);
         foreach (var action in actions)
         {
             // Intents currently have no way to report progress.
@@ -192,6 +190,6 @@ internal partial class AddConstructorParametersFromMembersCodeRefactoringProvide
             results.Add(intent);
         }
 
-        return results.ToImmutable();
+        return results.MoveToImmutable();
     }
 }

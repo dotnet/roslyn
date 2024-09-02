@@ -6,21 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api;
 using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode;
 
@@ -88,7 +83,7 @@ internal class IntentSourceProvider(
             convertedResults.AddIfNotNull(convertedIntent);
         }
 
-        return convertedResults.ToImmutable();
+        return convertedResults.ToImmutableAndClear();
     }
 
     private static async Task<IntentSource?> ConvertToIntelliCodeResultAsync(

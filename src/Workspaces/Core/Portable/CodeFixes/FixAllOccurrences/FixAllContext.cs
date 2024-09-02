@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -85,8 +84,9 @@ public partial class FixAllContext : IFixAllContext
     IFixAllContext IFixAllContext.With(
         Optional<(Document? document, Project project)> documentAndProject,
         Optional<FixAllScope> scope,
-        Optional<string?> codeActionEquivalenceKey)
-        => this.With(documentAndProject, scope, codeActionEquivalenceKey);
+        Optional<string?> codeActionEquivalenceKey,
+        Optional<CancellationToken> cancellationToken)
+        => this.With(documentAndProject, scope, codeActionEquivalenceKey, cancellationToken);
     #endregion
 
     /// <summary>
@@ -330,23 +330,20 @@ public partial class FixAllContext : IFixAllContext
     /// Gets a new <see cref="FixAllContext"/> with the given cancellationToken.
     /// </summary>
     public FixAllContext WithCancellationToken(CancellationToken cancellationToken)
-    {
-        // TODO: We should change this API to be a virtual method, as the class is not sealed.
-        if (this.CancellationToken == cancellationToken)
-        {
-            return this;
-        }
-
-        return new FixAllContext(State, this.Progress, cancellationToken);
-    }
+        => With(cancellationToken: cancellationToken);
 
     internal FixAllContext With(
         Optional<(Document? document, Project project)> documentAndProject = default,
         Optional<FixAllScope> scope = default,
-        Optional<string?> codeActionEquivalenceKey = default)
+        Optional<string?> codeActionEquivalenceKey = default,
+        Optional<CancellationToken> cancellationToken = default)
     {
         var newState = State.With(documentAndProject, scope, codeActionEquivalenceKey);
-        return State == newState ? this : new FixAllContext(newState, this.Progress, CancellationToken);
+        var newCancellationToken = cancellationToken.HasValue ? cancellationToken.Value : this.CancellationToken;
+
+        return State == newState && CancellationToken == newCancellationToken
+            ? this
+            : new FixAllContext(newState, this.Progress, newCancellationToken);
     }
 
     internal Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync()

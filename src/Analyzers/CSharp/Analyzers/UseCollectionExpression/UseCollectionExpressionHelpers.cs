@@ -5,12 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -19,6 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class UseCollectionExpressionHelpers
@@ -106,6 +109,10 @@ internal static class UseCollectionExpressionHelpers
             return false;
         }
 
+        var operation = semanticModel.GetOperation(topMostExpression, cancellationToken);
+        if (operation?.Parent is IAssignmentOperation { Type.TypeKind: TypeKind.Dynamic })
+            return false;
+
         // HACK: Workaround lack of compiler information for collection expression conversions with casts.
         // Specifically, hardcode in knowledge that a cast to a constructible collection type of the empty collection
         // expression will always succeed, and there's no need to actually validate semantics there.
@@ -190,6 +197,16 @@ internal static class UseCollectionExpressionHelpers
             if (s_tupleNamesCanDifferComparer.Equals(type, convertedType))
                 return true;
 
+            // It's always safe to convert List<X> to ICollection<X> or IList<X> as the language guarantees that it will
+            // continue emitting a List<X> for those target types.
+            var isWellKnownCollectionReadWriteInterface = IsWellKnownCollectionReadWriteInterface(convertedType);
+            if (isWellKnownCollectionReadWriteInterface &&
+                Equals(type.OriginalDefinition, compilation.ListOfTType()) &&
+                type.AllInterfaces.Contains(convertedType))
+            {
+                return true;
+            }
+
             // Before this point are all the changes that we can detect that are always safe to make.
             if (!allowSemanticsChange)
                 return false;
@@ -201,7 +218,7 @@ internal static class UseCollectionExpressionHelpers
 
             // In the case of a singleton (like `Array.Empty<T>()`) we don't want to convert to `IList<T>` as that
             // will replace the code with code that now always allocates.
-            if (isSingletonInstance && IsWellKnownCollectionReadWriteInterface(convertedType))
+            if (isSingletonInstance && isWellKnownCollectionReadWriteInterface)
                 return false;
 
             // Ok to convert in cases like:
@@ -209,7 +226,16 @@ internal static class UseCollectionExpressionHelpers
             // `IEnumerable<object> obj = Array.Empty<object>();` or
             // `IEnumerable<string> obj = new[] { "" };`
             if (IsWellKnownCollectionInterface(convertedType) && type.AllInterfaces.Contains(convertedType))
+            {
+                // The observable collections are known to have significantly different behavior than List<T>.  So
+                // disallow converting those types to ensure semantics are preserved.  We do this even though
+                // allowSemanticsChange is true because this will basically be certain to break semantics, as opposed to
+                // the more common case where semantics may change slightly, but likely not in a way that breaks code.
+                if (type.Name is nameof(ObservableCollection<int>) or nameof(ReadOnlyObservableCollection<int>))
+                    return false;
+
                 return true;
+            }
 
             // Implicit reference array conversion is acceptable if the user is ok with semantics changing.  For example:
             //
@@ -675,10 +701,10 @@ internal static class UseCollectionExpressionHelpers
         InitializerExpressionSyntax initializer, bool wasOnSingleLine)
     {
         // if the initializer is already on multiple lines, keep it that way.  otherwise, squash from `{ 1, 2, 3 }` to `[1, 2, 3]`
-        var openBracket = Token(SyntaxKind.OpenBracketToken).WithTriviaFrom(initializer.OpenBraceToken);
+        var openBracket = OpenBracketToken.WithTriviaFrom(initializer.OpenBraceToken);
         var elements = initializer.Expressions.GetWithSeparators().SelectAsArray(
             i => i.IsToken ? i : ExpressionElement((ExpressionSyntax)i.AsNode()!));
-        var closeBracket = Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(initializer.CloseBraceToken);
+        var closeBracket = CloseBracketToken.WithTriviaFrom(initializer.CloseBraceToken);
 
         // If it was on a single line to begin with, then remove the inner spaces on the `{ ... }` to create `[...]`. If
         // it was multiline, leave alone as we want the brackets to just replace the existing braces exactly as they are.
@@ -890,7 +916,7 @@ internal static class UseCollectionExpressionHelpers
             return default;
         }
 
-        return matches.ToImmutable();
+        return matches.ToImmutableAndClear();
     }
 
     public static bool IsCollectionFactoryCreate(

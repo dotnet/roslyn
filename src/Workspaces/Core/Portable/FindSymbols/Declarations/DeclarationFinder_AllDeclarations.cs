@@ -74,7 +74,7 @@ internal static partial class DeclarationFinder
             await SearchMetadataReferencesAsync().ConfigureAwait(false);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
 
         async Task SearchCurrentProjectAsync()
         {

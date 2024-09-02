@@ -7,7 +7,6 @@
 using System;
 using System.Linq;
 using EnvDTE;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Roslyn.Test.Utilities;
