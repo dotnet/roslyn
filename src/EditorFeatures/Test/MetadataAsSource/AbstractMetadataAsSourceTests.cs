@@ -28,7 +28,7 @@ public abstract partial class AbstractMetadataAsSourceTests : IAsyncLifetime
         AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.MscorlibRef_v46, "mscorlib.v4_6_1038_0.dll", ImmutableArray.Create(Net461.ReferenceInfos.mscorlib.ImageBytes));
         AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemRef_v46, "System.v4_6_1038_0.dll", ImmutableArray.Create(Net461.ReferenceInfos.System.ImageBytes));
         AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemCoreRef_v46, "System.Core.v4_6_1038_0.dll", ImmutableArray.Create(Net461.ReferenceInfos.SystemCore.ImageBytes));
-        AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.ValueTupleRef, "System.ValueTuple.dll", ImmutableArray.Create(TestResources.NetFX.ValueTuple.tuplelib));
+        AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.ValueTupleRef, "System.ValueTuple.dll", ImmutableArray.Create(Net461.ExtraReferenceInfos.SystemValueTuple.ImageBytes));
         AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemRuntimeFacadeRef, "System.Runtime.dll", ImmutableArray.Create(Net461.Resources.SystemRuntime));
         AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.MsvbRef, "Microsoft.VisualBasic.dll", ImmutableArray.Create(Net461.Resources.MicrosoftVisualBasic));
         AssemblyResolver.TestAccessor.AddInMemoryImage(TestBase.SystemXmlRef, "System.Xml.v4_0_30319.dll", ImmutableArray.Create(Net461.Resources.SystemXml));
