@@ -724,11 +724,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        // PROTOTYPE: Where else are we using BackingField from the property implementation rather than definition?
+        // PROTOTYPE: This two-step lookup is too fragile. Both parts should be pointing to the same BackingField.
         internal SynthesizedBackingFieldSymbol GetBackingFieldPreferringDefinitionPart()
         {
-            // PROTOTYPE: Where else are we using BackingField from the property implementation rather than definition?
-            // PROTOTYPE: This two-step lookup is too fragile. Both parts should be pointing to the same BackingField.
-            return (this as SourcePropertySymbol)?.SourcePartialDefinitionPart?.BackingField ?? BackingField;
+            if (this is SourcePropertySymbol { IsPartial: true } property)
+            {
+                if (property.IsPartialImplementation)
+                {
+                    var field = property.SourcePartialDefinitionPart?.BackingField;
+                    if (field is { })
+                    {
+                        return field;
+                    }
+                }
+                return BackingField ?? property.OtherPartOfPartial?.BackingField;
+            }
+            return BackingField;
         }
 
         private SynthesizedBackingFieldSymbol CreateBackingField()

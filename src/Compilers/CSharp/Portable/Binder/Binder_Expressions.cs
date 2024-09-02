@@ -1459,8 +1459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var contextualAttributeBinder = TryGetContextualAttributeBinder(this);
                         if (contextualAttributeBinder is { AttributeTarget: MethodSymbol { AssociatedSymbol: SourcePropertySymbol property } })
                         {
-                            // PROTOTYPE: Is the property the implementation part?
-                            field = property.BackingField;
+                            field = property.GetBackingFieldPreferringDefinitionPart();
                         }
                         break;
                     }

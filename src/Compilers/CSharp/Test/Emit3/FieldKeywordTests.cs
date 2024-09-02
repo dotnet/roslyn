@@ -4183,5 +4183,125 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }).ToArray();
             }
         }
+
+        // PROTOTYPE: Test with [field:] attributes attached to both partial property parts.
+
+        [Theory]
+        [CombinatorialData]
+        public void PartialProperty_Attribute_01(bool reverseOrder, bool useStatic)
+        {
+            string modifier = useStatic ? "static" : "      ";
+            string sourceA = $$"""
+                using System;
+                class A : Attribute
+                {
+                    public A(object o) { }
+                }
+                """;
+            string sourceB1 = $$"""
+                partial class B
+                {
+                    {{modifier}} partial object P1 { get; }
+                    {{modifier}} partial object P2 { get; set; }
+                    {{modifier}} partial object P3 { [A(field)] get; }
+                    {{modifier}} partial object P4 { get; [A(field)] set; }
+                }
+                """;
+            string sourceB2 = $$"""
+                partial class B
+                {
+                    {{modifier}} partial object P1 { [A(field)] get { return null; } }
+                    {{modifier}} partial object P2 { get { return null; } [A(field)] set { } }
+                    {{modifier}} partial object P3 { get { return null; } }
+                    {{modifier}} partial object P4 { get { return null; } set { } }
+                }
+                """;
+            var comp = CreateCompilation(reverseOrder ? [sourceA, sourceB2, sourceB1] : [sourceA, sourceB1, sourceB2]);
+            comp.VerifyEmitDiagnostics(
+                // (3,35): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //            partial object P1 { [A(field)] get { return null; } }
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(3, 35),
+                // (4,56): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //            partial object P2 { get { return null; } [A(field)] set { } }
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(4, 56),
+                // (5,35): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //            partial object P3 { [A(field)] get; }
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(5, 35),
+                // (6,40): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //            partial object P4 { get; [A(field)] set; }
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(6, 40));
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var expectedMembers1 = new[]
+            {
+                "System.Object B.<P3>k__BackingField",
+                "System.Object B.<P4>k__BackingField",
+            };
+            var expectedMembers2 = new[]
+            {
+                "System.Object B.<P1>k__BackingField",
+                "System.Object B.<P2>k__BackingField",
+            };
+            AssertEx.Equal(reverseOrder ? expectedMembers2.Concat(expectedMembers1) : expectedMembers1.Concat(expectedMembers2), actualMembers);
+            // PROTOTYPE: Use symbol model to get all properties and check IsAutoProperty, IsAutoPropertyOrUsesFieldKeyword.
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PartialProperty_Attribute_02(bool reverseOrder, bool useStatic)
+        {
+            string modifier = useStatic ? "static" : "      ";
+            string sourceA = $$"""
+                using System;
+                class A : Attribute
+                {
+                    public A(object o) { }
+                }
+                """;
+            string sourceB1 = $$"""
+                partial class B
+                {
+                    {{modifier}} partial object P1 { get; }
+                    {{modifier}} partial object P2 { get; set; }
+                    {{modifier}} partial object P3 { [A(field)] get; }
+                    {{modifier}} partial object P4 { get; [A(field)] set; }
+                }
+                """;
+            string sourceB2 = $$"""
+                partial class B
+                {
+                    {{modifier}} partial object P1 { [A(field)] get { return field; } }
+                    {{modifier}} partial object P2 { get { return null; } [A(field)] set; }
+                    {{modifier}} partial object P3 { get { return field; } }
+                    {{modifier}} partial object P4 { get { return null; } set; }
+                }
+                """;
+            var comp = CreateCompilation(reverseOrder ? [sourceA, sourceB2, sourceB1] : [sourceA, sourceB1, sourceB2]);
+            comp.VerifyEmitDiagnostics(
+                // (3,35): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     partial        object P1 { [A(field)] get { return field; } }
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(3, 35),
+                // (4,56): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     partial        object P2 { get { return null; } [A(field)] set; }
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(4, 56),
+                // (5,35): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     partial        object P3 { [A(field)] get; }
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(5, 35),
+                // (6,40): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     partial        object P4 { get; [A(field)] set; }
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(6, 40));
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var expectedMembers1 = new[]
+            {
+                "System.Object B.<P3>k__BackingField",
+                "System.Object B.<P4>k__BackingField",
+            };
+            var expectedMembers2 = new[]
+            {
+                "System.Object B.<P1>k__BackingField",
+                "System.Object B.<P2>k__BackingField",
+            };
+            AssertEx.Equal(reverseOrder ? expectedMembers2.Concat(expectedMembers1) : expectedMembers1.Concat(expectedMembers2), actualMembers);
+            // PROTOTYPE: Use symbol model to get all properties and check IsAutoProperty, IsAutoPropertyOrUsesFieldKeyword.
+        }
     }
 }
