@@ -14419,6 +14419,7 @@ partial class Program
                     foreach (var inlineArrayType in getInlineArrayTypes(module))
                     {
                         Assert.Equal(System.Runtime.InteropServices.LayoutKind.Sequential, inlineArrayType.Layout.Kind);
+                        Assert.Single(inlineArrayType.GetAttributes(), a => a.AttributeClass.Name == nameof(System.Runtime.CompilerServices.CompilerGeneratedAttribute));
                     }
                 },
                 verify: Verification.Skipped);

@@ -192,6 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var compilation = _containingModule.DeclaringCompilation;
             Debug.Assert(compilation is { });
 
+            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+
             AddSynthesizedAttribute(
                 ref attributes,
                 SynthesizedAttributeData.Create(
