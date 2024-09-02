@@ -14415,6 +14415,11 @@ partial class Program
                 symbolValidator: module =>
                 {
                     AssertEx.Equal(new[] { "<>y__InlineArray2", "<>y__InlineArray3" }, getInlineArrayTypeNames(module));
+
+                    foreach (var inlineArrayType in getInlineArrayTypes(module))
+                    {
+                        Assert.Equal(System.Runtime.InteropServices.LayoutKind.Sequential, inlineArrayType.Layout.Kind);
+                    }
                 },
                 verify: Verification.Skipped);
             var refA = comp.EmitToImageReference();
@@ -14475,9 +14480,14 @@ partial class Program
                 verify: Verification.Skipped,
                 expectedOutput: IncludeExpectedOutput($"{n}"));
 
+            static ImmutableArray<NamedTypeSymbol> getInlineArrayTypes(ModuleSymbol module)
+            {
+                return module.GlobalNamespace.GetTypeMembers().WhereAsArray(t => t.Name.StartsWith("<>y__InlineArray", StringComparison.Ordinal));
+            }
+
             static ImmutableArray<string> getInlineArrayTypeNames(ModuleSymbol module)
             {
-                return module.GlobalNamespace.GetTypeMembers().WhereAsArray(t => t.Name.StartsWith("<>y__InlineArray", StringComparison.Ordinal)).SelectAsArray(t => t.Name);
+                return getInlineArrayTypes(module).SelectAsArray(t => t.Name);
             }
         }
 

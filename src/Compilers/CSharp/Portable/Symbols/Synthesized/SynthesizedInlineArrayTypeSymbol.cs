@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool ShouldAddWinRTMembers => false;
 
-        internal override TypeLayout Layout => default;
+        internal override TypeLayout Layout => new TypeLayout(LayoutKind.Sequential, size: 1, alignment: 0);
 
         internal override CharSet MarshallingCharSet => DefaultMarshallingCharSet;
 
