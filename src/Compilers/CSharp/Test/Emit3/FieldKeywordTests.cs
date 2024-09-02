@@ -16,10 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class FieldKeywordTests : CSharpTestBase
     {
-        // PROTOTYPE: Remove overload.
+        private static TargetFramework GetTargetFramework(bool useInit) => useInit ? TargetFramework.Net80 : TargetFramework.Standard;
+
         private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
 
-        private static string IncludeExpectedOutput(bool useInit, string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr || !useInit ? expectedOutput : null;
+        private static string IncludeExpectedOutput(bool useInit, string expectedOutput) => !useInit ? expectedOutput : null;
 
         [Fact]
         public void Field_01()
@@ -1178,9 +1179,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var verifier = CompileAndVerify(
                 source,
-                targetFramework: TargetFramework.Net80,
+                targetFramework: GetTargetFramework(useInit),
                 verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput("(1, 2, 3, 4, 0, 6, 7, 9)"));
+                expectedOutput: IncludeExpectedOutput(useInit, "(1, 2, 3, 4, 0, 6, 7, 9)"));
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C..ctor", """
                 {
@@ -1252,9 +1253,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var verifier = CompileAndVerify(
                 source,
-                targetFramework: TargetFramework.Net80,
+                targetFramework: GetTargetFramework(useInit),
                 verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput("(1, 2, 3, 4, 0, 6, 7, 9)"));
+                expectedOutput: IncludeExpectedOutput(useInit, "(1, 2, 3, 4, 0, 6, 7, 9)"));
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C..ctor", """
                 {
@@ -1376,7 +1377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public int P6 { get; {{setter}}; } = 6;
                 }
                 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(source, targetFramework: GetTargetFramework(useInit));
             comp.VerifyEmitDiagnostics(
                 // (1,12): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 //     struct S1
@@ -1402,7 +1403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static int PB { get => 0; set { } } = 11;
                 }
                 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (3,23): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public static int PA { get => 0; } = 10;
@@ -1424,7 +1425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public int PB { get => 0; {{setter}} { } } = 11;
                 }
                 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(source, targetFramework: GetTargetFramework(useInit));
             comp.VerifyEmitDiagnostics(
                 // (3,16): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public int PA { get => 0; } = 10;
@@ -1545,7 +1546,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("(1, 2, 3, 0, 0, 6, 0, 9)"));
+            var verifier = CompileAndVerify(
+                source,
+                targetFramework: GetTargetFramework(useInit),
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput(useInit, "(1, 2, 3, 0, 0, 6, 0, 9)"));
             verifier.VerifyDiagnostics();
             if (typeKind == "class")
             {
@@ -1673,7 +1678,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (9,19): error CS0200: Property or indexer 'C.P1' cannot be assigned to -- it is read only
                 //         M(() => { P1 = 2; });
@@ -1933,9 +1938,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var verifier = CompileAndVerify(
                 source,
                 options: includeStructInitializationWarnings ? TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings) : TestOptions.ReleaseExe,
-                targetFramework: TargetFramework.Net80,
+                targetFramework: GetTargetFramework(useInit),
                 verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput("""
+                expectedOutput: IncludeExpectedOutput(useInit, """
                     (0, 0)
                     (0, 0)
                     (0, 0)
@@ -2113,9 +2118,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var verifier = CompileAndVerify(
                 source,
                 options: includeStructInitializationWarnings ? TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings) : TestOptions.ReleaseExe,
-                targetFramework: TargetFramework.Net80,
+                targetFramework: GetTargetFramework(useInit),
                 verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput("""
+                expectedOutput: IncludeExpectedOutput(useInit, """
                     (0, -1)
                     (0, 1)
                     (0, 2)
@@ -2251,7 +2256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {{propertyModifier}} object PD { {{setter}} { field = value; } }
                 }
                 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(source, targetFramework: GetTargetFramework(useInit));
             if (useInit)
             {
                 comp.VerifyEmitDiagnostics();
@@ -2337,7 +2342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     object PC { {{getModifier}} get; {{setModifier}} set { field = value; } }
                 }
                 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(source);
             if (useReadOnlyType)
             {
                 if (useReadOnlyOnGet)
@@ -2590,7 +2595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     object Q5 { readonly get => field; readonly {{setter}} { } }
                 }
                 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(source, targetFramework: GetTargetFramework(useInit));
             if (useInit)
             {
                 comp.VerifyEmitDiagnostics(
@@ -2952,7 +2957,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static {{refModifier}} object PI { set { _ = field; } }
                 }
                 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (3,32): error CS8145: Auto-implemented properties cannot return by reference
                 //     static ref          object P1 { get; }
@@ -3040,7 +3045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {{modifier}} object P54 { get { return null; } {{setter}} { field = value; } }
                 }
                 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(source, targetFramework: GetTargetFramework(useInit));
             comp.VerifyEmitDiagnostics(
                 // (3,25): error CS8051: Auto-implemented properties must have get accessors.
                 //            object P02 { set; }
@@ -3068,7 +3073,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public override object P3 { get; }
                 }
                 """;
-            var comp = CreateCompilation([sourceA, sourceB0], targetFramework: TargetFramework.Net80);
+            var targetFramework = GetTargetFramework(useInit);
+            var comp = CreateCompilation([sourceA, sourceB0], targetFramework: targetFramework);
             comp.VerifyEmitDiagnostics(
                 // (3,28): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
                 //     public override object P1 { get; }
@@ -3091,7 +3097,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public override object P3 { get; {{setter}}; }
                 }
                 """;
-            comp = CreateCompilation([sourceA, sourceB1], targetFramework: TargetFramework.Net80);
+            comp = CreateCompilation([sourceA, sourceB1], targetFramework: targetFramework);
             comp.VerifyEmitDiagnostics(
                 // (4,38): error CS0546: 'B1.P2.set': cannot override because 'A.P2' does not have an overridable set accessor
                 //     public override object P2 { get; set; }
@@ -3111,7 +3117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public override object P3 { get => field; {{setter}} { } }
                 }
                 """;
-            comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
+            comp = CreateCompilation([sourceA, sourceB2], targetFramework: targetFramework);
             comp.VerifyEmitDiagnostics(
                 // (4,47): error CS0546: 'B2.P2.set': cannot override because 'A.P2' does not have an overridable set accessor
                 //     public override object P2 { get => field; set { } }
@@ -3131,7 +3137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public override object P3 { get => field; }
                 }
                 """;
-            comp = CreateCompilation([sourceA, sourceB3], targetFramework: TargetFramework.Net80);
+            comp = CreateCompilation([sourceA, sourceB3], targetFramework: targetFramework);
             comp.VerifyEmitDiagnostics(
                 // (3,28): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
                 //     public override object P1 { get => field; }
@@ -3154,7 +3160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public override object P3 { {{setter}} { field = value; } }
                 }
                 """;
-            comp = CreateCompilation([sourceA, sourceB4], targetFramework: TargetFramework.Net80);
+            comp = CreateCompilation([sourceA, sourceB4], targetFramework: targetFramework);
             comp.VerifyEmitDiagnostics(
                 // (3,28): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
                 //     public override object P1 { set { field = value; } }
@@ -3191,7 +3197,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public override object P3 { get; }
                 }
                 """;
-            var comp = CreateCompilation([sourceA, sourceB0], targetFramework: TargetFramework.Net80);
+            var targetFramework = GetTargetFramework(useInit);
+            var comp = CreateCompilation([sourceA, sourceB0], targetFramework: targetFramework);
             comp.VerifyEmitDiagnostics(
                 // (1,7): error CS0534: 'B0' does not implement inherited abstract member 'A.P3.set'
                 // class B0 : A
@@ -3217,7 +3224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public override object P3 { get; {{setter}}; }
                 }
                 """;
-            comp = CreateCompilation([sourceA, sourceB1], targetFramework: TargetFramework.Net80);
+            comp = CreateCompilation([sourceA, sourceB1], targetFramework: targetFramework);
             comp.VerifyEmitDiagnostics(
                 // (4,38): error CS0546: 'B1.P2.set': cannot override because 'A.P2' does not have an overridable set accessor
                 //     public override object P2 { get; set; }
@@ -3234,7 +3241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public override object P3 { get => field; {{setter}} { } }
                 }
                 """;
-            comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
+            comp = CreateCompilation([sourceA, sourceB2], targetFramework: targetFramework);
             comp.VerifyEmitDiagnostics(
                 // (4,47): error CS0546: 'B2.P2.set': cannot override because 'A.P2' does not have an overridable set accessor
                 //     public override object P2 { get => field; set { } }
@@ -3251,7 +3258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public override object P3 { get => field; }
                 }
                 """;
-            comp = CreateCompilation([sourceA, sourceB3], targetFramework: TargetFramework.Net80);
+            comp = CreateCompilation([sourceA, sourceB3], targetFramework: targetFramework);
             comp.VerifyEmitDiagnostics(
                 // (1,7): error CS0534: 'B3' does not implement inherited abstract member 'A.P3.set'
                 // class B3 : A
@@ -3277,7 +3284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public override object P3 { {{setter}} { field = value; } }
                 }
                 """;
-            comp = CreateCompilation([sourceA, sourceB4], targetFramework: TargetFramework.Net80);
+            comp = CreateCompilation([sourceA, sourceB4], targetFramework: targetFramework);
             comp.VerifyEmitDiagnostics(
                 // (1,7): error CS0534: 'B4' does not implement inherited abstract member 'A.P1.get'
                 // class B4 : A
@@ -3339,7 +3346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public new object P3 { {{setter}} { field = value; } }
                 }
                 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(source, targetFramework: GetTargetFramework(useInit));
             comp.VerifyEmitDiagnostics(
                 // (5,32): error CS8051: Auto-implemented properties must have get accessors.
                 //     public virtual object P3 { set; }
@@ -3668,10 +3675,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(11, 5));
         }
 
-        // PROTOTYPE: Use this everywhere we have useInit.
-        // PROTOTYPE: Update IncludeExpectedOutput() to also take useInit.
-        private static TargetFramework GetTargetFramework(bool useInit) => useInit ? TargetFramework.Net80 : TargetFramework.Standard;
-
         [Theory]
         [CombinatorialData]
         public void PartialProperty_01(bool useInit)
@@ -3803,7 +3806,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     partial object P3 { get; {{setter}}; }
                 }
                 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation(source, targetFramework: GetTargetFramework(useInit));
             comp.VerifyEmitDiagnostics(
                 // (3,20): error CS9248: Partial property 'C.P1' must have an implementation part.
                 //     partial object P1 { get; } = 1;
@@ -3872,7 +3875,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(
                 reverseOrder ? [sourceB, sourceA] : [sourceA, sourceB],
-                targetFramework: TargetFramework.Net80);
+                targetFramework: GetTargetFramework(useInit));
             comp.VerifyEmitDiagnostics(
                 // (3,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     partial object P1 { get; } = 1;
@@ -4033,7 +4036,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(
                 reverseOrder ? [sourceB, sourceA] : [sourceA, sourceB],
-                targetFramework: TargetFramework.Net80);
+                targetFramework: GetTargetFramework(useInit));
             comp.VerifyEmitDiagnostics(
                 // (3,20): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
                 //     partial object P1 { get => null; } = 1;
@@ -4107,7 +4110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(
                 reverseOrder ? [sourceB, sourceA] : [sourceA, sourceB],
-                targetFramework: TargetFramework.Net80);
+                targetFramework: GetTargetFramework(useInit));
             comp.VerifyEmitDiagnostics(
                 // (3,27): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
                 //     public partial object P1 { get => field; } = 1;
