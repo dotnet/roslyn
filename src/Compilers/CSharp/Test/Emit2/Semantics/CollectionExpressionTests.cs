@@ -14419,7 +14419,9 @@ partial class Program
                     foreach (var inlineArrayType in getInlineArrayTypes(module))
                     {
                         Assert.Equal(System.Runtime.InteropServices.LayoutKind.Sequential, inlineArrayType.Layout.Kind);
-                        Assert.Single(inlineArrayType.GetAttributes(), a => a.AttributeClass.Name == nameof(System.Runtime.CompilerServices.CompilerGeneratedAttribute));
+                        Assert.Single(inlineArrayType.GetAttributes(), isCompilerGeneratedAttribute);
+                        var field = Assert.Single(inlineArrayType.GetMembers().OfType<FieldSymbol>());
+                        Assert.Empty(field.GetAttributes().Where(isCompilerGeneratedAttribute));
                     }
                 },
                 verify: Verification.Skipped);
@@ -14490,7 +14492,29 @@ partial class Program
             {
                 return getInlineArrayTypes(module).SelectAsArray(t => t.Name);
             }
+
+            static bool isCompilerGeneratedAttribute(CSharpAttributeData attributeData)
+            {
+                return attributeData.AttributeClass is
+                {
+                    Name: nameof(System.Runtime.CompilerServices.CompilerGeneratedAttribute),
+                    ContainingNamespace:
+                    {
+                        Name: nameof(System.Runtime.CompilerServices),
+                        ContainingNamespace:
+                        {
+                            Name: nameof(System.Runtime),
+                            ContainingNamespace:
+                            {
+                                Name: nameof(System),
+                                ContainingNamespace.IsGlobalNamespace: true,
+                            },
+                        },
+                    },
+                };
+            }
         }
+
 
         [CombinatorialData]
         [Theory]

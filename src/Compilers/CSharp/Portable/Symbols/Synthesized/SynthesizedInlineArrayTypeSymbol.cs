@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeParameters = ImmutableArray.Create<TypeParameterSymbol>(typeParameter);
         }
 
+        public override bool IsImplicitlyDeclared => true;
+
         public override int Arity => 1;
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters { get; }
