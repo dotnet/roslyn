@@ -3788,113 +3788,116 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertEx.Equal(expectedMembers, actualMembers);
         }
 
-        // PROTOTYPE: Test initializers with static partial properties.
-
         [Theory]
-        [CombinatorialData]
-        public void PartialProperty_Initializer_01(bool useInit)
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        public void PartialProperty_Initializer_01(bool useStatic, bool useInit)
         {
+            string modifier = useStatic ? "static" : "      ";
             string setter = useInit ? "init" : "set";
             string source = $$"""
                 partial class C
                 {
-                    partial object P1 { get; } = 1;
-                    partial object P1 { get; }
-                    partial object P2 { {{setter}}; } = 2;
-                    partial object P2 { {{setter}}; }
-                    partial object P3 { get; {{setter}}; } = 3;
-                    partial object P3 { get; {{setter}}; }
+                    {{modifier}} partial object P1 { get; } = 1;
+                    {{modifier}} partial object P1 { get; }
+                    {{modifier}} partial object P2 { {{setter}}; } = 2;
+                    {{modifier}} partial object P2 { {{setter}}; }
+                    {{modifier}} partial object P3 { get; {{setter}}; } = 3;
+                    {{modifier}} partial object P3 { get; {{setter}}; }
                 }
                 """;
             var comp = CreateCompilation(source, targetFramework: GetTargetFramework(useInit));
             comp.VerifyEmitDiagnostics(
-                // (3,20): error CS9248: Partial property 'C.P1' must have an implementation part.
-                //     partial object P1 { get; } = 1;
-                Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "P1").WithArguments("C.P1").WithLocation(3, 20),
-                // (3,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
-                //     partial object P1 { get; } = 1;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 20),
-                // (4,20): error CS9250: A partial property may not have multiple defining declarations, and cannot be an auto-property.
-                //     partial object P1 { get; }
-                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateDefinition, "P1").WithLocation(4, 20),
-                // (4,20): error CS0102: The type 'C' already contains a definition for 'P1'
-                //     partial object P1 { get; }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P1").WithArguments("C", "P1").WithLocation(4, 20),
-                // (5,20): error CS9248: Partial property 'C.P2' must have an implementation part.
-                //     partial object P2 { set; } = 2;
-                Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "P2").WithArguments("C.P2").WithLocation(5, 20),
-                // (5,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
-                //     partial object P2 { set; } = 2;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(5, 20),
-                // (6,20): error CS9250: A partial property may not have multiple defining declarations, and cannot be an auto-property.
-                //     partial object P2 { set; }
-                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateDefinition, "P2").WithLocation(6, 20),
-                // (6,20): error CS0102: The type 'C' already contains a definition for 'P2'
-                //     partial object P2 { set; }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P2").WithArguments("C", "P2").WithLocation(6, 20),
-                // (7,20): error CS9248: Partial property 'C.P3' must have an implementation part.
-                //     partial object P3 { get; set; } = 3;
-                Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "P3").WithArguments("C.P3").WithLocation(7, 20),
-                // (7,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
-                //     partial object P3 { get; set; } = 3;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(7, 20),
-                // (8,20): error CS9250: A partial property may not have multiple defining declarations, and cannot be an auto-property.
-                //     partial object P3 { get; set; }
-                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateDefinition, "P3").WithLocation(8, 20),
-                // (8,20): error CS0102: The type 'C' already contains a definition for 'P3'
-                //     partial object P3 { get; set; }
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P3").WithArguments("C", "P3").WithLocation(8, 20));
+                // (3,27): error CS9248: Partial property 'C.P1' must have an implementation part.
+                //            partial object P1 { get; } = 1;
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "P1").WithArguments("C.P1").WithLocation(3, 27),
+                // (3,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                //            partial object P1 { get; } = 1;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 27),
+                // (4,27): error CS9250: A partial property may not have multiple defining declarations, and cannot be an auto-property.
+                //            partial object P1 { get; }
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateDefinition, "P1").WithLocation(4, 27),
+                // (4,27): error CS0102: The type 'C' already contains a definition for 'P1'
+                //            partial object P1 { get; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P1").WithArguments("C", "P1").WithLocation(4, 27),
+                // (5,27): error CS9248: Partial property 'C.P2' must have an implementation part.
+                //            partial object P2 { set; } = 2;
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "P2").WithArguments("C.P2").WithLocation(5, 27),
+                // (5,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                //            partial object P2 { set; } = 2;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(5, 27),
+                // (6,27): error CS9250: A partial property may not have multiple defining declarations, and cannot be an auto-property.
+                //            partial object P2 { set; }
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateDefinition, "P2").WithLocation(6, 27),
+                // (6,27): error CS0102: The type 'C' already contains a definition for 'P2'
+                //            partial object P2 { set; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P2").WithArguments("C", "P2").WithLocation(6, 27),
+                // (7,27): error CS9248: Partial property 'C.P3' must have an implementation part.
+                //            partial object P3 { get; set; } = 3;
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingImplementation, "P3").WithArguments("C.P3").WithLocation(7, 27),
+                // (7,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                //            partial object P3 { get; set; } = 3;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(7, 27),
+                // (8,27): error CS9250: A partial property may not have multiple defining declarations, and cannot be an auto-property.
+                //            partial object P3 { get; set; }
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateDefinition, "P3").WithLocation(8, 27),
+                // (8,27): error CS0102: The type 'C' already contains a definition for 'P3'
+                //            partial object P3 { get; set; }
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P3").WithArguments("C", "P3").WithLocation(8, 27));
         }
 
         [Theory]
         [CombinatorialData]
-        public void PartialProperty_Initializer_02(bool reverseOrder, bool useInit)
+        public void PartialProperty_Initializer_02(bool reverseOrder, bool useStatic, bool useInit)
         {
+            if (useStatic && useInit) return;
+            string modifier = useStatic ? "static" : "      ";
             string setter = useInit ? "init" : "set";
             string sourceA = $$"""
                 partial class C
                 {
-                    partial object P1 { get; } = 1;
-                    partial object P2 { {{setter}}; } = 2;
-                    partial object P3 { get; {{setter}}; } = 3;
-                    partial object Q1 { get => null; } = 1;
-                    partial object Q2 { {{setter}} { } } = 2;
-                    partial object Q3 { get => null; {{setter}} { } } = 3;
+                    {{modifier}} partial object P1 { get; } = 1;
+                    {{modifier}} partial object P2 { {{setter}}; } = 2;
+                    {{modifier}} partial object P3 { get; {{setter}}; } = 3;
+                    {{modifier}} partial object Q1 { get => null; } = 1;
+                    {{modifier}} partial object Q2 { {{setter}} { } } = 2;
+                    {{modifier}} partial object Q3 { get => null; {{setter}} { } } = 3;
                 }
                 """;
             string sourceB = $$"""
                 partial class C
                 {
-                    partial object P1 { get => null; }
-                    partial object P2 { {{setter}} { } }
-                    partial object P3 { get => null; {{setter}} { } }
-                    partial object Q1 { get; }
-                    partial object Q2 { {{setter}}; }
-                    partial object Q3 { get; {{setter}}; }
+                    {{modifier}} partial object P1 { get => null; }
+                    {{modifier}} partial object P2 { {{setter}} { } }
+                    {{modifier}} partial object P3 { get => null; {{setter}} { } }
+                    {{modifier}} partial object Q1 { get; }
+                    {{modifier}} partial object Q2 { {{setter}}; }
+                    {{modifier}} partial object Q3 { get; {{setter}}; }
                 }
                 """;
             var comp = CreateCompilation(
                 reverseOrder ? [sourceB, sourceA] : [sourceA, sourceB],
                 targetFramework: GetTargetFramework(useInit));
             comp.VerifyEmitDiagnostics(
-                // (3,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
-                //     partial object P1 { get; } = 1;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 20),
-                // (4,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
-                //     partial object P2 { set; } = 2;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(4, 20),
-                // (5,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
-                //     partial object P3 { get; set; } = 3;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(5, 20),
-                // (6,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
-                //     partial object Q1 { get => null; } = 1;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "Q1").WithLocation(6, 20),
-                // (7,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
-                //     partial object Q2 { set { } } = 2;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "Q2").WithLocation(7, 20),
-                // (8,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
-                //     partial object Q3 { get => null; set { } } = 3;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "Q3").WithLocation(8, 20));
+                // (3,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                //            partial object P1 { get; } = 1;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 27),
+                // (4,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                //            partial object P2 { set; } = 2;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(4, 27),
+                // (5,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                //            partial object P3 { get; set; } = 3;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(5, 27),
+                // (6,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                //            partial object Q1 { get => null; } = 1;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "Q1").WithLocation(6, 27),
+                // (7,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                //            partial object Q2 { set { } } = 2;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "Q2").WithLocation(7, 27),
+                // (8,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                //            partial object Q3 { get => null; set { } } = 3;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "Q3").WithLocation(8, 27));
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
@@ -3913,48 +3916,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void PartialProperty_Initializer_03(bool reverseOrder, bool useInit)
+        public void PartialProperty_Initializer_03(bool reverseOrder, bool useStatic, bool useInit)
         {
+            if (useStatic && useInit) return;
+            string modifier = useStatic ? "static" : "      ";
             string setter = useInit ? "init" : "set";
             string sourceA = $$"""
                 partial class C
                 {
-                    public partial object P1 { get; } = 1;
-                    public partial object P2 { {{setter}}; } = 2;
-                    public partial object P3 { get; {{setter}}; } = 3;
-                    public partial object P4 { get; {{setter}}; } = 4;
-                    public partial object P5 { get; {{setter}}; } = 5;
-                    public partial object P6 { get; {{setter}}; } = 6;
-                    public partial object P7 { get; {{setter}}; } = 7;
-                    public partial object Q1 { get => field; } = 1;
-                    public partial object Q2 { {{setter}} { field = value; } } = 2;
-                    public partial object Q3 { get; {{setter}} { field = value; } } = 3;
-                    public partial object Q4 { get => field; {{setter}}; } = 4;
-                    public partial object Q5 { get => field; {{setter}} { field = value; } } = 5;
-                    public partial object Q6 { get; {{setter}} { } } = 6;
-                    public partial object Q7 { get => null; {{setter}}; } = 7;
+                    public {{modifier}} partial object P1 { get; } = 1;
+                    public {{modifier}} partial object P2 { {{setter}}; } = 2;
+                    public {{modifier}} partial object P3 { get; {{setter}}; } = 3;
+                    public {{modifier}} partial object P4 { get; {{setter}}; } = 4;
+                    public {{modifier}} partial object P5 { get; {{setter}}; } = 5;
+                    public {{modifier}} partial object P6 { get; {{setter}}; } = 6;
+                    public {{modifier}} partial object P7 { get; {{setter}}; } = 7;
+                    public {{modifier}} partial object Q1 { get => field; } = 1;
+                    public {{modifier}} partial object Q2 { {{setter}} { field = value; } } = 2;
+                    public {{modifier}} partial object Q3 { get; {{setter}} { field = value; } } = 3;
+                    public {{modifier}} partial object Q4 { get => field; {{setter}}; } = 4;
+                    public {{modifier}} partial object Q5 { get => field; {{setter}} { field = value; } } = 5;
+                    public {{modifier}} partial object Q6 { get; {{setter}} { } } = 6;
+                    public {{modifier}} partial object Q7 { get => null; {{setter}}; } = 7;
                 }
                 """;
             string sourceB = $$"""
                 partial class C
                 {
-                    public partial object P1 { get => field; }
-                    public partial object P2 { {{setter}} { field = value; } }
-                    public partial object P3 { get; {{setter}} { field = value; } }
-                    public partial object P4 { get => field; {{setter}}; }
-                    public partial object P5 { get => field; {{setter}} { field = value; } }
-                    public partial object P6 { get; {{setter}} { } }
-                    public partial object P7 { get => null; {{setter}}; }
-                    public partial object Q1 { get; }
-                    public partial object Q2 { {{setter}}; }
-                    public partial object Q3 { get; {{setter}}; }
-                    public partial object Q4 { get; {{setter}}; }
-                    public partial object Q5 { get; {{setter}}; }
-                    public partial object Q6 { get; {{setter}}; }
-                    public partial object Q7 { get; {{setter}}; }
+                    public {{modifier}} partial object P1 { get => field; }
+                    public {{modifier}} partial object P2 { {{setter}} { field = value; } }
+                    public {{modifier}} partial object P3 { get; {{setter}} { field = value; } }
+                    public {{modifier}} partial object P4 { get => field; {{setter}}; }
+                    public {{modifier}} partial object P5 { get => field; {{setter}} { field = value; } }
+                    public {{modifier}} partial object P6 { get; {{setter}} { } }
+                    public {{modifier}} partial object P7 { get => null; {{setter}}; }
+                    public {{modifier}} partial object Q1 { get; }
+                    public {{modifier}} partial object Q2 { {{setter}}; }
+                    public {{modifier}} partial object Q3 { get; {{setter}}; }
+                    public {{modifier}} partial object Q4 { get; {{setter}}; }
+                    public {{modifier}} partial object Q5 { get; {{setter}}; }
+                    public {{modifier}} partial object Q6 { get; {{setter}}; }
+                    public {{modifier}} partial object Q7 { get; {{setter}}; }
                 }
                 """;
-            string sourceC = """
+            string receiver = useStatic ? "C" : "c";
+            string sourceC = $$"""
                 using System;
                 using System.Reflection;
                 class Program
@@ -3962,7 +3968,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void Main()
                     {
                         var c = new C();
-                        Console.WriteLine((c.P1, c.P3, c.P4, c.P5, c.P6, c.P7, c.Q1, c.Q3, c.Q4, c.Q5, c.Q6, c.Q7));
+                        Console.WriteLine(({{receiver}}.P1, {{receiver}}.P3, {{receiver}}.P4, {{receiver}}.P5, {{receiver}}.P6, {{receiver}}.P7, {{receiver}}.Q1, {{receiver}}.Q3, {{receiver}}.Q4, {{receiver}}.Q5, {{receiver}}.Q6, {{receiver}}.Q7));
                         foreach (var field in typeof(C).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
                             Console.WriteLine("{0}", field.Name);
                     }
@@ -4015,56 +4021,58 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void PartialProperty_Initializer_04(bool reverseOrder, bool useInit)
+        public void PartialProperty_Initializer_04(bool reverseOrder, bool useStatic, bool useInit)
         {
+            if (useStatic && useInit) return;
+            string modifier = useStatic ? "static" : "      ";
             string setter = useInit ? "init" : "set";
             string sourceA = $$"""
                 partial class C
                 {
-                    partial object P1 { get; } = 1;
-                    partial object P2 { {{setter}}; } = 2;
-                    partial object P3 { get; {{setter}}; } = 3;
+                    {{modifier}} partial object P1 { get; } = 1;
+                    {{modifier}} partial object P2 { {{setter}}; } = 2;
+                    {{modifier}} partial object P3 { get; {{setter}}; } = 3;
                 }
                 """;
             string sourceB = $$"""
                 partial class C
                 {
-                    partial object P1 { get => null; } = 1;
-                    partial object P2 { {{setter}} { } } = 2;
-                    partial object P3 { get => null; {{setter}} { } } = 3;
+                    {{modifier}} partial object P1 { get => null; } = 1;
+                    {{modifier}} partial object P2 { {{setter}} { } } = 2;
+                    {{modifier}} partial object P3 { get => null; {{setter}} { } } = 3;
                 }
                 """;
             var comp = CreateCompilation(
                 reverseOrder ? [sourceB, sourceA] : [sourceA, sourceB],
                 targetFramework: GetTargetFramework(useInit));
             comp.VerifyEmitDiagnostics(
-                // (3,20): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
-                //     partial object P1 { get => null; } = 1;
-                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P1").WithLocation(3, 20),
-                // (3,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
-                //     partial object P1 { get; } = 1;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 20),
-                // (3,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
-                //     partial object P1 { get => null; } = 1;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 20),
-                // (4,20): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
-                //     partial object P2 { set { } } = 2;
-                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P2").WithLocation(4, 20),
-                // (4,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
-                //     partial object P2 { set; } = 2;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(4, 20),
-                // (4,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
-                //     partial object P2 { set { } } = 2;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(4, 20),
-                // (5,20): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
-                //     partial object P3 { get => null; set { } } = 3;
-                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P3").WithLocation(5, 20),
-                // (5,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
-                //     partial object P3 { get; set; } = 3;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(5, 20),
-                // (5,20): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
-                //     partial object P3 { get => null; set { } } = 3;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(5, 20));
+                // (3,27): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //            partial object P1 { get => null; } = 1;
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P1").WithLocation(3, 27),
+                // (3,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                //            partial object P1 { get; } = 1;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 27),
+                // (3,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                //            partial object P1 { get => null; } = 1;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 27),
+                // (4,27): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //            partial object P2 { set { } } = 2;
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P2").WithLocation(4, 27),
+                // (4,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                //            partial object P2 { set; } = 2;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(4, 27),
+                // (4,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                //            partial object P2 { set { } } = 2;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(4, 27),
+                // (5,27): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //            partial object P3 { get => null; set { } } = 3;
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P3").WithLocation(5, 27),
+                // (5,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                //            partial object P3 { get; set; } = 3;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(5, 27),
+                // (5,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                //            partial object P3 { get => null; set { } } = 3;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(5, 27));
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
@@ -4080,53 +4088,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         // PROTOTYPE: Test `field` reference in `static` lambda or local function allowed if property is `static`.
 
-        // PROTOTYPE: If we drop duplicate initializers, what about semantic info associated with those initializer expressions,
-        // and what about captured primary constructor parameters? (Compare with how we handle method bodies that are
-        // declared in both expression- and block-form.)
         [Theory]
         [CombinatorialData]
-        public void PartialProperty_Initializer_05(bool reverseOrder, bool useInit)
+        public void PartialProperty_Initializer_05(bool reverseOrder, bool useStatic, bool useInit)
         {
+            if (useStatic && useInit) return;
+            string modifier = useStatic ? "static" : "      ";
             string setter = useInit ? "init" : "set";
             string sourceA = $$"""
                 partial class C
                 {
-                    public partial object P1 { get; } = 1;
-                    public partial object P2 { {{setter}}; } = 2;
-                    public partial object P3 { get; {{setter}}; } = 3;
-                    public partial object P4 { get; {{setter}}; } = 4;
-                    public partial object P5 { get; {{setter}}; } = 5;
+                    public {{modifier}} partial object P1 { get; } = 1;
+                    public {{modifier}} partial object P2 { {{setter}}; } = 2;
+                    public {{modifier}} partial object P3 { get; {{setter}}; } = 3;
+                    public {{modifier}} partial object P4 { get; {{setter}}; } = 4;
+                    public {{modifier}} partial object P5 { get; {{setter}}; } = 5;
                 }
                 """;
             string sourceB = $$"""
                 partial class C
                 {
-                    public partial object P1 { get => field; } = 1;
-                    public partial object P2 { {{setter}} { field = value; } } = 2;
-                    public partial object P3 { get; {{setter}} { field = value; } } = 3;
-                    public partial object P4 { get => field; {{setter}}; } = 4;
-                    public partial object P5 { get => field; {{setter}} { field = value; } } = 5;
+                    public {{modifier}} partial object P1 { get => field; } = -1;
+                    public {{modifier}} partial object P2 { {{setter}} { field = value; } } = -2;
+                    public {{modifier}} partial object P3 { get; {{setter}} { field = value; } } = -3;
+                    public {{modifier}} partial object P4 { get => field; {{setter}}; } = -4;
+                    public {{modifier}} partial object P5 { get => field; {{setter}} { field = value; } } = -5;
                 }
                 """;
+
             var comp = CreateCompilation(
                 reverseOrder ? [sourceB, sourceA] : [sourceA, sourceB],
                 targetFramework: GetTargetFramework(useInit));
             comp.VerifyEmitDiagnostics(
-                // (3,27): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
-                //     public partial object P1 { get => field; } = 1;
-                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P1").WithLocation(3, 27),
-                // (4,27): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
-                //     public partial object P2 { set { field = value; } } = 2;
-                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P2").WithLocation(4, 27),
-                // (5,27): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
-                //     public partial object P3 { get; set { field = value; } } = 3;
-                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P3").WithLocation(5, 27),
-                // (6,27): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
-                //     public partial object P4 { get => field; set; } = 4;
-                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P4").WithLocation(6, 27),
-                // (7,27): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
-                //     public partial object P5 { get => field; set { field = value; } } = 5;
-                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P5").WithLocation(7, 27));
+                // (3,34): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //     public        partial object P1 { get => field; } = -1;
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P1").WithLocation(3, 34),
+                // (4,34): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //     public        partial object P2 { set { field = value; } } = -2;
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P2").WithLocation(4, 34),
+                // (5,34): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //     public        partial object P3 { get; set { field = value; } } = -3;
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P3").WithLocation(5, 34),
+                // (6,34): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //     public        partial object P4 { get => field; set; } = -4;
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P4").WithLocation(6, 34),
+                // (7,34): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //     public        partial object P5 { get => field; set { field = value; } } = -5;
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P5").WithLocation(7, 34));
+
             var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
             var expectedMembers = new[]
             {
@@ -4137,7 +4146,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Object C.<P5>k__BackingField",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
+
             // PROTOTYPE: Use symbol model to get all properties and check IsAutoProperty, IsAutoPropertyOrUsesFieldKeyword.
+            var actualValues = getInitializerValues(comp, comp.SyntaxTrees[reverseOrder ? 1 : 0]);
+            var expectedValues = new[]
+            {
+                   ((object)1, "System.Int32", "System.Object"),
+                   ((object)2, "System.Int32", "System.Object"),
+                   ((object)3, "System.Int32", "System.Object"),
+                   ((object)4, "System.Int32", "System.Object"),
+                   ((object)5, "System.Int32", "System.Object"),
+               };
+            AssertEx.Equal(expectedValues, actualValues);
+
+            actualValues = getInitializerValues(comp, comp.SyntaxTrees[reverseOrder ? 0 : 1]);
+            expectedValues = new[]
+            {
+                   ((object)-1, "System.Int32", "System.Object"),
+                   ((object)-2, "System.Int32", "System.Object"),
+                   ((object)-3, "System.Int32", "System.Object"),
+                   ((object)-4, "System.Int32", "System.Object"),
+                   ((object)-5, "System.Int32", "System.Object"),
+               };
+            AssertEx.Equal(expectedValues, actualValues);
+
+            static (object, string, string)[] getInitializerValues(CSharpCompilation comp, SyntaxTree tree)
+            {
+                var model = comp.GetSemanticModel(tree);
+                return tree.GetRoot().DescendantNodes().OfType<PropertyDeclarationSyntax>().
+                    Select(p =>
+                    {
+                        var value = p.Initializer.Value;
+                        var typeInfo = model.GetTypeInfo(value);
+                        return (model.GetConstantValue(value).Value, typeInfo.Type.ToTestDisplayString(), typeInfo.ConvertedType.ToTestDisplayString());
+
+                    }).ToArray();
+            }
         }
     }
 }
