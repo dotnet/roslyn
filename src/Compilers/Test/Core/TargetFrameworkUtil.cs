@@ -13,11 +13,10 @@ using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Basic.Reference.Assemblies;
-using static TestReferences;
-using static Roslyn.Test.Utilities.TestMetadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using System.Reflection;
 using System.Collections.Concurrent;
+using static TestReferences;
 
 namespace Roslyn.Test.Utilities
 {
@@ -158,8 +157,8 @@ namespace Roslyn.Test.Utilities
 
         public static ImmutableArray<MetadataReference> NetLatest => RuntimeUtilities.IsCoreClrRuntime ? NetCoreApp.References : NetFramework.References;
         public static ImmutableArray<MetadataReference> StandardReferences => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20References : NetFramework.Standard;
-        public static MetadataReference StandardCSharpReference => RuntimeUtilities.IsCoreClrRuntime ? MicrosoftCSharp.Netstandard13Lib : NetFramework.MicrosoftCSharp;
-        public static MetadataReference StandardVisualBasicReference => RuntimeUtilities.IsCoreClrRuntime ? MicrosoftVisualBasic.Netstandard11 : NetFramework.MicrosoftVisualBasic;
+        public static MetadataReference StandardCSharpReference => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20.ExtraReferences.MicrosoftCSharp : NetFramework.MicrosoftCSharp;
+        public static MetadataReference StandardVisualBasicReference => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20.ExtraReferences.MicrosoftVisualBasic : NetFramework.MicrosoftVisualBasic;
         public static ImmutableArray<MetadataReference> StandardAndCSharpReferences => StandardReferences.Add(StandardCSharpReference);
         public static ImmutableArray<MetadataReference> StandardAndVBRuntimeReferences => StandardReferences.Add(StandardVisualBasicReference);
 
@@ -203,24 +202,24 @@ namespace Roslyn.Test.Utilities
 
         public static ImmutableArray<MetadataReference> Mscorlib40References { get; } =
         [
-            Net40.mscorlib
+            Net40.References.mscorlib
         ];
         public static ImmutableArray<MetadataReference> Mscorlib40ExtendedReferences { get; } =
         [
-            Net40.mscorlib,
-            Net40.System,
-            Net40.SystemCore
+            Net40.References.mscorlib,
+            Net40.References.System,
+            Net40.References.SystemCore
         ];
         public static ImmutableArray<MetadataReference> Mscorlib40andSystemCoreReferences { get; } =
         [
-            Net40.mscorlib,
-            Net40.SystemCore
+            Net40.References.mscorlib,
+            Net40.References.SystemCore
         ];
         public static ImmutableArray<MetadataReference> Mscorlib40andVBRuntimeReferences { get; } =
         [
-            Net40.mscorlib,
-            Net40.System,
-            Net40.MicrosoftVisualBasic
+            Net40.References.mscorlib,
+            Net40.References.System,
+            Net40.References.MicrosoftVisualBasic
         ];
         public static ImmutableArray<MetadataReference> Mscorlib45References { get; } =
         [

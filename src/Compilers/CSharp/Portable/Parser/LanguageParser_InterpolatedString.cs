@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             var slice = text[start..currentIndex];
-#if NETCOREAPP
+#if NET
             content.Append(slice);
 #else
             unsafe

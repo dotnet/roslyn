@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 #Disable Warning SYSLIB0050 ' 'TypeAttributes.Serializable' is obsolete
 
@@ -2220,7 +2221,7 @@ End Class
     </file>
 </compilation>
 
-            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {TestMetadata.Net40.SystemCore}).VerifyDiagnostics()
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}).VerifyDiagnostics()
         End Sub
 
         <Fact>

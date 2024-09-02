@@ -1143,8 +1143,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="translated">Das experimentelle Feature "Interceptors" ist nicht in diesem Namespace aktiviert. Fügen Sie Ihrem Projekt "{0}" hinzu.</target>
+        <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="needs-review-translation">Das experimentelle Feature "Interceptors" ist nicht in diesem Namespace aktiviert. Fügen Sie Ihrem Projekt "{0}" hinzu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">

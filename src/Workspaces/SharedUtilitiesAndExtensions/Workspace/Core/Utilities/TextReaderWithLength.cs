@@ -12,7 +12,7 @@ internal abstract class TextReaderWithLength(int length) : TextReader
 
     public override string ReadToEnd()
     {
-#if NETCOREAPP
+#if NET
         return string.Create(Length, this, static (chars, state) => state.Read(chars));
 #else
         var chars = new char[Length];

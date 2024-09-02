@@ -101,7 +101,7 @@ internal abstract partial class AbstractImplementInterfaceService
                                           .First();
 
             finalizer = finalizer.NormalizeWhitespace();
-            var finalizerLines = finalizer.ToFullString().Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            var finalizerLines = finalizer.ToFullString().Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
 
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
             var finalizerComments = this.Service.CreateCommentTrivia(finalizerLines);

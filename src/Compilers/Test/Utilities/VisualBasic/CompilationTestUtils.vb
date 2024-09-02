@@ -14,7 +14,6 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.TestBase
-Imports Roslyn.Test.Utilities.TestMetadata
 Imports Xunit
 
 Friend Module CompilationUtils
@@ -171,7 +170,7 @@ Friend Module CompilationUtils
                                                                references As IEnumerable(Of MetadataReference),
                                                                Optional options As VisualBasicCompilationOptions = Nothing,
                                                                Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-        Return CreateEmptyCompilationWithReferences(source, {CType(Net40.mscorlib, MetadataReference)}.Concat(references), options, parseOptions:=parseOptions)
+        Return CreateEmptyCompilationWithReferences(source, {CType(Net40.References.mscorlib, MetadataReference)}.Concat(references), options, parseOptions:=parseOptions)
     End Function
 
     ''' <summary>
@@ -187,7 +186,7 @@ Friend Module CompilationUtils
     Public Function CreateCompilationWithMscorlib40(source As XElement,
                                                   outputKind As OutputKind,
                                                   Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
-        Return CreateEmptyCompilationWithReferences(source, {Net40.mscorlib}, New VisualBasicCompilationOptions(outputKind), parseOptions:=parseOptions)
+        Return CreateEmptyCompilationWithReferences(source, {Net40.References.mscorlib}, New VisualBasicCompilationOptions(outputKind), parseOptions:=parseOptions)
     End Function
 
     ''' <summary>
@@ -208,7 +207,7 @@ Friend Module CompilationUtils
         Optional assemblyName As String = Nothing) As VisualBasicCompilation
 
         If additionalRefs Is Nothing Then additionalRefs = {}
-        Dim references = {CType(Net40.mscorlib, MetadataReference), Net40.System, Net40.MicrosoftVisualBasic}.Concat(additionalRefs)
+        Dim references = {CType(Net40.References.mscorlib, MetadataReference), Net40.References.System, Net40.References.MicrosoftVisualBasic}.Concat(additionalRefs)
 
         Return CreateEmptyCompilationWithReferences(source, references, options, parseOptions:=parseOptions, assemblyName:=assemblyName)
     End Function
@@ -228,7 +227,7 @@ Friend Module CompilationUtils
 
     Public ReadOnly XmlReferences As MetadataReference() = {SystemRef, SystemCoreRef, SystemXmlRef, SystemXmlLinqRef}
 
-    Public ReadOnly Net40XmlReferences As MetadataReference() = {Net40.SystemCore, Net40.SystemXml, Net40.SystemXmlLinq}
+    Public ReadOnly Net40XmlReferences As MetadataReference() = {Net40.References.SystemCore, Net40.References.SystemXml, Net40.References.SystemXmlLinq}
 
     Public ReadOnly Net461XmlReferences As MetadataReference() = {Net461.References.SystemCore, Net461.References.SystemXml, Net461.References.SystemXmlLinq}
 
@@ -249,7 +248,7 @@ Friend Module CompilationUtils
         Optional parseOptions As VisualBasicParseOptions = Nothing) As VisualBasicCompilation
 
         If references Is Nothing Then references = {}
-        Dim allReferences = {CType(Net40.mscorlib, MetadataReference), Net40.System, Net40.MicrosoftVisualBasic}.Concat(references)
+        Dim allReferences = {CType(Net40.References.mscorlib, MetadataReference), Net40.References.System, Net40.References.MicrosoftVisualBasic}.Concat(references)
         If parseOptions Is Nothing AndAlso options IsNot Nothing Then
             parseOptions = options.ParseOptions
         End If

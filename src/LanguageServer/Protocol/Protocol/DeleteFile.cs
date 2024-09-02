@@ -9,11 +9,13 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing a delete file operation.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#deleteFile">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.13</remarks>
     [Kind("delete")]
-    internal class DeleteFile
+    internal class DeleteFile : IAnnotatedChange
     {
         /// <summary>
         /// Gets the kind value.
@@ -44,5 +46,10 @@ namespace Roslyn.LanguageServer.Protocol
             get;
             set;
         }
+
+        /// <inheritdoc/>
+        [JsonPropertyName("annotationId")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public ChangeAnnotationIdentifier? AnnotationId { get; init; }
     }
 }

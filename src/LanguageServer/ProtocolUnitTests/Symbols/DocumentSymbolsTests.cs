@@ -105,7 +105,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
 
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer).ConfigureAwait(false);
+#pragma warning disable CS0618 // Type or member is obsolete
             Assert.Equal(".", results.First().Name);
+#pragma warning restore CS0618
         }
 
         [Theory, CombinatorialData]
@@ -130,7 +132,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, clientCapabilities);
 
             var results = await RunGetDocumentSymbolsAsync<LSP.SymbolInformation[]>(testLspServer).ConfigureAwait(false);
+#pragma warning disable CS0618 // Type or member is obsolete
+
             Assert.Equal(".", results.First().Name);
+#pragma warning restore CS0618
         }
 
         [Theory, CombinatorialData]
@@ -176,7 +181,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
                 Range = location.Range,
                 Children = new LSP.DocumentSymbol[0],
                 Detail = detail,
+#pragma warning disable 618 // obsolete member
                 Deprecated = false,
+#pragma warning restore 618
                 SelectionRange = selection.Range
             };
 

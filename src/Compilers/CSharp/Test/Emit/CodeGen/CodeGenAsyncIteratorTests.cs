@@ -9,6 +9,7 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
@@ -6475,7 +6476,7 @@ class C
         [Fact]
         public void TestWellKnownMembers()
         {
-            var comp = CreateCompilation(AsyncStreamsTypes, references: new[] { TestMetadata.SystemThreadingTasksExtensions.NetStandard20Lib }, targetFramework: TargetFramework.NetStandard20);
+            var comp = CreateCompilation(AsyncStreamsTypes, references: new[] { NetStandard20.ExtraReferences.SystemThreadingTasksExtensions }, targetFramework: TargetFramework.NetStandard20);
             comp.VerifyDiagnostics();
 
             verifyType(WellKnownType.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T,

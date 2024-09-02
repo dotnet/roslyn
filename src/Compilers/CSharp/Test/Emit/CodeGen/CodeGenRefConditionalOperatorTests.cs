@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -1061,7 +1062,7 @@ class C
 ";
 
             // PEVerify: Cannot change initonly field outside its .ctor.
-            var comp = CompileAndVerifyWithMscorlib40(source, references: new[] { TestMetadata.Net40.System, ValueTupleRef, TestMetadata.Net40.SystemCore }, expectedOutput: "00", verify: Verification.FailsPEVerify);
+            var comp = CompileAndVerifyWithMscorlib40(source, references: new[] { Net40.References.System, ValueTupleRef, Net40.References.SystemCore }, expectedOutput: "00", verify: Verification.FailsPEVerify);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("Program.Main", @"

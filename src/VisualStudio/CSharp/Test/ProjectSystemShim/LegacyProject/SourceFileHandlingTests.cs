@@ -42,7 +42,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
             var document = environment.Workspace.CurrentSolution.Projects.Single().Documents.Single();
 
-            Assert.Equal(new[] { "LinkFolder" }, document.Folders);
+            Assert.Equal(["LinkFolder"], document.Folders);
         }
 
         [WpfFact]
@@ -83,7 +83,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
 
             var document = environment.Workspace.CurrentSolution.Projects.Single().Documents.Single();
 
-            Assert.Equal(new[] { "RelativeFolder" }, document.Folders);
+            Assert.Equal(["RelativeFolder"], document.Folders);
         }
     }
 }

@@ -17,6 +17,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
 Imports Xunit
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
 #If Not Retargeting Then
@@ -151,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
 
         Private Shared ReadOnly Property OldMsCorLib As MetadataReference
             Get
-                Return TestMetadata.Net40.mscorlib
+                Return Net40.References.mscorlib
             End Get
         End Property
 

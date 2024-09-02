@@ -21,7 +21,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
+using Basic.Reference.Assemblies;
 using static TestResources.NetFX.ValueTuple;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -19056,7 +19056,7 @@ class C {
             var tupleComp1 = CreateCompilationWithMscorlib40(trivial2uple + trivial3uple + trivialRemainingTuples);
 
             var tree = Parse(text);
-            var comp = (Compilation)CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { (MetadataReference)Net40.mscorlib, tupleComp1.ToMetadataReference() });
+            var comp = (Compilation)CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { (MetadataReference)Net40.References.mscorlib, tupleComp1.ToMetadataReference() });
 
             var model = comp.GetSemanticModel(tree);
             var exprs = GetBindingNodes<ExpressionSyntax>(comp);
@@ -19095,7 +19095,7 @@ class C {
             var tupleComp1 = CreateCompilationWithMscorlib40(trivial2uple + trivial3uple + trivialRemainingTuples);
 
             var tree = Parse(text);
-            var comp = (Compilation)CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { (MetadataReference)Net40.mscorlib, tupleComp1.ToMetadataReference() });
+            var comp = (Compilation)CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { (MetadataReference)Net40.References.mscorlib, tupleComp1.ToMetadataReference() });
 
             var model = comp.GetSemanticModel(tree);
             var exprs = GetBindingNodes<ExpressionSyntax>(comp);

@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Reflection;
-using static Roslyn.Test.Utilities.TestMetadata;
+using Basic.Reference.Assemblies;
 
 //test
 
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 TestReferences.SymbolsTests.MDTestLib2,
                 TestReferences.SymbolsTests.Methods.CSMethods,
                 TestReferences.SymbolsTests.Methods.VBMethods,
-                Net40.mscorlib,
+                Net40.References.mscorlib,
                 TestReferences.SymbolsTests.Methods.ByRefReturn
             },
             options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));

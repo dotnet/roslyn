@@ -9,7 +9,10 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// <see cref="VSSymbolInformation"/> extends <see cref="SymbolInformation"/> providing additional properties used by Visual Studio.
     /// </summary>
-    internal class VSSymbolInformation : SymbolInformation
+    internal class VSSymbolInformation
+#pragma warning disable CS0618 // SymbolInformation is obsolete but this class is not (yet)
+        : SymbolInformation
+#pragma warning restore
     {
         /// <summary>
         /// Gets or sets the icon associated with the symbol. If specified, this icon is used instead of <see cref="SymbolKind" />.

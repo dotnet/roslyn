@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -2871,7 +2872,7 @@ public static class LazyToStringExtension
             .Select(x => x.GetValue(obj))
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40(sourceText, new[] { TestMetadata.Net40.SystemCore }, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib40(sourceText, new[] { Net40.References.SystemCore }, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics(
                 // (12,42): error CS1002: ; expected
                 //             .Select(x => x.GetValue(obj))
@@ -3022,7 +3023,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source, new[] { TestMetadata.Net40.SystemCore });
+            var comp = CreateCompilationWithMscorlib40(source, new[] { Net40.References.SystemCore });
 
             comp.VerifyDiagnostics(
     // (41,38): error CS7036: There is no argument given that corresponds to the required parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
@@ -3102,7 +3103,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source, new[] { TestMetadata.Net40.SystemCore });
+            var comp = CreateCompilationWithMscorlib40(source, new[] { Net40.References.SystemCore });
 
             comp.VerifyDiagnostics(
     // (41,38): error CS7036: There is no argument given that corresponds to the required parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'
@@ -3260,7 +3261,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source, new[] { TestMetadata.Net40.SystemCore });
+            var comp = CreateCompilationWithMscorlib40(source, new[] { Net40.References.SystemCore });
 
             comp.VerifyDiagnostics(
     // (41,38): error CS7036: There is no argument given that corresponds to the required parameter 'authenticationScheme' of 'AuthenticationManager.AuthenticateAsync(string)'

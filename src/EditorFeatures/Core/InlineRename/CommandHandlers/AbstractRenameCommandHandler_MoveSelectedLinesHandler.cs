@@ -15,7 +15,7 @@ internal abstract partial class AbstractRenameCommandHandler :
 
     public bool ExecuteCommand(MoveSelectedLinesUpCommandArgs args, CommandExecutionContext context)
     {
-        CommitIfActive(args);
+        CommitIfActive(args, context.OperationContext);
         return false;
     }
 
@@ -24,7 +24,7 @@ internal abstract partial class AbstractRenameCommandHandler :
 
     public bool ExecuteCommand(MoveSelectedLinesDownCommandArgs args, CommandExecutionContext context)
     {
-        CommitIfActive(args);
+        CommitIfActive(args, context.OperationContext);
         return false;
     }
 }

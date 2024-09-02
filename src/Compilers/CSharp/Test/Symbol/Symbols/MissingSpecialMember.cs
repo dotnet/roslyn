@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -122,7 +121,7 @@ public static class Program
 
     public static void Extension(this string x) {}
 }";
-            var comp = CreateEmptyCompilation(source, new[] { Net40.mscorlib }, options: TestOptions.ReleaseDll);
+            var comp = CreateEmptyCompilation(source, new[] { Net40.References.mscorlib }, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 

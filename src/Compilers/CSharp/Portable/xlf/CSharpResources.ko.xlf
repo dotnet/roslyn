@@ -1143,8 +1143,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="translated">이 네임스페이스에서는 '인터셉터' 실험적 기능을 사용할 수 없습니다. 프로젝트에 '{0}'을(를) 추가하세요.</target>
+        <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="needs-review-translation">이 네임스페이스에서는 '인터셉터' 실험적 기능을 사용할 수 없습니다. 프로젝트에 '{0}'을(를) 추가하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">

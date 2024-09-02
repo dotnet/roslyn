@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                                         TestReferences.SymbolsTests.TypeForwarders.TypeForwarder.dll,
                                         TestReferences.SymbolsTests.TypeForwarders.TypeForwarderLib.dll,
                                         TestReferences.SymbolsTests.TypeForwarders.TypeForwarderBase.dll,
-                                        Net40.mscorlib
+                                        Net40.References.mscorlib
                                     });
 
             TestTypeForwarderHelper(assemblies);
@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             var compilation = CreateCompilationWithMscorlib40AndSystemCore(new SyntaxTree[0]);
 
-            var corlibAssembly = compilation.GetReferencedAssemblySymbol(Net40.mscorlib);
+            var corlibAssembly = compilation.GetReferencedAssemblySymbol(Net40.References.mscorlib);
             Assert.NotNull(corlibAssembly);
-            var systemCoreAssembly = compilation.GetReferencedAssemblySymbol(Net40.SystemCore);
+            var systemCoreAssembly = compilation.GetReferencedAssemblySymbol(Net40.References.SystemCore);
             Assert.NotNull(systemCoreAssembly);
 
             const string funcTypeMetadataName = "System.Func`1";

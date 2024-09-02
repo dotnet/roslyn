@@ -19,17 +19,14 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
-using Microsoft.CodeAnalysis.Editing;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
 
 internal class CSharpSyntaxFacts : ISyntaxFacts
 {
     internal static readonly CSharpSyntaxFacts Instance = new();
+
+    // Specifies false for trimOnFree as these objects commonly exceed the default ObjectPool threshold
+    private static readonly ObjectPool<List<SyntaxNode>> s_syntaxNodeListPool = new ObjectPool<List<SyntaxNode>>(() => [], trimOnFree: false);
 
     protected CSharpSyntaxFacts()
     {
@@ -896,20 +893,30 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
         }
     }
 
-    public void AddTopLevelAndMethodLevelMembers(SyntaxNode? root, ArrayBuilder<SyntaxNode> list)
+    public PooledObject<List<SyntaxNode>> GetTopLevelAndMethodLevelMembers(SyntaxNode? root)
     {
+        var pooledObject = s_syntaxNodeListPool.GetPooledObject();
+        var list = pooledObject.Object;
+
         AppendMembers(root, list, topLevel: true, methodLevel: true);
+
+        return pooledObject;
     }
 
-    public void AddMethodLevelMembers(SyntaxNode? root, ArrayBuilder<SyntaxNode> list)
+    public PooledObject<List<SyntaxNode>> GetMethodLevelMembers(SyntaxNode? root)
     {
+        var pooledObject = s_syntaxNodeListPool.GetPooledObject();
+        var list = pooledObject.Object;
+
         AppendMembers(root, list, topLevel: false, methodLevel: true);
+
+        return pooledObject;
     }
 
     public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
         => ((TypeDeclarationSyntax)typeDeclaration).Members;
 
-    private void AppendMembers(SyntaxNode? node, ArrayBuilder<SyntaxNode> list, bool topLevel, bool methodLevel)
+    private void AppendMembers(SyntaxNode? node, List<SyntaxNode> list, bool topLevel, bool methodLevel)
     {
         Debug.Assert(topLevel || methodLevel);
 
