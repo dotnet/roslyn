@@ -4,6 +4,7 @@
   <Import Project="VisualStudio.targets" Condition="'$(UsingToolVSSDK)' == 'true'"/>
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
   <Import Project="WpfTempProjectWorkarounds.targets" Condition="'$(IsWpfTempProject)' == 'true'" />
+  <Import Project="WpfWorkarounds.targets" Condition="'$(UseWpf)' == 'true'" />
 
   <!--
     Work around .editorconfig evaluation bugs in command line builds.
