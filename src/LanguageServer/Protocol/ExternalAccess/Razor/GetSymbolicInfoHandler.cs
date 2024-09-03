@@ -147,9 +147,9 @@ internal sealed class GetSymbolicInfoHandler : ILspServiceDocumentRequestHandler
         var propertiesInRange = propertiesInClass.Where(property => identifiersInRange
                                         .Any(identifier => SymbolEqualityComparer.Default.Equals(identifier.Symbol, semanticModel.GetDeclaredSymbol(property))));
 
+        // Now, we iterate through the methods, fields, and properties in the range and extract the necessary information.
         var pooledMethods = PooledHashSet<MethodSymbolicInfo>.GetInstance();
         var pooledAttributes = PooledHashSet<AttributeSymbolicInfo>.GetInstance();
-
         foreach (var method in methodsInRange)
         {
             var parameterTypes = method.ParameterList.Parameters.Count > 0
@@ -239,21 +239,6 @@ internal sealed class GetSymbolicInfoHandler : ILspServiceDocumentRequestHandler
         IEnumerable<IdentifierAndSymbol> identifiersInExpressions,
         CancellationToken cancellationToken)
     {
-        if (node is null)
-        {
-            throw new ArgumentNullException(nameof(node));
-        }
-
-        if (typeSyntax is null)
-        {
-            throw new ArgumentNullException(nameof(typeSyntax));
-        }
-
-        if (semanticModel is null)
-        {
-            throw new ArgumentNullException(nameof(semanticModel));
-        }
-
         var declarationInfo = semanticModel.GetDeclaredSymbol(node, cancellationToken);
         var typeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type;
 
