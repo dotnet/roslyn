@@ -94,7 +94,6 @@ internal sealed class GetSymbolicInfoHandler : ILspServiceDocumentRequestHandler
         }
 
         var dataFlowAnalysis = semanticModel.AnalyzeDataFlow(blockNode);
-        var writtenInsideBlock = dataFlowAnalysis.WrittenInside.Select(symbol => symbol.Name);
         var writtenInsideSymbols = dataFlowAnalysis.WrittenInside;
 
         // Using the generated spans as a criterion to traverse through the tree generally returns incomplete results.
