@@ -134,7 +134,7 @@ internal sealed class GetSymbolicInfoHandler : ILspServiceDocumentRequestHandler
                         Identifier = identifier,
                         Symbol = semanticModel.GetSymbolInfo(identifier).Symbol
                     })
-                    .Where(x => x.Symbol != null);
+                    .Where(x => x.Symbol is not null);
 
         var methodsInRange = methodsInClass.Where(method => identifiersInRange
                                     .Any(identifier => SymbolEqualityComparer.Default.Equals(identifier.Symbol, semanticModel.GetDeclaredSymbol(method))));
@@ -153,7 +153,7 @@ internal sealed class GetSymbolicInfoHandler : ILspServiceDocumentRequestHandler
         {
             var parameterTypes = method.ParameterList.Parameters.Count > 0
                 ? method.ParameterList.Parameters
-                    .Where(p => p.Type != null)
+                    .Where(p => p.Type is not null)
                     .Select(p => GetFullTypeName(p.Type!, semanticModel))
                     .ToArray()
                 : Array.Empty<string>();
