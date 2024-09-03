@@ -60,7 +60,7 @@ internal sealed class GetSymbolicInfoHandler : ILspServiceDocumentRequestHandler
             return null;
         }
 
-        var document = solution.GetDocument(request.Document);
+        var document = context.Document;
         if (document is null)
         {
             return null;
@@ -73,12 +73,20 @@ internal sealed class GetSymbolicInfoHandler : ILspServiceDocumentRequestHandler
 
         var generatedSpans = request.GeneratedDocumentRanges.Select(r => ProtocolConversions.RangeToTextSpan(r, sourceText));
 
-        var classDeclarationNode = root.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault();
+        // First, get the class declaration for the component (implements Microsoft.AspNetCore.Components.ComponentBase). There might be a better way to get the type.
+        var componentBaseSymbol = semanticModel.Compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Components.ComponentBase");
+        if (componentBaseSymbol is null)
+        {
+            return null;
+        }
+
+        var classDeclarationNode = root.DescendantNodes().OfType<ClassDeclarationSyntax>().FirstOrDefault(classSymbol => InheritsFromComponentBase(componentBaseSymbol, classSymbol, semanticModel));
         if (classDeclarationNode is null)
         {
             return null;
         }
 
+        // Get the block syntax directly inside method BuildRenderTree(RenderTreeBuilder builder). This will be the most ancestral (first) block syntax.
         var blockNode = classDeclarationNode.DescendantNodes().OfType<BlockSyntax>().FirstOrDefault();
         if (blockNode is null)
         {
@@ -87,57 +95,90 @@ internal sealed class GetSymbolicInfoHandler : ILspServiceDocumentRequestHandler
 
         var dataFlowAnalysis = semanticModel.AnalyzeDataFlow(blockNode);
         var writtenInsideBlock = dataFlowAnalysis.WrittenInside.Select(symbol => symbol.Name);
+        var writtenInsideSymbols = dataFlowAnalysis.WrittenInside;
 
-        var identifiersInClass = classDeclarationNode.DescendantNodes().OfType<IdentifierNameSyntax>();
-        var methodsInClass = classDeclarationNode.DescendantNodes().OfType<MethodDeclarationSyntax>();
-        var fieldsInClass = classDeclarationNode.DescendantNodes().OfType<FieldDeclarationSyntax>();
-        var propertiesInClass = classDeclarationNode.DescendantNodes().OfType<PropertyDeclarationSyntax>();
+        // Using the generated spans as a criterion to traverse through the tree generally returns incomplete results.
+        // Instead, we get all of the identifiers, methods, fields, and properties in the class.
+        // Then we get the identifiers that are within the generated spans.
+        // We then find the methods, fields, and properties that correspond to the identifiers within the generated spans.
+        var identifiersBuilder = ArrayBuilder<IdentifierNameSyntax>.GetInstance();
+        var methodsBuilder = ArrayBuilder<MethodDeclarationSyntax>.GetInstance();
+        var fieldsBuilder = ArrayBuilder<FieldDeclarationSyntax>.GetInstance();
+        var propertiesBuilder = ArrayBuilder<PropertyDeclarationSyntax>.GetInstance();
+        foreach (var node in classDeclarationNode.DescendantNodes())
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.IdentifierName:
+                    identifiersBuilder.Add((IdentifierNameSyntax)node);
+                    break;
+                case SyntaxKind.MethodDeclaration:
+                    methodsBuilder.Add((MethodDeclarationSyntax)node);
+                    break;
+                case SyntaxKind.FieldDeclaration:
+                    fieldsBuilder.Add((FieldDeclarationSyntax)node);
+                    break;
+                case SyntaxKind.PropertyDeclaration:
+                    propertiesBuilder.Add((PropertyDeclarationSyntax)node);
+                    break;
+            }
+        }
 
-        var identifiersInRange = identifiersInClass.Where(i => generatedSpans.Any(s => s.Contains(i.Span)))
-                                            .Select(i => semanticModel.GetSymbolInfo(i).Symbol?.Name)
-                                            .Where(n => n != null).Select(n => n!);
+        var identifiersInClass = identifiersBuilder.ToImmutableAndFree();
+        var methodsInClass = methodsBuilder.ToImmutableAndFree();
+        var fieldsInClass = fieldsBuilder.ToImmutableAndFree();
+        var propertiesInClass = propertiesBuilder.ToImmutableAndFree();
 
-        var methodsInRange = methodsInClass.Where(m => identifiersInRange.Contains(m.Identifier.Text));
-        var fieldsInRange = fieldsInClass.Where(f => f.Declaration.Variables.Any(v => identifiersInRange.Contains(v.Identifier.Text)));
-        var propertiesInRange = propertiesInClass.Where(p => identifiersInRange.Contains(p.Identifier.Text));
+        var identifiersInRange = identifiersInClass.Where(identifier => generatedSpans.Any(span => span.Contains(identifier.Span)))
+                    .Select(identifier => new IdentifierAndSymbol
+                    {
+                        Identifier = identifier,
+                        Symbol = semanticModel.GetSymbolInfo(identifier).Symbol
+                    })
+                    .Where(x => x.Symbol != null);
+
+        var methodsInRange = methodsInClass.Where(method => identifiersInRange
+                                    .Any(identifier => SymbolEqualityComparer.Default.Equals(identifier.Symbol, semanticModel.GetDeclaredSymbol(method))));
+
+        var fieldsInRange = fieldsInClass.Where(field => field.Declaration.Variables
+                                            .Any(variable => identifiersInRange
+                                                .Any(identifier => SymbolEqualityComparer.Default.Equals(identifier.Symbol, semanticModel.GetDeclaredSymbol(variable)))));
+
+        var propertiesInRange = propertiesInClass.Where(property => identifiersInRange
+                                        .Any(identifier => SymbolEqualityComparer.Default.Equals(identifier.Symbol, semanticModel.GetDeclaredSymbol(property))));
 
         var pooledMethods = PooledHashSet<MethodSymbolicInfo>.GetInstance();
         var pooledAttributes = PooledHashSet<AttributeSymbolicInfo>.GetInstance();
 
         foreach (var method in methodsInRange)
         {
-
             var parameterTypes = method.ParameterList.Parameters.Count > 0
                 ? method.ParameterList.Parameters
                     .Where(p => p.Type != null)
-                    .Select(p => p.Type!.GetFirstToken().Text)
+                    .Select(p => GetFullTypeName(p.Type!, semanticModel))
                     .ToArray()
                 : Array.Empty<string>();
 
             pooledMethods.Add(new MethodSymbolicInfo
             {
                 Name = method.Identifier.Text,
-                ReturnType = method.ReturnType.GetFirstToken().Text,
+                ReturnType = GetFullTypeName(method.ReturnType!, semanticModel),
                 ParameterTypes = parameterTypes
             });
         }
 
-        var expressionsInClass = classDeclarationNode.DescendantNodes().OfType<ExpressionStatementSyntax>();
-        var expressionIdentifiers = expressionsInClass.SelectMany(e => e.DescendantNodes().OfType<IdentifierNameSyntax>());
-        var expressionIdentifierNames = expressionIdentifiers.Select(i => semanticModel.GetSymbolInfo(i).Symbol?.Name)
-            .Where(n => n != null).Select(n => n!);
-
+        var expressionIdentifiersInRange = identifiersInRange.Where(i => i.Identifier.Ancestors().OfType<ExpressionStatementSyntax>().Any());
         foreach (var field in fieldsInRange)
         {
             foreach (var declaredVariable in field.Declaration.Variables)
             {
-                ExtractAttributeInfo(declaredVariable, field.Declaration.Type, semanticModel, pooledAttributes, writtenInsideBlock, expressionIdentifierNames, cancellationToken);
+                ExtractAttributeInfo(declaredVariable, field.Declaration.Type, semanticModel, pooledAttributes, writtenInsideSymbols, expressionIdentifiersInRange, cancellationToken);
             }
         }
 
         foreach (var property in propertiesInRange)
         {
-            ExtractAttributeInfo(property, property.Type, semanticModel, pooledAttributes, writtenInsideBlock, expressionIdentifierNames, cancellationToken);
+            ExtractAttributeInfo(property, property.Type, semanticModel, pooledAttributes, writtenInsideSymbols, expressionIdentifiersInRange, cancellationToken);
         }
 
         var result = new MemberSymbolicInfo
@@ -152,13 +193,50 @@ internal sealed class GetSymbolicInfoHandler : ILspServiceDocumentRequestHandler
         return result;
     }
 
+    private static bool InheritsFromComponentBase(ITypeSymbol componentBaseSymbol, ClassDeclarationSyntax classDeclaration, SemanticModel semanticModel)
+    {
+        if (componentBaseSymbol is null)
+        {
+            return false;
+        }
+
+        var baseTypes = classDeclaration.BaseList?.Types;
+        if (baseTypes is null)
+        {
+            return false;
+        }
+
+        foreach (var baseTypeSyntax in baseTypes)
+        {
+            var classTypeSymbol = semanticModel.GetTypeInfo(baseTypeSyntax.Type).Type;
+            if (classTypeSymbol is not null && InheritsFrom(classTypeSymbol, componentBaseSymbol))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool InheritsFrom(ITypeSymbol derivedType, ITypeSymbol baseType)
+    {
+        var currentType = derivedType;
+        while (currentType is not null)
+        {
+            if (SymbolEqualityComparer.Default.Equals(currentType, baseType))
+                return true;
+            currentType = currentType.BaseType;
+        }
+        return false;
+    }
+
     private static void ExtractAttributeInfo(
         SyntaxNode node,
         TypeSyntax typeSyntax,
         SemanticModel semanticModel,
         PooledHashSet<AttributeSymbolicInfo> attributes,
-        IEnumerable<string> writtenInsideBlock,
-        IEnumerable<string> identifierSymbolNames,
+        ImmutableArray<ISymbol> writtenInsideBlockSymbols,
+        IEnumerable<IdentifierAndSymbol> identifiersInExpressions,
         CancellationToken cancellationToken)
     {
         if (node is null)
@@ -177,14 +255,14 @@ internal sealed class GetSymbolicInfoHandler : ILspServiceDocumentRequestHandler
         }
 
         var declarationInfo = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-        var typeInfo = semanticModel.GetTypeInfo(typeSyntax, cancellationToken);
+        var typeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type;
 
-        if (declarationInfo is null || typeInfo.Type is null)
+        if (declarationInfo is null || typeSymbol is null)
         {
             return;
         }
 
-        var isWrittenTo = writtenInsideBlock.Any(symbol => symbol == declarationInfo.Name);
+        var isWrittenTo = writtenInsideBlockSymbols.Any(symbol => SymbolEqualityComparer.Default.Equals(symbol, declarationInfo));
 
         // Handle special case: attribute is string type or value type.
         // Attributes of these types are not added to the 'WrittenInside' property of a data flow analysis when written to or mutated.
@@ -193,17 +271,58 @@ internal sealed class GetSymbolicInfoHandler : ILspServiceDocumentRequestHandler
 
         // The 'isWrittenTo' property is not critical to functionality in current usage; it's only used in ExtractToComponent
         // to determine if a code attribute that has been promoted to a parameter in a component should include a comment warning.
-        if (typeInfo.Type.ToDisplayString() == "string" || typeInfo.Type.IsValueType)
+        if (typeSymbol.SpecialType == SpecialType.System_String || typeSymbol.IsValueType)
         {
-            isWrittenTo = identifierSymbolNames.Contains(declarationInfo.Name);
+            isWrittenTo = identifiersInExpressions.Any(symbol => SymbolEqualityComparer.Default.Equals(symbol.Symbol, declarationInfo));
         }
 
         attributes.Add(new AttributeSymbolicInfo
         {
             Name = declarationInfo.Name,
-            Type = typeInfo.Type.ToDisplayString(),
-            IsValueType = typeInfo.Type.IsValueType,
+            Type = GetFullTypeName(typeSyntax, semanticModel),
+            IsValueType = typeSymbol.IsValueType,
             IsWrittenTo = isWrittenTo
         });
+    }
+
+    private static string GetFullTypeName(TypeSyntax type, SemanticModel semanticModel)
+    {
+        var symbol = semanticModel.GetSymbolInfo(type).Symbol as ITypeSymbol;
+        if (symbol is not null)
+        {
+            return FormatType(symbol);
+        }
+
+        // Fallback to string if we can't get the symbol. Ideally this should never happen.
+        return type.ToString();
+    }
+
+    private static string FormatType(ITypeSymbol typeSymbol)
+    {
+        // Check if the symbol is a named type symbol (e.g., List<T>)
+        if (typeSymbol is INamedTypeSymbol namedTypeSymbol)
+        {
+            // Get the base name of the type, e.g., "List"
+            var typeName = namedTypeSymbol.Name;
+
+            // If there are type arguments, format them recursively
+            if (namedTypeSymbol.TypeArguments.Length > 0)
+            {
+                var typeArguments = string.Join(", ", namedTypeSymbol.TypeArguments.Select(FormatType));
+                return $"{typeName}<{typeArguments}>"; // Returning a formatted string seems hacky so might need to be revisited. 
+            }
+
+            // If no type arguments, just return the type name
+            return typeName;
+        }
+
+        // Fallback for non-named types
+        return typeSymbol.ToDisplayString();
+    }
+
+    internal sealed record IdentifierAndSymbol
+    {
+        public required IdentifierNameSyntax Identifier { get; init; }
+        public ISymbol? Symbol { get; init; }
     }
 }
