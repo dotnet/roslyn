@@ -12273,6 +12273,9 @@ public sealed partial class AllowsConstraintClauseSyntax : TypeParameterConstrai
         {
             var newNode = SyntaxFactory.AllowsConstraintClause(allowsKeyword, constraints);
             var annotations = GetAnnotations();
+            // <Metalama> This change is generated. See Modifications.md for details.
+            Metalama.Compiler.TreeTracker.SetAnnotationExcludeChildren(ref annotations, this);
+            // </Metalama>
             return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 
@@ -12328,6 +12331,9 @@ public sealed partial class RefStructConstraintSyntax : AllowsConstraintSyntax
         {
             var newNode = SyntaxFactory.RefStructConstraint(refKeyword, structKeyword);
             var annotations = GetAnnotations();
+            // <Metalama> This change is generated. See Modifications.md for details.
+            Metalama.Compiler.TreeTracker.SetAnnotationExcludeChildren(ref annotations, this);
+            // </Metalama>
             return annotations?.Length > 0 ? newNode.WithAnnotations(annotations) : newNode;
         }
 

@@ -6820,6 +6820,9 @@ public static partial class SyntaxFactory
     public static AllowsConstraintClauseSyntax AllowsConstraintClause(SyntaxToken allowsKeyword, SeparatedSyntaxList<AllowsConstraintSyntax> constraints)
     {
         if (allowsKeyword.Kind() != SyntaxKind.AllowsKeyword) throw new ArgumentException(nameof(allowsKeyword));
+        // <Metalama> This change is generated. See Modifications.md for details.
+        allowsKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(allowsKeyword);
+        // </Metalama>
         return (AllowsConstraintClauseSyntax)Syntax.InternalSyntax.SyntaxFactory.AllowsConstraintClause((Syntax.InternalSyntax.SyntaxToken)allowsKeyword.Node!, constraints.Node.ToGreenSeparatedList<Syntax.InternalSyntax.AllowsConstraintSyntax>()).CreateRed();
     }
 
@@ -6832,6 +6835,12 @@ public static partial class SyntaxFactory
     {
         if (refKeyword.Kind() != SyntaxKind.RefKeyword) throw new ArgumentException(nameof(refKeyword));
         if (structKeyword.Kind() != SyntaxKind.StructKeyword) throw new ArgumentException(nameof(structKeyword));
+        // <Metalama> This change is generated. See Modifications.md for details.
+        refKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(refKeyword);
+        // </Metalama>
+        // <Metalama> This change is generated. See Modifications.md for details.
+        structKeyword = Metalama.Compiler.TreeTracker.TrackIfNeeded(structKeyword);
+        // </Metalama>
         return (RefStructConstraintSyntax)Syntax.InternalSyntax.SyntaxFactory.RefStructConstraint((Syntax.InternalSyntax.SyntaxToken)refKeyword.Node!, (Syntax.InternalSyntax.SyntaxToken)structKeyword.Node!).CreateRed();
     }
 

@@ -61,7 +61,9 @@ internal abstract partial class AbstractSyntaxIndex<TIndex>
                 return null;
 
             // Populate our caches with this data.
-#if NET
+// <Metalama> NET -> NET7_0_OR_GREATER 
+#if NET7_0_OR_GREATER
+// </Metalama>
             s_documentToIndex.TryAdd(document, index);
             s_documentIdToIndex.AddOrUpdate(document.Id, index);
 #else
