@@ -1765,8 +1765,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceProperty = propertySymbol as SourcePropertySymbolBase;
             var propertyIsStatic = propertySymbol.IsStatic;
 
-            sourceProperty = (sourceProperty as SourcePropertySymbol)?.SourcePartialImplementationPart ?? sourceProperty;
-
             return (object)sourceProperty != null &&
                     (allowFieldKeyword ? sourceProperty.IsAutoPropertyOrUsesFieldKeyword : sourceProperty.IsAutoProperty) &&
                     TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.AllIgnoreOptions) &&

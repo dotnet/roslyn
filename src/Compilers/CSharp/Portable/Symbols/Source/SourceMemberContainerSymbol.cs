@@ -3590,6 +3590,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (!membersBySignature.TryGetValue(symbol, out var prev))
                     {
                         membersBySignature.Add(symbol, symbol);
+                        if (symbol is SourcePropertySymbol currentProperty)
+                        {
+                            currentProperty.FixupAutoPropertyDataIfNecessary();
+                        }
                         continue;
                     }
 
@@ -3601,6 +3605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         case (SourcePropertySymbol currentProperty, SourcePropertySymbol prevProperty):
                             mergePartialProperties(ref membersByName, name, currentProperty, prevProperty, diagnostics);
+                            currentProperty.FixupAutoPropertyDataIfNecessary();
                             break;
 
                         case (SourcePropertyAccessorSymbol, SourcePropertyAccessorSymbol):
@@ -3692,6 +3697,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
+                    if (hasInitializer(prevProperty) && hasInitializer(currentProperty))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_PartialPropertyDuplicateInitializer, currentProperty.GetFirstLocation());
+                    }
+
                     var (currentGet, prevGet) = ((SourcePropertyAccessorSymbol?)currentProperty.GetMethod, (SourcePropertyAccessorSymbol?)prevProperty.GetMethod);
                     if (currentGet != null || prevGet != null)
                     {
@@ -3713,11 +3723,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     FixPartialProperty(ref membersByName, name, prevProperty, currentProperty);
-
-                    if (prevProperty.BackingField?.HasInitializer == true && currentProperty.BackingField?.HasInitializer == true)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_PartialPropertyDuplicateInitializer, currentProperty.GetFirstLocation());
-                    }
                 }
 
                 void mergeAccessors(ref Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName, ReadOnlyMemory<char> name, SourcePropertyAccessorSymbol? currentAccessor, SourcePropertyAccessorSymbol? prevAccessor)
@@ -3738,6 +3743,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             : (ErrorCode.ERR_PartialPropertyUnexpectedAccessor, containingProperty);
                         diagnostics.Add(errorCode, propertyToBlame.GetFirstLocation(), foundAccessor);
                     }
+                }
+
+                static bool hasInitializer(SourcePropertySymbol property)
+                {
+                    var autoPropertyData = property.AutoPropertyDataInProgress;
+                    if ((object)autoPropertyData == SourcePropertySymbolBase.AutoPropertyData.UnknownPartial)
+                    {
+                        return false;
+                    }
+                    return autoPropertyData.BackingField?.HasInitializer == true;
                 }
             }
         }
@@ -3780,15 +3795,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 implementation = part1;
             }
 
+            if (getBackingFieldInProgress(implementation) is { } field && getBackingFieldInProgress(definition) is { })
+            {
+                var fieldName = field.Name.AsMemory();
+                membersByName[fieldName] = Remove(membersByName[fieldName], field);
+            }
+
             SourcePropertySymbol.InitializePartialPropertyParts(definition, implementation);
 
             // a partial property is represented in the member list by its definition part:
             membersByName[name] = Remove(membersByName[name], implementation);
 
-            if (implementation.BackingField is { } field && definition.BackingField is { })
+            static SynthesizedBackingFieldSymbol? getBackingFieldInProgress(SourcePropertySymbol property)
             {
-                var fieldName = field.Name.AsMemory();
-                membersByName[fieldName] = Remove(membersByName[fieldName], field);
+                var autoPropertyData = property.AutoPropertyDataInProgress;
+                if ((object)autoPropertyData == SourcePropertySymbolBase.AutoPropertyData.UnknownPartial)
+                {
+                    return null;
+                }
+                return autoPropertyData.BackingField;
             }
         }
 
@@ -4562,7 +4587,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Debug.Assert(property.SetMethod is object);
                         members.Add(property.GetMethod);
                         members.Add(property.SetMethod);
-                        members.Add(property.BackingField);
+                        var backingField = property.AutoPropertyDataInProgress.BackingField;
+                        Debug.Assert(backingField is object);
+                        members.Add(backingField);
 
                         builder.AddInstanceInitializerForPositionalMembers(new FieldOrPropertyInitializer(property.BackingField, paramList.Parameters[param.Ordinal]));
                         addedCount++;
@@ -5002,37 +5029,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.GetMethod);
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.SetMethod);
-                            FieldSymbol backingField = property.BackingField;
 
-                            // TODO: can we leave this out of the member list?
-                            // From the 10/12/11 design notes:
-                            //   In addition, we will change autoproperties to behavior in
-                            //   a similar manner and make the autoproperty fields private.
-                            if ((object)backingField != null)
+                            var autoPropertyData = property.AutoPropertyDataInProgress;
+                            if ((object)autoPropertyData != SourcePropertySymbolBase.AutoPropertyData.UnknownPartial)
                             {
-                                builder.NonTypeMembers.Add(backingField);
-                                builder.UpdateIsNullableEnabledForConstructorsAndFields(useStatic: backingField.IsStatic, compilation, propertySyntax);
+                                FieldSymbol? backingField = autoPropertyData.BackingField;
 
-                                var initializer = propertySyntax.Initializer;
-                                if (initializer != null)
+                                // TODO: can we leave this out of the member list?
+                                // From the 10/12/11 design notes:
+                                //   In addition, we will change autoproperties to behavior in
+                                //   a similar manner and make the autoproperty fields private.
+                                if (backingField is { })
                                 {
-                                    if (IsScriptClass)
-                                    {
-                                        // also gather expression-declared variables from the initializer
-                                        ExpressionFieldFinder.FindExpressionVariables(builder.NonTypeMembers,
-                                                                                      initializer,
-                                                                                      this,
-                                                                                      DeclarationModifiers.Private | (property.IsStatic ? DeclarationModifiers.Static : 0),
-                                                                                      backingField);
-                                    }
+                                    builder.NonTypeMembers.Add(backingField);
+                                    builder.UpdateIsNullableEnabledForConstructorsAndFields(useStatic: backingField.IsStatic, compilation, propertySyntax);
 
-                                    if (property.IsStatic)
+                                    var initializer = propertySyntax.Initializer;
+                                    if (initializer != null)
                                     {
-                                        AddInitializer(ref staticInitializers, backingField, initializer);
-                                    }
-                                    else
-                                    {
-                                        AddInitializer(ref instanceInitializers, backingField, initializer);
+                                        if (IsScriptClass)
+                                        {
+                                            // also gather expression-declared variables from the initializer
+                                            ExpressionFieldFinder.FindExpressionVariables(builder.NonTypeMembers,
+                                                                                          initializer,
+                                                                                          this,
+                                                                                          DeclarationModifiers.Private | (property.IsStatic ? DeclarationModifiers.Static : 0),
+                                                                                          backingField);
+                                        }
+
+                                        if (property.IsStatic)
+                                        {
+                                            AddInitializer(ref staticInitializers, backingField, initializer);
+                                        }
+                                        else
+                                        {
+                                            AddInitializer(ref instanceInitializers, backingField, initializer);
+                                        }
                                     }
                                 }
                             }

@@ -57,9 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private SymbolCompletionState _state;
         private ImmutableArray<ParameterSymbol> _lazyParameters;
         private TypeWithAnnotations.Boxed _lazyType;
-#nullable enable
-        private SynthesizedBackingFieldSymbolBase? _lazyBackingField;
-#nullable disable
 
         private string _lazySourceName;
 
@@ -74,41 +71,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public Location Location { get; }
 
 #nullable enable
-        // PROTOTYPE: Review and update implemented members.
-        // PROTOTYPE: Derive from FieldSymbol instead.
-        private sealed class UnknownSynthesizedBackingFieldSymbol : SynthesizedBackingFieldSymbolBase
+        private AutoPropertyData _lazyAutoPropertyData;
+
+        internal abstract class AutoPropertyData
         {
-            internal static readonly UnknownSynthesizedBackingFieldSymbol Instance = new UnknownSynthesizedBackingFieldSymbol();
+            internal static readonly AutoPropertyData None = new AutoPropertyDataKnown();
+            internal static readonly AutoPropertyData Unknown = new AutoPropertyDataUnknown();
+            internal static readonly AutoPropertyData UnknownPartial = new AutoPropertyDataUnknown();
 
-            private UnknownSynthesizedBackingFieldSymbol() :
-                base("__unknown", isReadOnly: false, isStatic: false)
+            internal static AutoPropertyData Create(SynthesizedBackingFieldSymbol? backingField, bool isAutoProperty, bool usesFieldKeyword)
             {
+                if (backingField is null)
+                {
+                    Debug.Assert(!isAutoProperty);
+                    Debug.Assert(!usesFieldKeyword);
+                    return None;
+                }
+                return new AutoPropertyDataKnown(backingField, isAutoProperty, usesFieldKeyword);
             }
 
-            public override RefKind RefKind => throw new NotImplementedException();
+            internal abstract SynthesizedBackingFieldSymbol? BackingField { get; }
+            internal abstract bool IsAutoProperty { get; }
+            internal abstract bool UsesFieldKeyword { get; }
 
-            public override ImmutableArray<CustomModifier> RefCustomModifiers => throw new NotImplementedException();
-
-            public override Symbol AssociatedSymbol => throw new NotImplementedException();
-
-            public override Symbol ContainingSymbol => throw new NotImplementedException();
-
-            public override ImmutableArray<Location> Locations => throw new NotImplementedException();
-
-            protected override IAttributeTargetSymbol AttributeOwner => throw new NotImplementedException();
-
-            internal override bool HasInitializer => throw new NotImplementedException();
-
-            internal override Location ErrorLocation => throw new NotImplementedException();
-
-            protected override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+            private sealed class AutoPropertyDataUnknown : AutoPropertyData
             {
-                throw new NotImplementedException();
+                internal override SynthesizedBackingFieldSymbol? BackingField => throw ExceptionUtilities.Unreachable();
+                internal override bool IsAutoProperty => throw ExceptionUtilities.Unreachable();
+                internal override bool UsesFieldKeyword => throw ExceptionUtilities.Unreachable();
             }
 
-            internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+            private sealed class AutoPropertyDataKnown : AutoPropertyData
             {
-                throw new NotImplementedException();
+                internal AutoPropertyDataKnown() { }
+
+                internal AutoPropertyDataKnown(SynthesizedBackingFieldSymbol backingField, bool isAutoProperty, bool usesFieldKeyword)
+                {
+                    BackingField = backingField;
+                    IsAutoProperty = isAutoProperty;
+                    UsesFieldKeyword = usesFieldKeyword;
+                }
+
+                internal override SynthesizedBackingFieldSymbol? BackingField { get; }
+                internal override bool IsAutoProperty { get; }
+                internal override bool UsesFieldKeyword { get; }
             }
         }
 
@@ -208,14 +214,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _name = _lazySourceName = memberName;
             }
 
+            // PROTOTYPE: Remove this, and set _lazyAutoPropertyData = null unconditionally, so we are always testing lazily assigned state.
             if (usesFieldKeyword || hasAutoPropertyGet || hasAutoPropertySet || hasInitializer)
             {
                 Debug.Assert(!IsIndexer);
-                _lazyBackingField = UnknownSynthesizedBackingFieldSymbol.Instance;
+                _lazyAutoPropertyData = AutoPropertyData.Unknown;
             }
             else
             {
-                _lazyBackingField = null;
+                _lazyAutoPropertyData = IsPartial ? AutoPropertyData.UnknownPartial : AutoPropertyData.None;
             }
 
             // PROTOTYPE: Assert we're not calculating the BackingField before the constructor
@@ -340,8 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_InstancePropertyInitializerInInterface, Location);
             }
-            // PROTOTYPE: Review all uses of IsAutoProperty, IsAutoPropertyOrUsesFieldKeyword, and BackingField for use from IsPartialDefinition.
-            else if (!((this as SourcePropertySymbol)?.SourcePartialImplementationPart ?? this).IsAutoPropertyOrUsesFieldKeyword)
+            else if (!IsAutoPropertyOrUsesFieldKeyword)
             {
                 diagnostics.Add(ErrorCode.ERR_InitializerOnNonAutoProperty, Location);
             }
@@ -689,20 +695,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // PROTOTYPE: Do partial property parts have to return consistent values for
-        // IsAutoProperty, IsAutoPropertyOrUsesFieldKeyword, and BackingField?
-
         internal bool IsAutoPropertyOrUsesFieldKeyword
-            => IsAutoProperty || UsesFieldKeyword;
-
-        private bool UsesFieldKeyword
-            => (_propertyFlags & Flags.UsesFieldKeyword) != 0;
+            => _lazyAutoPropertyData.IsAutoProperty || _lazyAutoPropertyData.UsesFieldKeyword;
 
         protected bool HasExplicitAccessModifier
             => (_propertyFlags & Flags.HasExplicitAccessModifier) != 0;
 
         internal bool IsAutoProperty
-            => (_propertyFlags & (Flags.HasAutoPropertyGet | Flags.HasAutoPropertySet)) != 0;
+            => _lazyAutoPropertyData.IsAutoProperty;
 
         protected bool AccessorsHaveImplementation
             => (_propertyFlags & Flags.AccessorsHaveImplementation) != 0;
@@ -712,38 +712,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// a property with an accessor using the 'field' keyword, or
         /// a property with an initializer.
         /// </summary>
-        internal SynthesizedBackingFieldSymbol BackingField
+        internal SynthesizedBackingFieldSymbol BackingField => _lazyAutoPropertyData.BackingField;
+
+#nullable enable
+        internal AutoPropertyData AutoPropertyDataInProgress
         {
             get
             {
-                if ((object)_lazyBackingField == UnknownSynthesizedBackingFieldSymbol.Instance)
+                if ((object)_lazyAutoPropertyData == AutoPropertyData.Unknown)
                 {
-                    Interlocked.CompareExchange(ref _lazyBackingField, CreateBackingField(), UnknownSynthesizedBackingFieldSymbol.Instance);
+                    FixupAutoPropertyDataIfNecessary();
                 }
-                return (SynthesizedBackingFieldSymbol)_lazyBackingField;
+                return _lazyAutoPropertyData;
             }
         }
 
-        // PROTOTYPE: Where else are we using BackingField from the property implementation rather than definition?
-        // PROTOTYPE: This two-step lookup is too fragile. Both parts should be pointing to the same BackingField.
-        internal SynthesizedBackingFieldSymbol GetBackingFieldPreferringDefinitionPart()
+        internal void FixupAutoPropertyData(AutoPropertyData autoPropertyData)
         {
-            if (this is SourcePropertySymbol { IsPartial: true } property)
+            var current = _lazyAutoPropertyData;
+            Debug.Assert((object)current != AutoPropertyData.Unknown);
+
+            if ((object)current == autoPropertyData)
             {
-                if (property.IsPartialImplementation)
-                {
-                    var field = property.SourcePartialDefinitionPart?.BackingField;
-                    if (field is { })
-                    {
-                        return field;
-                    }
-                }
-                return BackingField ?? property.OtherPartOfPartial?.BackingField;
+                return;
             }
-            return BackingField;
+
+            Interlocked.CompareExchange(ref _lazyAutoPropertyData, autoPropertyData, current);
         }
 
-        private SynthesizedBackingFieldSymbol CreateBackingField()
+        internal void FixupAutoPropertyDataIfNecessary()
+        {
+            var autoPropertyData = _lazyAutoPropertyData;
+            if ((object)autoPropertyData == AutoPropertyData.UnknownPartial)
+            {
+                Interlocked.CompareExchange(ref _lazyAutoPropertyData, AutoPropertyData.None, autoPropertyData);
+            }
+            else if ((object)autoPropertyData == AutoPropertyData.Unknown)
+            {
+                Interlocked.CompareExchange(ref _lazyAutoPropertyData, CreateAutoPropertyData(), autoPropertyData);
+            }
+        }
+
+        private AutoPropertyData CreateAutoPropertyData()
         {
             string fieldName = GeneratedNames.MakeBackingFieldName(_name);
 
@@ -773,17 +783,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isReadOnly = false;
             }
 
-            // PROTOTYPE: Improve this check. We shouldn't have to reach into the derived type.
-            //if (this is SourcePropertySymbol { IsPartialDefinition: true })
-            //{
-            //    // Do not create a backing field for a partial definition, even if the definition has an initializer.
-            //    // Instead, a backing field will be created for the partial implementation if that part has an
-            //    // auto-implemented accessor, or uses `field`; otherwise an error is reported for the initializer.
-            //    return null;
-            //}
-
-            return new SynthesizedBackingFieldSymbol(this, fieldName, isReadOnly: isReadOnly, isStatic: this.IsStatic, hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0);
+            var backingField = new SynthesizedBackingFieldSymbol(this, fieldName, isReadOnly: isReadOnly, isStatic: this.IsStatic, hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0);
+            return AutoPropertyData.Create(
+                backingField,
+                isAutoProperty: (_propertyFlags & (Flags.HasAutoPropertyGet | Flags.HasAutoPropertySet)) != 0,
+                usesFieldKeyword: (_propertyFlags & Flags.UsesFieldKeyword) != 0);
         }
+#nullable disable
 
         internal override bool MustCallMethodsDirectly
         {
@@ -1241,7 +1247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!ReferenceEquals(copyFrom, this));
 
             // The property is responsible for completion of the backing field
-            // NB: when the **field keyword feature** is implemented, it's possible that synthesized field symbols will also be merged or shared between partial property parts.
+            // PROTOTYPE: NB: when the **field keyword feature** is implemented, it's possible that synthesized field symbols will also be merged or shared between partial property parts.
             // If we do that then this check should possibly be moved, and asserts adjusted accordingly.
             _ = BackingField?.GetAttributes();
 

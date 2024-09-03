@@ -1451,7 +1451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     field = backingField;
                     break;
                 case MethodSymbol { AssociatedSymbol: SourcePropertySymbol property }:
-                    field = property.GetBackingFieldPreferringDefinitionPart();
+                    field = property.BackingField;
                     break;
                 default:
                     {
@@ -1459,7 +1459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var contextualAttributeBinder = TryGetContextualAttributeBinder(this);
                         if (contextualAttributeBinder is { AttributeTarget: MethodSymbol { AssociatedSymbol: SourcePropertySymbol property } })
                         {
-                            field = property.GetBackingFieldPreferringDefinitionPart();
+                            field = property.BackingField;
                         }
                         break;
                     }

@@ -3788,6 +3788,65 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertEx.Equal(expectedMembers, actualMembers);
         }
 
+        // PROTOTYPE: Test struct, ref struct, interface.
+        [Theory]
+        [CombinatorialData]
+        public void PartialProperty_ConstructorAssignment(bool reverseOrder, bool useStatic)
+        {
+            string modifier = useStatic ? "static" : "      ";
+            string receiver = useStatic ? "C" : "c";
+            string constructorModifier = useStatic ? "static" : "public";
+            string sourceA = $$"""
+                partial class C
+                {
+                    internal {{modifier}} partial object P1 { get; }
+                    internal {{modifier}} partial object P2 { get => field; }
+                }
+                """;
+            string sourceB = $$"""
+                partial class C
+                {
+                    internal {{modifier}} partial object P1 { get => field; }
+                    internal {{modifier}} partial object P2 { get; }
+                    {{constructorModifier}} C()
+                    {
+                        P1 = 1;
+                        P2 = 2;
+                    }
+                }
+                """;
+            string sourceC = $$"""
+                using System;
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C();
+                        Console.WriteLine(({{receiver}}.P1, {{receiver}}.P2));
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                reverseOrder ? [sourceC, sourceB, sourceA] : [sourceA, sourceB, sourceC],
+                expectedOutput: "(1, 2)");
+            verifier.VerifyDiagnostics();
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var expectedMembers = reverseOrder ?
+                new[]
+                {
+                    "System.Object C.<P1>k__BackingField",
+                    "System.Object C.<P2>k__BackingField",
+                } :
+                new[]
+                {
+                    "System.Object C.<P2>k__BackingField",
+                    "System.Object C.<P1>k__BackingField",
+                };
+            AssertEx.Equal(expectedMembers, actualMembers);
+            // PROTOTYPE: Use symbol model to get all properties and check IsAutoProperty, IsAutoPropertyOrUsesFieldKeyword.
+        }
+
         [Theory]
         [InlineData(false, false)]
         [InlineData(false, true)]
@@ -4310,66 +4369,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     "System.Object B.<P4>k__BackingField",
                     "System.Object B.<P1>k__BackingField",
                     "System.Object B.<P2>k__BackingField",
-                };
-            AssertEx.Equal(expectedMembers, actualMembers);
-            // PROTOTYPE: Use symbol model to get all properties and check IsAutoProperty, IsAutoPropertyOrUsesFieldKeyword.
-        }
-
-        // PROTOTYPE: Run the code.
-        // PROTOTYPE: Test struct, ref struct, interface.
-        [Theory]
-        [CombinatorialData]
-        public void PartialProperty_ConstructorAssignment(bool reverseOrder, bool useStatic)
-        {
-            string modifier = useStatic ? "static" : "      ";
-            string receiver = useStatic ? "C" : "c";
-            string constructorModifier = useStatic ? "static" : "public";
-            string sourceA = $$"""
-                partial class C
-                {
-                    internal {{modifier}} partial object P1 { get; }
-                    internal {{modifier}} partial object P2 { get => field; }
-                }
-                """;
-            string sourceB = $$"""
-                partial class C
-                {
-                    internal {{modifier}} partial object P1 { get => field; }
-                    internal {{modifier}} partial object P2 { get; }
-                    {{constructorModifier}} C()
-                    {
-                        P1 = 1;
-                        P2 = 2;
-                    }
-                }
-                """;
-            string sourceC = $$"""
-                using System;
-                class Program
-                {
-                    static void Main()
-                    {
-                        var c = new C();
-                        Console.WriteLine(({{receiver}}.P1, {{receiver}}.P2));
-                    }
-                }
-                """;
-            var verifier = CompileAndVerify(
-                reverseOrder ? [sourceC, sourceB, sourceA] : [sourceA, sourceB, sourceC],
-                expectedOutput: "(1, 2)");
-            verifier.VerifyDiagnostics();
-            var comp = (CSharpCompilation)verifier.Compilation;
-            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
-            var expectedMembers = reverseOrder ?
-                new[]
-                {
-                    "System.Object C.<P1>k__BackingField",
-                    "System.Object C.<P2>k__BackingField",
-                } :
-                new[]
-                {
-                    "System.Object C.<P2>k__BackingField",
-                    "System.Object C.<P1>k__BackingField",
                 };
             AssertEx.Equal(expectedMembers, actualMembers);
             // PROTOTYPE: Use symbol model to get all properties and check IsAutoProperty, IsAutoPropertyOrUsesFieldKeyword.
