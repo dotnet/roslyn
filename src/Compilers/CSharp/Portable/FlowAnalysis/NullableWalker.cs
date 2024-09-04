@@ -5805,14 +5805,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Prefer "not null" (correct if the operand is suppressed, otherwise we have warned above).
                     lValueAnnotation = consequenceLValue.NullableAnnotation.Meet(alternativeLValue.NullableAnnotation);
                     rValueState = consequenceRValue.State.Meet(alternativeRValue.State);
-
-                    void reportMismatchIfNecessary(BoundExpression node, TypeWithAnnotations source, TypeWithAnnotations destination)
-                    {
-                        if (!node.IsSuppressed && IsNullabilityMismatch(source, destination))
-                        {
-                            ReportNullabilityMismatchInAssignment(node.Syntax, source, destination);
-                        }
-                    }
                 }
                 else if (!node.HasErrors)
                 {
@@ -5981,6 +5973,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(isRef);
                 TypeWithAnnotations lValueType = VisitLvalueWithAnnotations(operand);
                 return (lValueType, ResultType);
+            }
+
+            void reportMismatchIfNecessary(BoundExpression node, TypeWithAnnotations source, TypeWithAnnotations destination)
+            {
+                if (!node.IsSuppressed && IsNullabilityMismatch(source, destination))
+                {
+                    ReportNullabilityMismatchInAssignment(node.Syntax, source, destination);
+                }
             }
         }
 
