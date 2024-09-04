@@ -56,7 +56,7 @@ static ReplayOptions ParseOptions(string[] args)
 
     if (string.IsNullOrEmpty(outputDirectory))
     {
-        outputDirectory = Path.Combine(Environment.CurrentDirectory, "output");
+        outputDirectory = Path.Combine(Path.GetTempPath(), "replay");
     }
 
     return new ReplayOptions(
@@ -158,7 +158,7 @@ static async IAsyncEnumerable<BuildData> BuildAllAsync(
 
         var buildData = await completedTask.ConfigureAwait(false);
         yield return buildData;
-    } while (tasks.Count > 0);
+    } while (index < compilerCalls.Count);
 
     string GetOutputName(CompilerCall compilerCall)
     {

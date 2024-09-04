@@ -11,7 +11,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Highlighting;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -20,7 +19,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -36,12 +34,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting;
 [TextViewRole(PredefinedTextViewRoles.Interactive)]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal sealed class HighlighterViewTaggerProvider(
-    IThreadingContext threadingContext,
-    IHighlightingService highlightingService,
-    IGlobalOptionService globalOptions,
-    [Import(AllowDefault = true)] ITextBufferVisibilityTracker visibilityTracker,
-    IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousViewTaggerProvider<KeywordHighlightTag>(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.KeywordHighlighting))
+internal sealed class HighlighterViewTaggerProvider(TaggerHost taggerHost, IHighlightingService highlightingService)
+    : AsynchronousViewTaggerProvider<KeywordHighlightTag>(taggerHost, FeatureAttribute.KeywordHighlighting)
 {
     private readonly IHighlightingService _highlightingService = highlightingService;
     private static readonly PooledObjects.ObjectPool<List<TextSpan>> s_listPool = new(() => []);
@@ -93,10 +87,10 @@ internal sealed class HighlighterViewTaggerProvider(
         var position = caretPosition.Value;
         var snapshot = snapshotSpan.Snapshot;
 
-        // See if the user is just moving their caret around in an existing tag.  If so, we don't
-        // want to actually go recompute things.  Note: this only works for containment.  If the
-        // user moves their caret to the end of a highlighted reference, we do want to recompute
-        // as they may now be at the start of some other reference that should be highlighted instead.
+        // See if the user is just moving their caret around in an existing tag.  If so, we don't want to actually go
+        // recompute things.  Note: this only works for containment.  If the user moves their caret to the end of a
+        // highlighted reference, we do want to recompute as they may now be at the start of some other reference that
+        // should be highlighted instead.
         var onExistingTags = context.HasExistingContainingTags(new SnapshotPoint(snapshot, position));
         if (onExistingTags)
         {

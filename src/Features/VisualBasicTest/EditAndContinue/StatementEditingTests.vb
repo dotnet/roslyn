@@ -5309,7 +5309,7 @@ End Class
             VerifySemanticDiagnostics(
                 editScript:=edits,
                 targetFrameworks:={TargetFramework.Mscorlib40AndSystemCore},
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
 #End Region
@@ -5419,7 +5419,7 @@ End Class
             VerifySemanticDiagnostics(
                 edits,
                 targetFrameworks:={TargetFramework.MinimalAsync},
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Theory>

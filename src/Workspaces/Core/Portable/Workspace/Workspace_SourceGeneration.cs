@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -44,16 +43,12 @@ public partial class Workspace
                 return;
         }
 
-        // Ensure we're fully loaded before rerunning generators.
-        var workspaceStatusService = this.Services.GetRequiredService<IWorkspaceStatusService>();
-        await workspaceStatusService.WaitUntilFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
-
         await this.SetCurrentSolutionAsync(
             useAsync: true,
             oldSolution =>
             {
                 var updates = GetUpdatedSourceGeneratorVersions(oldSolution, projectIds);
-                return oldSolution.WithSourceGeneratorExecutionVersions(updates, cancellationToken);
+                return oldSolution.UpdateSpecificSourceGeneratorExecutionVersions(updates);
             },
             static (_, _) => (WorkspaceChangeKind.SolutionChanged, projectId: null, documentId: null),
             onBeforeUpdate: null,
@@ -69,7 +64,7 @@ public partial class Workspace
             // projects that transitively depend on that project, so that their generators will run as well when next
             // asked.
             var dependencyGraph = solution.GetProjectDependencyGraph();
-            var result = ImmutableSegmentedDictionary.CreateBuilder<ProjectId, SourceGeneratorExecutionVersion>();
+            var result = ImmutableSortedDictionary.CreateBuilder<ProjectId, SourceGeneratorExecutionVersion>();
 
             // Determine if we want a major solution change, forcing regeneration of all projects.
             var solutionMajor = projectIds.Any(t => t.projectId is null && t.forceRegeneration);

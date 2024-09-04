@@ -8,14 +8,13 @@ using Microsoft.VisualStudio.Extensibility.Testing;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess
+namespace Roslyn.VisualStudio.NewIntegrationTests.InProcess;
+
+internal interface ITextViewWindowInProcess
 {
-    internal interface ITextViewWindowInProcess
-    {
-        TestServices TestServices { get; }
+    TestServices TestServices { get; }
 
-        Task<IWpfTextView> GetActiveTextViewAsync(CancellationToken cancellationToken);
+    Task<IWpfTextView> GetActiveTextViewAsync(CancellationToken cancellationToken);
 
-        Task<ITextBuffer?> GetBufferContainingCaretAsync(IWpfTextView view, CancellationToken cancellationToken);
-    }
+    Task<ITextBuffer?> GetBufferContainingCaretAsync(IWpfTextView view, CancellationToken cancellationToken);
 }

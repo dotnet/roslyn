@@ -33,11 +33,7 @@ internal readonly record struct StateChange(
 /// </summary>
 internal sealed partial class SolutionState
 {
-    /// <summary>
-    /// Note: this insensitive comparer is busted on many systems.  But we do things this way for compat with the logic
-    /// we've had on windows since forever.
-    /// </summary>
-    public static readonly StringComparer FilePathComparer = StringComparer.OrdinalIgnoreCase;
+    public static readonly IEqualityComparer<string> FilePathComparer = CachingFilePathComparer.Instance;
 
     // the version of the workspace this solution is from
     public int WorkspaceVersion { get; }
@@ -986,51 +982,6 @@ internal sealed partial class SolutionState
         }
 
         return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(textAndVersion, mode));
-    }
-
-    /// <summary>
-    /// Creates a new solution instance with the document specified updated to have a syntax tree
-    /// rooted by the specified syntax node.
-    /// </summary>
-    public StateChange WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
-    {
-        var oldDocument = GetRequiredDocumentState(documentId);
-        if (oldDocument.TryGetSyntaxTree(out var oldTree) &&
-            oldTree.TryGetRoot(out var oldRoot) &&
-            oldRoot == root)
-        {
-            var oldProject = GetRequiredProjectState(documentId.ProjectId);
-            return new(this, oldProject, oldProject);
-        }
-
-        return UpdateDocumentState(oldDocument.UpdateTree(root, mode), contentChanged: true);
-    }
-
-    /// <param name="forceEvenIfTreesWouldDiffer">Whether or not the specified document is forced to have the same text and
-    /// green-tree-root from <paramref name="documentState"/>.  If <see langword="true"/>, then they will share
-    /// these values.  If <see langword="false"/>, then they will only be shared when safe to do so (for example,
-    /// when parse-options and pp-directives would not cause issues.</param>
-    /// <remarks>
-    /// Forcing should only happen in frozen-partial snapshots, where we are ok with inaccuracies in the trees we
-    /// get back and want perf to be very high.  Any codepaths from frozen-partial should pass <see
-    /// langword="true"/> for this.  Any codepaths from Workspace.UnifyLinkedDocumentContents should pass <see
-    /// langword="false"/>.</remarks>
-    public StateChange WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
-    {
-        var oldDocument = GetRequiredDocumentState(documentId);
-        var oldProject = GetRequiredProjectState(documentId.ProjectId);
-        if (oldDocument == documentState)
-            return new(this, oldProject, oldProject);
-
-        if (oldDocument.TextAndVersionSource == documentState.TextAndVersionSource &&
-            oldDocument.TreeSource == documentState.TreeSource)
-        {
-            return new(this, oldProject, oldProject);
-        }
-
-        return UpdateDocumentState(
-            oldDocument.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource, forceEvenIfTreesWouldDiffer),
-            contentChanged: true);
     }
 
     /// <summary>

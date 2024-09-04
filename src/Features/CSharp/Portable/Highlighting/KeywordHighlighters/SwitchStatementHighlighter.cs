@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Composition;
@@ -13,18 +11,26 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Highlighting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 
 [ExportHighlighter(LanguageNames.CSharp), Shared]
-internal class SwitchStatementHighlighter : AbstractKeywordHighlighter<SwitchStatementSyntax>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class SwitchStatementHighlighter() : AbstractKeywordHighlighter<SwitchStatementSyntax>(findInsideTrivia: false)
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public SwitchStatementHighlighter()
-    {
-    }
+    protected override bool ContainsHighlightableToken(ref TemporaryArray<SyntaxToken> tokens)
+        => tokens.Any(static t => t.Kind()
+            is SyntaxKind.SwitchKeyword
+            or SyntaxKind.CaseKeyword
+            or SyntaxKind.DefaultKeyword
+            or SyntaxKind.SemicolonToken
+            or SyntaxKind.BreakKeyword
+            or SyntaxKind.GotoKeyword
+            or SyntaxKind.ColonToken);
 
     protected override void AddHighlights(
         SwitchStatementSyntax switchStatement, List<TextSpan> spans, CancellationToken cancellationToken)
@@ -63,7 +69,7 @@ internal class SwitchStatementHighlighter : AbstractKeywordHighlighter<SwitchSta
             // but if the label is missing, we do highlight 'goto' assuming it's more likely that
             // the user is in the middle of typing 'goto case' or 'goto default'.
             if (gotoStatement.Kind() is SyntaxKind.GotoCaseStatement or SyntaxKind.GotoDefaultStatement ||
-                gotoStatement.Expression.IsMissing)
+                gotoStatement is { Expression.IsMissing: true })
             {
                 var start = gotoStatement.GotoKeyword.SpanStart;
                 var end = !gotoStatement.CaseOrDefaultKeyword.IsKind(SyntaxKind.None)
@@ -78,10 +84,9 @@ internal class SwitchStatementHighlighter : AbstractKeywordHighlighter<SwitchSta
         {
             foreach (var childNodeOrToken in node.ChildNodesAndTokens())
             {
-                if (childNodeOrToken.IsToken)
+                if (!childNodeOrToken.AsNode(out var child))
                     continue;
 
-                var child = childNodeOrToken.AsNode();
                 var highlightBreaksForChild = highlightBreaks && !child.IsBreakableConstruct();
                 var highlightGotosForChild = highlightGotos && !child.IsKind(SyntaxKind.SwitchStatement);
 

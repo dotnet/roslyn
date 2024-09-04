@@ -84,7 +84,7 @@ internal class VisualStudioDefinitionsAndReferencesFactory(
             metadataLocations: default,
             classifiedSpans: default,
             properties: null,
-            displayableProperties: null,
+            displayableProperties: [],
             displayIfNoReferences: true)
     {
         internal override bool IsExternal => true;

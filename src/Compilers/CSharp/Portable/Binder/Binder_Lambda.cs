@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // x => ...
                     hasSignature = true;
                     var simple = (SimpleLambdaExpressionSyntax)syntax;
+                    ReportFieldOrValueContextualKeywordConflictIfAny(simple.Parameter, simple.Parameter.Identifier, diagnostics);
                     namesBuilder.Add(simple.Parameter.Identifier.ValueText);
                     break;
                 case SyntaxKind.ParenthesizedLambdaExpression:
@@ -191,6 +192,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 paramsKeyword.GetLocation());
                         }
                     }
+
+                    ReportFieldOrValueContextualKeywordConflictIfAny(p, p.Identifier, diagnostics);
 
                     namesBuilder.Add(p.Identifier.ValueText);
                     typesBuilder.Add(type);
@@ -368,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // UNDONE: Where do we report improper use of pointer types?
                     ParameterHelpers.ReportParameterErrors(owner: null, paramSyntax, ordinal: i, lastParameterIndex: lambda.ParameterCount - 1, isParams: isParams, lambda.ParameterTypeWithAnnotations(i),
-                         lambda.RefKind(i), lambda.DeclaredScope(i), containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
+                         lambda.RefKind(i), containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
                 }
             }
 

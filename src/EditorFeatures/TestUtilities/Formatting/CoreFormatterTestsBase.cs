@@ -6,7 +6,6 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -204,14 +203,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
                 ? formattingService.GetFormattingOptions(options, fallbackOptions: null)
                 : formattingService.DefaultOptions;
 
-            var rules = formattingRuleProvider.CreateRule(documentSyntax, 0).Concat(Formatter.GetDefaultFormattingRules(document));
+            ImmutableArray<AbstractFormattingRule> rules = [formattingRuleProvider.CreateRule(documentSyntax, 0), .. Formatter.GetDefaultFormattingRules(document)];
             AssertFormat(workspace, expected, formattingOptions, rules, clonedBuffer, documentSyntax.Root, spans);
 
             // format with node and transform
             AssertFormatWithTransformation(workspace, expected, formattingOptions, rules, documentSyntax.Root, spans);
         }
 
-        internal void AssertFormatWithTransformation(Workspace workspace, string expected, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule> rules, SyntaxNode root, IEnumerable<TextSpan> spans)
+        internal void AssertFormatWithTransformation(Workspace workspace, string expected, SyntaxFormattingOptions options, ImmutableArray<AbstractFormattingRule> rules, SyntaxNode root, IEnumerable<TextSpan> spans)
         {
             var newRootNode = Formatter.Format(root, spans, workspace.Services.SolutionServices, options, rules, CancellationToken.None);
 
@@ -224,7 +223,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Formatting
             Assert.True(newRootNodeFromString.IsEquivalentTo(newRootNode));
         }
 
-        internal void AssertFormat(Workspace workspace, string expected, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule> rules, ITextBuffer clonedBuffer, SyntaxNode root, IEnumerable<TextSpan> spans)
+        internal void AssertFormat(Workspace workspace, string expected, SyntaxFormattingOptions options, ImmutableArray<AbstractFormattingRule> rules, ITextBuffer clonedBuffer, SyntaxNode root, IEnumerable<TextSpan> spans)
         {
             var result = Formatter.GetFormattedTextChanges(root, spans, workspace.Services.SolutionServices, options, rules, CancellationToken.None);
             var actual = ApplyResultAndGetFormattedText(clonedBuffer, result);

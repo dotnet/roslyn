@@ -2458,12 +2458,12 @@ class C
 
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (4,18): error CS0751: A partial method must be declared within a partial type
+                // (4,18): error CS0751: A partial member must be declared within a partial type
                 //     partial void M();
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(4, 18),
-                // (5,18): error CS0751: A partial method must be declared within a partial type
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(4, 18),
+                // (5,18): error CS0751: A partial member must be declared within a partial type
                 //     partial void M() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(5, 18)
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(5, 18)
             );
             var m = comp.GetMember<MethodSymbol>("C.M").GetPublicSymbol();
             Assert.True(m.IsPartialDefinition);
@@ -2550,6 +2550,39 @@ public partial class C
 
             Assert.Null(partialDef.PartialDefinitionPart);
             Assert.Null(partialImpl.PartialImplementationPart);
+        }
+
+        [Fact]
+        public void IsPartialDefinition_Constructed()
+        {
+            var source = @"
+public partial class C
+{
+    public partial void M<T>();
+    public partial void M<T>() { }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var syntax = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(syntax);
+
+            var type = syntax.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().Single();
+            var methods = syntax.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().ToArray();
+
+            var classC = model.GetDeclaredSymbol(type);
+            var partialDef = model.GetDeclaredSymbol(methods[0]);
+            var partialDefConstructed = partialDef.Construct(classC); // M<C>()
+
+            Assert.True(partialDef.IsPartialDefinition);
+            Assert.False(partialDefConstructed.IsPartialDefinition);
+
+            var partialImpl = model.GetDeclaredSymbol(methods[1]);
+            var partialImplConstructed = partialImpl.Construct(classC); // M<C>()
+
+            Assert.False(partialImpl.IsPartialDefinition);
+            Assert.False(partialImplConstructed.IsPartialDefinition);
         }
     }
 }

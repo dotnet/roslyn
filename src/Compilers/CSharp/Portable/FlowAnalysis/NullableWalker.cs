@@ -2764,6 +2764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // The partial definition part may include optional parameters whose default values we want to simulate assigning at the beginning of the method
+            // https://github.com/dotnet/roslyn/issues/73772: is this actually used/meaningful?
             methodSymbol = methodSymbol.PartialDefinitionPart ?? methodSymbol;
 
             var methodParameters = methodSymbol.Parameters;
@@ -4081,8 +4082,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (symbol != null)
                 {
-                    Debug.Assert(TypeSymbol.Equals(objectInitializer.Type, symbol.GetTypeOrReturnType().Type, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes) ||
-                                 (symbol is PropertySymbol { IsIndexer: true } && objectInitializer.Type.IsDynamic()));
+                    Debug.Assert(TypeSymbol.Equals(objectInitializer.Type, symbol.GetTypeOrReturnType().Type, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes));
                     symbol = AsMemberOfType(containingType, symbol);
                 }
 
@@ -5441,35 +5441,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             LearnFromNonNullTest(leftOperand, ref leftState);
             LearnFromNullTest(leftOperand, ref this.State);
 
-            var adjustedNodeType = node.Type;
-            if (LocalRewriter.ShouldConvertResultOfAssignmentToDynamic(node, leftOperand))
-            {
-                Debug.Assert(leftOperand.Type is not null);
-
-                if (node.IsNullableValueTypeAssignment)
-                {
-                    adjustedNodeType = leftOperand.Type.GetNullableUnderlyingType();
-                }
-                else
-                {
-                    adjustedNodeType = leftOperand.Type;
-                }
-            }
-
             // If we are assigning to a nullable value type variable, set the top-level state of
             // the LHS first, then change the slot to the Value property of the LHS to simulate
             // assignment of the RHS and update the nullable state of the underlying value type.
             if (node.IsNullableValueTypeAssignment)
             {
                 Debug.Assert(targetType.Type.ContainsErrorType() ||
-                    adjustedNodeType?.ContainsErrorType() == true ||
-                    TypeSymbol.Equals(targetType.Type.GetNullableUnderlyingType(), adjustedNodeType, TypeCompareKind.AllIgnoreOptions));
+                    node.Type?.ContainsErrorType() == true ||
+                    TypeSymbol.Equals(targetType.Type.GetNullableUnderlyingType(), node.Type, TypeCompareKind.AllIgnoreOptions));
                 if (leftSlot > 0)
                 {
                     SetState(ref this.State, leftSlot, NullableFlowState.NotNull);
                     leftSlot = GetNullableOfTValueSlot(targetType.Type, leftSlot, out _);
                 }
-                targetType = TypeWithAnnotations.Create(adjustedNodeType, NullableAnnotation.NotAnnotated);
+                targetType = TypeWithAnnotations.Create(node.Type, NullableAnnotation.NotAnnotated);
             }
 
             TypeWithState rightResult = VisitOptionalImplicitConversion(rightOperand, targetType, useLegacyWarnings: UseLegacyWarnings(leftOperand), trackMembers: false, AssignmentKind.Assignment);
@@ -5478,47 +5463,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Join(ref this.State, ref leftState);
             TypeWithState resultType = TypeWithState.Create(targetType.Type, rightResult.State);
-
-            if (adjustedNodeType != (object?)node.Type)
-            {
-                Debug.Assert(adjustedNodeType is not null);
-                SetDynamicResult(node, resultType);
-            }
-            else
-            {
-                SetResultType(node, resultType);
-            }
-
+            SetResultType(node, resultType);
             return null;
-        }
-
-        /// <summary>
-        /// When an operation on an indexer with dynamic argument is resolved statically,
-        /// in some scenarios result type of the operation is set to 'dynamic' type.
-        /// 
-        /// This helper takes care of the setting result type to 'dynamic' type.
-        /// </summary>
-        private void SetDynamicResult(BoundExpression node, TypeWithState sourceType)
-        {
-            Debug.Assert(node.Type is not null);
-            Debug.Assert(node.Type.IsDynamic());
-            Debug.Assert(sourceType.Type is not null);
-            Debug.Assert(!sourceType.Type.IsDynamic());
-            Debug.Assert(!sourceType.Type.IsVoidType());
-
-            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-
-            SetResultType(node,
-                VisitConversion(
-                    conversionOpt: null,
-                    conversionOperand: node,
-                    _conversions.ClassifyConversionFromExpressionType(sourceType.Type, node.Type, isChecked: false, ref discardedUseSiteInfo),
-                    targetTypeWithNullability: TypeWithAnnotations.Create(node.Type, NullableAnnotation.Annotated),
-                    operandType: sourceType,
-                    checkConversion: false,
-                    fromExplicitCast: false,
-                    useLegacyWarnings: false,
-                    AssignmentKind.Assignment));
         }
 
         public override BoundNode? VisitNullCoalescingOperator(BoundNullCoalescingOperator node)
@@ -6211,16 +6157,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     returnState = returnState.WithNotNullState();
                 }
 
-                if (node.Type.IsDynamic() && !node.Method.ReturnType.IsDynamic())
-                {
-                    Debug.Assert(!node.Method.ReturnsByRef);
-                    SetDynamicResult(node, returnState);
-                }
-                else
-                {
-                    SetResult(node, returnState, method.ReturnTypeWithAnnotations);
-                }
-
+                SetResult(node, returnState, method.ReturnTypeWithAnnotations);
                 SetUpdatedSymbol(node, node.Method, method);
             }
         }
@@ -6783,24 +6720,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (ParameterSymbol? parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, bool isExpandedParamsArgument) =
                             GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded, ref paramsIterationType);
 
-                        if (// This is known to happen for certain error scenarios, because
-                            // the parameter matching logic above is not as flexible as the one we use in `Binder.BuildArgumentsForErrorRecovery`
-                            // so we may end up with a pending conversion completion for an argument apparently without a corresponding parameter.
-                            parameter is null ||
-                            // In error recovery with named arguments, target-typing cannot work as we can get a different parameter type
-                            // from our GetCorrespondingParameter logic than Binder.BuildArgumentsForErrorRecovery does.
-                            node is BoundCall { HasErrors: true, ArgumentNamesOpt.IsDefaultOrEmpty: false, ArgsToParamsOpt.IsDefault: true })
+                        // This is known to happen for certain error scenarios, because
+                        // the parameter matching logic above is not as flexible as the one we use in `Binder.BuildArgumentsForErrorRecovery`
+                        // so we may end up with a pending conversion completion for an argument apparently without a corresponding parameter.
+                        if (parameter is null)
                         {
-                            if (IsTargetTypedExpression(argumentNoConversion) && _targetTypedAnalysisCompletionOpt?.TryGetValue(argumentNoConversion, out var completion) is true)
+                            if (tryShortCircuitTargetTypedExpression(argument, argumentNoConversion))
                             {
-                                // We've done something wrong if we have a target-typed expression and registered an analysis continuation for it
-                                // (we won't be able to complete that continuation)
-                                // We flush the completion with a plausible/dummy type and remove it.
-                                completion(TypeWithAnnotations.Create(argument.Type));
-                                TargetTypedAnalysisCompletion.Remove(argumentNoConversion);
-
-                                Debug.Assert(parameter is not null || method is ErrorMethodSymbol);
+                                Debug.Assert(method is ErrorMethodSymbol);
                             }
+                            continue;
+                        }
+
+                        // In error recovery with named arguments, target-typing cannot work as we can get a different parameter type
+                        // from our GetCorrespondingParameter logic than Binder.BuildArgumentsForErrorRecovery does.
+                        if (node is BoundCall { HasErrors: true, ArgumentNamesOpt.IsDefaultOrEmpty: false, ArgsToParamsOpt.IsDefault: true } &&
+                            tryShortCircuitTargetTypedExpression(argument, argumentNoConversion))
+                        {
                             continue;
                         }
 
@@ -6989,6 +6925,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
                 }
+            }
+
+            bool tryShortCircuitTargetTypedExpression(BoundExpression argument, BoundExpression argumentNoConversion)
+            {
+                if (IsTargetTypedExpression(argumentNoConversion) && _targetTypedAnalysisCompletionOpt?.TryGetValue(argumentNoConversion, out var completion) is true)
+                {
+                    // We've done something wrong if we have a target-typed expression and registered an analysis continuation for it
+                    // (we won't be able to complete that continuation)
+                    // We flush the completion with a plausible/dummy type and remove it.
+                    completion(TypeWithAnnotations.Create(argument.Type));
+                    TargetTypedAnalysisCompletion.Remove(argumentNoConversion);
+                    return true;
+                }
+
+                return false;
             }
         }
 
@@ -9843,7 +9794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    SetResultConveringToDynamicIfNecessary(node, left, TypeWithState.Create(leftLValueType.Type, rightState.State), leftLValueType);
+                    SetResult(node, TypeWithState.Create(leftLValueType.Type, rightState.State), leftLValueType);
                 }
 
                 AdjustSetValue(left, ref rightState);
@@ -9851,21 +9802,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
-        }
-
-        private void SetResultConveringToDynamicIfNecessary(BoundExpression originalAssignment, BoundExpression assignmentTarget, TypeWithState resultType, TypeWithAnnotations lvalueType)
-        {
-            Debug.Assert(originalAssignment.Type is not null);
-            Debug.Assert(assignmentTarget.Type is not null);
-
-            if (LocalRewriter.ShouldConvertResultOfAssignmentToDynamic(originalAssignment, assignmentTarget))
-            {
-                SetDynamicResult(originalAssignment, resultType);
-            }
-            else
-            {
-                SetResult(originalAssignment, resultType, lvalueType);
-            }
         }
 
         private bool IsPropertyOutputMoreStrictThanInput(PropertySymbol property)
@@ -10377,7 +10313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var op = node.OperatorKind.Operator();
                     TypeWithState resultType = (op == UnaryOperatorKind.PrefixIncrement || op == UnaryOperatorKind.PrefixDecrement) ? resultOfIncrementType : operandType;
-                    SetResultConveringToDynamicIfNecessary(node, node.Operand, resultType, resultType.ToTypeWithAnnotations(compilation));
+                    SetResultType(node, resultType);
                     setResult = true;
 
                     TrackNullableStateForAssignment(node, targetType: operandLvalue, targetSlot: MakeSlot(node.Operand), valueType: resultOfIncrementType);
@@ -10445,7 +10381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Handle `[DisallowNull]` on LHS operand (final assignment target).
             CheckDisallowedNullAssignment(resultTypeWithState, leftArgumentAnnotations, node.Syntax);
 
-            SetResultConveringToDynamicIfNecessary(node, node.Left, resultTypeWithState, resultTypeWithState.ToTypeWithAnnotations(compilation));
+            SetResultType(node, resultTypeWithState);
 
             AdjustSetValue(node.Left, ref resultTypeWithState);
             Debug.Assert(MakeSlot(node) == -1);
@@ -10583,17 +10519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitArguments(node, node.Arguments, node.ArgumentRefKindsOpt, indexer, node.ArgsToParamsOpt, node.DefaultArguments, node.Expanded);
 
             var resultType = ApplyUnconditionalAnnotations(indexer.TypeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(indexer));
-
-            if (node.Type.IsDynamic() && !node.Indexer.Type.IsDynamic())
-            {
-                Debug.Assert(!node.Indexer.ReturnsByRef);
-                SetDynamicResult(node, resultType);
-            }
-            else
-            {
-                SetResult(node, resultType, indexer.TypeWithAnnotations);
-            }
-
+            SetResult(node, resultType, indexer.TypeWithAnnotations);
             SetUpdatedSymbol(node, node.Indexer, indexer);
             return null;
         }
@@ -10797,7 +10723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // This is case 4. We need to look for the IEnumerable<T> that this reinferred expression implements,
                     // so that we pick up any nested type substitutions that could have occurred.
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    targetTypeWithAnnotations = TypeWithAnnotations.Create(ForEachLoopBinder.GetIEnumerableOfT(resultType, isAsync, compilation, ref discardedUseSiteInfo, out bool foundMultiple));
+                    targetTypeWithAnnotations = TypeWithAnnotations.Create(ForEachLoopBinder.GetIEnumerableOfT(resultType, isAsync, compilation, ref discardedUseSiteInfo, out bool foundMultiple, needSupportForRefStructInterfaces: out _));
                     Debug.Assert(!foundMultiple);
                     Debug.Assert(targetTypeWithAnnotations.HasType);
                 }

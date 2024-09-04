@@ -588,7 +588,14 @@ namespace Microsoft.CodeAnalysis.Emit
                             Debug.Assert(!containingDisplayClassId.HasValue);
 
                             var displayClass = (INamedTypeSymbolInternal)member;
-                            var displayClassMembers = (synthesizedMemberMap != null) ? synthesizedMemberMap[displayClass] : displayClass.GetMembers();
+
+                            // Synthesized member map, if given, contains all the synthesized members that implement lambdas and closures.
+                            // If not given (for PE symbols) the members are defined on the type symbol directly.
+                            // If the display class doesn't have any synthesized members it won't be present in the map.
+                            // See https://github.com/dotnet/roslyn/issues/73365
+                            var displayClassMembers = synthesizedMemberMap != null
+                                ? (synthesizedMemberMap.TryGetValue(displayClass, out var m) ? m : [])
+                                : displayClass.GetMembers();
 
                             if (displayClass.TypeKind == TypeKind.Struct)
                             {

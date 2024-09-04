@@ -203,6 +203,6 @@ internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
         return NameGenerator.GenerateUniqueName(baseName, containingTypeMemberNames.ToSet(), StringComparer.Ordinal);
     }
 
-    internal override IEnumerable<SyntaxNode> GetConstructorNodes(INamedTypeSymbol containingType)
+    protected override IEnumerable<SyntaxNode> GetConstructorNodes(INamedTypeSymbol containingType)
         => containingType.Constructors.SelectMany(c => c.DeclaringSyntaxReferences.Select(d => d.GetSyntax()));
 }

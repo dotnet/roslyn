@@ -3,20 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Options;
 
-internal sealed class OptionChangedEventArgs : EventArgs
+internal sealed class OptionChangedEventArgs(ImmutableArray<(OptionKey2 key, object? newValue)> changedOptions) : EventArgs
 {
-    public OptionKey2 OptionKey { get; }
-    public object? Value { get; }
+    public ImmutableArray<(OptionKey2 key, object? newValue)> ChangedOptions => changedOptions;
 
-    internal OptionChangedEventArgs(OptionKey2 optionKey, object? value)
-    {
-        OptionKey = optionKey;
-        Value = value;
-    }
-
-    public IOption2 Option => OptionKey.Option;
-    public string? Language => OptionKey.Language;
+    public bool HasOption(Func<IOption2, bool> predicate)
+        => changedOptions.Any(static (option, predicate) => predicate(option.key.Option), predicate);
 }

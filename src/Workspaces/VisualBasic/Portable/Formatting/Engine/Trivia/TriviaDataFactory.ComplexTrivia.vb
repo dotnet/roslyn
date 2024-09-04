@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         Private Class ComplexTrivia
             Inherits AbstractComplexTrivia
 
-            Public Sub New(options As SyntaxFormattingOptions, treeInfo As TreeData, token1 As SyntaxToken, token2 As SyntaxToken)
+            Public Sub New(options As LineFormattingOptions, treeInfo As TreeData, token1 As SyntaxToken, token2 As SyntaxToken)
                 MyBase.New(options, treeInfo, token1, token2)
                 Contract.ThrowIfNull(treeInfo)
             End Sub

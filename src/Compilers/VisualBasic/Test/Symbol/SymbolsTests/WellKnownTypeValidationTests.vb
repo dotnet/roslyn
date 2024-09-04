@@ -493,6 +493,7 @@ End Namespace
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__VirtualStaticsInInterfaces OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields OrElse
+                   special = SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor OrElse
                    special = SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor OrElse
                    special = SpecialMember.System_ReadOnlySpan_T__ctor_Reference OrElse
@@ -821,7 +822,9 @@ End Namespace
                          WellKnownMember.System_ReadOnlySpan_T__ToArray,
                          WellKnownMember.System_Span_T__CopyTo_Span_T,
                          WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T,
-                         WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan
+                         WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan,
+                         WellKnownMember.System_Span_T__ctor_ref_T,
+                         WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T
                         ' Not always available.
                         Continue For
                 End Select
@@ -1026,7 +1029,9 @@ End Namespace
                          WellKnownMember.System_ReadOnlySpan_T__ToArray,
                          WellKnownMember.System_Span_T__CopyTo_Span_T,
                          WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T,
-                         WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan
+                         WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan,
+                         WellKnownMember.System_Span_T__ctor_ref_T,
+                         WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T
                         ' Not always available.
                         Continue For
                 End Select

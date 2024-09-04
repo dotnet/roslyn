@@ -75,9 +75,17 @@ internal partial class SolutionCompilationState
             throw new NotImplementedException();
         }
 
-        public ICompilationTracker WithCreationPolicy(bool create, bool forceRegeneration, CancellationToken cancellationToken)
+        public ICompilationTracker WithCreateCreationPolicy(bool forceRegeneration)
         {
-            var underlyingTracker = this.UnderlyingTracker.WithCreationPolicy(create, forceRegeneration, cancellationToken);
+            var underlyingTracker = this.UnderlyingTracker.WithCreateCreationPolicy(forceRegeneration);
+            return underlyingTracker == this.UnderlyingTracker
+                ? this
+                : new GeneratedFileReplacingCompilationTracker(underlyingTracker, _replacementDocumentStates);
+        }
+
+        public ICompilationTracker WithDoNotCreateCreationPolicy(CancellationToken cancellationToken)
+        {
+            var underlyingTracker = this.UnderlyingTracker.WithDoNotCreateCreationPolicy(cancellationToken);
             return underlyingTracker == this.UnderlyingTracker
                 ? this
                 : new GeneratedFileReplacingCompilationTracker(underlyingTracker, _replacementDocumentStates);
@@ -162,7 +170,7 @@ internal partial class SolutionCompilationState
                 {
                     // The generated file still exists in the underlying compilation, but the contents may not match the open file if the open file
                     // is stale. Replace the syntax tree so we have a tree that matches the text.
-                    newStates = newStates.SetState(id, replacementState);
+                    newStates = newStates.SetState(replacementState);
                 }
                 else
                 {

@@ -37,58 +37,224 @@ internal readonly record struct ProducerConsumerOptions
 
 internal static class ProducerConsumer<TItem>
 {
-    /// <summary>
-    /// Version of <see cref="RunImplAsync"/> when caller the prefers the results being pre-packaged into arrays to process.
-    /// </summary>
-    public static Task RunAsync<TArgs>(
-        ProducerConsumerOptions options,
-        Func<Action<TItem>, TArgs, Task> produceItems,
-        Func<ImmutableArray<TItem>, TArgs, Task> consumeItems,
+    private static async Task<VoidResult> BatchReaderIntoArraysAsync<TArgs>(
+        ChannelReader<TItem> reader,
+        Func<ImmutableArray<TItem>, TArgs, CancellationToken, Task> consumeItems,
         TArgs args,
         CancellationToken cancellationToken)
     {
-        return RunImplAsync(
-            options,
-            static (onItemFound, args) => args.produceItems(onItemFound, args.args),
-            static (reader, args) => ConsumeItemsAsArrayAsync(reader, args.consumeItems, args.args, args.cancellationToken),
-            (produceItems, consumeItems, args, cancellationToken),
-            cancellationToken);
-
-        static async Task ConsumeItemsAsArrayAsync(
-            ChannelReader<TItem> reader,
-            Func<ImmutableArray<TItem>, TArgs, Task> consumeItems,
-            TArgs args,
-            CancellationToken cancellationToken)
+        using var _ = ArrayBuilder<TItem>.GetInstance(out var items);
+        while (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
         {
-            using var _ = ArrayBuilder<TItem>.GetInstance(out var items);
+            // Grab as many items as we can from the channel at once and report in a single array. Then wait for the
+            // next set of items to be available.
+            while (reader.TryRead(out var item))
+                items.Add(item);
 
-            while (await reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
-            {
-                // Grab as many items as we can from the channel at once and report in a single array. Then wait for the
-                // next set of items to be available.
-                while (reader.TryRead(out var item))
-                    items.Add(item);
-
-                await consumeItems(items.ToImmutableAndClear(), args).ConfigureAwait(false);
-            }
+            await consumeItems(items.ToImmutableAndClear(), args, cancellationToken).ConfigureAwait(false);
         }
+
+        return default;
     }
 
     /// <summary>
-    /// Version of <see cref="RunImplAsync"/> when the caller prefers working with a stream of results.
+    /// Version of <see cref="RunChannelAsync"/> when caller the prefers the results being pre-packaged into arrays to process.
     /// </summary>
     public static Task RunAsync<TArgs>(
         ProducerConsumerOptions options,
-        Func<Action<TItem>, TArgs, Task> produceItems,
-        Func<IAsyncEnumerable<TItem>, TArgs, Task> consumeItems,
+        Func<Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<ImmutableArray<TItem>, TArgs, CancellationToken, Task> consumeItems,
         TArgs args,
         CancellationToken cancellationToken)
     {
-        return RunImplAsync(
+        return RunChannelAsync(
             options,
-            static (onItemFound, args) => args.produceItems(onItemFound, args.args),
-            static (reader, args) => args.consumeItems(reader.ReadAllAsync(args.cancellationToken), args.args),
-            (produceItems, consumeItems, args, cancellationToken),
+            static (onItemFound, args, cancellationToken) => args.produceItems(onItemFound, args.args, cancellationToken),
+            static (reader, args, cancellationToken) => BatchReaderIntoArraysAsync(reader, args.consumeItems, args.args, cancellationToken),
+            args: (produceItems, consumeItems, args),
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// Version of <see cref="RunChannelAsync"/> when the caller prefers working with a stream of results.
+    /// </summary>
+    public static Task RunAsync<TArgs>(
+        ProducerConsumerOptions options,
+        Func<Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task> consumeItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        // Bridge to sibling helper that takes a consumeItems that returns a value.
+        return RunChannelAsync(
+            options,
+            produceItems: static (callback, args, cancellationToken) => args.produceItems(callback, args.args, cancellationToken),
+            consumeItems: static async (items, args, cancellationToken) =>
+            {
+                await args.consumeItems(items.ReadAllAsync(cancellationToken), args.args, cancellationToken).ConfigureAwait(false);
+                return default(VoidResult);
+            },
+            args: (produceItems, consumeItems, args),
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// <code>IEnumerable&lt;TSource&gt; -> Task</code>.  Callback receives IAsyncEnumerable items.
+    /// </summary>
+    public static Task RunParallelAsync<TSource, TArgs>(
+        IEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task> consumeItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        // Bridge to sibling helper that operates on an IAsyncEnumerable.
+        return RunParallelAsync(source.AsAsyncEnumerable(), produceItems, consumeItems, args, cancellationToken);
+    }
+
+    /// <summary>
+    /// <code>IAsyncEnumerable&lt;TSource&gt; -> Task</code>.  Callback receives IAsyncEnumerable items.
+    /// </summary>
+    public static Task RunParallelAsync<TSource, TArgs>(
+        IAsyncEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task> consumeItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        // Bridge to sibling helper that takes a consumeItems that returns a value.
+        return RunParallelAsync(
+            source,
+            produceItems: static (item, callback, args, cancellationToken) => args.produceItems(item, callback, args.args, cancellationToken),
+            consumeItems: static async (items, args, cancellationToken) =>
+            {
+                await args.consumeItems(items, args.args, cancellationToken).ConfigureAwait(false);
+                return default(VoidResult);
+            },
+            args: (produceItems, consumeItems, args),
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// <code>IEnumerable&lt;TSource&gt; -> Task</code>.  Callback receives ImmutableArray of items.
+    /// </summary>
+    public static Task RunParallelAsync<TSource, TArgs>(
+        IEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<ImmutableArray<TItem>, TArgs, CancellationToken, Task> consumeItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        // Bridge to sibling helper that operates on an IAsyncEnumerable.
+        return RunParallelAsync(source.AsAsyncEnumerable(), produceItems, consumeItems, args, cancellationToken);
+    }
+
+    /// <summary>
+    /// <code>IAsyncEnumerable&lt;TSource&gt; -> Task</code>.  Callback receives ImmutableArray of items.
+    /// </summary>
+    public static Task RunParallelAsync<TSource, TArgs>(
+        IAsyncEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<ImmutableArray<TItem>, TArgs, CancellationToken, Task> consumeItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        // Bridge to sibling helper that takes a consumeItems that returns a value.
+        return RunParallelChannelAsync(
+            source,
+            produceItems: static (item, callback, args, cancellationToken) => args.produceItems(item, callback, args.args, cancellationToken),
+            consumeItems: static (items, args, cancellationToken) => BatchReaderIntoArraysAsync(items, args.consumeItems, args.args, cancellationToken),
+            args: (produceItems, consumeItems, args),
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// <code>IEnumerable&lt;TSource&gt; -> Task&lt;TResult&gt;</code>  Callback receives an IAsyncEnumerable of items.
+    /// </summary>
+    public static Task<TResult> RunParallelAsync<TSource, TArgs, TResult>(
+        IEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task<TResult>> consumeItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        // Bridge to sibling helper that operates on an IAsyncEnumerable.
+        return RunParallelAsync(source.AsAsyncEnumerable(), produceItems, consumeItems, args, cancellationToken);
+    }
+
+    /// <summary>
+    /// <code>IAsyncEnumerable&lt;TSource&gt; -> Task&lt;TResult&gt;</code>.  Callback receives an IAsyncEnumerable of items.
+    /// </summary>
+    public static Task<TResult> RunParallelAsync<TSource, TArgs, TResult>(
+        IAsyncEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<IAsyncEnumerable<TItem>, TArgs, CancellationToken, Task<TResult>> consumeItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        return RunParallelChannelAsync(
+            source,
+            produceItems: static (item, callback, args, cancellationToken) => args.produceItems(item, callback, args.args, cancellationToken),
+            consumeItems: static (reader, args, cancellationToken) => args.consumeItems(reader.ReadAllAsync(cancellationToken), args.args, cancellationToken),
+            args: (produceItems, consumeItems, args),
+            cancellationToken);
+    }
+
+    #region helpers that return arrays
+
+    /// <summary>
+    /// <code>IEnumerable&lt;TSource&gt; -> Task&lt;ImmutableArray&lt;TResult&gt;&gt;</code>
+    /// </summary>
+    public static Task<ImmutableArray<TItem>> RunParallelAsync<TSource, TArgs>(
+        IEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        // Bridge to sibling helper that operates on an IAsyncEnumerable.
+        return RunParallelAsync(source.AsAsyncEnumerable(), produceItems, args, cancellationToken);
+    }
+
+    /// <summary>
+    /// <code>IAsyncEnumerable&lt;TSource&gt; -> Task&lt;ImmutableArray&lt;TResult&gt;&gt;</code>
+    /// </summary>
+    public static async Task<ImmutableArray<TItem>> RunParallelAsync<TSource, TArgs>(
+        IAsyncEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        // Bridge to sibling helper that takes a consumeItems that returns a value.
+        return await RunParallelAsync(
+            source,
+            produceItems: static (item, callback, args, cancellationToken) => args.produceItems(item, callback, args.args, cancellationToken),
+            consumeItems: static (stream, args, cancellationToken) => stream.ToImmutableArrayAsync(cancellationToken),
+            args: (produceItems, args),
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    #endregion
+
+    #region Core channel-based impl
+
+    private static Task<TResult> RunParallelChannelAsync<TSource, TArgs, TResult>(
+        IAsyncEnumerable<TSource> source,
+        Func<TSource, Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<ChannelReader<TItem>, TArgs, CancellationToken, Task<TResult>> consumeItems,
+        TArgs args,
+        CancellationToken cancellationToken)
+    {
+        return RunChannelAsync(
+            // We're running in parallel, so we def have multiple writers
+            ProducerConsumerOptions.SingleReaderOptions,
+            produceItems: static (callback, args, cancellationToken) =>
+                RoslynParallel.ForEachAsync(
+                    args.source,
+                    cancellationToken,
+                    async (source, cancellationToken) =>
+                        await args.produceItems(source, callback, args.args, cancellationToken).ConfigureAwait(false)),
+            consumeItems: static (enumerable, args, cancellationToken) => args.consumeItems(enumerable, args.args, cancellationToken),
+            args: (source, produceItems, consumeItems, args),
             cancellationToken);
     }
 
@@ -107,10 +273,10 @@ internal static class ProducerConsumer<TItem>
     /// <paramref name="consumeItems"/> is the routine called to consume the items.  Similarly, reading can have just a
     /// single reader or multiple readers, depending on the value passed into <see cref="ChannelOptions.SingleReader"/>.
     /// </summary>
-    private static async Task RunImplAsync<TArgs>(
+    private static async Task<TResult> RunChannelAsync<TArgs, TResult>(
         ProducerConsumerOptions options,
-        Func<Action<TItem>, TArgs, Task> produceItems,
-        Func<ChannelReader<TItem>, TArgs, Task> consumeItems,
+        Func<Action<TItem>, TArgs, CancellationToken, Task> produceItems,
+        Func<ChannelReader<TItem>, TArgs, CancellationToken, Task<TResult>> consumeItems,
         TArgs args,
         CancellationToken cancellationToken)
     {
@@ -130,16 +296,16 @@ internal static class ProducerConsumer<TItem>
             () => channel.Writer.TryComplete(new OperationCanceledException(cancellationToken)));
 #endif
 
-        await Task.WhenAll(
-            ProduceItemsAndWriteToChannelAsync(),
-            ReadFromChannelAndConsumeItemsAsync()).ConfigureAwait(false);
+        var writeTask = ProduceItemsAndWriteToChannelAsync();
+        var readTask = ReadFromChannelAndConsumeItemsAsync();
+        await Task.WhenAll(writeTask, readTask).ConfigureAwait(false);
 
-        return;
+        return await readTask.ConfigureAwait(false);
 
-        async Task ReadFromChannelAndConsumeItemsAsync()
+        async Task<TResult> ReadFromChannelAndConsumeItemsAsync()
         {
             await Task.Yield().ConfigureAwait(false);
-            await consumeItems(channel.Reader, args).ConfigureAwait(false);
+            return await consumeItems(channel.Reader, args, cancellationToken).ConfigureAwait(false);
         }
 
         async Task ProduceItemsAndWriteToChannelAsync()
@@ -153,7 +319,7 @@ internal static class ProducerConsumer<TItem>
                 // channel is only ever completed by us (after produceItems completes or throws an exception) or if the
                 // cancellationToken is triggered above in RunAsync. In that latter case, it's ok for writing to the
                 // channel to do nothing as we no longer need to write out those assets to the pipe.
-                await produceItems(item => channel.Writer.TryWrite(item), args).ConfigureAwait(false);
+                await produceItems(item => channel.Writer.TryWrite(item), args, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when ((exception = ex) == null)
             {
@@ -167,4 +333,6 @@ internal static class ProducerConsumer<TItem>
             }
         }
     }
+
+    #endregion
 }

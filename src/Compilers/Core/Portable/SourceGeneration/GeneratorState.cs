@@ -14,6 +14,9 @@ namespace Microsoft.CodeAnalysis
     internal readonly struct GeneratorState
     {
 
+        /// <summary>
+        /// A generator state that has been initialized but produced no results
+        /// </summary>
         public static readonly GeneratorState Empty = new GeneratorState(ImmutableArray<GeneratedSyntaxTree>.Empty,
                                                                          ImmutableArray<SyntaxInputNode>.Empty,
                                                                          ImmutableArray<IIncrementalGeneratorOutputNode>.Empty,

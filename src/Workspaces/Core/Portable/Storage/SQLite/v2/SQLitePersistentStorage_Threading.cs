@@ -38,7 +38,7 @@ internal partial class SQLitePersistentStorage
         // Dispose method that restores ExecutionContext flow must run on the same thread where SuppressFlow was
         // originally run.
         using var _ = FlowControlHelper.TrySuppressFlow();
-        return PerformTaskAsync(func, arg, _connectionPoolService.Scheduler.ConcurrentScheduler, cancellationToken);
+        return PerformTaskAsync(func, arg, this.Scheduler.ConcurrentScheduler, cancellationToken);
     }
 
     // Write tasks go to the exclusive-scheduler so they run exclusively of all other threading
@@ -53,7 +53,7 @@ internal partial class SQLitePersistentStorage
         // Dispose method that restores ExecutionContext flow must run on the same thread where SuppressFlow was
         // originally run.
         using var _ = FlowControlHelper.TrySuppressFlow();
-        return PerformTaskAsync(func, arg, _connectionPoolService.Scheduler.ExclusiveScheduler, cancellationToken);
+        return PerformTaskAsync(func, arg, this.Scheduler.ExclusiveScheduler, cancellationToken);
     }
 
     public Task PerformWriteAsync(Action action, CancellationToken cancellationToken)

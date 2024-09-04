@@ -219,7 +219,7 @@ internal class BottomUpBaseIndentationFinder
         allNodes.Do(n => _formattingRules.AddIndentBlockOperations(list, n));
 
         // sort them in right order
-        list.RemoveAll(CommonFormattingHelpers.IsNull);
+        list.RemoveAll(static o => o is null);
         list.Sort(CommonFormattingHelpers.IndentBlockOperationComparer);
 
         return list;
@@ -296,7 +296,7 @@ internal class BottomUpBaseIndentationFinder
         }
 
         // well, found no appropriate one
-        list.RemoveAll(CommonFormattingHelpers.IsNull);
+        list.RemoveAll(static o => o is null);
         if (list.Count == 0)
         {
             return null;

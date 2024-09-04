@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -167,7 +168,11 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         return index < symbolList.Length;
     }
 
-    private static SupportedPlatformData? ComputeSupportedPlatformData(CompletionContext completionContext, ImmutableArray<SymbolAndSelectionInfo> symbols, Dictionary<ISymbol, List<ProjectId>>? invalidProjectMap, List<ProjectId>? totalProjects)
+    private static SupportedPlatformData? ComputeSupportedPlatformData(
+        CompletionContext completionContext,
+        ImmutableArray<SymbolAndSelectionInfo> symbols,
+        Dictionary<ISymbol, List<ProjectId>>? invalidProjectMap,
+        List<ProjectId>? totalProjects)
     {
         SupportedPlatformData? supportedPlatformData = null;
         if (invalidProjectMap != null)
@@ -271,7 +276,19 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
             return CreateItems(completionContext, itemsForCurrentDocument, _ => syntaxContext, invalidProjectMap: null, totalProjects: null);
         }
 
-        var contextAndSymbolLists = await GetPerContextSymbolsAsync(completionContext, document, options, new[] { document.Id }.Concat(relatedDocumentIds), cancellationToken).ConfigureAwait(false);
+        using var _ = PooledDictionary<DocumentId, int>.GetInstance(out var documentIdToIndex);
+        documentIdToIndex.Add(document.Id, 0);
+        foreach (var documentId in relatedDocumentIds)
+            documentIdToIndex.Add(documentId, documentIdToIndex.Count);
+
+        var contextAndSymbolLists = await GetPerContextSymbolsAsync(completionContext, document, options, documentIdToIndex.Keys, cancellationToken).ConfigureAwait(false);
+
+        // We want the resultant contexts ordered in the same order the related documents came in.  Importantly, the
+        // context for *our* starting document should be placed first.
+        contextAndSymbolLists = contextAndSymbolLists
+            .OrderBy((tuple1, tuple2) => documentIdToIndex[tuple1.documentId] - documentIdToIndex[tuple2.documentId])
+            .ToImmutableArray();
+
         var symbolToContextMap = UnionSymbols(contextAndSymbolLists);
         var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(symbolToContextMap, contextAndSymbolLists);
         var totalProjects = contextAndSymbolLists.Select(t => t.documentId.ProjectId).ToList();
@@ -297,10 +314,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
             // We need to use the SemanticModel any particular symbol came from in order to generate its description correctly.
             // Therefore, when we add a symbol to set of union symbols, add a mapping from it to its SyntaxContext.
             foreach (var symbol in symbols.GroupBy(s => new { s.Symbol.Name, s.Symbol.Kind }).Select(g => g.First()))
-            {
-                if (!result.ContainsKey(symbol))
-                    result.Add(symbol, syntaxContext);
-            }
+                result.TryAdd(symbol, syntaxContext);
         }
 
         return result;
@@ -311,33 +325,24 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
     {
         var solution = document.Project.Solution;
 
-        using var _1 = ArrayBuilder<Task<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)>>.GetInstance(out var tasks);
-        using var _2 = ArrayBuilder<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)>.GetInstance(out var perContextSymbols);
-
-        foreach (var relatedDocumentId in relatedDocuments)
-        {
-            tasks.Add(Task.Run(async () =>
+        return await ProducerConsumer<(DocumentId documentId, TSyntaxContext syntaxContext, ImmutableArray<SymbolAndSelectionInfo> symbols)>.RunParallelAsync(
+            source: relatedDocuments,
+            produceItems: static async (relatedDocumentId, callback, args, cancellationToken) =>
             {
+                var (@this, solution, completionContext, options) = args;
                 var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
-                var syntaxContext = await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(relatedDocument, cancellationToken).ConfigureAwait(false) as TSyntaxContext;
+                var syntaxContext = await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(
+                    relatedDocument, cancellationToken).ConfigureAwait(false) as TSyntaxContext;
 
                 Contract.ThrowIfNull(syntaxContext);
-                var symbols = await TryGetSymbolsForContextAsync(completionContext, syntaxContext, options, cancellationToken).ConfigureAwait(false);
+                var symbols = await @this.TryGetSymbolsForContextAsync(
+                    completionContext, syntaxContext, options, cancellationToken).ConfigureAwait(false);
 
-                return (relatedDocument.Id, syntaxContext, symbols);
-            }, cancellationToken));
-        }
-
-        await Task.WhenAll(tasks).ConfigureAwait(false);
-
-        foreach (var task in tasks)
-        {
-            var (relatedDocumentId, syntaxContext, symbols) = await task.ConfigureAwait(false);
-            if (!symbols.IsDefault)
-                perContextSymbols.Add((relatedDocumentId, syntaxContext, symbols));
-        }
-
-        return perContextSymbols.ToImmutableAndClear();
+                if (!symbols.IsDefault)
+                    callback((relatedDocument.Id, syntaxContext, symbols));
+            },
+            args: (@this: this, solution, completionContext, options),
+            cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

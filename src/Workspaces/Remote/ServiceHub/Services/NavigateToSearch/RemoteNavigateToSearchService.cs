@@ -13,7 +13,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteNavigateToSearchService : BrokeredServiceBase, IRemoteNavigateToSearchService
+    internal sealed class RemoteNavigateToSearchService(
+        in BrokeredServiceBase.ServiceConstructionArguments arguments,
+        RemoteCallback<IRemoteNavigateToSearchService.ICallback> callback)
+        : BrokeredServiceBase(arguments), IRemoteNavigateToSearchService
     {
         internal sealed class Factory : FactoryBase<IRemoteNavigateToSearchService, IRemoteNavigateToSearchService.ICallback>
         {
@@ -22,26 +25,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 => new RemoteNavigateToSearchService(arguments, callback);
         }
 
-        private readonly RemoteCallback<IRemoteNavigateToSearchService.ICallback> _callback;
+        private readonly RemoteCallback<IRemoteNavigateToSearchService.ICallback> _callback = callback;
 
-        public RemoteNavigateToSearchService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteNavigateToSearchService.ICallback> callback)
-            : base(arguments)
-        {
-            _callback = callback;
-        }
-
-        private (Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound, Func<Task> onProjectCompleted) GetCallbacks(
+        private (Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound, Func<Task> onProjectCompleted) GetCallbacks(
             RemoteServiceCallbackId callbackId, CancellationToken cancellationToken)
         {
-            Func<ImmutableArray<RoslynNavigateToItem>, Task> onItemsFound = async i => await _callback.InvokeAsync((callback, cancellationToken) =>
-                callback.OnItemsFoundAsync(callbackId, i),
-                cancellationToken).ConfigureAwait(false);
-
-            Func<Task> onProjectCompleted = async () => await _callback.InvokeAsync((callback, cancellationToken) =>
-                callback.OnProjectCompletedAsync(callbackId),
-                cancellationToken).ConfigureAwait(false);
-
-            return (onItemsFound, onProjectCompleted);
+            return (
+                async (array, _, cancellationToken) => await _callback.InvokeAsync((callback, cancellationToken) => callback.OnItemsFoundAsync(callbackId, array), cancellationToken).ConfigureAwait(false),
+                async () => await _callback.InvokeAsync((callback, cancellationToken) => callback.OnProjectCompletedAsync(callbackId), cancellationToken).ConfigureAwait(false));
         }
 
         public ValueTask HydrateAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
