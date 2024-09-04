@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
@@ -27,10 +26,7 @@ internal abstract class AbstractAssetProvider
     public abstract ValueTask<T> GetAssetAsync<T>(AssetPath assetPath, Checksum checksum, CancellationToken cancellationToken);
     public abstract Task GetAssetsAsync<T, TArg>(AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken);
 
-    public async Task<SolutionInfo> CreateSolutionInfoAsync(
-        Checksum solutionChecksum,
-        SolutionServices solutionServices,
-        CancellationToken cancellationToken)
+    public async Task<SolutionInfo> CreateSolutionInfoAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
     {
         var solutionCompilationChecksums = await GetAssetAsync<SolutionCompilationStateChecksums>(AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
         var solutionChecksums = await GetAssetAsync<SolutionStateChecksums>(AssetPathKind.SolutionStateChecksums, solutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
@@ -44,20 +40,11 @@ internal abstract class AbstractAssetProvider
         await this.GetAssetHelper<ProjectStateChecksums>().GetAssetsAsync(
             AssetPathKind.ProjectStateChecksums,
             solutionChecksums.Projects.Checksums,
-            static (_, projectStateChecksums, args) =>
-            {
-                var (@this, projectsTasks, solutionServices, cancellationToken) = args;
-                projectsTasks.Add(@this.CreateProjectInfoAsync(projectStateChecksums, solutionServices, cancellationToken));
-            },
-            (@this: this, projectsTasks, solutionServices, cancellationToken),
+            static (_, projectStateChecksums, tuple) => tuple.projectsTasks.Add(tuple.@this.CreateProjectInfoAsync(projectStateChecksums, tuple.cancellationToken)),
+            (@this: this, projectsTasks, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
-        // Deserialize the analyzer references, then wrap them in a new isolated analyzer reference set that has its own ALC
-        var analyzerReference = await this.GetAssetsArrayAsync<AnalyzerReference>(
-            AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
-        var isolatedAnalyzerReferences = await IsolatedAnalyzerReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
-            useAsync: true, analyzerReference, solutionServices, cancellationToken).ConfigureAwait(false);
-
+        var analyzerReferences = await this.GetAssetsArrayAsync<AnalyzerReference>(AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
         var fallbackAnalyzerOptions = await GetAssetAsync<ImmutableDictionary<string, StructuredAnalyzerConfigOptions>>(AssetPathKind.SolutionFallbackAnalyzerOptions, solutionChecksums.FallbackAnalyzerOptions, cancellationToken).ConfigureAwait(false);
 
         // Fetch the projects in parallel.
@@ -67,14 +54,11 @@ internal abstract class AbstractAssetProvider
             solutionAttributes.Version,
             solutionAttributes.FilePath,
             ImmutableCollectionsMarshal.AsImmutableArray(projects),
-            isolatedAnalyzerReferences,
+            analyzerReferences,
             fallbackAnalyzerOptions).WithTelemetryId(solutionAttributes.TelemetryId);
     }
 
-    public async Task<ProjectInfo> CreateProjectInfoAsync(
-        ProjectStateChecksums projectChecksums,
-        SolutionServices solutionServices,
-        CancellationToken cancellationToken)
+    public async Task<ProjectInfo> CreateProjectInfoAsync(ProjectStateChecksums projectChecksums, CancellationToken cancellationToken)
     {
         await Task.Yield();
 
@@ -99,13 +83,6 @@ internal abstract class AbstractAssetProvider
         var additionalDocumentInfosTask = CreateDocumentInfosAsync(projectChecksums.AdditionalDocuments);
         var analyzerConfigDocumentInfosTask = CreateDocumentInfosAsync(projectChecksums.AnalyzerConfigDocuments);
 
-        // Deserialize the analyzer references, then wrap them in a new isolated analyzer reference set that has its own ALC.
-        var isolatedAnalyzerReferencesTask = IsolatedAnalyzerReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
-            useAsync: true,
-            await analyzerReferencesTask.ConfigureAwait(false),
-            solutionServices,
-            cancellationToken);
-
         return ProjectInfo.Create(
             attributes,
             compilationOptions,
@@ -113,7 +90,7 @@ internal abstract class AbstractAssetProvider
             await documentInfosTask.ConfigureAwait(false),
             await projectReferencesTask.ConfigureAwait(false),
             await metadataReferencesTask.ConfigureAwait(false),
-            await isolatedAnalyzerReferencesTask.ConfigureAwait(false),
+            await analyzerReferencesTask.ConfigureAwait(false),
             await additionalDocumentInfosTask.ConfigureAwait(false),
             await analyzerConfigDocumentInfosTask.ConfigureAwait(false),
             hostObjectType: null); // TODO: https://github.com/dotnet/roslyn/issues/62804
