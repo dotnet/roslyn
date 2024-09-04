@@ -2848,15 +2848,6 @@ outerDefault:
                 conv2.Kind == ConversionKind.CollectionExpression)
             {
                 return BetterCollectionExpressionConversion((BoundUnconvertedCollectionExpression)node, t1, conv1, t2, conv2, ref useSiteInfo);
-                // if (IsBetterCollectionExpressionConversion( t1, conv1, t2, conv2, ref useSiteInfo))
-                // {
-                //     return BetterResult.Left;
-                // }
-                // if (IsBetterCollectionExpressionConversion(t2, conv2, t1, conv1, ref useSiteInfo))
-                // {
-                //     return BetterResult.Right;
-                // }
-                // return BetterResult.Neither;
             }
 
             // - T1 is a better conversion target than T2 and either C1 and C2 are both conditional expression
@@ -2919,11 +2910,15 @@ outerDefault:
             // - `T₁` or `T₂` is not a *span type*, and `T₁` is implicitly convertible to `T₂`, and `T₂` is not implicitly convertible to `T₁`, or
             if (!t1IsSpanType && !t2IsSpanType)
             {
-                var betterConversion = BetterConversionTarget(t1, t2, ref useSiteInfo);
+                var t1IsConvertibleToT2 = Conversions.ClassifyImplicitConversionFromType(t1, t2, ref useSiteInfo).IsImplicit;
+                var t2IsConvertibleToT1 = Conversions.ClassifyImplicitConversionFromType(t2, t1, ref useSiteInfo).IsImplicit;
 
-                if (betterConversion != BetterResult.Neither)
+                switch (t1IsConvertibleToT2, t2IsConvertibleToT1)
                 {
-                    return betterConversion;
+                    case (true, false):
+                        return BetterResult.Left;
+                    case (false, true):
+                        return BetterResult.Right;
                 }
             }
 
