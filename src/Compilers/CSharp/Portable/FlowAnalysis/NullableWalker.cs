@@ -5802,9 +5802,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     reportMismatchIfNecessary(originalConsequence, consequenceLValue, refResultTypeWithAnnotations);
                     reportMismatchIfNecessary(originalAlternative, alternativeLValue, refResultTypeWithAnnotations);
 
-                    // Set "not null" top-level nullability. Consistent with equivalent method type inference or non-ref ternary scenarios.
-                    lValueAnnotation = NullableAnnotation.NotAnnotated;
-                    rValueState = NullableFlowState.NotNull;
+                    // Prefer "not null" (correct if the operand is suppressed, otherwise we have warned above).
+                    lValueAnnotation = consequenceLValue.NullableAnnotation.Meet(alternativeLValue.NullableAnnotation);
+                    rValueState = consequenceRValue.State.Meet(alternativeRValue.State);
 
                     void reportMismatchIfNecessary(BoundExpression node, TypeWithAnnotations source, TypeWithAnnotations destination)
                     {
