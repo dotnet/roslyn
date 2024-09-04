@@ -73,6 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 #nullable enable
         private AutoPropertyData _lazyAutoPropertyData;
 
+        // PROTOTYPE: Document this set of classes and the possible values for _lazyAutoPropertyData.
         internal abstract class AutoPropertyData
         {
             internal static readonly AutoPropertyData None = new AutoPropertyDataKnown();
@@ -696,7 +697,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal bool IsAutoPropertyOrUsesFieldKeyword
-            => _lazyAutoPropertyData.IsAutoProperty || _lazyAutoPropertyData.UsesFieldKeyword;
+            => IsAutoProperty || UsesFieldKeyword;
+
+        internal bool UsesFieldKeyword
+            => _lazyAutoPropertyData.UsesFieldKeyword;
 
         protected bool HasExplicitAccessModifier
             => (_propertyFlags & Flags.HasExplicitAccessModifier) != 0;

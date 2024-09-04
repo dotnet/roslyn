@@ -3713,14 +3713,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     <P4>k__BackingField
                     """));
             verifier.VerifyDiagnostics();
+
             var comp = (CSharpCompilation)verifier.Compilation;
-            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
-            var expectedMembers = new[]
+            var containingType = comp.GetMember<NamedTypeSymbol>("C");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var expectedFields = new[]
             {
                 "System.Object C.<P3>k__BackingField",
                 "System.Object C.<P4>k__BackingField",
             };
-            AssertEx.Equal(expectedMembers, actualMembers);
+            AssertEx.Equal(expectedFields, actualFields);
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
+            Assert.Equal(2, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P4", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
         }
 
         [Theory]
@@ -3775,9 +3782,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     <P5>k__BackingField
                     """));
             verifier.VerifyDiagnostics();
+
             var comp = (CSharpCompilation)verifier.Compilation;
-            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
-            var expectedMembers = new[]
+            var containingType = comp.GetMember<NamedTypeSymbol>("C");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var expectedFields = new[]
             {
                 "System.Object C.<P1>k__BackingField",
                 "System.Object C.<P2>k__BackingField",
@@ -3785,7 +3794,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Object C.<P4>k__BackingField",
                 "System.Object C.<P5>k__BackingField",
             };
-            AssertEx.Equal(expectedMembers, actualMembers);
+            AssertEx.Equal(expectedFields, actualFields);
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
+            Assert.Equal(5, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[4] is SourcePropertySymbol { Name: "P5", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
         }
 
         // PROTOTYPE: Test struct, ref struct, interface.
@@ -3830,21 +3847,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 reverseOrder ? [sourceC, sourceB, sourceA] : [sourceA, sourceB, sourceC],
                 expectedOutput: "(1, 2)");
             verifier.VerifyDiagnostics();
+
             var comp = (CSharpCompilation)verifier.Compilation;
-            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
-            var expectedMembers = reverseOrder ?
-                new[]
-                {
-                    "System.Object C.<P1>k__BackingField",
-                    "System.Object C.<P2>k__BackingField",
-                } :
-                new[]
-                {
-                    "System.Object C.<P2>k__BackingField",
-                    "System.Object C.<P1>k__BackingField",
-                };
-            AssertEx.Equal(expectedMembers, actualMembers);
-            // PROTOTYPE: Use symbol model to get all properties and check IsAutoProperty, IsAutoPropertyOrUsesFieldKeyword.
+            var containingType = comp.GetMember<NamedTypeSymbol>("C");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().OrderBy(f => f.Name).ToTestDisplayStrings();
+            var expectedFields = new[]
+            {
+                "System.Object C.<P1>k__BackingField",
+                "System.Object C.<P2>k__BackingField",
+            };
+            AssertEx.Equal(expectedFields, actualFields);
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().OrderBy(p => p.Name).ToArray();
+            Assert.Equal(2, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
         }
 
         [Theory]
@@ -3904,6 +3921,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (8,27): error CS0102: The type 'C' already contains a definition for 'P3'
                 //            partial object P3 { get; set; }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P3").WithArguments("C", "P3").WithLocation(8, 27));
+
+            var containingType = comp.GetMember<NamedTypeSymbol>("C");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var expectedFields = new[]
+            {
+                "System.Object C.<P1>k__BackingField",
+                "System.Object C.<P2>k__BackingField",
+                "System.Object C.<P3>k__BackingField",
+            };
+            AssertEx.Equal(expectedFields, actualFields);
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
+            Assert.Equal(6, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
+            Assert.True(actualProperties[4] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[5] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
         }
 
         [Theory]
@@ -3957,8 +3993,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (8,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //            partial object Q3 { get => null; set { } } = 3;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "Q3").WithLocation(8, 27));
-            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
-            var expectedMembers = new[]
+
+            var containingType = comp.GetMember<NamedTypeSymbol>("C");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var expectedFields = new[]
             {
                 "System.Object C.<P1>k__BackingField",
                 "System.Object C.<P2>k__BackingField",
@@ -3967,8 +4005,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Object C.<Q2>k__BackingField",
                 "System.Object C.<Q3>k__BackingField",
             };
-            AssertEx.Equal(expectedMembers, actualMembers);
-            // PROTOTYPE: Use symbol model to get all properties and check IsAutoProperty, IsAutoPropertyOrUsesFieldKeyword.
+            AssertEx.Equal(expectedFields, actualFields);
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().OrderBy(p => p.Name).ToArray();
+            Assert.Equal(6, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "Q1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[4] is SourcePropertySymbol { Name: "Q2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[5] is SourcePropertySymbol { Name: "Q3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
         }
 
         // PROTOTYPE: Test multiple declaration parts, some with initializer, some without.
@@ -4055,9 +4101,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     <Q7>k__BackingField
                     """));
             verifier.VerifyDiagnostics();
+
             var comp = (CSharpCompilation)verifier.Compilation;
-            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
-            var expectedMembers = new[]
+            var containingType = comp.GetMember<NamedTypeSymbol>("C");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var expectedFields = new[]
             {
                 "System.Object C.<P1>k__BackingField",
                 "System.Object C.<P2>k__BackingField",
@@ -4074,8 +4122,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Object C.<Q6>k__BackingField",
                 "System.Object C.<Q7>k__BackingField",
             };
-            AssertEx.Equal(expectedMembers, actualMembers);
-            // PROTOTYPE: Use symbol model to get all properties and check IsAutoProperty, IsAutoPropertyOrUsesFieldKeyword.
+            AssertEx.Equal(expectedFields, actualFields);
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().OrderBy(p => p.Name).ToArray();
+            Assert.Equal(14, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[4] is SourcePropertySymbol { Name: "P5", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[5] is SourcePropertySymbol { Name: "P6", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[6] is SourcePropertySymbol { Name: "P7", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[7] is SourcePropertySymbol { Name: "Q1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[8] is SourcePropertySymbol { Name: "Q2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[9] is SourcePropertySymbol { Name: "Q3", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[10] is SourcePropertySymbol { Name: "Q4", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[11] is SourcePropertySymbol { Name: "Q5", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[12] is SourcePropertySymbol { Name: "Q6", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[13] is SourcePropertySymbol { Name: "Q7", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
         }
 
         [Theory]
@@ -4132,15 +4196,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (5,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //            partial object P3 { get => null; set { } } = 3;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(5, 27));
-            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
-            var expectedMembers = new[]
+
+            var containingType = comp.GetMember<NamedTypeSymbol>("C");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var expectedFields = new[]
             {
                 "System.Object C.<P1>k__BackingField",
                 "System.Object C.<P2>k__BackingField",
                 "System.Object C.<P3>k__BackingField",
             };
-            AssertEx.Equal(expectedMembers, actualMembers);
-            // PROTOTYPE: Use symbol model to get all properties and check IsAutoProperty, IsAutoPropertyOrUsesFieldKeyword.
+            AssertEx.Equal(expectedFields, actualFields);
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
+            Assert.Equal(3, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
         }
 
         // PROTOTYPE: Test partial property with 3 parts, with one, two, or three with initializers.
@@ -4196,8 +4267,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 //     public        partial object P5 { get => field; set { field = value; } } = -5;
                 Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P5").WithLocation(7, 34));
 
-            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
-            var expectedMembers = new[]
+            var containingType = comp.GetMember<NamedTypeSymbol>("C");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var expectedFields = new[]
             {
                 "System.Object C.<P1>k__BackingField",
                 "System.Object C.<P2>k__BackingField",
@@ -4205,9 +4277,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Object C.<P4>k__BackingField",
                 "System.Object C.<P5>k__BackingField",
             };
-            AssertEx.Equal(expectedMembers, actualMembers);
+            AssertEx.Equal(expectedFields, actualFields);
 
-            // PROTOTYPE: Use symbol model to get all properties and check IsAutoProperty, IsAutoPropertyOrUsesFieldKeyword.
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
+            Assert.Equal(5, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[4] is SourcePropertySymbol { Name: "P5", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+
             var actualValues = getInitializerValues(comp, comp.SyntaxTrees[reverseOrder ? 1 : 0]);
             var expectedValues = new[]
             {
@@ -4290,8 +4369,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,40): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //            partial object P4 { get; [A(field)] set; }
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(6, 40));
-            var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
-            var expectedMembers = reverseOrder ?
+
+            var containingType = comp.GetMember<NamedTypeSymbol>("B");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var expectedFields = reverseOrder ?
                 new[]
                 {
                     "System.Object B.<P1>k__BackingField",
@@ -4306,10 +4387,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     "System.Object B.<P1>k__BackingField",
                     "System.Object B.<P2>k__BackingField",
                 };
-            AssertEx.Equal(expectedMembers, actualMembers);
-            // PROTOTYPE: Use symbol model to get all properties and check IsAutoProperty, IsAutoPropertyOrUsesFieldKeyword.
+            AssertEx.Equal(expectedFields, actualFields);
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
+            Assert.Equal(4, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
         }
 
+        // Similar to previous test, but using backing field within accessors as well as in attributes.
         [Theory]
         [CombinatorialData]
         public void PartialProperty_Attribute_02(bool reverseOrder, bool useStatic)
@@ -4354,8 +4442,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,40): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     partial        object P4 { get; [A(field)] set; }
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(6, 40));
-            var actualMembers = comp.GetMember<NamedTypeSymbol>("B").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
-            var expectedMembers = reverseOrder ?
+
+            var containingType = comp.GetMember<NamedTypeSymbol>("B");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var expectedFields = reverseOrder ?
                 new[]
                 {
                     "System.Object B.<P1>k__BackingField",
@@ -4370,8 +4460,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     "System.Object B.<P1>k__BackingField",
                     "System.Object B.<P2>k__BackingField",
                 };
-            AssertEx.Equal(expectedMembers, actualMembers);
-            // PROTOTYPE: Use symbol model to get all properties and check IsAutoProperty, IsAutoPropertyOrUsesFieldKeyword.
+            AssertEx.Equal(expectedFields, actualFields);
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
+            Assert.Equal(4, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { } });
         }
     }
 }
