@@ -2943,7 +2943,7 @@ outerDefault:
                     var element = collectionExpressionElements[i];
 
                     BetterResult elementBetterResult;
-                    if (element is BoundCollectionExpressionSpreadElement { Conversion: var spreadConversion })
+                    if (element is BoundCollectionExpressionSpreadElement { Conversion: var spreadConversion } spread)
                     {
                         if (spreadConversion is null)
                         {
@@ -2952,7 +2952,10 @@ outerDefault:
                             continue;
                         }
 
-                        elementBetterResult = BetterConversionTarget(spreadConversion.Type, elementType1, ref useSiteInfo);
+                        var conversionToE1 = Conversions.GetCollectionExpressionSpreadElementConversion(spread, elementType1, ref useSiteInfo);
+                        var conversionToE2 = Conversions.GetCollectionExpressionSpreadElementConversion(spread, elementType2, ref useSiteInfo);
+
+                        elementBetterResult = BetterConversionTarget(spread, elementType1, conversionToE1, elementType2, conversionToE2, ref useSiteInfo, out _);
                     }
                     else
                     {
@@ -3289,7 +3292,7 @@ outerDefault:
         }
 
         private BetterResult BetterConversionTarget(
-            BoundExpression node,
+            BoundNode node,
             TypeSymbol type1,
             Conversion conv1,
             TypeSymbol type2,
@@ -3301,7 +3304,7 @@ outerDefault:
         }
 
         private BetterResult BetterConversionTargetCore(
-            BoundExpression node,
+            BoundNode node,
             TypeSymbol type1,
             Conversion conv1,
             TypeSymbol type2,

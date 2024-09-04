@@ -1031,7 +1031,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify([source, s_collectionExtensions], parseOptions: TestOptions.Regular13, expectedOutput: "(System.Nullable<System.Int32>[]) [1, null], (MyCollection) [null, 2], ");
+            CompileAndVerify([source, s_collectionExtensions], parseOptions: TestOptions.Regular13, expectedOutput: "(System.Nullable<System.Int32>[]) [1, null], (System.Nullable<System.Int32>[]) [null, 2], ");
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics(
                 // (15,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(MyCollection)' and 'Program.F(int?[])'
                 //         var x = F([1, null]);
