@@ -682,13 +682,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => IsAutoProperty || UsesFieldKeyword;
 
         internal bool UsesFieldKeyword
-            => _lazyMergedAutoPropertyInfo.UsesFieldKeyword;
+            => _Safe_MergedAutoPropertyInfo.UsesFieldKeyword;
 
         protected bool HasExplicitAccessModifier
             => (_propertyFlags & Flags.HasExplicitAccessModifier) != 0;
 
         internal bool IsAutoProperty
-            => _lazyMergedAutoPropertyInfo.IsAutoProperty;
+            => _Safe_MergedAutoPropertyInfo.IsAutoProperty;
 
         protected bool AccessorsHaveImplementation
             => (_propertyFlags & Flags.AccessorsHaveImplementation) != 0;
@@ -698,7 +698,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// a property with an accessor using the 'field' keyword, or
         /// a property with an initializer.
         /// </summary>
-        internal SynthesizedBackingFieldSymbol BackingField => _lazyMergedAutoPropertyInfo.BackingField;
+        internal SynthesizedBackingFieldSymbol BackingField => _Safe_MergedAutoPropertyInfo.BackingField;
+
+        private AutoPropertyInfo _Safe_MergedAutoPropertyInfo
+        {
+            get
+            {
+                var autoPropertyInfo = _lazyMergedAutoPropertyInfo;
+                // When calling through the SemanticModel, partial members are not
+                // necessarily merged when the containing type includes a primary
+                // constructor - see https://github.com/dotnet/roslyn/issues/75002.
+                if (autoPropertyInfo is null && _containingType.PrimaryConstructor is { })
+                {
+                    autoPropertyInfo = DeclaredAutoPropertyInfo;
+                }
+                return autoPropertyInfo;
+            }
+        }
 
 #nullable enable
         internal AutoPropertyInfo DeclaredAutoPropertyInfo

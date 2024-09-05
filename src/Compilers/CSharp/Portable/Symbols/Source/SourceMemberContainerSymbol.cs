@@ -5019,7 +5019,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.GetMethod);
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.SetMethod);
-
                             FieldSymbol? backingField = property.DeclaredAutoPropertyInfo.BackingField;
 
                             // TODO: can we leave this out of the member list?
