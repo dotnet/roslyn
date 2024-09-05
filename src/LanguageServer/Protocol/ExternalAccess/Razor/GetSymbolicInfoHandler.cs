@@ -236,22 +236,13 @@ internal sealed class GetSymbolicInfoHandler : ILspServiceDocumentRequestHandler
             return false;
         }
 
-        var baseTypes = classDeclaration.BaseList?.Types;
-        if (baseTypes is null)
+        var classTypeSymbol = semanticModel.GetDeclaredSymbol(classDeclaration) as ITypeSymbol;
+        if (classTypeSymbol is null)
         {
             return false;
         }
 
-        foreach (var baseTypeSyntax in baseTypes)
-        {
-            var classTypeSymbol = semanticModel.GetTypeInfo(baseTypeSyntax.Type).Type;
-            if (classTypeSymbol is not null && InheritsFrom(classTypeSymbol, componentBaseSymbol))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return InheritsFrom(classTypeSymbol, componentBaseSymbol);
     }
 
     private static bool InheritsFrom(ITypeSymbol derivedType, ITypeSymbol baseType)
