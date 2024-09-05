@@ -5801,10 +5801,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var refResultTypeWithAnnotations = TypeWithAnnotations.Create(refResultType, lValueAnnotation);
                     reportMismatchIfNecessary(originalConsequence, consequenceLValue, refResultTypeWithAnnotations);
                     reportMismatchIfNecessary(originalAlternative, alternativeLValue, refResultTypeWithAnnotations);
-
-                    // Prefer "not null" (correct if the operand is suppressed, otherwise we have warned above).
-                    lValueAnnotation = consequenceLValue.NullableAnnotation.Meet(alternativeLValue.NullableAnnotation);
-                    rValueState = consequenceRValue.State.Meet(alternativeRValue.State);
                 }
                 else if (!node.HasErrors)
                 {
