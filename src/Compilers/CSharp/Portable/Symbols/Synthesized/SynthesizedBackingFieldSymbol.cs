@@ -113,7 +113,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => _property.RefCustomModifiers;
 
-        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound) => _property.TypeWithAnnotations;
+        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+            => _property.TypeWithAnnotations;
 
 #nullable enable
         /// <summary>If null, binding+flow analysis of getter is required to determine null resilience. If non-null, then whether the getter is null-resilient is trivially known.</summary>

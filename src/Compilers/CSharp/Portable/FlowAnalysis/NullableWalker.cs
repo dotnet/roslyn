@@ -10631,7 +10631,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ = CheckPossibleNullReceiver(receiverOpt, checkNullableValueType: !skipReceiverNullCheck);
             }
 
-            // TODO2: introduce helper for getting member type which accounts for '_isGetterNullResilienceAnalysis'?
             var type = GetTypeOrReturnTypeWithAnnotations(member);
             var memberAnnotations = GetRValueAnnotations(member);
             var resultType = ApplyUnconditionalAnnotations(type.ToTypeWithState(), memberAnnotations);
