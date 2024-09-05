@@ -735,7 +735,7 @@ namespace Microsoft.CodeAnalysis
                     skeletonReferenceCacheToClone: _skeletonReferenceCache);
             }
 
-            public ICompilationTracker WithDoNotCreateCreationPolicy(CancellationToken cancellationToken)
+            public ICompilationTracker WithDoNotCreateCreationPolicy()
             {
                 var state = this.ReadState();
 
@@ -818,8 +818,18 @@ namespace Microsoft.CodeAnalysis
                     // us to a frozen state with that information.
                     var generatorInfo = inProgressState.GeneratorInfo;
                     var compilationWithoutGeneratedDocuments = inProgressState.LazyCompilationWithoutGeneratedDocuments;
-                    var compilationWithGeneratedDocuments = new Lazy<Compilation?>(() => compilationWithoutGeneratedDocuments.Value.AddSyntaxTrees(
-                        generatorInfo.Documents.States.Values.Select(state => state.GetSyntaxTree(cancellationToken))));
+                    var compilationWithGeneratedDocuments = new Lazy<Compilation?>(() =>
+                    {
+                        var syntaxTrees = generatorInfo.Documents.States.Values
+                            .Select(state =>
+                            {
+                                state.TryGetSyntaxTree(out var syntaxTree);
+                                return syntaxTree;
+                            })
+                            .WhereNotNull();
+
+                        return compilationWithoutGeneratedDocuments.Value.AddSyntaxTrees(syntaxTrees);
+                    });
 
                     return new RegularCompilationTracker(
                         frozenProjectState,
