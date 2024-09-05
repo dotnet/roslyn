@@ -14339,13 +14339,70 @@ namespace System.Runtime.CompilerServices
 
                 public class C
                 {
+                    /*<bind>*/
                     MyCollection1 M() => [1];
+                    /*</bind>*/
                 }
                 """;
-            CreateCompilation(source).VerifyEmitDiagnostics(
-                // (17,27): error CS9222: Collection initializer results in an infinite chain of instantiations of collection 'MyCollection1'.
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+                // (18,27): error CS9222: Collection initializer results in an infinite chain of instantiations of collection 'MyCollection1'.
                 //     MyCollection1 M() => [1];
-                Diagnostic(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, "1").WithArguments("MyCollection1").WithLocation(17, 27));
+                Diagnostic(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, "1").WithArguments("MyCollection1").WithLocation(18, 27));
+
+            VerifyFlowGraphForTest<MethodDeclarationSyntax>(comp, """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection1, IsInvalid, IsImplicit) (Syntax: '[1]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionExpression)
+                          Operand:
+                            ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection1..ctor()) (OperationKind.CollectionExpression, Type: MyCollection1, IsInvalid) (Syntax: '[1]')
+                              Elements(1):
+                                  IInvocationOperation ( void MyCollection1.Add(params MyCollection1 c)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '1')
+                                    Instance Receiver:
+                                      IInvalidOperation (OperationKind.Invalid, Type: MyCollection1, IsInvalid, IsImplicit) (Syntax: '1')
+                                        Children(0)
+                                    Arguments(1):
+                                        IArgumentOperation (ArgumentKind.ParamCollection, Matching Parameter: c) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
+                                          ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: MyCollection1, IsInvalid, IsImplicit) (Syntax: '1')
+                                            Elements(1):
+                                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
+
+            VerifyOperationTreeForTest<MethodDeclarationSyntax>(comp, """
+                IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'MyCollectio ... M() => [1];')
+                BlockBody:
+                  null
+                ExpressionBody:
+                  IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> [1]')
+                    IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '[1]')
+                      ReturnedValue:
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection1, IsInvalid, IsImplicit) (Syntax: '[1]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          Operand:
+                            ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection1..ctor()) (OperationKind.CollectionExpression, Type: MyCollection1, IsInvalid) (Syntax: '[1]')
+                              Elements(1):
+                                  IInvocationOperation ( void MyCollection1.Add(params MyCollection1 c)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '1')
+                                    Instance Receiver:
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: MyCollection1, IsInvalid, IsImplicit) (Syntax: '1')
+                                    Arguments(1):
+                                        IArgumentOperation (ArgumentKind.ParamCollection, Matching Parameter: c) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
+                                          ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: MyCollection1, IsInvalid, IsImplicit) (Syntax: '1')
+                                            Elements(1):
+                                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
@@ -14373,13 +14430,70 @@ namespace System.Runtime.CompilerServices
 
                 public class C
                 {
+                    /*<bind>*/
                     MyCollection1 M() => [1];
+                    /*</bind>*/
                 }
                 """;
-            CreateCompilation(source).VerifyEmitDiagnostics(
-                // (22,27): error CS9222: Collection initializer results in an infinite chain of instantiations of collection 'MyCollection2'.
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+                // (23,27): error CS9222: Collection initializer results in an infinite chain of instantiations of collection 'MyCollection2'.
                 //     MyCollection1 M() => [1];
-                Diagnostic(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, "1").WithArguments("MyCollection2").WithLocation(22, 27));
+                Diagnostic(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, "1").WithArguments("MyCollection2").WithLocation(23, 27));
+
+            VerifyFlowGraphForTest<MethodDeclarationSyntax>(comp, """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection1, IsInvalid, IsImplicit) (Syntax: '[1]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionExpression)
+                          Operand:
+                            ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection1..ctor()) (OperationKind.CollectionExpression, Type: MyCollection1, IsInvalid) (Syntax: '[1]')
+                              Elements(1):
+                                  IInvocationOperation ( void MyCollection2.Add(params MyCollection1 c)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '1')
+                                    Instance Receiver:
+                                      IInvalidOperation (OperationKind.Invalid, Type: MyCollection2, IsInvalid, IsImplicit) (Syntax: '1')
+                                        Children(0)
+                                    Arguments(1):
+                                        IArgumentOperation (ArgumentKind.ParamCollection, Matching Parameter: c) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
+                                          ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection1..ctor()) (OperationKind.CollectionExpression, Type: MyCollection1, IsInvalid, IsImplicit) (Syntax: '1')
+                                            Elements(1):
+                                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
+
+            VerifyOperationTreeForTest<MethodDeclarationSyntax>(comp, """
+                IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'MyCollectio ... M() => [1];')
+                BlockBody:
+                  null
+                ExpressionBody:
+                  IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> [1]')
+                    IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '[1]')
+                      ReturnedValue:
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection1, IsInvalid, IsImplicit) (Syntax: '[1]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          Operand:
+                            ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection1..ctor()) (OperationKind.CollectionExpression, Type: MyCollection1, IsInvalid) (Syntax: '[1]')
+                              Elements(1):
+                                  IInvocationOperation ( void MyCollection2.Add(params MyCollection1 c)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '1')
+                                    Instance Receiver:
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: MyCollection2, IsInvalid, IsImplicit) (Syntax: '1')
+                                    Arguments(1):
+                                        IArgumentOperation (ArgumentKind.ParamCollection, Matching Parameter: c) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
+                                          ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection1..ctor()) (OperationKind.CollectionExpression, Type: MyCollection1, IsInvalid, IsImplicit) (Syntax: '1')
+                                            Elements(1):
+                                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
@@ -14436,10 +14550,80 @@ namespace System.Runtime.CompilerServices
 
                 public class C
                 {
+                    /*<bind>*/
                     MyCollection1 M() => new() { 1 };
+                    /*</bind>*/
                 }
                 """;
-            CreateCompilation(source).VerifyEmitDiagnostics();
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
+
+            VerifyFlowGraphForTest<MethodDeclarationSyntax>(comp, """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                        Entering: {R1}
+                .locals {R1}
+                {
+                    CaptureIds: [0]
+                    Block[B1] - Block
+                        Predecessors: [B0]
+                        Statements (2)
+                            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new() { 1 }')
+                              Value:
+                                IObjectCreationOperation (Constructor: MyCollection1..ctor()) (OperationKind.ObjectCreation, Type: MyCollection1) (Syntax: 'new() { 1 }')
+                                  Arguments(0)
+                                  Initializer:
+                                    null
+                            IInvocationOperation ( void MyCollection1.Add(params MyCollection2 c)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '1')
+                              Instance Receiver:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyCollection1, IsImplicit) (Syntax: 'new() { 1 }')
+                              Arguments(1):
+                                  IArgumentOperation (ArgumentKind.ParamCollection, Matching Parameter: c) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '1')
+                                    ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection2..ctor()) (OperationKind.CollectionExpression, Type: MyCollection2, IsImplicit) (Syntax: '1')
+                                      Elements(1):
+                                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Next (Return) Block[B2]
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection1, IsImplicit) (Syntax: 'new() { 1 }')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (ObjectCreation)
+                              Operand:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyCollection1, IsImplicit) (Syntax: 'new() { 1 }')
+                            Leaving: {R1}
+                }
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
+
+            VerifyOperationTreeForTest<MethodDeclarationSyntax>(comp, """
+                IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'MyCollectio ... ew() { 1 };')
+                BlockBody:
+                  null
+                ExpressionBody:
+                  IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> new() { 1 }')
+                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'new() { 1 }')
+                      ReturnedValue:
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection1, IsImplicit) (Syntax: 'new() { 1 }')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          Operand:
+                            IObjectCreationOperation (Constructor: MyCollection1..ctor()) (OperationKind.ObjectCreation, Type: MyCollection1) (Syntax: 'new() { 1 }')
+                              Arguments(0)
+                              Initializer:
+                                IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: MyCollection1) (Syntax: '{ 1 }')
+                                  Initializers(1):
+                                      IInvocationOperation ( void MyCollection1.Add(params MyCollection2 c)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '1')
+                                        Instance Receiver:
+                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: MyCollection1, IsImplicit) (Syntax: 'new() { 1 }')
+                                        Arguments(1):
+                                            IArgumentOperation (ArgumentKind.ParamCollection, Matching Parameter: c) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '1')
+                                              ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection2..ctor()) (OperationKind.CollectionExpression, Type: MyCollection2, IsImplicit) (Syntax: '1')
+                                                Elements(1):
+                                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
