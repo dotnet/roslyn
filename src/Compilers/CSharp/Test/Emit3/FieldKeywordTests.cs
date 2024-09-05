@@ -4602,7 +4602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {{modifier}} partial object P4 { get { return null; } set { } }
                 }
                 """;
-            var comp = CreateCompilation(reverseOrder ? [sourceA, sourceB2, sourceB1] : [sourceA, sourceB1, sourceB2]);
+            var comp = CreateCompilation(reverseOrder ? [sourceB2, sourceB1, sourceA] : [sourceA, sourceB1, sourceB2]);
             comp.VerifyEmitDiagnostics(
                 // (3,35): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //            partial object P1 { [A(field)] get { return null; } }
@@ -4647,9 +4647,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         // Similar to previous test, but using backing field within accessors as well as in attributes.
         [Theory]
         [CombinatorialData]
-        public void PartialProperty_Attribute_02(bool reverseOrder, bool useStatic)
+        public void PartialProperty_Attribute_02(bool reverseOrder, bool useStatic, bool useInit)
         {
+            if (useStatic && useInit) return;
             string modifier = useStatic ? "static" : "      ";
+            string setter = useInit ? "init" : "set";
             string sourceA = $$"""
                 using System;
                 class A : Attribute
@@ -4661,21 +4663,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 partial class B
                 {
                     {{modifier}} partial object P1 { get; }
-                    {{modifier}} partial object P2 { get; set; }
+                    {{modifier}} partial object P2 { get; {{setter}}; }
                     {{modifier}} partial object P3 { [A(field)] get; }
-                    {{modifier}} partial object P4 { get; [A(field)] set; }
+                    {{modifier}} partial object P4 { get; [A(field)] {{setter}}; }
                 }
                 """;
             string sourceB2 = $$"""
                 partial class B
                 {
                     {{modifier}} partial object P1 { [A(field)] get { return field; } }
-                    {{modifier}} partial object P2 { get { return null; } [A(field)] set; }
+                    {{modifier}} partial object P2 { get { return null; } [A(field)] {{setter}}; }
                     {{modifier}} partial object P3 { get { return field; } }
-                    {{modifier}} partial object P4 { get { return null; } set; }
+                    {{modifier}} partial object P4 { get { return null; } {{setter}}; }
                 }
                 """;
-            var comp = CreateCompilation(reverseOrder ? [sourceA, sourceB2, sourceB1] : [sourceA, sourceB1, sourceB2]);
+            var comp = CreateCompilation(
+                reverseOrder ? [sourceB2, sourceB1, sourceA] : [sourceA, sourceB1, sourceB2],
+                targetFramework: GetTargetFramework(useInit));
             comp.VerifyEmitDiagnostics(
                 // (3,35): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     partial        object P1 { [A(field)] get { return field; } }
@@ -4749,7 +4753,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     [field: A] partial object Q3 { get => null; set; }
                 }
                 """;
-            var comp = CreateCompilation(reverseOrder ? [sourceA, sourceB2, sourceB1] : [sourceA, sourceB1, sourceB2]);
+            var comp = CreateCompilation(reverseOrder ? [sourceB2, sourceB1, sourceA] : [sourceA, sourceB1, sourceB2]);
             comp.VerifyEmitDiagnostics(
                 // (3,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
                 //     [field: A] partial object P1 { get; set; }
