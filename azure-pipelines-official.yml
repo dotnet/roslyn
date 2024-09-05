@@ -126,6 +126,8 @@ extends:
             LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
       - template: /eng/common/templates-official/jobs/source-build.yml@self
+        parameters:
+          enableInternalSources: true
 
       - job: OfficialBuild
         displayName: Official Build
