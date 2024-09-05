@@ -2151,10 +2151,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 targetFramework: TargetFramework.Net80,
                 parseOptions: TestOptions.Regular13,
                 verify: Verification.Skipped,
-                expectedOutput: """
+                expectedOutput: IncludeExpectedOutput("""
                     ReadOnlySpan<int>
                     Span<string>
-                    """);
+                    """));
 
             CreateCompilation(source, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
                 // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(ReadOnlySpan<int>)' and 'Program.F1(ReadOnlySpan<object>)'
