@@ -776,33 +776,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(definition._otherPartOfPartial == implementation);
             Debug.Assert(implementation._otherPartOfPartial == definition);
 
-            var definitionAutoProperty = definition.AutoPropertyDataInProgress;
-            var implementationAutoProperty = implementation.AutoPropertyDataInProgress;
-            if ((object)definitionAutoProperty != AutoPropertyData.UnknownPartial)
-            {
-                if ((object)implementationAutoProperty != AutoPropertyData.UnknownPartial)
-                {
-                    // Merge the auto-property data.
-                    var backingField = definitionAutoProperty.BackingField is { HasInitializer: true } ?
-                        definitionAutoProperty.BackingField :
-                        implementationAutoProperty.BackingField is { HasInitializer: true } ?
-                        implementationAutoProperty.BackingField :
-                        definitionAutoProperty.BackingField ?? implementationAutoProperty.BackingField;
-                    bool isAutoProperty = definitionAutoProperty.IsAutoProperty || implementationAutoProperty.IsAutoProperty;
-                    bool usesFieldKeyword = definitionAutoProperty.UsesFieldKeyword || implementationAutoProperty.UsesFieldKeyword;
-                    var autoPropertyData = AutoPropertyData.Create(backingField, isAutoProperty, usesFieldKeyword);
-                    definition.FixupAutoPropertyData(autoPropertyData);
-                    implementation.FixupAutoPropertyData(autoPropertyData);
-                }
-                else
-                {
-                    implementation.FixupAutoPropertyData(definitionAutoProperty);
-                }
-            }
-            else if ((object)implementationAutoProperty != AutoPropertyData.UnknownPartial)
-            {
-                definition.FixupAutoPropertyData(implementationAutoProperty);
-            }
+            var definitionAutoProperty = definition.DeclaredAutoPropertyInfo;
+            var implementationAutoProperty = implementation.DeclaredAutoPropertyInfo;
+            // Merge the auto-property data.
+            var backingField = definitionAutoProperty.BackingField is { HasInitializer: true } ?
+                definitionAutoProperty.BackingField :
+                implementationAutoProperty.BackingField is { HasInitializer: true } ?
+                implementationAutoProperty.BackingField :
+                definitionAutoProperty.BackingField ?? implementationAutoProperty.BackingField;
+            bool isAutoProperty = definitionAutoProperty.IsAutoProperty || implementationAutoProperty.IsAutoProperty;
+            bool usesFieldKeyword = definitionAutoProperty.UsesFieldKeyword || implementationAutoProperty.UsesFieldKeyword;
+            var autoPropertyData = AutoPropertyInfo.Create(backingField, isAutoProperty, usesFieldKeyword);
+            definition.SetMergedAutoPropertyInfo(autoPropertyData);
+            implementation.SetMergedAutoPropertyInfo(autoPropertyData);
         }
     }
 }

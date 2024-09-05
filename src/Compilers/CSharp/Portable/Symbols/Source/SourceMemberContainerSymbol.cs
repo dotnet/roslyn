@@ -3582,6 +3582,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 membersBySignature.Clear();
                 foreach (var symbol in membersByName[name])
                 {
+                    if (symbol is SourcePropertySymbolBase prop)
+                    {
+                        prop.SetMergedAutoPropertyInfo();
+                    }
+
                     if (!symbol.IsPartialMember())
                     {
                         continue;
@@ -3590,10 +3595,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (!membersBySignature.TryGetValue(symbol, out var prev))
                     {
                         membersBySignature.Add(symbol, symbol);
-                        if (symbol is SourcePropertySymbol currentProperty)
-                        {
-                            currentProperty.FixupAutoPropertyDataIfNecessary();
-                        }
                         continue;
                     }
 
@@ -3605,7 +3606,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         case (SourcePropertySymbol currentProperty, SourcePropertySymbol prevProperty):
                             mergePartialProperties(ref membersByName, name, currentProperty, prevProperty, diagnostics);
-                            currentProperty.FixupAutoPropertyDataIfNecessary();
                             break;
 
                         case (SourcePropertyAccessorSymbol, SourcePropertyAccessorSymbol):
@@ -3747,12 +3747,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 static bool hasInitializer(SourcePropertySymbol property)
                 {
-                    var autoPropertyData = property.AutoPropertyDataInProgress;
-                    if ((object)autoPropertyData == SourcePropertySymbolBase.AutoPropertyData.UnknownPartial)
-                    {
-                        return false;
-                    }
-                    return autoPropertyData.BackingField?.HasInitializer == true;
+                    return property.DeclaredAutoPropertyInfo.BackingField?.HasInitializer == true;
                 }
             }
         }
@@ -3795,7 +3790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 implementation = part1;
             }
 
-            if (getBackingFieldInProgress(implementation) is { } field && getBackingFieldInProgress(definition) is { })
+            if (getBackingField(implementation) is { } field && getBackingField(definition) is { })
             {
                 var fieldName = field.Name.AsMemory();
                 membersByName[fieldName] = Remove(membersByName[fieldName], field);
@@ -3806,14 +3801,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // a partial property is represented in the member list by its definition part:
             membersByName[name] = Remove(membersByName[name], implementation);
 
-            static SynthesizedBackingFieldSymbol? getBackingFieldInProgress(SourcePropertySymbol property)
+            static SynthesizedBackingFieldSymbol? getBackingField(SourcePropertySymbol property)
             {
-                var autoPropertyData = property.AutoPropertyDataInProgress;
-                if ((object)autoPropertyData == SourcePropertySymbolBase.AutoPropertyData.UnknownPartial)
-                {
-                    return null;
-                }
-                return autoPropertyData.BackingField;
+                return property.DeclaredAutoPropertyInfo.BackingField;
             }
         }
 
@@ -4587,7 +4577,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Debug.Assert(property.SetMethod is object);
                         members.Add(property.GetMethod);
                         members.Add(property.SetMethod);
-                        var backingField = property.AutoPropertyDataInProgress.BackingField;
+                        var backingField = property.DeclaredAutoPropertyInfo.BackingField;
                         Debug.Assert(backingField is object);
                         members.Add(backingField);
 
@@ -5030,41 +5020,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.GetMethod);
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.SetMethod);
 
-                            var autoPropertyData = property.AutoPropertyDataInProgress;
-                            if ((object)autoPropertyData != SourcePropertySymbolBase.AutoPropertyData.UnknownPartial)
+                            FieldSymbol? backingField = property.DeclaredAutoPropertyInfo.BackingField;
+
+                            // TODO: can we leave this out of the member list?
+                            // From the 10/12/11 design notes:
+                            //   In addition, we will change autoproperties to behavior in
+                            //   a similar manner and make the autoproperty fields private.
+                            if (backingField is { })
                             {
-                                FieldSymbol? backingField = autoPropertyData.BackingField;
+                                builder.NonTypeMembers.Add(backingField);
+                                builder.UpdateIsNullableEnabledForConstructorsAndFields(useStatic: backingField.IsStatic, compilation, propertySyntax);
 
-                                // TODO: can we leave this out of the member list?
-                                // From the 10/12/11 design notes:
-                                //   In addition, we will change autoproperties to behavior in
-                                //   a similar manner and make the autoproperty fields private.
-                                if (backingField is { })
+                                var initializer = propertySyntax.Initializer;
+                                if (initializer != null)
                                 {
-                                    builder.NonTypeMembers.Add(backingField);
-                                    builder.UpdateIsNullableEnabledForConstructorsAndFields(useStatic: backingField.IsStatic, compilation, propertySyntax);
-
-                                    var initializer = propertySyntax.Initializer;
-                                    if (initializer != null)
+                                    if (IsScriptClass)
                                     {
-                                        if (IsScriptClass)
-                                        {
-                                            // also gather expression-declared variables from the initializer
-                                            ExpressionFieldFinder.FindExpressionVariables(builder.NonTypeMembers,
-                                                                                          initializer,
-                                                                                          this,
-                                                                                          DeclarationModifiers.Private | (property.IsStatic ? DeclarationModifiers.Static : 0),
-                                                                                          backingField);
-                                        }
+                                        // also gather expression-declared variables from the initializer
+                                        ExpressionFieldFinder.FindExpressionVariables(builder.NonTypeMembers,
+                                                                                      initializer,
+                                                                                      this,
+                                                                                      DeclarationModifiers.Private | (property.IsStatic ? DeclarationModifiers.Static : 0),
+                                                                                      backingField);
+                                    }
 
-                                        if (property.IsStatic)
-                                        {
-                                            AddInitializer(ref staticInitializers, backingField, initializer);
-                                        }
-                                        else
-                                        {
-                                            AddInitializer(ref instanceInitializers, backingField, initializer);
-                                        }
+                                    if (property.IsStatic)
+                                    {
+                                        AddInitializer(ref staticInitializers, backingField, initializer);
+                                    }
+                                    else
+                                    {
+                                        AddInitializer(ref instanceInitializers, backingField, initializer);
                                     }
                                 }
                             }

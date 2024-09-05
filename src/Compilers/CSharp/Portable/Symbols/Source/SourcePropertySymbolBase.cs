@@ -71,16 +71,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public Location Location { get; }
 
 #nullable enable
-        private AutoPropertyData _lazyAutoPropertyData;
+        private AutoPropertyInfo? _lazyDeclaredAutoPropertyInfo; // Auto-property info from this property declaration.
+        private AutoPropertyInfo? _lazyMergedAutoPropertyInfo; // Auto-property info after merging partial parts (if any) in containing type.
 
-        // PROTOTYPE: Document this set of classes and the possible values for _lazyAutoPropertyData.
-        internal abstract class AutoPropertyData
+        internal sealed class AutoPropertyInfo
         {
-            internal static readonly AutoPropertyData None = new AutoPropertyDataKnown();
-            internal static readonly AutoPropertyData Unknown = new AutoPropertyDataUnknown();
-            internal static readonly AutoPropertyData UnknownPartial = new AutoPropertyDataUnknown();
+            internal static readonly AutoPropertyInfo None = new AutoPropertyInfo(null, false, false);
 
-            internal static AutoPropertyData Create(SynthesizedBackingFieldSymbol? backingField, bool isAutoProperty, bool usesFieldKeyword)
+            internal static AutoPropertyInfo Create(SynthesizedBackingFieldSymbol? backingField, bool isAutoProperty, bool usesFieldKeyword)
             {
                 if (backingField is null)
                 {
@@ -88,35 +86,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(!usesFieldKeyword);
                     return None;
                 }
-                return new AutoPropertyDataKnown(backingField, isAutoProperty, usesFieldKeyword);
+                return new AutoPropertyInfo(backingField, isAutoProperty, usesFieldKeyword);
             }
 
-            internal abstract SynthesizedBackingFieldSymbol? BackingField { get; }
-            internal abstract bool IsAutoProperty { get; }
-            internal abstract bool UsesFieldKeyword { get; }
-
-            private sealed class AutoPropertyDataUnknown : AutoPropertyData
+            private AutoPropertyInfo(SynthesizedBackingFieldSymbol? backingField, bool isAutoProperty, bool usesFieldKeyword)
             {
-                internal override SynthesizedBackingFieldSymbol? BackingField => throw ExceptionUtilities.Unreachable();
-                internal override bool IsAutoProperty => throw ExceptionUtilities.Unreachable();
-                internal override bool UsesFieldKeyword => throw ExceptionUtilities.Unreachable();
+                BackingField = backingField;
+                IsAutoProperty = isAutoProperty;
+                UsesFieldKeyword = usesFieldKeyword;
             }
 
-            private sealed class AutoPropertyDataKnown : AutoPropertyData
-            {
-                internal AutoPropertyDataKnown() { }
-
-                internal AutoPropertyDataKnown(SynthesizedBackingFieldSymbol backingField, bool isAutoProperty, bool usesFieldKeyword)
-                {
-                    BackingField = backingField;
-                    IsAutoProperty = isAutoProperty;
-                    UsesFieldKeyword = usesFieldKeyword;
-                }
-
-                internal override SynthesizedBackingFieldSymbol? BackingField { get; }
-                internal override bool IsAutoProperty { get; }
-                internal override bool UsesFieldKeyword { get; }
-            }
+            internal readonly SynthesizedBackingFieldSymbol? BackingField;
+            internal readonly bool IsAutoProperty;
+            internal readonly bool UsesFieldKeyword;
         }
 
         protected SourcePropertySymbolBase(
@@ -215,19 +197,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _name = _lazySourceName = memberName;
             }
 
-            // PROTOTYPE: Remove this, and set _lazyAutoPropertyData = null unconditionally, so we are always testing lazily assigned state.
             if (usesFieldKeyword || hasAutoPropertyGet || hasAutoPropertySet || hasInitializer)
             {
                 Debug.Assert(!IsIndexer);
-                _lazyAutoPropertyData = AutoPropertyData.Unknown;
+                _lazyDeclaredAutoPropertyInfo = null;
             }
             else
             {
-                _lazyAutoPropertyData = IsPartial ? AutoPropertyData.UnknownPartial : AutoPropertyData.None;
+                _lazyDeclaredAutoPropertyInfo = AutoPropertyInfo.None;
             }
-
-            // PROTOTYPE: Assert we're not calculating the BackingField before the constructor
-            // completes and before the property is added to the containing type.
 
             if (hasGetAccessor)
             {
@@ -238,6 +216,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 _setMethod = CreateSetAccessorSymbol(hasAutoPropertySet, diagnostics);
             }
+
+            // We shouldn't calculate the backing field before the accessors above are created.
+            Debug.Assert(_lazyDeclaredAutoPropertyInfo is null ||
+                (object)_lazyDeclaredAutoPropertyInfo == AutoPropertyInfo.None);
         }
 
         private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)
@@ -700,13 +682,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => IsAutoProperty || UsesFieldKeyword;
 
         internal bool UsesFieldKeyword
-            => _lazyAutoPropertyData.UsesFieldKeyword;
+            => _lazyMergedAutoPropertyInfo.UsesFieldKeyword;
 
         protected bool HasExplicitAccessModifier
             => (_propertyFlags & Flags.HasExplicitAccessModifier) != 0;
 
         internal bool IsAutoProperty
-            => _lazyAutoPropertyData.IsAutoProperty;
+            => _lazyMergedAutoPropertyInfo.IsAutoProperty;
 
         protected bool AccessorsHaveImplementation
             => (_propertyFlags & Flags.AccessorsHaveImplementation) != 0;
@@ -716,48 +698,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// a property with an accessor using the 'field' keyword, or
         /// a property with an initializer.
         /// </summary>
-        internal SynthesizedBackingFieldSymbol BackingField => _lazyAutoPropertyData.BackingField;
+        internal SynthesizedBackingFieldSymbol BackingField => _lazyMergedAutoPropertyInfo.BackingField;
 
 #nullable enable
-        internal AutoPropertyData AutoPropertyDataInProgress
+        internal AutoPropertyInfo DeclaredAutoPropertyInfo
         {
             get
             {
-                if ((object)_lazyAutoPropertyData == AutoPropertyData.Unknown)
+                if (_lazyDeclaredAutoPropertyInfo is null)
                 {
-                    FixupAutoPropertyDataIfNecessary();
+                    Interlocked.CompareExchange(ref _lazyDeclaredAutoPropertyInfo, CreateAutoPropertyInfo(), null);
                 }
-                return _lazyAutoPropertyData;
+                return _lazyDeclaredAutoPropertyInfo;
             }
         }
 
-        internal void FixupAutoPropertyData(AutoPropertyData autoPropertyData)
+        internal void SetMergedAutoPropertyInfo(AutoPropertyInfo? autoPropertyData = null)
         {
-            var current = _lazyAutoPropertyData;
-            Debug.Assert((object)current != AutoPropertyData.Unknown);
+            // PROTOTYPE: Unfortunately, we're currently calling SetMergedAutoPropertyInfo()
+            // multiple times for the first partial part.
+#if false
+            Debug.Assert(_lazyMergedAutoPropertyInfo is null);
 
-            if ((object)current == autoPropertyData)
+            if (_lazyMergedAutoPropertyInfo is null)
             {
-                return;
+                Interlocked.CompareExchange(ref _lazyMergedAutoPropertyInfo, autoPropertyData ?? DeclaredAutoPropertyInfo, null);
             }
-
-            Interlocked.CompareExchange(ref _lazyAutoPropertyData, autoPropertyData, current);
+#else
+            if (autoPropertyData is { } || _lazyMergedAutoPropertyInfo is null)
+            {
+                _lazyMergedAutoPropertyInfo = autoPropertyData ?? DeclaredAutoPropertyInfo;
+            }
+#endif
         }
 
-        internal void FixupAutoPropertyDataIfNecessary()
-        {
-            var autoPropertyData = _lazyAutoPropertyData;
-            if ((object)autoPropertyData == AutoPropertyData.UnknownPartial)
-            {
-                Interlocked.CompareExchange(ref _lazyAutoPropertyData, AutoPropertyData.None, autoPropertyData);
-            }
-            else if ((object)autoPropertyData == AutoPropertyData.Unknown)
-            {
-                Interlocked.CompareExchange(ref _lazyAutoPropertyData, CreateAutoPropertyData(), autoPropertyData);
-            }
-        }
-
-        private AutoPropertyData CreateAutoPropertyData()
+        private AutoPropertyInfo CreateAutoPropertyInfo()
         {
             string fieldName = GeneratedNames.MakeBackingFieldName(_name);
 
@@ -788,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var backingField = new SynthesizedBackingFieldSymbol(this, fieldName, isReadOnly: isReadOnly, isStatic: this.IsStatic, hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0);
-            return AutoPropertyData.Create(
+            return AutoPropertyInfo.Create(
                 backingField,
                 isAutoProperty: (_propertyFlags & (Flags.HasAutoPropertyGet | Flags.HasAutoPropertySet)) != 0,
                 usesFieldKeyword: (_propertyFlags & Flags.UsesFieldKeyword) != 0);
