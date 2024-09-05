@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             _listenerProvider = workspace.GetService<IAsynchronousOperationListenerProvider>();
 
             var analyzerReference = new TestAnalyzerReferenceByLanguage(analyzerMap ?? DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap());
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
             // Change the background analysis scope to OpenFiles instead of ActiveFile (default),
             // so that every diagnostic tagger test does not need to mark test files as "active" file.

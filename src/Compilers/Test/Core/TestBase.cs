@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using static TestReferences.NetFx;
-using static Roslyn.Test.Utilities.TestMetadata;
 using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Basic.Reference.Assemblies;
 using Roslyn.Utilities;
@@ -236,13 +235,26 @@ namespace Roslyn.Test.Utilities
 
         public static MetadataReference MinAsyncCorlibRef => TestReferences.NetFx.Minimal.minasynccorlib;
 
-        public static MetadataReference ValueTupleRef => TestReferences.NetFx.ValueTuple.tuplelib;
+        public static MetadataReference ValueTupleRef => NetFramework.SystemValueTuple;
 
         public static MetadataReference MsvbRef => NetFramework.MicrosoftVisualBasic;
 
         public static MetadataReference MsvbRef_v4_0_30319_17929 => NetFramework.MicrosoftVisualBasic;
 
         public static MetadataReference CSharpRef => CSharpDesktopRef;
+
+        /// <summary>
+        /// This is a legacy copy of System.ValueTuple. The origin is unclear as this does not appear to be a released
+        /// binary on nuget.org (possible a pre-release copy). This does have a few properties that were interesting
+        /// for a particular style of bug in VS that cannot be reproduced with modern TFMs. Specifically that it 
+        /// depends on System.Runtime for parts of the impl and can't compile with only a reference to mscorlib. As
+        /// such this is kept around for those tests.
+        ///
+        /// Related issues
+        ///   - https://github.com/dotnet/roslyn/issues/14888
+        ///   - https://github.com/dotnet/roslyn/issues/14267
+        /// </summary>
+        public static MetadataReference ValueTupleLegacyRef => TestReferences.NetFx.ValueTuple.tuplelib;
 
         private static readonly Lazy<MetadataReference> s_desktopCSharpRef = new Lazy<MetadataReference>(
             () => AssemblyMetadata.CreateFromImage(Net461.Resources.MicrosoftCSharp).GetReference(display: "Microsoft.CSharp.v4.0.30319.dll"),

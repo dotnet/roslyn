@@ -61,7 +61,7 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
         var comp1 = CreateCompilation(src1);
 
         // Compilation to Compilation
-        var comp2 = (Compilation)CreateCompilation(src2, new MetadataReference[] { new CSharpCompilationReference(comp1) });
+        var comp2 = (Compilation)CreateCompilation(src2, [new CSharpCompilationReference(comp1)]);
 
         var originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType).OrderBy(s => s.Name).ToList();
         Assert.Equal(5, originalSymbols.Count);
@@ -145,7 +145,7 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
         var comp1 = CreateCompilation(src1);
 
         // Compilation to Assembly
-        var comp2 = CreateCompilation(src2, new MetadataReference[] { comp1.EmitToImageReference() });
+        var comp2 = CreateCompilation(src2, [comp1.EmitToImageReference()]);
 
         // ---------------------------
         // Source symbols
@@ -231,10 +231,10 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
                 }
             }
             """;
-        var comp20 = (Compilation)CreateEmptyCompilation(src1, new[] { Net40.References.mscorlib });
+        var comp20 = (Compilation)CreateEmptyCompilation(src1, [Net40.References.mscorlib]);
 
         // "Compilation 2 Assembly"
-        var comp40 = (Compilation)CreateCompilation(src2, new MetadataReference[] { comp20.EmitToImageReference() });
+        var comp40 = (Compilation)CreateCompilation(src2, [comp20.EmitToImageReference()]);
 
         var typeA = comp20.SourceModule.GlobalNamespace.GetTypeMembers("A").Single();
         var mem20_1 = typeA.GetMembers("GetFileInfo").Single() as IMethodSymbol;
@@ -331,10 +331,10 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
                 public void MyEveHandler(object o) { }
             }
             """;
-        var comp20 = CreateEmptyCompilation(src1, new[] { Net40.References.mscorlib });
+        var comp20 = CreateEmptyCompilation(src1, [Net40.References.mscorlib]);
 
         // "Compilation ref Compilation"
-        var comp40 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp20) });
+        var comp40 = CreateCompilation(src2, [new CSharpCompilationReference(comp20)]);
 
         var originals = GetSourceSymbols(comp20, SymbolCategory.NonTypeMember | SymbolCategory.Parameter);
         var originalSymbols = originals.Where(s => !s.IsAccessor() && s.Kind != SymbolKind.Parameter).OrderBy(s => s.Name).ToList();
@@ -415,10 +415,10 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
                 }
             }
             """;
-        var comp20 = CreateEmptyCompilation(src1, new[] { Net40.References.mscorlib });
+        var comp20 = CreateEmptyCompilation(src1, [Net40.References.mscorlib]);
 
         // "Compilation ref Compilation"
-        var comp40 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp20) });
+        var comp40 = CreateCompilation(src2, [new CSharpCompilationReference(comp20)]);
 
         var originals = GetSourceSymbols(comp20, SymbolCategory.NonTypeMember | SymbolCategory.Parameter);
         var originalSymbols = originals.Where(s => !s.IsAccessor() && s.Kind != SymbolKind.Parameter).OrderBy(s => s.Name).ToList();

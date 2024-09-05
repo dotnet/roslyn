@@ -287,11 +287,6 @@
         <target state="translated">Das Datensatzelement "{0}" muss eine lesbare Instanzeigenschaft oder ein Feld vom Typ "{1}" sein, um dem Positionsparameter "{2}" zu entsprechen.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
-        <target state="translated">Die Anweisung „foreach“ kann nicht für Enumeratoren vom Typ „{0}“ in asynchronen oder Enumeratormethoden verwendet werden, da „{0}“ eine Verweisstruktur oder ein Typparameter ist, der eine Verweisstruktur zulässt.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
         <target state="translated">Parameter vom Typ „{0}“ können nicht in asynchronen Methoden oder asynchronen Lambdaausdrücken deklariert werden.</target>
@@ -1148,8 +1143,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="translated">Das experimentelle Feature "Interceptors" ist nicht in diesem Namespace aktiviert. Fügen Sie Ihrem Projekt "{0}" hinzu.</target>
+        <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="needs-review-translation">Das experimentelle Feature "Interceptors" ist nicht in diesem Namespace aktiviert. Fügen Sie Ihrem Projekt "{0}" hinzu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">

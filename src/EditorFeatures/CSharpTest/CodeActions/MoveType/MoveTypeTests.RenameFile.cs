@@ -72,7 +72,7 @@ public partial class MoveTypeTests : CSharpMoveTypeTestsBase
         var expectedDocumentName = "Class1.cs";
 
         await TestRenameFileToMatchTypeAsync(code, expectedDocumentName,
-            destinationDocumentContainers: new[] { "A", "B" });
+            destinationDocumentContainers: ["A", "B"]);
     }
 
     [Fact]

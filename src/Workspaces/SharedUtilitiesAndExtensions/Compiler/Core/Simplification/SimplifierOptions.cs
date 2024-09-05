@@ -52,9 +52,4 @@ internal record class SimplifierOptions
 
         return option != null;
     }
-
-#if !CODE_STYLE
-    public static SimplifierOptions GetDefault(Host.LanguageServices languageServices)
-        => languageServices.GetRequiredService<ISimplificationService>().DefaultOptions;
-#endif
 }

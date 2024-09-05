@@ -3845,9 +3845,6 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="ERR_BadAsyncLacksBody" xml:space="preserve">
     <value>The 'async' modifier can only be used in methods that have a body.</value>
   </data>
-  <data name="ERR_BadSpecialByRefIterator" xml:space="preserve">
-    <value>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</value>
-  </data>
   <data name="ERR_BadSpecialByRefParameter" xml:space="preserve">
     <value>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</value>
   </data>
@@ -7609,7 +7606,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A switch expression arm does not begin with a 'case' keyword.</value>
   </data>
   <data name="ERR_InterceptorsFeatureNotEnabled" xml:space="preserve">
-    <value>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</value>
+    <value>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</value>
   </data>
   <data name="ERR_InterceptorGlobalNamespace" xml:space="preserve">
     <value>An interceptor cannot be declared in the global namespace.</value>

@@ -12,14 +12,10 @@ using Microsoft.VisualStudio.Telemetry;
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
 
 [ExportWorkspaceService(typeof(IWorkspaceTelemetryService)), Shared]
-internal sealed class RemoteWorkspaceTelemetryService : AbstractWorkspaceTelemetryService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class RemoteWorkspaceTelemetryService() : AbstractWorkspaceTelemetryService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RemoteWorkspaceTelemetryService()
-    {
-    }
-
     protected override ILogger CreateLogger(TelemetrySession telemetrySession, bool logDelta)
         => AggregateLogger.Create(
             TelemetryLogger.Create(telemetrySession, logDelta),

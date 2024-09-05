@@ -204,13 +204,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 memberSet ??= new HashSet<ISymbol>();
                                 memberSet.Add(member);
 
-                                // Ensure that we include symbols for both parts of partial methods.
-                                // https://github.com/dotnet/roslyn/issues/73772: also cascade to partial property implementation part
-                                if (member is IMethodSymbol method &&
-                                    !(method.PartialImplementationPart is null))
-                                {
-                                    memberSet.Add(method.PartialImplementationPart);
-                                }
+                                if (member is IMethodSymbol { PartialImplementationPart: { } methodImplementation })
+                                    memberSet.Add(methodImplementation);
+                                else if (member is IPropertySymbol { PartialImplementationPart: { } propertyImplementation })
+                                    memberSet.Add(propertyImplementation);
                             }
 
                             if (member is INamedTypeSymbol typeMember)

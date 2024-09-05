@@ -287,11 +287,6 @@
         <target state="translated">Składowa rekordu "{0}" musi być możliwą do odczytu właściwością wystąpienia typu "{1}", aby dopasować parametr pozycyjny "{2}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
-        <target state="translated">Instrukcja foreach nie może działać na modułach wyliczeniowych typu „{0}” w metodach asynchronicznych lub iteracyjnych, ponieważ „{0}” jest strukturą ref lub parametrem typu, który zezwala na strukturę ref.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
         <target state="translated">Parametry typu „{0}” nie mogą być deklarowane w metodach asynchronicznych ani asynchronicznych wyrażeniach lambda.</target>
@@ -1148,8 +1143,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="translated">Funkcja eksperymentalna „interceptorów” nie jest włączona w tej przestrzeni nazw. Dodaj „{0}” do swojego projektu.</target>
+        <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="needs-review-translation">Funkcja eksperymentalna „interceptorów” nie jest włączona w tej przestrzeni nazw. Dodaj „{0}” do swojego projektu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">

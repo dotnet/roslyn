@@ -287,11 +287,6 @@
         <target state="translated">Il membro di record '{0}' deve essere una proprietà di istanza leggibile o campo di tipo '{1}' per corrispondere al parametro posizionale '{2}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
-        <target state="translated">l'istruzione foreach non può funzionare con enumeratori di tipo '{0}' in metodi async o iterator perché '{0}' è un ref struct o un parametro di tipo che consente il ref struct.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
         <target state="translated">Non è possibile dichiarare parametri di tipo '{0}' in metodi asincroni o espressioni lambda asincrone.</target>
@@ -1148,8 +1143,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="translated">La funzionalità sperimentale 'intercettori' non è abilitata in questo spazio dei nomi. Aggiungere '{0}' al progetto.</target>
+        <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="needs-review-translation">La funzionalità sperimentale 'intercettori' non è abilitata in questo spazio dei nomi. Aggiungere '{0}' al progetto.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">

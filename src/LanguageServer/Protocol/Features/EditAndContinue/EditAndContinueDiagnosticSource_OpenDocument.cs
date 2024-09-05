@@ -28,7 +28,7 @@ internal static partial class EditAndContinueDiagnosticSource
             var services = designTimeSolution.Services;
 
             // avoid creating and synchronizing compile-time solution if Hot Reload/EnC session is not active
-            if (services.GetRequiredService<IEditAndContinueWorkspaceService>().SessionTracker is not { IsSessionActive: true } sessionStateTracker)
+            if (services.GetService<IEditAndContinueWorkspaceService>()?.SessionTracker is not { IsSessionActive: true } sessionStateTracker)
             {
                 return [];
             }

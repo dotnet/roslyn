@@ -10659,6 +10659,33 @@ End Class")
         End Sub
 
         <Fact>
+        Public Sub Compiler_DoesNot_RunHostOutputs()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("temp.vb").WriteAllText("
+Class C
+End Class")
+            Dim hostOutputRan As Boolean = False
+            Dim sourceOutputRan As Boolean = False
+            Dim generator = New PipelineCallbackGenerator(Sub(ctx)
+#Disable Warning RSEXPERIMENTAL004
+                                                              ctx.RegisterHostOutput(ctx.CompilationProvider, Sub(hostCtx, value)
+                                                                                                                  hostOutputRan = True
+                                                                                                                  hostCtx.AddOutput("output", "value")
+                                                                                                              End Sub)
+#Enable Warning RSEXPERIMENTAL004
+                                                              ctx.RegisterSourceOutput(ctx.CompilationProvider, Sub(spc, po)
+                                                                                                                    sourceOutputRan = True
+                                                                                                                    spc.AddSource("output.vb", "'value")
+                                                                                                                End Sub)
+                                                          End Sub)
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference:=False, generators:={generator.AsSourceGenerator()})
+            Assert.[False](hostOutputRan)
+            Assert.[True](sourceOutputRan)
+            CleanupAllGeneratedFiles(src.Path)
+            Directory.Delete(dir.Path, True)
+        End Sub
+
+        <Fact>
         Public Sub ExperimentalWithWhitespaceDiagnosticID_WarnForInvalidDiagID()
             Dim dir = Temp.CreateDirectory()
 
