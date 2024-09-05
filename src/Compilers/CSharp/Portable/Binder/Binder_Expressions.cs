@@ -10395,7 +10395,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// method returned is not important since the caller is interested in the signature only.
         /// </summary>
         /// <param name="useParams">
-        /// Whether all candidates (instance methods and extension methods from all scopes) are applicable in expanded form.
+        /// Whether the last parameter of the signature should have the <see langword="params"/> modifier.
         /// </param>
         private MethodSymbol? GetUniqueSignatureFromMethodGroup_CSharp10(BoundMethodGroup node, out bool useParams)
         {
@@ -10469,6 +10469,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (seenAnyApplicableCandidates && useParamsForScope != useParams)
                     {
                         methods.Free();
+                        useParams = false;
                         return null;
                     }
 
@@ -10480,6 +10481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!isCandidateUnique(ref method, reduced))
                         {
                             methods.Free();
+                            useParams = false;
                             return null;
                         }
                     }
@@ -10490,11 +10492,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (method is null)
             {
+                useParams = false;
                 return null;
             }
             int n = node.TypeArgumentsOpt.IsDefaultOrEmpty ? 0 : node.TypeArgumentsOpt.Length;
             if (method.Arity != n)
             {
+                useParams = false;
                 return null;
             }
             else if (n > 0)
@@ -10525,7 +10529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The particular method returned is not important since the caller is interested in the signature only.
         /// </summary>
         /// <param name="useParams">
-        /// Whether the found candidates (either instance methods or extension methods in the nearest scope) are applicable in expanded form.
+        /// Whether the last parameter of the signature should have the <see langword="params"/> modifier.
         /// </param>
         private MethodSymbol? GetUniqueSignatureFromMethodGroup(BoundMethodGroup node, out bool useParams)
         {
@@ -10583,6 +10587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!isCandidateUnique(ref foundMethod, substituted))
                     {
                         methods.Free();
+                        useParams = false;
                         return null;
                     }
                 }
@@ -10641,6 +10646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             methods.Free();
                             methodGroup.Free();
+                            useParams = false;
                             return null;
                         }
                     }
@@ -10656,6 +10662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodGroup.Free();
             }
 
+            useParams = false;
             return null;
 
             static bool isCandidateUnique(ref MethodSymbol? foundMethod, MethodSymbol candidate)
