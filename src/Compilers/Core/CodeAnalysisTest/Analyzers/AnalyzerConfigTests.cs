@@ -270,15 +270,18 @@ my_prop2 = my val2");
                 properties);
         }
 
-        [Fact]
-        public void EndOfLineComments()
+        [Theory]
+        [WorkItem(44596, "https://github.com/dotnet/roslyn/issues/44596")]
+        [InlineData(";")]
+        [InlineData("#")]
+        public void EndOfLineComments(string commentStartCharacter)
         {
-            var config = ParseConfigFile(@"
-my_prop2 = my val2 # Comment");
+            var config = ParseConfigFile($@"
+my_prop2 = my val2 {commentStartCharacter} Not A Comment");
 
             var properties = config.GlobalSection.Properties;
             AssertEx.SetEqual(
-                new[] { KeyValuePair.Create("my_prop2", "my val2") },
+                new[] { KeyValuePair.Create("my_prop2", $"my val2 {commentStartCharacter} Not A Comment") },
                 properties);
         }
 
@@ -992,6 +995,82 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
             Assert.Equal([
                 CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress))
             ], options.Select(o => o.TreeOptions).ToArray());
+        }
+
+        [Theory]
+        [InlineData("default")]
+        [InlineData("none")]
+        [InlineData("silent")]
+        [InlineData("refactoring")]
+        [InlineData("suggestion")]
+        [InlineData("warning")]
+        [InlineData("error")]
+        public void EditorConfigToDiagnosticsValidSeverity(string severity)
+        {
+            var expected = severity switch
+            {
+                "default" => ReportDiagnostic.Default,
+                "none" => ReportDiagnostic.Suppress,
+                "silent" => ReportDiagnostic.Hidden,
+                "refactoring" => ReportDiagnostic.Hidden,
+                "suggestion" => ReportDiagnostic.Info,
+                "warning" => ReportDiagnostic.Warn,
+                "error" => ReportDiagnostic.Error,
+                _ => throw ExceptionUtilities.UnexpectedValue(severity),
+            };
+
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse($@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = {severity}
+", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(["/test.cs"], configs);
+            configs.Free();
+
+            Assert.Equal([CreateImmutableDictionary(("cs000", expected))], Array.ConvertAll(options, o => o.TreeOptions));
+        }
+
+        [Theory]
+        [InlineData("unset")]
+        [InlineData("warn")]
+        [InlineData("")]
+        public void EditorConfigToDiagnosticsInvalidSeverity(string severity)
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse($@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = {severity}
+", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(["/test.cs"], configs);
+            configs.Free();
+
+            Assert.Equal([ImmutableDictionary<string, ReportDiagnostic>.Empty], Array.ConvertAll(options, o => o.TreeOptions));
+        }
+
+        /// <summary>
+        /// Verifies that the AnalyzerConfig parser ignores comment-like trailing text when parsing severity values.
+        /// This ensures the change from https://github.com/dotnet/roslyn/pull/51625 does not affect the parsing of
+        /// diagnostic severities.
+        /// </summary>
+        [Theory]
+        [InlineData("#")]
+        [InlineData(";")]
+        [WorkItem("https://github.com/dotnet/roslyn/pull/51625")]
+        public void EditorConfigToDiagnosticsIgnoresCommentLikeText(string delimiter)
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse($@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = error {delimiter} ignored text
+dotnet_diagnostic.cs001.severity = warning {delimiter} ignored text
+", "/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(["/test.cs"], configs);
+            configs.Free();
+
+            Assert.Equal([CreateImmutableDictionary(("cs000", ReportDiagnostic.Error), ("cs001", ReportDiagnostic.Warn))], Array.ConvertAll(options, o => o.TreeOptions));
         }
 
         [Fact]

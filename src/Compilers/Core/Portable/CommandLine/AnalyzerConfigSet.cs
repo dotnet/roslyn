@@ -330,33 +330,40 @@ namespace Microsoft.CodeAnalysis
 
         internal static bool TryParseSeverity(string value, out ReportDiagnostic severity)
         {
+            ReadOnlySpan<char> commentStartCharacters = stackalloc char[] { ';', '#' };
+            var trimmed = value.AsSpan();
+            var commentStartIndex = trimmed.IndexOfAny(commentStartCharacters);
+            if (commentStartIndex >= 0)
+                trimmed = trimmed[0..commentStartIndex].TrimEnd();
+
             var comparer = StringComparer.OrdinalIgnoreCase;
-            if (comparer.Equals(value, "default"))
+            if (trimmed.Equals("default".AsSpan(), StringComparison.OrdinalIgnoreCase))
             {
                 severity = ReportDiagnostic.Default;
                 return true;
             }
-            else if (comparer.Equals(value, "error"))
+            else if (trimmed.Equals("error".AsSpan(), StringComparison.OrdinalIgnoreCase))
             {
                 severity = ReportDiagnostic.Error;
                 return true;
             }
-            else if (comparer.Equals(value, "warning"))
+            else if (trimmed.Equals("warning".AsSpan(), StringComparison.OrdinalIgnoreCase))
             {
                 severity = ReportDiagnostic.Warn;
                 return true;
             }
-            else if (comparer.Equals(value, "suggestion"))
+            else if (trimmed.Equals("suggestion".AsSpan(), StringComparison.OrdinalIgnoreCase))
             {
                 severity = ReportDiagnostic.Info;
                 return true;
             }
-            else if (comparer.Equals(value, "silent") || comparer.Equals(value, "refactoring"))
+            else if (trimmed.Equals("silent".AsSpan(), StringComparison.OrdinalIgnoreCase)
+                || trimmed.Equals("refactoring".AsSpan(), StringComparison.OrdinalIgnoreCase))
             {
                 severity = ReportDiagnostic.Hidden;
                 return true;
             }
-            else if (comparer.Equals(value, "none"))
+            else if (trimmed.Equals("none".AsSpan(), StringComparison.OrdinalIgnoreCase))
             {
                 severity = ReportDiagnostic.Suppress;
                 return true;
