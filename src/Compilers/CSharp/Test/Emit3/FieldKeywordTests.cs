@@ -4801,12 +4801,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(actualProperties[5] is SourcePropertySymbol { Name: "Q3", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
         }
 
+        // Backing field required for implementation part only (no initializer),
+        // or required for both parts (with initializer).
         [Theory]
         [CombinatorialData]
-        public void PartialProperty_Attribute_04(bool reverseOrder)
+        public void PartialProperty_Attribute_04(bool reverseOrder, bool includeInitializer)
         {
+            string getInitializer(int value) => includeInitializer ? $"= {value};" : "";
             string sourceA = """
                 using System;
+                [AttributeUsage(AttributeTargets.All, AllowMultiple=true)]
                 class A : Attribute
                 {
                     private readonly object _obj;
@@ -4814,12 +4818,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public override string ToString() => $"A({_obj})";
                 }
                 """;
-            string sourceB1 = """
+            string sourceB1 = $$"""
                 partial class B
                 {
-                                  partial object P1 { get; }
-                    [field: A(3)] partial object P2 { get; }
-                    [field: A(5)] partial object P3 { get; }
+                                  partial object P1 { get; } {{getInitializer(1)}}
+                    [field: A(3)] partial object P2 { get; } {{getInitializer(2)}}
+                    [field: A(5)] partial object P3 { get; } {{getInitializer(3)}}
                 }
                 """;
             string sourceB2 = """
@@ -4849,13 +4853,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            // PROTOTYPE: Attributes from the definition part are dropped.
             var verifier = CompileAndVerify(
                 reverseOrder ? [sourceC, sourceB2, sourceB1, sourceA] : [sourceA, sourceB1, sourceB2, sourceC],
                 expectedOutput: """
                 <P1>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(2),
-                <P2>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
-                <P3>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(6),
+                <P2>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(3),
+                <P3>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(5), A(6),
                 """);
             verifier.VerifyDiagnostics();
 
@@ -4870,10 +4873,74 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             };
             AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
-            // PROTOTYPE: Attributes from the definition part are dropped.
             AssertEx.Equal(["A(2)"], actualFields[0].GetAttributes().ToStrings());
-            AssertEx.Equal([], actualFields[1].GetAttributes().ToStrings());
-            AssertEx.Equal(["A(6)"], actualFields[2].GetAttributes().ToStrings());
+            AssertEx.Equal(["A(3)"], actualFields[1].GetAttributes().ToStrings());
+            AssertEx.Equal(["A(5)", "A(6)"], actualFields[2].GetAttributes().ToStrings());
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
+            Assert.Equal(3, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+        }
+
+        // Backing field required for definition part only.
+        [Theory]
+        [CombinatorialData]
+        public void PartialProperty_Attribute_05(bool reverseOrder)
+        {
+            string sourceA = """
+                using System;
+                [AttributeUsage(AttributeTargets.All, AllowMultiple=true)]
+                class A : Attribute
+                {
+                    private readonly object _obj;
+                    public A(object obj) { _obj = obj; }
+                    public override string ToString() => $"A({_obj})";
+                }
+                """;
+            string sourceB1 = """
+                partial class B
+                {
+                                  partial object P1 { [A(field)] get; }
+                    [field: A(3)] partial object P2 { [A(field)] get; }
+                    [field: A(5)] partial object P3 { [A(field)] get; }
+                }
+                """;
+            string sourceB2 = """
+                partial class B
+                {
+                    [field: A(2)] partial object P1 { get => null; }
+                                  partial object P2 { get => null; }
+                    [field: A(6)] partial object P3 { get => null; }
+                }
+                """;
+            var comp = CreateCompilation(
+                reverseOrder ? [sourceB2, sourceB1, sourceA] : [sourceA, sourceB1, sourceB2]);
+            comp.VerifyEmitDiagnostics(
+                // (3,42): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //                   partial object P1 { [A(field)] get; }
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(3, 42),
+                // (4,42): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [field: A(3)] partial object P2 { [A(field)] get; }
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(4, 42),
+                // (5,42): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     [field: A(5)] partial object P3 { [A(field)] get; }
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(5, 42));
+
+            var containingType = comp.GetMember<NamedTypeSymbol>("B");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToArray();
+            var expectedFields = new[]
+            {
+                "System.Object B.<P1>k__BackingField",
+                "System.Object B.<P2>k__BackingField",
+                "System.Object B.<P3>k__BackingField",
+            };
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
+
+            AssertEx.Equal(["A(2)"], actualFields[0].GetAttributes().ToStrings());
+            AssertEx.Equal(["A(3)"], actualFields[1].GetAttributes().ToStrings());
+            AssertEx.Equal(["A(5)", "A(6)"], actualFields[2].GetAttributes().ToStrings());
 
             var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
             Assert.Equal(3, actualProperties.Length);
