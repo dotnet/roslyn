@@ -212,7 +212,12 @@ internal readonly struct EmitSolutionUpdateResults
         foreach (var (documentId, documentRudeEdits) in RudeEdits)
         {
             var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-            Contract.ThrowIfNull(document);
+            if (document == null)
+            {
+                // Make sure the solution snapshot has all source-generated documents up-to-date.
+                solution = solution.WithUpToDateSourceGeneratorDocuments(solution.ProjectIds);
+                document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            }
 
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             foreach (var documentRudeEdit in documentRudeEdits)
@@ -262,7 +267,14 @@ internal readonly struct EmitSolutionUpdateResults
 
         foreach (var (documentId, diagnostics) in rudeEdits)
         {
-            var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            if (document == null)
+            {
+                // Make sure the solution snapshot has all source-generated documents up-to-date.
+                solution = solution.WithUpToDateSourceGeneratorDocuments(solution.ProjectIds);
+                document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+            }
+
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var diagnostic in diagnostics)
