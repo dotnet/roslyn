@@ -719,6 +719,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return DeclaredAutoPropertyInfo;
                     }
                 }
+                // The property should only be used after members in the containing
+                // type are complete, and partial members have been merged.
                 return _lazyMergedAutoPropertyInfo!;
             }
         }
@@ -738,11 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal void SetMergedAutoPropertyInfo(AutoPropertyInfo autoPropertyData)
         {
             Debug.Assert(_lazyMergedAutoPropertyInfo is null);
-
-            if (_lazyMergedAutoPropertyInfo is null)
-            {
-                Interlocked.CompareExchange(ref _lazyMergedAutoPropertyInfo, autoPropertyData, null);
-            }
+            Interlocked.CompareExchange(ref _lazyMergedAutoPropertyInfo, autoPropertyData, null);
         }
 
         private AutoPropertyInfo CreateAutoPropertyInfo()
