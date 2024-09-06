@@ -1772,6 +1772,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyMembersDictionary;
         }
 
+        internal bool AreMembersComplete => state.HasComplete(CompletionPart.Members);
+
         internal override IEnumerable<Symbol> GetInstanceFieldsAndEvents()
         {
             var membersAndInitializers = this.GetMembersAndInitializers();
@@ -3582,11 +3584,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 membersBySignature.Clear();
                 foreach (var symbol in membersByName[name])
                 {
-                    if (symbol is SourcePropertySymbolBase prop)
-                    {
-                        prop.SetMergedAutoPropertyInfo();
-                    }
-
                     if (!symbol.IsPartialMember())
                     {
                         continue;

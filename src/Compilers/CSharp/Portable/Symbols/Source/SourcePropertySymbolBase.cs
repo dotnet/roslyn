@@ -682,13 +682,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => IsAutoProperty || UsesFieldKeyword;
 
         internal bool UsesFieldKeyword
-            => _Safe_MergedAutoPropertyInfo.UsesFieldKeyword;
+            => MergedAutoPropertyInfo.UsesFieldKeyword;
 
         protected bool HasExplicitAccessModifier
             => (_propertyFlags & Flags.HasExplicitAccessModifier) != 0;
 
         internal bool IsAutoProperty
-            => _Safe_MergedAutoPropertyInfo.IsAutoProperty;
+            => MergedAutoPropertyInfo.IsAutoProperty;
 
         protected bool AccessorsHaveImplementation
             => (_propertyFlags & Flags.AccessorsHaveImplementation) != 0;
@@ -698,25 +698,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// a property with an accessor using the 'field' keyword, or
         /// a property with an initializer.
         /// </summary>
-        internal SynthesizedBackingFieldSymbol BackingField => _Safe_MergedAutoPropertyInfo.BackingField;
+        internal SynthesizedBackingFieldSymbol BackingField => MergedAutoPropertyInfo.BackingField;
 
-        private AutoPropertyInfo _Safe_MergedAutoPropertyInfo
+#nullable enable
+        private AutoPropertyInfo MergedAutoPropertyInfo
         {
             get
             {
-                var autoPropertyInfo = _lazyMergedAutoPropertyInfo;
-                // When calling through the SemanticModel, partial members are not
-                // necessarily merged when the containing type includes a primary
-                // constructor - see https://github.com/dotnet/roslyn/issues/75002.
-                if (autoPropertyInfo is null && _containingType.PrimaryConstructor is { })
+                if (_lazyMergedAutoPropertyInfo is null)
                 {
-                    autoPropertyInfo = DeclaredAutoPropertyInfo;
+                    if (_containingType.AreMembersComplete)
+                    {
+                        Interlocked.CompareExchange(ref _lazyMergedAutoPropertyInfo, DeclaredAutoPropertyInfo, null);
+                    }
+                    // When calling through the SemanticModel, partial members are not
+                    // necessarily merged when the containing type includes a primary
+                    // constructor - see https://github.com/dotnet/roslyn/issues/75002.
+                    else if (_containingType.PrimaryConstructor is { })
+                    {
+                        return DeclaredAutoPropertyInfo;
+                    }
                 }
-                return autoPropertyInfo;
+                return _lazyMergedAutoPropertyInfo!;
             }
         }
 
-#nullable enable
         internal AutoPropertyInfo DeclaredAutoPropertyInfo
         {
             get
@@ -729,23 +735,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal void SetMergedAutoPropertyInfo(AutoPropertyInfo? autoPropertyData = null)
+        internal void SetMergedAutoPropertyInfo(AutoPropertyInfo autoPropertyData)
         {
-            // PROTOTYPE: Unfortunately, we're currently calling SetMergedAutoPropertyInfo()
-            // multiple times for the first partial part.
-#if false
             Debug.Assert(_lazyMergedAutoPropertyInfo is null);
 
             if (_lazyMergedAutoPropertyInfo is null)
             {
-                Interlocked.CompareExchange(ref _lazyMergedAutoPropertyInfo, autoPropertyData ?? DeclaredAutoPropertyInfo, null);
+                Interlocked.CompareExchange(ref _lazyMergedAutoPropertyInfo, autoPropertyData, null);
             }
-#else
-            if (autoPropertyData is { } || _lazyMergedAutoPropertyInfo is null)
-            {
-                _lazyMergedAutoPropertyInfo = autoPropertyData ?? DeclaredAutoPropertyInfo;
-            }
-#endif
         }
 
         private AutoPropertyInfo CreateAutoPropertyInfo()
