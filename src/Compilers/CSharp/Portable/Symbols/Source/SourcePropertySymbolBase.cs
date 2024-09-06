@@ -739,7 +739,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void SetMergedAutoPropertyInfo(AutoPropertyInfo autoPropertyData)
         {
-            Debug.Assert(_lazyMergedAutoPropertyInfo is null);
             Interlocked.CompareExchange(ref _lazyMergedAutoPropertyInfo, autoPropertyData, null);
         }
 
