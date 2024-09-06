@@ -161,10 +161,11 @@ internal sealed class GetSymbolicInfoHandler : ILspServiceDocumentRequestHandler
             }
         }
 
-        var identifiersInRange = identifiersInRangeBuilder.ToImmutableAndFree();
         var methodsInClass = methodsBuilder.ToImmutableAndFree();
         var fieldsInClass = fieldsBuilder.ToImmutableAndFree();
         var propertiesInClass = propertiesBuilder.ToImmutableAndFree();
+        var identifiersInRange = identifiersInRangeBuilder.ToImmutableAndFree();
+        var expressionIdentifiersInRange = expressionIdentifiersBuilder.ToImmutableAndFree();
 
         var declaredMethodSymbols = methodsInClass.ToDictionary(method => method, method => semanticModel.GetDeclaredSymbol(method));
         var declaredPropertySymbols = propertiesInClass.ToDictionary(property => property, property => semanticModel.GetDeclaredSymbol(property));
@@ -200,18 +201,35 @@ internal sealed class GetSymbolicInfoHandler : ILspServiceDocumentRequestHandler
             });
         }
 
-        var expressionIdentifiersInRange = identifiersInRange.Where(i => i.Identifier.Ancestors().OfType<ExpressionStatementSyntax>().Any());
         foreach (var field in fieldsInRange)
         {
             foreach (var declaredVariable in field.Declaration.Variables)
             {
-                ExtractAttributeInfo(declaredVariable, field.Declaration.Type, semanticModel, pooledAttributes, writtenInsideSymbols, expressionIdentifiersInRange, cancellationToken);
+                ExtractAttributeInfo(
+                    declaredVariable,
+                    field.Declaration.Type,
+                    semanticModel,
+                    pooledAttributes,
+                    writtenInsideSymbols,
+                    expressionIdentifiersInRange,
+                    declaredPropertySymbols,
+                    declaredFieldSymbols,
+                    cancellationToken);
             }
         }
 
         foreach (var property in propertiesInRange)
         {
-            ExtractAttributeInfo(property, property.Type, semanticModel, pooledAttributes, writtenInsideSymbols, expressionIdentifiersInRange, cancellationToken);
+            ExtractAttributeInfo(
+                property,
+                property.Type,
+                semanticModel,
+                pooledAttributes,
+                writtenInsideSymbols,
+                expressionIdentifiersInRange,
+                declaredPropertySymbols,
+                declaredFieldSymbols,
+                cancellationToken);
         }
 
         var result = new MemberSymbolicInfo
@@ -261,12 +279,28 @@ internal sealed class GetSymbolicInfoHandler : ILspServiceDocumentRequestHandler
         PooledHashSet<AttributeSymbolicInfo> attributes,
         ImmutableArray<ISymbol> writtenInsideBlockSymbols,
         IEnumerable<(IdentifierNameSyntax Identifier, ISymbol? Symbol)> identifiersInExpressions,
+        IReadOnlyDictionary<PropertyDeclarationSyntax, ISymbol?> declaredPropertySymbols,
+        IReadOnlyDictionary<VariableDeclaratorSyntax, ISymbol?> declaredFieldSymbols,
         CancellationToken cancellationToken)
     {
-        var declarationInfo = semanticModel.GetDeclaredSymbol(node, cancellationToken);
-        var typeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type;
+        ISymbol? declarationInfo = null;
 
-        if (declarationInfo is null || typeSymbol is null)
+        if (node is PropertyDeclarationSyntax propertyDeclaration)
+        {
+            declaredPropertySymbols.TryGetValue(propertyDeclaration, out declarationInfo);
+        }
+        else if (node is VariableDeclaratorSyntax variableDeclarator)
+        {
+            declaredFieldSymbols.TryGetValue(variableDeclarator, out declarationInfo);
+        }
+
+        if (declarationInfo is null)
+        {
+            return;
+        }
+
+        var typeSymbol = semanticModel.GetTypeInfo(typeSyntax, cancellationToken).Type;
+        if (typeSymbol is null)
         {
             return;
         }
