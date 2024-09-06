@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Data.Common;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -103,8 +104,8 @@ internal sealed class GetSymbolicInfoHandler : ILspServiceDocumentRequestHandler
         var methodsBuilder = ArrayBuilder<MethodDeclarationSyntax>.GetInstance();
         var fieldsBuilder = ArrayBuilder<FieldDeclarationSyntax>.GetInstance();
         var propertiesBuilder = ArrayBuilder<PropertyDeclarationSyntax>.GetInstance();
-        var identifiersInRangeBuilder = ArrayBuilder<IdentifierAndSymbol>.GetInstance();
-        var expressionIdentifiersBuilder = ArrayBuilder<IdentifierAndSymbol>.GetInstance();
+        var identifiersInRangeBuilder = ArrayBuilder<(IdentifierNameSyntax Identifier, ISymbol? Symbol)>.GetInstance();
+        var expressionIdentifiersBuilder = ArrayBuilder<(IdentifierNameSyntax Identifier, ISymbol? Symbol)>.GetInstance();
 
         // In ExtractAttributeInfo, we need to know if an identifier is inside an expression statement
         // to decide whether to mark an attribute as written to. More details in the method.
@@ -135,11 +136,7 @@ internal sealed class GetSymbolicInfoHandler : ILspServiceDocumentRequestHandler
                 case IdentifierNameSyntax identifierName:
                     if (generatedSpans.Any(span => span.Contains(identifierName.Span)))
                     {
-                        var identifierAndSymbol = new IdentifierAndSymbol
-                        {
-                            Identifier = identifierName,
-                            Symbol = semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol
-                        };
+                        var identifierAndSymbol = (identifierName, semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol);
 
                         identifiersInRangeBuilder.Add(identifierAndSymbol);
 
@@ -263,7 +260,7 @@ internal sealed class GetSymbolicInfoHandler : ILspServiceDocumentRequestHandler
         SemanticModel semanticModel,
         PooledHashSet<AttributeSymbolicInfo> attributes,
         ImmutableArray<ISymbol> writtenInsideBlockSymbols,
-        IEnumerable<IdentifierAndSymbol> identifiersInExpressions,
+        IEnumerable<(IdentifierNameSyntax Identifier, ISymbol? Symbol)> identifiersInExpressions,
         CancellationToken cancellationToken)
     {
         var declarationInfo = semanticModel.GetDeclaredSymbol(node, cancellationToken);
@@ -323,11 +320,5 @@ internal sealed class GetSymbolicInfoHandler : ILspServiceDocumentRequestHandler
 
         // Fallback for non-named types
         return typeSymbol.ToDisplayString();
-    }
-
-    internal sealed record IdentifierAndSymbol
-    {
-        public required IdentifierNameSyntax Identifier { get; init; }
-        public ISymbol? Symbol { get; init; }
     }
 }
