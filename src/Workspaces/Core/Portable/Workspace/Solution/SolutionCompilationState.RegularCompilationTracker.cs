@@ -792,7 +792,7 @@ namespace Microsoft.CodeAnalysis
                     var alreadyParsedTrees = alreadyParsedTreesBuilder.ToImmutableAndClear();
                     var lazyCompilationWithoutGeneratedDocuments = new Lazy<Compilation>(() => this.CreateEmptyCompilation().AddSyntaxTrees(alreadyParsedTrees));
 
-                    var lazyCompilationWithGeneratedDocuments = new CancellableLazy<Compilation?>(c => lazyCompilationWithoutGeneratedDocuments.Value);
+                    var lazyCompilationWithGeneratedDocuments = new CancellableLazy<Compilation?>(cancellationToken => lazyCompilationWithoutGeneratedDocuments.Value);
 
                     return new RegularCompilationTracker(
                         frozenProjectState,
