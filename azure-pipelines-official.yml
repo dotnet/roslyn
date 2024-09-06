@@ -37,6 +37,18 @@ parameters:
   type: boolean
   default: true
 
+schedules:
+  - cron: "0 8 23-29 * 0"
+    displayName: "Monthly smoke test"
+    branches:
+      include: 
+        - main
+        - release/*
+      exclude: 
+        - ""
+    always: true # Run even if there have been no source code changes since the last successful scheduled run
+    batch: false # Do not run the pipeline if the previously scheduled run is in-progress
+
 # The variables `_DotNetArtifactsCategory` and `_DotNetValidationArtifactsCategory` are required for proper publishing of build artifacts. See https://github.com/dotnet/roslyn/pull/38259
 variables:
   - name: _DotNetArtifactsCategory
@@ -53,11 +65,13 @@ variables:
   - group: DotNet-Versions-Publish
   - group: DotNet-VSTS-Infra-Access
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
+  - group: AzureDevOps-Artifact-Feeds-Pats
   - name: _DevDivDropAccessToken
     value: $(dn-bot-devdiv-drop-rw-code-rw)
   - name: ArtifactServices.Drop.PAT
     value: $(dn-bot-devdiv-drop-rw-code-rw)
   - group: DotNet-Roslyn-Insertion-Variables
+  - group: AzureDevOps-Artifact-Feeds-Pats
 
   - name: BuildConfiguration
     value: release
@@ -85,7 +99,7 @@ extends:
     sdl:
       sourceAnalysisPool:
         name: NetCore1ESPool-Svc-Internal
-        image: 1es-windows-2022-pt
+        image: 1es-windows-2022
         os: windows
       sbom:
         enabled: false
@@ -103,11 +117,11 @@ extends:
       displayName: Build and Test
 
       jobs:
-      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.10') }}:
+      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.11') }}:
         - template: /eng/common/templates-official/job/onelocbuild.yml@self
           parameters:
             MirrorRepo: roslyn
-            MirrorBranch: release/dev17.10
+            MirrorBranch: release/dev17.11
             LclSource: lclFilesfromPackage
             LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -149,6 +163,7 @@ extends:
             dropFolder: 'artifacts\VSSetup\$(BuildConfiguration)\Insertion'
             dropName: $(VisualStudio.DropName)
             accessToken: $(_DevDivDropAccessToken)
+            dropRetentionDays: 90
 
           # Publish insertion packages to CoreXT store.
           - output: nuget

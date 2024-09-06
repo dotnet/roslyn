@@ -11,13 +11,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -69,7 +66,13 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
         var hierarchy = hierarchyContent.Hierarchy;
         if (hierarchy == null)
         {
-            return await FixSolutionAsync(_workspace.CurrentSolution, context).ConfigureAwait(true);
+            var solution = _workspace.CurrentSolution;
+            return await FixAsync(
+                _workspace,
+                // Just defer to FixProjectsAsync, passing in all fixable projects in the solution.
+                (progress, cancellationToken) => FixProjectsAsync(
+                    _globalOptions, solution, solution.Projects.Where(p => p.SupportsCompilation).ToImmutableArray(), context.EnabledFixIds, progress, cancellationToken),
+                context).ConfigureAwait(false);
         }
 
         // Map the hierarchy to a ProjectId. For hierarchies mapping to multitargeted projects, we first try to
@@ -90,9 +93,7 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
         {
             var projectHierarchyItem = _vsHierarchyItemManager.GetHierarchyItem(hierarchyContent.Hierarchy, (uint)VSConstants.VSITEMID.Root);
             if (!hierarchyToProjectMap.TryGetProjectId(projectHierarchyItem, targetFrameworkMoniker: null, out projectId))
-            {
                 return false;
-            }
         }
 
         var itemId = hierarchyContent.ItemId;
@@ -101,12 +102,15 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
             await TaskScheduler.Default;
 
             var project = _workspace.CurrentSolution.GetProject(projectId);
-            if (project == null)
-            {
+            if (project == null || !project.SupportsCompilation)
                 return false;
-            }
 
-            return await FixProjectAsync(project, context).ConfigureAwait(true);
+            return await FixAsync(
+                _workspace,
+                // Just defer to FixProjectsAsync, passing in this single project to fix.
+                (progress, cancellationToken) => FixProjectsAsync(
+                    _globalOptions, project.Solution, [project], context.EnabledFixIds, progress, cancellationToken),
+                context).ConfigureAwait(false);
         }
         else if (hierarchy.GetCanonicalName(itemId, out var path) == 0)
         {
@@ -126,52 +130,23 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
                 var documentIds = solution.GetDocumentIdsWithFilePath(path);
                 var documentId = documentIds.FirstOrDefault(id => id.ProjectId == projectId);
                 if (documentId is null)
-                {
                     return false;
-                }
 
                 var document = solution.GetRequiredDocument(documentId);
                 var options = _globalOptions.GetCodeActionOptions(document.Project.Services);
-                return await FixDocumentAsync(document, options, context).ConfigureAwait(true);
+
+                return await FixAsync(
+                    _workspace,
+                    async (progress, cancellationToken) =>
+                    {
+                        var newDocument = await FixDocumentAsync(document, context.EnabledFixIds, progress, options, cancellationToken).ConfigureAwait(true);
+                        return newDocument.Project.Solution;
+                    },
+                    context).ConfigureAwait(false);
             }
         }
 
         return false;
-    }
-
-    private Task<bool> FixSolutionAsync(Solution solution, ICodeCleanUpExecutionContext context)
-    {
-        return FixAsync(_workspace, ApplyFixAsync, context);
-
-        // Local function
-        Task<Solution> ApplyFixAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
-        {
-            return FixSolutionAsync(solution, context.EnabledFixIds, progress, cancellationToken);
-        }
-    }
-
-    private Task<bool> FixProjectAsync(Project project, ICodeCleanUpExecutionContext context)
-    {
-        return FixAsync(_workspace, ApplyFixAsync, context);
-
-        // Local function
-        async Task<Solution> ApplyFixAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
-        {
-            var newProject = await FixProjectAsync(project, context.EnabledFixIds, progress, addProgressItemsForDocuments: true, cancellationToken).ConfigureAwait(true);
-            return newProject.Solution;
-        }
-    }
-
-    private Task<bool> FixDocumentAsync(Document document, CodeActionOptions options, ICodeCleanUpExecutionContext context)
-    {
-        return FixAsync(document.Project.Solution.Workspace, ApplyFixAsync, context);
-
-        // Local function
-        async Task<Solution> ApplyFixAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
-        {
-            var newDocument = await FixDocumentAsync(document, context.EnabledFixIds, progress, options, cancellationToken).ConfigureAwait(true);
-            return newDocument.Project.Solution;
-        }
     }
 
     private Task<bool> FixTextBufferAsync(TextBufferCodeCleanUpScope textBufferScope, ICodeCleanUpExecutionContext context)
@@ -215,9 +190,7 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
         {
             var workspaceStatusService = workspace.Services.GetService<IWorkspaceStatusService>();
             if (workspaceStatusService != null)
-            {
                 await workspaceStatusService.WaitUntilFullyLoadedAsync(context.OperationContext.UserCancellationToken).ConfigureAwait(true);
-            }
         }
 
         using (var scope = context.OperationContext.AddScope(allowCancellation: true, description: EditorFeaturesResources.Applying_changes))
@@ -233,75 +206,52 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
         }
     }
 
-    private async Task<Solution> FixSolutionAsync(
+    private static async Task<Solution> FixProjectsAsync(
+        IGlobalOptionService globalOptions,
         Solution solution,
+        ImmutableArray<Project> projects,
         FixIdContainer enabledFixIds,
         IProgress<CodeAnalysisProgress> progressTracker,
         CancellationToken cancellationToken)
     {
-        // Prepopulate the solution progress tracker with the total number of documents to process
-        foreach (var projectId in solution.ProjectIds)
-        {
-            var project = solution.GetRequiredProject(projectId);
-            if (!CanCleanupProject(project))
+        // Add an item for each document in all the projects we're processing.
+        progressTracker.AddItems(projects.Sum(static p => p.DocumentIds.Count));
+
+        // Run in parallel across all projects.
+        var changedRoots = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
+            source: projects,
+            produceItems: static async (project, callback, args, cancellationToken) =>
             {
-                continue;
-            }
+                Contract.ThrowIfFalse(project.SupportsCompilation);
 
-            progressTracker.AddItems(project.DocumentIds.Count);
-        }
+                var (globalOptions, solution, enabledFixIds, progressTracker) = args;
+                cancellationToken.ThrowIfCancellationRequested();
 
-        foreach (var projectId in solution.ProjectIds)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+                var ideOptions = globalOptions.GetCodeActionOptions(project.Services);
 
-            var project = solution.GetRequiredProject(projectId);
-            var newProject = await FixProjectAsync(project, enabledFixIds, progressTracker, addProgressItemsForDocuments: false, cancellationToken).ConfigureAwait(false);
-            solution = newProject.Solution;
-        }
+                // And for each project, process all the documents in parallel.
+                await RoslynParallel.ForEachAsync(
+                    source: project.Documents,
+                    cancellationToken,
+                    async (document, cancellationToken) =>
+                    {
+                        using var _ = progressTracker.ItemCompletedScope();
 
-        return solution;
+                        // FixDocumentAsync reports progress within a document, but we only want to report progress at
+                        // the document granularity.  So we pass CodeAnalysisProgress.None here so that inner progress
+                        // updates don't affect us.
+                        var fixedDocument = await FixDocumentAsync(document, enabledFixIds, CodeAnalysisProgress.None, ideOptions, cancellationToken).ConfigureAwait(false);
+                        if (fixedDocument == document)
+                            return;
+
+                        callback((document.Id, await fixedDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
+                    }).ConfigureAwait(false);
+            },
+            args: (globalOptions, solution, enabledFixIds, progressTracker),
+            cancellationToken).ConfigureAwait(false);
+
+        return solution.WithDocumentSyntaxRoots(changedRoots);
     }
-
-    private async Task<Project> FixProjectAsync(
-        Project project,
-        FixIdContainer enabledFixIds,
-        IProgress<CodeAnalysisProgress> progressTracker,
-        bool addProgressItemsForDocuments,
-        CancellationToken cancellationToken)
-    {
-        if (!CanCleanupProject(project))
-        {
-            return project;
-        }
-
-        if (addProgressItemsForDocuments)
-        {
-            progressTracker.AddItems(project.DocumentIds.Count);
-        }
-
-        var ideOptions = _globalOptions.GetCodeActionOptions(project.Services);
-
-        foreach (var documentId in project.DocumentIds)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var document = project.GetRequiredDocument(documentId);
-            progressTracker.Report(CodeAnalysisProgress.Description(document.Name));
-
-            // FixDocumentAsync reports progress within a document, but we only want to report progress at the
-            // project granularity.  So we pass CodeAnalysisProgress.None here so that inner progress updates don't
-            // affect us.
-            var fixedDocument = await FixDocumentAsync(document, enabledFixIds, CodeAnalysisProgress.None, ideOptions, cancellationToken).ConfigureAwait(false);
-            project = fixedDocument.Project;
-            progressTracker.ItemCompleted();
-        }
-
-        return project;
-    }
-
-    private static bool CanCleanupProject(Project project)
-        => project.Services.GetService<ICodeCleanupService>() != null;
 
     private static async Task<Document> FixDocumentAsync(
         Document document,
@@ -310,10 +260,9 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
         CodeActionOptions ideOptions,
         CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (document.IsGeneratedCode(cancellationToken))
-        {
             return document;
-        }
 
         var codeCleanupService = document.GetRequiredLanguageService<ICodeCleanupService>();
 

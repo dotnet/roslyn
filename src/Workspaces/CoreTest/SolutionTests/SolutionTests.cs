@@ -11,12 +11,10 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Build.Evaluation;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -25,6 +23,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -1225,8 +1224,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOptions(ProjectId.CreateNewId(), options));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void WithProjectCompilationOptionsReplacesSyntaxTreeOptionProvider([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName)
         {
             var projectId = ProjectId.CreateNewId();
@@ -2214,7 +2212,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     if (solution.ContainsProject(referenced.ProjectId))
                     {
-                        var referencedMetadata = await solution.CompilationState.GetMetadataReferenceAsync(referenced, solution.GetProjectState(project.Id), CancellationToken.None);
+                        var referencedMetadata = await solution.CompilationState.GetMetadataReferenceAsync(
+                            referenced, solution.GetProjectState(project.Id), includeCrossLanguage: true, CancellationToken.None);
                         Assert.NotNull(referencedMetadata);
                         if (referencedMetadata is CompilationReference compilationReference)
                         {
@@ -2636,11 +2635,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-#if NETCOREAPP
-        [SupportedOSPlatform("windows")]
-#endif
         [MethodImpl(MethodImplOptions.NoInlining)]
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542736")]
         public void TestDocumentChangedOnDiskIsNotObserved()
         {
             var text1 = "public class A {}";
@@ -2649,7 +2645,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var file = Temp.CreateFile().WriteAllText(text1, Encoding.UTF8);
 
             // create a solution that evicts from the cache immediately.
-            using var workspace = CreateWorkspaceWithRecoverableText();
+            using var workspace = CreateWorkspace();
             var sol = workspace.CurrentSolution;
 
             var pid = ProjectId.CreateNewId();
@@ -2666,17 +2662,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(text2, textOnDisk);
 
             // stop observing it and let GC reclaim it
-            if (PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono)
-            {
-                Assert.IsType<TemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageServiceInternal>());
-                observedText.AssertReleased();
-            }
-            else
-            {
-                // If this assertion fails, it means a new target supports the true temporary storage service, and the
-                // condition above should be updated to ensure 'AssertReleased' is called for this target.
-                Assert.IsType<TrivialTemporaryStorageService>(workspace.Services.GetService<ITemporaryStorageServiceInternal>());
-            }
+            observedText.AssertReleased();
 
             // if we ask for the same text again we should get the original content
             var observedText2 = sol.GetDocument(did).GetTextAsync().Result;
@@ -3460,6 +3446,34 @@ public class C : A {
         }
 
         [Fact]
+        public async Task TestFreezingTwiceGivesSameDocument()
+        {
+            using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
+            var project = workspace.CurrentSolution.AddProject("CSharpProject", "CSharpProject", LanguageNames.CSharp);
+            project = project.AddDocument("Extra.cs", SourceText.From("class Extra { }")).Project;
+
+            var documentToFreeze = project.AddDocument("DocumentToFreeze.cs", SourceText.From(""));
+            var frozenDocument = documentToFreeze.WithFrozenPartialSemantics(CancellationToken.None);
+
+            // Because we had no compilation produced yet, we expect that only the DocumentToFreeze is in the compilation
+            Assert.NotSame(frozenDocument, documentToFreeze);
+            var tree = Assert.Single((await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees);
+            Assert.Equal("DocumentToFreeze.cs", tree.FilePath);
+
+            // Versions should be different
+            Assert.NotEqual(
+                await documentToFreeze.Project.GetDependentSemanticVersionAsync(),
+                await frozenDocument.Project.GetDependentSemanticVersionAsync());
+
+            Assert.NotEqual(
+                await documentToFreeze.Project.GetSemanticVersionAsync(),
+                await frozenDocument.Project.GetSemanticVersionAsync());
+
+            var frozenDocument2 = frozenDocument.WithFrozenPartialSemantics(CancellationToken.None);
+            Assert.Same(frozenDocument, frozenDocument2);
+        }
+
+        [Fact]
         public async Task TestFrozenPartialProjectHasDifferentSemanticVersions_ChangedDoc1()
         {
             using var workspace = WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics();
@@ -3684,8 +3698,7 @@ public class C : A {
             Assert.Contains(await frozenDocument.GetSyntaxTreeAsync(), (await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestFrozenPartialSemanticsWithMulitipleUnrelatedEdits([CombinatorialValues(1, 2, 3)] int documentToFreeze)
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
@@ -3905,7 +3918,7 @@ public class C : A {
             var pid = ProjectId.CreateNewId();
 
             VersionStamp GetVersion() => solution.GetProject(pid).Version;
-            ImmutableArray<DocumentId> GetDocumentIds() => solution.GetProject(pid).DocumentIds.ToImmutableArray();
+            ImmutableArray<DocumentId> GetDocumentIds() => [.. solution.GetProject(pid).DocumentIds];
             ImmutableArray<SyntaxTree> GetSyntaxTrees()
             {
                 return solution.GetProject(pid).GetCompilationAsync().Result.SyntaxTrees.ToImmutableArray();
@@ -4005,8 +4018,7 @@ public class C : A {
             Assert.Throws<ArgumentException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange(new[] { did3, did2, did1 })));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddingEditorConfigFileWithDiagnosticSeverity([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName)
         {
             using var workspace = CreateWorkspace();
@@ -4042,8 +4054,7 @@ public class C : A {
             Assert.Equal(ReportDiagnostic.Error, severity);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddingAndRemovingEditorConfigFileWithDiagnosticSeverity([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName)
         {
             using var workspace = CreateWorkspace();
@@ -4084,8 +4095,7 @@ public class C : A {
             Assert.True(finalCompilation.ContainsSyntaxTree(syntaxTreeAfterRemovingEditorConfig));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestChangingAnEditorConfigFile([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName)
         {
             using var workspace = CreateWorkspace();
@@ -4273,6 +4283,303 @@ class C
             solution = solution.RemoveProject(projectId);
 
             Assert.Empty(solution.GetDocumentIdsWithFilePath(editorConfigFilePath));
+        }
+
+        [Fact]
+        public async Task AddMultipleProjects1()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+
+            using var _ = ArrayBuilder<ProjectInfo>.GetInstance(out var projects);
+            projects.Add(ProjectInfo.Create(projectId1, VersionStamp.Default, "Test1", "Test1", LanguageNames.CSharp));
+            projects.Add(ProjectInfo.Create(projectId2, VersionStamp.Default, "Test2", "Test2", LanguageNames.CSharp));
+
+            solution = solution.AddProjects(projects);
+
+            Assert.Equal(2, solution.ProjectIds.Count);
+
+            var compilation1 = await solution.GetProject(projectId1).GetCompilationAsync();
+            var compilation2 = await solution.GetProject(projectId2).GetCompilationAsync();
+        }
+
+        [Fact]
+        public async Task AddMultipleProjects2()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+
+            using var _ = ArrayBuilder<ProjectInfo>.GetInstance(out var projects);
+
+            // Add a project that has a reference to the project that follows.
+            projects.Add(ProjectInfo.Create(projectId1, VersionStamp.Default, "Test1", "Test1", LanguageNames.CSharp, projectReferences: [new ProjectReference(projectId2)]));
+            projects.Add(ProjectInfo.Create(projectId2, VersionStamp.Default, "Test2", "Test2", LanguageNames.CSharp));
+
+            solution = solution.AddProjects(projects);
+
+            Assert.Equal(2, solution.ProjectIds.Count);
+
+            Assert.True(solution.GetProject(projectId1).ProjectReferences.Contains(p => p.ProjectId == projectId2));
+
+            var compilation1 = await solution.GetProject(projectId1).GetCompilationAsync();
+            var compilation2 = await solution.GetProject(projectId2).GetCompilationAsync();
+
+            Assert.True(compilation1.References.Any(r => r is CompilationReference compilationReference && compilationReference.Compilation == compilation2));
+        }
+
+        [Fact]
+        public async Task AddMultipleProjects3()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+
+            using var _ = ArrayBuilder<ProjectInfo>.GetInstance(out var projects);
+
+            // Add a project that has a reference to the project that precedes it.
+            projects.Add(ProjectInfo.Create(projectId1, VersionStamp.Default, "Test1", "Test1", LanguageNames.CSharp));
+            projects.Add(ProjectInfo.Create(projectId2, VersionStamp.Default, "Test2", "Test2", LanguageNames.CSharp, projectReferences: [new ProjectReference(projectId1)]));
+
+            solution = solution.AddProjects(projects);
+
+            Assert.Equal(2, solution.ProjectIds.Count);
+
+            Assert.True(solution.GetProject(projectId2).ProjectReferences.Contains(p => p.ProjectId == projectId1));
+
+            var compilation1 = await solution.GetProject(projectId1).GetCompilationAsync();
+            var compilation2 = await solution.GetProject(projectId2).GetCompilationAsync();
+
+            Assert.True(compilation2.References.Any(r => r is CompilationReference compilationReference && compilationReference.Compilation == compilation1));
+        }
+
+        [Fact]
+        public async Task AddMultipleProjects4()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+            var projectId3 = ProjectId.CreateNewId();
+
+            solution = solution.AddProject(ProjectInfo.Create(projectId1, VersionStamp.Default, "Test1", "Test1", LanguageNames.CSharp));
+            var compilation1 = await solution.GetProject(projectId1).GetCompilationAsync();
+
+            using var _ = ArrayBuilder<ProjectInfo>.GetInstance(out var projects);
+
+            projects.Add(ProjectInfo.Create(projectId2, VersionStamp.Default, "Test2", "Test2", LanguageNames.CSharp));
+            projects.Add(ProjectInfo.Create(projectId3, VersionStamp.Default, "Test3", "Test3", LanguageNames.CSharp));
+
+            solution = solution.AddProjects(projects);
+
+            Assert.Equal(3, solution.ProjectIds.Count);
+
+            var compilation1New = await solution.GetProject(projectId1).GetCompilationAsync();
+
+            // These compilations should be the same as adding the later projects should have no impact on the first project.
+            Assert.Same(compilation1, compilation1New);
+        }
+
+        [Fact]
+        public async Task AddMultipleProjects5()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+            var projectId3 = ProjectId.CreateNewId();
+
+            // Reference a project that will be added later.
+            solution = solution.AddProject(ProjectInfo.Create(projectId1, VersionStamp.Default, "Test1", "Test1", LanguageNames.CSharp, projectReferences: [new ProjectReference(projectId2)]));
+            var compilation1 = await solution.GetProject(projectId1).GetCompilationAsync();
+
+            using var _ = ArrayBuilder<ProjectInfo>.GetInstance(out var projects);
+
+            // Add a project that has a reference to the project that precedes it.
+            projects.Add(ProjectInfo.Create(projectId2, VersionStamp.Default, "Test2", "Test2", LanguageNames.CSharp));
+            projects.Add(ProjectInfo.Create(projectId3, VersionStamp.Default, "Test3", "Test3", LanguageNames.CSharp));
+
+            solution = solution.AddProjects(projects);
+
+            Assert.Equal(3, solution.ProjectIds.Count);
+
+            var compilation1New = await solution.GetProject(projectId1).GetCompilationAsync();
+
+            // These compilations should not be the same as adding the later projects should fork the first project.
+            Assert.NotSame(compilation1, compilation1New);
+        }
+
+        [Fact]
+        public async Task AddMultipleProjects6()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+            var projectId3 = ProjectId.CreateNewId();
+
+            // Reference both projects that will be added later.
+            solution = solution.AddProject(ProjectInfo.Create(projectId1, VersionStamp.Default, "Test1", "Test1", LanguageNames.CSharp,
+                projectReferences: [new ProjectReference(projectId2), new ProjectReference(projectId3)]));
+            var compilation1 = await solution.GetProject(projectId1).GetCompilationAsync();
+
+            using var _ = ArrayBuilder<ProjectInfo>.GetInstance(out var projects);
+
+            // Add a project that has a reference to the project that precedes it.
+            projects.Add(ProjectInfo.Create(projectId2, VersionStamp.Default, "Test2", "Test2", LanguageNames.CSharp));
+            projects.Add(ProjectInfo.Create(projectId3, VersionStamp.Default, "Test3", "Test3", LanguageNames.CSharp));
+
+            solution = solution.AddProjects(projects);
+
+            Assert.Equal(3, solution.ProjectIds.Count);
+
+            var compilation1New = await solution.GetProject(projectId1).GetCompilationAsync();
+
+            // These compilations should not be the same as adding the later projects should fork the first project.
+            Assert.NotSame(compilation1, compilation1New);
+
+            var compilation2 = await solution.GetProject(projectId2).GetCompilationAsync();
+            var compilation3 = await solution.GetProject(projectId2).GetCompilationAsync();
+
+            Assert.True(compilation1New.References.Any(r => r is CompilationReference compilationReference && compilationReference.Compilation == compilation2));
+            Assert.True(compilation1New.References.Any(r => r is CompilationReference compilationReference && compilationReference.Compilation == compilation3));
+        }
+
+        [Fact]
+        public void AddMultipleProjects_ThrowOnDuplicateId()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var projectId1 = ProjectId.CreateNewId();
+
+            using var _ = ArrayBuilder<ProjectInfo>.GetInstance(out var projects);
+
+            // Add a project that has a reference to the project that precedes it.
+            projects.Add(ProjectInfo.Create(projectId1, VersionStamp.Default, "Test2", "Test2", LanguageNames.CSharp));
+            projects.Add(ProjectInfo.Create(projectId1, VersionStamp.Default, "Test3", "Test3", LanguageNames.CSharp));
+
+            Assert.Throws<InvalidOperationException>(() => solution.AddProjects(projects));
+        }
+
+        [Fact]
+        public async Task RemoveMultipleProjects1()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+            var projectId3 = ProjectId.CreateNewId();
+
+            using var _ = ArrayBuilder<ProjectInfo>.GetInstance(out var projects);
+
+            // Add a project that has a reference to the later projects
+            projects.Add(ProjectInfo.Create(projectId1, VersionStamp.Default, "Test1", "Test1", LanguageNames.CSharp,
+                projectReferences: [new ProjectReference(projectId2), new ProjectReference(projectId3)]));
+            projects.Add(ProjectInfo.Create(projectId2, VersionStamp.Default, "Test2", "Test2", LanguageNames.CSharp));
+            projects.Add(ProjectInfo.Create(projectId3, VersionStamp.Default, "Test3", "Test3", LanguageNames.CSharp));
+
+            solution = solution.AddProjects(projects);
+
+            Assert.Equal(3, solution.ProjectIds.Count);
+
+            var compilation1 = await solution.GetProject(projectId1).GetCompilationAsync();
+            var compilation2 = await solution.GetProject(projectId2).GetCompilationAsync();
+            var compilation3 = await solution.GetProject(projectId2).GetCompilationAsync();
+
+            Assert.True(compilation1.References.Any(r => r is CompilationReference compilationReference && compilationReference.Compilation == compilation2));
+            Assert.True(compilation1.References.Any(r => r is CompilationReference compilationReference && compilationReference.Compilation == compilation3));
+
+            using var _2 = ArrayBuilder<ProjectId>.GetInstance(out var projectsToRemove);
+            projectsToRemove.Add(projectId2);
+            projectsToRemove.Add(projectId3);
+
+            solution = solution.RemoveProjects(projectsToRemove);
+
+            Assert.Equal(1, solution.ProjectIds.Count);
+
+            Assert.Equal(projectId1, solution.ProjectIds.Single());
+            var compilation1New = await solution.Projects.Single().GetCompilationAsync();
+
+            Assert.NotSame(compilation1, compilation1New);
+            Assert.True(compilation1New.References.All(r => r is not CompilationReference));
+        }
+
+        [Fact]
+        public async Task RemoveMultipleProjects2()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+            var projectId3 = ProjectId.CreateNewId();
+
+            using var _ = ArrayBuilder<ProjectInfo>.GetInstance(out var projects);
+
+            // All projects are independent
+            projects.Add(ProjectInfo.Create(projectId1, VersionStamp.Default, "Test1", "Test1", LanguageNames.CSharp));
+            projects.Add(ProjectInfo.Create(projectId2, VersionStamp.Default, "Test2", "Test2", LanguageNames.CSharp));
+            projects.Add(ProjectInfo.Create(projectId3, VersionStamp.Default, "Test3", "Test3", LanguageNames.CSharp));
+
+            solution = solution.AddProjects(projects);
+
+            Assert.Equal(3, solution.ProjectIds.Count);
+
+            var compilation1 = await solution.GetProject(projectId1).GetCompilationAsync();
+            var compilation2 = await solution.GetProject(projectId2).GetCompilationAsync();
+            var compilation3 = await solution.GetProject(projectId2).GetCompilationAsync();
+
+            Assert.False(compilation1.References.Any(r => r is CompilationReference));
+
+            using var _2 = ArrayBuilder<ProjectId>.GetInstance(out var projectsToRemove);
+            projectsToRemove.Add(projectId2);
+            projectsToRemove.Add(projectId3);
+
+            solution = solution.RemoveProjects(projectsToRemove);
+
+            Assert.Equal(1, solution.ProjectIds.Count);
+
+            Assert.Equal(projectId1, solution.ProjectIds.Single());
+            var compilation1New = await solution.Projects.Single().GetCompilationAsync();
+
+            // Removing project2 and project3 should not change project1 here.
+            Assert.Same(compilation1, compilation1New);
+        }
+
+        [Fact]
+        public void RemoveMultipleProjects_ThrowOnDuplicateId()
+        {
+            using var workspace = CreateWorkspace();
+            var solution = workspace.CurrentSolution;
+
+            var projectId1 = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+
+            using var _ = ArrayBuilder<ProjectInfo>.GetInstance(out var projects);
+
+            // Add a project that has a reference to the project that precedes it.
+            projects.Add(ProjectInfo.Create(projectId1, VersionStamp.Default, "Test2", "Test2", LanguageNames.CSharp));
+            projects.Add(ProjectInfo.Create(projectId2, VersionStamp.Default, "Test3", "Test3", LanguageNames.CSharp));
+
+            solution = solution.AddProjects(projects);
+
+            using var _2 = ArrayBuilder<ProjectId>.GetInstance(out var projectsToRemove);
+            projectsToRemove.Add(projectId1);
+            projectsToRemove.Add(projectId1);
+
+            Assert.Throws<InvalidOperationException>(() => solution.RemoveProjects(projectsToRemove));
         }
 
         private static void GetMultipleProjects(
@@ -4518,6 +4825,23 @@ class C
             Assert.Single(solution.GetRelatedDocumentIds(regularDocumentId));
         }
 
+        [Theory, CombinatorialData]
+        public void GetRelatedDocumentsCaseInsensitive(
+            [CombinatorialValues("file", "File", "FILE", "FiLe")] string prefix,
+            [CombinatorialValues("cs", "Cs", "cS", "CS")] string extension)
+        {
+            using var workspace = CreateWorkspace();
+
+            var solution = workspace.CurrentSolution
+                .AddProject("TestProject1", "TestProject1", LanguageNames.CSharp)
+                .AddDocument("File.cs", "", filePath: "File.cs").Project.Solution
+                .AddProject("TestProject2", "TestProject2", LanguageNames.CSharp)
+                .AddDocument("file.cs", "", filePath: "file.cs").Project.Solution;
+
+            // GetDocumentIdsWithFilePath should return two, since it'll count all types of documents
+            Assert.Equal(2, solution.GetDocumentIdsWithFilePath($"{prefix}.{extension}").Length);
+        }
+
         [Fact]
         public async Task TestFrozenPartialSolution1()
         {
@@ -4734,6 +5058,63 @@ class C
 
             var frozenCompilation = await frozenProject.GetCompilationAsync();
             Assert.Null(frozenCompilation);
+        }
+
+        [Theory]
+        [InlineData(1000)]
+        [InlineData(2000)]
+        [InlineData(4000)]
+        [InlineData(8000)]
+        public async Task TestLargeLinkedFileChain(int intermediatePullCount)
+        {
+            using var workspace = CreateWorkspace();
+
+            var project1 = workspace.CurrentSolution
+                .AddProject($"Project1", $"Project1", LanguageNames.CSharp)
+                .WithParseOptions(CSharpParseOptions.Default.WithPreprocessorSymbols("DEBUG"))
+                .AddDocument($"Document", SourceText.From("class C { }"), filePath: @"c:\test\Document.cs").Project;
+            var documentId1 = project1.DocumentIds.Single();
+
+            // make another project, give a separate set of pp directives, so that we do *not* try to use the sibling
+            // root (from project1), but instead incrementally parse using the *contents* of the file in project1 again
+            // our actual tree.  This used to stack overflow since we'd create a long chain of incremental parsing steps
+            // for each edit made to the sibling file.
+            var project2 = project1.Solution
+                .AddProject($"Project2", $"Project2", LanguageNames.CSharp)
+                .WithParseOptions(CSharpParseOptions.Default.WithPreprocessorSymbols("RELEASE"))
+                .AddDocument($"Document", SourceText.From("class C { }"), filePath: @"c:\test\Document.cs").Project;
+            var documentId2 = project2.DocumentIds.Single();
+
+            workspace.SetCurrentSolution(
+                _ => project2.Solution,
+                (_, _) => (WorkspaceChangeKind.SolutionAdded, null, null));
+
+            for (var i = 1; i <= 8000; i++)
+            {
+                var lastContents = $"#if true //{new string('.', i)}//";
+                workspace.SetCurrentSolution(
+                    old => old.WithDocumentText(documentId1, SourceText.From(lastContents)),
+                    (_, _) => (WorkspaceChangeKind.DocumentChanged, documentId1.ProjectId, documentId1));
+
+                // Ensure that the first document is fine, and we're not stack overflowing on simply getting the tree
+                // from it. Do this on a disparate cadence from our pulls of the second document to ensure we are
+                // testing the case where we haven't necessarily immediately pulled on hte first doc before pulling on
+                // the second.
+                if (i % 33 == 0)
+                {
+                    var document1 = workspace.CurrentSolution.GetRequiredDocument(documentId1);
+                    await document1.GetSyntaxRootAsync();
+                }
+
+                if (i % intermediatePullCount == 0)
+                {
+                    var document2 = workspace.CurrentSolution.GetRequiredDocument(documentId2);
+
+                    // Getting the second document should both be fine, and have contents equivalent to what is in the first document.
+                    var root = await document2.GetSyntaxRootAsync();
+                    Assert.Equal(lastContents, root.ToFullString());
+                }
+            }
         }
     }
 }

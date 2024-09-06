@@ -85,14 +85,14 @@ internal static class TypeDeclarationSyntaxExtensions
                         baseListTypes.AddRange(baseTypes);
                 }
 
-                return baseListTypes.ToImmutable();
+                return baseListTypes.ToImmutableAndClear();
             }
         }
 
         if (typeNode.BaseList != null)
             return typeNode.BaseList.Types;
 
-        return SpecializedCollections.EmptyEnumerable<BaseTypeSyntax>();
+        return [];
     }
 
     private static SyntaxToken EnsureToken(SyntaxToken token, SyntaxKind kind, bool prependNewLineIfMissing = false, bool appendNewLineIfMissing = false)

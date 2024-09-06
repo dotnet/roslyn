@@ -10,23 +10,22 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Highlighting;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.KeywordHighlighting;
 
 [ExportHighlighter(LanguageNames.CSharp), Shared]
-internal class IfStatementHighlighter : AbstractKeywordHighlighter<IfStatementSyntax>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class IfStatementHighlighter() : AbstractKeywordHighlighter<IfStatementSyntax>(findInsideTrivia: false)
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public IfStatementHighlighter()
-    {
-    }
+    protected override bool ContainsHighlightableToken(ref TemporaryArray<SyntaxToken> tokens)
+        => tokens.Any(static t => t.Kind() is SyntaxKind.IfKeyword or SyntaxKind.ElseKeyword);
 
     protected override void AddHighlights(
         IfStatementSyntax ifStatement, List<TextSpan> highlights, CancellationToken cancellationToken)

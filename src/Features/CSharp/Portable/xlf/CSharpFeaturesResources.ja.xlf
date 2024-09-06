@@ -267,6 +267,11 @@
         <target state="translated">非同期の using 宣言</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="do_while_loop">
+        <source>do-while loop</source>
+        <target state="translated">do-while ループ</target>
+        <note>{Locked="do"}{Locked="while"} "do" and "while" are C# keywords and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
         <target state="translated">extern エイリアス</target>
@@ -399,7 +404,7 @@
       </trans-unit>
       <trans-unit id="extension">
         <source>extension</source>
-        <target state="translated">拡張子</target>
+        <target state="translated">拡張</target>
         <note />
       </trans-unit>
       <trans-unit id="awaitable">
@@ -409,7 +414,7 @@
       </trans-unit>
       <trans-unit id="awaitable_extension">
         <source>awaitable, extension</source>
-        <target state="translated">待機可能、拡張子</target>
+        <target state="translated">待機可能、拡張</target>
         <note />
       </trans-unit>
       <trans-unit id="Organize_Usings">

@@ -57,6 +57,16 @@
         <target state="translated">C# Interactive</target>
         <note />
       </trans-unit>
+      <trans-unit id="CancelQuery">
+        <source>Cancel Query</source>
+        <target state="translated">Annuler la requête</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CancelQueryCommandToolTip">
+        <source>Cancel (Escape)</source>
+        <target state="translated">Annuler (Échap)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">
         <source>Collapse usings on file open</source>
         <target state="translated">Réduire les utilisations sur le fichier ouvert</target>
@@ -170,6 +180,21 @@
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
         <target state="translated">Supprimer les Usings inutiles</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RunQuery">
+        <source>Run Query</source>
+        <target state="translated">Exécuter une requête</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RunQueryCommandToolTip">
+        <source>Run (Ctrl+Enter)</source>
+        <target state="translated">Exécuter (Ctrl+Entrée)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticSearch">
+        <source>Semantic Search</source>
+        <target state="translated">Recherche sémantique</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices;

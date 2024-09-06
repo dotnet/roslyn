@@ -456,7 +456,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     /// <summary>

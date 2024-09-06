@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -15,14 +14,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle;
 
 internal static partial class CSharpCodeStyleOptions
 {
-    private static readonly ImmutableArray<IOption2>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption2>();
+    private static readonly ImmutableArray<IOption2>.Builder s_editorConfigOptionsBuilder = ImmutableArray.CreateBuilder<IOption2>();
 
     private static Option2<CodeStyleOption2<T>> CreateOption<T>(
         OptionGroup group,
         string name,
         CodeStyleOption2<T> defaultValue,
         Func<CodeStyleOption2<T>, EditorConfigValueSerializer<CodeStyleOption2<T>>>? serializerFactory = null)
-        => s_allOptionsBuilder.CreateEditorConfigOption(name, defaultValue, group, LanguageNames.CSharp, serializerFactory);
+        => s_editorConfigOptionsBuilder.CreateEditorConfigOption(name, defaultValue, group, LanguageNames.CSharp, serializerFactory);
 
     public static readonly Option2<CodeStyleOption2<bool>> VarForBuiltInTypes = CreateOption(
         CSharpCodeStyleOptionGroups.VarPreferences, "csharp_style_var_for_built_in_types",
@@ -155,6 +154,11 @@ internal static partial class CSharpCodeStyleOptions
         "csharp_prefer_static_local_function",
         CSharpIdeCodeStyleOptions.Default.PreferStaticLocalFunction);
 
+    public static readonly Option2<CodeStyleOption2<bool>> PreferStaticAnonymousFunction = CreateOption(
+        CodeStyleOptionGroups.Modifier,
+        "csharp_prefer_static_anonymous_function",
+        CSharpIdeCodeStyleOptions.Default.PreferStaticAnonymousFunction);
+
     public static readonly Option2<CodeStyleOption2<bool>> PreferReadOnlyStruct = CreateOption(
         CodeStyleOptionGroups.Modifier,
         "csharp_style_prefer_readonly_struct",
@@ -257,7 +261,10 @@ internal static partial class CSharpCodeStyleOptions
         "csharp_style_prefer_primary_constructors",
         CSharpIdeCodeStyleOptions.Default.PreferPrimaryConstructors);
 
-    internal static readonly ImmutableArray<IOption2> AllOptions = s_allOptionsBuilder.ToImmutable();
+    /// <summary>
+    /// Options that we expect the user to set in editorconfig.
+    /// </summary>
+    internal static readonly ImmutableArray<IOption2> EditorConfigOptions = s_editorConfigOptionsBuilder.ToImmutable();
 }
 
 internal static class CSharpCodeStyleOptionGroups

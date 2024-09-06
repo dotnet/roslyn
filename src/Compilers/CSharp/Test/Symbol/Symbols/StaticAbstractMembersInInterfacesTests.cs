@@ -1145,9 +1145,9 @@ partial interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,34): error CS0750: A partial method cannot have the 'abstract' modifier
+                // (4,34): error CS0750: A partial member cannot have the 'abstract' modifier
                 //     abstract static partial void M01();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M01").WithLocation(4, 34)
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "M01").WithLocation(4, 34)
                 );
 
             var i1 = compilation1.GetTypeByMetadataName("I1");
@@ -1260,15 +1260,15 @@ partial interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,34): error CS0750: A partial method cannot have the 'abstract' modifier
+                // (4,34): error CS0750: A partial member cannot have the 'abstract' modifier
                 //     abstract static partial void M01();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M01").WithLocation(4, 34),
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "M01").WithLocation(4, 34),
                 // (8,34): error CS0500: 'I1.M01()' cannot declare a body because it is marked abstract
                 //     abstract static partial void M01() {}
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M01").WithArguments("I1.M01()").WithLocation(8, 34),
-                // (8,34): error CS0750: A partial method cannot have the 'abstract' modifier
+                // (8,34): error CS0750: A partial member cannot have the 'abstract' modifier
                 //     abstract static partial void M01() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M01").WithLocation(8, 34)
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "M01").WithLocation(8, 34)
                 );
 
             var i1 = compilation1.GetTypeByMetadataName("I1");
@@ -1372,9 +1372,9 @@ partial interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (4,34): error CS0750: A partial method cannot have the 'abstract' modifier
+                // (4,34): error CS0750: A partial member cannot have the 'abstract' modifier
                 //     abstract static partial void M01();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M01").WithLocation(4, 34)
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "M01").WithLocation(4, 34)
                 );
 
             var i1 = compilation1.GetTypeByMetadataName("I1");
@@ -1427,12 +1427,12 @@ partial interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (8,25): error CS8799: Both partial method declarations must have identical accessibility modifiers.
+                // (8,25): error CS8799: Both partial member declarations must have identical accessibility modifiers.
                 //     static partial void M01() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodAccessibilityDifference, "M01").WithLocation(8, 25),
-                // (8,25): error CS8800: Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                Diagnostic(ErrorCode.ERR_PartialMemberAccessibilityDifference, "M01").WithLocation(8, 25),
+                // (8,25): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
                 //     static partial void M01() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M01").WithLocation(8, 25)
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "M01").WithLocation(8, 25)
                 );
 
             var i1 = compilation1.GetTypeByMetadataName("I1");
@@ -1485,9 +1485,9 @@ partial interface I1
                                                  targetFramework: _supportingFramework);
 
             compilation1.VerifyDiagnostics(
-                // (8,32): error CS8800: Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                // (8,32): error CS8800: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
                 //     public static partial void M01() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M01").WithLocation(8, 32)
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "M01").WithLocation(8, 32)
                 );
 
             var i1 = compilation1.GetTypeByMetadataName("I1");
@@ -1543,9 +1543,9 @@ partial interface I1
                 // (8,34): error CS0500: 'I1.M01()' cannot declare a body because it is marked abstract
                 //     abstract static partial void M01() {}
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M01").WithArguments("I1.M01()").WithLocation(8, 34),
-                // (8,34): error CS0750: A partial method cannot have the 'abstract' modifier
+                // (8,34): error CS0750: A partial member cannot have the 'abstract' modifier
                 //     abstract static partial void M01() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M01").WithLocation(8, 34)
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "M01").WithLocation(8, 34)
                 );
 
             var i1 = compilation1.GetTypeByMetadataName("I1");

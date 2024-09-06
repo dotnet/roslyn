@@ -405,6 +405,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">비동기에서 동기로 {0}을(를) 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_0_might_not_have_any_effect_until_the_application_is_restarted">
+        <source>Changing '{0}' might not have any effect until the application is restarted.</source>
+        <target state="translated">애플리케이션을 다시 시작할 때까지는 '{0}'을(를) 변경해도 아무것도 적용되지 않을 수 있습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_0_to_1_requires_restarting_the_application_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' requires restarting the application because it changes the shape of the state machine.</source>
         <target state="translated">'{0}'을(를) '{1}'(으)로 변경하려면 상태 시스템의 모양을 변경하므로 애플리케이션을 다시 시작해야 합니다.</target>
@@ -1155,6 +1160,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">{0}은(는) 읽기 및 검색 작업을 지원하는 스트림을 반환해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Method_0_must_be_static_and_non_generic">
+        <source>Method '{0}' must be static and non-generic</source>
+        <target state="translated">메서드 '{0}'은(는) 정적이어야 하며 제네릭이 아니어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method_0_must_have_a_single_parameter_of_type_1_and_return_2">
+        <source>Method '{0}' must have a single parameter of type '{1}' and return '{2}'</source>
+        <target state="translated">메서드 '{0}'은(는) '{1}' 형식의 단일 매개 변수가 있어야 하며 '{2}'을(를) 반환해야 합니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Miscellaneous_Files">
         <source>Miscellaneous Files</source>
         <target state="translated">기타 파일</target>
@@ -1384,6 +1399,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Quantifier {x,y} following nothing</source>
         <target state="translated">수량자 {x,y} 앞에 아무 것도 없습니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
+      </trans-unit>
+      <trans-unit id="Query">
+        <source>Query</source>
+        <target state="translated">쿼리</target>
+        <note />
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group">
         <source>reference to undefined group</source>
@@ -2620,6 +2640,26 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">선택 항목이 형식 내에 포함되어 있지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="SemanticSearch">
+        <source>Semantic Search</source>
+        <target state="translated">의미 체계 검색</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_only_supported_on_net_core">
+        <source>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</source>
+        <target state="translated">의미 체계 검색은 코드 분석이 최신 .NET에서 별도의 프로세스에서 실행되는 경우에만 지원됩니다(도구 &gt; 옵션 &gt; 텍스트 편집기 &gt; C# &gt; 고급 참조).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_query_failed_to_compile">
+        <source>Semantic search query failed to compile</source>
+        <target state="translated">의미 체계 검색 쿼리를 컴파일하지 못함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_query_terminated_with_exception">
+        <source>Semantic search query terminated with exception</source>
+        <target state="translated">의미 체계 검색 쿼리가 예외와 함께 종료됨</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Silent">
         <source>Silent</source>
         <target state="translated">침묵</target>
@@ -2680,6 +2720,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">어셈블리 경로 '{0}'에서 기호를 찾음</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbols">
+        <source>Symbols</source>
+        <target state="translated">기호</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Syntax_error">
         <source>Syntax error</source>
         <target state="translated">구문 오류</target>
@@ -2708,6 +2753,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
         <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
         <target state="translated">분석기 어셈블리 '{0}'은(는) 컴파일러의 '{1}' 버전을 참조하며, 이 버전은 현재 실행 중인 버전 '{2}'보다 최신 버전입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_query_does_not_specify_0_method_or_top_level_function">
+        <source>The query does not specify '{0}' method or top-level function</source>
+        <target state="translated">쿼리가 '{0}' 메서드 또는 최상위 함수를 지정하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2763,6 +2813,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">소스 파일 '{0}' 또는 포함하는 프로젝트에 대해 빌드된 PDB를 읽을 수 없습니다. 디버그하는 동안 이 파일의 변경된 모든 내용은 해당 콘텐츠가 빌드된 소스와 일치할 때까지 적용되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_load_type_0_1">
+        <source>Unable to load type '{0}': '{1}'</source>
+        <target state="translated">형식 '{0}'을(를) 로드할 수 없음: '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_property">

@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -148,9 +147,7 @@ internal abstract partial class AbstractSyntaxTriviaService
         {
             // beginning of the tree
             if (tokenPair.PreviousToken.RawKind == 0)
-            {
-                return new LeadingTrailingTriviaPair { TrailingTrivia = SpecializedCollections.EmptyEnumerable<SyntaxTrivia>(), LeadingTrivia = trivia };
-            }
+                return new LeadingTrailingTriviaPair { TrailingTrivia = [], LeadingTrivia = trivia };
 
             return GetTrailingAndLeadingTrivia(trivia);
         }
@@ -275,10 +272,10 @@ internal abstract partial class AbstractSyntaxTriviaService
             Dictionary<SyntaxToken, LeadingTrailingTriviaPair> triviaMap)
         {
             triviaMap.TryGetValue(tokenPair.PreviousToken, out var previousTriviaPair);
-            var trailingTrivia = previousTriviaPair.TrailingTrivia ?? SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
+            var trailingTrivia = previousTriviaPair.TrailingTrivia ?? [];
 
             triviaMap.TryGetValue(tokenPair.NextToken, out var nextTriviaPair);
-            var leadingTrivia = nextTriviaPair.LeadingTrivia ?? SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
+            var leadingTrivia = nextTriviaPair.LeadingTrivia ?? [];
 
             return tokenPair.PreviousToken.TrailingTrivia.Concat(trailingTrivia).Concat(leadingTrivia).Concat(tokenPair.NextToken.LeadingTrivia);
         }

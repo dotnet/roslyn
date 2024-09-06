@@ -32,6 +32,7 @@
     <!-- <Metalama> upgraded to avoid package downgrade error -->
     <PackageReference Include="MSBuild.StructuredLogger" VersionOverride="2.2.169" />
     <PackageReference Include="Microsoft.Build.Framework" VersionOverride="17.5.0" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" VersionOverride="17.5.0" />
     <!-- </Metalama> -->
     <PackageReference Include="Basic.CompilerLog.Util" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Condition="'$(TargetFramework)' == 'net472'" />

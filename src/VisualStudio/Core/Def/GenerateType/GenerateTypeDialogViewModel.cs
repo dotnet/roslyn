@@ -9,16 +9,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 
@@ -781,7 +778,7 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
         }
         else
         {
-            this.ProjectFolders = SpecializedCollections.EmptyList<string>();
+            this.ProjectFolders = [];
         }
     }
 

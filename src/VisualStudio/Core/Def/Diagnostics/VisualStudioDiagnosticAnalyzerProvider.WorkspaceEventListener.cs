@@ -23,7 +23,7 @@ internal partial class VisualStudioDiagnosticAnalyzerProvider
     /// Loads VSIX analyzers into workspaces that provide <see cref="ISolutionAnalyzerSetterWorkspaceService"/> when they are loaded.
     /// </summary>
     [Export]
-    [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host, WorkspaceKind.Interactive), Shared]
+    [ExportEventListener(WellKnownEventListeners.Workspace, WorkspaceKind.Host, WorkspaceKind.Interactive, WorkspaceKind.SemanticSearch), Shared]
     internal sealed class WorkspaceEventListener : IEventListener<object>
     {
         private readonly IAsynchronousOperationListener _listener;

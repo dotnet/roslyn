@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.DocumentationComments;
@@ -140,7 +139,7 @@ internal partial class AbstractMetadataAsSourceService
             while (formattedCommentLinesBuilder is [.., { Length: 0 }])
                 formattedCommentLinesBuilder.RemoveAt(formattedCommentLinesBuilder.Count - 1);
 
-            return formattedCommentLinesBuilder.ToImmutable();
+            return formattedCommentLinesBuilder.ToImmutableAndClear();
         }
 
         private static void AddWrappedTextFromRawText(

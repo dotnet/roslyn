@@ -15,6 +15,8 @@ using System.Threading.Tasks;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -29,6 +31,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Editor;
@@ -40,6 +43,7 @@ using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
@@ -72,12 +76,10 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     /// <summary>
     /// Guards any updates to the maps here that aren't updated via interlocked updates.
     /// </summary>
+    // Our usage of SemaphoreSlim is fine.  We don't perform blocking waits for it on the UI thread.
+#pragma warning disable RS0030 // Do not use banned APIs
     private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
-
-    /// <summary>
-    /// A <see cref="ForegroundThreadAffinitizedObject"/> to make assertions that stuff is on the right thread.
-    /// </summary>
-    private readonly ForegroundThreadAffinitizedObject _foregroundObject;
+#pragma warning restore RS0030 // Do not use banned APIs
 
     private ImmutableDictionary<ProjectId, IVsHierarchy?> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy?>.Empty;
     private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
@@ -120,8 +122,6 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         _projectionBufferFactoryService = exportProvider.GetExportedValue<IProjectionBufferFactoryService>();
         _projectCodeModelFactory = exportProvider.GetExport<IProjectCodeModelFactory>();
 
-        _foregroundObject = new ForegroundThreadAffinitizedObject(_threadingContext);
-
         _textBufferFactoryService.TextBufferCreated += AddTextBufferCloneServiceToBuffer;
         _projectionBufferFactoryService.ProjectionBufferCreated += AddTextBufferCloneServiceToBuffer;
 
@@ -129,15 +129,10 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         ProjectSystemProjectFactory = new ProjectSystemProjectFactory(this, FileChangeWatcher, CheckForAddedFileBeingOpenMaybeAsync, RemoveProjectFromMaps);
 
-        _ = Task.Run(() => InitializeUIAffinitizedServicesAsync(asyncServiceProvider));
+        InitializeUIAffinitizedServicesAsync(asyncServiceProvider).Forget();
 
         _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(() =>
-            new ExternalErrorDiagnosticUpdateSource(
-                this,
-                exportProvider.GetExportedValue<IDiagnosticAnalyzerService>(),
-                exportProvider.GetExportedValue<IGlobalOperationNotificationService>(),
-                exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
-                _threadingContext),
+            exportProvider.GetExportedValue<ExternalErrorDiagnosticUpdateSource>(),
             isThreadSafe: true);
 
         _workspaceListener = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
@@ -149,7 +144,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     {
         // TODO: further understand if this needs the foreground thread for any reason. UIContexts are safe to read from the UI thread;
         // it's not clear to me why this is being asserted.
-        _foregroundObject.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (_isExternalErrorDiagnosticUpdateSourceSubscribedToSolutionBuildEvents)
         {
@@ -188,8 +183,9 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
     public async Task InitializeUIAffinitizedServicesAsync(IAsyncServiceProvider asyncServiceProvider)
     {
+        // Yield the thread, so the caller can proceed and return immediately.
         // Create services that are bound to the UI thread
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, _threadingContext.DisposalToken);
 
         // Fetch the session synchronously on the UI thread; if this doesn't happen before we try using this on
         // the background thread then we will experience hangs like we see in this bug:
@@ -316,7 +312,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
         Microsoft.CodeAnalysis.Solution newSolution,
         IProgress<CodeAnalysisProgress> progressTracker)
     {
-        if (!_foregroundObject.IsForeground())
+        if (!_threadingContext.JoinableTaskContext.IsOnMainThread)
         {
             throw new InvalidOperationException(ServicesVSResources.VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread);
         }
@@ -368,7 +364,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
     internal bool IsCPSProject(ProjectId projectId)
     {
-        _foregroundObject.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (this.TryGetHierarchy(projectId, out var hierarchy))
         {
@@ -786,7 +782,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         if (IsWebsite(project))
         {
-            AddDocumentToFolder(project, info.Id, SpecializedCollections.SingletonEnumerable(AppCodeFolderName), info.Name, documentKind, initialText, info.FilePath);
+            AddDocumentToFolder(project, info.Id, [AppCodeFolderName], info.Name, documentKind, initialText, info.FilePath);
         }
         else if (folders.Any())
         {
@@ -837,9 +833,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     private static IEnumerable<ProjectItem> GetAllItems(ProjectItems projectItems)
     {
         if (projectItems == null)
-        {
-            return SpecializedCollections.EmptyEnumerable<ProjectItem>();
-        }
+            return [];
 
         var items = projectItems.OfType<ProjectItem>();
         return items.Concat(items.SelectMany(i => GetAllItems(i.ProjectItems)));
@@ -1086,7 +1080,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
             throw new ArgumentNullException(nameof(documentId));
         }
 
-        if (!_foregroundObject.IsForeground())
+        if (!_threadingContext.JoinableTaskContext.IsOnMainThread)
         {
             throw new InvalidOperationException(ServicesVSResources.This_workspace_only_supports_opening_documents_on_the_UI_thread);
         }
@@ -1350,7 +1344,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
     internal override void SetDocumentContext(DocumentId documentId)
     {
-        _foregroundObject.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         // Note: this method does not actually call into any workspace code here to change the workspace's context. The assumption is updating the running document table or
         // IVsHierarchies will raise the appropriate events which we are subscribed to.
@@ -1474,7 +1468,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
     internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
     {
-        _foregroundObject.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (!TryGetHierarchy(referencingProject, out var referencingHierarchy) ||
             !TryGetHierarchy(referencedProject, out var referencedHierarchy))

@@ -5,11 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -89,6 +89,13 @@ internal readonly partial record struct Checksum(
         Unsafe.WriteUnaligned(ref MemoryMarshal.GetReference(span), this);
     }
 
+    public void WriteTo(PipeWriter pipeWriter)
+    {
+        var span = pipeWriter.GetSpan(HashSize);
+        this.WriteTo(span);
+        pipeWriter.Advance(HashSize);
+    }
+
     public static Checksum ReadFrom(ObjectReader reader)
         => new(reader.ReadInt64(), reader.ReadInt64());
 
@@ -97,9 +104,6 @@ internal readonly partial record struct Checksum(
 
     public static Func<IEnumerable<Checksum>, string> GetChecksumsLogInfo { get; }
         = checksums => string.Join("|", checksums.Select(c => c.ToString()));
-
-    public static Func<ProjectStateChecksums, string> GetProjectChecksumsLogInfo { get; }
-        = checksums => checksums.Checksum.ToString();
 
     // Explicitly implement this method as default jit for records on netfx doesn't properly devirtualize the
     // standard calls to EqualityComparer<long>.Default.Equals

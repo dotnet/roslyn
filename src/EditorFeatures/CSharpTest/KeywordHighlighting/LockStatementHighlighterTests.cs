@@ -10,40 +10,39 @@ using Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
+
+public class LockStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
-    public class LockStatementHighlighterTests : AbstractCSharpKeywordHighlighterTests
+    internal override Type GetHighlighterType()
+        => typeof(LockStatementHighlighter);
+
+    [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+    public async Task TestExample1_1()
     {
-        internal override Type GetHighlighterType()
-            => typeof(LockStatementHighlighter);
+        await TestAsync(
+            """
+            class Account
+            {
+                object lockObj = new object();
+                int balance;
 
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-        public async Task TestExample1_1()
-        {
-            await TestAsync(
-                """
-                class Account
+                int Withdraw(int amount)
                 {
-                    object lockObj = new object();
-                    int balance;
-
-                    int Withdraw(int amount)
+                    {|Cursor:[|lock|]|} (lockObj)
                     {
-                        {|Cursor:[|lock|]|} (lockObj)
+                        if (balance >= amount)
                         {
-                            if (balance >= amount)
-                            {
-                                balance = balance – amount;
-                                return amount;
-                            }
-                            else
-                            {
-                                return -1;
-                            }
+                            balance = balance – amount;
+                            return amount;
+                        }
+                        else
+                        {
+                            return -1;
                         }
                     }
                 }
-                """);
-        }
+            }
+            """);
     }
 }

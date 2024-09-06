@@ -211,9 +211,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
         private static IEnumerable<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>> CreateDiagnosticsBySymbol(ImmutableDictionary<ISymbol, List<Diagnostic>>.Builder diagnosticsMapBuilder)
         {
             if (diagnosticsMapBuilder.Count == 0)
-            {
-                return SpecializedCollections.EmptyEnumerable<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>>();
-            }
+                return [];
 
             var builder = new List<KeyValuePair<ISymbol, ImmutableArray<Diagnostic>>>();
             foreach (var (symbol, diagnostics) in diagnosticsMapBuilder)

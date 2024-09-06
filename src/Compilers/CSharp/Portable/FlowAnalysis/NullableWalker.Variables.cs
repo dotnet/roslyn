@@ -398,6 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             internal Variables? GetVariablesForMethodScope(MethodSymbol method)
             {
+                // https://github.com/dotnet/roslyn/issues/73772: is this needed if we also delete the weird cascading in EnterParameters?
                 method = method.PartialImplementationPart ?? method;
                 var variables = this;
                 while (true)

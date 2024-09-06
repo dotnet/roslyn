@@ -35,5 +35,5 @@
     "azure-pipelines.customSchemaFile": ".vscode/dnceng-schema.json",
     "dotnet.defaultSolution": "Metalama.Compiler.slnf",
     "dotnet.completion.showCompletionItemsFromUnimportedNamespaces": true,
-    "window.title": "${dirty}${activeEditorShort}${separator}${rootName}${separator}${profileName}${separator}${appName}${separator}[Branch: merge/2023.3/2023.2-b730a7766970b6852e7fb8a1bd6d1d507faab8de]"
+    "dotnet.testWindow.disableAutoDiscovery": true
 }

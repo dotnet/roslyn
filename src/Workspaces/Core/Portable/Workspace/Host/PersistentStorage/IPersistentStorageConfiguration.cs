@@ -37,7 +37,7 @@ internal sealed class DefaultPersistentStorageConfiguration : IPersistentStorage
     /// path.  For example, Base64 encoding will use <c>/</c> which is something that we definitely do not want
     /// errantly added to a path.
     /// </summary>
-    private static readonly ImmutableArray<char> s_invalidPathChars = Path.GetInvalidPathChars().Concat('/').ToImmutableArray();
+    private static readonly ImmutableArray<char> s_invalidPathChars = [.. Path.GetInvalidPathChars(), '/'];
 
     private static readonly string s_cacheDirectory;
     private static readonly string s_moduleFileName;

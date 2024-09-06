@@ -14,6 +14,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
+using static SyntaxFactory;
+
 internal partial class CSharpMethodExtractor
 {
     private class PostProcessor
@@ -106,7 +108,7 @@ internal partial class CSharpMethodExtractor
             if (map.Count > 0)
                 result.AddRange(GetMergedDeclarationStatements(map));
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         private void AppendDeclarationStatementToMap(
@@ -141,8 +143,8 @@ internal partial class CSharpMethodExtractor
                 // and create one decl statement
                 // use type name from the first decl statement
                 yield return
-                    SyntaxFactory.LocalDeclarationStatement(
-                        SyntaxFactory.VariableDeclaration(keyValuePair.Value.First().Declaration.Type, [.. variables]));
+                    LocalDeclarationStatement(
+                        VariableDeclaration(keyValuePair.Value.First().Declaration.Type, [.. variables]));
             }
 
             map.Clear();
@@ -256,7 +258,7 @@ internal partial class CSharpMethodExtractor
                 return statements;
             }
 
-            return [SyntaxFactory.ReturnStatement(declaration.Declaration.Variables[0].Initializer.Value)];
+            return [ReturnStatement(declaration.Declaration.Variables[0].Initializer.Value)];
         }
 
         public static ImmutableArray<StatementSyntax> RemoveDeclarationAssignmentPattern(ImmutableArray<StatementSyntax> statements)
@@ -291,7 +293,7 @@ internal partial class CSharpMethodExtractor
                 return statements;
             }
 
-            var variable = declaration.Declaration.Variables[0].WithInitializer(SyntaxFactory.EqualsValueClause(assignmentExpression.Right));
+            var variable = declaration.Declaration.Variables[0].WithInitializer(EqualsValueClause(assignmentExpression.Right));
             return
             [
                 declaration.WithDeclaration(

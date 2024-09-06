@@ -57,6 +57,16 @@
         <target state="translated">C# Interactive</target>
         <note />
       </trans-unit>
+      <trans-unit id="CancelQuery">
+        <source>Cancel Query</source>
+        <target state="translated">Abfrage abbrechen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CancelQueryCommandToolTip">
+        <source>Cancel (Escape)</source>
+        <target state="translated">Abbrechen (Esc)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">
         <source>Collapse usings on file open</source>
         <target state="translated">Reduzieren von Usings beim Öffnen einer Datei</target>
@@ -170,6 +180,21 @@
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
         <target state="translated">Nicht benötigte Using-Direktiven entfernen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RunQuery">
+        <source>Run Query</source>
+        <target state="translated">Abfrage ausführen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RunQueryCommandToolTip">
+        <source>Run (Ctrl+Enter)</source>
+        <target state="translated">Ausführen (STRG+EINGABE)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticSearch">
+        <source>Semantic Search</source>
+        <target state="translated">Semantische Suche</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">

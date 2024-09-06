@@ -3,8 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
@@ -36,7 +38,7 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
     /// (especially in cases with many references).
     /// </summary>
     /// <remarks>Note: this will be null in the case that the command line is an empty array.</remarks>
-    private ITemporaryStreamStorageInternal? _commandLineStorage;
+    private ITemporaryStorageStreamHandle? _commandLineStorageHandle;
 
     private CommandLineArguments _commandLineArgumentsForCommandLine;
     private string? _explicitRuleSetFilePath;
@@ -71,12 +73,17 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
         // Dispose the existing stored command-line and then persist the new one so we can
         // recover it later.  Only bother persisting things if we have a non-empty string.
 
-        _commandLineStorage?.Dispose();
-        _commandLineStorage = null;
+        _commandLineStorageHandle = null;
         if (!arguments.IsEmpty)
         {
-            _commandLineStorage = _temporaryStorageService.CreateTemporaryStreamStorage();
-            _commandLineStorage.WriteAllLines(arguments);
+            using var stream = SerializableBytes.CreateWritableStream();
+            using var writer = new StreamWriter(stream);
+
+            foreach (var value in arguments)
+                writer.WriteLine(value);
+
+            writer.Flush();
+            _commandLineStorageHandle = _temporaryStorageService.WriteToTemporaryStorage(stream, CancellationToken.None);
         }
 
         ReparseCommandLine_NoLock(arguments);
@@ -237,11 +244,23 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
             // effective values was potentially done by the act of parsing the command line. Even though the command line didn't change textually,
             // the effective result did. Then we call UpdateProjectOptions_NoLock to reapply any values; that will also re-acquire the new ruleset
             // includes in the IDE so we can be watching for changes again.
-            var commandLine = _commandLineStorage == null ? ImmutableArray<string>.Empty : _commandLineStorage.ReadLines();
+            var commandLine = _commandLineStorageHandle == null
+                ? ImmutableArray<string>.Empty
+                : EnumerateLines(_commandLineStorageHandle).ToImmutableArray();
 
             DisposeOfRuleSetFile_NoLock();
             ReparseCommandLine_NoLock(commandLine);
             UpdateProjectOptions_NoLock();
+        }
+
+        static IEnumerable<string> EnumerateLines(
+            ITemporaryStorageStreamHandle storageHandle)
+        {
+            using var stream = storageHandle.ReadFromTemporaryStorage(CancellationToken.None);
+            using var reader = new StreamReader(stream);
+
+            while (reader.ReadLine() is string line)
+                yield return line;
         }
     }
 
@@ -276,7 +295,6 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
         lock (_gate)
         {
             DisposeOfRuleSetFile_NoLock();
-            _commandLineStorage?.Dispose();
         }
     }
 }

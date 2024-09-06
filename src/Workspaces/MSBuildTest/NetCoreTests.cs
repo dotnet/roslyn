@@ -6,15 +6,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.UnitTests.TestFiles;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
@@ -78,19 +74,17 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             DotNetRestore("Project.csproj");
 
-            using (var workspace = CreateMSBuildWorkspace())
-            {
-                var project = await workspace.OpenProjectAsync(projectFilePath);
+            using var workspace = CreateMSBuildWorkspace();
+            var project = await workspace.OpenProjectAsync(projectFilePath);
 
-                // Assert that there is a single project loaded.
-                Assert.Single(workspace.CurrentSolution.ProjectIds);
+            // Assert that there is a single project loaded.
+            Assert.Single(workspace.CurrentSolution.ProjectIds);
 
-                // Assert that the project does not have any diagnostics in Program.cs
-                var document = project.Documents.First(d => d.Name == "Program.cs");
-                var semanticModel = await document.GetSemanticModelAsync();
-                var diagnostics = semanticModel.GetDiagnostics();
-                Assert.Empty(diagnostics);
-            }
+            // Assert that the project does not have any diagnostics in Program.cs
+            var document = project.Documents.First(d => d.Name == "Program.cs");
+            var semanticModel = await document.GetSemanticModelAsync();
+            var diagnostics = semanticModel.GetDiagnostics();
+            Assert.Empty(diagnostics);
         }
 
         [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]
@@ -192,36 +186,34 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             DotNetRestore("Project.csproj");
 
-            using (var workspace = CreateMSBuildWorkspace())
+            using var workspace = CreateMSBuildWorkspace();
+            await workspace.OpenProjectAsync(projectFilePath);
+
+            // Assert that three projects have been loaded, one for each TFM.
+            Assert.Equal(3, workspace.CurrentSolution.ProjectIds.Count);
+
+            var projectPaths = new HashSet<string>();
+            var outputFilePaths = new HashSet<string>();
+
+            foreach (var project in workspace.CurrentSolution.Projects)
             {
-                await workspace.OpenProjectAsync(projectFilePath);
+                projectPaths.Add(project.FilePath);
+                outputFilePaths.Add(project.OutputFilePath);
+            }
 
-                // Assert that three projects have been loaded, one for each TFM.
-                Assert.Equal(3, workspace.CurrentSolution.ProjectIds.Count);
+            // Assert that the three projects share the same file path
+            Assert.Single(projectPaths);
 
-                var projectPaths = new HashSet<string>();
-                var outputFilePaths = new HashSet<string>();
+            // Assert that the three projects have different output file paths
+            Assert.Equal(3, outputFilePaths.Count);
 
-                foreach (var project in workspace.CurrentSolution.Projects)
-                {
-                    projectPaths.Add(project.FilePath);
-                    outputFilePaths.Add(project.OutputFilePath);
-                }
-
-                // Assert that the three projects share the same file path
-                Assert.Single(projectPaths);
-
-                // Assert that the three projects have different output file paths
-                Assert.Equal(3, outputFilePaths.Count);
-
-                // Assert that none of the projects have any diagnostics in Program.cs
-                foreach (var project in workspace.CurrentSolution.Projects)
-                {
-                    var document = project.Documents.First(d => d.Name == "Program.cs");
-                    var semanticModel = await document.GetSemanticModelAsync();
-                    var diagnostics = semanticModel.GetDiagnostics();
-                    Assert.Empty(diagnostics);
-                }
+            // Assert that none of the projects have any diagnostics in Program.cs
+            foreach (var project in workspace.CurrentSolution.Projects)
+            {
+                var document = project.Documents.First(d => d.Name == "Program.cs");
+                var semanticModel = await document.GetSemanticModelAsync();
+                var diagnostics = semanticModel.GetDiagnostics();
+                Assert.Empty(diagnostics);
             }
         }
 
@@ -236,35 +228,33 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             DotNetRestore("Project.csproj");
 
-            using (var workspace = CreateMSBuildWorkspace())
+            using var workspace = CreateMSBuildWorkspace();
+            await workspace.OpenProjectAsync(projectFilePath);
+
+            // Assert that three projects have been loaded, one for each TFM.
+            Assert.Equal(3, workspace.CurrentSolution.ProjectIds.Count);
+
+            // Assert the TFM is accessible from project extensions.
+            // The test project extension sets the default namespace based on the TFM.  
+            foreach (var project in workspace.CurrentSolution.Projects)
             {
-                await workspace.OpenProjectAsync(projectFilePath);
-
-                // Assert that three projects have been loaded, one for each TFM.
-                Assert.Equal(3, workspace.CurrentSolution.ProjectIds.Count);
-
-                // Assert the TFM is accessible from project extensions.
-                // The test project extension sets the default namespace based on the TFM.  
-                foreach (var project in workspace.CurrentSolution.Projects)
+                switch (project.Name)
                 {
-                    switch (project.Name)
-                    {
-                        case "Project(net6)":
-                            Assert.Equal("Project.NetCore", project.DefaultNamespace);
-                            break;
+                    case "Project(net6)":
+                        Assert.Equal("Project.NetCore", project.DefaultNamespace);
+                        break;
 
-                        case "Project(netstandard2.0)":
-                            Assert.Equal("Project.NetStandard", project.DefaultNamespace);
-                            break;
+                    case "Project(netstandard2.0)":
+                        Assert.Equal("Project.NetStandard", project.DefaultNamespace);
+                        break;
 
-                        case "Project(net5)":
-                            Assert.Equal("Project.NetFramework", project.DefaultNamespace);
-                            break;
+                    case "Project(net5)":
+                        Assert.Equal("Project.NetFramework", project.DefaultNamespace);
+                        break;
 
-                        default:
-                            Assert.True(false, $"Unexpected project: {project.Name}");
-                            break;
-                    }
+                    default:
+                        Assert.True(false, $"Unexpected project: {project.Name}");
+                        break;
                 }
             }
         }
@@ -288,29 +278,28 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
         private static async Task AssertNetCoreMultiTFMProject(string projectFilePath)
         {
-            using (var workspace = CreateMSBuildWorkspace())
+            using var workspace = CreateMSBuildWorkspace();
+            await workspace.OpenProjectAsync(projectFilePath);
+
+            // Assert that four projects have been loaded, one for each TFM.
+            Assert.Equal(4, workspace.CurrentSolution.ProjectIds.Count);
+
+            var projectPaths = new HashSet<string>();
+            var outputFilePaths = new HashSet<string>();
+
+            foreach (var project in workspace.CurrentSolution.Projects)
             {
-                await workspace.OpenProjectAsync(projectFilePath);
+                projectPaths.Add(project.FilePath);
+                outputFilePaths.Add(project.OutputFilePath);
+            }
 
-                // Assert that four projects have been loaded, one for each TFM.
-                Assert.Equal(4, workspace.CurrentSolution.ProjectIds.Count);
+            // Assert that there are two project file path among the four projects
+            Assert.Equal(2, projectPaths.Count);
 
-                var projectPaths = new HashSet<string>();
-                var outputFilePaths = new HashSet<string>();
+            // Assert that the four projects each have different output file paths
+            Assert.Equal(4, outputFilePaths.Count);
 
-                foreach (var project in workspace.CurrentSolution.Projects)
-                {
-                    projectPaths.Add(project.FilePath);
-                    outputFilePaths.Add(project.OutputFilePath);
-                }
-
-                // Assert that there are two project file path among the four projects
-                Assert.Equal(2, projectPaths.Count);
-
-                // Assert that the four projects each have different output file paths
-                Assert.Equal(4, outputFilePaths.Count);
-
-                var expectedNames = new HashSet<string>()
+            var expectedNames = new HashSet<string>()
                 {
                     "Project(net6)",
                     "Project(net5)",
@@ -318,63 +307,62 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                     "Library(net5)"
                 };
 
-                var actualNames = new HashSet<string>();
+            var actualNames = new HashSet<string>();
 
-                foreach (var project in workspace.CurrentSolution.Projects)
+            foreach (var project in workspace.CurrentSolution.Projects)
+            {
+                var dotIndex = project.Name.IndexOf('.');
+                var projectName = dotIndex >= 0
+                    ? project.Name[..dotIndex]
+                    : project.Name;
+
+                actualNames.Add(projectName);
+                var fileName = PathUtilities.GetFileName(project.FilePath);
+
+                Document document;
+
+                switch (fileName)
                 {
-                    var dotIndex = project.Name.IndexOf('.');
-                    var projectName = dotIndex >= 0
-                        ? project.Name[..dotIndex]
-                        : project.Name;
+                    case "Project.csproj":
+                        document = project.Documents.First(d => d.Name == "Program.cs");
+                        break;
 
-                    actualNames.Add(projectName);
-                    var fileName = PathUtilities.GetFileName(project.FilePath);
+                    case "Library.csproj":
+                        document = project.Documents.First(d => d.Name == "Class1.cs");
+                        break;
 
-                    Document document;
-
-                    switch (fileName)
-                    {
-                        case "Project.csproj":
-                            document = project.Documents.First(d => d.Name == "Program.cs");
-                            break;
-
-                        case "Library.csproj":
-                            document = project.Documents.First(d => d.Name == "Class1.cs");
-                            break;
-
-                        default:
-                            Assert.True(false, $"Encountered unexpected project: {project.FilePath}");
-                            return;
-                    }
-
-                    // Assert that none of the projects have any diagnostics in their primary .cs file.
-                    var semanticModel = await document.GetSemanticModelAsync();
-                    var diagnostics = semanticModel.GetDiagnostics();
-                    Assert.Empty(diagnostics);
+                    default:
+                        Assert.True(false, $"Encountered unexpected project: {project.FilePath}");
+                        return;
                 }
 
-                Assert.True(actualNames.SetEquals(expectedNames), $"Project names differ!{Environment.NewLine}Actual: {{{actualNames.Join(",")}}}{Environment.NewLine}Expected: {{{expectedNames.Join(",")}}}");
+                // Assert that none of the projects have any diagnostics in their primary .cs file.
+                var semanticModel = await document.GetSemanticModelAsync();
+                var diagnostics = semanticModel.GetDiagnostics();
+                Assert.Empty(diagnostics);
+            }
 
-                // Verify that the projects reference the correct TFMs
-                var projects = workspace.CurrentSolution.Projects.Where(p => p.FilePath.EndsWith("Project.csproj"));
-                foreach (var project in projects)
+            Assert.True(actualNames.SetEquals(expectedNames), $"Project names differ!{Environment.NewLine}Actual: {{{actualNames.Join(",")}}}{Environment.NewLine}Expected: {{{expectedNames.Join(",")}}}");
+
+            // Verify that the projects reference the correct TFMs
+            var projects = workspace.CurrentSolution.Projects.Where(p => p.FilePath.EndsWith("Project.csproj"));
+            foreach (var project in projects)
+            {
+                var projectReference = Assert.Single(project.ProjectReferences);
+
+                var referencedProject = workspace.CurrentSolution.GetProject(projectReference.ProjectId);
+
+                if (project.OutputFilePath.Contains("net6"))
                 {
-                    var projectReference = Assert.Single(project.ProjectReferences);
-
-                    var referencedProject = workspace.CurrentSolution.GetProject(projectReference.ProjectId);
-
-                    if (project.OutputFilePath.Contains("net6"))
-                    {
-                        Assert.Contains("net5", referencedProject.OutputFilePath);
-                    }
-                    else if (project.OutputFilePath.Contains("net5"))
-                    {
-                        Assert.Contains("net5", referencedProject.OutputFilePath);
-                    }
-                    else
-                    {
-                        Assert.True(false, "OutputFilePath with expected TFM not found.");
-                    }
+                    Assert.Contains("net5", referencedProject.OutputFilePath);
+                }
+                else if (project.OutputFilePath.Contains("net5"))
+                {
+                    Assert.Contains("net5", referencedProject.OutputFilePath);
+                }
+                else
+                {
+                    Assert.True(false, "OutputFilePath with expected TFM not found.");
                 }
             }
         }
@@ -390,20 +378,18 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             DotNetRestore("Solution.sln");
 
-            using (var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false, skipUnrecognizedProjects: true))
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false, skipUnrecognizedProjects: true);
+            var solution = await workspace.OpenSolutionAsync(solutionFilePath);
+
+            var projects = solution.Projects.ToArray();
+
+            Assert.Equal(2, projects.Length);
+
+            foreach (var project in projects)
             {
-                var solution = await workspace.OpenSolutionAsync(solutionFilePath);
-
-                var projects = solution.Projects.ToArray();
-
-                Assert.Equal(2, projects.Length);
-
-                foreach (var project in projects)
-                {
-                    Assert.StartsWith("csharplib", project.Name);
-                    Assert.Empty(project.ProjectReferences);
-                    Assert.Single(project.AllProjectReferences);
-                }
+                Assert.StartsWith("csharplib", project.Name);
+                Assert.Empty(project.ProjectReferences);
+                Assert.Single(project.AllProjectReferences);
             }
         }
 
@@ -449,16 +435,14 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             DotNetRestore(@"Library\Library.csproj");
 
             // Override the TFM properties defined in the file
-            using (var workspace = CreateMSBuildWorkspace((PropertyNames.TargetFramework, ""), (PropertyNames.TargetFrameworks, "net6;net5")))
-            {
-                await workspace.OpenProjectAsync(projectFilePath);
+            using var workspace = CreateMSBuildWorkspace(("TargetFramework", ""), ("TargetFrameworks", "net6;net5"));
+            await workspace.OpenProjectAsync(projectFilePath);
 
-                // Assert that two projects have been loaded, one for each TFM.
-                Assert.Equal(2, workspace.CurrentSolution.ProjectIds.Count);
+            // Assert that two projects have been loaded, one for each TFM.
+            Assert.Equal(2, workspace.CurrentSolution.ProjectIds.Count);
 
-                Assert.Contains(workspace.CurrentSolution.Projects, p => p.Name == "Library(net6)");
-                Assert.Contains(workspace.CurrentSolution.Projects, p => p.Name == "Library(net5)");
-            }
+            Assert.Contains(workspace.CurrentSolution.Projects, p => p.Name == "Library(net6)");
+            Assert.Contains(workspace.CurrentSolution.Projects, p => p.Name == "Library(net5)");
         }
 
         [ConditionalFact(typeof(DotNetSdkMSBuildInstalled))]

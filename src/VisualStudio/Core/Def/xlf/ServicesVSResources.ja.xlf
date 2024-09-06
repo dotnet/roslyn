@@ -122,6 +122,11 @@
         <target state="translated">{0} ({1})</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatic_Run_generators_after_any_change">
+        <source>Automatic. Run generators after any change</source>
+        <target state="translated">自動。変更後にジェネレーターを実行する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_open_stack_trace_explorer_on_focus">
         <source>Automatically open Stack Trace Explorer on focus</source>
         <target state="translated">フォーカス時に スタック トレース エクスプローラーを自動的に開く</target>
@@ -145,6 +150,11 @@
       <trans-unit id="Back">
         <source>Back</source>
         <target state="translated">戻る</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Balanced_Run_generators_after_saving_or_building">
+        <source>Balanced. Run generators after saving or building</source>
+        <target state="translated">バランスが取れています。保存またはビルド後にジェネレーターを実行する</target>
         <note />
       </trans-unit>
       <trans-unit id="Beginning_of_line">
@@ -387,11 +397,6 @@
         <target state="translated">要素が有効ではありません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
-        <source>Enable all features in opened files from source generators (experimental)</source>
-        <target state="translated">ソース ジェネレーターから開いたファイル内のすべての機能を有効にする (試験段階)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_document_outline_experimental_requires_restart">
         <source>Enable document outline (experimental, requires restart)</source>
         <target state="translated">ドキュメント アウトラインを有効にする (試験段階、再起動が必要)</target>
@@ -500,6 +505,11 @@
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">設定から .editorconfig ファイルを生成</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generator_running">
+        <source>Generator running...</source>
+        <target state="translated">ジェネレーターが実行されています...</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_To_Definition">
@@ -1097,6 +1107,11 @@
         <target state="translated">シンプルな補間を優先する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_static_anonymous_functions">
+        <source>Prefer static anonymous functions</source>
+        <target state="translated">静的な匿名関数を優先する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
         <target state="translated">静的ローカル関数を優先する</target>
@@ -1202,6 +1217,11 @@
         <target state="translated">'System.HashCode' がプロジェクトに存在する必要があります</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rerun_generator">
+        <source>Rerun generator</source>
+        <target state="translated">ジェネレーターの再実行</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
         <source>Reset Visual Studio default keymapping</source>
         <target state="translated">Visual Studio の既定のキーマップをリセットします</target>
@@ -1210,6 +1230,11 @@
       <trans-unit id="Review_Changes">
         <source>Review Changes</source>
         <target state="translated">変更のプレビュー</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Roslyn_save_command_handler">
+        <source>Roslyn save command handler</source>
+        <target state="translated">Roslyn 保存コマンド ハンドラー</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_Code_Analysis_on_0">
@@ -1225,11 +1250,6 @@
       <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
         <source>Run code analysis in separate process (requires restart)</source>
         <target state="translated">別のプロセスでコード分析を実行する (再起動が必要)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Run_code_analysis_on_latest_dotnet_requires_restart">
-        <source>Run code analysis on latest .NET (requires restart)</source>
-        <target state="translated">最新の .NET でコード分析を実行する (再起動が必要)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
@@ -1250,6 +1270,16 @@
       <trans-unit id="Search_Settings">
         <source>Search Settings</source>
         <target state="translated">検索設定</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Search_cancelled">
+        <source>Search canceled</source>
+        <target state="translated">検索が取り消されました</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Search_found_no_results_no_csharp_or_vb_projects_opened">
+        <source>Search found no results: no C# or Visual Basic projects are opened</source>
+        <target state="translated">検索結果が見つかりませんでした: C# または Visual Basic プロジェクトが開いていません</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
@@ -1292,6 +1322,16 @@
         <target state="translated">メンバーの選択:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Semantic_search_0">
+        <source>Semantic Search ({0})</source>
+        <target state="translated">セマンティック検索 ({0})</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_results">
+        <source>Semantic Search Results</source>
+        <target state="translated">セマンティック検索結果</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental">
         <source>Show "Remove Unused References" command in Solution Explorer (experimental)</source>
         <target state="translated">ソリューション エクスプローラーで [未使用の参照を削除する] コマンドを表示する (試験段階)</target>
@@ -1315,6 +1355,16 @@
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
         <target state="translated">入力候補一覧の表示</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
+        <source>Show guides for comments and preprocessor regions</source>
+        <target state="translated">コメントとプリプロセッサ領域のガイドを表示する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_collection_expressions">
+        <source>Show hints for collection expressions</source>
+        <target state="new">Show hints for collection expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">
@@ -1362,6 +1412,16 @@
         <target state="translated">一部の配色パターンの色は、[環境] &gt; [フォントおよび色] オプション ページで行われた変更によって上書きされます。[フォントおよび色] オプション ページで [既定値を使用] を選択すると、すべてのカスタマイズが元に戻ります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Source_Generators">
+        <source>Source Generators</source>
+        <target state="translated">ソース ジェネレーター</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_generator_execution_requires_restart">
+        <source>Source generator execution (requires restart):</source>
+        <target state="translated">ソース ジェネレーターの実行 (再起動が必要):</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Stack_Trace">
         <source>Stack Trace</source>
         <target state="translated">スタック トレース</target>
@@ -1376,6 +1436,11 @@
         <source>Stack Trace {0}</source>
         <target state="translated">スタック トレース {0}</target>
         <note>Header for numbered stack trace view tabs</note>
+      </trans-unit>
+      <trans-unit id="Strike_out_obsolete_symbols">
+        <source>Strike out obsolete symbols</source>
+        <target state="translated">古い記号に取り消し線を入れる</target>
+        <note />
       </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
@@ -1437,14 +1502,19 @@
         <target state="translated">このファイルの生成元であるジェネレーター '{0}' で、このファイルの生成が停止しました。このファイルはもうプロジェクトに含まれていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_project_no_longer_exists">
+        <source>The project no longer exists</source>
+        <target state="translated">プロジェクトは既に存在しません</target>
+        <note />
+      </trans-unit>
       <trans-unit id="This_action_cannot_be_undone_Do_you_wish_to_continue">
         <source>This action cannot be undone. Do you wish to continue?</source>
         <target state="translated">この操作を元に戻すことはできません。続行しますか?</target>
         <note />
       </trans-unit>
-      <trans-unit id="This_file_is_autogenerated_by_0_and_cannot_be_edited">
-        <source>This file is auto-generated by the generator '{0}' and cannot be edited.</source>
-        <target state="translated">このファイルはジェネレーター '{0}' によって自動生成されているため、編集できません。</target>
+      <trans-unit id="This_file_was_generated_by_0_at_1_and_cannot_be_edited">
+        <source>This file was generated by '{0}' at {1} and cannot be edited.</source>
+        <target state="translated">このファイルは '{0}' によって {1} に生成されたため、編集できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">

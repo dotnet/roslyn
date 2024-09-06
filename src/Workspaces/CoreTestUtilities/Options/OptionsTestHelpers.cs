@@ -5,7 +5,6 @@
 #pragma warning disable RS0030 // Do not used banned APIs
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -14,9 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Utilities;
-using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -125,6 +122,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 _ when type.IsEnum => GetDifferentEnumValue(type, value!),
                 _ when Nullable.GetUnderlyingType(type) is { IsEnum: true } underlying => value is null ? Enum.ToObject(underlying, 1) : null,
                 ICodeStyleOption codeStyle => codeStyle
+                    .WithValue(GetDifferentValue(codeStyle.GetType().GetGenericArguments()[0], codeStyle.Value!)!)
+                    .WithNotification((codeStyle.Notification == NotificationOption2.Error) ? NotificationOption2.Warning : NotificationOption2.Error),
+                ICodeStyleOption2 codeStyle => codeStyle
                     .WithValue(GetDifferentValue(codeStyle.GetType().GetGenericArguments()[0], codeStyle.Value!)!)
                     .WithNotification((codeStyle.Notification == NotificationOption2.Error) ? NotificationOption2.Warning : NotificationOption2.Error),
                 NamingStylePreferences namingPreference => namingPreference.IsEmpty ? NamingStylePreferences.Default : NamingStylePreferences.Empty,

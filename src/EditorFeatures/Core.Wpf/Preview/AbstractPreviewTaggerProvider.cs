@@ -9,7 +9,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 {
@@ -41,7 +40,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 _tagInstance = tagInstance;
             }
 
-            public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+            IEnumerable<ITagSpan<TTag>> ITagger<TTag>.GetTags(NormalizedSnapshotSpanCollection spans)
+                => GetTags(spans);
+
+            public IEnumerable<TagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
                 if (_buffer.Properties.TryGetProperty(_key, out NormalizedSnapshotSpanCollection matchingSpans))
                 {
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                     return intersection.Select(s => new TagSpan<TTag>(s, _tagInstance));
                 }
 
-                return SpecializedCollections.EmptyEnumerable<ITagSpan<TTag>>();
+                return [];
             }
 
             public event EventHandler<SnapshotSpanEventArgs> TagsChanged = (s, e) => { };

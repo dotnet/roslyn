@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Differencing;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing;

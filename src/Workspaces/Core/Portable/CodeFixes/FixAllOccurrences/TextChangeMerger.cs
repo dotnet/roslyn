@@ -20,15 +20,15 @@ internal class TextChangeMerger
 {
     private readonly struct IntervalIntrospector : IIntervalIntrospector<TextChange>
     {
-        int IIntervalIntrospector<TextChange>.GetStart(TextChange value) => value.Span.Start;
-        int IIntervalIntrospector<TextChange>.GetLength(TextChange value) => value.Span.Length;
+        public TextSpan GetSpan(TextChange value)
+            => value.Span;
     }
 
     private readonly Document _oldDocument;
     private readonly IDocumentTextDifferencingService _differenceService;
 
-    private readonly SimpleIntervalTree<TextChange, IntervalIntrospector> _totalChangesIntervalTree =
-        SimpleIntervalTree.Create(new IntervalIntrospector(), Array.Empty<TextChange>());
+    private readonly SimpleMutableIntervalTree<TextChange, IntervalIntrospector> _totalChangesIntervalTree =
+        SimpleMutableIntervalTree.Create(new IntervalIntrospector(), Array.Empty<TextChange>());
 
     public TextChangeMerger(Document document)
     {
@@ -78,7 +78,7 @@ internal class TextChangeMerger
     }
 
     private static bool AllChangesCanBeApplied(
-        SimpleIntervalTree<TextChange, IntervalIntrospector> cumulativeChanges,
+        SimpleMutableIntervalTree<TextChange, IntervalIntrospector> cumulativeChanges,
         ImmutableArray<TextChange> currentChanges)
     {
         using var overlappingSpans = TemporaryArray<TextChange>.Empty;
@@ -91,7 +91,7 @@ internal class TextChangeMerger
     }
 
     private static bool AllChangesCanBeApplied(
-        SimpleIntervalTree<TextChange, IntervalIntrospector> cumulativeChanges,
+        SimpleMutableIntervalTree<TextChange, IntervalIntrospector> cumulativeChanges,
         ImmutableArray<TextChange> currentChanges,
         ref TemporaryArray<TextChange> overlappingSpans,
         ref TemporaryArray<TextChange> intersectingSpans)

@@ -191,7 +191,7 @@ public class FileTransformGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         var pipeline = context.AdditionalTextsProvider
-            .Where(static (text, cancellationToken) => text.Path.EndsWith(".xml"))
+            .Where(static (text) => text.Path.EndsWith(".xml"))
             .Select(static (text, cancellationToken) =>
             {
                 var name = Path.GetFileName(text.Path);

@@ -267,6 +267,11 @@
         <target state="translated">비동기 using 선언</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="do_while_loop">
+        <source>do-while loop</source>
+        <target state="translated">do-while 루프</target>
+        <note>{Locked="do"}{Locked="while"} "do" and "while" are C# keywords and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
         <target state="translated">extern 별칭</target>

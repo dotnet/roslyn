@@ -2,10 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Contracts.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.Contracts.EditAndContinue
-Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
@@ -2403,9 +2402,9 @@ Class C
 End Class
 "
 
-            Dim src2 = "<AS:0/>
+            Dim src2 = "
 Class C
-    Dim a,b(1),c As Integer
+    Dim a,<AS:0>b(1)</AS:0>,c As Integer
 
     Sub New
     End Sub
@@ -4708,7 +4707,7 @@ End Class
         Public Sub Lambdas_ActiveStatementRemoved4()
             Dim src1 = "
 Class C
-    Shared Sub Main()
+    Shared Sub F()
         Dim f = Function(a)
             <AS:1>z(2)</AS:1>
 
@@ -4720,7 +4719,7 @@ Class C
 End Class"
             Dim src2 = "
 Class C
-    <AS:0,1>Shared Sub Main()</AS:0,1>
+    <AS:0,1>Shared Sub F()</AS:0,1>
     End Sub
 End Class
 "
@@ -4728,8 +4727,8 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Shared Sub Main()", VBFeaturesResources.Lambda),
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Shared Sub Main()", VBFeaturesResources.Lambda))
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Shared Sub F()", VBFeaturesResources.Lambda),
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Shared Sub F()", VBFeaturesResources.Lambda))
         End Sub
 
         <Fact>
@@ -5137,7 +5136,7 @@ End Class
 
             edits.VerifySemanticDiagnostics(
                 active,
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>
@@ -5167,7 +5166,7 @@ End Class
 
             edits.VerifySemanticDiagnostics(
                 active,
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>
@@ -5284,7 +5283,7 @@ End Class
 
             edits.VerifySemanticDiagnostics(
                 active,
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>
@@ -5403,7 +5402,7 @@ End Class
 
             edits.VerifySemanticDiagnostics(
                 active,
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>
@@ -5432,7 +5431,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifySemanticDiagnostics(active,
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>
@@ -5515,7 +5514,7 @@ End Class
 
             ' No rude edit since the AS is within the nested function.
             edits.VerifySemanticDiagnostics(active,
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>

@@ -68,7 +68,7 @@ public partial struct SyntaxValueProvider
 
         // Create a provider that provides (and updates) the global aliases for any particular file when it is edited.
         var individualFileGlobalAliasesProvider = syntaxTreesProvider
-            .Where((info, _) => info.Info.HasFlag(SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliases))
+            .Where(static (info, _) => info.Info.HasFlag(SourceGeneratorSyntaxTreeInfo.ContainsGlobalAliases))
             .Select((info, cancellationToken) => getGlobalAliasesInCompilationUnit(syntaxHelper, info.Tree.GetRoot(cancellationToken)))
             .WithTrackingName("individualFileGlobalAliases_ForAttribute");
 
@@ -76,7 +76,6 @@ public partial struct SyntaxValueProvider
         // file changes its global aliases or a file is added / removed from the compilation
         var collectedGlobalAliasesProvider = individualFileGlobalAliasesProvider
             .Collect()
-            .WithComparer(ImmutableArrayValueComparer<GlobalAliases>.Instance)
             .WithTrackingName("collectedGlobalAliases_ForAttribute");
 
         var allUpGlobalAliasesProvider = collectedGlobalAliasesProvider
@@ -95,19 +94,19 @@ public partial struct SyntaxValueProvider
 
         allUpGlobalAliasesProvider = allUpGlobalAliasesProvider
             .Combine(compilationGlobalAliases)
-            .Select((tuple, _) => GlobalAliases.Concat(tuple.Left, tuple.Right))
+            .Select(static (tuple, _) => GlobalAliases.Concat(tuple.Left, tuple.Right))
             .WithTrackingName("allUpIncludingCompilationGlobalAliases_ForAttribute");
 
         // Combine the two providers so that we reanalyze every file if the global aliases change, or we reanalyze a
         // particular file when it's compilation unit changes.
         var syntaxTreeAndGlobalAliasesProvider = syntaxTreesProvider
-            .Where((info, _) => info.Info.HasFlag(SourceGeneratorSyntaxTreeInfo.ContainsAttributeList))
+            .Where(static (info, _) => info.Info.HasFlag(SourceGeneratorSyntaxTreeInfo.ContainsAttributeList))
             .Combine(allUpGlobalAliasesProvider)
             .WithTrackingName("compilationUnitAndGlobalAliases_ForAttribute");
 
         return syntaxTreeAndGlobalAliasesProvider
             .Select((tuple, c) => (tuple.Left.Tree, GetMatchingNodes(syntaxHelper, tuple.Right, tuple.Left.Tree, simpleName, predicate, c)))
-            .Where(tuple => tuple.Item2.Length > 0)
+            .Where(static tuple => tuple.Item2.Length > 0)
             .WithTrackingName("result_ForAttributeInternal");
 
         static GlobalAliases getGlobalAliasesInCompilationUnit(
@@ -206,9 +205,8 @@ public partial struct SyntaxValueProvider
 
             foreach (var child in node.ChildNodesAndTokens())
             {
-                if (child.IsNode)
+                if (child.AsNode(out var childNode))
                 {
-                    var childNode = child.AsNode()!;
                     if (syntaxHelper.IsAnyNamespaceBlock(childNode))
                         processNamespaceBlock(childNode);
                     else
@@ -284,8 +282,8 @@ public partial struct SyntaxValueProvider
                         // means having to dive deep into statements and expressions.
                         foreach (var child in node.ChildNodesAndTokens().Reverse())
                         {
-                            if (child.IsNode)
-                                nodeStack.Push(child.AsNode()!);
+                            if (child.AsNode(out var childNode))
+                                nodeStack.Push(childNode);
                         }
                     }
 

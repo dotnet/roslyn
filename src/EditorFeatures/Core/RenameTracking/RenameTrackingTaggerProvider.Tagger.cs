@@ -45,7 +45,7 @@ internal sealed partial class RenameTrackingTaggerProvider
         IEnumerable<ITagSpan<IErrorTag>> ITagger<IErrorTag>.GetTags(NormalizedSnapshotSpanCollection spans)
             => GetTags(spans, new ErrorTag(PredefinedErrorTypeNames.Suggestion));
 
-        private IEnumerable<ITagSpan<T>> GetTags<T>(NormalizedSnapshotSpanCollection spans, T tag) where T : ITag
+        private IEnumerable<TagSpan<T>> GetTags<T>(NormalizedSnapshotSpanCollection spans, T tag) where T : ITag
         {
             if (!_stateMachine.GlobalOptions.GetOption(RenameTrackingOptionsStorage.RenameTracking))
             {

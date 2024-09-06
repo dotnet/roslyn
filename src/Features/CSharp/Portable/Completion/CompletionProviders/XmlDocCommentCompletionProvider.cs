@@ -180,7 +180,7 @@ internal partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompl
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken, ErrorSeverity.General))
         {
-            return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+            return [];
         }
     }
 

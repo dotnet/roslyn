@@ -4,13 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.ProjectSystem;
-using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.VisualStudio.LanguageServices.ProjectSystem.BrokeredService;
 

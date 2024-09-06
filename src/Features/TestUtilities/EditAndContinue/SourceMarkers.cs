@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis.Text;
@@ -85,7 +84,7 @@ internal static class SourceMarkers
     public static IEnumerable<(TextSpan Span, int Id)> GetActiveSpans(string markedSource)
         => GetSpans(markedSource, tagName: "AS").Select(s => (s.span, s.id.major));
 
-    public static TextSpan[] GetTrackingSpans(string src, int count)
+    public static (int id, TextSpan span)[] GetTrackingSpans(string src)
     {
         var matches = s_trackingStatementPattern.Matches(src);
         if (matches.Count == 0)
@@ -93,20 +92,20 @@ internal static class SourceMarkers
             return [];
         }
 
-        var result = new TextSpan[count];
+        var result = new List<(int id, TextSpan span)>();
 
         for (var i = 0; i < matches.Count; i++)
         {
             var span = matches[i].Groups["TrackingStatement"];
             foreach (var (id, _) in ParseIds(matches[i]))
             {
-                result[id] = new TextSpan(span.Index, span.Length);
+                result.Add((id, new TextSpan(span.Index, span.Length)));
             }
         }
 
         Contract.ThrowIfTrue(result.Any(span => span == default));
 
-        return result;
+        return [.. result];
     }
 
     public static ImmutableArray<ImmutableArray<TextSpan>> GetExceptionRegions(string markedSource)

@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
@@ -186,7 +184,7 @@ internal static partial class DeclarationFinder
                 project, query, criteria, result, cancellationToken).ConfigureAwait(false);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     internal static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithNormalQueryInCurrentProcessAsync(
@@ -198,7 +196,7 @@ internal static partial class DeclarationFinder
         await AddCompilationSourceDeclarationsWithNormalQueryAsync(
             project, query, filter, result, cancellationToken).ConfigureAwait(false);
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static async Task<ImmutableArray<ISymbol>> FindSourceDeclarationsWithPatternInCurrentProcessAsync(

@@ -4,15 +4,12 @@
 
 Imports Microsoft.CodeAnalysis.Editor.ReferenceHighlighting
 Imports Microsoft.CodeAnalysis.Editor.Shared.Extensions
-Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.Shared.Tagging
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.Tagging
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.ReferenceHighlighting
 Imports Microsoft.CodeAnalysis.Remote.Testing
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Utilities
 
@@ -29,10 +26,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
 
                 Dim globalOptions = workspace.GetService(Of IGlobalOptionService)
                 Dim tagProducer = New ReferenceHighlightingViewTaggerProvider(
-                    workspace.GetService(Of IThreadingContext),
-                    globalOptions,
-                    visibilityTracker:=Nothing,
-                    AsynchronousOperationListenerProvider.NullProvider)
+                    workspace.GetService(Of TaggerHost))
 
                 Dim hostDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim caretPosition = hostDocument.CursorPosition.Value
@@ -42,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
 
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
                 Dim context = New TaggerContext(Of NavigableHighlightTag)(
-                    document, snapshot, New SnapshotPoint(snapshot, caretPosition))
+                    document, snapshot, frozenPartialSemantics:=False, New SnapshotPoint(snapshot, caretPosition))
                 Await tagProducer.GetTestAccessor().ProduceTagsAsync(context)
 
                 Dim producedTags = From tag In context.TagSpans

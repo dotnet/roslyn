@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PopulateSwitch;
 
@@ -35,7 +34,7 @@ internal static class PopulateSwitchExpressionHelpers
             }
         }
 
-        return SpecializedCollections.EmptyCollection<ISymbol>();
+        return [];
     }
 
     public static bool HasNullSwitchArm(ISwitchExpressionOperation operation)
@@ -62,7 +61,7 @@ internal static class PopulateSwitchExpressionHelpers
         }
     }
 
-    private static void HandleBinaryPattern(IBinaryPatternOperation? binaryPattern, Dictionary<long, ISymbol> enumMembers)
+    internal static void HandleBinaryPattern(IBinaryPatternOperation? binaryPattern, Dictionary<long, ISymbol> enumMembers)
     {
         if (binaryPattern?.OperatorKind == BinaryOperatorKind.Or)
         {
@@ -103,4 +102,41 @@ internal static class PopulateSwitchExpressionHelpers
             },
             _ => false
         };
+
+    public static bool HasExhaustiveNullAndTypeCheckCases(ISwitchExpressionOperation operation)
+    {
+        var type = operation.Value.Type;
+        var underlyingType = type.RemoveNullableIfPresent();
+
+        var hasNullArm = false;
+        var hasUnderlyingTypeArm = false;
+
+        foreach (var arm in operation.Arms)
+        {
+            var pattern = arm.Pattern;
+            if (arm.Guard != null)
+                continue;
+
+            if (pattern is IConstantPatternOperation { Value: IConversionOperation { ConstantValue: { HasValue: true, Value: null } } })
+            {
+                hasNullArm = true;
+            }
+            else
+            {
+                hasUnderlyingTypeArm |= SymbolEqualityComparer.Default.Equals(
+                    underlyingType,
+                    pattern switch
+                    {
+                        ITypePatternOperation typePattern => typePattern.MatchedType,
+                        IDeclarationPatternOperation declarationPattern => declarationPattern.MatchedType,
+                        _ => null
+                    });
+            }
+
+            if (hasNullArm && hasUnderlyingTypeArm)
+                return true;
+        }
+
+        return false;
+    }
 }

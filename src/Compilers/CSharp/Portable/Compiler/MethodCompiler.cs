@@ -281,10 +281,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(lazyVariableSlotAllocator is null);
                 Debug.Assert(stateMachineTypeOpt is null);
                 Debug.Assert(codeCoverageSpans.IsEmpty);
-                Debug.Assert(lambdaDebugInfoBuilder.IsEmpty());
-                Debug.Assert(lambdaRuntimeRudeEditsBuilder.IsEmpty());
-                Debug.Assert(closureDebugInfoBuilder.IsEmpty());
-                Debug.Assert(stateMachineStateDebugInfoBuilder.IsEmpty());
+                Debug.Assert(lambdaDebugInfoBuilder.IsEmpty);
+                Debug.Assert(lambdaRuntimeRudeEditsBuilder.IsEmpty);
+                Debug.Assert(closureDebugInfoBuilder.IsEmpty);
+                Debug.Assert(stateMachineStateDebugInfoBuilder.IsEmpty);
 
                 lambdaDebugInfoBuilder.Free();
                 lambdaRuntimeRudeEditsBuilder.Free();
@@ -1772,7 +1772,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     buildIdentifierMapOfBindIdentifierTargets(syntaxNode, bodyBinder, out inMethodBinder, out identifierMap);
 #endif
 
-                    BoundNode methodBody = bodyBinder.BindMethodBody(syntaxNode, diagnostics);
+                    BoundNode methodBody = bodyBinder.BindWithLambdaBindingCountDiagnostics(
+                        syntaxNode,
+                        (object?)null,
+                        diagnostics,
+                        static (bodyBinder, syntaxNode, _, diagnostics) => bodyBinder.BindMethodBody(syntaxNode, diagnostics));
 
 #if DEBUG
                     assertBindIdentifierTargets(inMethodBinder, identifierMap, methodBody, diagnostics);

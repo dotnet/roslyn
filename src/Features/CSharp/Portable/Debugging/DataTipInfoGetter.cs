@@ -37,7 +37,7 @@ internal static class DataTipInfoGetter
                     : default;
             }
 
-            if (expression.IsAnyLiteralExpression())
+            if (expression is LiteralExpressionSyntax)
             {
                 // If the user hovers over a literal, give them a DataTip for the type of the
                 // literal they're hovering over.

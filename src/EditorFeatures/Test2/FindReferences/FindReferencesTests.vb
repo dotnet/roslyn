@@ -14,6 +14,7 @@ Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Remote.Testing
+Imports Microsoft.CodeAnalysis.Test.Utilities.FindUsages
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.PreprocessorDirectives
 Imports Roslyn.Utilities
@@ -77,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
                     Dim classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider()
                     Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesService)
-                    Dim context = New TestContext()
+                    Dim context = New FindUsagesTestContext()
                     Await findRefsService.FindReferencesAsync(context, startDocument, cursorPosition, classificationOptions, CancellationToken.None)
 
                     Dim expectedDefinitions =
@@ -146,10 +147,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                                        d.Name, d.AnnotatedSpans(annotationKey).ToList())).ToList()
                             Dim actual = GetFileNamesAndSpans(
                                 context.References.Where(Function(r)
-                                                             Dim actualValue As String = Nothing
-                                                             If r.AdditionalProperties.TryGetValue(propertyName, actualValue) Then
-                                                                 Return actualValue = propertyValue
-                                                             End If
+                                                             For Each tuple In r.AdditionalProperties
+                                                                 If tuple.key = propertyName Then
+                                                                     Return tuple.value = propertyValue
+                                                                 End If
+                                                             Next
 
                                                              Return propertyValue.Length = 0
                                                          End Function).Select(Function(r) r.SourceSpan))
@@ -220,42 +222,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             End Function
 
         End Structure
-
-        Friend Class TestContext
-            Inherits FindUsagesContext
-
-            Private ReadOnly gate As Object = New Object()
-
-            Public ReadOnly Definitions As List(Of DefinitionItem) = New List(Of DefinitionItem)()
-            Public ReadOnly References As List(Of SourceReferenceItem) = New List(Of SourceReferenceItem)()
-
-            Public Sub New()
-            End Sub
-
-            Public Function ShouldShow(definition As DefinitionItem) As Boolean
-                If References.Any(Function(r) r.Definition Is definition) Then
-                    Return True
-                End If
-
-                Return definition.DisplayIfNoReferences
-            End Function
-
-            Public Overrides Function OnDefinitionFoundAsync(definition As DefinitionItem, cancellationToken As CancellationToken) As ValueTask
-                SyncLock gate
-                    Me.Definitions.Add(definition)
-                End SyncLock
-
-                Return Nothing
-            End Function
-
-            Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem, cancellationToken As CancellationToken) As ValueTask
-                SyncLock gate
-                    References.Add(reference)
-                End SyncLock
-
-                Return Nothing
-            End Function
-        End Class
 
         Private Async Function TestAPI(
                 definition As XElement,
@@ -377,17 +343,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                         For Each propertyValue In kvp.Value
                             Dim annotationKey = AdditionalPropertyKey + propertyName + "." + propertyValue
                             For Each doc In documentsWithAnnotatedSpans.Where(Function(d) d.AnnotatedSpans.ContainsKey(annotationKey))
-
                                 Dim expectedSpans = doc.AnnotatedSpans(annotationKey).Order()
 
-                                actualReferences = GetActualReferences(result, uiVisibleOnly, options, document, Function(r)
-                                                                                                                     Dim actualValue As String = Nothing
-                                                                                                                     If r.AdditionalProperties.TryGetValue(propertyName, actualValue) Then
-                                                                                                                         Return actualValue = propertyValue
-                                                                                                                     End If
+                                actualReferences = GetActualReferences(
+                                    result, uiVisibleOnly, options, document,
+                                    Function(r)
+                                        For Each tuple In r.AdditionalProperties
+                                            If tuple.key = propertyName Then
+                                                Return tuple.value = propertyValue
+                                            End If
+                                        Next
 
-                                                                                                                     Return propertyValue.Length = 0
-                                                                                                                 End Function)
+                                        Return propertyValue.Length = 0
+                                    End Function)
                                 Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(doc)).Order()
 
                                 If Not TextSpansMatch(expectedSpans, actualSpans) Then

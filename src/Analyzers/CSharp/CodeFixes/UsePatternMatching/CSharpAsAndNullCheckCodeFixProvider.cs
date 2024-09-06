@@ -20,6 +20,9 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UsePatternMatchingAsAndNullCheck), Shared]
 internal partial class CSharpAsAndNullCheckCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
@@ -103,9 +106,9 @@ internal partial class CSharpAsAndNullCheckCodeFixProvider : SyntaxEditorBasedCo
         var newIdentifier = declarator.Identifier
             .WithoutTrivia().WithTrailingTrivia(rightSideOfComparison.GetTrailingTrivia());
 
-        var declarationPattern = SyntaxFactory.DeclarationPattern(
-            GetPatternType().WithoutTrivia().WithTrailingTrivia(SyntaxFactory.ElasticMarker),
-            SyntaxFactory.SingleVariableDesignation(newIdentifier));
+        var declarationPattern = DeclarationPattern(
+            GetPatternType().WithoutTrivia().WithTrailingTrivia(ElasticMarker),
+            SingleVariableDesignation(newIdentifier));
 
         var condition = GetCondition(languageVersion, comparison, asExpression, declarationPattern);
 
@@ -165,7 +168,7 @@ internal partial class CSharpAsAndNullCheckCodeFixProvider : SyntaxEditorBasedCo
         BinaryExpressionSyntax asExpression,
         DeclarationPatternSyntax declarationPattern)
     {
-        var isPatternExpression = SyntaxFactory.IsPatternExpression(asExpression.Left, declarationPattern);
+        var isPatternExpression = IsPatternExpression(asExpression.Left, declarationPattern);
 
         // We should negate the is-expression if we have something like "x == null" or "x is null"
         if (comparison.Kind() is not (SyntaxKind.EqualsExpression or SyntaxKind.IsPatternExpression))
@@ -175,10 +178,10 @@ internal partial class CSharpAsAndNullCheckCodeFixProvider : SyntaxEditorBasedCo
         {
             // In C# 9 and higher, convert to `x is not string s`.
             return isPatternExpression.WithPattern(
-                SyntaxFactory.UnaryPattern(SyntaxFactory.Token(SyntaxKind.NotKeyword), isPatternExpression.Pattern));
+                UnaryPattern(NotKeyword, isPatternExpression.Pattern));
         }
 
         // In C# 8 and lower, convert to `!(x is string s)`
-        return SyntaxFactory.PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, isPatternExpression.Parenthesize());
+        return PrefixUnaryExpression(SyntaxKind.LogicalNotExpression, isPatternExpression.Parenthesize());
     }
 }

@@ -23,5 +23,5 @@ internal sealed class NoOpPersistentStorageService : IChecksummedPersistentStora
             : Instance;
 
     public ValueTask<IChecksummedPersistentStorage> GetStorageAsync(SolutionKey solutionKey, CancellationToken cancellationToken)
-        => new(NoOpPersistentStorage.GetOrThrow(throwOnFailure: false));
+        => new(NoOpPersistentStorage.GetOrThrow(solutionKey, throwOnFailure: false));
 }

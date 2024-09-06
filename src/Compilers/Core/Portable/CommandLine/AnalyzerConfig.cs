@@ -258,12 +258,17 @@ namespace Microsoft.CodeAnalysis
             // Add the last section
             addNewSection();
 
+            // Normalize the path to file the same way named sections are
+            pathToFile = PathUtilities.NormalizeDriveLetter(pathToFile);
+
             return new AnalyzerConfig(globalSection!, namedSectionBuilder.ToImmutable(), pathToFile);
 
             void addNewSection()
             {
+                var sectionName = PathUtilities.NormalizeDriveLetter(activeSectionName);
+
                 // Close out the previous section
-                var previousSection = new Section(activeSectionName, activeSectionProperties.ToImmutable());
+                var previousSection = new Section(sectionName, activeSectionProperties.ToImmutable());
                 if (activeSectionName == "")
                 {
                     // This is the global section

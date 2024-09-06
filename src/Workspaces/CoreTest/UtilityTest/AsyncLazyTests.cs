@@ -220,8 +220,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         private static void CancellationDuringInlinedComputationFromGetValueOrGetValueAsyncStillCachesResult(bool includeSynchronousComputation)
         {
             var computations = 0;
@@ -272,8 +271,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(secondRequestResult, firstRequestResult);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AwaitingProducesCorrectException(bool producerAsync, bool consumerAsync)
         {
             var exception = new ArgumentException();

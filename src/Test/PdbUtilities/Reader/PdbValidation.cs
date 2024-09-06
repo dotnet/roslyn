@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
@@ -16,16 +15,12 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
-using System.Xml;
 using System.Xml.Linq;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.DiaSymReader;
 using Microsoft.DiaSymReader.Tools;
-using Microsoft.Metadata.Tools;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;

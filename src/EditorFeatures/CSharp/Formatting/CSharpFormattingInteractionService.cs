@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -92,7 +91,7 @@ internal partial class CSharpFormattingInteractionService(EditorOptionsService e
         var span = textSpan ?? new TextSpan(0, parsedDocument.Root.FullSpan.Length);
         var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(parsedDocument.Root, span);
 
-        return Task.FromResult(Formatter.GetFormattedTextChanges(parsedDocument.Root, SpecializedCollections.SingletonEnumerable(formattingSpan), document.Project.Solution.Services, options, cancellationToken).ToImmutableArray());
+        return Task.FromResult(Formatter.GetFormattedTextChanges(parsedDocument.Root, [formattingSpan], document.Project.Solution.Services, options, cancellationToken).ToImmutableArray());
     }
 
     public Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, ITextBuffer textBuffer, TextSpan textSpan, CancellationToken cancellationToken)

@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -17,8 +18,6 @@ using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.TextManager.Interop;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
@@ -33,11 +32,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDisposable
 {
     private bool _isDisposed = false;
+    private readonly IThreadingContext _threadingContext;
 
     /// <summary>
     /// A simple object for asserting when we're on the UI thread.
     /// </summary>
-    private readonly ForegroundThreadAffinitizedObject _foregroundAffinitization;
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
     private readonly IVsRunningDocumentTable4 _runningDocumentTable;
 
@@ -58,8 +57,7 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
         [Import(typeof(SVsServiceProvider))] IServiceProvider serviceProvider,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
-        _foregroundAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
-
+        _threadingContext = threadingContext;
         _editorAdaptersFactoryService = editorAdaptersFactoryService;
 
         // The running document table since 16.0 has limited operations that can be done in a free threaded manner, specifically fetching the service and advising events.
@@ -77,7 +75,7 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
 
     private void RaiseEventForEachListener(Action<IOpenTextBufferEventListener> action)
     {
-        _foregroundAffinitization.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         foreach (var listener in _listeners)
         {
@@ -119,7 +117,7 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
     {
         if (dwReadLocksRemaining + dwEditLocksRemaining == 0)
         {
-            _foregroundAffinitization.AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             if (_runningDocumentTable.IsDocumentInitialized(docCookie))
             {
                 var moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
@@ -143,7 +141,7 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
         // Did we rename?
         if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_MkDocument) != 0)
         {
-            _foregroundAffinitization.AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             if (_runningDocumentTable.IsDocumentInitialized(docCookie))
             {
                 // We should already have a text buffer for this one
@@ -174,7 +172,7 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
         // but that might still not be associated with an ITextBuffer.
         if ((grfAttribs & ((uint)__VSRDTATTRIB.RDTA_DocDataReloaded | (uint)__VSRDTATTRIB3.RDTA_DocumentInitialized)) != 0)
         {
-            _foregroundAffinitization.AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             if (_runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker) && TryGetBufferFromRunningDocumentTable(docCookie, out var buffer))
             {
                 _monikerToTextBufferMap = _monikerToTextBufferMap.Add(moniker, buffer);
@@ -186,7 +184,7 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
 
         if ((grfAttribs & (uint)__VSRDTATTRIB.RDTA_Hierarchy) != 0)
         {
-            _foregroundAffinitization.AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
             if (_runningDocumentTable.IsDocumentInitialized(docCookie) && TryGetMoniker(docCookie, out var moniker))
             {
                 _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out _);
@@ -248,7 +246,7 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
     /// </summary>
     public IVsHierarchy? GetDocumentHierarchy(string filePath)
     {
-        _foregroundAffinitization.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (!_runningDocumentTable.IsFileOpen(filePath))
         {
@@ -265,7 +263,7 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
     /// </summary>
     public IEnumerable<(string filePath, ITextBuffer textBuffer, IVsHierarchy hierarchy)> EnumerateDocumentSet()
     {
-        _foregroundAffinitization.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         var documents = ArrayBuilder<(string, ITextBuffer, IVsHierarchy)>.GetInstance();
         foreach (var cookie in GetInitializedRunningDocumentTableCookies())
@@ -299,7 +297,7 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
 
     private bool TryGetBufferFromRunningDocumentTable(uint docCookie, [NotNullWhen(true)] out ITextBuffer? textBuffer)
     {
-        _foregroundAffinitization.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
         return _runningDocumentTable.TryGetBuffer(_editorAdaptersFactoryService, docCookie, out textBuffer);
     }
 

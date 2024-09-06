@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -22,7 +19,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo;
 internal static class QuickInfoUtilities
 {
     public static Task<QuickInfoItem> CreateQuickInfoItemAsync(SolutionServices services, SemanticModel semanticModel, TextSpan span, ImmutableArray<ISymbol> symbols, SymbolDescriptionOptions options, CancellationToken cancellationToken)
-        => CreateQuickInfoItemAsync(services, semanticModel, span, symbols, supportedPlatforms: null, showAwaitReturn: false, flowState: NullableFlowState.None, options, cancellationToken);
+        => CreateQuickInfoItemAsync(services, semanticModel, span, symbols, supportedPlatforms: null, showAwaitReturn: false, flowState: NullableFlowState.None, options, onTheFlyDocsElement: null, cancellationToken);
 
     public static async Task<QuickInfoItem> CreateQuickInfoItemAsync(
         SolutionServices services,
@@ -33,6 +30,7 @@ internal static class QuickInfoUtilities
         bool showAwaitReturn,
         NullableFlowState flowState,
         SymbolDescriptionOptions options,
+        OnTheFlyDocsElement? onTheFlyDocsElement,
         CancellationToken cancellationToken)
     {
         var descriptionService = services.GetRequiredLanguageService<ISymbolDisplayService>(semanticModel.Language);
@@ -72,7 +70,13 @@ internal static class QuickInfoUtilities
         }
 
         if (groups.TryGetValue(SymbolDescriptionGroups.Documentation, out var docParts) && !docParts.IsDefaultOrEmpty)
+        {
             AddSection(QuickInfoSectionKinds.DocumentationComments, docParts);
+            if (onTheFlyDocsElement != null)
+            {
+                onTheFlyDocsElement.HasComments = true;
+            }
+        }
 
         if (options.QuickInfoOptions.ShowRemarksInQuickInfo &&
             groups.TryGetValue(SymbolDescriptionGroups.RemarksDocumentation, out var remarksDocumentation) &&
@@ -152,7 +156,7 @@ internal static class QuickInfoUtilities
         if (supportedPlatforms?.HasValidAndInvalidProjects() == true)
             tags = tags.Add(WellKnownTags.Warning);
 
-        return QuickInfoItem.Create(span, tags, sections.ToImmutable());
+        return QuickInfoItem.Create(span, tags, sections.ToImmutable(), relatedSpans: default, onTheFlyDocsElement);
 
         bool TryGetGroupText(SymbolDescriptionGroups group, out ImmutableArray<TaggedText> taggedParts)
             => groups.TryGetValue(group, out taggedParts) && !taggedParts.IsDefaultOrEmpty;

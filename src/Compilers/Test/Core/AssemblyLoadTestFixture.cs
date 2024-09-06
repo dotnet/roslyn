@@ -522,9 +522,9 @@ public class Analyzer : DiagnosticAnalyzer
                 syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(SourceText.From(csSource, encoding: null, SourceHashAlgorithms.Default)) },
                 references: (new MetadataReference[]
                 {
-                    NetStandard20.mscorlib,
-                    NetStandard20.netstandard,
-                    NetStandard20.SystemRuntime
+                    NetStandard20.References.mscorlib,
+                    NetStandard20.References.netstandard,
+                    NetStandard20.References.SystemRuntime
                 }).Concat(additionalReferences),
                 options: options);
 

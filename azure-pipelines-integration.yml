@@ -83,11 +83,9 @@ stages:
     testRuns:
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - oop64bit: false
-          oopCoreClr: false
           lspEditor: false
           runName: VS_Integration_Debug_32
       - oop64bit: true
-        oopCoreClr: false
         lspEditor: false
         runName: VS_Integration_Debug_64
 
@@ -99,11 +97,9 @@ stages:
     configuration: Release
     testRuns:
       - oop64bit: false
-        oopCoreClr: false
         lspEditor: false
         runName: VS_Integration_Release_32
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - oop64bit: true
-          oopCoreClr: false
           lspEditor: false
           runName: VS_Integration_Release_64

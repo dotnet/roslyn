@@ -11,12 +11,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -148,18 +145,16 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
         var sourceName = IOUtilities.PerformIO(() => Path.GetFileName(sourceDocument.FilePath));
         var destinationName = IOUtilities.PerformIO(() => Path.GetFileName(destinationDocument.FilePath));
         if (string.IsNullOrEmpty(sourceName) || string.IsNullOrEmpty(destinationName))
-        {
             return banner;
-        }
 
-        using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var result);
+        var result = new FixedSizeArrayBuilder<SyntaxTrivia>(banner.Length);
         foreach (var trivia in banner)
         {
             var updated = CreateTrivia(trivia, trivia.ToFullString().Replace(sourceName, destinationName));
             result.Add(updated);
         }
 
-        return result.ToImmutable();
+        return result.MoveToImmutable();
     }
 
     private async Task<ImmutableArray<SyntaxTrivia>> TryGetBannerAsync(

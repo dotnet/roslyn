@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -18,6 +19,7 @@ internal partial class SolutionCompilationState
     /// </param>
     private sealed class SkeletonReferenceSet(
         AssemblyMetadata metadata,
+        ITemporaryStorageStreamHandle storageHandle,
         string? assemblyName,
         DeferredDocumentationProvider documentationProvider)
     {
@@ -28,6 +30,8 @@ internal partial class SolutionCompilationState
         /// reusing the same higher level objects (for example, the set of references a compilation has).
         /// </summary>
         private readonly Dictionary<MetadataReferenceProperties, PortableExecutableReference> _referenceMap = [];
+
+        public ITemporaryStorageStreamHandle StorageHandle => storageHandle;
 
         public PortableExecutableReference GetOrCreateMetadataReference(MetadataReferenceProperties properties)
         {

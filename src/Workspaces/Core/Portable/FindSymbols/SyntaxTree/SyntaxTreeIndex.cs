@@ -14,20 +14,20 @@ internal sealed partial class SyntaxTreeIndex : AbstractSyntaxIndex<SyntaxTreeIn
     private readonly LiteralInfo _literalInfo;
     private readonly IdentifierInfo _identifierInfo;
     private readonly ContextInfo _contextInfo;
-    private readonly HashSet<(string alias, string name, int arity)>? _globalAliasInfo;
+    private readonly HashSet<(string alias, string name, int arity, bool isGlobal)>? _aliasInfo;
 
     private SyntaxTreeIndex(
         Checksum? checksum,
         LiteralInfo literalInfo,
         IdentifierInfo identifierInfo,
         ContextInfo contextInfo,
-        HashSet<(string alias, string name, int arity)>? globalAliasInfo)
+        HashSet<(string alias, string name, int arity, bool isGlobal)>? aliasInfo)
         : base(checksum)
     {
         _literalInfo = literalInfo;
         _identifierInfo = identifierInfo;
         _contextInfo = contextInfo;
-        _globalAliasInfo = globalAliasInfo;
+        _aliasInfo = aliasInfo;
     }
 
     public static ValueTask<SyntaxTreeIndex> GetRequiredIndexAsync(Document document, CancellationToken cancellationToken)

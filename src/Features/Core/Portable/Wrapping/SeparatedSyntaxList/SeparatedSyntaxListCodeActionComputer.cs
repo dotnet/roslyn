@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -217,7 +216,7 @@ internal abstract partial class AbstractSeparatedSyntaxListWrapper<TListSyntax, 
             if (last.IsNode)
                 result.Add(Edit.DeleteBetween(last, _listSyntax.GetLastToken()));
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         #endregion
@@ -342,7 +341,7 @@ internal abstract partial class AbstractSeparatedSyntaxListWrapper<TListSyntax, 
                 result.Add(Edit.DeleteBetween(itemsAndSeparators.Last(), _listSyntax.GetLastToken()));
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         #endregion
@@ -445,7 +444,7 @@ internal abstract partial class AbstractSeparatedSyntaxListWrapper<TListSyntax, 
                 result.Add(Edit.DeleteBetween(itemsAndSeparators.Last(), _listSyntax.GetLastToken()));
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         #endregion

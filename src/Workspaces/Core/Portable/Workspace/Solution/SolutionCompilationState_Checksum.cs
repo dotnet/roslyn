@@ -4,11 +4,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
@@ -122,21 +126,29 @@ internal partial class SolutionCompilationState
                 }
 
                 ChecksumCollection? frozenSourceGeneratedDocumentIdentities = null;
-                ChecksumsAndIds<DocumentId>? frozenSourceGeneratedDocuments = null;
+                DocumentChecksumsAndIds? frozenSourceGeneratedDocumentTexts = null;
+                ImmutableArray<DateTime> frozenSourceGeneratedDocumentGenerationDateTimes = default;
 
-                if (FrozenSourceGeneratedDocumentStates.HasValue)
+                if (FrozenSourceGeneratedDocumentStates != null)
                 {
                     var serializer = this.SolutionState.Services.GetRequiredService<ISerializerService>();
-                    var identityChecksums = FrozenSourceGeneratedDocumentStates.Value
-                        .SelectAsArray(static (s, arg) => arg.serializer.CreateChecksum(s.Identity, cancellationToken: arg.cancellationToken), (serializer, cancellationToken));
+                    var identityChecksums = FrozenSourceGeneratedDocumentStates.SelectAsArray(
+                        static (s, arg) => arg.serializer.CreateChecksum(s.Identity, cancellationToken: arg.cancellationToken), (serializer, cancellationToken));
+
+                    frozenSourceGeneratedDocumentTexts = await FrozenSourceGeneratedDocumentStates.GetDocumentChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false);
                     frozenSourceGeneratedDocumentIdentities = new ChecksumCollection(identityChecksums);
-                    frozenSourceGeneratedDocuments = await FrozenSourceGeneratedDocumentStates.Value.GetChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false);
+                    frozenSourceGeneratedDocumentGenerationDateTimes = FrozenSourceGeneratedDocumentStates.SelectAsArray(d => d.GenerationDateTime);
                 }
+
+                // Ensure we only send the execution map over for projects in the project cone.
+                var versionMapChecksum = this.GetFilteredSourceGenerationExecutionMap(projectCone).GetChecksum();
 
                 var compilationStateChecksums = new SolutionCompilationStateChecksums(
                     solutionStateChecksum,
+                    versionMapChecksum,
+                    frozenSourceGeneratedDocumentTexts,
                     frozenSourceGeneratedDocumentIdentities,
-                    frozenSourceGeneratedDocuments);
+                    frozenSourceGeneratedDocumentGenerationDateTimes);
                 return (compilationStateChecksums, projectCone);
             }
         }
@@ -144,5 +156,27 @@ internal partial class SolutionCompilationState
         {
             throw ExceptionUtilities.Unreachable();
         }
+    }
+
+    public SourceGeneratorExecutionVersionMap GetFilteredSourceGenerationExecutionMap(ProjectCone? projectCone)
+    {
+        var builder = this.SourceGeneratorExecutionVersionMap.Map.ToBuilder();
+
+        foreach (var (projectId, projectState) in this.SolutionState.ProjectStates)
+        {
+            if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
+            {
+                builder.Remove(projectId);
+            }
+            else if (projectCone != null && !projectCone.Contains(projectId))
+            {
+                builder.Remove(projectId);
+            }
+        }
+
+        if (builder.Count == this.SourceGeneratorExecutionVersionMap.Map.Count)
+            return this.SourceGeneratorExecutionVersionMap;
+
+        return new SourceGeneratorExecutionVersionMap(builder.ToImmutable());
     }
 }

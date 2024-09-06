@@ -36,8 +36,7 @@ internal partial class ISymbolExtensions2
         var symbolToParameterTypeNames = new ConcurrentDictionary<TSymbol, string[]>();
         string[] getParameterTypeNames(TSymbol s) => GetParameterTypeNames(s, semanticModel, position);
 
-        return symbols.OrderBy((s1, s2) => Compare(s1, s2, symbolToParameterTypeNames, getParameterTypeNames))
-                      .ToImmutableArray();
+        return [.. symbols.OrderBy((s1, s2) => Compare(s1, s2, symbolToParameterTypeNames, getParameterTypeNames))];
     }
 
     private static INamedTypeSymbol GetNamedType(ITypeSymbol type)

@@ -557,9 +557,7 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
             if (isAccessibilityModifier(modifier))
             {
                 if (newModifierTokens.Count == 0)
-                {
                     continue;
-                }
 
                 newModifier = newModifierTokens[0]
                     .WithLeadingTrivia(modifier.LeadingTrivia)
@@ -584,15 +582,13 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
         if (!anyAccessModifierSeen)
         {
             for (var i = newModifierTokens.Count - 1; i >= 0; i--)
-            {
                 updatedModifiersList.Insert(0, newModifierTokens[i]);
-            }
         }
         else
         {
             updatedModifiersList.AddRange(newModifierTokens);
         }
 
-        return updatedModifiersList.ToSyntaxTokenList();
+        return [.. updatedModifiersList];
     }
 }

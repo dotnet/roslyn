@@ -12,66 +12,64 @@ using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
+namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
+public class CSharpUpdateProjectToAllowUnsafe : AbstractUpgradeProjectTest
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsUpdateProjectToAllowUnsafe)]
-    public class CSharpUpdateProjectToAllowUnsafe : AbstractUpgradeProjectTest
+    private async Task InvokeFixAsync(CancellationToken cancellationToken)
     {
-        private async Task InvokeFixAsync(CancellationToken cancellationToken)
-        {
-            await TestServices.Editor.SetTextAsync(@"
+        await TestServices.Editor.SetTextAsync(@"
 unsafe class C
 {
 }", cancellationToken);
-            await TestServices.Editor.ActivateAsync(cancellationToken);
+        await TestServices.Editor.ActivateAsync(cancellationToken);
 
-            await TestServices.Editor.PlaceCaretAsync("C", charsOffset: 0, cancellationToken);
+        await TestServices.Editor.PlaceCaretAsync("C", charsOffset: 0, cancellationToken);
 
-            // Suspend file change notification during code action application, since spurious file change notifications
-            // can cause silent failure to apply the code action if they occur within this block.
-            await using (var fileChangeRestorer = await TestServices.Shell.PauseFileChangesAsync(HangMitigatingCancellationToken))
-            {
-                await TestServices.Editor.InvokeCodeActionListAsync(cancellationToken);
-                await TestServices.EditorVerifier.CodeActionAsync("Allow unsafe code in this project", applyFix: true, cancellationToken: cancellationToken);
-            }
-        }
+        // Suspend file change notification during code action application, since spurious file change notifications
+        // can cause silent failure to apply the code action if they occur within this block.
+        await using var fileChangeRestorer = await TestServices.Shell.PauseFileChangesAsync(HangMitigatingCancellationToken);
+        await TestServices.Editor.InvokeCodeActionListAsync(cancellationToken);
+        await TestServices.EditorVerifier.CodeActionAsync("Allow unsafe code in this project", applyFix: true, cancellationToken: cancellationToken);
+    }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]
-        public async Task CPSProject_GeneralPropertyGroupUpdated()
-        {
-            var project = ProjectName;
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]
+    public async Task CPSProject_GeneralPropertyGroupUpdated()
+    {
+        var project = ProjectName;
 
-            await TestServices.SolutionExplorer.CreateSolutionAsync(SolutionName, HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.AddProjectAsync(project, WellKnownProjectTemplates.CSharpNetStandardClassLibrary, LanguageNames.CSharp, HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(project, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.CreateSolutionAsync(SolutionName, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddProjectAsync(project, WellKnownProjectTemplates.CSharpNetStandardClassLibrary, LanguageNames.CSharp, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.RestoreNuGetPackagesAsync(project, HangMitigatingCancellationToken);
 
-            await InvokeFixAsync(HangMitigatingCancellationToken);
-            VerifyPropertyOutsideConfiguration(await GetProjectFileElementAsync(project, HangMitigatingCancellationToken), "AllowUnsafeBlocks", "true");
-        }
+        await InvokeFixAsync(HangMitigatingCancellationToken);
+        VerifyPropertyOutsideConfiguration(await GetProjectFileElementAsync(project, HangMitigatingCancellationToken), "AllowUnsafeBlocks", "true");
+    }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]
-        public async Task LegacyProject_AllConfigurationsUpdated()
-        {
-            var project = ProjectName;
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]
+    public async Task LegacyProject_AllConfigurationsUpdated()
+    {
+        var project = ProjectName;
 
-            await TestServices.SolutionExplorer.CreateSolutionAsync(SolutionName, HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.AddProjectAsync(project, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.CreateSolutionAsync(SolutionName, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddProjectAsync(project, WellKnownProjectTemplates.ClassLibrary, LanguageNames.CSharp, HangMitigatingCancellationToken);
 
-            await InvokeFixAsync(HangMitigatingCancellationToken);
-            VerifyPropertyInEachConfiguration(await GetProjectFileElementAsync(project, HangMitigatingCancellationToken), "AllowUnsafeBlocks", "true");
-        }
+        await InvokeFixAsync(HangMitigatingCancellationToken);
+        VerifyPropertyInEachConfiguration(await GetProjectFileElementAsync(project, HangMitigatingCancellationToken), "AllowUnsafeBlocks", "true");
+    }
 
-        [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/23342")]
-        public async Task LegacyProject_MultiplePlatforms_AllConfigurationsUpdated()
-        {
-            var project = ProjectName;
+    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/63026")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/23342")]
+    public async Task LegacyProject_MultiplePlatforms_AllConfigurationsUpdated()
+    {
+        var project = ProjectName;
 
-            await TestServices.SolutionExplorer.CreateSolutionAsync(SolutionName, HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.AddCustomProjectAsync(
-                project,
-                ".csproj",
-                $@"<?xml version=""1.0"" encoding=""utf-8""?>
+        await TestServices.SolutionExplorer.CreateSolutionAsync(SolutionName, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddCustomProjectAsync(
+            project,
+            ".csproj",
+            $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project ToolsVersion=""15.0"" xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <Import Project=""$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"" Condition=""Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"" />
   <PropertyGroup>
@@ -105,12 +103,11 @@ unsafe class C
   </ItemGroup>
   <Import Project=""$(MSBuildToolsPath)\Microsoft.CSharp.targets"" />
 </Project>",
-                HangMitigatingCancellationToken);
+            HangMitigatingCancellationToken);
 
-            await TestServices.SolutionExplorer.AddFileAsync(project, "C.cs", open: true, cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddFileAsync(project, "C.cs", open: true, cancellationToken: HangMitigatingCancellationToken);
 
-            await InvokeFixAsync(HangMitigatingCancellationToken);
-            VerifyPropertyInEachConfiguration(await GetProjectFileElementAsync(project, HangMitigatingCancellationToken), "AllowUnsafeBlocks", "true");
-        }
+        await InvokeFixAsync(HangMitigatingCancellationToken);
+        VerifyPropertyInEachConfiguration(await GetProjectFileElementAsync(project, HangMitigatingCancellationToken), "AllowUnsafeBlocks", "true");
     }
 }

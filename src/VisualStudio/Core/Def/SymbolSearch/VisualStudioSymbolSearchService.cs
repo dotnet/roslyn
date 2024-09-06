@@ -2,13 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,8 +22,8 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Storage;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Settings;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using VSShell = Microsoft.VisualStudio.Shell;
 
@@ -40,18 +37,21 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 /// date by downloading patches on a daily basis.
 /// </summary>
 [ExportWorkspaceService(typeof(ISymbolSearchService), ServiceLayer.Host), Shared]
-internal partial class VisualStudioSymbolSearchService : AbstractDelayStartedService, ISymbolSearchService
+internal partial class VisualStudioSymbolSearchService : AbstractDelayStartedService, ISymbolSearchService, IDisposable
 {
+    // Our usage of SemaphoreSlim is fine.  We don't perform blocking waits for it on the UI thread.
+#pragma warning disable RS0030 // Do not use banned APIs
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
+#pragma warning restore RS0030 // Do not use banned APIs
 
     // Note: A remote engine is disposable as it maintains a connection with ServiceHub,
     // but we want to keep it alive until the VS is closed, so we don't dispose it.
-    private ISymbolSearchUpdateEngine _lazyUpdateEngine;
+    private ISymbolSearchUpdateEngine? _lazyUpdateEngine;
 
     private readonly SVsServiceProvider _serviceProvider;
     private readonly IPackageInstallerService _installerService;
 
-    private string _localSettingsDirectory;
+    private string? _localSettingsDirectory;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -69,7 +69,32 @@ internal partial class VisualStudioSymbolSearchService : AbstractDelayStartedSer
                [SymbolSearchOptionsStorage.SearchReferenceAssemblies, SymbolSearchOptionsStorage.SearchNuGetPackages])
     {
         _serviceProvider = serviceProvider;
-        _installerService = workspace.Services.GetService<IPackageInstallerService>();
+        _installerService = workspace.Services.GetRequiredService<IPackageInstallerService>();
+    }
+
+    public void Dispose()
+    {
+        // Once we're disposed, swap out our engine with a no-op one so we don't try to do any more work, and dispose of
+        // our connection to the OOP server so it can be cleaned up.
+        //
+        // Kick off a Task for this so we don't block MEF from proceeding (as it will be calling us on the UI thread).
+        _ = DisposeAsync();
+        return;
+
+        async Task DisposeAsync()
+        {
+            // Make sure we get off the UI thread so that Dispose can return immediately.
+            await TaskScheduler.Default;
+
+            ISymbolSearchUpdateEngine? updateEngine;
+            using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
+            {
+                updateEngine = _lazyUpdateEngine;
+                _lazyUpdateEngine = SymbolSearchUpdateNoOpEngine.Instance;
+            }
+
+            updateEngine?.Dispose();
+        }
     }
 
     protected override async Task EnableServiceAsync(CancellationToken cancellationToken)

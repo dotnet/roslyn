@@ -4,11 +4,11 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Search.Data;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
@@ -46,7 +46,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 var cancellationTriggeredTask = Task.Delay(-1, cancellationToken);
 
                 // Now, kick off the actual search work concurrently with the waiting task.
-                var searchTask = Task.Run(() => PerformSearchWorkerAsync(searchQuery, searchCallback, cancellationToken), cancellationToken);
+                var searchTask = PerformSearchWorkerAsync(searchQuery, searchCallback, cancellationToken);
 
                 // Now wait for either task to complete.  This allows us to bail out of the call into us once the
                 // cancellation token is signaled, even if search work is still happening.  This is desirable as the
@@ -60,14 +60,20 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             }
         }
 
-        private async Task PerformSearchWorkerAsync(ISearchQuery searchQuery, ISearchCallback searchCallback, CancellationToken cancellationToken)
+        private async Task PerformSearchWorkerAsync(
+            ISearchQuery searchQuery,
+            ISearchCallback searchCallback,
+            CancellationToken cancellationToken)
         {
+            // Ensure we yield immediately so our caller can proceed with other work.
+            await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+
             var searchValue = searchQuery.QueryString.Trim();
             if (string.IsNullOrWhiteSpace(searchValue))
                 return;
 
-            var includeTypeResults = searchQuery.FiltersStates.Any(f => f is { Key: "Types", Value: "True" });
-            var includeMembersResults = searchQuery.FiltersStates.Any(f => f is { Key: "Members", Value: "True" });
+            var includeTypeResults = searchQuery.FiltersStates.TryGetValue("Types", out var typesValue) && typesValue == "True";
+            var includeMembersResults = searchQuery.FiltersStates.TryGetValue("Members", out var membersValue) && membersValue == "True";
 
             var kinds = (includeTypeResults, includeMembersResults) switch
             {
@@ -76,21 +82,26 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 _ => s_allKinds,
             };
 
-            // TODO(cyrusn): New aiosp doesn't seem to support only searching current document.
-            var searchCurrentDocument = false;
+            var searchScope = searchQuery switch
+            {
+                ICodeSearchQuery { Scope: SearchScopes.CurrentDocument } => NavigateToSearchScope.Document,
+                ICodeSearchQuery { Scope: SearchScopes.CurrentProject } => NavigateToSearchScope.Project,
+                _ => NavigateToSearchScope.Solution,
+            };
 
             // Create a nav-to callback that will take results and translate them to aiosp results for the
             // callback passed to us.
 
+            var solution = provider._workspace.CurrentSolution;
             var searcher = NavigateToSearcher.Create(
-                provider._workspace.CurrentSolution,
+                solution,
                 provider._asyncListener,
-                new RoslynNavigateToSearchCallback(provider, searchCallback),
+                new RoslynNavigateToSearchCallback(solution, provider, searchCallback),
                 searchValue,
                 kinds,
                 provider._threadingContext.DisposalToken);
 
-            await searcher.SearchAsync(searchCurrentDocument, cancellationToken).ConfigureAwait(false);
+            await searcher.SearchAsync(searchScope, cancellationToken).ConfigureAwait(false);
         }
     }
 }

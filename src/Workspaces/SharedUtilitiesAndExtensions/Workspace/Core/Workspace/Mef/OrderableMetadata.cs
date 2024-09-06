@@ -31,8 +31,8 @@ internal class OrderableMetadata
 
     public OrderableMetadata(string? name, IEnumerable<string>? after = null, IEnumerable<string>? before = null)
     {
-        this.AfterTyped = after ?? SpecializedCollections.EmptyEnumerable<string>();
-        this.BeforeTyped = before ?? SpecializedCollections.EmptyEnumerable<string>();
+        this.AfterTyped = after ?? [];
+        this.BeforeTyped = before ?? [];
         this.Name = name;
     }
 }
