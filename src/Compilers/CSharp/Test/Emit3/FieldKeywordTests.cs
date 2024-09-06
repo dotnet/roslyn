@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void ImplicitAccessorBody_01(
             [CombinatorialValues("class", "struct", "ref struct", "record", "record struct")] string typeKind,
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = $$"""
                 {{typeKind}} A
@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void ImplicitAccessorBody_02(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 interface I
@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void ImplicitAccessorBody_03(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 interface I
@@ -793,7 +793,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void ImplicitAccessorBody_04(
             [CombinatorialValues("class", "struct", "ref struct", "record", "record struct")] string typeKind,
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = $$"""
                 {{typeKind}} A
@@ -890,7 +890,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [CombinatorialData]
         public void ImplicitAccessorBody_05(
             [CombinatorialValues("class", "struct", "ref struct", "record", "record struct")] string typeKind,
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = $$"""
                 {{typeKind}} A
@@ -3818,7 +3818,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void PartialProperty_01(bool useInit)
+        public void PartialProperty_01(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            bool useInit)
         {
             string setter = useInit ? "init" : "set";
             string sourceA = $$"""
@@ -3844,18 +3846,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(
+            var comp = CreateCompilation(
                 [sourceA, sourceB],
-                targetFramework: GetTargetFramework(useInit),
-                verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput(useInit, """
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe,
+                targetFramework: GetTargetFramework(useInit));
+
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,27): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public partial object P3 { get; set { } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P3").WithArguments("field keyword").WithLocation(4, 27),
+                    // (6,27): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public partial object P4 { get => null; set; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P4").WithArguments("field keyword").WithLocation(6, 27));
+            }
+            else
+            {
+                CompileAndVerify(
+                    comp,
+                    verify: Verification.Skipped,
+                    expectedOutput: IncludeExpectedOutput(useInit, """
                     (, )
                     <P3>k__BackingField
                     <P4>k__BackingField
                     """));
-            verifier.VerifyDiagnostics();
+            }
 
-            var comp = (CSharpCompilation)verifier.Compilation;
             var containingType = comp.GetMember<NamedTypeSymbol>("C");
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
             var expectedFields = new[]
@@ -4843,14 +4861,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = (CSharpCompilation)verifier.Compilation;
             var containingType = comp.GetMember<NamedTypeSymbol>("B");
-            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToArray();
             var expectedFields = new[]
             {
                 "System.Object B.<P1>k__BackingField",
                 "System.Object B.<P2>k__BackingField",
                 "System.Object B.<P3>k__BackingField",
             };
-            AssertEx.Equal(expectedFields, actualFields);
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
+
+            // PROTOTYPE: Attributes from the definition part are dropped.
+            AssertEx.Equal(["A(2)"], actualFields[0].GetAttributes().ToStrings());
+            AssertEx.Equal([], actualFields[1].GetAttributes().ToStrings());
+            AssertEx.Equal(["A(6)"], actualFields[2].GetAttributes().ToStrings());
 
             var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
             Assert.Equal(3, actualProperties.Length);
