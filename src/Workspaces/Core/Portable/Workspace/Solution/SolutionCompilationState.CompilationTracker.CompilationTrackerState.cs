@@ -72,7 +72,7 @@ internal partial class SolutionCompilationState
             /// correct snapshot in that the generators have not been rerun, but may be reusable if the generators
             /// are later found to give the same output.
             /// </summary>
-            public readonly Lazy<Compilation?> LazyStaleCompilationWithGeneratedDocuments;
+            public readonly CancellableLazy<Compilation?> LazyStaleCompilationWithGeneratedDocuments;
 
             /// <summary>
             /// The list of changes that have happened since we last computed a compilation. The oldState corresponds to
@@ -86,7 +86,7 @@ internal partial class SolutionCompilationState
                 CreationPolicy creationPolicy,
                 Lazy<Compilation> compilationWithoutGeneratedDocuments,
                 CompilationTrackerGeneratorInfo generatorInfo,
-                Lazy<Compilation?> staleCompilationWithGeneratedDocuments,
+                CancellableLazy<Compilation?> staleCompilationWithGeneratedDocuments,
                 ImmutableList<TranslationAction> pendingTranslationActions)
                 : base(creationPolicy, generatorInfo)
             {
@@ -123,8 +123,8 @@ internal partial class SolutionCompilationState
             {
             }
 
-            private static Lazy<Compilation?> CreateLazyCompilation(Compilation? staleCompilationWithGeneratedDocuments)
-                => new(() => staleCompilationWithGeneratedDocuments);
+            private static CancellableLazy<Compilation?> CreateLazyCompilation(Compilation? staleCompilationWithGeneratedDocuments)
+                => new(staleCompilationWithGeneratedDocuments);
         }
 
         /// <summary>
