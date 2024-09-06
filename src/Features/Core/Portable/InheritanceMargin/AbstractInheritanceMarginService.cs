@@ -2,27 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.SymbolMapping;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InheritanceMargin;
-
-using SymbolAndLineNumberArray = ImmutableArray<(ISymbol symbol, int lineNumber)>;
-
 internal abstract partial class AbstractInheritanceMarginService : IInheritanceMarginService
 {
     /// <summary>
@@ -57,7 +44,7 @@ internal abstract partial class AbstractInheritanceMarginService : IInheritanceM
             var result = await remoteClient.TryInvokeAsync<IRemoteInheritanceMarginService, ImmutableArray<InheritanceMarginItem>>(
                 solution,
                 (service, solutionInfo, cancellationToken) =>
-                    service.GetInheritanceMarginItemsAsync(solutionInfo, document.Id, spanToSearch, includeGlobalImports: includeGlobalImports, frozenPartialSemantics: frozenPartialSemantics, cancellationToken),
+                    service.GetInheritanceMarginItemsAsync(solutionInfo, document.Id, spanToSearch, includeGlobalImports, frozenPartialSemantics, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!result.HasValue)
@@ -72,8 +59,8 @@ internal abstract partial class AbstractInheritanceMarginService : IInheritanceM
             return await GetInheritanceMarginItemsInProcessAsync(
                 document,
                 spanToSearch,
-                includeGlobalImports: includeGlobalImports,
-                frozenPartialSemantics: frozenPartialSemantics,
+                includeGlobalImports,
+                frozenPartialSemantics,
                 cancellationToken).ConfigureAwait(false);
         }
     }

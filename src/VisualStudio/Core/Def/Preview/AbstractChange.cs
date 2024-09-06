@@ -4,13 +4,11 @@
 
 #nullable disable
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
 
-internal abstract class AbstractChange : ForegroundThreadAffinitizedObject
+internal abstract class AbstractChange
 {
     public ChangeList Children;
     public __PREVIEWCHANGESITEMCHECKSTATE CheckState { get; private set; }
@@ -18,7 +16,6 @@ internal abstract class AbstractChange : ForegroundThreadAffinitizedObject
     protected PreviewEngine engine;
 
     public AbstractChange(PreviewEngine engine)
-        : base(engine.ThreadingContext)
     {
         this.engine = engine;
         if (engine.ShowCheckBoxes)

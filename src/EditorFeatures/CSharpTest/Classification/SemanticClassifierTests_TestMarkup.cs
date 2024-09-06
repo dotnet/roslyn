@@ -30,7 +30,7 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
         }
         """ + EmbeddedLanguagesTestConstants.StringSyntaxAttributeCodeCSharp;
 
-    protected async Task TestEmbeddedCSharpAsync(
+    private async Task TestEmbeddedCSharpAsync(
        string code,
        TestHost testHost,
        params FormattedClassification[] expected)
@@ -53,7 +53,7 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
         await TestEmbeddedCSharpWithMultipleSpansAsync(allCode, testHost, spans, expected);
     }
 
-    protected async Task TestEmbeddedCSharpWithMultipleSpansAsync(
+    private async Task TestEmbeddedCSharpWithMultipleSpansAsync(
        string allCode,
        TestHost testHost,
        ImmutableArray<TextSpan> spans,

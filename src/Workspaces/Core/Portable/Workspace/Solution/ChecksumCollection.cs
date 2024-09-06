@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -54,20 +53,22 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
     }
 
     [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1333566", AllowGenericEnumeration = false)]
-    internal static async Task FindAsync<TState>(
+    internal static async Task FindAsync<TState, TArg>(
+        AssetPath assetPath,
         TextDocumentStates<TState> documentStates,
-        DocumentId? hintDocument,
         HashSet<Checksum> searchingChecksumsLeft,
-        Dictionary<Checksum, object> result,
+        Action<Checksum, object, TArg> onAssetFound,
+        TArg arg,
         CancellationToken cancellationToken) where TState : TextDocumentState
     {
+        var hintDocument = assetPath.DocumentId;
         if (hintDocument != null)
         {
             var state = documentStates.GetState(hintDocument);
             if (state != null)
             {
                 Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
-                await stateChecksums.FindAsync(state, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                await stateChecksums.FindAsync(assetPath, state, searchingChecksumsLeft, onAssetFound, arg, cancellationToken).ConfigureAwait(false);
             }
         }
         else
@@ -80,16 +81,17 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
 
                 Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
 
-                await stateChecksums.FindAsync(state, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                await stateChecksums.FindAsync(assetPath, state, searchingChecksumsLeft, onAssetFound, arg, cancellationToken).ConfigureAwait(false);
             }
         }
     }
 
-    internal static void Find<T>(
+    internal static void Find<T, TArg>(
         IReadOnlyList<T> values,
         ChecksumCollection checksums,
         HashSet<Checksum> searchingChecksumsLeft,
-        Dictionary<Checksum, object> result,
+        Action<Checksum, object, TArg> onAssetFound,
+        TArg arg,
         CancellationToken cancellationToken) where T : class
     {
         Contract.ThrowIfFalse(values.Count == checksums.Children.Length);
@@ -102,7 +104,7 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
 
             var checksum = checksums.Children[i];
             if (searchingChecksumsLeft.Remove(checksum))
-                result[checksum] = values[i];
+                onAssetFound(checksum, values[i], arg);
         }
     }
 

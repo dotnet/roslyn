@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
@@ -524,8 +523,8 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
 
         public UnitTestingReanalyzeScope(IEnumerable<ProjectId>? projectIds = null, IEnumerable<DocumentId>? documentIds = null)
         {
-            projectIds ??= SpecializedCollections.EmptyEnumerable<ProjectId>();
-            documentIds ??= SpecializedCollections.EmptyEnumerable<DocumentId>();
+            projectIds ??= [];
+            documentIds ??= [];
 
             _solutionId = null;
             _projectOrDocumentIds = new HashSet<object>(projectIds);

@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -110,7 +109,7 @@ internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, F
 
             case FixAllScope.Document:
                 Contract.ThrowIfNull(Document);
-                documentsToFix = SpecializedCollections.SingletonEnumerable(Document);
+                documentsToFix = [Document];
                 break;
 
             case FixAllScope.Project:

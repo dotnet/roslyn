@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -28,10 +27,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseLocalFunction;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseLocalFunction), Shared]
 internal class CSharpUseLocalFunctionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
-    private static readonly TypeSyntax s_objectType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword));
+    private static readonly TypeSyntax s_objectType = PredefinedType(ObjectKeyword);
 
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -212,7 +214,7 @@ internal class CSharpUseLocalFunctionCodeFixProvider : SyntaxEditorBasedCodeFixP
         var modifiers = new SyntaxTokenList();
         if (makeStatic)
         {
-            modifiers = modifiers.Add(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+            modifiers = modifiers.Add(StaticKeyword);
         }
 
         if (anonymousFunction.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
@@ -232,14 +234,14 @@ internal class CSharpUseLocalFunctionCodeFixProvider : SyntaxEditorBasedCodeFixP
             : null;
 
         var expressionBody = anonymousFunction.Body is ExpressionSyntax expression
-            ? SyntaxFactory.ArrowExpressionClause(((LambdaExpressionSyntax)anonymousFunction).ArrowToken, expression)
+            ? ArrowExpressionClause(((LambdaExpressionSyntax)anonymousFunction).ArrowToken, expression)
             : null;
 
         var semicolonToken = anonymousFunction.Body is ExpressionSyntax
             ? localDeclaration.SemicolonToken
             : default;
 
-        return SyntaxFactory.LocalFunctionStatement(
+        return LocalFunctionStatement(
             modifiers, returnType, identifier, typeParameterList, parameterList,
             constraintClauses, body, expressionBody, semicolonToken);
     }
@@ -252,8 +254,8 @@ internal class CSharpUseLocalFunctionCodeFixProvider : SyntaxEditorBasedCodeFixP
 
         return parameterList != null
             ? parameterList.ReplaceNodes(parameterList.Parameters, (parameterNode, _) => PromoteParameter(generator, parameterNode, delegateMethod.Parameters.ElementAtOrDefault(i++)))
-            : SyntaxFactory.ParameterList([.. delegateMethod.Parameters.Select(parameter =>
-                PromoteParameter(generator, SyntaxFactory.Parameter(parameter.Name.ToIdentifierToken()), parameter))]);
+            : ParameterList([.. delegateMethod.Parameters.Select(parameter =>
+                PromoteParameter(generator, Parameter(parameter.Name.ToIdentifierToken()), parameter))]);
 
         static ParameterSyntax PromoteParameter(SyntaxGenerator generator, ParameterSyntax parameterNode, IParameterSymbol delegateParameter)
         {
@@ -279,7 +281,7 @@ internal class CSharpUseLocalFunctionCodeFixProvider : SyntaxEditorBasedCodeFixP
         switch (anonymousFunction)
         {
             case SimpleLambdaExpressionSyntax simpleLambda:
-                return SyntaxFactory.ParameterList([simpleLambda.Parameter]);
+                return ParameterList([simpleLambda.Parameter]);
             case ParenthesizedLambdaExpressionSyntax parenthesizedLambda:
                 return parenthesizedLambda.ParameterList;
             case AnonymousMethodExpressionSyntax anonymousMethod:
@@ -310,7 +312,7 @@ internal class CSharpUseLocalFunctionCodeFixProvider : SyntaxEditorBasedCodeFixP
                 return argumentNode;
             }
 
-            return argumentNode.WithNameColon(argumentNode.NameColon.WithName(SyntaxFactory.IdentifierName(newParameter.Identifier)));
+            return argumentNode.WithNameColon(argumentNode.NameColon.WithName(IdentifierName(newParameter.Identifier)));
         });
     }
 
@@ -321,5 +323,5 @@ internal class CSharpUseLocalFunctionCodeFixProvider : SyntaxEditorBasedCodeFixP
     }
 
     private static EqualsValueClauseSyntax GetDefaultValue(SyntaxGenerator generator, IParameterSymbol parameter)
-        => SyntaxFactory.EqualsValueClause(ExpressionGenerator.GenerateExpression(generator, parameter.Type, parameter.ExplicitDefaultValue, canUseFieldReference: true));
+        => EqualsValueClause(ExpressionGenerator.GenerateExpression(generator, parameter.Type, parameter.ExplicitDefaultValue, canUseFieldReference: true));
 }

@@ -33,7 +33,7 @@ internal static partial class SemanticModelExtensions
             }
         }
 
-        return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
+        return [];
     }
 
     public static ImmutableArray<ISymbol> LookupName(

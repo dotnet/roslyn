@@ -20,7 +20,7 @@ internal static partial class IFindReferencesResultExtensions
         this ISymbol definition)
     {
         return definition.IsKind(SymbolKind.Namespace)
-            ? SpecializedCollections.SingletonEnumerable(definition.Locations.First())
+            ? [definition.Locations.First()]
             : definition.Locations;
     }
 
@@ -46,6 +46,11 @@ internal static partial class IFindReferencesResultExtensions
     public static bool ShouldShowWithNoReferenceLocations(
         this ISymbol definition, FindReferencesSearchOptions options, bool showMetadataSymbolsWithoutReferences)
     {
+        if (options.DisplayAllDefinitions)
+        {
+            return true;
+        }
+
         // If the definition is implicit and we have no references, then we don't want to
         // clutter the UI with it.
         if (definition.IsImplicitlyDeclared)
@@ -134,6 +139,6 @@ internal static partial class IFindReferencesResultExtensions
             result.Add(reference);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 }

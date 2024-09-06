@@ -719,6 +719,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Binary(BinaryOperatorKind.ObjectEqual, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean), left, right);
         }
 
+        public BoundExpression IsNotNullReference(BoundExpression value)
+        {
+            var objectType = SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
+            return ObjectNotEqual(Convert(objectType, value, allowBoxingByRefLikeTypeParametersToObject: true), Null(objectType));
+        }
+
         public BoundBinaryOperator ObjectNotEqual(BoundExpression left, BoundExpression right)
         {
             return Binary(BinaryOperatorKind.ObjectNotEqual, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean), left, right);
@@ -789,6 +795,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundObjectCreationExpression New(MethodSymbol ctor, ImmutableArray<BoundExpression> args)
             => new BoundObjectCreationExpression(Syntax, ctor, args) { WasCompilerGenerated = true };
+
+        public BoundObjectCreationExpression New(MethodSymbol constructor, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKinds)
+            => new BoundObjectCreationExpression(
+                Syntax,
+                constructor,
+                arguments,
+                argumentNamesOpt: default,
+                argumentRefKinds,
+                expanded: false,
+                argsToParamsOpt: default,
+                defaultArguments: default,
+                constantValueOpt: null,
+                initializerExpressionOpt: null,
+                constructor.ContainingType)
+            { WasCompilerGenerated = true };
 
         public BoundObjectCreationExpression New(WellKnownMember wm, ImmutableArray<BoundExpression> args)
         {
@@ -1507,8 +1528,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CodeAnalysis.WellKnownMember.System_Reflection_FieldInfo__GetFieldFromHandle2);
         }
 
-        public BoundExpression Convert(TypeSymbol type, BoundExpression arg)
+        public BoundExpression Convert(TypeSymbol type, BoundExpression arg, bool allowBoxingByRefLikeTypeParametersToObject = false)
         {
+            Debug.Assert(!allowBoxingByRefLikeTypeParametersToObject || type.IsObjectType());
+
             if (TypeSymbol.Equals(type, arg.Type, TypeCompareKind.ConsiderEverything2))
             {
                 return arg;
@@ -1521,6 +1544,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 #endif 
             Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(arg, type, isChecked: false, ref useSiteInfo);
+
+            if (allowBoxingByRefLikeTypeParametersToObject && !c.Exists &&
+                arg.Type is TypeParameterSymbol { AllowsRefLikeType: true } && type.IsObjectType())
+            {
+                c = Conversion.Boxing;
+            }
+
             Debug.Assert(c.Exists);
             // The use-site diagnostics should be reported earlier, and we shouldn't get to lowering if they're errors.
             Debug.Assert(!useSiteInfo.HasErrors);

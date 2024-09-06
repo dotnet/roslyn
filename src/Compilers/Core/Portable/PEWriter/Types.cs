@@ -151,6 +151,11 @@ namespace Microsoft.Cci
             // ^ ensures result ==> !this.MustBeReferenceType;
         }
 
+        bool AllowsRefLikeType
+        {
+            get;
+        }
+
         /// <summary>
         /// True if all type arguments matching this parameter are constrained to be value types or concrete classes with visible default constructors.
         /// </summary>

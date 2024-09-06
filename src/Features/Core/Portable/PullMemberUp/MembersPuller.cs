@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
@@ -489,7 +488,7 @@ internal static class MembersPuller
         {
             var tasks = memberAnalysisResult.Member.DeclaringSyntaxReferences.SelectAsArray(@ref => @ref.GetSyntaxAsync(cancellationToken));
             var allSyntaxes = await Task.WhenAll(tasks).ConfigureAwait(false);
-            symbolToDeclarationsBuilder.Add(memberAnalysisResult.Member, allSyntaxes.ToImmutableArray());
+            symbolToDeclarationsBuilder.Add(memberAnalysisResult.Member, [.. allSyntaxes]);
         }
 
         return symbolToDeclarationsBuilder.ToImmutableDictionary();

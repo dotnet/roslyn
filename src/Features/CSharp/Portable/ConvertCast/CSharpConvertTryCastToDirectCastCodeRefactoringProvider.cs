@@ -12,6 +12,8 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertCast;
 
+using static CSharpSyntaxTokens;
+
 /// <summary>
 /// Refactor:
 ///     var o = 1 as object;
@@ -47,15 +49,15 @@ internal partial class CSharpConvertTryCastToDirectCastCodeRefactoringProvider
         // #0 #2 (Type)exp #1 #3
         // Some trivia in the middle (#1 and #2) is moved to the front or behind  the expression
         // #1 and #2 change their position in the expression (#2 goes in front to stay near the type and #1 to the end to stay near the expression)
-        var openParen = Token(SyntaxKind.OpenParenToken);
-        var closeParen = Token(SyntaxKind.CloseParenToken);
+        var openParen = OpenParenToken;
+        var closeParen = CloseParenToken;
         var newTrailingTrivia = asExpression.Left.GetTrailingTrivia().SkipInitialWhitespace().ToSyntaxTriviaList().AddRange(asExpression.GetTrailingTrivia());
         var newLeadingTrivia = asExpression.GetLeadingTrivia().AddRange(asExpression.OperatorToken.TrailingTrivia.SkipInitialWhitespace());
         typeNode = typeNode.WithoutTrailingTrivia();
 
         // Make sure we make reference type nullable when converting expressions like `null as string` -> `(string?)null`
         if (expression.IsKind(SyntaxKind.NullLiteralExpression) && nullableContext.HasFlag(NullableContext.AnnotationsEnabled) && isReferenceType)
-            typeNode = NullableType(typeNode, Token(SyntaxKind.QuestionToken));
+            typeNode = NullableType(typeNode, QuestionToken);
 
         var castExpression = CastExpression(openParen, typeNode, closeParen, expression.WithoutTrailingTrivia())
             .WithLeadingTrivia(newLeadingTrivia)

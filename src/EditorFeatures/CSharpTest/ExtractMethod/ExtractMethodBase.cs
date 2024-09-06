@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,204 +12,201 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod;
+
+[UseExportProvider]
+public class ExtractMethodBase
 {
-    [UseExportProvider]
-    public class ExtractMethodBase
+    protected static async Task ExpectExtractMethodToFailAsync(string codeWithMarker, bool dontPutOutOrRefOnStruct = true, string[] features = null)
     {
-        protected static async Task ExpectExtractMethodToFailAsync(string codeWithMarker, bool dontPutOutOrRefOnStruct = true, string[] features = null)
+        ParseOptions parseOptions = null;
+        if (features != null)
         {
-            ParseOptions parseOptions = null;
-            if (features != null)
-            {
-                var featuresMapped = features.Select(x => new KeyValuePair<string, string>(x, string.Empty));
-                parseOptions = new CSharpParseOptions().WithFeatures(featuresMapped);
-            }
-
-            using var workspace = EditorTestWorkspace.CreateCSharp(codeWithMarker, parseOptions: parseOptions);
-            var testDocument = workspace.Documents.First();
-            var textSpan = testDocument.SelectedSpans.Single();
-            var treeAfterExtractMethod = await ExtractMethodAsync(workspace, testDocument, succeed: false, dontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct);
+            var featuresMapped = features.Select(x => KeyValuePairUtil.Create(x, string.Empty));
+            parseOptions = new CSharpParseOptions().WithFeatures(featuresMapped);
         }
 
-        protected static async Task ExpectExtractMethodToFailAsync(
-            string codeWithMarker,
-            string expected,
-            bool dontPutOutOrRefOnStruct = true,
-            CSharpParseOptions parseOptions = null)
+        using var workspace = EditorTestWorkspace.CreateCSharp(codeWithMarker, parseOptions: parseOptions);
+        var testDocument = workspace.Documents.First();
+        var textSpan = testDocument.SelectedSpans.Single();
+        var treeAfterExtractMethod = await ExtractMethodAsync(workspace, testDocument, succeed: false, dontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct);
+    }
+
+    protected static async Task ExpectExtractMethodToFailAsync(
+        string codeWithMarker,
+        string expected,
+        bool dontPutOutOrRefOnStruct = true,
+        CSharpParseOptions parseOptions = null)
+    {
+        using var workspace = EditorTestWorkspace.CreateCSharp(codeWithMarker, parseOptions: parseOptions);
+        var testDocument = workspace.Documents.Single();
+        var subjectBuffer = testDocument.GetTextBuffer();
+
+        var tree = await ExtractMethodAsync(workspace, testDocument, succeed: false, dontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct);
+
+        using (var edit = subjectBuffer.CreateEdit())
         {
-            using var workspace = EditorTestWorkspace.CreateCSharp(codeWithMarker, parseOptions: parseOptions);
+            edit.Replace(0, edit.Snapshot.Length, tree.ToFullString());
+            edit.Apply();
+        }
+
+        if (expected == "")
+            Assert.True(false, subjectBuffer.CurrentSnapshot.GetText());
+
+        Assert.Equal(expected, subjectBuffer.CurrentSnapshot.GetText());
+    }
+
+    protected static async Task NotSupported_ExtractMethodAsync(string codeWithMarker)
+    {
+        using var workspace = EditorTestWorkspace.CreateCSharp(codeWithMarker);
+        Assert.NotNull(await Record.ExceptionAsync(async () =>
+        {
             var testDocument = workspace.Documents.Single();
-            var subjectBuffer = testDocument.GetTextBuffer();
+            var tree = await ExtractMethodAsync(workspace, testDocument);
+        }));
+    }
 
-            var tree = await ExtractMethodAsync(workspace, testDocument, succeed: false, dontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct);
+    protected static async Task TestExtractMethodAsync(
+        string codeWithMarker,
+        string expected,
+        bool temporaryFailing = false,
+        bool dontPutOutOrRefOnStruct = true,
+        CSharpParseOptions parseOptions = null)
+    {
+        using var workspace = EditorTestWorkspace.CreateCSharp(codeWithMarker, parseOptions: parseOptions);
+        var testDocument = workspace.Documents.Single();
+        var subjectBuffer = testDocument.GetTextBuffer();
 
-            using (var edit = subjectBuffer.CreateEdit())
-            {
-                edit.Replace(0, edit.Snapshot.Length, tree.ToFullString());
-                edit.Apply();
-            }
+        var tree = await ExtractMethodAsync(
+            workspace, testDocument,
+            dontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct);
 
-            if (expected == "")
-                Assert.True(false, subjectBuffer.CurrentSnapshot.GetText());
-
-            Assert.Equal(expected, subjectBuffer.CurrentSnapshot.GetText());
+        using (var edit = subjectBuffer.CreateEdit())
+        {
+            edit.Replace(0, edit.Snapshot.Length, tree.ToFullString());
+            edit.Apply();
         }
 
-        protected static async Task NotSupported_ExtractMethodAsync(string codeWithMarker)
+        var actual = subjectBuffer.CurrentSnapshot.GetText();
+        if (temporaryFailing)
         {
-            using (var workspace = EditorTestWorkspace.CreateCSharp(codeWithMarker))
-            {
-                Assert.NotNull(await Record.ExceptionAsync(async () =>
-                {
-                    var testDocument = workspace.Documents.Single();
-                    var tree = await ExtractMethodAsync(workspace, testDocument);
-                }));
-            }
+            Assert.NotEqual(expected, actual);
         }
-
-        protected static async Task TestExtractMethodAsync(
-            string codeWithMarker,
-            string expected,
-            bool temporaryFailing = false,
-            bool dontPutOutOrRefOnStruct = true,
-            CSharpParseOptions parseOptions = null)
+        else
         {
-            using var workspace = EditorTestWorkspace.CreateCSharp(codeWithMarker, parseOptions: parseOptions);
-            var testDocument = workspace.Documents.Single();
-            var subjectBuffer = testDocument.GetTextBuffer();
-
-            var tree = await ExtractMethodAsync(
-                workspace, testDocument,
-                dontPutOutOrRefOnStruct: dontPutOutOrRefOnStruct);
-
-            using (var edit = subjectBuffer.CreateEdit())
+            if (expected != "")
             {
-                edit.Replace(0, edit.Snapshot.Length, tree.ToFullString());
-                edit.Apply();
-            }
-
-            var actual = subjectBuffer.CurrentSnapshot.GetText();
-            if (temporaryFailing)
-            {
-                Assert.NotEqual(expected, actual);
+                AssertEx.EqualOrDiff(expected, actual);
             }
             else
             {
-                if (expected != "")
-                {
-                    AssertEx.EqualOrDiff(expected, actual);
-                }
-                else
-                {
-                    // print out the entire diff to make adding tests simpler.
-                    Assert.Equal((object)expected, actual);
-                }
+                // print out the entire diff to make adding tests simpler.
+                Assert.Equal((object)expected, actual);
             }
         }
+    }
 
-        protected static async Task<SyntaxNode> ExtractMethodAsync(
-            EditorTestWorkspace workspace,
-            EditorTestHostDocument testDocument,
-            bool succeed = true,
-            bool dontPutOutOrRefOnStruct = true)
+    protected static async Task<SyntaxNode> ExtractMethodAsync(
+        EditorTestWorkspace workspace,
+        EditorTestHostDocument testDocument,
+        bool succeed = true,
+        bool dontPutOutOrRefOnStruct = true)
+    {
+        var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+        Assert.NotNull(document);
+
+        var options = new ExtractMethodGenerationOptions()
         {
-            var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
-            Assert.NotNull(document);
+            CodeGenerationOptions = CodeGenerationOptions.GetDefault(document.Project.Services),
+            CodeCleanupOptions = CodeCleanupOptions.GetDefault(document.Project.Services),
+            ExtractOptions = new() { DoNotPutOutOrRefOnStruct = dontPutOutOrRefOnStruct }
+        };
 
-            var options = new ExtractMethodGenerationOptions()
-            {
-                CodeGenerationOptions = CodeGenerationOptions.GetDefault(document.Project.Services),
-                CodeCleanupOptions = CodeCleanupOptions.GetDefault(document.Project.Services),
-                ExtractOptions = new() { DoNotPutOutOrRefOnStruct = dontPutOutOrRefOnStruct }
-            };
+        var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
+        var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), options.ExtractOptions, localFunction: false);
 
-            var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
-            var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), options.ExtractOptions, localFunction: false);
+        var (selectedCode, status) = await validator.GetValidSelectionAsync(CancellationToken.None);
+        if (!succeed && status.Failed)
+            return null;
 
-            var (selectedCode, status) = await validator.GetValidSelectionAsync(CancellationToken.None);
-            if (!succeed && status.Failed)
+        Assert.NotNull(selectedCode);
+
+        // extract method
+        var extractor = new CSharpMethodExtractor(selectedCode, options, localFunction: false);
+        var result = extractor.ExtractMethod(status, CancellationToken.None);
+        Assert.NotNull(result);
+
+        // If the test expects us to succeed, validate that we did.  If it expects us to fail, ensure we either
+        // failed or produced a message the user will have to confirm to continue. 
+        if (succeed)
+        {
+            Assert.Equal(succeed, result.Succeeded);
+        }
+        else
+        {
+            Assert.True(!result.Succeeded || result.Reasons.Length > 0);
+
+            if (!result.Succeeded)
                 return null;
-
-            Assert.NotNull(selectedCode);
-
-            // extract method
-            var extractor = new CSharpMethodExtractor(selectedCode, options, localFunction: false);
-            var result = extractor.ExtractMethod(status, CancellationToken.None);
-            Assert.NotNull(result);
-
-            // If the test expects us to succeed, validate that we did.  If it expects us to fail, ensure we either
-            // failed or produced a message the user will have to confirm to continue. 
-            if (succeed)
-            {
-                Assert.Equal(succeed, result.Succeeded);
-            }
-            else
-            {
-                Assert.True(!result.Succeeded || result.Reasons.Length > 0);
-
-                if (!result.Succeeded)
-                    return null;
-            }
-
-            var (doc, _) = await result.GetDocumentAsync(CancellationToken.None);
-            return doc == null
-                ? null
-                : await doc.GetSyntaxRootAsync();
         }
 
-        protected static async Task TestSelectionAsync(string codeWithMarker, bool expectedFail = false, CSharpParseOptions parseOptions = null, TextSpan? textSpanOverride = null)
+        var (doc, _) = await result.GetDocumentAsync(CancellationToken.None);
+        return doc == null
+            ? null
+            : await doc.GetSyntaxRootAsync();
+    }
+
+    protected static async Task TestSelectionAsync(string codeWithMarker, bool expectedFail = false, CSharpParseOptions parseOptions = null, TextSpan? textSpanOverride = null)
+    {
+        using var workspace = EditorTestWorkspace.CreateCSharp(codeWithMarker, parseOptions: parseOptions);
+        var testDocument = workspace.Documents.Single();
+        var namedSpans = testDocument.AnnotatedSpans;
+
+        var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+        Assert.NotNull(document);
+
+        var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
+        var validator = new CSharpSelectionValidator(semanticDocument, textSpanOverride ?? namedSpans["b"].Single(), ExtractMethodOptions.Default, localFunction: false);
+        var (result, status) = await validator.GetValidSelectionAsync(CancellationToken.None);
+
+        if (expectedFail)
         {
-            using var workspace = EditorTestWorkspace.CreateCSharp(codeWithMarker, parseOptions: parseOptions);
-            var testDocument = workspace.Documents.Single();
-            var namedSpans = testDocument.AnnotatedSpans;
-
-            var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
-            Assert.NotNull(document);
-
-            var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
-            var validator = new CSharpSelectionValidator(semanticDocument, textSpanOverride ?? namedSpans["b"].Single(), ExtractMethodOptions.Default, localFunction: false);
-            var (result, status) = await validator.GetValidSelectionAsync(CancellationToken.None);
-
-            if (expectedFail)
-            {
-                Assert.True(status.Failed || status.Reasons.Length > 0);
-            }
-            else
-            {
-                Assert.True(status.Succeeded);
-            }
-
-            if (status.Succeeded && result.SelectionChanged)
-                Assert.Equal(namedSpans["r"].Single(), result.FinalSpan);
+            Assert.True(status.Failed || status.Reasons.Length > 0);
+        }
+        else
+        {
+            Assert.True(status.Succeeded);
         }
 
-        protected static async Task IterateAllAsync(string code)
+        if (status.Succeeded && result.SelectionChanged)
+            Assert.Equal(namedSpans["r"].Single(), result.FinalSpan);
+    }
+
+    protected static async Task IterateAllAsync(string code)
+    {
+        using var workspace = EditorTestWorkspace.CreateCSharp(code, CodeAnalysis.CSharp.Test.Utilities.TestOptions.Regular);
+        var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
+        Assert.NotNull(document);
+
+        var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
+        var root = await document.GetSyntaxRootAsync();
+        var iterator = root.DescendantNodesAndSelf().Cast<SyntaxNode>();
+
+        foreach (var node in iterator)
         {
-            using var workspace = EditorTestWorkspace.CreateCSharp(code, CodeAnalysis.CSharp.Test.Utilities.TestOptions.Regular);
-            var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
-            Assert.NotNull(document);
+            var validator = new CSharpSelectionValidator(semanticDocument, node.Span, ExtractMethodOptions.Default, localFunction: false);
+            var (_, status) = await validator.GetValidSelectionAsync(CancellationToken.None);
 
-            var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
-            var root = await document.GetSyntaxRootAsync();
-            var iterator = root.DescendantNodesAndSelf().Cast<SyntaxNode>();
-
-            foreach (var node in iterator)
-            {
-                var validator = new CSharpSelectionValidator(semanticDocument, node.Span, ExtractMethodOptions.Default, localFunction: false);
-                var (_, status) = await validator.GetValidSelectionAsync(CancellationToken.None);
-
-                // check the obvious case
-                if (node is not ExpressionSyntax && !node.UnderValidContext())
-                    Assert.True(status.Failed);
-            }
+            // check the obvious case
+            if (node is not ExpressionSyntax && !node.UnderValidContext())
+                Assert.True(status.Failed);
         }
     }
 }

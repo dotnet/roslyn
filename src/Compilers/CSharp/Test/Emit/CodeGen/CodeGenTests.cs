@@ -15740,7 +15740,7 @@ class M
 }
 ";
 
-            var compilation = CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "long.long.2");
+            var compilation = CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "long.ex caught");
         }
 
         [WorkItem(10463, "https://github.com/dotnet/roslyn/issues/10463")]

@@ -122,6 +122,11 @@
         <target state="translated">{0} ({1})</target>
         <note />
       </trans-unit>
+      <trans-unit id="Automatic_Run_generators_after_any_change">
+        <source>Automatic. Run generators after any change</source>
+        <target state="translated">Automático. Ejecutar generadores después de cualquier cambio</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_open_stack_trace_explorer_on_focus">
         <source>Automatically open Stack Trace Explorer on focus</source>
         <target state="translated">Abrir automáticamente el Explorador de seguimiento de pila al centrarse</target>
@@ -145,6 +150,11 @@
       <trans-unit id="Back">
         <source>Back</source>
         <target state="translated">Atrás</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Balanced_Run_generators_after_saving_or_building">
+        <source>Balanced. Run generators after saving or building</source>
+        <target state="translated">Equilibrado. Ejecutar generadores después de guardar o compilar</target>
         <note />
       </trans-unit>
       <trans-unit id="Beginning_of_line">
@@ -387,11 +397,6 @@
         <target state="translated">El elemento no es válido.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
-        <source>Enable all features in opened files from source generators (experimental)</source>
-        <target state="translated">Habilitar todas las características de los archivos abiertos de los generadores de origen (experimental)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_document_outline_experimental_requires_restart">
         <source>Enable document outline (experimental, requires restart)</source>
         <target state="translated">Habilitar esquema de documento (experimental, requiere reinicio)</target>
@@ -500,6 +505,11 @@
       <trans-unit id="Generate_dot_editorconfig_file_from_settings">
         <source>Generate .editorconfig file from settings</source>
         <target state="translated">Generar archivo .editorconfig a partir de la configuración</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generator_running">
+        <source>Generator running...</source>
+        <target state="translated">Generador en ejecución...</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_To_Definition">
@@ -1097,6 +1107,11 @@
         <target state="translated">Preferir interpolación simplificada</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_static_anonymous_functions">
+        <source>Prefer static anonymous functions</source>
+        <target state="translated">Preferir las funciones anónimas estáticas</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Prefer_static_local_functions">
         <source>Prefer static local functions</source>
         <target state="translated">Preferir funciones locales estáticas</target>
@@ -1202,6 +1217,11 @@
         <target state="translated">Requiere que "System.HashCode" esté presente en el proyecto</target>
         <note />
       </trans-unit>
+      <trans-unit id="Rerun_generator">
+        <source>Rerun generator</source>
+        <target state="translated">Volver a ejecutar el generador</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Reset_Visual_Studio_default_keymapping">
         <source>Reset Visual Studio default keymapping</source>
         <target state="translated">Restablecer asignaciones de teclado predeterminadas de Visual Studio</target>
@@ -1210,6 +1230,11 @@
       <trans-unit id="Review_Changes">
         <source>Review Changes</source>
         <target state="translated">Revisar cambios</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Roslyn_save_command_handler">
+        <source>Roslyn save command handler</source>
+        <target state="translated">Controlador del comando Guardar de Roslyn</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_Code_Analysis_on_0">
@@ -1225,11 +1250,6 @@
       <trans-unit id="Run_code_analysis_in_separate_process_requires_restart">
         <source>Run code analysis in separate process (requires restart)</source>
         <target state="translated">Ejecutar el análisis de código en un proceso independiente (requiere reiniciar)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Run_code_analysis_on_latest_dotnet_requires_restart">
-        <source>Run code analysis on latest .NET (requires restart)</source>
-        <target state="translated">Ejecutar análisis de código en la versión más reciente de .NET (requiere reiniciar)</target>
         <note />
       </trans-unit>
       <trans-unit id="Running_code_analysis_for_0">
@@ -1250,6 +1270,16 @@
       <trans-unit id="Search_Settings">
         <source>Search Settings</source>
         <target state="translated">Buscar configuración</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Search_cancelled">
+        <source>Search canceled</source>
+        <target state="translated">Búsqueda cancelada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Search_found_no_results_no_csharp_or_vb_projects_opened">
+        <source>Search found no results: no C# or Visual Basic projects are opened</source>
+        <target state="translated">La búsqueda no ha encontrado resultados: no hay proyectos de C# o Visual Basic abiertos</target>
         <note />
       </trans-unit>
       <trans-unit id="Select_an_appropriate_symbol_to_start_value_tracking">
@@ -1292,6 +1322,16 @@
         <target state="translated">Seleccionar miembros:</target>
         <note />
       </trans-unit>
+      <trans-unit id="Semantic_search_0">
+        <source>Semantic Search ({0})</source>
+        <target state="translated">Búsqueda semántica ({0})</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_results">
+        <source>Semantic Search Results</source>
+        <target state="translated">Resultados de búsqueda semántica</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental">
         <source>Show "Remove Unused References" command in Solution Explorer (experimental)</source>
         <target state="translated">Mostrar el comando "Quitar referencias sin usar" en el Explorador de soluciones (experimental)</target>
@@ -1315,6 +1355,16 @@
       <trans-unit id="Show_completion_list">
         <source>Show completion list</source>
         <target state="translated">Mostrar lista de finalización</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
+        <source>Show guides for comments and preprocessor regions</source>
+        <target state="translated">Mostrar guías para regiones de preprocesador y comentarios</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_collection_expressions">
+        <source>Show hints for collection expressions</source>
+        <target state="new">Show hints for collection expressions</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">
@@ -1362,6 +1412,16 @@
         <target state="translated">Algunos de los colores de la combinación se reemplazan por los cambios realizados en la página de opciones de Entorno &gt; Fuentes y colores. Elija "Usar valores predeterminados" en la página Fuentes y colores para revertir todas las personalizaciones.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Source_Generators">
+        <source>Source Generators</source>
+        <target state="translated">Generadores de origen</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Source_generator_execution_requires_restart">
+        <source>Source generator execution (requires restart):</source>
+        <target state="translated">Ejecución del generador de origen (requiere un reinicio):</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Stack_Trace">
         <source>Stack Trace</source>
         <target state="translated">Seguimiento de la pila</target>
@@ -1376,6 +1436,11 @@
         <source>Stack Trace {0}</source>
         <target state="translated">Seguimiento de la pila {0}</target>
         <note>Header for numbered stack trace view tabs</note>
+      </trans-unit>
+      <trans-unit id="Strike_out_obsolete_symbols">
+        <source>Strike out obsolete symbols</source>
+        <target state="translated">Tachado de símbolos obsoletos</target>
+        <note />
       </trans-unit>
       <trans-unit id="Suggestion">
         <source>Suggestion</source>
@@ -1437,14 +1502,19 @@
         <target state="translated">El generador "{0}" que creaba este archivo ha dejado de generarlo; el archivo ya no se incluye en el proyecto.</target>
         <note />
       </trans-unit>
+      <trans-unit id="The_project_no_longer_exists">
+        <source>The project no longer exists</source>
+        <target state="translated">Ya no existe el proyecto</target>
+        <note />
+      </trans-unit>
       <trans-unit id="This_action_cannot_be_undone_Do_you_wish_to_continue">
         <source>This action cannot be undone. Do you wish to continue?</source>
         <target state="translated">Esta acción no se puede deshacer. ¿Quiere continuar?</target>
         <note />
       </trans-unit>
-      <trans-unit id="This_file_is_autogenerated_by_0_and_cannot_be_edited">
-        <source>This file is auto-generated by the generator '{0}' and cannot be edited.</source>
-        <target state="translated">El generador "{0}" crea este archivo de forma automática y no se puede editar.</target>
+      <trans-unit id="This_file_was_generated_by_0_at_1_and_cannot_be_edited">
+        <source>This file was generated by '{0}' at {1} and cannot be edited.</source>
+        <target state="translated">"{0}"' ha generado este archivo en {1} y no se puede editar.</target>
         <note />
       </trans-unit>
       <trans-unit id="This_is_an_invalid_namespace">

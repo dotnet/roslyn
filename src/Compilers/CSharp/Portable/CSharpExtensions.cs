@@ -1638,6 +1638,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             var csModel = semanticModel as CSharpSemanticModel;
             return csModel?.GetInterceptorMethod(node, cancellationToken);
         }
+
+        /// <summary>
+        /// If <paramref name="node"/> cannot be intercepted syntactically, returns null.
+        /// Otherwise, returns an instance which can be used to intercept the call denoted by <paramref name="node"/>.
+        /// </summary>
+        [Experimental(RoslynExperiments.Interceptors, UrlFormat = RoslynExperiments.Interceptors_Url)]
+        public static InterceptableLocation? GetInterceptableLocation(this SemanticModel? semanticModel, InvocationExpressionSyntax node, CancellationToken cancellationToken = default)
+        {
+            var csModel = semanticModel as CSharpSemanticModel;
+            return csModel?.GetInterceptableLocation(node, cancellationToken);
+        }
+
+        /// <summary>
+        /// Gets an attribute list syntax consisting of an InterceptsLocationAttribute, which intercepts the call referenced by parameter <paramref name="location"/>.
+        /// </summary>
+        [Experimental(RoslynExperiments.Interceptors, UrlFormat = RoslynExperiments.Interceptors_Url)]
+        public static string GetInterceptsLocationAttributeSyntax(this InterceptableLocation location)
+        {
+            return $"""[global::System.Runtime.CompilerServices.InterceptsLocationAttribute({location.Version}, "{location.Data}")]""";
+        }
         #endregion
     }
 }

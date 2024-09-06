@@ -215,10 +215,8 @@ internal class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyle
         using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
         stack.Push(scope);
 
-        while (stack.Count > 0)
+        while (stack.TryPop(out var current))
         {
-            var current = stack.Pop();
-
             if (current == variable)
                 continue;
 
@@ -235,8 +233,8 @@ internal class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyle
 
             foreach (var child in current.ChildNodesAndTokens())
             {
-                if (child.IsNode)
-                    stack.Push(child.AsNode()!);
+                if (child.AsNode(out var childNode))
+                    stack.Push(childNode);
             }
         }
 

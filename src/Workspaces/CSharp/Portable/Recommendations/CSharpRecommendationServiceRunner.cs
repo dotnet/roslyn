@@ -824,7 +824,7 @@ internal partial class CSharpRecommendationService
             AddOperators(container, symbols);
             AddConversions(container, symbols);
 
-            return symbols.ToImmutable();
+            return symbols.ToImmutableAndClear();
         }
 
         private ITypeSymbol? GetContainerForUnnamedSymbols(SemanticModel semanticModel, ExpressionSyntax originalExpression)

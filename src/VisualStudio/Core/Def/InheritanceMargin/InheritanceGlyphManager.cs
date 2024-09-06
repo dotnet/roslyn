@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -26,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 /// <summary>
 /// Manager controls all the glyphs of Inheritance Margin in <see cref="InheritanceMarginViewMargin"/>.
 /// </summary>
-internal partial class InheritanceGlyphManager : ForegroundThreadAffinitizedObject, IDisposable
+internal sealed partial class InheritanceGlyphManager : IDisposable
 {
     // We want to our glyphs to have the same background color as the glyphs in GlyphMargin.
     private const string GlyphMarginName = "Indicator Margin";
@@ -42,7 +43,11 @@ internal partial class InheritanceGlyphManager : ForegroundThreadAffinitizedObje
     private readonly IEditorFormatMap _editorFormatMap;
     private readonly IAsynchronousOperationListener _listener;
     private readonly Canvas _glyphsContainer;
-    private readonly SimpleIntervalTree<GlyphData, GlyphDataIntrospector> _glyphDataTree;
+
+    /// <summary>
+    /// Mutable.  Must only be accessed from the UI thread.
+    /// </summary>
+    private SimpleMutableIntervalTree<GlyphData, GlyphDataIntrospector> _glyphDataTree;
 
     public InheritanceGlyphManager(
         Workspace workspace,
@@ -55,7 +60,7 @@ internal partial class InheritanceGlyphManager : ForegroundThreadAffinitizedObje
         IEditorFormatMap editorFormatMap,
         IAsynchronousOperationListener listener,
         Canvas canvas,
-        double heightAndWidthOfTheGlyph) : base(threadingContext)
+        double heightAndWidthOfTheGlyph)
     {
         _workspace = workspace;
         _textView = textView;
@@ -70,7 +75,7 @@ internal partial class InheritanceGlyphManager : ForegroundThreadAffinitizedObje
         _heightAndWidthOfTheGlyph = heightAndWidthOfTheGlyph;
         _editorFormatMap.FormatMappingChanged += FormatMappingChanged;
 
-        _glyphDataTree = new SimpleIntervalTree<GlyphData, GlyphDataIntrospector>(new GlyphDataIntrospector(), values: null);
+        _glyphDataTree = new(new GlyphDataIntrospector(), values: null);
         UpdateBackgroundColor();
     }
 
@@ -85,7 +90,7 @@ internal partial class InheritanceGlyphManager : ForegroundThreadAffinitizedObje
     /// </summary>
     public void AddGlyph(InheritanceMarginTag tag, SnapshotSpan span)
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
         var lines = _textView.TextViewLines;
         if (lines.IntersectsBufferSpan(span) && GetStartingLine(lines, span) is IWpfTextViewLine line)
         {
@@ -102,7 +107,7 @@ internal partial class InheritanceGlyphManager : ForegroundThreadAffinitizedObje
     /// </summary>
     public void RemoveGlyphs(SnapshotSpan snapshotSpan)
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
         var glyphDataToRemove = _glyphDataTree.GetIntervalsThatIntersectWith(snapshotSpan.Start, snapshotSpan.Length);
         foreach (var (_, glyph) in glyphDataToRemove)
         {
@@ -110,7 +115,7 @@ internal partial class InheritanceGlyphManager : ForegroundThreadAffinitizedObje
         }
 
         var remainingGlyphData = _glyphDataTree.Except(glyphDataToRemove).ToImmutableArray();
-        _glyphDataTree.ClearInPlace();
+        _glyphDataTree = new(new GlyphDataIntrospector(), values: null);
         foreach (var glyphData in remainingGlyphData)
         {
             _glyphDataTree.AddIntervalInPlace(glyphData);
@@ -124,12 +129,12 @@ internal partial class InheritanceGlyphManager : ForegroundThreadAffinitizedObje
     /// </summary>
     public void SetSnapshotAndUpdate(ITextSnapshot snapshot, IList<ITextViewLine> newOrReformattedLines, IList<ITextViewLine> translatedLines)
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
         if (!_glyphDataTree.IsEmpty())
         {
             // Go through all the existing visuals and invalidate or transform as appropriate.
             var allGlyphData = _glyphDataTree.ToImmutableArray();
-            _glyphDataTree.ClearInPlace();
+            _glyphDataTree = new(new GlyphDataIntrospector(), values: null);
             foreach (var (span, glyph) in allGlyphData)
             {
                 var newSpan = span.TranslateTo(snapshot, SpanTrackingMode.EdgeInclusive);
@@ -212,7 +217,7 @@ internal partial class InheritanceGlyphManager : ForegroundThreadAffinitizedObje
 
     private void UpdateBackgroundColor()
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
         var resourceDictionary = _editorFormatMap.GetProperties(GlyphMarginName);
         if (resourceDictionary.Contains(EditorFormatDefinition.BackgroundColorId))
         {

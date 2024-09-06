@@ -3,18 +3,14 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -71,7 +67,7 @@ internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSou
 
         var formattedDoc = await Formatter.FormatAsync(
             docWithAssemblyInfo,
-            SpecializedCollections.SingletonEnumerable(node.FullSpan),
+            [node.FullSpan],
             options.CleanupOptions.FormattingOptions,
             GetFormattingRules(docWithAssemblyInfo),
             cancellationToken).ConfigureAwait(false);
@@ -85,7 +81,7 @@ internal abstract partial class AbstractMetadataAsSourceService : IMetadataAsSou
     /// <summary>
     /// provide formatting rules to be used when formatting MAS file
     /// </summary>
-    protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
+    protected abstract ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document);
 
     /// <summary>
     /// Prepends a region directive at the top of the document with a name containing

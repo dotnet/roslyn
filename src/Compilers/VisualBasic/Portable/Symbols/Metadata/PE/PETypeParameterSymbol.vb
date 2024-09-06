@@ -245,6 +245,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
+        Public Overrides ReadOnly Property AllowsRefLikeType As Boolean
+            Get
+                Return (_flags And MetadataHelpers.GenericParameterAttributesAllowByRefLike) <> 0
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Variance As VarianceKind
             Get
                 Return CType((_flags And GenericParameterAttributes.VarianceMask), VarianceKind)

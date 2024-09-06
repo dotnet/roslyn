@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -205,7 +204,7 @@ internal class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactor
             }
         }
 
-        return operators.ToImmutable();
+        return operators.ToImmutableAndClear();
     }
 
     private static SyntaxNode GenerateStatement(

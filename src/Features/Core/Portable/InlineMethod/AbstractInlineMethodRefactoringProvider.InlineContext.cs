@@ -395,7 +395,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
             var operation = semanticModel.GetOperation(methodDeclarationSyntax, cancellationToken);
             visitor.Visit(operation);
 
-            return visitor._allSymbols.ToImmutableHashSet();
+            return [.. visitor._allSymbols];
         }
 
         public override void Visit(IOperation? operation)

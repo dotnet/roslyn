@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editing;
 
@@ -20,7 +19,7 @@ public static class ImportAdder
     private static async ValueTask<IEnumerable<TextSpan>> GetSpansAsync(Document document, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        return SpecializedCollections.SingletonEnumerable(root.FullSpan);
+        return [root.FullSpan];
     }
 
     private static async ValueTask<IEnumerable<TextSpan>> GetSpansAsync(Document document, SyntaxAnnotation annotation, CancellationToken cancellationToken)

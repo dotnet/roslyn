@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Drawing.Text;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -25,7 +24,7 @@ using static Microsoft.CodeAnalysis.UnitTests.WorkspaceTestUtilities;
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     [UseExportProvider]
-    public class SolutionWithSourceGeneratorTests : TestBase
+    public sealed class SolutionWithSourceGeneratorTests : TestBase
     {
         [Theory, CombinatorialData]
         public async Task SourceGeneratorBasedOnAdditionalFileGeneratesSyntaxTrees(
@@ -71,7 +70,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // reference with another reference that's equal, we correctly update generators. We'll have the underlying generators
             // be different since two AnalyzerFileReferences that are value equal but different instances would have their own generators as well.
             const string SharedPath = "Z:\\Generator.dll";
-            ISourceGenerator CreateGenerator() => new SingleFileTestGenerator("// StaticContent", hintName: "generated");
+            static ISourceGenerator CreateGenerator() => new SingleFileTestGenerator("// StaticContent", hintName: "generated");
 
             var analyzerReference1 = new TestGeneratorReferenceWithFilePathEquality(CreateGenerator(), SharedPath);
             var analyzerReference2 = new TestGeneratorReferenceWithFilePathEquality(CreateGenerator(), SharedPath);
@@ -87,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
 
             // Now remove and confirm that we don't have any files
-            project = project.WithAnalyzerReferences(SpecializedCollections.EmptyEnumerable<AnalyzerReference>());
+            project = project.WithAnalyzerReferences([]);
 
             Assert.Empty((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
         }
@@ -841,9 +840,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             static async Task AssertFrozen(Project project, SourceGeneratedDocumentIdentity identity)
             {
-                var frozenWithSingleDocument = project.Solution.WithFrozenSourceGeneratedDocument(identity, SourceText.From("// Frozen Document"));
+                var frozenWithSingleDocument = project.Solution.WithFrozenSourceGeneratedDocument(
+                    identity, DateTime.Now, SourceText.From("// Frozen Document"));
                 Assert.Equal("// Frozen Document", (await frozenWithSingleDocument.GetTextAsync()).ToString());
-                var frozenTree = Assert.Single((await frozenWithSingleDocument.Project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
+                var syntaxTrees = (await frozenWithSingleDocument.Project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees;
+                var frozenTree = Assert.Single(syntaxTrees);
                 Assert.Equal("// Frozen Document", frozenTree.ToString());
             }
         }
@@ -867,7 +868,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // And now freeze both of them at once
             var solutionWithFrozenDocuments = solution.WithFrozenSourceGeneratedDocuments(
-                [(sourceGeneratedDocument1.Identity, SourceText.From("// Frozen 1")), (sourceGeneratedDocument2.Identity, SourceText.From("// Frozen 2"))]);
+                [(sourceGeneratedDocument1.Identity, DateTime.Now, SourceText.From("// Frozen 1")), (sourceGeneratedDocument2.Identity, DateTime.Now, SourceText.From("// Frozen 2"))]);
 
             Assert.Equal("// Frozen 1", (await (await solutionWithFrozenDocuments.GetRequiredProject(projectId1).GetSourceGeneratedDocumentsAsync()).Single().GetTextAsync()).ToString());
             Assert.Equal("// Frozen 2", (await (await solutionWithFrozenDocuments.GetRequiredProject(projectId2).GetSourceGeneratedDocumentsAsync()).Single().GetTextAsync()).ToString());
@@ -886,7 +887,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var sourceGeneratedDocument = Assert.Single(await project.GetSourceGeneratedDocumentsAsync());
             var sourceGeneratedDocumentIdentity = sourceGeneratedDocument.Identity;
 
-            var frozenSolution = project.Solution.WithFrozenSourceGeneratedDocument(sourceGeneratedDocumentIdentity, SourceText.From("// Hello, World"));
+            var frozenSolution = project.Solution.WithFrozenSourceGeneratedDocument(
+                sourceGeneratedDocumentIdentity, sourceGeneratedDocument.GenerationDateTime, SourceText.From("// Hello, World"));
             Assert.Same(project.Solution, frozenSolution.Project.Solution);
         }
     }

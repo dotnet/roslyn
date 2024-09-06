@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ImplementInterface;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface;
 
@@ -59,7 +58,7 @@ internal class CSharpImplementInterfaceService : AbstractImplementInterfaceServi
                         {
                             classOrStructDecl = interfaceNode.Parent.Parent.Parent as TypeDeclarationSyntax;
                             classOrStructType = model.GetDeclaredSymbol(classOrStructDecl, cancellationToken) as INamedTypeSymbol;
-                            interfaceTypes = SpecializedCollections.SingletonEnumerable(interfaceType);
+                            interfaceTypes = [interfaceType];
 
                             return interfaceTypes != null && classOrStructType != null;
                         }

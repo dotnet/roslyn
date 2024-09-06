@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -12,8 +11,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -22,13 +19,10 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Threading;
-using Moq;
-using Newtonsoft.Json.Linq;
+using StreamJsonRpc;
 using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.AbstractLanguageServerProtocolTests;
 using IAsyncDisposable = System.IAsyncDisposable;
-using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
 {
@@ -49,7 +43,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             private readonly IAsyncDisposable _disposable;
 
             internal DocumentOutlineTestMocks(
-                LanguageServiceBrokerCallback languageServiceBrokerCallback,
+                LanguageServiceBrokerCallback<DocumentSymbolNewtonsoft.NewtonsoftRoslynDocumentSymbolParams, DocumentSymbolNewtonsoft.NewtonsoftRoslynDocumentSymbol[]> languageServiceBrokerCallback,
                 IThreadingContext threadingContext,
                 EditorTestWorkspace workspace,
                 IAsyncDisposable disposable)
@@ -61,7 +55,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 TextBuffer = workspace.Documents.Single().GetTextBuffer();
             }
 
-            internal LanguageServiceBrokerCallback LanguageServiceBrokerCallback { get; }
+            internal LanguageServiceBrokerCallback<DocumentSymbolNewtonsoft.NewtonsoftRoslynDocumentSymbolParams, DocumentSymbolNewtonsoft.NewtonsoftRoslynDocumentSymbol[]> LanguageServiceBrokerCallback { get; }
 
             internal IThreadingContext ThreadingContext { get; }
 
@@ -84,27 +78,26 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             var workspace = EditorTestWorkspace.CreateCSharp(code, composition: s_composition);
             var threadingContext = workspace.GetService<IThreadingContext>();
 
-            var clientCapabilities = new LSP.ClientCapabilities()
+            var testLspServer = await CreateTestLspServerAsync(workspace, new InitializationOptions
             {
-                TextDocument = new LSP.TextDocumentClientCapabilities()
-                {
-                    DocumentSymbol = new LSP.DocumentSymbolSetting()
-                    {
-                        HierarchicalDocumentSymbolSupport = true
-                    }
-                }
-            };
-
-            var testLspServer = await CreateTestLspServerAsync(workspace, new InitializationOptions { ClientCapabilities = clientCapabilities });
+                // Set the message formatter to use newtonsoft on the client side to match real behavior.
+                // Also avoid calling initialize / initialized as the test harness uses types only compatible with STJ.
+                // TODO - switch back to STJ with https://github.com/dotnet/roslyn/issues/73317
+                ClientMessageFormatter = new JsonMessageFormatter(),
+                CallInitialize = false,
+                CallInitialized = false
+            });
 
             var mocks = new DocumentOutlineTestMocks(RequestAsync, threadingContext, workspace, testLspServer);
             return mocks;
 
-            async Task<ManualInvocationResponse?> RequestAsync(ITextBuffer textBuffer, Func<JToken, bool> capabilitiesFilter, string languageServerName, string method, Func<ITextSnapshot, JToken> parameterFactory, CancellationToken cancellationToken)
+            async Task<DocumentSymbolNewtonsoft.NewtonsoftRoslynDocumentSymbol[]?> RequestAsync(Request<DocumentSymbolNewtonsoft.NewtonsoftRoslynDocumentSymbolParams, DocumentSymbolNewtonsoft.NewtonsoftRoslynDocumentSymbol[]> request, CancellationToken cancellationToken)
             {
-                var request = parameterFactory(textBuffer.CurrentSnapshot).ToObject<RoslynDocumentSymbolParams>();
-                var response = await testLspServer.ExecuteRequestAsync<RoslynDocumentSymbolParams, object[]>(method, request!, cancellationToken);
-                return new ManualInvocationResponse(string.Empty, JToken.FromObject(response!));
+                var docRequest = (DocumentRequest<DocumentSymbolNewtonsoft.NewtonsoftRoslynDocumentSymbolParams, DocumentSymbolNewtonsoft.NewtonsoftRoslynDocumentSymbol[]>)request;
+                var parameters = docRequest.ParameterFactory(docRequest.TextBuffer.CurrentSnapshot);
+                var response = await testLspServer.ExecuteRequestAsync<DocumentSymbolNewtonsoft.NewtonsoftRoslynDocumentSymbolParams, DocumentSymbolNewtonsoft.NewtonsoftRoslynDocumentSymbol[]>(request.Method, parameters, cancellationToken);
+
+                return response;
             }
         }
 
@@ -139,7 +132,21 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             var workspaceWaiter = operations.GetWaiter(FeatureAttribute.Workspace);
             await workspaceWaiter.ExpeditedWaitAsync();
 
-            return await TestLspServer.CreateAsync(workspace, initializationOptions, _logger);
+            var server = await TestLspServer.CreateAsync(workspace, initializationOptions, _logger);
+
+            // We disable the default test initialize call because the default test harness intialize types only support STJ (not newtonsoft).
+            // We only care that initialize has been called with some capability, so call with simple objects.
+            // TODO - remove with switch to STJ in https://github.com/dotnet/roslyn/issues/73317
+            await server.ExecuteRequestAsync<object, object>(Roslyn.LanguageServer.Protocol.Methods.InitializeName, new NewtonsoftInitializeParams() { Capabilities = new object() }, CancellationToken.None);
+
+            return server;
+        }
+
+        [DataContract]
+        private class NewtonsoftInitializeParams
+        {
+            [DataMember(Name = "capabilities")]
+            internal object? Capabilities { get; set; }
         }
     }
 }

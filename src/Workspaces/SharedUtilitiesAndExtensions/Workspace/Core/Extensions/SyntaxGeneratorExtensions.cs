@@ -40,8 +40,8 @@ internal static partial class SyntaxGeneratorExtensions
             : codeDefinitionFactory.QualifiedName(codeDefinitionFactory.IdentifierName(nameof(System)), codeDefinitionFactory.IdentifierName(nameof(NotImplementedException)));
 
         return codeDefinitionFactory.ObjectCreationExpression(
-                        notImplementedExceptionTypeSyntax,
-                        SpecializedCollections.EmptyList<SyntaxNode>());
+            notImplementedExceptionTypeSyntax,
+            arguments: []);
     }
 
     public static ImmutableArray<SyntaxNode> CreateThrowNotImplementedStatementBlock(

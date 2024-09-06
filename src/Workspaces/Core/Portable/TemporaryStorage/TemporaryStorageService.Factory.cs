@@ -6,7 +6,6 @@ using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host;
 
@@ -22,13 +21,7 @@ internal partial class TemporaryStorageService
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             var textFactory = workspaceServices.GetRequiredService<ITextFactoryService>();
-
-            // MemoryMapped files which are used by the TemporaryStorageService are present in .NET Framework (including Mono)
-            // and .NET Core Windows. For non-Windows .NET Core scenarios, we can return the TrivialTemporaryStorageService
-            // until https://github.com/dotnet/runtime/issues/30878 is fixed.
-            return PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono
-                ? new TemporaryStorageService(workspaceThreadingService, textFactory)
-                : TrivialTemporaryStorageService.Instance;
+            return new TemporaryStorageService(workspaceThreadingService, textFactory);
         }
     }
 }

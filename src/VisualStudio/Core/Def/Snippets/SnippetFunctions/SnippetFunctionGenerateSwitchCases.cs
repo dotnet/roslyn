@@ -41,10 +41,9 @@ internal class SnippetFunctionGenerateSwitchCases : AbstractSnippetFunction
 
     protected override async Task<(int ExitCode, string Value, int HasCurrentValue)> GetCurrentValueAsync(CancellationToken cancellationToken)
     {
-        if (!TryGetDocument(out var document))
-        {
+        var document = GetDocument(cancellationToken);
+        if (document is null)
             return (VSConstants.S_OK, string.Empty, HasCurrentValue: 0);
-        }
 
         // If the switch expression is invalid, still show the default case
         var hasCurrentValue = 1;
@@ -60,9 +59,7 @@ internal class SnippetFunctionGenerateSwitchCases : AbstractSnippetFunction
 
         var value = await snippetFunctionService.GetSwitchExpansionAsync(document, caseGenerationSpan.Value, switchExpressionSpan.Value, simplifierOptions, cancellationToken).ConfigureAwait(false);
         if (value == null)
-        {
             return (VSConstants.S_OK, snippetFunctionService.SwitchDefaultCaseForm, hasCurrentValue);
-        }
 
         return (VSConstants.S_OK, value, hasCurrentValue);
     }

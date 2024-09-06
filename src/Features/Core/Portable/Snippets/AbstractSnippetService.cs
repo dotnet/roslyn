@@ -46,7 +46,7 @@ internal abstract class AbstractSnippetService(IEnumerable<Lazy<ISnippetProvider
             arrayBuilder.AddIfNotNull(snippetData);
         }
 
-        return arrayBuilder.ToImmutable();
+        return arrayBuilder.ToImmutableAndClear();
     }
 
     private ImmutableArray<ISnippetProvider> GetSnippetProviders(Document document)

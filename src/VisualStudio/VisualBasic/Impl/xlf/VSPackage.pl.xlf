@@ -130,6 +130,36 @@ Używanie rozszerzonych kolorów; Schemat kolorów edytora;Margines dziedziczeni
         <target state="translated">Narzędzia języka Visual Basic</target>
         <note>Help &gt; About</note>
       </trans-unit>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>Always add new line on enter</source>
+        <target state="translated">Zawsze dodawaj nowy wiersz po naciśnięciu klawisza Enter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">Zawsze dołączaj fragmenty kodu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when ?-Tab is typed after an identifier</source>
+        <target state="translated">Dołącz fragmenty kodu po wpisaniu znaku ? po identyfikatorze i naciśnięciu klawisza Tab</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>Never add new line on enter</source>
+        <target state="translated">Nigdy nie dodawaj nowego wiersza po naciśnięciu klawisza Enter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">Nigdy nie dołączaj fragmentów kodu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>Only add new line on enter after end of fully typed word</source>
+        <target state="translated">Dodaj nowy wiersz tylko po naciśnięciu klawisza Enter na końcu w pełni wpisanego wyrazu</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

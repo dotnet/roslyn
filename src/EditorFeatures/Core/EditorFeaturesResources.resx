@@ -547,6 +547,9 @@ Do you want to proceed?</value>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  <data name="Run" xml:space="preserve">
+    <value>Run</value>
+  </data>
   <data name="Changes" xml:space="preserve">
     <value>Changes</value>
   </data>
@@ -609,6 +612,9 @@ Do you want to proceed?</value>
   </data>
   <data name="_0_declarations" xml:space="preserve">
     <value>'{0}' declarations</value>
+  </data>
+  <data name="_0_intercepted_locations" xml:space="preserve">
+    <value>'{0}' intercepted locations</value>
   </data>
   <data name="An_inline_rename_session_is_active_for_identifier_0" xml:space="preserve">
     <value>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</value>
@@ -922,5 +928,26 @@ Do you want to proceed?</value>
   </data>
   <data name="Roslyn_Test_Code_Markup" xml:space="preserve">
     <value>Roslyn Test Code Markup</value>
+  </data>
+  <data name="Obsolete_symbol" xml:space="preserve">
+    <value>Obsolete symbol</value>
+  </data>
+  <data name="Copilot" xml:space="preserve">
+    <value>Copilot</value>
+  </data>
+  <data name="Copilot_thinking" xml:space="preserve">
+    <value>Copilot thinking...</value>
+  </data>
+  <data name="Generate_summary_with_Copilot" xml:space="preserve">
+    <value>Generate summary with Copilot (might be inaccurate)</value>
+  </data>
+  <data name="Describe_with_Copilot" xml:space="preserve">
+    <value>Describe with Copilot</value>
+  </data>
+  <data name="On_the_fly_documentation" xml:space="preserve">
+    <value>On-the-fly documentation</value>
+  </data>
+  <data name="An_error_occurred_while_generating_documentation_for_this_code" xml:space="preserve">
+    <value>An error occurred while generating documentation for this code.</value>
   </data>
 </root>

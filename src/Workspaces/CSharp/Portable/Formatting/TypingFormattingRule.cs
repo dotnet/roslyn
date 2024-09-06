@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
@@ -13,7 +13,7 @@ internal class TypingFormattingRule : BaseFormattingRule
 {
     public static readonly TypingFormattingRule Instance = new();
 
-    public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+    public override void AddSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
     {
         if (TryAddSuppressionOnMissingCloseBraceCase(list, node))
         {
@@ -23,7 +23,7 @@ internal class TypingFormattingRule : BaseFormattingRule
         base.AddSuppressOperations(list, node, in nextOperation);
     }
 
-    private static bool TryAddSuppressionOnMissingCloseBraceCase(List<SuppressOperation> list, SyntaxNode node)
+    private static bool TryAddSuppressionOnMissingCloseBraceCase(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         var bracePair = node.GetBracePair();
         if (!bracePair.IsValidBracketOrBracePair())

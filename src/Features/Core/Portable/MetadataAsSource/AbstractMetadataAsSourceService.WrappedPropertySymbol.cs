@@ -66,5 +66,11 @@ internal partial class AbstractMetadataAsSourceService
                 return this;
             }
         }
+
+        public IPropertySymbol PartialDefinitionPart => _symbol.PartialDefinitionPart;
+
+        public IPropertySymbol PartialImplementationPart => _symbol.PartialImplementationPart;
+
+        public bool IsPartialDefinition => _symbol.IsPartialDefinition;
     }
 }

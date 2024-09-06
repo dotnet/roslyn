@@ -19,9 +19,11 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Suppression;
+
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
 [ExportConfigurationFixProvider(PredefinedConfigurationFixProviderNames.Suppression, LanguageNames.CSharp), Shared]
 internal class CSharpSuppressionCodeFixProvider : AbstractSuppressionCodeFixProvider
@@ -34,14 +36,14 @@ internal class CSharpSuppressionCodeFixProvider : AbstractSuppressionCodeFixProv
 
     protected override SyntaxTriviaList CreatePragmaRestoreDirectiveTrivia(Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken)
     {
-        var restoreKeyword = SyntaxFactory.Token(SyntaxKind.RestoreKeyword);
+        var restoreKeyword = RestoreKeyword;
         return CreatePragmaDirectiveTrivia(restoreKeyword, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine, cancellationToken);
     }
 
     protected override SyntaxTriviaList CreatePragmaDisableDirectiveTrivia(
         Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken)
     {
-        var disableKeyword = SyntaxFactory.Token(SyntaxKind.DisableKeyword);
+        var disableKeyword = DisableKeyword;
         return CreatePragmaDirectiveTrivia(disableKeyword, diagnostic, formatNode, needsLeadingEndOfLine, needsTrailingEndOfLine, cancellationToken);
     }
 
@@ -49,18 +51,18 @@ internal class CSharpSuppressionCodeFixProvider : AbstractSuppressionCodeFixProv
         SyntaxToken disableOrRestoreKeyword, Diagnostic diagnostic, Func<SyntaxNode, CancellationToken, SyntaxNode> formatNode, bool needsLeadingEndOfLine, bool needsTrailingEndOfLine, CancellationToken cancellationToken)
     {
         var diagnosticId = GetOrMapDiagnosticId(diagnostic, out var includeTitle);
-        var id = SyntaxFactory.IdentifierName(diagnosticId);
+        var id = IdentifierName(diagnosticId);
         var ids = new SeparatedSyntaxList<ExpressionSyntax>().Add(id);
-        var pragmaDirective = SyntaxFactory.PragmaWarningDirectiveTrivia(disableOrRestoreKeyword, ids, true);
+        var pragmaDirective = PragmaWarningDirectiveTrivia(disableOrRestoreKeyword, ids, true);
         pragmaDirective = (PragmaWarningDirectiveTriviaSyntax)formatNode(pragmaDirective, cancellationToken);
-        var pragmaDirectiveTrivia = SyntaxFactory.Trivia(pragmaDirective);
-        var endOfLineTrivia = SyntaxFactory.CarriageReturnLineFeed;
-        var triviaList = SyntaxFactory.TriviaList(pragmaDirectiveTrivia);
+        var pragmaDirectiveTrivia = Trivia(pragmaDirective);
+        var endOfLineTrivia = CarriageReturnLineFeed;
+        var triviaList = TriviaList(pragmaDirectiveTrivia);
 
         var title = includeTitle ? diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture) : null;
         if (!string.IsNullOrWhiteSpace(title))
         {
-            var titleComment = SyntaxFactory.Comment(string.Format(" // {0}", title)).WithAdditionalAnnotations(Formatter.Annotation);
+            var titleComment = Comment(string.Format(" // {0}", title)).WithAdditionalAnnotations(Formatter.Annotation);
             triviaList = triviaList.Add(titleComment);
         }
 
@@ -119,7 +121,7 @@ internal class CSharpSuppressionCodeFixProvider : AbstractSuppressionCodeFixProv
                 leadingTrivia: default));
 
         if (isFirst && !newRoot.HasLeadingTrivia)
-            compilationRoot = compilationRoot.WithLeadingTrivia(SyntaxFactory.Comment(GlobalSuppressionsFileHeaderComment));
+            compilationRoot = compilationRoot.WithLeadingTrivia(Comment(GlobalSuppressionsFileHeaderComment));
 
         return compilationRoot;
     }
@@ -156,17 +158,17 @@ internal class CSharpSuppressionCodeFixProvider : AbstractSuppressionCodeFixProv
         var attributeArguments = CreateAttributeArguments(targetSymbol, diagnostic, isAssemblyAttribute);
 
         var attributes = new SeparatedSyntaxList<AttributeSyntax>()
-            .Add(SyntaxFactory.Attribute(attributeName, attributeArguments));
+            .Add(Attribute(attributeName, attributeArguments));
 
         AttributeListSyntax attributeList;
         if (isAssemblyAttribute)
         {
-            var targetSpecifier = SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Token(SyntaxKind.AssemblyKeyword));
-            attributeList = SyntaxFactory.AttributeList(targetSpecifier, attributes);
+            var targetSpecifier = AttributeTargetSpecifier(AssemblyKeyword);
+            attributeList = AttributeList(targetSpecifier, attributes);
         }
         else
         {
-            attributeList = SyntaxFactory.AttributeList(attributes);
+            attributeList = AttributeList(attributes);
         }
 
         return attributeList.WithLeadingTrivia(leadingTrivia);
@@ -175,30 +177,30 @@ internal class CSharpSuppressionCodeFixProvider : AbstractSuppressionCodeFixProv
     private static AttributeArgumentListSyntax CreateAttributeArguments(ISymbol targetSymbol, Diagnostic diagnostic, bool isAssemblyAttribute)
     {
         // SuppressMessage("Rule Category", "Rule Id", Justification = nameof(Justification), Scope = nameof(Scope), Target = nameof(Target))
-        var category = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(diagnostic.Descriptor.Category));
-        var categoryArgument = SyntaxFactory.AttributeArgument(category);
+        var category = LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(diagnostic.Descriptor.Category));
+        var categoryArgument = AttributeArgument(category);
 
         var title = diagnostic.Descriptor.Title.ToString(CultureInfo.CurrentUICulture);
         var ruleIdText = string.IsNullOrWhiteSpace(title) ? diagnostic.Id : string.Format("{0}:{1}", diagnostic.Id, title);
-        var ruleId = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(ruleIdText));
-        var ruleIdArgument = SyntaxFactory.AttributeArgument(ruleId);
+        var ruleId = LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(ruleIdText));
+        var ruleIdArgument = AttributeArgument(ruleId);
 
-        var justificationExpr = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(FeaturesResources.Pending));
-        var justificationArgument = SyntaxFactory.AttributeArgument(SyntaxFactory.NameEquals("Justification"), nameColon: null, expression: justificationExpr);
+        var justificationExpr = LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(FeaturesResources.Pending));
+        var justificationArgument = AttributeArgument(NameEquals("Justification"), nameColon: null, expression: justificationExpr);
 
-        var attributeArgumentList = SyntaxFactory.AttributeArgumentList().AddArguments(categoryArgument, ruleIdArgument, justificationArgument);
+        var attributeArgumentList = AttributeArgumentList().AddArguments(categoryArgument, ruleIdArgument, justificationArgument);
 
         if (isAssemblyAttribute)
         {
             var scopeString = GetScopeString(targetSymbol.Kind);
             if (scopeString != null)
             {
-                var scopeExpr = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(scopeString));
-                var scopeArgument = SyntaxFactory.AttributeArgument(SyntaxFactory.NameEquals("Scope"), nameColon: null, expression: scopeExpr);
+                var scopeExpr = LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(scopeString));
+                var scopeArgument = AttributeArgument(NameEquals("Scope"), nameColon: null, expression: scopeExpr);
 
                 var targetString = GetTargetString(targetSymbol);
-                var targetExpr = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal(targetString));
-                var targetArgument = SyntaxFactory.AttributeArgument(SyntaxFactory.NameEquals("Target"), nameColon: null, expression: targetExpr);
+                var targetExpr = LiteralExpression(SyntaxKind.StringLiteralExpression, Literal(targetString));
+                var targetArgument = AttributeArgument(NameEquals("Target"), nameColon: null, expression: targetExpr);
 
                 attributeArgumentList = attributeArgumentList.AddArguments(scopeArgument, targetArgument);
             }
@@ -237,9 +239,9 @@ internal class CSharpSuppressionCodeFixProvider : AbstractSuppressionCodeFixProv
         var pragmaWarning = (PragmaWarningDirectiveTriviaSyntax)trivia.GetStructure();
         var currentKeyword = pragmaWarning.DisableOrRestoreKeyword;
         var toggledKeywordKind = currentKeyword.Kind() == SyntaxKind.DisableKeyword ? SyntaxKind.RestoreKeyword : SyntaxKind.DisableKeyword;
-        var toggledToken = SyntaxFactory.Token(currentKeyword.LeadingTrivia, toggledKeywordKind, currentKeyword.TrailingTrivia);
+        var toggledToken = Token(currentKeyword.LeadingTrivia, toggledKeywordKind, currentKeyword.TrailingTrivia);
         var newPragmaWarning = pragmaWarning.WithDisableOrRestoreKeyword(toggledToken);
-        return SyntaxFactory.Trivia(newPragmaWarning);
+        return Trivia(newPragmaWarning);
     }
 
     protected override SyntaxNode GetContainingStatement(SyntaxToken token)

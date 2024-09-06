@@ -12,7 +12,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -454,7 +453,7 @@ internal partial class InlineRenameSession
                     // Show merge conflicts comments as unresolvable conflicts, and do not
                     // show any other rename-related spans that overlap a merge conflict comment.
                     mergeResult.MergeConflictCommentSpans.TryGetValue(document.Id, out var mergeConflictComments);
-                    mergeConflictComments ??= SpecializedCollections.EmptyEnumerable<TextSpan>();
+                    mergeConflictComments = mergeConflictComments.NullToEmpty();
 
                     foreach (var conflict in mergeConflictComments)
                     {
@@ -545,7 +544,7 @@ internal partial class InlineRenameSession
                     if (oldDocument == newDocument)
                     {
                         // no changes
-                        return SpecializedCollections.EmptyEnumerable<TextChange>();
+                        return [];
                     }
 
                     if (newDocument.Id != oldDocument.Id)
@@ -558,7 +557,7 @@ internal partial class InlineRenameSession
 
                     if (oldText == newText)
                     {
-                        return SpecializedCollections.EmptyEnumerable<TextChange>();
+                        return [];
                     }
 
                     var textChanges = newText.GetTextChanges(oldText).ToList();

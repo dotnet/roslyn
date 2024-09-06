@@ -3,18 +3,16 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -372,62 +370,61 @@ internal static partial class Extensions
         var analyzers = documentAnalysisScope?.Analyzers ?? compilationWithAnalyzers.Analyzers;
         var suppressionAnalyzer = analyzers.OfType<IPragmaSuppressionsAnalyzer>().FirstOrDefault();
         if (suppressionAnalyzer == null)
-        {
             return [];
-        }
 
         if (documentAnalysisScope != null)
         {
             if (documentAnalysisScope.TextDocument is not Document document)
-            {
                 return [];
-            }
 
             using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnosticsBuilder);
-            await AnalyzeDocumentAsync(suppressionAnalyzer, document, documentAnalysisScope.Span, diagnosticsBuilder.Add).ConfigureAwait(false);
-            return diagnosticsBuilder.ToImmutable();
+            await AnalyzeDocumentAsync(
+                compilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer,
+                document, documentAnalysisScope.Span, diagnosticsBuilder.Add, cancellationToken).ConfigureAwait(false);
+            return diagnosticsBuilder.ToImmutableAndClear();
         }
         else
         {
             if (compilationWithAnalyzers.AnalysisOptions.ConcurrentAnalysis)
             {
-                var bag = new ConcurrentBag<Diagnostic>();
-                using var _ = ArrayBuilder<Task>.GetInstance(project.DocumentIds.Count, out var tasks);
-                foreach (var document in project.Documents)
-                {
-                    tasks.Add(AnalyzeDocumentAsync(suppressionAnalyzer, document, span: null, bag.Add));
-                }
-
-                foreach (var document in await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    tasks.Add(AnalyzeDocumentAsync(suppressionAnalyzer, document, span: null, bag.Add));
-                }
-
-                await Task.WhenAll(tasks).ConfigureAwait(false);
-                return bag.ToImmutableArray();
+                return await ProducerConsumer<Diagnostic>.RunParallelAsync(
+                    source: project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken),
+                    produceItems: static async (document, callback, args, cancellationToken) =>
+                    {
+                        var (compilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer) = args;
+                        await AnalyzeDocumentAsync(
+                            compilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer,
+                            document, span: null, callback, cancellationToken).ConfigureAwait(false);
+                    },
+                    args: (compilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer),
+                    cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnosticsBuilder);
-                foreach (var document in project.Documents)
+                await foreach (var document in project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken))
                 {
-                    await AnalyzeDocumentAsync(suppressionAnalyzer, document, span: null, diagnosticsBuilder.Add).ConfigureAwait(false);
+                    await AnalyzeDocumentAsync(
+                        compilationWithAnalyzers, analyzerInfoCache, suppressionAnalyzer,
+                        document, span: null, diagnosticsBuilder.Add, cancellationToken).ConfigureAwait(false);
                 }
 
-                foreach (var document in await project.GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    await AnalyzeDocumentAsync(suppressionAnalyzer, document, span: null, diagnosticsBuilder.Add).ConfigureAwait(false);
-                }
-
-                return diagnosticsBuilder.ToImmutable();
+                return diagnosticsBuilder.ToImmutableAndClear();
             }
         }
 
-        async Task AnalyzeDocumentAsync(IPragmaSuppressionsAnalyzer suppressionAnalyzer, Document document, TextSpan? span, Action<Diagnostic> reportDiagnostic)
+        static async Task AnalyzeDocumentAsync(
+            CompilationWithAnalyzers compilationWithAnalyzers,
+            DiagnosticAnalyzerInfoCache analyzerInfoCache,
+            IPragmaSuppressionsAnalyzer suppressionAnalyzer,
+            Document document,
+            TextSpan? span,
+            Action<Diagnostic> reportDiagnostic,
+            CancellationToken cancellationToken)
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            await suppressionAnalyzer.AnalyzeAsync(semanticModel, span, compilationWithAnalyzers,
-                analyzerInfoCache.GetDiagnosticDescriptors, reportDiagnostic, cancellationToken).ConfigureAwait(false);
+            await suppressionAnalyzer.AnalyzeAsync(
+                semanticModel, span, compilationWithAnalyzers, analyzerInfoCache.GetDiagnosticDescriptors, reportDiagnostic, cancellationToken).ConfigureAwait(false);
         }
     }
 }

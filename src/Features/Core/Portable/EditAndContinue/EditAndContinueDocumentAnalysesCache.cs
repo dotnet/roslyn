@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveStatementsMap> baseActiveStatements, AsyncLazy<EditAndContinueCapabilities> capabilities)
 {
     private readonly object _guard = new();
-    private readonly Dictionary<DocumentId, (AsyncLazy<DocumentAnalysisResults> results, Project baseProject, Document document, ImmutableArray<LinePositionSpan> activeStatementSpans)> _analyses = [];
+    private readonly Dictionary<DocumentId, (AsyncLazy<DocumentAnalysisResults> results, Project baseProject, Document document, ImmutableArray<ActiveStatementLineSpan> activeStatementSpans)> _analyses = [];
     private readonly AsyncLazy<ActiveStatementsMap> _baseActiveStatements = baseActiveStatements;
     private readonly AsyncLazy<EditAndContinueCapabilities> _capabilities = capabilities;
 
@@ -45,7 +44,7 @@ internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveState
             var tasks = documents.Select(document => Task.Run(() => GetDocumentAnalysisAsync(oldSolution, document.oldDocument, document.newDocument, activeStatementSpanProvider, cancellationToken).AsTask(), cancellationToken));
             var allResults = await Task.WhenAll(tasks).ConfigureAwait(false);
 
-            return allResults.ToImmutableArray();
+            return [.. allResults];
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
         {
@@ -97,7 +96,7 @@ internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveState
     /// <summary>
     /// Calculates unmapped active statement spans in the <paramref name="newDocument"/> from spans provided by <paramref name="newActiveStatementSpanProvider"/>.
     /// </summary>
-    private async Task<ImmutableArray<LinePositionSpan>> GetLatestUnmappedActiveStatementSpansAsync(Document? oldDocument, Document newDocument, ActiveStatementSpanProvider newActiveStatementSpanProvider, CancellationToken cancellationToken)
+    private async Task<ImmutableArray<ActiveStatementLineSpan>> GetLatestUnmappedActiveStatementSpansAsync(Document? oldDocument, Document newDocument, ActiveStatementSpanProvider newActiveStatementSpanProvider, CancellationToken cancellationToken)
     {
         if (oldDocument == null)
         {
@@ -118,7 +117,7 @@ internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveState
         if (!newLineMappings.Any())
         {
             var newMappedDocumentSpans = await newActiveStatementSpanProvider(newDocument.Id, newDocument.FilePath, cancellationToken).ConfigureAwait(false);
-            return newMappedDocumentSpans.SelectAsArray(s => s.LineSpan);
+            return newMappedDocumentSpans.SelectAsArray(static s => new ActiveStatementLineSpan(s.Id, s.LineSpan));
         }
 
         // The document has #line directives. In order to determine all active statement spans in the document
@@ -126,7 +125,7 @@ internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveState
         // We retrieve the tracking spans for all such documents and then map them back to this document.
 
         using var _1 = PooledDictionary<string, ImmutableArray<ActiveStatementSpan>>.GetInstance(out var mappedSpansByDocumentPath);
-        using var _2 = ArrayBuilder<LinePositionSpan>.GetInstance(out var activeStatementSpansBuilder);
+        using var _2 = ArrayBuilder<ActiveStatementLineSpan>.GetInstance(out var activeStatementSpansBuilder);
 
         var baseActiveStatements = await _baseActiveStatements.GetValueAsync(cancellationToken).ConfigureAwait(false);
         var analyzer = newDocument.Project.Services.GetRequiredService<IEditAndContinueAnalyzer>();
@@ -148,20 +147,20 @@ internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveState
             }
 
             // all baseline spans are being tracked in their corresponding mapped documents (if a span is deleted it's still tracked as empty):
-            var newMappedDocumentActiveSpan = newMappedDocumentSpans.GetStatement(oldActiveStatement.Statement.Ordinal);
+            var newMappedDocumentActiveSpan = newMappedDocumentSpans.Single(static (s, id) => s.Id == id, oldActiveStatement.Statement.Id);
             Debug.Assert(newMappedDocumentActiveSpan.UnmappedDocumentId == null || newMappedDocumentActiveSpan.UnmappedDocumentId == newDocument.Id);
 
             // TODO: optimize
             var newLineMappingContainingActiveSpan = newLineMappings.FirstOrDefault(mapping => mapping.MappedSpan.Span.Contains(newMappedDocumentActiveSpan.LineSpan));
 
             var unmappedSpan = newLineMappingContainingActiveSpan.MappedSpan.IsValid ? newLineMappingContainingActiveSpan.Span : default;
-            activeStatementSpansBuilder.Add(unmappedSpan);
+            activeStatementSpansBuilder.Add(new ActiveStatementLineSpan(newMappedDocumentActiveSpan.Id, unmappedSpan));
         }
 
-        return activeStatementSpansBuilder.ToImmutable();
+        return activeStatementSpansBuilder.ToImmutableAndClear();
     }
 
-    private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Project baseProject, Document document, ImmutableArray<LinePositionSpan> activeStatementSpans)
+    private AsyncLazy<DocumentAnalysisResults> GetDocumentAnalysisNoLock(Project baseProject, Document document, ImmutableArray<ActiveStatementLineSpan> activeStatementSpans)
     {
         // Do not reuse an analysis of the document unless its snasphot is exactly the same as was used to calculate the results.
         // Note that comparing document snapshots in effect compares the entire solution snapshots (when another document is changed a new solution snapshot is created

@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -34,45 +32,6 @@ internal static partial class Extensions
 
     public static SourceSpan ToSourceSpan(this LinePositionSpan span)
         => new(span.Start.Line, span.Start.Character, span.End.Line, span.End.Character);
-
-    public static ActiveStatement GetStatement(this ImmutableArray<ActiveStatement> statements, int ordinal)
-    {
-        foreach (var item in statements)
-        {
-            if (item.Ordinal == ordinal)
-            {
-                return item;
-            }
-        }
-
-        throw ExceptionUtilities.UnexpectedValue(ordinal);
-    }
-
-    public static ActiveStatementSpan GetStatement(this ImmutableArray<ActiveStatementSpan> statements, int ordinal)
-    {
-        foreach (var item in statements)
-        {
-            if (item.Ordinal == ordinal)
-            {
-                return item;
-            }
-        }
-
-        throw ExceptionUtilities.UnexpectedValue(ordinal);
-    }
-
-    public static UnmappedActiveStatement GetStatement(this ImmutableArray<UnmappedActiveStatement> statements, int ordinal)
-    {
-        foreach (var item in statements)
-        {
-            if (item.Statement.Ordinal == ordinal)
-            {
-                return item;
-            }
-        }
-
-        throw ExceptionUtilities.UnexpectedValue(ordinal);
-    }
 
     /// <summary>
     /// True if the project supports Edit and Continue.
@@ -224,6 +183,13 @@ internal static partial class Extensions
         => (IMethodSymbol?)constructor.ContainingType.GetMembers(WellKnownMemberNames.DeconstructMethodName).FirstOrDefault(
             static (symbol, constructor) => symbol is IMethodSymbol method && HasDeconstructorSignature(method, constructor), constructor)?.PartialAsImplementation();
 
+    // https://github.com/dotnet/roslyn/issues/73772: does this helper need to be updated to use IPropertySymbol.PartialImplementationPart?
     public static ISymbol PartialAsImplementation(this ISymbol symbol)
         => symbol is IMethodSymbol { PartialImplementationPart: { } impl } ? impl : symbol;
+
+    /// <summary>
+    /// Returns true if any member of the type implements an interface member explicitly.
+    /// </summary>
+    public static bool HasExplicitlyImplementedInterfaceMember(this INamedTypeSymbol type)
+        => type.GetMembers().Any(static member => member.ExplicitInterfaceImplementations().Any());
 }

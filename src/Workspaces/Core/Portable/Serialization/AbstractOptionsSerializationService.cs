@@ -146,7 +146,7 @@ internal abstract class AbstractOptionsSerializationService : IOptionsSerializat
             }
         }
 
-        var specificDiagnosticOptions = specificDiagnosticOptionsList ?? SpecializedCollections.EmptyEnumerable<KeyValuePair<string, ReportDiagnostic>>();
+        var specificDiagnosticOptions = specificDiagnosticOptionsList ?? [];
 
         var concurrentBuild = reader.ReadBoolean();
         var deterministic = reader.ReadBoolean();
@@ -232,7 +232,7 @@ internal abstract class AbstractOptionsSerializationService : IOptionsSerializat
             }
         }
 
-        var features = featuresList ?? SpecializedCollections.EmptyEnumerable<KeyValuePair<string, string>>();
+        var features = featuresList ?? [];
         return (kind, documentationMode, features);
     }
 }

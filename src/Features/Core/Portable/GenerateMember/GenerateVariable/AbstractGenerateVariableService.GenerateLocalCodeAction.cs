@@ -67,11 +67,7 @@ internal partial class AbstractGenerateVariableService<TService, TSimpleNameSynt
             var context = new CodeGenerationContext(beforeThisLocation: _state.IdentifierToken.GetLocation());
             var info = await _document.GetCodeGenerationInfoAsync(context, _fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-            return info.Service.AddStatements(
-                root,
-                SpecializedCollections.SingletonEnumerable(localStatement),
-                info,
-                cancellationToken: cancellationToken);
+            return info.Service.AddStatements(root, [localStatement], info, cancellationToken);
         }
     }
 }

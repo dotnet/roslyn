@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Implementation;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -106,7 +105,7 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
 
         // Apply suppressions fix in global suppressions file for non-compiler diagnostics and
         // in source only for compiler diagnostics.
-        var diagnosticsToFix = GetDiagnosticsToFix(shouldFixInProject, selectedEntriesOnly: false, isAddSuppression: true);
+        var diagnosticsToFix = GetDiagnosticsToFix(selectedEntriesOnly: false, isAddSuppression: true);
         if (!ApplySuppressionFix(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics: false, isAddSuppression: true, isSuppressionInSource: false, onlyCompilerDiagnostics: false, showPreviewChangesDialog: false))
         {
             return false;
@@ -152,63 +151,13 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
         return p => projectHierarchy == null || p.Id == projectIdToMatch;
     }
 
-    private async Task<ImmutableArray<DiagnosticData>> GetAllBuildDiagnosticsAsync(Func<Project, bool> shouldFixInProject, CancellationToken cancellationToken)
-    {
-        using var _ = CodeAnalysis.PooledObjects.ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
-
-        var buildDiagnostics = _buildErrorDiagnosticService.GetBuildErrors().Where(d => d.ProjectId != null && d.Severity != DiagnosticSeverity.Hidden);
-        var solution = _workspace.CurrentSolution;
-        foreach (var diagnosticsByProject in buildDiagnostics.GroupBy(d => d.ProjectId))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (diagnosticsByProject.Key == null)
-            {
-                // Diagnostics with no projectId cannot be suppressed.
-                continue;
-            }
-
-            var project = solution.GetProject(diagnosticsByProject.Key);
-            if (project != null && shouldFixInProject(project))
-            {
-                var diagnosticsByDocument = diagnosticsByProject.GroupBy(d => d.DocumentId);
-                foreach (var group in diagnosticsByDocument)
-                {
-                    var documentId = group.Key;
-                    if (documentId == null)
-                    {
-                        // Project diagnostics, just add all of them.
-                        builder.AddRange(group);
-                        continue;
-                    }
-
-                    // For document diagnostics ensure that whatever was reported is placed at a valid location for
-                    // the state the document is currently in.
-                    var document = project.GetDocument(documentId);
-                    if (document != null)
-                    {
-                        var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-                        var text = await tree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                        foreach (var diagnostic in group)
-                        {
-                            var span = diagnostic.DataLocation.UnmappedFileSpan.GetClampedTextSpan(text);
-                            builder.Add(diagnostic.WithLocations(diagnostic.DataLocation.WithSpan(span, tree), additionalLocations: default));
-                        }
-                    }
-                }
-            }
-        }
-
-        return builder.ToImmutable();
-    }
-
     private static string GetFixTitle(bool isAddSuppression)
         => isAddSuppression ? ServicesVSResources.Suppress_diagnostics : ServicesVSResources.Remove_suppressions;
 
     private static string GetWaitDialogMessage(bool isAddSuppression)
         => isAddSuppression ? ServicesVSResources.Computing_suppressions_fix : ServicesVSResources.Computing_remove_suppressions_fix;
 
-    private IEnumerable<DiagnosticData>? GetDiagnosticsToFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression)
+    private IEnumerable<DiagnosticData>? GetDiagnosticsToFix(bool selectedEntriesOnly, bool isAddSuppression)
     {
         var diagnosticsToFix = ImmutableHashSet<DiagnosticData>.Empty;
         void computeDiagnosticsToFix(IUIThreadOperationContext context)
@@ -219,7 +168,7 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
             // snapshots. Otherwise, get all diagnostics from the diagnostic service.
             var diagnosticsToFixTask = selectedEntriesOnly
                 ? _suppressionStateService.GetSelectedItemsAsync(isAddSuppression, cancellationToken)
-                : GetAllBuildDiagnosticsAsync(shouldFixInProject, cancellationToken);
+                : Task.FromResult<ImmutableArray<DiagnosticData>>([]);
 
             diagnosticsToFix = diagnosticsToFixTask.WaitAndGetResult(cancellationToken).ToImmutableHashSet();
         }
@@ -239,7 +188,7 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
 
     private bool ApplySuppressionFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression, bool isSuppressionInSource, bool onlyCompilerDiagnostics, bool showPreviewChangesDialog)
     {
-        var diagnosticsToFix = GetDiagnosticsToFix(shouldFixInProject, selectedEntriesOnly, isAddSuppression);
+        var diagnosticsToFix = GetDiagnosticsToFix(selectedEntriesOnly, isAddSuppression);
         return ApplySuppressionFix(diagnosticsToFix, shouldFixInProject, selectedEntriesOnly, isAddSuppression, isSuppressionInSource, onlyCompilerDiagnostics, showPreviewChangesDialog);
     }
 

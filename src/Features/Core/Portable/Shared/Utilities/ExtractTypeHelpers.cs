@@ -180,7 +180,7 @@ internal static class ExtractTypeHelpers
             typeParameters.AddRange(typesToVisit.Pop().TypeParameters);
         }
 
-        return typeParameters.ToImmutable();
+        return typeParameters.ToImmutableAndClear();
     }
 
     private static ImmutableArray<ITypeParameterSymbol> GetDirectlyReferencedTypeParameters(IEnumerable<ITypeParameterSymbol> potentialTypeParameters, IEnumerable<ISymbol> includedMembers)
@@ -194,7 +194,7 @@ internal static class ExtractTypeHelpers
             }
         }
 
-        return directlyReferencedTypeParameters.ToImmutable();
+        return directlyReferencedTypeParameters.ToImmutableAndClear();
     }
 
     private static bool DoesMemberReferenceTypeParameter(ISymbol member, ITypeParameterSymbol typeParameter, HashSet<ITypeSymbol> checkedTypes)

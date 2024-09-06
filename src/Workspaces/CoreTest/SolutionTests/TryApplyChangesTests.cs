@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Func<CompilationOptions, CompilationOptions, bool>? canApplyCompilationOptions = null)
                 : base(Host.Mef.MefHostServices.DefaultHost, workspaceKind: nameof(CustomizedCanApplyWorkspace))
             {
-                _allowedKinds = allowedKinds.ToImmutableArray();
+                _allowedKinds = [.. allowedKinds];
                 _canApplyParseOptions = canApplyParseOptions;
                 _canApplyCompilationOptions = canApplyCompilationOptions;
 

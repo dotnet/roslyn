@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -177,10 +176,13 @@ internal static partial class ConflictResolver
 
                         if (phase == 1)
                         {
-                            conflictLocations = conflictLocations.Concat(conflictResolution.RelatedLocations
-                                .Where(loc => documentIdsThatGetsAnnotatedAndRenamed.Contains(loc.DocumentId) && loc.Type == RelatedLocationType.PossiblyResolvableConflict)
-                                .Select(loc => new ConflictLocationInfo(loc)))
-                                .ToImmutableHashSet();
+                            conflictLocations =
+                            [
+                                .. conflictLocations,
+                                .. conflictResolution.RelatedLocations
+                                    .Where(loc => documentIdsThatGetsAnnotatedAndRenamed.Contains(loc.DocumentId) && loc.Type == RelatedLocationType.PossiblyResolvableConflict)
+                                    .Select(loc => new ConflictLocationInfo(loc)),
+                            ];
                         }
 
                         // Set the documents with conflicts that need to be processed in the next phase.

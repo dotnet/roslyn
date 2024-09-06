@@ -45,7 +45,6 @@ param (
   [switch]$warnAsError = $false,
   [switch]$sourceBuild = $false,
   [switch]$oop64bit = $true,
-  [switch]$oopCoreClr = $false,
   [switch]$lspEditor = $false,
 
   # official build settings
@@ -262,7 +261,7 @@ function BuildSolution() {
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
   $restoreUseStaticGraphEvaluation = $true
-  
+
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -615,6 +614,9 @@ function Deploy-VsixViaTool() {
   # Disable text spell checker to avoid spurious warnings in the error list
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Editor\EnableSpellChecker" Value dword 0
 
+  # Run source generators automatically during integration tests.
+  &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\SourceGeneratorExecutionBalanced" Value dword 0
+
   # Configure LSP
   $lspRegistryValue = [int]$lspEditor.ToBool()
   &$vsRegEdit set "$vsDir" $hive HKCU "FeatureFlags\Roslyn\LSP\Editor" Value dword $lspRegistryValue
@@ -627,10 +629,6 @@ function Deploy-VsixViaTool() {
   # Configure RemoteHostOptions.OOP64Bit for testing
   $oop64bitValue = [int]$oop64bit.ToBool()
   &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOP64Bit dword $oop64bitValue
-
-  # Configure RemoteHostOptions.OOPCoreClr for testing
-  $oopCoreClrValue = [int]$oopCoreClr.ToBool()
-  &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOPCoreClr dword $oopCoreClrValue
 }
 
 # Ensure that procdump is available on the machine.  Returns the path to the directory that contains
@@ -699,7 +697,6 @@ function Setup-IntegrationTestRun() {
   }
 
   $env:ROSLYN_OOP64BIT = "$oop64bit"
-  $env:ROSLYN_OOPCORECLR = "$oopCoreClr"
   $env:ROSLYN_LSPEDITOR = "$lspEditor"
 }
 

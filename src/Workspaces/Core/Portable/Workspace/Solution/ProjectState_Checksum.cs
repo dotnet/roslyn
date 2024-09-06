@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -45,9 +46,9 @@ internal partial class ProjectState
         {
             using (Logger.LogBlock(FunctionId.ProjectState_ComputeChecksumsAsync, FilePath, cancellationToken))
             {
-                var documentChecksumsTask = DocumentStates.GetChecksumsAndIdsAsync(cancellationToken);
-                var additionalDocumentChecksumsTask = AdditionalDocumentStates.GetChecksumsAndIdsAsync(cancellationToken);
-                var analyzerConfigDocumentChecksumsTask = AnalyzerConfigDocumentStates.GetChecksumsAndIdsAsync(cancellationToken);
+                var documentChecksumsTask = DocumentStates.GetDocumentChecksumsAndIdsAsync(cancellationToken);
+                var additionalDocumentChecksumsTask = AdditionalDocumentStates.GetDocumentChecksumsAndIdsAsync(cancellationToken);
+                var analyzerConfigDocumentChecksumsTask = AnalyzerConfigDocumentStates.GetDocumentChecksumsAndIdsAsync(cancellationToken);
 
                 var serializer = LanguageServices.SolutionServices.GetService<ISerializerService>();
 

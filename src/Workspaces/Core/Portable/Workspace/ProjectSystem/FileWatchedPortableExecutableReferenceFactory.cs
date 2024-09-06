@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -20,8 +19,6 @@ internal sealed class FileWatchedPortableExecutableReferenceFactory
 {
     private readonly object _gate = new();
 
-    private readonly SolutionServices _solutionServices;
-
     /// <summary>
     /// A file change context used to watch metadata references. This is lazy to avoid creating this immediately during our LSP process startup, when we
     /// don't yet know the LSP client's capabilities.
@@ -32,7 +29,7 @@ internal sealed class FileWatchedPortableExecutableReferenceFactory
     /// File watching tokens from <see cref="_fileReferenceChangeContext"/> that are watching metadata references. These are only created once we are actually applying a batch because
     /// we don't determine until the batch is applied if the file reference will actually be a file reference or it'll be a converted project reference.
     /// </summary>
-    private readonly Dictionary<PortableExecutableReference, IWatchedFile> _metadataReferenceFileWatchingTokens = [];
+    private readonly Dictionary<PortableExecutableReference, (IWatchedFile Token, int RefCount)> _metadataReferenceFileWatchingTokens = [];
 
     /// <summary>
     /// Stores the caller for a previous disposal of a reference produced by this class, to track down a double-dispose issue.
@@ -50,11 +47,8 @@ internal sealed class FileWatchedPortableExecutableReferenceFactory
     private readonly Dictionary<string, CancellationTokenSource> _metadataReferenceRefreshCancellationTokenSources = [];
 
     public FileWatchedPortableExecutableReferenceFactory(
-        SolutionServices solutionServices,
         IFileChangeWatcher fileChangeWatcher)
     {
-        _solutionServices = solutionServices;
-
         _fileReferenceChangeContext = new Lazy<IFileChangeContext>(() =>
         {
             var referenceDirectories = new HashSet<string>();
@@ -102,34 +96,56 @@ internal sealed class FileWatchedPortableExecutableReferenceFactory
 
     public event EventHandler<string>? ReferenceChanged;
 
-    public PortableExecutableReference CreateReferenceAndStartWatchingFile(string fullFilePath, MetadataReferenceProperties properties)
+    /// <summary>
+    /// Starts watching a particular PortableExecutableReference for changes to the file.
+    /// If this is already being watched , the reference count will be incremented.
+    /// This is *not* safe to attempt to call multiple times for the same project and reference (e.g. in applying workspace updates)
+    /// </summary>
+    public void StartWatchingReference(PortableExecutableReference reference, string fullFilePath)
     {
         lock (_gate)
         {
-            var reference = _solutionServices.GetRequiredService<IMetadataService>().GetReference(fullFilePath, properties);
-            var fileWatchingToken = _fileReferenceChangeContext.Value.EnqueueWatchingFile(fullFilePath);
-
-            _metadataReferenceFileWatchingTokens.Add(reference, fileWatchingToken);
-
-            return reference;
+            var (token, count) = _metadataReferenceFileWatchingTokens.GetOrAdd(reference, _ =>
+            {
+                var fileToken = _fileReferenceChangeContext.Value.EnqueueWatchingFile(fullFilePath);
+                return (fileToken, RefCount: 0);
+            });
+            _metadataReferenceFileWatchingTokens[reference] = (token, RefCount: count + 1);
         }
     }
 
+    /// <summary>
+    /// Decrements the reference count for the given PortableExecutableReference.
+    /// When the reference count reaches 0, the file watcher will be stopped.
+    /// This is *not* safe to attempt to call multiple times for the same project and reference (e.g. in applying workspace updates)
+    /// </summary>
     public void StopWatchingReference(PortableExecutableReference reference, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = 0)
     {
         lock (_gate)
         {
             var disposalLocation = callerFilePath + ", line " + callerLineNumber;
-
-            if (!_metadataReferenceFileWatchingTokens.TryGetValue(reference, out var watchedFile))
+            if (!_metadataReferenceFileWatchingTokens.TryGetValue(reference, out var watchedFileReference))
             {
+                // We're attempting to stop watching a file that we never started watching. This is a bug.
                 var existingDisposalStackTrace = _previousDisposalLocations.TryGetValue(reference, out var previousDisposalLocation);
                 throw new ArgumentException("The reference was already disposed at " + previousDisposalLocation);
             }
 
-            watchedFile.Dispose();
-            _metadataReferenceFileWatchingTokens.Remove(reference);
-            _previousDisposalLocations.Add(reference, disposalLocation);
+            var newRefCount = watchedFileReference.RefCount - 1;
+            Contract.ThrowIfFalse(newRefCount >= 0, "Ref count cannot be negative");
+            if (newRefCount == 0)
+            {
+                // No one else is watching this file, so stop watching it and remove from our map.
+                watchedFileReference.Token.Dispose();
+                _metadataReferenceFileWatchingTokens.Remove(reference);
+
+                _previousDisposalLocations.Remove(reference);
+                _previousDisposalLocations.Add(reference, disposalLocation);
+            }
+            else
+            {
+                _metadataReferenceFileWatchingTokens[reference] = (watchedFileReference.Token, newRefCount);
+            }
 
             // Note we still potentially have an outstanding change that we haven't raised a notification
             // for due to the delay we use. We could cancel the notification for that file path,

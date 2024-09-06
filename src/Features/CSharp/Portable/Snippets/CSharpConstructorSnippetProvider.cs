@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Snippets;
@@ -24,7 +23,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-internal sealed class CSharpConstructorSnippetProvider : AbstractConstructorSnippetProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpConstructorSnippetProvider() : AbstractConstructorSnippetProvider<ConstructorDeclarationSyntax>
 {
     private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
@@ -34,12 +35,6 @@ internal sealed class CSharpConstructorSnippetProvider : AbstractConstructorSnip
         SyntaxKind.InternalKeyword,
         SyntaxKind.StaticKeyword,
     };
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpConstructorSnippetProvider()
-    {
-    }
 
     protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
     {
@@ -80,20 +75,16 @@ internal sealed class CSharpConstructorSnippetProvider : AbstractConstructorSnip
         return new TextChange(TextSpan.FromBounds(position, position), constructorDeclaration.NormalizeWhitespace().ToFullString());
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-    {
-        return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<ConstructorDeclarationSyntax>(
-            caretTarget,
+    protected override int GetTargetCaretPosition(ConstructorDeclarationSyntax constructorDeclaration, SourceText sourceText)
+        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
+            constructorDeclaration,
             static d => d.Body!,
             sourceText);
-    }
 
-    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-    {
-        return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<ConstructorDeclarationSyntax>(
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, ConstructorDeclarationSyntax constructorDeclaration, CancellationToken cancellationToken)
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync(
             document,
-            FindSnippetAnnotation,
+            constructorDeclaration,
             static d => d.Body!,
             cancellationToken);
-    }
 }

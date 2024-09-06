@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -12,8 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -180,7 +177,7 @@ End Class", LanguageNames.VisualBasic);
                     var root = await document.GetSyntaxRootAsync(cancellationToken);
                     root = root.RemoveCSharpMember(0);
 
-                    expectedResult = SpecializedCollections.SingletonEnumerable(root.FullSpan);
+                    expectedResult = [root.FullSpan];
 
                     return document.WithSyntaxRoot(root);
                 }
@@ -202,7 +199,7 @@ End Class", LanguageNames.VisualBasic);
                     var classWithMember = @class.AddCSharpMember(CreateCSharpMethod(), 0);
                     root = root.ReplaceNode(@class, classWithMember);
 
-                    expectedResult = SpecializedCollections.SingletonEnumerable(root.FullSpan);
+                    expectedResult = [root.FullSpan];
 
                     return document.WithSyntaxRoot(root);
                 }
@@ -224,7 +221,7 @@ End Class", LanguageNames.VisualBasic);
                     var classWithMember = @class.AddCSharpMember(CreateCSharpMethod(), 0);
                     root = root.ReplaceNode(@class, classWithMember);
 
-                    expectedResult = SpecializedCollections.SingletonEnumerable(root.GetMember(0).GetMember(0).GetCodeCleanupSpan());
+                    expectedResult = [root.GetMember(0).GetMember(0).GetCodeCleanupSpan()];
 
                     return document.WithSyntaxRoot(root);
                 }
@@ -246,7 +243,7 @@ End Class", LanguageNames.VisualBasic);
                     var classWithMember = @class.RemoveCSharpMember(0);
                     root = root.ReplaceNode(@class, classWithMember);
 
-                    expectedResult = SpecializedCollections.SingletonEnumerable(root.GetMember(0).GetMember(0).GetCodeCleanupSpan());
+                    expectedResult = [root.GetMember(0).GetMember(0).GetCodeCleanupSpan()];
 
                     return document.WithSyntaxRoot(root);
                 }
@@ -361,7 +358,7 @@ End Module";
                     root = root.ReplaceToken(previousToken, CSharp.SyntaxFactory.Identifier(previousToken.LeadingTrivia, previousToken.ValueText, previousToken.TrailingTrivia));
                     root = root.ReplaceToken(nextToken, CSharp.SyntaxFactory.Token(nextToken.LeadingTrivia, CSharp.CSharpExtensions.Kind(nextToken), nextToken.TrailingTrivia));
 
-                    expectedResult = SpecializedCollections.EmptyEnumerable<TextSpan>();
+                    expectedResult = [];
 
                     return document.WithSyntaxRoot(root);
                 }

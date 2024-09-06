@@ -687,7 +687,7 @@ Public Class A3 : Inherits System.Attribute : End Class
 
             edits.VerifySemantics(
                 semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C"))},
-                capabilities:=EditAndContinueTestHelpers.Net6RuntimeCapabilities)
+                capabilities:=EditAndContinueTestVerifier.Net6RuntimeCapabilities)
         End Sub
 
         <Fact>
@@ -1094,7 +1094,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemantics(
-                capabilities:=EditAndContinueTestHelpers.BaselineCapabilities,
+                capabilities:=EditAndContinueTestVerifier.BaselineCapabilities,
                 diagnostics:={Diagnostic(RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime, "Sub F()", "CreateNewOnMetadataUpdateAttribute")})
         End Sub
 
@@ -1136,7 +1136,7 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemantics(
-                capabilities:=EditAndContinueTestHelpers.BaselineCapabilities,
+                capabilities:=EditAndContinueTestVerifier.BaselineCapabilities,
                 diagnostics:={Diagnostic(RudeEditKind.InsertNotSupportedByRuntime, "Class D", FeaturesResources.class_)})
         End Sub
 
@@ -2539,7 +2539,7 @@ End Class
                     SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("D.Invoke")),
                     SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("D.BeginInvoke"))
                 },
-                capabilities:=EditAndContinueTestHelpers.Net6RuntimeCapabilities)
+                capabilities:=EditAndContinueTestVerifier.Net6RuntimeCapabilities)
         End Sub
 
         <Fact>
@@ -3304,7 +3304,7 @@ End Structure
                         }),
                     DocumentResults()
                 },
-                capabilities:=EditAndContinueTestHelpers.Net6RuntimeCapabilities)
+                capabilities:=EditAndContinueTestVerifier.Net6RuntimeCapabilities)
         End Sub
 
         <Fact>
@@ -4789,6 +4789,10 @@ End Structure
                 "Update [Function F() As Task(Of String)]@11 -> [Async Function F() As Task(Of String)]@11")
 
             edits.VerifySemanticDiagnostics(
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
+
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.MakeMethodAsyncNotSupportedByRuntime, "Async Function F()")},
                 capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
@@ -4811,7 +4815,7 @@ End Structure
         Public Sub MethodUpdate1()
             Dim src1 As String =
                 "Class C" & vbLf &
-                  "Shared Sub Main()" & vbLf &
+                  "Shared Sub F()" & vbLf &
                      "Dim a As Integer = 1 : " &
                      "Dim b As Integer = 2 : " &
                      "Console.ReadLine(a + b) : " &
@@ -4820,7 +4824,7 @@ End Structure
 
             Dim src2 As String =
                 "Class C" & vbLf &
-                  "Shared Sub Main()" & vbLf &
+                  "Shared Sub F()" & vbLf &
                      "Dim a As Integer = 2 : " &
                      "Dim b As Integer = 1 : " &
                      "Console.ReadLine(a + b) : " &
@@ -4829,13 +4833,13 @@ End Structure
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyEdits(
-                "Update [Shared Sub Main()" & vbLf & "Dim a As Integer = 1 : Dim b As Integer = 2 : Console.ReadLine(a + b) : End Sub]@8 -> " &
-                       "[Shared Sub Main()" & vbLf & "Dim a As Integer = 2 : Dim b As Integer = 1 : Console.ReadLine(a + b) : End Sub]@8")
+                "Update [Shared Sub F()" & vbLf & "Dim a As Integer = 1 : Dim b As Integer = 2 : Console.ReadLine(a + b) : End Sub]@8 -> " &
+                       "[Shared Sub F()" & vbLf & "Dim a As Integer = 2 : Dim b As Integer = 1 : Console.ReadLine(a + b) : End Sub]@8")
 
             edits.VerifySemanticDiagnostics()
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Main"), preserveLocalVariables:=False)})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=False)})
         End Sub
 
         <Fact>
@@ -5268,7 +5272,7 @@ End Class"
                 "Update [Function F() As Task(Of String)]@11 -> [Iterator Function F() As Task(Of String)]@11")
 
             edits.VerifySemanticDiagnostics(
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>
@@ -5590,99 +5594,99 @@ End Interface
 
         <Fact>
         Public Sub MethodUpdate_LocalWithCollectionInitializer()
-            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim numbers() = {1, 2, 3} : End Sub : End Module"
-            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim numbers() = {1, 2, 3, 4} : End Sub : End Module"
+            Dim src1 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim numbers() = {1, 2, 3} : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim numbers() = {1, 2, 3, 4} : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Main()" & vbLf & "Dim numbers() = {1, 2, 3} : End Sub]@12 -> [Sub Main()" & vbLf & "Dim numbers() = {1, 2, 3, 4} : End Sub]@12")
+                "Update [Sub F()" & vbLf & "Dim numbers() = {1, 2, 3} : End Sub]@12 -> [Sub F()" & vbLf & "Dim numbers() = {1, 2, 3, 4} : End Sub]@12")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Main"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"))})
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_CatchVariableType()
-            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Try : Catch a As Exception : End Try : End Sub : End Module"
-            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Try : Catch a As IOException : End Try : End Sub : End Module"
+            Dim src1 = "Module C : " & vbLf & "Sub F()" & vbLf & "Try : Catch a As Exception : End Try : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub F()" & vbLf & "Try : Catch a As IOException : End Try : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Main()" & vbLf & "Try : Catch a As Exception : End Try : End Sub]@12 -> " &
-                       "[Sub Main()" & vbLf & "Try : Catch a As IOException : End Try : End Sub]@12")
+                "Update [Sub F()" & vbLf & "Try : Catch a As Exception : End Try : End Sub]@12 -> " &
+                       "[Sub F()" & vbLf & "Try : Catch a As IOException : End Try : End Sub]@12")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Main"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"))})
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_CatchVariableName()
-            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Try : Catch a As Exception : End Try : End Sub : End Module"
-            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Try : Catch b As Exception : End Try : End Sub : End Module"
+            Dim src1 = "Module C : " & vbLf & "Sub F()" & vbLf & "Try : Catch a As Exception : End Try : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub F()" & vbLf & "Try : Catch b As Exception : End Try : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Main()" & vbLf & "Try : Catch a As Exception : End Try : End Sub]@12 -> " &
-                       "[Sub Main()" & vbLf & "Try : Catch b As Exception : End Try : End Sub]@12")
+                "Update [Sub F()" & vbLf & "Try : Catch a As Exception : End Try : End Sub]@12 -> " &
+                       "[Sub F()" & vbLf & "Try : Catch b As Exception : End Try : End Sub]@12")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Main"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"))})
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_LocalVariableType1()
-            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a As Exception : End Sub : End Module"
-            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a As IOException : End Sub : End Module"
+            Dim src1 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim a As Exception : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim a As IOException : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Main()" & vbLf & "Dim a As Exception : End Sub]@12 -> " &
-                       "[Sub Main()" & vbLf & "Dim a As IOException : End Sub]@12")
+                "Update [Sub F()" & vbLf & "Dim a As Exception : End Sub]@12 -> " &
+                       "[Sub F()" & vbLf & "Dim a As IOException : End Sub]@12")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Main"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"))})
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_LocalVariableType2()
-            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a As New Exception : End Sub : End Module"
-            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a As New IOException : End Sub : End Module"
+            Dim src1 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim a As New Exception : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim a As New IOException : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Main()" & vbLf & "Dim a As New Exception : End Sub]@12 -> " &
-                       "[Sub Main()" & vbLf & "Dim a As New IOException : End Sub]@12")
+                "Update [Sub F()" & vbLf & "Dim a As New Exception : End Sub]@12 -> " &
+                       "[Sub F()" & vbLf & "Dim a As New IOException : End Sub]@12")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Main"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"))})
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_LocalVariableName1()
-            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a As Exception : End Sub : End Module"
-            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim b As Exception : End Sub : End Module"
+            Dim src1 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim a As Exception : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim b As Exception : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Main()" & vbLf & "Dim a As Exception : End Sub]@12 -> " &
-                       "[Sub Main()" & vbLf & "Dim b As Exception : End Sub]@12")
+                "Update [Sub F()" & vbLf & "Dim a As Exception : End Sub]@12 -> " &
+                       "[Sub F()" & vbLf & "Dim b As Exception : End Sub]@12")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Main"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"))})
         End Sub
 
         <Fact>
         Public Sub MethodUpdate_LocalVariableName2()
-            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a,b As Exception : End Sub : End Module"
-            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a,c As Exception : End Sub : End Module"
+            Dim src1 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim a,b As Exception : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim a,c As Exception : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [Sub Main()" & vbLf & "Dim a,b As Exception : End Sub]@12 -> " &
-                       "[Sub Main()" & vbLf & "Dim a,c As Exception : End Sub]@12")
+                "Update [Sub F()" & vbLf & "Dim a,b As Exception : End Sub]@12 -> " &
+                       "[Sub F()" & vbLf & "Dim a,c As Exception : End Sub]@12")
 
             edits.VerifySemantics(ActiveStatementsDescription.Empty,
-                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.Main"))})
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"))})
         End Sub
 
         <Fact>
@@ -5824,8 +5828,8 @@ End Interface
 
         <Fact>
         Public Sub MethodUpdate_StaticLocal()
-            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 1 : End Sub : End Module"
-            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 2 : End Sub : End Module"
+            Dim src1 = "Module C : " & vbLf & "Sub F()" & vbLf & "Static a = 0 : a = 1 : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub F()" & vbLf & "Static a = 0 : a = 2 : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
@@ -5834,8 +5838,8 @@ End Interface
 
         <Fact>
         Public Sub MethodUpdate_StaticLocal_Insert()
-            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a = 0 : a = 1 : End Sub : End Module"
-            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 2 : End Sub : End Module"
+            Dim src1 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim a = 0 : a = 1 : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub F()" & vbLf & "Static a = 0 : a = 2 : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
@@ -5844,12 +5848,12 @@ End Interface
 
         <Fact>
         Public Sub MethodUpdate_StaticLocal_Delete()
-            Dim src1 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Static a = 0 : a = 1 : End Sub : End Module"
-            Dim src2 = "Module C : " & vbLf & "Sub Main()" & vbLf & "Dim a = 0 : a = 2 : End Sub : End Module"
+            Dim src1 = "Module C : " & vbLf & "Sub F()" & vbLf & "Static a = 0 : a = 1 : End Sub : End Module"
+            Dim src2 = "Module C : " & vbLf & "Sub F()" & vbLf & "Dim a = 0 : a = 2 : End Sub : End Module"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.UpdateStaticLocal, "Sub Main()", GetResource("method")))
+                Diagnostic(RudeEditKind.UpdateStaticLocal, "Sub F()", GetResource("method")))
         End Sub
 
         <Fact>
@@ -10800,7 +10804,7 @@ End Class
                     SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of EventSymbol)("E").RemoveMethod),
                     SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").GetMember(Of EventSymbol)("E").RaiseMethod)
                 },
-                capabilities:=EditAndContinueTestHelpers.Net6RuntimeCapabilities)
+                capabilities:=EditAndContinueTestVerifier.Net6RuntimeCapabilities)
         End Sub
 
         <Fact>

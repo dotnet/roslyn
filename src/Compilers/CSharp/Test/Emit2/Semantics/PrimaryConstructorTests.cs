@@ -19671,7 +19671,7 @@ internal class MyOtherClass
                 // (57,32): warning CS0067: The event 'MyOtherClass.SomethingChanged' is never used
                 //     public event EventHandler? SomethingChanged;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "SomethingChanged").WithArguments("MyOtherClass.SomethingChanged").WithLocation(57, 32),
-                // (58,19): warning CS8618: Non-nullable property 'MyProperty' must contain a non-null value when exiting constructor. Consider declaring the property as nullable.
+                // (58,19): warning CS8618: Non-nullable property 'MyProperty' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
                 //     public string MyProperty { get; set; }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "MyProperty").WithArguments("property", "MyProperty").WithLocation(58, 19)
                 );

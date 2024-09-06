@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
@@ -16,34 +15,27 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-internal sealed class CSharpIfSnippetProvider : AbstractIfSnippetProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpIfSnippetProvider() : AbstractIfSnippetProvider<IfStatementSyntax, ExpressionSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpIfSnippetProvider()
-    {
-    }
+    public override string Identifier => CSharpSnippetIdentifiers.If;
 
-    protected override SyntaxNode GetCondition(SyntaxNode node)
-    {
-        var ifStatement = (IfStatementSyntax)node;
-        return ifStatement.Condition;
-    }
+    public override string Description => FeaturesResources.if_statement;
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-    {
-        return CSharpSnippetHelpers.GetTargetCaretPositionInBlock<IfStatementSyntax>(
-            caretTarget,
+    protected override ExpressionSyntax GetCondition(IfStatementSyntax node)
+        => node.Condition;
+
+    protected override int GetTargetCaretPosition(IfStatementSyntax ifStatement, SourceText sourceText)
+        => CSharpSnippetHelpers.GetTargetCaretPositionInBlock(
+            ifStatement,
             static s => (BlockSyntax)s.Statement,
             sourceText);
-    }
 
-    protected override Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-    {
-        return CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync<IfStatementSyntax>(
+    protected override Task<Document> AddIndentationToDocumentAsync(Document document, IfStatementSyntax ifStatement, CancellationToken cancellationToken)
+        => CSharpSnippetHelpers.AddBlockIndentationToDocumentAsync(
             document,
-            FindSnippetAnnotation,
+            ifStatement,
             static s => (BlockSyntax)s.Statement,
             cancellationToken);
-    }
 }

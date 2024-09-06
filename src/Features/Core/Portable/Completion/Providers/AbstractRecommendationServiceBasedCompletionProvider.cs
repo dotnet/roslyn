@@ -206,12 +206,30 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
         var name = SymbolCompletionItem.GetSymbolName(item);
         var kind = SymbolCompletionItem.GetKind(item);
         var isGeneric = SymbolCompletionItem.GetSymbolIsGeneric(item);
-        var relatedDocumentIds = document.Project.Solution.GetRelatedDocumentIds(document.Id);
         var typeConvertibilityCache = new Dictionary<ITypeSymbol, bool>(SymbolEqualityComparer.Default);
 
+        // First try with the document we're currently within.
+        var description = await TryGetDescriptionAsync(document.Id).ConfigureAwait(false);
+        if (description != null)
+            return description;
+
+        // If that didn't work, see about any related documents.
+        var relatedDocumentIds = document.Project.Solution.GetRelatedDocumentIds(document.Id);
         foreach (var relatedId in relatedDocumentIds)
         {
-            var relatedDocument = document.Project.Solution.GetRequiredDocument(relatedId);
+            if (relatedId == document.Id)
+                continue;
+
+            description = await TryGetDescriptionAsync(relatedId).ConfigureAwait(false);
+            if (description != null)
+                return description;
+        }
+
+        return CompletionDescription.Empty;
+
+        async Task<CompletionDescription?> TryGetDescriptionAsync(DocumentId documentId)
+        {
+            var relatedDocument = document.Project.Solution.GetRequiredDocument(documentId);
             var context = await Utilities.CreateSyntaxContextWithExistingSpeculativeModelAsync(relatedDocument, position, cancellationToken).ConfigureAwait(false) as TSyntaxContext;
             Contract.ThrowIfNull(context);
             var symbols = await TryGetSymbolsForContextAsync(completionContext: null, context, options, cancellationToken).ConfigureAwait(false);
@@ -235,9 +253,9 @@ internal abstract class AbstractRecommendationServiceBasedCompletionProvider<TSy
                     return await SymbolCompletionItem.GetDescriptionAsync(item, bestSymbols.SelectAsArray(t => t.Symbol), document, context.SemanticModel, displayOptions, cancellationToken).ConfigureAwait(false);
                 }
             }
-        }
 
-        return CompletionDescription.Empty;
+            return null;
+        }
 
         static bool SymbolMatches(SymbolAndSelectionInfo info, string? name, SymbolKind? kind, bool isGeneric)
         {

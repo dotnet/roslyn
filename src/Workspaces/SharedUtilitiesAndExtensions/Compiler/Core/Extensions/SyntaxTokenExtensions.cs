@@ -26,14 +26,14 @@ internal static class SyntaxTokenExtensions
     {
         return token.Parent != null
             ? token.Parent.AncestorsAndSelf().OfType<T>()
-            : SpecializedCollections.EmptyEnumerable<T>();
+            : [];
     }
 
     public static IEnumerable<SyntaxNode> GetAncestors(this SyntaxToken token, Func<SyntaxNode, bool> predicate)
     {
         return token.Parent != null
             ? token.Parent.AncestorsAndSelf().Where(predicate)
-            : SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+            : [];
     }
 
     public static SyntaxNode? GetCommonRoot(this SyntaxToken token1, SyntaxToken token2)
