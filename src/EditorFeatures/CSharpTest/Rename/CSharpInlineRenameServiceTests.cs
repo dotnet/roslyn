@@ -67,7 +67,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Rename
             var inlineRenameInfo = await inlineRenameService.GetRenameInfoAsync(document, cursorPosition, cancellationToken).ConfigureAwait(false);
             var inlineRenameLocationSet = await inlineRenameInfo.FindRenameLocationsAsync(options, cancellationToken).ConfigureAwait(false);
             var context = await inlineRenameService.GetRenameContextAsync(inlineRenameInfo, inlineRenameLocationSet, cancellationToken).ConfigureAwait(false);
-            var expectedContext = JsonSerializer.Deserialize<ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>>(expectedContextJson);
+            var serializationOptions = new JsonSerializerOptions
+            {
+                IncludeFields = true,
+            };
+            var expectedContext = JsonSerializer.Deserialize<ImmutableDictionary<string, ImmutableArray<(string, string)>>>(expectedContextJson, serializationOptions);
             AssertEx.AreEqual<ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>?>(expectedContext, context, comparer: ContextDictionaryComparer.Instance);
         }
 
@@ -83,7 +87,7 @@ public class Sampl$$eClass()
                 markup,
                 @"
 {
-    ""definition"" : [ ""public class SampleClass()\r\n{\r\n}"" ]
+    ""definition"" : [ {""Item1"":""test1.cs"", ""Item2"":""public class SampleClass()\r\n{\r\n}""} ]
 }",
                 new SymbolRenameOptions(),
                 CancellationToken.None);
