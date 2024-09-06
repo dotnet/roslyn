@@ -2574,6 +2574,67 @@ class C { int Y => 2; }
         EndDebuggingSession(debuggingSession);
     }
 
+    [Theory]
+    [CombinatorialData]
+    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2169491")]
+    internal async Task RudeEdit_SourceGenerators_DocumentUpdate_GeneratedDocumentAdd(SourceGeneratorExecutionPreference executionPreference)
+    {
+        var sourceV1 = """
+            class C { int Y => 1; }
+            """;
+
+        var sourceV2 = """
+            /* GENERATE: [assembly: System.Reflection.AssemblyMetadata("X", "Y")] */
+
+            class C { int Y => 2; }
+            """;
+
+        var generator = new TestSourceGenerator() { ExecuteImpl = GenerateSource };
+
+        using var workspace = CreateWorkspace(out var solution, out var service);
+        var workspaceConfig = Assert.IsType<TestWorkspaceConfigurationService>(workspace.Services.GetRequiredService<IWorkspaceConfigurationService>());
+        workspaceConfig.Options = new WorkspaceConfigurationOptions(executionPreference);
+
+        (solution, var document1) = AddDefaultTestProject(solution, sourceV1, generator);
+
+        var moduleId = EmitLibrary(sourceV1, generator: generator);
+        LoadLibraryToDebuggee(moduleId);
+
+        // Trigger initial source generation before debugging session starts.
+        // Causes source generator to run on the solution for the first time.
+        // Futher compilation access won't automatically trigger source generators,
+        // the EnC service has to do so.
+        _ = await solution.Projects.Single().GetCompilationAsync(CancellationToken.None);
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        EnterBreakState(debuggingSession);
+
+        // change the source (valid edit)
+        solution = solution.WithDocumentText(document1.Id, CreateText(sourceV2));
+
+        // validate solution update status and emit:
+        var results = await debuggingSession.EmitSolutionUpdateAsync(solution, s_noActiveSpans, CancellationToken.None).ConfigureAwait(false);
+        var updates = results.ModuleUpdates;
+        var diagnosticData = results.Diagnostics.ToDiagnosticData(solution);
+        var rudeEdits = results.RudeEdits;
+        var syntaxError = results.GetSyntaxErrorData(solution);
+        Assert.Empty(diagnosticData);
+        Assert.Null(syntaxError);
+
+        var diagnostics = await EmitSolutionUpdateResults.GetAllDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, updates.Status, CancellationToken.None).ConfigureAwait(false);
+
+        AssertEx.Equal(
+        [
+            "ENC0021: " + string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, FeaturesResources.attribute),
+        ], diagnostics.Select(d => $"{d.Id}: {d.Message}"));
+
+        Assert.Equal(ModuleUpdateStatus.RestartRequired, updates.Status);
+        Assert.Empty(updates.Updates);
+
+        EndDebuggingSession(debuggingSession);
+    }
+
     [Fact]
     public async Task ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentUpdate_LineChanges()
     {
