@@ -52,3 +52,10 @@ Never push the NuGet.config file with the original sources uncommented, so we kn
 ## 9. Update Metalama Framework
 
 See docs\updating-roslyn.md in the Metalama repo.
+
+## 10. Review
+
+- Use gitk command.
+- Show the changes done in the merge commit.
+- Tick the "ignore space change".
+- Pay attention to changes marked with "++" - these are the changes that have been done manually, not coming from either of the merged branches.
