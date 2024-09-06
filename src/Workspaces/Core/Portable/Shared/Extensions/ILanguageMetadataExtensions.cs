@@ -38,7 +38,7 @@ internal static class ILanguageMetadataExtensions
             list.Add(service);
         }
 
-        return builder.Select(kvp => new KeyValuePair<string, ImmutableArray<Lazy<TInterface, TMetadata>>>(kvp.Key, kvp.Value.ToImmutableAndFree())).ToImmutableDictionary();
+        return builder.Select(kvp => KeyValuePairUtil.Create(kvp.Key, kvp.Value.ToImmutableAndFree())).ToImmutableDictionary();
     }
 
     public static ImmutableDictionary<string, ImmutableArray<Lazy<TInterface, TMetadata>>> ToPerLanguageMapWithMultipleLanguages<TInterface, TMetadata>(this IEnumerable<Lazy<TInterface, TMetadata>> services)

@@ -71,6 +71,6 @@ internal static class PathMetadataUtilities
         }
 
         var parts = @namespace.Split(NamespaceSeparatorArray, options: StringSplitOptions.RemoveEmptyEntries);
-        return parts.ToImmutableArray();
+        return [.. parts];
     }
 }

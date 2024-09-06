@@ -29,29 +29,21 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
         SegmentedList<ClassifiedSpan> result,
         CancellationToken cancellationToken)
     {
-        if (syntax is NameSyntax name)
-        {
+        if (syntax is SimpleNameSyntax name)
             ClassifyTypeSyntax(name, semanticModel, result, cancellationToken);
-        }
     }
 
-    public override ImmutableArray<Type> SyntaxNodeTypes { get; } = [typeof(NameSyntax)];
-
-    protected override int? GetRightmostNameArity(SyntaxNode node)
-    {
-        if (node is ExpressionSyntax expressionSyntax)
-        {
-            return expressionSyntax.GetRightmostName()?.Arity;
-        }
-
-        return null;
-    }
+    public override ImmutableArray<Type> SyntaxNodeTypes { get; } =
+    [
+        typeof(IdentifierNameSyntax),
+        typeof(GenericNameSyntax),
+    ];
 
     protected override bool IsParentAnAttribute(SyntaxNode node)
         => node.IsParentKind(SyntaxKind.Attribute);
 
     private void ClassifyTypeSyntax(
-        NameSyntax name,
+        SimpleNameSyntax name,
         SemanticModel semanticModel,
         SegmentedList<ClassifiedSpan> result,
         CancellationToken cancellationToken)
@@ -66,7 +58,7 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     }
 
     private bool TryClassifySymbol(
-        NameSyntax name,
+        SimpleNameSyntax name,
         SymbolInfo symbolInfo,
         SegmentedList<ClassifiedSpan> result)
     {
@@ -97,7 +89,7 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     }
 
     private static bool TryClassifyAmbiguousSymbol(
-        NameSyntax name,
+        SimpleNameSyntax name,
         SymbolInfo symbolInfo,
         SegmentedList<ClassifiedSpan> result)
     {
@@ -131,7 +123,7 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     }
 
     private static bool TryClassifySymbol(
-        NameSyntax name,
+        SimpleNameSyntax name,
         [NotNullWhen(returnValue: true)] ISymbol? symbol,
         out ClassifiedSpan classifiedSpan)
     {
@@ -139,11 +131,11 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
         // nodes, we instead wait for the each IdentifierNameSyntax node to avoid
         // creating overlapping ClassifiedSpans.
         if (symbol is INamespaceSymbol namespaceSymbol &&
-            name is IdentifierNameSyntax identifierNameSyntax)
+            name is IdentifierNameSyntax)
         {
             // Do not classify the global:: namespace. It is already syntactically classified as a keyword.
             var isGlobalNamespace = namespaceSymbol.IsGlobalNamespace &&
-                identifierNameSyntax.Identifier.IsKind(SyntaxKind.GlobalKeyword);
+                name.Identifier.IsKind(SyntaxKind.GlobalKeyword);
             if (isGlobalNamespace)
             {
                 classifiedSpan = default;
@@ -208,11 +200,11 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
                 token = name.GetNameToken();
                 classifiedSpan = new ClassifiedSpan(token.Span, GetClassificationForMethod(methodSymbol));
                 return true;
-            case IPropertySymbol _:
+            case IPropertySymbol:
                 token = name.GetNameToken();
                 classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.PropertyName);
                 return true;
-            case IEventSymbol _:
+            case IEventSymbol:
                 token = name.GetNameToken();
                 classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.EventName);
                 return true;
@@ -229,7 +221,7 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
                 token = name.GetNameToken();
                 classifiedSpan = new ClassifiedSpan(token.Span, GetClassificationForLocal(localSymbol));
                 return true;
-            case ILabelSymbol _:
+            case ILabelSymbol:
                 token = name.GetNameToken();
                 classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.LabelName);
                 return true;
@@ -274,7 +266,7 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
             : ClassificationTypeNames.MethodName;
     }
 
-    private static bool IsInVarContext(NameSyntax name)
+    private static bool IsInVarContext(SimpleNameSyntax name)
     {
         return
             name.CheckParent<RefTypeSyntax>(v => v.Type == name) ||
@@ -286,18 +278,18 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     }
 
     private static bool TryClassifyFromIdentifier(
-        NameSyntax name,
+        SimpleNameSyntax name,
         SymbolInfo symbolInfo,
         SegmentedList<ClassifiedSpan> result)
     {
         // Okay - it wasn't a type. If the syntax matches "var q = from" or "q = from", and from
         // doesn't bind to anything then optimistically color from as a keyword.
-        if (name is IdentifierNameSyntax identifierName &&
-            identifierName.Identifier.HasMatchingText(SyntaxKind.FromKeyword) &&
+        if (name is IdentifierNameSyntax &&
+            name.Identifier.HasMatchingText(SyntaxKind.FromKeyword) &&
             symbolInfo.Symbol == null)
         {
-            var token = identifierName.Identifier;
-            if (identifierName.IsRightSideOfAnyAssignExpression() || identifierName.IsVariableDeclaratorValue())
+            var token = name.Identifier;
+            if (name.IsRightSideOfAnyAssignExpression() || name.IsVariableDeclaratorValue())
             {
                 result.Add(new ClassifiedSpan(token.Span, ClassificationTypeNames.Keyword));
                 return true;
@@ -308,21 +300,20 @@ internal sealed class NameSyntaxClassifier : AbstractNameSyntaxClassifier
     }
 
     private static bool TryClassifyValueIdentifier(
-        NameSyntax name,
+        SimpleNameSyntax name,
         SymbolInfo symbolInfo,
         SegmentedList<ClassifiedSpan> result)
     {
-        if (name is IdentifierNameSyntax identifierName &&
-            symbolInfo.Symbol.IsImplicitValueParameter())
+        if (symbolInfo.Symbol.IsImplicitValueParameter())
         {
-            result.Add(new ClassifiedSpan(identifierName.Identifier.Span, ClassificationTypeNames.Keyword));
+            result.Add(new ClassifiedSpan(name.Identifier.Span, ClassificationTypeNames.Keyword));
             return true;
         }
 
         return false;
     }
 
-    private static bool TryClassifySomeContextualKeywordIdentifiersAsKeywords(NameSyntax name, SymbolInfo symbolInfo, SegmentedList<ClassifiedSpan> result)
+    private static bool TryClassifySomeContextualKeywordIdentifiersAsKeywords(SimpleNameSyntax name, SymbolInfo symbolInfo, SegmentedList<ClassifiedSpan> result)
     {
         // Simple approach, if the user ever types one of identifiers from the list and it doesn't actually bind to anything, presume that
         // they intend to use it as a keyword. This works for all error

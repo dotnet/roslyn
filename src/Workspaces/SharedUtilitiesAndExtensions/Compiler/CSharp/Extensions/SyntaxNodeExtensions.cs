@@ -764,7 +764,7 @@ internal static partial class SyntaxNodeExtensions
             BaseNamespaceDeclarationSyntax @namespace => @namespace.Members,
             TypeDeclarationSyntax type => type.Members,
             EnumDeclarationSyntax @enum => @enum.Members,
-            _ => SpecializedCollections.EmptyEnumerable<MemberDeclarationSyntax>(),
+            _ => [],
         };
 
     public static bool IsInExpressionTree(

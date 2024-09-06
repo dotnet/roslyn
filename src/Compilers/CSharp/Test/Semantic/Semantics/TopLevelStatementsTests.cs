@@ -1113,13 +1113,24 @@ System.Console.Write(d);
 await System.Threading.Tasks.Task.Yield();
 ";
 
-            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-
-            comp.VerifyDiagnostics(
-                // (3,9): error CS8177: Async methods cannot have by-reference locals
+            var expectedDiagnostics = new[]
+            {
+                // (3,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // ref int d = ref c;
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "d").WithLocation(3, 9)
-                );
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "d").WithArguments("ref and unsafe in async and iterator methods").WithLocation(3, 9)
+            };
+
+            var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular12);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp.VerifyEmitDiagnostics();
+
+            comp = CreateCompilation(text, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -4411,9 +4422,9 @@ localI();
                 // (14,14): error CS0759: No defining declaration found for implementing declaration of partial method '<invalid-global-code>.localG()'
                 // partial void localG() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "localG").WithArguments("<invalid-global-code>.localG()").WithLocation(14, 14),
-                // (14,14): error CS0751: A partial method must be declared within a partial type
+                // (14,14): error CS0751: A partial member must be declared within a partial type
                 // partial void localG() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "localG").WithLocation(14, 14),
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "localG").WithLocation(14, 14),
                 // (15,1): error CS0103: The name 'localG' does not exist in the current context
                 // localG();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "localG").WithArguments("localG").WithLocation(15, 1),

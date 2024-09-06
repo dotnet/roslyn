@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpReversedForLoopSnippetProvider() : AbstractCSharpForLoopSnippetProvider
 {
-    public override string Identifier => "forr";
+    public override string Identifier => CSharpSnippetIdentifiers.ReversedFor;
 
     public override string Description => CSharpFeaturesResources.reversed_for_loop;
 

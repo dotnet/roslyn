@@ -1215,7 +1215,7 @@ public interface I
 public class C : I
 {
     public int F() => 1;
-}", new MetadataReference[] { NetStandard13.SystemRuntime, lib1.ToMetadataReference() });
+}", new MetadataReference[] { NetStandard13.References.SystemRuntime, lib1.ToMetadataReference() });
 
             lib2.Emit(file2.Path);
 
@@ -1277,7 +1277,7 @@ new C()
 
             var main = CreateCSharpCompilation(
                 @"public static class M { public static readonly C X = new C(); }",
-                new MetadataReference[] { NetStandard13.SystemRuntime, libExe.ToMetadataReference() },
+                new MetadataReference[] { NetStandard13.References.SystemRuntime, libExe.ToMetadataReference() },
                 mainName);
 
             var exeImage = libExe.EmitToArray();
@@ -1307,7 +1307,7 @@ new C()
 
             var main = CreateCSharpCompilation(
                 @"public static class M { public static readonly C X = new C(); }",
-                new MetadataReference[] { NetStandard13.SystemRuntime, libExe.ToMetadataReference() },
+                new MetadataReference[] { NetStandard13.References.SystemRuntime, libExe.ToMetadataReference() },
                 mainName);
 
             var exeImage = libExe.EmitToArray();

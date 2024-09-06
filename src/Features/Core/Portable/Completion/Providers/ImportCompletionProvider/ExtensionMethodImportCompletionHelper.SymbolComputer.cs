@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
@@ -87,43 +88,44 @@ internal static partial class ExtensionMethodImportCompletionHelper
             try
             {
                 // Find applicable symbols in parallel
-                using var _1 = ArrayBuilder<Task<ImmutableArray<IMethodSymbol>?>>.GetInstance(out var tasks);
+                var peReferenceMethodSymbolsTask = ProducerConsumer<IMethodSymbol?>.RunParallelAsync(
+                    source: GetAllRelevantPeReferences(_originatingDocument.Project),
+                    produceItems: static (peReference, callback, args, cancellationToken) =>
+                        args.@this.GetExtensionMethodSymbolsFromPeReferenceAsync(peReference, callback, args.forceCacheCreation, cancellationToken),
+                    args: (@this: this, forceCacheCreation),
+                    cancellationToken);
 
-                foreach (var peReference in GetAllRelevantPeReferences(_originatingDocument.Project))
-                {
-                    tasks.Add(Task.Run(() => GetExtensionMethodSymbolsFromPeReferenceAsync(
-                        peReference,
-                        forceCacheCreation,
-                        cancellationToken).AsTask(), cancellationToken));
-                }
+                var projectMethodSymbolsTask = ProducerConsumer<IMethodSymbol?>.RunParallelAsync(
+                    source: GetAllRelevantProjects(_originatingDocument.Project),
+                    produceItems: static (project, callback, args, cancellationToken) =>
+                        args.@this.GetExtensionMethodSymbolsFromProjectAsync(project, callback, args.forceCacheCreation, cancellationToken),
+                    args: (@this: this, forceCacheCreation),
+                    cancellationToken);
 
-                foreach (var project in GetAllRelevantProjects(_originatingDocument.Project))
-                {
-                    tasks.Add(Task.Run(() => GetExtensionMethodSymbolsFromProjectAsync(
-                        project,
-                        forceCacheCreation,
-                        cancellationToken), cancellationToken));
-                }
+                var results = await Task.WhenAll(peReferenceMethodSymbolsTask, projectMethodSymbolsTask).ConfigureAwait(false);
 
-                using var _2 = ArrayBuilder<IMethodSymbol>.GetInstance(out var symbols);
                 var isPartialResult = false;
 
-                var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-
-                foreach (var result in results)
+                using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(results[0].Length + results[1].Length, out var symbols);
+                foreach (var methodArray in results)
                 {
-                    // `null` indicates we don't have the index ready for the corresponding project/PE.
-                    // returns what we have even it means we only show partial results.
-                    if (result == null)
+                    foreach (var method in methodArray)
                     {
-                        isPartialResult = true;
-                        continue;
+                        // `null` indicates we don't have the index ready for the corresponding project/PE.
+                        // returns what we have even it means we only show partial results.
+                        if (method is null)
+                        {
+                            isPartialResult = true;
+                        }
+                        else
+                        {
+                            symbols.Add(method);
+                        }
                     }
-
-                    symbols.AddRange(result);
                 }
 
-                var browsableSymbols = symbols.ToImmutable()
+                var browsableSymbols = symbols
+                    .ToImmutable()
                     .FilterToVisibleAndBrowsableSymbols(hideAdvancedMembers, _originatingSemanticModel.Compilation);
 
                 return (browsableSymbols, isPartialResult);
@@ -148,8 +150,9 @@ internal static partial class ExtensionMethodImportCompletionHelper
         private static ImmutableArray<PortableExecutableReference> GetAllRelevantPeReferences(Project project)
             => project.MetadataReferences.OfType<PortableExecutableReference>().ToImmutableArray();
 
-        private async Task<ImmutableArray<IMethodSymbol>?> GetExtensionMethodSymbolsFromProjectAsync(
+        private async Task GetExtensionMethodSymbolsFromProjectAsync(
             Project project,
+            Action<IMethodSymbol?> callback,
             bool forceCacheCreation,
             CancellationToken cancellationToken)
         {
@@ -161,13 +164,12 @@ internal static partial class ExtensionMethodImportCompletionHelper
             else if (!_cacheService.ProjectItemsCache.TryGetValue(project.Id, out cacheEntry))
             {
                 // Use cached data if available, even checksum doesn't match. otherwise, returns null indicating cache not ready.
-                return null;
+                callback(null);
+                return;
             }
 
             if (!cacheEntry.ContainsExtensionMethod)
-            {
-                return ImmutableArray<IMethodSymbol>.Empty;
-            }
+                return;
 
             var originatingAssembly = _originatingSemanticModel.Compilation.Assembly;
             var filter = CreateAggregatedFilter(cacheEntry);
@@ -183,13 +185,19 @@ internal static partial class ExtensionMethodImportCompletionHelper
             var matchingMethodSymbols = GetPotentialMatchingSymbolsFromAssembly(
                 compilation.Assembly, filter, internalsVisible, cancellationToken);
 
-            return project == _originatingDocument.Project
-                ? GetExtensionMethodsForSymbolsFromSameCompilation(matchingMethodSymbols, cancellationToken)
-                : GetExtensionMethodsForSymbolsFromDifferentCompilation(matchingMethodSymbols, cancellationToken);
+            if (project == _originatingDocument.Project)
+            {
+                GetExtensionMethodsForSymbolsFromSameCompilation(matchingMethodSymbols, callback, cancellationToken);
+            }
+            else
+            {
+                GetExtensionMethodsForSymbolsFromDifferentCompilation(matchingMethodSymbols, callback, cancellationToken);
+            }
         }
 
-        private async ValueTask<ImmutableArray<IMethodSymbol>?> GetExtensionMethodSymbolsFromPeReferenceAsync(
+        private async Task GetExtensionMethodSymbolsFromPeReferenceAsync(
             PortableExecutableReference peReference,
+            Action<IMethodSymbol?> callback,
             bool forceCacheCreation,
             CancellationToken cancellationToken)
         {
@@ -210,7 +218,8 @@ internal static partial class ExtensionMethodImportCompletionHelper
                 else
                 {
                     // No cached data immediately available, returns null to indicate index not ready
-                    return null;
+                    callback(null);
+                    return;
                 }
             }
 
@@ -218,7 +227,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
                 !symbolInfo.ContainsExtensionMethod ||
                 _originatingSemanticModel.Compilation.GetAssemblyOrModuleSymbol(peReference) is not IAssemblySymbol assembly)
             {
-                return ImmutableArray<IMethodSymbol>.Empty;
+                return;
             }
 
             var filter = CreateAggregatedFilter(symbolInfo);
@@ -226,15 +235,14 @@ internal static partial class ExtensionMethodImportCompletionHelper
 
             var matchingMethodSymbols = GetPotentialMatchingSymbolsFromAssembly(assembly, filter, internalsVisible, cancellationToken);
 
-            return GetExtensionMethodsForSymbolsFromSameCompilation(matchingMethodSymbols, cancellationToken);
+            GetExtensionMethodsForSymbolsFromSameCompilation(matchingMethodSymbols, callback, cancellationToken);
         }
 
-        private ImmutableArray<IMethodSymbol> GetExtensionMethodsForSymbolsFromDifferentCompilation(
+        private void GetExtensionMethodsForSymbolsFromDifferentCompilation(
             MultiDictionary<ITypeSymbol, IMethodSymbol> matchingMethodSymbols,
+            Action<IMethodSymbol?> callback,
             CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var builder);
-
             // Matching extension method symbols are grouped based on their receiver type.
             foreach (var (declaredReceiverType, methodSymbols) in matchingMethodSymbols)
             {
@@ -292,21 +300,16 @@ internal static partial class ExtensionMethodImportCompletionHelper
                     }
 
                     if (_originatingSemanticModel.IsAccessible(_position, methodInOriginatingCompilation))
-                    {
-                        builder.Add(methodInOriginatingCompilation);
-                    }
+                        callback(methodInOriginatingCompilation);
                 }
             }
-
-            return builder.ToImmutable();
         }
 
-        private ImmutableArray<IMethodSymbol> GetExtensionMethodsForSymbolsFromSameCompilation(
+        private void GetExtensionMethodsForSymbolsFromSameCompilation(
             MultiDictionary<ITypeSymbol, IMethodSymbol> matchingMethodSymbols,
+            Action<IMethodSymbol?> callback,
             CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<IMethodSymbol>.GetInstance(out var builder);
-
             // Matching extension method symbols are grouped based on their receiver type.
             foreach (var (receiverType, methodSymbols) in matchingMethodSymbols)
             {
@@ -315,9 +318,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
                 // If we already checked an extension method with same receiver type before, and we know it can't be applied
                 // to the receiverTypeSymbol, then no need to proceed further.
                 if (_checkedReceiverTypes.TryGetValue(receiverType, out var cachedResult) && !cachedResult)
-                {
                     continue;
-                }
 
                 // We haven't seen this type yet. Try to check by reducing one extension method
                 // to the given receiver type and save the result.
@@ -335,14 +336,10 @@ internal static partial class ExtensionMethodImportCompletionHelper
                     foreach (var methodSymbol in methodSymbols)
                     {
                         if (_originatingSemanticModel.IsAccessible(_position, methodSymbol))
-                        {
-                            builder.Add(methodSymbol);
-                        }
+                            callback(methodSymbol);
                     }
                 }
             }
-
-            return builder.ToImmutable();
         }
 
         private MultiDictionary<ITypeSymbol, IMethodSymbol> GetPotentialMatchingSymbolsFromAssembly(
@@ -482,7 +479,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
         {
             using var _ = PooledHashSet<string>.GetInstance(out var allTypeNamesBuilder);
             AddNamesForTypeWorker(receiverTypeSymbol, allTypeNamesBuilder);
-            return allTypeNamesBuilder.ToImmutableArray();
+            return [.. allTypeNamesBuilder];
 
             static void AddNamesForTypeWorker(ITypeSymbol receiverTypeSymbol, PooledHashSet<string> builder)
             {

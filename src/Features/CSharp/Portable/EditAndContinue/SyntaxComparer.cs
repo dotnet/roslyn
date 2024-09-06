@@ -1003,7 +1003,7 @@ internal sealed class SyntaxComparer(
                 }
                 else
                 {
-                    parameters = SpecializedCollections.EmptyEnumerable<SyntaxToken>();
+                    parameters = [];
                 }
 
                 asyncKeyword = anonymous.AsyncKeyword;

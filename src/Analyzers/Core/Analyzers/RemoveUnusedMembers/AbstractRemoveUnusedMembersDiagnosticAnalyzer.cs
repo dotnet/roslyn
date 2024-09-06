@@ -534,7 +534,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                 // IDE0052 has a different message for method and property symbols.
                 switch (member)
                 {
-                    case IMethodSymbol _:
+                    case IMethodSymbol:
                         messageFormat = AnalyzersResources.Private_method_0_can_be_removed_as_it_is_never_invoked;
                         break;
 
@@ -611,10 +611,8 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                     stack.Clear();
                     stack.Push(typeDeclaration);
 
-                    while (stack.Count > 0)
+                    while (stack.TryPop(out var currentType))
                     {
-                        var currentType = stack.Pop();
-
                         // Add the doc comments on the type itself.
                         AddDocumentationComments(currentType, documentationComments);
 
@@ -663,8 +661,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                         AddDebuggerDisplayAttributeArguments(nestedType, builder);
                         break;
 
-                    case IPropertySymbol _:
-                    case IFieldSymbol _:
+                    case IPropertySymbol or IFieldSymbol:
                         AddDebuggerDisplayAttributeArgumentsCore(member, builder);
                         break;
                 }

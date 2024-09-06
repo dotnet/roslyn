@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
@@ -20,6 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class CSharpCollectionExpressionRewriter
@@ -46,20 +48,15 @@ internal static class CSharpCollectionExpressionRewriter
         var document = await ParsedDocument.CreateAsync(workspaceDocument, cancellationToken).ConfigureAwait(false);
 
 #if CODE_STYLE
-        var formattingOptions = SyntaxFormattingOptions.CommonDefaults;
+        var formattingOptions = CSharpSyntaxFormattingOptions.Default;
 #else
-        var formattingOptions = await workspaceDocument.GetSyntaxFormattingOptionsAsync(
+        var formattingOptions = (CSharpSyntaxFormattingOptions)await workspaceDocument.GetSyntaxFormattingOptionsAsync(
             fallbackOptions, cancellationToken).ConfigureAwait(false);
 #endif
 
         var indentationOptions = new IndentationOptions(formattingOptions);
 
-        // the option is currently not an editorconfig option, so not available in code style layer
-#if CODE_STYLE
-        var wrappingLength = CodeActionOptions.DefaultCollectionExpressionWrappingLength;
-#else
-        var wrappingLength = fallbackOptions.GetOptions(document.LanguageServices).CollectionExpressionWrappingLength;
-#endif
+        var wrappingLength = formattingOptions.CollectionExpressionWrappingLength;
 
         var initializer = getInitializer(expressionToReplace);
         var endOfLine = DetermineEndOfLine(document, expressionToReplace, formattingOptions);
@@ -117,9 +114,9 @@ internal static class CSharpCollectionExpressionRewriter
                 var nullTokenAnnotation = new SyntaxAnnotation();
                 var initializer = InitializerExpression(
                     SyntaxKind.CollectionInitializerExpression,
-                    Token(SyntaxKind.OpenBraceToken).WithAdditionalAnnotations(openBraceTokenAnnotation),
-                    [LiteralExpression(SyntaxKind.NullLiteralExpression, Token(SyntaxKind.NullKeyword).WithAdditionalAnnotations(nullTokenAnnotation))],
-                    Token(SyntaxKind.CloseBraceToken));
+                    OpenBraceToken.WithAdditionalAnnotations(openBraceTokenAnnotation),
+                    [LiteralExpression(SyntaxKind.NullLiteralExpression, NullKeyword.WithAdditionalAnnotations(nullTokenAnnotation))],
+                    CloseBraceToken);
 
                 // Update the doc with the new object (now with initializer).
                 var updatedRoot = document.Root.ReplaceNode(
@@ -146,9 +143,9 @@ internal static class CSharpCollectionExpressionRewriter
 
                 // Make the collection expression with the braces on new lines, at the desired brace indentation.
                 var finalCollection = CollectionExpression(
-                    Token(SyntaxKind.OpenBracketToken).WithLeadingTrivia(endOfLine, Whitespace(openBraceIndentation)).WithTrailingTrivia(endOfLine),
+                    OpenBracketToken.WithLeadingTrivia(endOfLine, Whitespace(openBraceIndentation)).WithTrailingTrivia(endOfLine),
                     SeparatedList<CollectionElementSyntax>(nodesAndTokens),
-                    Token(SyntaxKind.CloseBracketToken).WithLeadingTrivia(Whitespace(openBraceIndentation)));
+                    CloseBracketToken.WithLeadingTrivia(Whitespace(openBraceIndentation)));
 
                 // Now, figure out what trivia to move over from the original object over to the new collection.
                 return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
@@ -167,9 +164,9 @@ internal static class CSharpCollectionExpressionRewriter
                     nodesAndTokens[^1] = RemoveTrailingWhitespace(nodesAndTokens[^1]);
 
                 var collectionExpression = CollectionExpression(
-                    Token(SyntaxKind.OpenBracketToken).WithoutTrivia(),
+                    OpenBracketToken.WithoutTrivia(),
                     SeparatedList<CollectionElementSyntax>(nodesAndTokens),
-                    Token(SyntaxKind.CloseBracketToken).WithoutTrivia());
+                    CloseBracketToken.WithoutTrivia());
                 return collectionExpression.WithTriviaFrom(expressionToReplace);
             }
         }
@@ -337,7 +334,7 @@ internal static class CSharpCollectionExpressionRewriter
 
                     nodesAndTokens[^1] = lastNode.WithTrailingTrivia(lastNode.GetTrailingTrivia().Where(t => !trailingWhitespaceAndComments.Contains(t)));
 
-                    var commaToken = Token(SyntaxKind.CommaToken)
+                    var commaToken = CommaToken
                         .WithoutLeadingTrivia()
                         .WithTrailingTrivia(TriviaList(trailingWhitespaceAndComments).AddRange(triviaAfterComma));
 
@@ -403,7 +400,7 @@ internal static class CSharpCollectionExpressionRewriter
         {
             return useSpread
                 ? SpreadElement(
-                    Token(SyntaxKind.DotDotToken).WithLeadingTrivia(expression.GetLeadingTrivia()).WithTrailingTrivia(Space),
+                    DotDotToken.WithLeadingTrivia(expression.GetLeadingTrivia()).WithTrailingTrivia(Space),
                     expression.WithoutLeadingTrivia())
                 : ExpressionElement(expression);
         }

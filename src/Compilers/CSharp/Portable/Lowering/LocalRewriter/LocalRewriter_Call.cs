@@ -142,15 +142,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool invokedAsExtensionMethod,
             Syntax.SimpleNameSyntax? nameSyntax)
         {
-            var interceptableLocation = nameSyntax?.Location;
-            if (this._compilation.TryGetInterceptor(interceptableLocation) is not var (attributeLocation, interceptor))
+            if (this._compilation.TryGetInterceptor(nameSyntax) is not var (attributeLocation, interceptor))
             {
                 // The call was not intercepted.
                 return;
             }
 
             Debug.Assert(nameSyntax != null);
-            Debug.Assert(interceptableLocation != null);
             Debug.Assert(interceptor.IsDefinition);
             Debug.Assert(!interceptor.ContainingType.IsGenericType);
 
@@ -416,16 +414,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (Instrument)
                 {
                     rewrittenCall = Instrumenter.InstrumentCall(node, rewrittenCall);
-                }
-
-                if (node.Type.IsDynamic() && !method.ReturnType.IsDynamic())
-                {
-                    Debug.Assert(node.Type.IsDynamic());
-                    Debug.Assert(!method.ReturnsByRef);
-                    Debug.Assert(rewrittenCall.Type is not null);
-                    Debug.Assert(!rewrittenCall.Type.IsDynamic());
-                    Debug.Assert(!rewrittenCall.Type.IsVoidType());
-                    rewrittenCall = _factory.Convert(node.Type, rewrittenCall);
                 }
 
                 return rewrittenCall;
@@ -760,17 +748,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    refKind = rewrittenReceiver.GetRefKind();
-
-                    if (refKind == RefKind.None &&
-                        !rewrittenReceiver.Type.IsReferenceType &&
-                        Binder.HasHome(rewrittenReceiver,
-                                       Binder.AddressKind.Constrained,
-                                       _factory.CurrentFunction,
-                                       peVerifyCompatEnabled: false,
-                                       stackLocalsOpt: null))
+                    if (rewrittenReceiver.Type.IsReferenceType)
                     {
-                        refKind = RefKind.Ref;
+                        refKind = RefKind.None;
+                    }
+                    else
+                    {
+                        refKind = rewrittenReceiver.GetRefKind();
+
+                        if (refKind == RefKind.None &&
+                            Binder.HasHome(rewrittenReceiver,
+                                           Binder.AddressKind.Constrained,
+                                           _factory.CurrentFunction,
+                                           peVerifyCompatEnabled: false,
+                                           stackLocalsOpt: null))
+                        {
+                            refKind = RefKind.Ref;
+                        }
                     }
                 }
 

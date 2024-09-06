@@ -66,7 +66,7 @@ internal class ExtractMethodCodeRefactoringProvider : CodeRefactoringProvider
         var localFunctionAction = await ExtractLocalFunctionAsync(document, textSpan, extractOptions, cancellationToken).ConfigureAwait(false);
         actions.AddIfNotNull(localFunctionAction);
 
-        return actions.ToImmutable();
+        return actions.ToImmutableAndClear();
     }
 
     private static async Task<CodeAction> ExtractMethodAsync(

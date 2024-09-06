@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 
@@ -23,10 +22,6 @@ internal class SnippetCompletionItem
         string inlineDescription,
         ImmutableArray<string> additionalFilterTexts)
     {
-        var props = ImmutableArray.Create(
-            new KeyValuePair<string, string>("Position", position.ToString()),
-            new KeyValuePair<string, string>(SnippetIdentifierKey, snippetIdentifier));
-
         return CommonCompletionItem.Create(
             displayText: displayText,
             displayTextSuffix: displayTextSuffix,
@@ -35,7 +30,9 @@ internal class SnippetCompletionItem
             // Adding a space after the identifier string that way it will always be sorted after a keyword.
             sortText: snippetIdentifier + " ",
             filterText: snippetIdentifier,
-            properties: props,
+            properties: [
+                KeyValuePairUtil.Create("Position", position.ToString()),
+                KeyValuePairUtil.Create(SnippetIdentifierKey, snippetIdentifier)],
             isComplexTextEdit: true,
             inlineDescription: inlineDescription,
             rules: CompletionItemRules.Default)

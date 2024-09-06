@@ -872,9 +872,6 @@ class C
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (15,9): error CS0200: Property or indexer 'C.this[int, int]' cannot be assigned to -- it is read only
-                //         c[a: 1, d] = d;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "c[a: 1, d]").WithArguments("C.this[int, int]").WithLocation(15, 9)
                 );
         }
 

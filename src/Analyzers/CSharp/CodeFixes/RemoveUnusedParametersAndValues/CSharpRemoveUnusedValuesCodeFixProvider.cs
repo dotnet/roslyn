@@ -21,6 +21,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
 
+using static SyntaxFactory;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnusedValues), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
 internal class CSharpRemoveUnusedValuesCodeFixProvider :
@@ -38,7 +40,7 @@ internal class CSharpRemoveUnusedValuesCodeFixProvider :
         => CSharpSyntaxFormatting.Instance;
 
     protected override BlockSyntax WrapWithBlockIfNecessary(IEnumerable<StatementSyntax> statements)
-        => SyntaxFactory.Block(statements);
+        => Block(statements);
 
     protected override SyntaxToken GetForEachStatementIdentifier(ForEachStatementSyntax node)
         => node.Identifier;
@@ -63,7 +65,7 @@ internal class CSharpRemoveUnusedValuesCodeFixProvider :
                     // If we are generating a discard on the left of an initialization with an implicit object creation on the right,
                     // then we need to replace the implicit object creation with an explicit one.
                     // For example: 'TypeName v = new();' must be changed to '_ = new TypeName();'
-                    var objectCreationNode = SyntaxFactory.ObjectCreationExpression(
+                    var objectCreationNode = ObjectCreationExpression(
                         newKeyword: implicitObjectCreation.NewKeyword,
                         type: parent.Type,
                         argumentList: implicitObjectCreation.ArgumentList,
@@ -75,8 +77,8 @@ internal class CSharpRemoveUnusedValuesCodeFixProvider :
 
             case SyntaxKind.SingleVariableDesignation:
                 return newName.ValueText == AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName
-                    ? SyntaxFactory.DiscardDesignation().WithTriviaFrom(node)
-                    : SyntaxFactory.SingleVariableDesignation(newName).WithTriviaFrom(node);
+                    ? DiscardDesignation().WithTriviaFrom(node)
+                    : SingleVariableDesignation(newName).WithTriviaFrom(node);
 
             case SyntaxKind.CatchDeclaration:
                 var catchDeclaration = (CatchDeclarationSyntax)node;
@@ -84,8 +86,8 @@ internal class CSharpRemoveUnusedValuesCodeFixProvider :
 
             case SyntaxKind.VarPattern:
                 return node.IsParentKind(SyntaxKind.Subpattern)
-                    ? SyntaxFactory.DiscardPattern().WithTriviaFrom(node)
-                    : SyntaxFactory.DiscardDesignation();
+                    ? DiscardPattern().WithTriviaFrom(node)
+                    : DiscardDesignation();
 
             default:
                 Debug.Fail($"Unexpected node kind for local/parameter declaration or reference: '{node.Kind()}'");
@@ -105,7 +107,7 @@ internal class CSharpRemoveUnusedValuesCodeFixProvider :
                 parent.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9)
             {
                 var trailingTrivia = declarationPattern.Type.GetTrailingTrivia().AddRange(triviaToAppend);
-                return SyntaxFactory.TypePattern(declarationPattern.Type).WithTrailingTrivia(trailingTrivia);
+                return TypePattern(declarationPattern.Type).WithTrailingTrivia(trailingTrivia);
             }
 
             // 1) `... is { } variable` -> `... is { }`
@@ -132,7 +134,7 @@ internal class CSharpRemoveUnusedValuesCodeFixProvider :
             // If we are generating a discard on the left of an assignment with an implicit object creation on the right,
             // then we need to replace the implicit object creation with an explicit one.
             // For example: 'v = new();' must be changed to '_ = new TypeOfV();'
-            var objectCreationNode = SyntaxFactory.ObjectCreationExpression(
+            var objectCreationNode = ObjectCreationExpression(
                 newKeyword: implicitObjectCreation.NewKeyword,
                 type: type.GenerateTypeSyntax(allowVar: false),
                 argumentList: implicitObjectCreation.ArgumentList,
@@ -227,7 +229,7 @@ internal class CSharpRemoveUnusedValuesCodeFixProvider :
                 // Remove leading trivia from 'leftOfAssignment' as it should have been moved to 'newAssignmentTarget'.
                 leftOfAssignment = leftOfAssignment.WithoutLeadingTrivia();
                 return editor.Generator.AssignmentStatement(newAssignmentTarget,
-                    SyntaxFactory.BinaryExpression(SyntaxKind.CoalesceExpression, leftOfAssignment, rightOfAssignment));
+                    BinaryExpression(SyntaxKind.CoalesceExpression, leftOfAssignment, rightOfAssignment));
             }
         }
         else
@@ -239,7 +241,7 @@ internal class CSharpRemoveUnusedValuesCodeFixProvider :
                 return originalCompoundAssignment;
             }
 
-            return SyntaxFactory.BinaryExpression(mappedBinaryExpressionKind, leftOfAssignment, rightOfAssignment);
+            return BinaryExpression(mappedBinaryExpressionKind, leftOfAssignment, rightOfAssignment);
         }
     }
 

@@ -108,9 +108,9 @@ abstract partial class AbstractGoo : IGoo
                 // (37,22): error CS0539: 'AbstractGoo.Method12()' in explicit interface declaration is not found among members of the interface that can be implemented
                 //     static void IGoo.Method12() { }
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "Method12").WithArguments("AbstractGoo.Method12()").WithLocation(37, 22),
-                // (38,23): error CS0754: A partial method may not explicitly implement an interface method
+                // (38,23): error CS0754: A partial member may not explicitly implement an interface member
                 //     partial void IGoo.Method13();
-                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "Method13").WithLocation(38, 23),
+                Diagnostic(ErrorCode.ERR_PartialMemberNotExplicit, "Method13").WithLocation(38, 23),
                 // (20,38): error CS0535: 'AbstractGoo' does not implement interface member 'IGoo.Method12()'
                 // abstract partial class AbstractGoo : IGoo
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "IGoo").WithArguments("AbstractGoo", "IGoo.Method12()").WithLocation(20, 38),
@@ -1907,17 +1907,17 @@ class Base
     int field = 0;
 
     public virtual int Proprty1 { get { return 0; } }
-    public virtual ref int Property2 { get { return ref field; } }
-    public virtual ref int Property3 { get { return ref field; } }
+    public virtual ref int Property2 { get { return ref @field; } }
+    public virtual ref int Property3 { get { return ref @field; } }
 }
 
 class Derived : Base
 {
     int field = 0;
 
-    public override ref int Proprty1 { get { return ref field; } }
+    public override ref int Proprty1 { get { return ref @field; } }
     public override int Property2 { get { return 0; } }
-    public override ref int Property3 { get { return ref field; } }
+    public override ref int Property3 { get { return ref @field; } }
 }
 ";
             CreateCompilationWithMscorlib45(text).VerifyDiagnostics(

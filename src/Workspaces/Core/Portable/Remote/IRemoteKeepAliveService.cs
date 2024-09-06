@@ -26,6 +26,21 @@ internal sealed class RemoteKeepAliveSession : IDisposable
 {
     private readonly CancellationTokenSource _cancellationTokenSource = new();
 
+    private RemoteKeepAliveSession(
+        SolutionCompilationState compilationState,
+        RemoteHostClient? client)
+    {
+        if (client is null)
+            return;
+
+        // Now kick off the keep-alive work.  We don't wait on this as this will stick on the OOP side until
+        // the cancellation token triggers.
+        _ = client.TryInvokeAsync<IRemoteKeepAliveService>(
+            compilationState,
+            (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, cancellationToken),
+            _cancellationTokenSource.Token).AsTask();
+    }
+
     private RemoteKeepAliveSession(SolutionCompilationState compilationState, IAsynchronousOperationListener listener)
     {
         var cancellationToken = _cancellationTokenSource.Token;
@@ -44,7 +59,7 @@ internal sealed class RemoteKeepAliveSession : IDisposable
 
             // Now kick off the keep-alive work.  We don't wait on this as this will stick on the OOP side until
             // the cancellation token triggers.
-            var unused = client.TryInvokeAsync<IRemoteKeepAliveService>(
+            _ = client.TryInvokeAsync<IRemoteKeepAliveService>(
                 compilationState,
                 (service, solutionInfo, cancellationToken) => service.KeepAliveAsync(solutionInfo, cancellationToken),
                 cancellationToken).AsTask();
@@ -78,13 +93,27 @@ internal sealed class RemoteKeepAliveSession : IDisposable
     /// system know when unobserved async work is kicked off in case we have any tooling that keep track of this for
     /// any reason (for example for tracking down problems in testing scenarios).
     /// </remarks>
+    /// <remarks>
+    /// This synchronous entrypoint should be used only in contexts where using the async <see
+    /// cref="CreateAsync(Solution, CancellationToken)"/> is not possible (for example, in a constructor).
+    /// </remarks>
     public static RemoteKeepAliveSession Create(Solution solution, IAsynchronousOperationListener listener)
-        => Create(solution.CompilationState, listener);
+        => new(solution.CompilationState, listener);
 
-    /// <inheritdoc cref="Create(Solution, IAsynchronousOperationListener)"/>
-    public static RemoteKeepAliveSession Create(
-        SolutionCompilationState compilationState, IAsynchronousOperationListener listener)
+    /// <summary>
+    /// Creates a session between the host and OOP, effectively pinning this <paramref name="solution"/> until <see
+    /// cref="IDisposable.Dispose"/> is called on it.  By pinning the solution we ensure that all calls to OOP for
+    /// the same solution during the life of this session do not need to resync the solution.  Nor do they then need
+    /// to rebuild any compilations they've already built due to the solution going away and then coming back.
+    /// </summary>
+    public static Task<RemoteKeepAliveSession> CreateAsync(Solution solution, CancellationToken cancellationToken)
+        => CreateAsync(solution.CompilationState, cancellationToken);
+
+    /// <inheritdoc cref="CreateAsync(Solution, CancellationToken)"/>
+    public static async Task<RemoteKeepAliveSession> CreateAsync(
+        SolutionCompilationState compilationState, CancellationToken cancellationToken)
     {
-        return new RemoteKeepAliveSession(compilationState, listener);
+        var client = await RemoteHostClient.TryGetClientAsync(compilationState.Services, cancellationToken).ConfigureAwait(false);
+        return new RemoteKeepAliveSession(compilationState, client);
     }
 }

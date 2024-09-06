@@ -55,7 +55,7 @@ internal sealed class ImplementAbstractClassData(
             return null;
 
         var unimplementedMembers = classType.GetAllUnimplementedMembers(
-            SpecializedCollections.SingletonEnumerable(abstractClassType),
+            [abstractClassType],
             includeMembersRequiringExplicitImplementation: false,
             cancellationToken);
 
@@ -288,7 +288,7 @@ internal sealed class ImplementAbstractClassData(
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static bool InheritsFromOrEquals(ITypeSymbol type, ITypeSymbol baseType)

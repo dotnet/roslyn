@@ -62,7 +62,7 @@ internal partial class AbstractGenerateParameterizedMemberService<TService, TSim
             var nonClassTypes = constraints.Where(ts => ts.TypeKind != TypeKind.Class).ToList();
 
             classTypes = MergeClassTypes(classTypes);
-            constraints = classTypes.Concat(nonClassTypes).ToList();
+            constraints = [.. classTypes, .. nonClassTypes];
             if (constraints.SequenceEqual(typeParameter.ConstraintTypes))
             {
                 return typeParameter;

@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Runtime.CompilerServices;
 
 namespace Roslyn.Utilities;
@@ -22,11 +23,11 @@ internal static partial class Contract
     /// all builds
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ThrowIfNull<T>([NotNull] T value, [CallerLineNumber] int lineNumber = 0) where T : class?
+    public static void ThrowIfNull<T>([NotNull] T value, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? filePath = null) where T : class?
     {
         if (value is null)
         {
-            Fail("Unexpected null", lineNumber);
+            Fail("Unexpected null", lineNumber, filePath);
         }
     }
 
@@ -35,11 +36,11 @@ internal static partial class Contract
     /// all builds
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ThrowIfNull<T>([NotNull] T? value, [CallerLineNumber] int lineNumber = 0) where T : struct
+    public static void ThrowIfNull<T>([NotNull] T? value, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? filePath = null) where T : struct
     {
         if (value is null)
         {
-            Fail("Unexpected null", lineNumber);
+            Fail("Unexpected null", lineNumber, filePath);
         }
     }
 
@@ -48,11 +49,11 @@ internal static partial class Contract
     /// all builds
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ThrowIfNull<T>([NotNull] T value, string message, [CallerLineNumber] int lineNumber = 0)
+    public static void ThrowIfNull<T>([NotNull] T value, string message, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? filePath = null)
     {
         if (value is null)
         {
-            Fail(message, lineNumber);
+            Fail(message, lineNumber, filePath);
         }
     }
 
@@ -61,11 +62,11 @@ internal static partial class Contract
     /// all builds
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ThrowIfNull<T>([NotNull] T value, [InterpolatedStringHandlerArgument("value")] ThrowIfNullInterpolatedStringHandler<T> message, [CallerLineNumber] int lineNumber = 0)
+    public static void ThrowIfNull<T>([NotNull] T value, [InterpolatedStringHandlerArgument("value")] ThrowIfNullInterpolatedStringHandler<T> message, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? filePath = null)
     {
         if (value is null)
         {
-            Fail(message.GetFormattedText(), lineNumber);
+            Fail(message.GetFormattedText(), lineNumber, filePath);
         }
     }
 
@@ -74,11 +75,11 @@ internal static partial class Contract
     /// in all builds
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ThrowIfFalse([DoesNotReturnIf(parameterValue: false)] bool condition, [CallerLineNumber] int lineNumber = 0)
+    public static void ThrowIfFalse([DoesNotReturnIf(parameterValue: false)] bool condition, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? filePath = null)
     {
         if (!condition)
         {
-            Fail("Unexpected false", lineNumber);
+            Fail("Unexpected false", lineNumber, filePath);
         }
     }
 
@@ -87,11 +88,11 @@ internal static partial class Contract
     /// in all builds
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ThrowIfFalse([DoesNotReturnIf(parameterValue: false)] bool condition, string message, [CallerLineNumber] int lineNumber = 0)
+    public static void ThrowIfFalse([DoesNotReturnIf(parameterValue: false)] bool condition, string message, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? filePath = null)
     {
         if (!condition)
         {
-            Fail(message, lineNumber);
+            Fail(message, lineNumber, filePath);
         }
     }
 
@@ -100,11 +101,11 @@ internal static partial class Contract
     /// in all builds
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ThrowIfFalse([DoesNotReturnIf(parameterValue: false)] bool condition, [InterpolatedStringHandlerArgument("condition")] ThrowIfFalseInterpolatedStringHandler message, [CallerLineNumber] int lineNumber = 0)
+    public static void ThrowIfFalse([DoesNotReturnIf(parameterValue: false)] bool condition, [InterpolatedStringHandlerArgument("condition")] ThrowIfFalseInterpolatedStringHandler message, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? filePath = null)
     {
         if (!condition)
         {
-            Fail(message.GetFormattedText(), lineNumber);
+            Fail(message.GetFormattedText(), lineNumber, filePath);
         }
     }
 
@@ -113,11 +114,11 @@ internal static partial class Contract
     /// all builds.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ThrowIfTrue([DoesNotReturnIf(parameterValue: true)] bool condition, [CallerLineNumber] int lineNumber = 0)
+    public static void ThrowIfTrue([DoesNotReturnIf(parameterValue: true)] bool condition, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? filePath = null)
     {
         if (condition)
         {
-            Fail("Unexpected true", lineNumber);
+            Fail("Unexpected true", lineNumber, filePath);
         }
     }
 
@@ -126,11 +127,11 @@ internal static partial class Contract
     /// all builds.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ThrowIfTrue([DoesNotReturnIf(parameterValue: true)] bool condition, string message, [CallerLineNumber] int lineNumber = 0)
+    public static void ThrowIfTrue([DoesNotReturnIf(parameterValue: true)] bool condition, string message, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? filePath = null)
     {
         if (condition)
         {
-            Fail(message, lineNumber);
+            Fail(message, lineNumber, filePath);
         }
     }
 
@@ -139,17 +140,20 @@ internal static partial class Contract
     /// all builds.
     /// </summary>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void ThrowIfTrue([DoesNotReturnIf(parameterValue: true)] bool condition, [InterpolatedStringHandlerArgument("condition")] ThrowIfTrueInterpolatedStringHandler message, [CallerLineNumber] int lineNumber = 0)
+    public static void ThrowIfTrue([DoesNotReturnIf(parameterValue: true)] bool condition, [InterpolatedStringHandlerArgument("condition")] ThrowIfTrueInterpolatedStringHandler message, [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? filePath = null)
     {
         if (condition)
         {
-            Fail(message.GetFormattedText(), lineNumber);
+            Fail(message.GetFormattedText(), lineNumber, filePath);
         }
     }
 
     [DebuggerHidden]
     [DoesNotReturn]
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static void Fail(string message = "Unexpected", [CallerLineNumber] int lineNumber = 0)
-        => throw new InvalidOperationException($"{message} - line {lineNumber}");
+    public static void Fail(string message = "Unexpected", [CallerLineNumber] int lineNumber = 0, [CallerFilePath] string? filePath = null)
+    {
+        var fileName = filePath is null ? null : Path.GetFileName(filePath);
+        throw new InvalidOperationException($"{message} - file {fileName} line {lineNumber}");
+    }
 }

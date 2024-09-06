@@ -151,7 +151,7 @@ S5();
                 "[120..124) -> (4,0)-(4,4) #2",
                 "[127..131) -> (5,0)-(5,4) #4",
                 "[134..138) -> (6,0)-(6,4) #1"
-            }, oldSpans.Select(s => $"{s.UnmappedSpan} -> {s.Statement.Span} #{s.Statement.Ordinal}"));
+            }, oldSpans.Select(s => $"{s.UnmappedSpan} -> {s.Statement.Span} #{s.Statement.Id.Ordinal}"));
         }
 
         [Fact]
@@ -262,8 +262,7 @@ class C
                 => new("a.cs", new(new(startLine, startColumn), new(endLine, endColumn)));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void NonRemappableRegionOrdering(bool reverse)
         {
             var source1 =
@@ -312,8 +311,7 @@ class C
             Assert.Equal(unmappedActiveStatements[0].Statement.Span, activeStatement.FileSpan.Span);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void SubSpan(bool reverse)
         {
             var source1 =

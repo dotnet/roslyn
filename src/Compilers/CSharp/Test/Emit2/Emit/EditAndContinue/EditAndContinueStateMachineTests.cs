@@ -8829,7 +8829,7 @@ public class C
         }
 
         [Fact]
-        public void UpdateAsyncLambda()
+        public void AsyncLambda_Update()
         {
             var source0 = MarkedSource(
 @"using System;
@@ -8937,6 +8937,78 @@ class C
                 "<>4__this: C.<>c",
                 "<>u__1: System.Runtime.CompilerServices.TaskAwaiter<bool>",
                 "<>u__2: System.Runtime.CompilerServices.TaskAwaiter<int>");
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/72887")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72887")]
+        public void AsyncLambda_Delete()
+        {
+            using var _ = new EditAndContinueTest()
+            .AddBaseline("""
+                using System.Threading.Tasks;
+
+                class C
+                {
+                    static void F()
+                    {
+                        Task.Run(async () =>
+                        {
+                            await Task.FromResult(1);
+                        });
+                    }
+                }
+                """)
+            .AddGeneration("""
+                using System.Threading.Tasks;
+                
+                class C
+                {
+                    static void F()
+                    {
+                        
+                    }
+                }
+                """,
+                edits:
+                [
+                    Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true),
+                ],
+                validator: v =>
+                {
+                    v.VerifySynthesizedMembers();
+
+                    v.VerifyMethodDefNames("F", "<F>b__1_0", "MoveNext");
+
+                    v.VerifyEncLogDefinitions(
+                    [
+                        Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                    ]);
+
+                    v.VerifyIL("""
+                        {
+                          // Code size        2 (0x2)
+                          .maxstack  8
+                          IL_0000:  nop
+                          IL_0001:  ret
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000017
+                          IL_000a:  throw
+                        }
+                        {
+                          // Code size       11 (0xb)
+                          .maxstack  8
+                          IL_0000:  ldstr      0x70000005
+                          IL_0005:  newobj     0x0A000017
+                          IL_000a:  throw
+                        }
+                        """);
+                })
+            .Verify();
         }
 
         [Fact, WorkItem(63294, "https://github.com/dotnet/roslyn/issues/63294")]

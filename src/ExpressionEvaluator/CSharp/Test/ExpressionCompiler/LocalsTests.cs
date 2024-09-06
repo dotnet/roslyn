@@ -3906,7 +3906,7 @@ class C
     {
     }
 }";
-            var references = TargetFrameworkUtil.Mscorlib461ExtendedReferences.Concat(new[] { Net461.SystemThreadingTasks, TestMetadata.SystemThreadingTasksExtensions.PortableLib });
+            var references = TargetFrameworkUtil.Mscorlib461ExtendedReferences.Concat(new[] { Net461.References.SystemThreadingTasks, TestMetadata.SystemThreadingTasksExtensions.PortableLib });
             var comp = CreateEmptyCompilation(new[] { source, AsyncStreamsTypes }, references: references);
             WithRuntimeInstance(comp, references, runtime =>
             {

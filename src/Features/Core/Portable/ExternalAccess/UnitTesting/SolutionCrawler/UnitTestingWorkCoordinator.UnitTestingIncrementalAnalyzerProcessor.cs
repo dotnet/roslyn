@@ -30,7 +30,6 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
 
             private readonly UnitTestingRegistration _registration;
             private readonly IAsynchronousOperationListener _listener;
-            private readonly IUnitTestingDocumentTrackingService _documentTracker;
 
             private readonly UnitTestingNormalPriorityProcessor _normalPriorityProcessor;
             private readonly UnitTestingLowPriorityProcessor _lowPriorityProcessor;
@@ -58,8 +57,6 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
                 var lazyAllAnalyzers = new Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(_registration, analyzersGetter, onlyHighPriorityAnalyzer: false));
 
                 // event and worker queues
-                _documentTracker = _registration.Services.GetRequiredService<IUnitTestingDocumentTrackingService>();
-
                 var globalNotificationService = _registration.Services.ExportProvider.GetExports<IGlobalOperationNotificationService>().FirstOrDefault()?.Value;
 
                 _normalPriorityProcessor = new UnitTestingNormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpan, shutdownToken);

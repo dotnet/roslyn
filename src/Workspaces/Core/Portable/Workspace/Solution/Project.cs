@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -287,9 +288,13 @@ public partial class Project
             ImmutableInterlocked.GetOrAdd(ref _idToSourceGeneratedDocumentMap, state.Id, s_createSourceGeneratedDocumentFunction, (state, this)));
     }
 
-    internal async ValueTask<IEnumerable<Document>> GetAllRegularAndSourceGeneratedDocumentsAsync(CancellationToken cancellationToken = default)
+    internal async IAsyncEnumerable<Document> GetAllRegularAndSourceGeneratedDocumentsAsync([EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        return Documents.Concat(await GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false));
+        foreach (var document in this.Documents)
+            yield return document;
+
+        foreach (var document in await GetSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false))
+            yield return document;
     }
 
     public async ValueTask<SourceGeneratedDocument?> GetSourceGeneratedDocumentAsync(DocumentId documentId, CancellationToken cancellationToken = default)
@@ -802,6 +807,12 @@ public partial class Project
 
     internal SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(DiagnosticAnalyzerInfoCache infoCache)
         => Solution.SolutionState.Analyzers.GetSkippedAnalyzersInfo(this, infoCache);
+
+    internal async ValueTask<Document?> GetDocumentAsync(ImmutableArray<byte> contentHash, CancellationToken cancellationToken)
+    {
+        var documentId = await _projectState.GetDocumentIdAsync(contentHash, cancellationToken).ConfigureAwait(false);
+        return documentId is null ? null : GetDocument(documentId);
+    }
 
     // <Metalama> This code is used by Try.Metalama.
     public Task<ImmutableArray<Diagnostic>> GetTransformerDiagnosticsAsync(CancellationToken cancellationToken)

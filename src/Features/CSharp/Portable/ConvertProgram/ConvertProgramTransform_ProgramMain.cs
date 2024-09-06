@@ -18,6 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static partial class ConvertProgramTransform
@@ -93,7 +94,7 @@ internal static partial class ConvertProgramTransform
         // Workaround for simplification not being ready when we generate a new file.  Substitute System.String[]
         // with string[].
         if (method.ParameterList.Parameters is [{ Type: ArrayTypeSyntax arrayType }])
-            method = method.ReplaceNode(arrayType.ElementType, PredefinedType(Token(SyntaxKind.StringKeyword)));
+            method = method.ReplaceNode(arrayType.ElementType, PredefinedType(StringKeyword));
 
         if (oldClassDeclaration is null)
         {
@@ -145,7 +146,7 @@ internal static partial class ConvertProgramTransform
             }
         }
 
-        return statements.ToImmutable();
+        return statements.ToImmutableAndClear();
     }
 
     private static TSyntaxNode FixupComments<TSyntaxNode>(TSyntaxNode node) where TSyntaxNode : SyntaxNode

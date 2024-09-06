@@ -7,22 +7,19 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.EditAndContinue;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
-using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using System.Text;
-using System.IO;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
@@ -52,15 +49,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 mockDebuggerService,
                 mockCompilationOutputsProvider,
                 NullPdbMatchingSourceTextProvider.Instance,
-                SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>(),
+                initialDocumentStates: [],
                 reportDiagnostics: true);
 
             if (initialState != CommittedSolution.DocumentState.None)
             {
-                EditAndContinueTestHelpers.SetDocumentsState(debuggingSession, solution, initialState);
+                EditAndContinueTestVerifier.SetDocumentsState(debuggingSession, solution, initialState);
             }
 
-            debuggingSession.RestartEditSession(nonRemappableRegions ?? ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty, inBreakState: true, out _);
+            debuggingSession.RestartEditSession(nonRemappableRegions ?? ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty, inBreakState: true);
             return debuggingSession.EditSession;
         }
 
@@ -186,7 +183,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Active Statements
 
-            var statements = baseActiveStatementsMap.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
+            var statements = baseActiveStatementsMap.InstructionMap.Values.OrderBy(v => v.Id.Ordinal).ToArray();
             AssertEx.Equal(new[]
             {
                 $"0: {document1.FilePath}: (9,14)-(9,35) flags=[LeafFrame, MethodUpToDate] mvid=11111111-1111-1111-1111-111111111111 0x06000001 v1 IL_0001",
@@ -344,7 +341,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Active Statements
 
-            var baseActiveStatements = baseActiveStatementMap.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
+            var baseActiveStatements = baseActiveStatementMap.InstructionMap.Values.OrderBy(v => v.Id.Ordinal).ToArray();
 
             AssertEx.Equal(new[]
             {
@@ -526,7 +523,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             // Active Statements
 
-            var baseActiveStatements = baseActiveStatementMap.InstructionMap.Values.OrderBy(v => v.Ordinal).ToArray();
+            var baseActiveStatements = baseActiveStatementMap.InstructionMap.Values.OrderBy(v => v.Id.Ordinal).ToArray();
 
             // Note that the spans of AS:2 and AS:3 correspond to the base snapshot (V2).
             AssertEx.Equal(new[]

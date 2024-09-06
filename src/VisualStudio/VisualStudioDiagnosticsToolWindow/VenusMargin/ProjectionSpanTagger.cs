@@ -58,12 +58,13 @@ namespace Roslyn.Hosting.Diagnostics.VenusMargin
                 this.TagsChanged?.Invoke(this, args);
             }
 
-            public IEnumerable<ITagSpan<TextMarkerTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+            IEnumerable<ITagSpan<TextMarkerTag>> ITagger<TextMarkerTag>.GetTags(NormalizedSnapshotSpanCollection spans)
+                => GetTags(spans);
+
+            public IEnumerable<TagSpan<TextMarkerTag>> GetTags(NormalizedSnapshotSpanCollection spans)
             {
                 if (!_textView.Properties.TryGetProperty(PropertyName, out List<Span> allSpans))
-                {
-                    return null;
-                }
+                    return [];
 
                 return allSpans
                     .Where(s => spans.Any(ss => ss.IntersectsWith(s)))

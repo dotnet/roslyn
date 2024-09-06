@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                         if (task.IsCompleted)
                         {
                             // Make sure to yield so continuations of 'task' can make progress.
-                            await AwaitExtensions.ConfigureAwait(Task.Yield(), false);
+                            await TaskScheduler.Default.SwitchTo(alwaysYield: true);
                         }
                         else
                         {
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder> builderMap,
             BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)
         {
-            using var _ = ArrayBuilder<(string analyzerId, SerializableDiagnosticMap diagnosticMap)>.GetInstance(out var diagnostics);
+            var diagnostics = new FixedSizeArrayBuilder<(string analyzerId, SerializableDiagnosticMap diagnosticMap)>(builderMap.Count);
 
             foreach (var (analyzer, analyzerResults) in builderMap)
             {
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                         analyzerResults.Others)));
             }
 
-            return diagnostics.ToImmutable();
+            return diagnostics.MoveToImmutable();
         }
 
         private static ImmutableArray<(string analyzerId, AnalyzerTelemetryInfo)> GetTelemetryInfo(
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 }
             }
 
-            return telemetryBuilder.ToImmutable();
+            return telemetryBuilder.ToImmutableAndClear();
         }
 
         private static string GetAnalyzerId(BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap, DiagnosticAnalyzer analyzer)
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
 
         private async Task<(CompilationWithAnalyzers? compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)> GetOrCreateCompilationWithAnalyzersAsync(CancellationToken cancellationToken)

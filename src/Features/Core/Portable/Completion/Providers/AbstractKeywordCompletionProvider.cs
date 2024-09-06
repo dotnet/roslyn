@@ -67,7 +67,7 @@ internal abstract partial class AbstractKeywordCompletionProvider<TContext> : LS
         }
 
         result.RemoveDuplicates();
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     public sealed override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem item, char? ch, CancellationToken cancellationToken)

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 public abstract class XmlDocumentationProvider : DocumentationProvider
 {
-    private readonly NonReentrantLock _gate = new();
+    private readonly SemaphoreSlim _gate = new(initialCount: 1);
     private Dictionary<string, string> _docComments;
 
     /// <summary>

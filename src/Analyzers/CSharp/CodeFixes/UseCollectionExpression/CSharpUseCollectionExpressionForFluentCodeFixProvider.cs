@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 using static CSharpCollectionExpressionRewriter;
 using static CSharpUseCollectionExpressionForFluentDiagnosticAnalyzer;
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForFluent), Shared]
@@ -176,7 +177,7 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
                 }
                 else
                 {
-                    nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithoutTrivia());
+                    nodesAndTokens.Add(CommaToken.WithoutTrivia());
                     AddOriginallyFirstArgument(argument);
                 }
             }

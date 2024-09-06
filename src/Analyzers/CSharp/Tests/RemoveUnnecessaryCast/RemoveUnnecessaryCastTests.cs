@@ -70,7 +70,6 @@ public class RemoveUnnecessaryCastTests
                 static void Goo(bool a, bool b) { }
             }
             """,
-
             """
             class Program
             {
@@ -102,7 +101,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -132,7 +130,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -480,7 +477,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Program
             {
@@ -504,7 +500,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Program
             {
@@ -530,7 +525,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
             class Program
@@ -557,7 +551,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
             class Program
@@ -804,7 +797,6 @@ public class RemoveUnnecessaryCastTests
                 public static void M1(int i) { }
             }
             """,
-
             """
             using System;
             class Test
@@ -838,7 +830,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
             class Test
@@ -871,7 +862,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Test
             {
@@ -906,7 +896,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Test
             {
@@ -939,7 +928,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System.Collections.Generic;
 
@@ -1061,7 +1049,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
             class MyAction
@@ -1139,7 +1126,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -1285,7 +1271,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -1463,7 +1448,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
             using System.Collections.Generic;
@@ -1507,7 +1491,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -1874,7 +1857,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Program
             {
@@ -1904,7 +1886,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class X
             {
@@ -1932,7 +1913,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             static class C
             {
@@ -1960,7 +1940,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Program
             {
@@ -2101,7 +2080,6 @@ public class RemoveUnnecessaryCastTests
                 C() : this([|(int)|]1) { }
             }
             """,
-
             """
             class C
             {
@@ -2125,7 +2103,6 @@ public class RemoveUnnecessaryCastTests
                 C() : this([|(IEnumerable)|]"") { }
             }
             """,
-
             """
             using System.Collections;
 
@@ -2177,7 +2154,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             static class C
             {
@@ -3476,7 +3452,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -3510,7 +3485,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -3541,7 +3515,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
             using System.Collections.Generic;
@@ -3575,7 +3548,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -3878,7 +3850,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class C
             {
@@ -3907,7 +3878,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class C
             {
@@ -3936,7 +3906,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class C
             {
@@ -3965,7 +3934,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class C
             {
@@ -3994,7 +3962,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class C
             {
@@ -4297,7 +4264,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -4341,7 +4307,6 @@ public class RemoveUnnecessaryCastTests
                 static void Goo(this string x) { }
             }
             """,
-
             """
             using System;
 
@@ -5023,7 +4988,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Program
             {
@@ -10134,7 +10098,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Program
             {
@@ -10159,7 +10122,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Program
             {
@@ -13828,6 +13790,49 @@ public class RemoveUnnecessaryCastTests
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72933")]
+    public async Task RemoveCollectionExpressionCastToArray()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void Goo(char[] input)
+                    {
+                    }
+
+                    void Goo(string input)
+                    {
+                    }
+
+                    void X()
+                    {
+                        Goo([|(char[])|]['a']);
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(char[] input)
+                    {
+                    }
+
+                    void Goo(string input)
+                    {
+                    }
+
+                    void X()
+                    {
+                        Goo(['a']);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
 }

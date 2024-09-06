@@ -11,21 +11,21 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 /// <summary>
 /// Base class for "if" and "while" snippet providers
 /// </summary>
-internal abstract class AbstractConditionalBlockSnippetProvider : AbstractInlineStatementSnippetProvider
+internal abstract class AbstractConditionalBlockSnippetProvider<TStatementSyntax, TExpressionSyntax> : AbstractInlineStatementSnippetProvider<TStatementSyntax>
+    where TStatementSyntax : SyntaxNode
+    where TExpressionSyntax : SyntaxNode
 {
-    protected abstract SyntaxNode GetCondition(SyntaxNode node);
+    protected abstract TExpressionSyntax GetCondition(TStatementSyntax node);
 
-    protected override bool IsValidAccessingType(ITypeSymbol type, Compilation compilation)
+    protected sealed override bool IsValidAccessingType(ITypeSymbol type, Compilation compilation)
         => type.SpecialType == SpecialType.System_Boolean;
 
-    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    protected sealed override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(TStatementSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
     {
         if (ConstructedFromInlineExpression)
             return [];
 
         var condition = GetCondition(node);
-        var placeholder = new SnippetPlaceholder(condition.ToString(), condition.SpanStart);
-
-        return [placeholder];
+        return [new SnippetPlaceholder(condition.ToString(), condition.SpanStart)];
     }
 }

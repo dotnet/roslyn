@@ -25,7 +25,7 @@ internal static class IReadOnlyDictionaryExtensions
         {
             case IEnumerable<T> enumerable: return enumerable;
             case T s: return SpecializedCollections.SingletonEnumerable(s);
-            default: return SpecializedCollections.EmptyEnumerable<T>();
+            default: return [];
         }
     }
 

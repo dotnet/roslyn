@@ -104,5 +104,5 @@ https://github.com/dotnet/roslyn/blob/d73d31cbccb9aa850f3582afb464b709fef88fd7/s
 Next just run the bootstrap build locally, wait for the `Debug.Assert` to trigger which pops up a dialog. From there you can attach to the VBCSCompiler process and debug through the problem
 
 ```cmd
-> Build.cmd -bootstrap -bootstrapConfiguration Debug
+> Build.cmd -bootstrap
 ```

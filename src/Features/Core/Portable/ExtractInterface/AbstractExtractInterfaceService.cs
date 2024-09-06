@@ -439,7 +439,7 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
             }
         }
 
-        return interfaceMembers.ToImmutable();
+        return interfaceMembers.ToImmutableAndClear();
     }
 
     internal virtual bool IsExtractableMember(ISymbol m)

@@ -42,6 +42,9 @@
     <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" PrivateAssets="all">
             <GeneratePathProperty>true</GeneratePathProperty>
     </PackageReference>
+    <PackageReference Include="System.Threading.Channels" PrivateAssets="all">
+            <GeneratePathProperty>true</GeneratePathProperty>
+    </PackageReference>
 
   </ItemGroup>
 
@@ -79,6 +82,7 @@
       <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Composition_TypedParts)\lib\net462\System.Composition.TypedParts.dll"/>
       <DesktopMetalamaCompilerBinArtifact Include="$(PkgMicrosoft_Bcl_AsyncInterfaces)\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll"/>
       <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_ValueTuple)\lib\net47\System.ValueTuple.dll"/>
+      <DesktopMetalamaCompilerBinArtifact Include="$(PkgSystem_Threading_Channels)\lib\net462\System.Threading.Channels.dll"/>
     </ItemGroup>
 
 

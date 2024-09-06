@@ -29,13 +29,16 @@ internal partial class VisualStudioErrorReportingService : IErrorReportingServic
     public VisualStudioErrorReportingService(
         IThreadingContext threadingContext,
         IVsService<SVsActivityLog, IVsActivityLog> activityLog,
-        IAsynchronousOperationListenerProvider listenerProvider,
-        SVsServiceProvider serviceProvider)
+        IVsService<SVsInfoBarUIFactory, IVsInfoBarUIFactory> vsInfoBarUIFactory,
+        IVsService<SVsShell, IVsShell> vsShell,
+        IAsynchronousOperationListenerProvider listenerProvider)
     {
         _threadingContext = threadingContext;
         _activityLog = activityLog;
         _listener = listenerProvider.GetListener(FeatureAttribute.Workspace);
-        _infoBar = new VisualStudioInfoBar(threadingContext, serviceProvider, listenerProvider);
+
+        // Attach this info bar to the global shell location for info-bars (independent of any particular window).
+        _infoBar = new VisualStudioInfoBar(threadingContext, vsInfoBarUIFactory, vsShell, listenerProvider, windowFrame: null);
     }
 
     public string HostDisplayName => "Visual Studio";
@@ -44,7 +47,7 @@ internal partial class VisualStudioErrorReportingService : IErrorReportingServic
     {
         var stackTrace = exception is null ? "" : GetFormattedExceptionStack(exception);
         LogGlobalErrorToActivityLog(message, stackTrace);
-        _infoBar.ShowInfoBar(message, items);
+        _infoBar.ShowInfoBarMessageFromAnyThread(message, items);
 
         Logger.Log(FunctionId.VS_ErrorReportingService_ShowGlobalErrorInfo, KeyValueLogMessage.Create(LogType.UserAction, m =>
         {
@@ -72,7 +75,7 @@ internal partial class VisualStudioErrorReportingService : IErrorReportingServic
                 closeAfterAction: true));
         }
 
-        ShowGlobalErrorInfo(message, featureName, exception, infoBarUIs.ToArray());
+        ShowGlobalErrorInfo(message, featureName, exception, [.. infoBarUIs]);
     }
 
     private void LogGlobalErrorToActivityLog(string message, string? detailedError)

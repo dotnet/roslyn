@@ -84,7 +84,7 @@ internal abstract class AbstractObjectCreationExpressionAnalyzer<
         if (!TryAddMatches(matches, cancellationToken))
             return default;
 
-        return matches.ToImmutable();
+        return matches.ToImmutableAndClear();
     }
 
     protected UpdateExpressionState<TExpressionSyntax, TStatementSyntax>? TryInitializeState(

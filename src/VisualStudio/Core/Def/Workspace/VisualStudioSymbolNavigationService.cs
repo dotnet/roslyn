@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -30,31 +30,22 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
 [ExportWorkspaceService(typeof(ISymbolNavigationService), ServiceLayer.Host), Shared]
-internal partial class VisualStudioSymbolNavigationService : ForegroundThreadAffinitizedObject, ISymbolNavigationService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class VisualStudioSymbolNavigationService(
+    SVsServiceProvider serviceProvider,
+    IGlobalOptionService globalOptions,
+    IThreadingContext threadingContext,
+    IVsEditorAdaptersFactoryService editorAdaptersFactory,
+    IMetadataAsSourceFileService metadataAsSourceFileService,
+    VisualStudioWorkspace workspace) : ISymbolNavigationService
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly IGlobalOptionService _globalOptions;
-    private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory;
-    private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
-    private readonly VisualStudioWorkspace _workspace;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioSymbolNavigationService(
-        SVsServiceProvider serviceProvider,
-        IGlobalOptionService globalOptions,
-        IThreadingContext threadingContext,
-        IVsEditorAdaptersFactoryService editorAdaptersFactory,
-        IMetadataAsSourceFileService metadataAsSourceFileService,
-        VisualStudioWorkspace workspace)
-        : base(threadingContext)
-    {
-        _serviceProvider = serviceProvider;
-        _globalOptions = globalOptions;
-        _editorAdaptersFactory = editorAdaptersFactory;
-        _metadataAsSourceFileService = metadataAsSourceFileService;
-        _workspace = workspace;
-    }
+    private readonly IServiceProvider _serviceProvider = serviceProvider;
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactory = editorAdaptersFactory;
+    private readonly IMetadataAsSourceFileService _metadataAsSourceFileService = metadataAsSourceFileService;
+    private readonly VisualStudioWorkspace _workspace = workspace;
 
     public async Task<INavigableLocation?> GetNavigableLocationAsync(
         ISymbol symbol, Project project, CancellationToken cancellationToken)
@@ -122,7 +113,7 @@ internal partial class VisualStudioSymbolNavigationService : ForegroundThreadAff
                 var navigationTool = _serviceProvider.GetServiceOnMainThread<SVsObjBrowser, IVsNavigationTool>();
                 return new NavigableLocation(async (options, cancellationToken) =>
                 {
-                    await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                     return navigationTool.NavigateToNavInfo(navInfo) == VSConstants.S_OK;
                 });
             }
@@ -143,7 +134,7 @@ internal partial class VisualStudioSymbolNavigationService : ForegroundThreadAff
 
         return new NavigableLocation(async (options, cancellationToken) =>
         {
-            await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var vsRunningDocumentTable4 = _serviceProvider.GetServiceOnMainThread<SVsRunningDocumentTable, IVsRunningDocumentTable4>();
             var fileAlreadyOpen = vsRunningDocumentTable4.IsMonikerValid(result.FilePath);
@@ -173,7 +164,7 @@ internal partial class VisualStudioSymbolNavigationService : ForegroundThreadAff
                 var navigationService = editorWorkspace.Services.GetRequiredService<IDocumentNavigationService>();
 
                 await navigationService.TryNavigateToSpanAsync(
-                    this.ThreadingContext,
+                    _threadingContext,
                     editorWorkspace,
                     openedDocument.Id,
                     result.IdentifierLocation.SourceSpan,
@@ -187,9 +178,7 @@ internal partial class VisualStudioSymbolNavigationService : ForegroundThreadAff
 
     public async Task<bool> TrySymbolNavigationNotifyAsync(ISymbol symbol, Project project, CancellationToken cancellationToken)
     {
-        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        AssertIsForeground();
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var definitionItem = symbol.ToNonClassifiedDefinitionItem(project.Solution, includeHiddenLocations: true);
         definitionItem.Properties.TryGetValue(DefinitionItem.RQNameKey1, out var rqName);
@@ -230,7 +219,7 @@ internal partial class VisualStudioSymbolNavigationService : ForegroundThreadAff
 
         var navigateToTextSpan = new Microsoft.VisualStudio.TextManager.Interop.TextSpan[1];
 
-        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         var queryNavigateStatusCode = navigationNotify.QueryNavigateToSymbol(
             hierarchy,
@@ -277,7 +266,7 @@ internal partial class VisualStudioSymbolNavigationService : ForegroundThreadAff
 
         var documentToUse = generatedDocuments.FirstOrDefault() ?? documents.First();
 
-        await this.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         if (!TryGetVsHierarchyAndItemId(documentToUse, out var hierarchy, out var itemID))
             return null;
@@ -291,7 +280,7 @@ internal partial class VisualStudioSymbolNavigationService : ForegroundThreadAff
 
     private bool TryGetVsHierarchyAndItemId(Document document, [NotNullWhen(true)] out IVsHierarchy? hierarchy, out uint itemID)
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (document.Project.Solution.Workspace is VisualStudioWorkspace visualStudioWorkspace
             && document.FilePath is object)

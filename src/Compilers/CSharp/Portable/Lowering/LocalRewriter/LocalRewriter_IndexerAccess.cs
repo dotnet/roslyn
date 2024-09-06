@@ -105,22 +105,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
             BitVector defaultArguments,
-            BoundExpression originalIndexerAccessOrObjectInitializerMember,
+            BoundIndexerAccess? oldNodeOpt,
             bool isLeftOfAssignment)
         {
-            Debug.Assert(originalIndexerAccessOrObjectInitializerMember is BoundIndexerAccess or BoundObjectInitializerMember);
-            Debug.Assert(originalIndexerAccessOrObjectInitializerMember.Type is not null);
-
             if (isLeftOfAssignment && indexer.RefKind == RefKind.None)
             {
                 TypeSymbol type = indexer.Type;
-                Debug.Assert(originalIndexerAccessOrObjectInitializerMember.Type.Equals(type, TypeCompareKind.ConsiderEverything));
+                Debug.Assert(oldNodeOpt?.Type.Equals(type, TypeCompareKind.ConsiderEverything) != false);
 
                 // This is an indexer set access. We return a BoundIndexerAccess node here.
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
 
-                return originalIndexerAccessOrObjectInitializerMember is BoundIndexerAccess indexerAccess ?
-                    indexerAccess.Update(rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type) :
+                return oldNodeOpt != null ?
+                    oldNodeOpt.Update(rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type) :
                     new BoundIndexerAccess(syntax, rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, type);
             }
             else
@@ -148,14 +145,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref temps);
 
                 BoundExpression call = MakePropertyGetAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, argumentRefKindsOpt, getMethod);
-
-                if (originalIndexerAccessOrObjectInitializerMember.Type.IsDynamic() == true && !indexer.Type.IsDynamic())
-                {
-                    Debug.Assert(call.Type is not null);
-                    Debug.Assert(!call.Type.IsDynamic());
-                    Debug.Assert(!getMethod.ReturnsByRef);
-                    call = _factory.Convert(originalIndexerAccessOrObjectInitializerMember.Type, call);
-                }
 
                 Debug.Assert(call.Type is not null);
 

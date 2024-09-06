@@ -22,18 +22,20 @@ internal abstract class EfficientTagger<TTag> : ITagger<TTag>, IDisposable where
     /// <summary>
     /// Produce the set of tags with the requested <paramref name="spans"/>, adding those tags to <paramref name="tags"/>.
     /// </summary>
-    public abstract void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<ITagSpan<TTag>> tags);
+    public abstract void AddTags(NormalizedSnapshotSpanCollection spans, SegmentedList<TagSpan<TTag>> tags);
 
     public abstract void Dispose();
+
+    IEnumerable<ITagSpan<TTag>> ITagger<TTag>.GetTags(NormalizedSnapshotSpanCollection spans)
+        => GetTags(spans);
 
     /// <summary>
     /// Default impl of the core <see cref="ITagger{T}"/> interface.  Forces an allocation.
     /// </summary>
-    public IEnumerable<ITagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
-        => SegmentedListPool.ComputeList(
+    public IReadOnlyList<TagSpan<TTag>> GetTags(NormalizedSnapshotSpanCollection spans)
+        => SegmentedListPool<TagSpan<TTag>>.ComputeList(
             static (args, tags) => args.@this.AddTags(args.spans, tags),
-            (@this: this, spans),
-            _: (ITagSpan<TTag>?)null);
+            (@this: this, spans));
 
     public virtual event EventHandler<SnapshotSpanEventArgs>? TagsChanged;
 
