@@ -2955,9 +2955,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(23, 32));
         }
 
-        // PROTOTYPE: Test BackingField.IsReadOnly and BackingField.HasInitializer from merged
-        // partial property, particularly when the state is different between the two parts.
-
         [Theory]
         [CombinatorialData]
         public void RefReturning_01(bool useStruct, bool useRefReadOnly)
@@ -4593,6 +4590,111 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(actualProperties[11] is SourcePropertySymbol { Name: "P6", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
         }
 
+        // PROTOTYPE: Test BackingField.HasInitializer from merged partial property, particularly when the state is different between the two parts.
+
+        [Theory]
+        [CombinatorialData]
+        public void PartialProperty_ReadOnly(bool reverseOrder, bool useReadOnlyDefinition, bool useReadOnlyImplementation)
+        {
+            string modifierDefinition = useReadOnlyDefinition ? "readonly" : "        ";
+            string modifierImplementation = useReadOnlyImplementation ? "readonly" : "        ";
+            string sourceA = $$"""
+                partial struct S
+                {
+                    {{modifierDefinition}} partial object P1 { get; }
+                    {{modifierDefinition}} partial object P2 { set; }
+                    partial object P3 { {{modifierImplementation}} get; }
+                    partial object P4 { {{modifierImplementation}} set; }
+                    {{modifierDefinition}} partial object P5 { get; set; }
+                    partial object P6 { {{modifierImplementation}} get; set; }
+                    partial object P7 { get; {{modifierImplementation}} set; }
+                }
+                """;
+            string sourceB = $$"""
+                partial struct S
+                {
+                    {{modifierImplementation}} partial object P1 { get => field; }
+                    {{modifierImplementation}} partial object P2 { set { _ = field; } }
+                    partial object P3 { {{modifierImplementation}} get => field; }
+                    partial object P4 { {{modifierImplementation}} set { _ = field; } }
+                    {{modifierImplementation}} partial object P5 { get; set { } }
+                    partial object P6 { {{modifierImplementation}} get; set { } }
+                    partial object P7 { get => field; {{modifierImplementation}} set { } }
+                }
+                """;
+            var comp = CreateCompilation(reverseOrder ? [sourceB, sourceA] : [sourceA, sourceB]);
+            switch (useReadOnlyDefinition, useReadOnlyImplementation)
+            {
+                case (false, false):
+                    comp.VerifyEmitDiagnostics();
+                    break;
+                case (false, true):
+                    comp.VerifyEmitDiagnostics(
+                        // (3,29): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                        //     readonly partial object P1 { get => field; }
+                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "P1").WithLocation(3, 29),
+                        // (4,29): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                        //     readonly partial object P2 { set { _ = field; } }
+                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "P2").WithLocation(4, 29),
+                        // (5,20): error CS8664: 'S.P3': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                        //     partial object P3 { readonly get; }
+                        Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P3").WithArguments("S.P3").WithLocation(5, 20),
+                        // (6,20): error CS8664: 'S.P4': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                        //     partial object P4 { readonly set; }
+                        Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P4").WithArguments("S.P4").WithLocation(6, 20),
+                        // (7,29): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                        //     readonly partial object P5 { get => field; set { } }
+                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "P5").WithLocation(7, 29));
+                    break;
+                case (true, false):
+                    comp.VerifyEmitDiagnostics(
+                        // (3,29): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                        //              partial object P1 { get => field; }
+                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "P1").WithLocation(3, 29),
+                        // (4,29): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                        //              partial object P2 { set { _ = field; } }
+                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "P2").WithLocation(4, 29),
+                        // (7,29): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                        //              partial object P5 { get => field; set { } }
+                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "P5").WithLocation(7, 29));
+                    break;
+                case (true, true):
+                    comp.VerifyEmitDiagnostics(
+                        // (5,20): error CS8664: 'S.P3': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                        //     partial object P3 { readonly get; }
+                        Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P3").WithArguments("S.P3").WithLocation(5, 20),
+                        // (6,20): error CS8664: 'S.P4': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                        //     partial object P4 { readonly set; }
+                        Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P4").WithArguments("S.P4").WithLocation(6, 20));
+                    break;
+            }
+
+            var containingType = comp.GetMember<NamedTypeSymbol>("S");
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("S").
+                GetMembers().
+                OfType<PropertySymbol>().
+                Select(p =>
+                {
+                    var property = (SourcePropertySymbol)p;
+                    var field = property.BackingField;
+                    return $"{field.ToTestDisplayString()}: IsAutoProperty: {property.IsAutoProperty}, UsesFieldKeyword: {property.UsesFieldKeyword}, BackingField.IsReadOnly: {field.IsReadOnly}";
+                }).
+                ToArray();
+            // PROTOTYPE: When determining whether the backing field should be readonly in
+            // SourcePropertySymbolBase..ctor(), we're ignoring the readonly modifier on accessors.
+            var expectedMembers = new[]
+            {
+                $"System.Object S.<P1>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: {useReadOnlyImplementation}",
+                $"System.Object S.<P2>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: {useReadOnlyImplementation}",
+                $"System.Object S.<P3>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: False",
+                $"System.Object S.<P4>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: False",
+                $"System.Object S.<P5>k__BackingField: IsAutoProperty: True, UsesFieldKeyword: False, BackingField.IsReadOnly: {useReadOnlyImplementation}",
+                $"System.Object S.<P6>k__BackingField: IsAutoProperty: True, UsesFieldKeyword: False, BackingField.IsReadOnly: False",
+                $"System.Object S.<P7>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: False",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
+        }
+
         [Theory]
         [CombinatorialData]
         public void PartialProperty_Attribute_01(bool reverseOrder, bool useStatic)
@@ -4639,22 +4741,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(6, 40));
 
             var containingType = comp.GetMember<NamedTypeSymbol>("B");
-            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
-            var expectedFields = reverseOrder ?
-                new[]
-                {
-                    "System.Object B.<P1>k__BackingField",
-                    "System.Object B.<P2>k__BackingField",
-                    "System.Object B.<P3>k__BackingField",
-                    "System.Object B.<P4>k__BackingField",
-                } :
-                new[]
-                {
-                    "System.Object B.<P3>k__BackingField",
-                    "System.Object B.<P4>k__BackingField",
-                    "System.Object B.<P1>k__BackingField",
-                    "System.Object B.<P2>k__BackingField",
-                };
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().OrderBy(f => f.Name).ToTestDisplayStrings();
+            var expectedFields = new[]
+            {
+                "System.Object B.<P1>k__BackingField",
+                "System.Object B.<P2>k__BackingField",
+                "System.Object B.<P3>k__BackingField",
+                "System.Object B.<P4>k__BackingField",
+            };
             AssertEx.Equal(expectedFields, actualFields);
 
             var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
@@ -4716,22 +4810,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(6, 40));
 
             var containingType = comp.GetMember<NamedTypeSymbol>("B");
-            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
-            var expectedFields = reverseOrder ?
-                new[]
-                {
-                    "System.Object B.<P1>k__BackingField",
-                    "System.Object B.<P2>k__BackingField",
-                    "System.Object B.<P3>k__BackingField",
-                    "System.Object B.<P4>k__BackingField",
-                } :
-                new[]
-                {
-                    "System.Object B.<P3>k__BackingField",
-                    "System.Object B.<P4>k__BackingField",
-                    "System.Object B.<P1>k__BackingField",
-                    "System.Object B.<P2>k__BackingField",
-                };
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().OrderBy(f => f.Name).ToTestDisplayStrings();
+            var expectedFields = new[]
+            {
+                "System.Object B.<P1>k__BackingField",
+                "System.Object B.<P2>k__BackingField",
+                "System.Object B.<P3>k__BackingField",
+                "System.Object B.<P4>k__BackingField",
+            };
             AssertEx.Equal(expectedFields, actualFields);
 
             var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
