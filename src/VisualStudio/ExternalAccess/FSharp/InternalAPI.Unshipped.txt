@@ -571,6 +571,7 @@ static Microsoft.CodeAnalysis.ExternalAccess.FSharp.TaskList.FSharpTaskListItem.
 ~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.FSharpDiagnosticCustomTags.Microsoft.get -> string[]
 ~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.FSharpDiagnosticCustomTags.Unnecessary.get -> string[]
 ~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.FSharpIDEDiagnosticIds.RemoveUnnecessaryImportsDiagnosticId.get -> string
+~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.FSharpIDEDiagnosticIds.RemoveUnnecessaryParenthesesDiagnosticId.get -> string
 ~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Diagnostics.FSharpIDEDiagnosticIds.SimplifyNamesDiagnosticId.get -> string
 ~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Extensions.FSharpDependencyObjectExtensions.SetDefaultTextProperties(this System.Windows.DependencyObject dependencyObject, Microsoft.VisualStudio.Text.Classification.IClassificationFormatMap formatMap) -> void
 ~static Microsoft.CodeAnalysis.ExternalAccess.FSharp.Editor.Shared.Extensions.FSharpDependencyObjectExtensions.SetTextProperties(this System.Windows.DependencyObject dependencyObject, Microsoft.VisualStudio.Text.Formatting.TextFormattingRunProperties textProperties) -> void
