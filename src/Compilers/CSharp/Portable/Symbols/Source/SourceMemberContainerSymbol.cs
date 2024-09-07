@@ -3787,21 +3787,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 implementation = part1;
             }
 
-            if (getBackingField(implementation) is { } field && getBackingField(definition) is { })
+            if (implementation.DeclaredBackingField is { } implementationField &&
+                definition.DeclaredBackingField is { })
             {
-                var fieldName = field.Name.AsMemory();
-                membersByName[fieldName] = Remove(membersByName[fieldName], field);
+                var fieldName = implementationField.Name.AsMemory();
+                membersByName[fieldName] = Remove(membersByName[fieldName], implementationField);
             }
 
             SourcePropertySymbol.InitializePartialPropertyParts(definition, implementation);
 
             // a partial property is represented in the member list by its definition part:
             membersByName[name] = Remove(membersByName[name], implementation);
-
-            static SynthesizedBackingFieldSymbol? getBackingField(SourcePropertySymbol property)
-            {
-                return property.DeclaredBackingField;
-            }
         }
 
         private static ImmutableArray<Symbol> Remove(ImmutableArray<Symbol> symbols, Symbol symbol)

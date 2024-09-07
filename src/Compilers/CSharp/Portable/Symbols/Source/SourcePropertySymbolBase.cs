@@ -661,13 +661,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool IsSetOnEitherPart(Flags flags)
         {
-            return isSet(this, flags) ||
-                (this is SourcePropertySymbol { OtherPartOfPartial: { } otherPart } && isSet(otherPart, flags));
-
-            static bool isSet(SourcePropertySymbolBase property, Flags flags)
-            {
-                return (property._propertyFlags & flags) != 0;
-            }
+            return (_propertyFlags & flags) != 0 ||
+                (this is SourcePropertySymbol { OtherPartOfPartial: { } otherPart } && (otherPart._propertyFlags & flags) != 0);
         }
 
         protected bool AccessorsHaveImplementation
