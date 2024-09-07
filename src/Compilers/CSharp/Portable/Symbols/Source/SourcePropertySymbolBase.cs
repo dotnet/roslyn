@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
 #nullable enable
         private SynthesizedBackingFieldSymbol? _lazyDeclaredBackingField;
-        private SynthesizedBackingFieldSymbol? _lazyMergedBackingField; // PROTOTYPE: Use a single backing field rather than two.
+        private SynthesizedBackingFieldSymbol? _lazyMergedBackingField;
 
         protected SourcePropertySymbolBase(
             SourceMemberContainerTypeSymbol containingType,
@@ -673,10 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// a property with an accessor using the 'field' keyword, or
         /// a property with an initializer.
         /// </summary>
-        internal SynthesizedBackingFieldSymbol BackingField => MergedBackingField;
-
-#nullable enable
-        private SynthesizedBackingFieldSymbol? MergedBackingField
+        internal SynthesizedBackingFieldSymbol BackingField
         {
             get
             {
@@ -695,6 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+#nullable enable
         internal SynthesizedBackingFieldSymbol? DeclaredBackingField
         {
             get
