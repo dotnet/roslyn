@@ -2617,12 +2617,12 @@ class C { int Y => 2; }
         var results = await debuggingSession.EmitSolutionUpdateAsync(solution, s_noActiveSpans, CancellationToken.None).ConfigureAwait(false);
         var updates = results.ModuleUpdates;
         var diagnosticData = results.Diagnostics.ToDiagnosticData(solution);
-        var rudeEdits = results.RudeEdits;
+        var rudeEdits = results.RudeEdits.ToDiagnosticData(solution);
         var syntaxError = results.GetSyntaxErrorData(solution);
         Assert.Empty(diagnosticData);
         Assert.Null(syntaxError);
 
-        var diagnostics = await EmitSolutionUpdateResults.GetAllDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, updates.Status, CancellationToken.None).ConfigureAwait(false);
+        var diagnostics = EmitSolutionUpdateResults.GetAllDiagnostics(diagnosticData, rudeEdits, syntaxError, updates.Status);
 
         AssertEx.Equal(
         [

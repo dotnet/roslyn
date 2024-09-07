@@ -163,12 +163,13 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
             var documentDiagnostic = CodeAnalysis.Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), ["doc", "error 1"]);
             var projectDiagnostic = CodeAnalysis.Diagnostic.Create(diagnosticDescriptor1, Location.None, ["proj", "error 2"]);
             var syntaxError = CodeAnalysis.Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), ["doc", "syntax error 3"]);
+            var rudeEditDiagnostic = new RudeEditDiagnostic(RudeEditKind.Delete, TextSpan.FromBounds(2, 3), arguments: ["x"]).ToDiagnostic(syntaxTree);
 
             return new()
             {
                 ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Ready, []),
                 Diagnostics = [new ProjectDiagnostics(project.Id, [documentDiagnostic, projectDiagnostic])],
-                RudeEdits = [(documentId, [new RudeEditDiagnostic(RudeEditKind.Delete, TextSpan.FromBounds(2, 3), arguments: ["x"])])],
+                RudeEdits = [new ProjectDiagnostics(project.Id, [rudeEditDiagnostic])],
                 SyntaxError = syntaxError
             };
         };

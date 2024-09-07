@@ -178,7 +178,7 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
             _encService.CommitSolutionUpdate(sessionId);
         }
 
-        var diagnostics = await results.GetAllDiagnosticsAsync(solution, cancellationToken).ConfigureAwait(false);
+        var diagnostics = results.GetAllDiagnostics();
 
         var projectsToRestart = new HashSet<Project>();
         var projectsToRebuild = new HashSet<Project>();
