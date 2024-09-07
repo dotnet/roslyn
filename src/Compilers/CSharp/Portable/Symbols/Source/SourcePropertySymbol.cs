@@ -775,19 +775,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(definition._otherPartOfPartial == implementation);
             Debug.Assert(implementation._otherPartOfPartial == definition);
 
-            var definitionAutoProperty = definition.DeclaredAutoPropertyInfo;
-            var implementationAutoProperty = implementation.DeclaredAutoPropertyInfo;
-            // Merge the auto-property data.
-            var backingField = definitionAutoProperty.BackingField is { HasInitializer: true } ?
-                definitionAutoProperty.BackingField :
-                implementationAutoProperty.BackingField is { HasInitializer: true } ?
-                implementationAutoProperty.BackingField :
-                definitionAutoProperty.BackingField ?? implementationAutoProperty.BackingField;
-            bool isAutoProperty = definitionAutoProperty.IsAutoProperty || implementationAutoProperty.IsAutoProperty;
-            bool usesFieldKeyword = definitionAutoProperty.UsesFieldKeyword || implementationAutoProperty.UsesFieldKeyword;
-            var autoPropertyData = AutoPropertyInfo.Create(backingField, isAutoProperty, usesFieldKeyword);
-            definition.SetMergedAutoPropertyInfo(autoPropertyData);
-            implementation.SetMergedAutoPropertyInfo(autoPropertyData);
+            // PROTOTYPE: Should we use the implementation part if set? Is that
+            // always set if the definition part is set, except in error cases?
+
+            // Merge the backing fields.
+            var backingField = definition.DeclaredBackingField ?? implementation.DeclaredBackingField;
+            definition.SetMergedBackingField(backingField);
+            implementation.SetMergedBackingField(backingField);
         }
     }
 }

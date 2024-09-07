@@ -2955,6 +2955,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(23, 32));
         }
 
+        // PROTOTYPE: Test BackingField.IsReadOnly and BackingField.HasInitializer from merged
+        // partial property, particularly when the state is different between the two parts.
+
         [Theory]
         [CombinatorialData]
         public void RefReturning_01(bool useStruct, bool useRefReadOnly)

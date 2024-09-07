@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// so that we do not have to go back to source to compute this data.
         /// </summary>
         [Flags]
-        private enum Flags : byte
+        private enum Flags : ushort
         {
             IsExpressionBodied = 1 << 0,
             HasAutoPropertyGet = 1 << 1,
@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             HasInitializer = 1 << 5,
             AccessorsHaveImplementation = 1 << 6,
             HasExplicitAccessModifier = 1 << 7,
+            RequiresBackingField = 1 << 8,
         }
 
         // TODO (tomat): consider splitting into multiple subclasses/rare data.
@@ -71,35 +72,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public Location Location { get; }
 
 #nullable enable
-        private AutoPropertyInfo? _lazyDeclaredAutoPropertyInfo; // Auto-property info from this property declaration.
-        private AutoPropertyInfo? _lazyMergedAutoPropertyInfo; // Auto-property info after merging partial parts (if any) in containing type.
-
-        internal sealed class AutoPropertyInfo
-        {
-            internal static readonly AutoPropertyInfo None = new AutoPropertyInfo(null, false, false);
-
-            internal static AutoPropertyInfo Create(SynthesizedBackingFieldSymbol? backingField, bool isAutoProperty, bool usesFieldKeyword)
-            {
-                if (backingField is null)
-                {
-                    Debug.Assert(!isAutoProperty);
-                    Debug.Assert(!usesFieldKeyword);
-                    return None;
-                }
-                return new AutoPropertyInfo(backingField, isAutoProperty, usesFieldKeyword);
-            }
-
-            private AutoPropertyInfo(SynthesizedBackingFieldSymbol? backingField, bool isAutoProperty, bool usesFieldKeyword)
-            {
-                BackingField = backingField;
-                IsAutoProperty = isAutoProperty;
-                UsesFieldKeyword = usesFieldKeyword;
-            }
-
-            internal readonly SynthesizedBackingFieldSymbol? BackingField;
-            internal readonly bool IsAutoProperty;
-            internal readonly bool UsesFieldKeyword;
-        }
+        private SynthesizedBackingFieldSymbol? _lazyDeclaredBackingField;
+        private SynthesizedBackingFieldSymbol? _lazyMergedBackingField; // PROTOTYPE: Use a single backing field rather than two.
 
         protected SourcePropertySymbolBase(
             SourceMemberContainerTypeSymbol containingType,
@@ -200,11 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (usesFieldKeyword || hasAutoPropertyGet || hasAutoPropertySet || hasInitializer)
             {
                 Debug.Assert(!IsIndexer);
-                _lazyDeclaredAutoPropertyInfo = null;
-            }
-            else
-            {
-                _lazyDeclaredAutoPropertyInfo = AutoPropertyInfo.None;
+                _propertyFlags |= Flags.RequiresBackingField;
             }
 
             if (hasGetAccessor)
@@ -218,8 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // We shouldn't calculate the backing field before the accessors above are created.
-            Debug.Assert(_lazyDeclaredAutoPropertyInfo is null ||
-                (object)_lazyDeclaredAutoPropertyInfo == AutoPropertyInfo.None);
+            Debug.Assert(_lazyDeclaredBackingField is null);
         }
 
         private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)
@@ -682,13 +651,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => IsAutoProperty || UsesFieldKeyword;
 
         internal bool UsesFieldKeyword
-            => MergedAutoPropertyInfo.UsesFieldKeyword;
+            => IsSetOnEitherPart(Flags.UsesFieldKeyword);
 
         protected bool HasExplicitAccessModifier
             => (_propertyFlags & Flags.HasExplicitAccessModifier) != 0;
 
         internal bool IsAutoProperty
-            => MergedAutoPropertyInfo.IsAutoProperty;
+            => IsSetOnEitherPart(Flags.HasAutoPropertyGet | Flags.HasAutoPropertySet);
+
+        private bool IsSetOnEitherPart(Flags flags)
+        {
+            return isSet(this, flags) ||
+                (this is SourcePropertySymbol { OtherPartOfPartial: { } otherPart } && isSet(otherPart, flags));
+
+            static bool isSet(SourcePropertySymbolBase property, Flags flags)
+            {
+                return (property._propertyFlags & flags) != 0;
+            }
+        }
 
         protected bool AccessorsHaveImplementation
             => (_propertyFlags & Flags.AccessorsHaveImplementation) != 0;
@@ -698,51 +678,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// a property with an accessor using the 'field' keyword, or
         /// a property with an initializer.
         /// </summary>
-        internal SynthesizedBackingFieldSymbol BackingField => MergedAutoPropertyInfo.BackingField;
+        internal SynthesizedBackingFieldSymbol BackingField => MergedBackingField;
 
 #nullable enable
-        private AutoPropertyInfo MergedAutoPropertyInfo
+        private SynthesizedBackingFieldSymbol? MergedBackingField
         {
             get
             {
-                if (_lazyMergedAutoPropertyInfo is null)
+                if (_lazyMergedBackingField is null)
                 {
-                    if (_containingType.AreMembersComplete)
+                    var backingField = DeclaredBackingField;
+                    if (!_containingType.AreMembersComplete)
                     {
-                        Interlocked.CompareExchange(ref _lazyMergedAutoPropertyInfo, DeclaredAutoPropertyInfo, null);
+                        // The property should only be used after members in the containing
+                        // type are complete, and partial members have been merged.
+                        return backingField;
                     }
-                    // When calling through the SemanticModel, partial members are not
-                    // necessarily merged when the containing type includes a primary
-                    // constructor - see https://github.com/dotnet/roslyn/issues/75002.
-                    else if (_containingType.PrimaryConstructor is { })
-                    {
-                        return DeclaredAutoPropertyInfo;
-                    }
+                    Interlocked.CompareExchange(ref _lazyMergedBackingField, backingField, null);
                 }
-                // The property should only be used after members in the containing
-                // type are complete, and partial members have been merged.
-                return _lazyMergedAutoPropertyInfo!;
+                return _lazyMergedBackingField;
             }
         }
 
-        internal AutoPropertyInfo DeclaredAutoPropertyInfo
+        internal SynthesizedBackingFieldSymbol? DeclaredBackingField
         {
             get
             {
-                if (_lazyDeclaredAutoPropertyInfo is null)
+                if (_lazyDeclaredBackingField is null &&
+                    (_propertyFlags & Flags.RequiresBackingField) != 0)
                 {
-                    Interlocked.CompareExchange(ref _lazyDeclaredAutoPropertyInfo, CreateAutoPropertyInfo(), null);
+                    Interlocked.CompareExchange(ref _lazyDeclaredBackingField, CreateBackingField(), null);
                 }
-                return _lazyDeclaredAutoPropertyInfo;
+                return _lazyDeclaredBackingField;
             }
         }
 
-        internal void SetMergedAutoPropertyInfo(AutoPropertyInfo autoPropertyData)
+        internal void SetMergedBackingField(SynthesizedBackingFieldSymbol? backingField)
         {
-            Interlocked.CompareExchange(ref _lazyMergedAutoPropertyInfo, autoPropertyData, null);
+            Interlocked.CompareExchange(ref _lazyMergedBackingField, backingField, null);
         }
 
-        private AutoPropertyInfo CreateAutoPropertyInfo()
+        private SynthesizedBackingFieldSymbol CreateBackingField()
         {
             string fieldName = GeneratedNames.MakeBackingFieldName(_name);
 
@@ -772,11 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isReadOnly = false;
             }
 
-            var backingField = new SynthesizedBackingFieldSymbol(this, fieldName, isReadOnly: isReadOnly, isStatic: this.IsStatic, hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0);
-            return AutoPropertyInfo.Create(
-                backingField,
-                isAutoProperty: (_propertyFlags & (Flags.HasAutoPropertyGet | Flags.HasAutoPropertySet)) != 0,
-                usesFieldKeyword: (_propertyFlags & Flags.UsesFieldKeyword) != 0);
+            return new SynthesizedBackingFieldSymbol(this, fieldName, isReadOnly: isReadOnly, isStatic: this.IsStatic, hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0);
         }
 #nullable disable
 

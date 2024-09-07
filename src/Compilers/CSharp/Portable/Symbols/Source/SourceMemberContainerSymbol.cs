@@ -3744,7 +3744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 static bool hasInitializer(SourcePropertySymbol property)
                 {
-                    return property.DeclaredAutoPropertyInfo.BackingField?.HasInitializer == true;
+                    return property.DeclaredBackingField?.HasInitializer == true;
                 }
             }
         }
@@ -3800,7 +3800,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static SynthesizedBackingFieldSymbol? getBackingField(SourcePropertySymbol property)
             {
-                return property.DeclaredAutoPropertyInfo.BackingField;
+                return property.DeclaredBackingField;
             }
         }
 
@@ -4574,7 +4574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Debug.Assert(property.SetMethod is object);
                         members.Add(property.GetMethod);
                         members.Add(property.SetMethod);
-                        var backingField = property.DeclaredAutoPropertyInfo.BackingField;
+                        var backingField = property.DeclaredBackingField;
                         Debug.Assert(backingField is object);
                         members.Add(backingField);
 
@@ -5016,7 +5016,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.GetMethod);
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.SetMethod);
-                            FieldSymbol? backingField = property.DeclaredAutoPropertyInfo.BackingField;
+                            FieldSymbol? backingField = property.DeclaredBackingField;
 
                             // TODO: can we leave this out of the member list?
                             // From the 10/12/11 design notes:
