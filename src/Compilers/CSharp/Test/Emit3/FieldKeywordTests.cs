@@ -2816,7 +2816,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             var actualMembers = comp.GetMember<NamedTypeSymbol>("S").GetMembers().OfType<FieldSymbol>().Select(f => $"{f.ToTestDisplayString()}: {f.IsReadOnly}");
             // PROTOTYPE: When determining whether the backing field should be readonly in
-            // SourcePropertySymbolBase..ctor(), we're ignoring the readonly modifier on accessors.
+            // SourcePropertySymbolBase.CreateBackingField(), we're ignoring the readonly modifier on accessors.
             var expectedMembers = new[]
             {
                 $"System.Object S.<P1>k__BackingField: True",
@@ -4590,8 +4590,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(actualProperties[11] is SourcePropertySymbol { Name: "P6", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
         }
 
-        // PROTOTYPE: Test BackingField.HasInitializer from merged partial property, particularly when the state is different between the two parts.
-
         [Theory]
         [CombinatorialData]
         public void PartialProperty_ReadOnly(bool reverseOrder, bool useReadOnlyDefinition, bool useReadOnlyImplementation)
@@ -4681,7 +4679,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }).
                 ToArray();
             // PROTOTYPE: When determining whether the backing field should be readonly in
-            // SourcePropertySymbolBase..ctor(), we're ignoring the readonly modifier on accessors.
+            // SourcePropertySymbolBase.CreateBackingField(), we're ignoring the readonly modifier on accessors.
             var expectedMembers = new[]
             {
                 $"System.Object S.<P1>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: {useReadOnlyImplementation}",
