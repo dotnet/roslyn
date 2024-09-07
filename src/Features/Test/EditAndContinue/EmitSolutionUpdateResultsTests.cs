@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         => new()
         {
             ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, [.. updates.Select(CreateMockUpdate)]),
-            RudeEdits = [.. rudeEdits.Select(id => (DocumentId.CreateNewId(id), ImmutableArray.Create(new RudeEditDiagnostic(RudeEditKind.InternalError, span: default))))],
+            RudeEdits = [.. rudeEdits.Select(id => new ProjectDiagnostics(id, [Diagnostic.Create(EditAndContinueDiagnosticDescriptors.GetDescriptor(RudeEditKind.InternalError), location: null)]))],
             Diagnostics = [],
             SyntaxError = null,
         };
@@ -69,6 +70,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 AddDocument(sourcePath, SourceText.From("class C {}", Encoding.UTF8), filePath: Path.Combine(TempRoot.Root, sourcePath));
 
             var solution = document.Project.Solution;
+            var tree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
 
             var diagnosticData = ImmutableArray.Create(
                 new DiagnosticData(
@@ -121,12 +123,14 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 description: "description",
                 helpLink: "http://link");
 
-            var rudeEdits = ImmutableArray.Create(
-                (document.Id, ImmutableArray.Create(new RudeEditDiagnostic(RudeEditKind.Insert, TextSpan.FromBounds(1, 10), 123, ["a"]))),
-                (document.Id, ImmutableArray.Create(new RudeEditDiagnostic(RudeEditKind.Delete, TextSpan.FromBounds(1, 10), 123, ["b"]))));
+            var rudeEdits = ImmutableArray.Create(new ProjectDiagnostics(document.Project.Id,
+            [
+                new RudeEditDiagnostic(RudeEditKind.Insert, TextSpan.FromBounds(1, 10), 123, ["a"]).ToDiagnostic(tree),
+                new RudeEditDiagnostic(RudeEditKind.Delete, TextSpan.FromBounds(1, 10), 123, ["b"]).ToDiagnostic(tree)
+            ])).ToDiagnosticData(solution);
 
             var updateStatus = ModuleUpdateStatus.Blocked;
-            var actual = await EmitSolutionUpdateResults.GetAllDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, updateStatus, CancellationToken.None);
+            var actual = EmitSolutionUpdateResults.GetAllDiagnostics(diagnosticData, rudeEdits, syntaxError, updateStatus);
 
             AssertEx.Equal(
             [

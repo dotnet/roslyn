@@ -32,7 +32,7 @@ internal readonly struct EmitSolutionUpdateResults
         public required ImmutableArray<DiagnosticData> Diagnostics { get; init; }
 
         [DataMember]
-        public required ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> RudeEdits { get; init; }
+        public required ImmutableArray<DiagnosticData> RudeEdits { get; init; }
 
         [DataMember]
         public required DiagnosticData? SyntaxError { get; init; }
@@ -48,7 +48,7 @@ internal readonly struct EmitSolutionUpdateResults
 
     public required ModuleUpdates ModuleUpdates { get; init; }
     public required ImmutableArray<ProjectDiagnostics> Diagnostics { get; init; }
-    public required ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> RudeEdits { get; init; }
+    public required ImmutableArray<ProjectDiagnostics> RudeEdits { get; init; }
     public required Diagnostic? SyntaxError { get; init; }
 
     public Data Dehydrate(Solution solution)
@@ -56,7 +56,7 @@ internal readonly struct EmitSolutionUpdateResults
         {
             ModuleUpdates = ModuleUpdates,
             Diagnostics = Diagnostics.ToDiagnosticData(solution),
-            RudeEdits = RudeEdits,
+            RudeEdits = RudeEdits.ToDiagnosticData(solution),
             SyntaxError = GetSyntaxErrorData(solution)
         };
 
@@ -73,8 +73,8 @@ internal readonly struct EmitSolutionUpdateResults
 
     private IEnumerable<Project> GetProjectsContainingBlockingRudeEdits(Solution solution)
         => RudeEdits
-            .Where(static e => e.Diagnostics.Any(static d => d.Kind.IsBlocking()))
-            .Select(static e => e.DocumentId.ProjectId)
+            .Where(static e => e.Diagnostics.HasBlockingRudeEdits())
+            .Select(static e => e.ProjectId)
             .Distinct()
             .OrderBy(static id => id)
             .Select(solution.GetRequiredProject);
@@ -192,7 +192,7 @@ internal readonly struct EmitSolutionUpdateResults
         }
     }
 
-    public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(Solution solution, CancellationToken cancellationToken)
+    public ImmutableArray<Diagnostic> GetAllDiagnostics()
     {
         using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnostics);
 
@@ -209,33 +209,19 @@ internal readonly struct EmitSolutionUpdateResults
         }
 
         // add rude edits:
-        foreach (var (documentId, documentRudeEdits) in RudeEdits)
+        foreach (var (_, projectEmitDiagnostics) in RudeEdits)
         {
-            var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-            if (document == null)
-            {
-                // Make sure the solution snapshot has all source-generated documents up-to-date.
-                solution = solution.WithUpToDateSourceGeneratorDocuments(solution.ProjectIds);
-                document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-            }
-
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            foreach (var documentRudeEdit in documentRudeEdits)
-            {
-                diagnostics.Add(documentRudeEdit.ToDiagnostic(tree));
-            }
+            diagnostics.AddRange(projectEmitDiagnostics);
         }
 
         return diagnostics.ToImmutableAndClear();
     }
 
-    internal static async ValueTask<ImmutableArray<ManagedHotReloadDiagnostic>> GetAllDiagnosticsAsync(
-        Solution solution,
+    internal static ImmutableArray<ManagedHotReloadDiagnostic> GetAllDiagnostics(
         ImmutableArray<DiagnosticData> diagnosticData,
-        ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits,
+        ImmutableArray<DiagnosticData> rudeEdits,
         DiagnosticData? syntaxError,
-        ModuleUpdateStatus updateStatus,
-        CancellationToken cancellationToken)
+        ModuleUpdateStatus updateStatus)
     {
         using var _ = ArrayBuilder<ManagedHotReloadDiagnostic>.GetInstance(out var builder);
 
@@ -243,7 +229,7 @@ internal readonly struct EmitSolutionUpdateResults
 
         foreach (var data in diagnosticData)
         {
-            builder.Add(data.ToHotReloadDiagnostic(updateStatus));
+            builder.Add(data.ToHotReloadDiagnostic(updateStatus, isRudeEdit: false));
         }
 
         // Add syntax error:
@@ -265,38 +251,9 @@ internal readonly struct EmitSolutionUpdateResults
 
         // Report all rude edits.
 
-        foreach (var (documentId, diagnostics) in rudeEdits)
+        foreach (var data in rudeEdits)
         {
-            var document = await solution.GetDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-            if (document == null)
-            {
-                // Make sure the solution snapshot has all source-generated documents up-to-date.
-                solution = solution.WithUpToDateSourceGeneratorDocuments(solution.ProjectIds);
-                document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-            }
-
-            var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-
-            foreach (var diagnostic in diagnostics)
-            {
-                var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(diagnostic.Kind);
-
-                var severity = descriptor.DefaultSeverity switch
-                {
-                    DiagnosticSeverity.Error => ManagedHotReloadDiagnosticSeverity.RestartRequired,
-                    DiagnosticSeverity.Warning => ManagedHotReloadDiagnosticSeverity.Warning,
-                    _ => throw ExceptionUtilities.UnexpectedValue(descriptor.DefaultSeverity)
-                };
-
-                var fileSpan = tree.GetMappedLineSpan(diagnostic.Span, cancellationToken);
-
-                builder.Add(new ManagedHotReloadDiagnostic(
-                    descriptor.Id,
-                    string.Format(descriptor.MessageFormat.ToString(CultureInfo.CurrentUICulture), diagnostic.Arguments),
-                    severity,
-                    fileSpan.Path ?? "",
-                    fileSpan.Span.ToSourceSpan()));
-            }
+            builder.Add(data.ToHotReloadDiagnostic(updateStatus, isRudeEdit: true));
         }
 
         return builder.ToImmutableAndClear();
