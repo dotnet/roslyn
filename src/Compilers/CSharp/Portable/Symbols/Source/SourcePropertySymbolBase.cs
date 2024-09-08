@@ -1199,17 +1199,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!ReferenceEquals(copyFrom, this));
 
             // The property is responsible for completion of the backing field
-            // PROTOTYPE: NB: when the **field keyword feature** is implemented, it's possible that synthesized field symbols will also be merged or shared between partial property parts.
-            // If we do that then this check should possibly be moved, and asserts adjusted accordingly.
             _ = BackingField?.GetAttributes();
 
             bool bagCreatedOnThisThread;
             if (copyFrom is not null)
             {
-                // When partial properties get the ability to have a backing field,
-                // the implementer will have to decide how the BackingField symbol works in 'copyFrom' scenarios.
-                //Debug.Assert(!IsAutoProperty); // PROTOTYPE: ...
-
                 var attributesBag = copyFrom.GetAttributesBag();
                 bagCreatedOnThisThread = Interlocked.CompareExchange(ref _lazyCustomAttributesBag, attributesBag, null) == null;
             }

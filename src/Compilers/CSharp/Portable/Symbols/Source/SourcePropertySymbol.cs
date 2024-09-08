@@ -775,10 +775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(definition._otherPartOfPartial == implementation);
             Debug.Assert(implementation._otherPartOfPartial == definition);
 
-            // PROTOTYPE: Should we use the implementation part if set? Is that
-            // always set if the definition part is set, except in error cases?
-
-            // Merge the backing fields.
+            // Use the same backing field for both parts.
             var backingField = definition.DeclaredBackingField ?? implementation.DeclaredBackingField;
             definition.SetMergedBackingField(backingField);
             implementation.SetMergedBackingField(backingField);
