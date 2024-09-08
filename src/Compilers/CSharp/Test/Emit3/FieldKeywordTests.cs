@@ -2546,9 +2546,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         // (8,40): error CS8658: Auto-implemented 'set' accessor 'S.P9.set' cannot be marked 'readonly'.
                         //     object P9 {          get; readonly set; }
                         Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P9.set").WithLocation(8, 40),
-                        // (10,46): error CS1604: Cannot assign to 'field' because it is read-only
+                        // (10,46): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                         //     object PC {          get; readonly set { field = value; } }
-                        Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(10, 46));
+                        Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(10, 46));
                 }
             }
             var actualMembers = comp.GetMember<NamedTypeSymbol>("S").GetMembers().OfType<FieldSymbol>().Select(f => $"{f.ToTestDisplayString()}: {f.IsReadOnly}");
@@ -2558,9 +2558,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 $"System.Object S.<P4>k__BackingField: {useReadOnlyType}",
                 $"System.Object S.<P6>k__BackingField: {useReadOnlyType}",
                 $"System.Object S.<P8>k__BackingField: {useReadOnlyType}",
-                $"System.Object S.<P9>k__BackingField: {useReadOnlyType}",
-                $"System.Object S.<PA>k__BackingField: {useReadOnlyType}",
-                $"System.Object S.<PC>k__BackingField: {useReadOnlyType}",
+                $"System.Object S.<P9>k__BackingField: {useReadOnlyType || !useReadOnlyOnGet}",
+                $"System.Object S.<PA>k__BackingField: {useReadOnlyType || !useReadOnlyOnGet}",
+                $"System.Object S.<PC>k__BackingField: {useReadOnlyType || !useReadOnlyOnGet}",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -2616,7 +2616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 <Q5>k__BackingField: True
                 <Q6>k__BackingField: {{useReadOnlyType}}
                 <Q7>k__BackingField: True
-                <Q8>k__BackingField: {{useReadOnlyType}}
+                <Q8>k__BackingField: {{useReadOnlyType || useReadOnlyMember}}
                 """));
             var comp = (CSharpCompilation)verifier.Compilation;
             var actualMembers = comp.GetMember<NamedTypeSymbol>("S").GetMembers().OfType<FieldSymbol>().Select(f => $"{f.ToTestDisplayString()}: {f.IsReadOnly}");
@@ -2632,7 +2632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 $"System.Object S.<Q5>k__BackingField: True",
                 $"System.Object S.<Q6>k__BackingField: {useReadOnlyType}",
                 $"System.Object S.<Q7>k__BackingField: True",
-                $"System.Object S.<Q8>k__BackingField: {useReadOnlyType}",
+                $"System.Object S.<Q8>k__BackingField: {useReadOnlyType || useReadOnlyMember}",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -2700,7 +2700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     <Q2>k__BackingField: {{useReadOnlyMember}}
                     <Q4>k__BackingField: {{useReadOnlyMember}}
                     <Q6>k__BackingField: False
-                    <Q8>k__BackingField: False
+                    <Q8>k__BackingField: {{useReadOnlyMember}}
                     """);
             }
             var actualMembers = comp.GetMember<NamedTypeSymbol>("S").GetMembers().OfType<FieldSymbol>().Select(f => $"{f.ToTestDisplayString()}: {f.IsReadOnly}");
@@ -2711,7 +2711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 $"System.Object S.<Q2>k__BackingField: {useReadOnlyMember}",
                 $"System.Object S.<Q4>k__BackingField: {useReadOnlyMember}",
                 $"System.Object S.<Q6>k__BackingField: False",
-                $"System.Object S.<Q8>k__BackingField: False",
+                $"System.Object S.<Q8>k__BackingField: {useReadOnlyMember}",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -2815,20 +2815,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, "Q5").WithArguments("S.Q5").WithLocation(12, 12));
             }
             var actualMembers = comp.GetMember<NamedTypeSymbol>("S").GetMembers().OfType<FieldSymbol>().Select(f => $"{f.ToTestDisplayString()}: {f.IsReadOnly}");
-            // PROTOTYPE: When determining whether the backing field should be readonly in
-            // SourcePropertySymbolBase.CreateBackingField(), we're ignoring the readonly modifier on accessors.
             var expectedMembers = new[]
             {
                 $"System.Object S.<P1>k__BackingField: True",
-                $"System.Object S.<P2>k__BackingField: {useInit}",
+                $"System.Object S.<P2>k__BackingField: True",
                 $"System.Object S.<P3>k__BackingField: {useInit}",
-                $"System.Object S.<P4>k__BackingField: {useInit}",
-                $"System.Object S.<P5>k__BackingField: {useInit}",
-                $"System.Object S.<Q1>k__BackingField: False",
-                $"System.Object S.<Q2>k__BackingField: {useInit}",
-                $"System.Object S.<Q3>k__BackingField: False",
-                $"System.Object S.<Q4>k__BackingField: {useInit}",
-                $"System.Object S.<Q5>k__BackingField: False",
+                $"System.Object S.<P4>k__BackingField: True",
+                $"System.Object S.<P5>k__BackingField: True",
+                $"System.Object S.<Q1>k__BackingField: True",
+                $"System.Object S.<Q2>k__BackingField: True",
+                $"System.Object S.<Q3>k__BackingField: {useInit}",
+                $"System.Object S.<Q4>k__BackingField: True",
+                $"System.Object S.<Q5>k__BackingField: True",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }
@@ -2935,9 +2933,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (7,12): error CS8664: 'S1.P1': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
                 //     object P1 { readonly get { field = null; return null; } }
                 Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P1").WithArguments("S1.P1").WithLocation(7, 12),
-                // (7,32): error CS1604: Cannot assign to 'field' because it is read-only
+                // (7,32): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //     object P1 { readonly get { field = null; return null; } }
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(7, 32),
+                Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(7, 32),
                 // (11,32): error CS0191: A readonly field cannot be assigned to (except in a constructor or init-only setter of the type in which the field is defined or a variable initializer)
                 //     readonly object P2 { get { field = null; return null; } }
                 Diagnostic(ErrorCode.ERR_AssgReadonly, "field").WithLocation(11, 32),
@@ -4601,11 +4599,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     {{modifierDefinition}} partial object P1 { get; }
                     {{modifierDefinition}} partial object P2 { set; }
-                    partial object P3 { {{modifierImplementation}} get; }
-                    partial object P4 { {{modifierImplementation}} set; }
+                    partial object P3 { {{modifierDefinition}} get; }
+                    partial object P4 { {{modifierDefinition}} set; }
                     {{modifierDefinition}} partial object P5 { get; set; }
-                    partial object P6 { {{modifierImplementation}} get; set; }
-                    partial object P7 { get; {{modifierImplementation}} set; }
+                    partial object P6 { {{modifierDefinition}} get; set; }
+                    partial object P7 { get; {{modifierDefinition}} set; }
+                    partial object P8 { {{modifierDefinition}} get; set; }
+                    partial object P9 { get; {{modifierDefinition}} set; }
                 }
                 """;
             string sourceB = $$"""
@@ -4617,7 +4617,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     partial object P4 { {{modifierImplementation}} set { _ = field; } }
                     {{modifierImplementation}} partial object P5 { get; set { } }
                     partial object P6 { {{modifierImplementation}} get; set { } }
-                    partial object P7 { get => field; {{modifierImplementation}} set { } }
+                    partial object P7 { get; {{modifierImplementation}} set { } }
+                    partial object P8 { {{modifierImplementation}} get => field; set { } }
+                    partial object P9 { get => field; {{modifierImplementation}} set { } }
                 }
                 """;
             var comp = CreateCompilation(reverseOrder ? [sourceB, sourceA] : [sourceA, sourceB]);
@@ -4634,15 +4636,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         // (4,29): error CS8663: Both partial member declarations must be readonly or neither may be readonly
                         //     readonly partial object P2 { set { _ = field; } }
                         Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "P2").WithLocation(4, 29),
-                        // (5,20): error CS8664: 'S.P3': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
-                        //     partial object P3 { readonly get; }
-                        Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P3").WithArguments("S.P3").WithLocation(5, 20),
-                        // (6,20): error CS8664: 'S.P4': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
-                        //     partial object P4 { readonly set; }
-                        Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P4").WithArguments("S.P4").WithLocation(6, 20),
+                        // (5,34): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                        //     partial object P3 { readonly get => field; }
+                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "get").WithLocation(5, 34),
+                        // (6,34): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                        //     partial object P4 { readonly set { _ = field; } }
+                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "set").WithLocation(6, 34),
                         // (7,29): error CS8663: Both partial member declarations must be readonly or neither may be readonly
-                        //     readonly partial object P5 { get => field; set { } }
-                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "P5").WithLocation(7, 29));
+                        //     readonly partial object P5 { get; set { } }
+                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "P5").WithLocation(7, 29),
+                        // (8,34): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                        //     partial object P6 { readonly get; set { } }
+                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "get").WithLocation(8, 34),
+                        // (9,39): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                        //     partial object P7 { get; readonly set { } }
+                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "set").WithLocation(9, 39),
+                        // (10,34): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                        //     partial object P8 { readonly get => field; set { } }
+                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "get").WithLocation(10, 34),
+                        // (11,48): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                        //     partial object P9 { get => field; readonly set { } }
+                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "set").WithLocation(11, 48));
                     break;
                 case (true, false):
                     comp.VerifyEmitDiagnostics(
@@ -4652,9 +4666,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         // (4,29): error CS8663: Both partial member declarations must be readonly or neither may be readonly
                         //              partial object P2 { set { _ = field; } }
                         Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "P2").WithLocation(4, 29),
+                        // (5,20): error CS8664: 'S.P3': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                        //     partial object P3 { readonly get; }
+                        Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P3").WithArguments("S.P3").WithLocation(5, 20),
+                        // (5,34): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                        //     partial object P3 {          get => field; }
+                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "get").WithLocation(5, 34),
+                        // (6,20): error CS8664: 'S.P4': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                        //     partial object P4 { readonly set; }
+                        Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P4").WithArguments("S.P4").WithLocation(6, 20),
+                        // (6,34): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                        //     partial object P4 {          set { _ = field; } }
+                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "set").WithLocation(6, 34),
                         // (7,29): error CS8663: Both partial member declarations must be readonly or neither may be readonly
-                        //              partial object P5 { get => field; set { } }
-                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "P5").WithLocation(7, 29));
+                        //              partial object P5 { get; set { } }
+                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "P5").WithLocation(7, 29),
+                        // (8,34): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                        //     partial object P6 {          get; set { } }
+                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "get").WithLocation(8, 34),
+                        // (9,39): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                        //     partial object P7 { get;          set { } }
+                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "set").WithLocation(9, 39),
+                        // (10,34): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                        //     partial object P8 {          get => field; set { } }
+                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "get").WithLocation(10, 34),
+                        // (11,48): error CS8663: Both partial member declarations must be readonly or neither may be readonly
+                        //     partial object P9 { get => field;          set { } }
+                        Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "set").WithLocation(11, 48));
                     break;
                 case (true, true):
                     comp.VerifyEmitDiagnostics(
@@ -4678,17 +4716,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     return $"{field.ToTestDisplayString()}: IsAutoProperty: {property.IsAutoProperty}, UsesFieldKeyword: {property.UsesFieldKeyword}, BackingField.IsReadOnly: {field.IsReadOnly}";
                 }).
                 ToArray();
-            // PROTOTYPE: When determining whether the backing field should be readonly in
-            // SourcePropertySymbolBase.CreateBackingField(), we're ignoring the readonly modifier on accessors.
             var expectedMembers = new[]
             {
                 $"System.Object S.<P1>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: {useReadOnlyImplementation}",
                 $"System.Object S.<P2>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: {useReadOnlyImplementation}",
-                $"System.Object S.<P3>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: False",
-                $"System.Object S.<P4>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: False",
+                $"System.Object S.<P3>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: {useReadOnlyImplementation}",
+                $"System.Object S.<P4>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: {useReadOnlyImplementation}",
                 $"System.Object S.<P5>k__BackingField: IsAutoProperty: True, UsesFieldKeyword: False, BackingField.IsReadOnly: {useReadOnlyImplementation}",
                 $"System.Object S.<P6>k__BackingField: IsAutoProperty: True, UsesFieldKeyword: False, BackingField.IsReadOnly: False",
-                $"System.Object S.<P7>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: False",
+                $"System.Object S.<P7>k__BackingField: IsAutoProperty: True, UsesFieldKeyword: False, BackingField.IsReadOnly: {useReadOnlyImplementation}",
+                $"System.Object S.<P8>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: False",
+                $"System.Object S.<P9>k__BackingField: IsAutoProperty: False, UsesFieldKeyword: True, BackingField.IsReadOnly: False",
             };
             AssertEx.Equal(expectedMembers, actualMembers);
         }

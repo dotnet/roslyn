@@ -727,17 +727,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 isReadOnly = true;
             }
-            // - The property has no set accessor (but may have an init accessor) and
-            // the get accessor, if any, is automatically implemented.
-            else if ((_setMethod is null || _setMethod.IsInitOnly) && (_getMethod is null || (_propertyFlags & Flags.HasAutoPropertyGet) != 0))
+            // - The property has no set accessor or is initonly or is declared readonly, and
+            // the get accessor, if any, is automatically implemented, or declared readonly.
+            else if ((_setMethod is null || _setMethod.IsInitOnly || _setMethod.IsDeclaredReadOnly) &&
+                (_getMethod is null || (_propertyFlags & Flags.HasAutoPropertyGet) != 0 || _getMethod.IsDeclaredReadOnly))
             {
                 isReadOnly = true;
             }
             else
             {
-                // PROTOTYPE: We could treat the field as readonly if all manually implemented get and set
-                // accessors are declared readonly. Although, to do so, we might need to bind the accessor
-                // declarations before creating the backing field. See FieldKeywordTests.ReadOnly_05().
                 isReadOnly = false;
             }
 
