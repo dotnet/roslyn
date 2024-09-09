@@ -128,10 +128,6 @@ extends:
       - template: /eng/common/templates-official/jobs/source-build.yml@self
         parameters:
           enableInternalSources: true
-          platform:
-            name: 'Managed'
-            container: 'mcr.microsoft.com/dotnet-buildtools/prereqs:centos-stream9'
-            buildScript: '/eng/common/build.sh'
 
       - job: OfficialBuild
         displayName: Official Build
