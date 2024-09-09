@@ -80,6 +80,8 @@ properties=""
 source_build=false
 restoreUseStaticGraphEvaluation=true
 solution_to_build="Compilers.slnf"
+runtime_source_feed=''
+runtime_source_feed_key=''
 
 args=""
 
@@ -179,6 +181,14 @@ while [[ $# > 0 ]]; do
     --solution)
       solution_to_build=$2
       args="$args $1"
+      shift
+      ;;
+    -runtimesourcefeed)
+      runtime_source_feed=$2
+      shift
+      ;;
+    -runtimesourcefeedkey)
+      runtime_source_feed_key=$2
       shift
       ;;
     /p:*)
