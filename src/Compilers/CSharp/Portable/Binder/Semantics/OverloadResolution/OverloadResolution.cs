@@ -241,9 +241,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We do not have any arguments when determining unique signature.
             var arguments = AnalyzedArguments.GetInstance();
 
+            // Avoid passing reduced methods to overload resolution.
+            var unreducedMethods = methods;
+            if (methods.Any(static m => m.ReducedFrom is not null))
+            {
+                unreducedMethods = ArrayBuilder<MethodSymbol>.GetInstance(methods.Count);
+                foreach (var method in methods)
+                {
+                    unreducedMethods.Add(method.ReducedFrom ?? method);
+                }
+            }
+
             PerformMemberOverloadResolutionStart(
                 results,
-                methods,
+                unreducedMethods,
                 typeArguments,
                 arguments,
                 completeResults: false,
@@ -259,18 +270,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             var hasExpandedForm = results.Any(static r => r.Resolution == MemberResolutionKind.ApplicableInExpandedForm);
             if (hasExpandedForm && results.Any(static r => r.Resolution == MemberResolutionKind.ApplicableInNormalForm))
             {
+                if (unreducedMethods != methods)
+                {
+                    unreducedMethods.Free();
+                }
+
                 result.Free();
                 return false;
             }
 
-            var applicableMethods = result.GetAllApplicableMembers();
-            result.Free();
-
-            if (applicableMethods.Length != methods.Count)
+            // Get applicable members (the original ones from `methods` not `unreducedMethods`).
+            if (unreducedMethods == methods)
             {
-                methods.Clear();
-                methods.AddRange(applicableMethods);
+                var applicableMethods = result.GetAllApplicableMembers();
+                if (applicableMethods.Length != methods.Count)
+                {
+                    methods.Clear();
+                    methods.AddRange(applicableMethods);
+                }
             }
+            else
+            {
+                var applicableMethods = ArrayBuilder<MethodSymbol>.GetInstance(methods.Count);
+                foreach (var res in results)
+                {
+                    if (res.Result.IsApplicable)
+                    {
+                        var index = unreducedMethods.IndexOf(res.Member);
+                        applicableMethods.Add(methods[index]);
+                    }
+                }
+                if (applicableMethods.Count != methods.Count)
+                {
+                    methods.Clear();
+                    methods.AddRange(applicableMethods);
+                }
+                applicableMethods.Free();
+                unreducedMethods.Free();
+            }
+
+            result.Free();
 
             useParams = hasExpandedForm;
             return true;
