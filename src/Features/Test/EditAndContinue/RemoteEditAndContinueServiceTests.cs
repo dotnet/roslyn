@@ -200,14 +200,14 @@ public class RemoteEditAndContinueServiceTests
             var syntaxError = Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), new[] { "doc", "syntax error" });
 
             var updates = new ModuleUpdates(ModuleUpdateStatus.Ready, deltas);
-            var diagnostics = ImmutableArray.Create(new ProjectDiagnostics(project.Id, ImmutableArray.Create(documentDiagnostic, projectDiagnostic)));
-            var documentsWithRudeEdits = ImmutableArray.Create((documentId, ImmutableArray<RudeEditDiagnostic>.Empty));
+            var diagnostics = ImmutableArray.Create(new ProjectDiagnostics(project.Id, [documentDiagnostic, projectDiagnostic]));
+            var documentsWithRudeEdits = ImmutableArray.Create(new ProjectDiagnostics(project.Id, []));
 
             return new()
             {
                 ModuleUpdates = updates,
                 Diagnostics = diagnostics,
-                RudeEdits = documentsWithRudeEdits,
+                RudeEdits = [],
                 SyntaxError = syntaxError
             };
         };

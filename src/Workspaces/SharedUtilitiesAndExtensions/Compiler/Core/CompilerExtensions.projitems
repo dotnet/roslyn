@@ -190,8 +190,8 @@
       <Link>InternalUtilities\UnicodeCharacterUtilities.cs</Link>
     </Compile>
     <Compile Include="$(MSBuildThisFileDirectory)AddImport\AddImportPlacementOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeAndImportGenerationOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeCleanup\CodeCleanupOptions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CleanCodeGenerationOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeGenerationOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\AccessibilityModifiersRequired.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeStyle\AddImportPlacement.cs" />
@@ -281,6 +281,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Options\IOptionReader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\IPublicOption.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\PublicOptionFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)OrganizeImports\OrganizeImportsOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Progress\NullProgress.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Serialization\ObjectReader.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Serialization\ObjectReader.ReaderReferenceMap.cs" />
@@ -641,6 +642,7 @@
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)CodeCleanup\" />
     <Folder Include="$(MSBuildThisFileDirectory)Extensions\Compiler\" />
     <Folder Include="$(MSBuildThisFileDirectory)Hashing\" />
     <Folder Include="$(MSBuildThisFileDirectory)Services\FileBannerFacts\" />

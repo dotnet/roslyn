@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis
                             return resolvedAssembly;
                         }
                     }
-                    catch
+                    catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Diagnostic))
                     {
                         // Ignore if the external resolver throws
                     }

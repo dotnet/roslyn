@@ -56,7 +56,7 @@ internal class SumConverter : JsonConverterFactory
             foreach (var parameterType in parameterTypes)
             {
                 var parameterTypeInfo = NormalizeToNonNullable(parameterType).GetTypeInfo();
-                var declaredConstructor = typeInfo.GetConstructor(new Type[] { parameterType }) ??
+                var declaredConstructor = typeInfo.GetConstructor([parameterType]) ??
                     throw new ArgumentException(nameof(sumTypeType), "All constructor parameter types must be represented in the generic type arguments of the SumType");
 
                 var kindAttribute = parameterType.GetCustomAttribute<KindAttribute>();
@@ -125,7 +125,7 @@ internal class SumConverter : JsonConverterFactory
             // System.Text.Json can pre-compile the generic SumType<> constructor call so we don't need to do it through reflection every time.
             internal delegate T StjReader<T>(ref Utf8JsonReader reader, JsonSerializerOptions options);
 
-            private static readonly Type[] expressionLambdaMethodTypes = new[] { typeof(Type), typeof(Expression), typeof(ParameterExpression[]) };
+            private static readonly Type[] expressionLambdaMethodTypes = [typeof(Type), typeof(Expression), typeof(ParameterExpression[])];
             private static readonly MethodInfo expressionLambdaMethod = typeof(Expression)
                 .GetMethods()
                 .Where(mi =>
@@ -136,7 +136,7 @@ internal class SumConverter : JsonConverterFactory
                                 .SequenceEqual(expressionLambdaMethodTypes))
                 .Single();
 
-            private static readonly Type[] jsonSerializerDeserializeMethodTypes = new[] { typeof(Utf8JsonReader).MakeByRefType(), typeof(JsonSerializerOptions) };
+            private static readonly Type[] jsonSerializerDeserializeMethodTypes = [typeof(Utf8JsonReader).MakeByRefType(), typeof(JsonSerializerOptions)];
             private static readonly MethodInfo jsonSerializerDeserializeMethod = typeof(JsonSerializer)
                 .GetMethods()
                 .Where(mi =>
@@ -161,7 +161,7 @@ internal class SumConverter : JsonConverterFactory
                         jsonSerializerDeserializeMethod.MakeGenericMethod(type),
                         param1,
                         param2));
-                var expression = (LambdaExpression)expressionLambdaMethod.Invoke(null, new object[] { typeof(StjReader<>).MakeGenericType(constructor.DeclaringType), body, new[] { param1, param2 } })!;
+                var expression = (LambdaExpression)expressionLambdaMethod.Invoke(null, [typeof(StjReader<>).MakeGenericType(constructor.DeclaringType), body, new[] { param1, param2 }])!;
 
                 StjReaderFunction = expression.Compile();
             }

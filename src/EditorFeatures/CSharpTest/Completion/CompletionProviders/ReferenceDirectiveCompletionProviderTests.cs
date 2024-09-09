@@ -48,7 +48,7 @@ public class ReferenceDirectiveCompletionProviderTests : AbstractInteractiveCSha
     [Fact]
     public async Task IsCommitCharacterTest()
     {
-        var commitCharacters = PathUtilities.IsUnixLikePlatform ? new[] { '"', '/' } : new[] { '"', '\\', '/', ',' };
+        var commitCharacters = PathUtilities.IsUnixLikePlatform ? new[] { '"', '/' } : ['"', '\\', '/', ','];
         await VerifyCommitCharactersAsync("#r \"$$", textTypedSoFar: "", validChars: commitCharacters, sourceCodeKind: SourceCodeKind.Script);
     }
 

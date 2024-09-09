@@ -270,7 +270,7 @@ internal sealed class DebuggingSession : IDisposable
             catch (Exception e)
             {
                 var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
-                return (Mvid: Guid.Empty, Error: Diagnostic.Create(descriptor, Location.None, new[] { outputs.AssemblyDisplayPath, e.Message }));
+                return (Mvid: Guid.Empty, Error: Diagnostic.Create(descriptor, Location.None, [outputs.AssemblyDisplayPath, e.Message]));
             }
         }
 
@@ -412,7 +412,7 @@ internal sealed class DebuggingSession : IDisposable
             EditAndContinueService.Log.Write("Failed to create baseline for '{0}': {1}", projectId, e.Message);
 
             var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.ErrorReadingFile);
-            diagnostics = [Diagnostic.Create(descriptor, Location.None, new[] { fileBeingRead, e.Message })];
+            diagnostics = [Diagnostic.Create(descriptor, Location.None, [fileBeingRead, e.Message])];
         }
         finally
         {
@@ -535,13 +535,24 @@ internal sealed class DebuggingSession : IDisposable
                 solutionUpdate.NonRemappableRegions));
         }
 
+        using var _ = ArrayBuilder<ProjectDiagnostics>.GetInstance(out var rudeEditDiagnostics);
+        foreach (var (projectId, projectRudeEdits) in solutionUpdate.DocumentsWithRudeEdits.GroupBy(static e => e.DocumentId.ProjectId))
+        {
+            foreach (var (documentId, rudeEdits) in projectRudeEdits)
+            {
+                var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
+                var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                rudeEditDiagnostics.Add(new(projectId, rudeEdits.SelectAsArray(static (rudeEdit, tree) => rudeEdit.ToDiagnostic(tree), tree)));
+            }
+        }
+
         // Note that we may return empty deltas if all updates have been deferred.
         // The debugger will still call commit or discard on the update batch.
         return new EmitSolutionUpdateResults()
         {
             ModuleUpdates = solutionUpdate.ModuleUpdates,
             Diagnostics = solutionUpdate.Diagnostics,
-            RudeEdits = solutionUpdate.DocumentsWithRudeEdits,
+            RudeEdits = rudeEditDiagnostics.ToImmutable(),
             SyntaxError = solutionUpdate.SyntaxError,
         };
     }

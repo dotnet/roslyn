@@ -89,7 +89,7 @@ internal static class SyntaxTriviaExtensions
             commentText = commentText.Trim();
 
             var newLine = Environment.NewLine;
-            var lines = commentText.Split(new[] { newLine }, StringSplitOptions.None);
+            var lines = commentText.Split([newLine], StringSplitOptions.None);
             foreach (var line in lines)
             {
                 var trimmedLine = line.Trim();

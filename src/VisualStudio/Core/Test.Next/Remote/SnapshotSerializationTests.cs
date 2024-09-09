@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                     .AddAdditionalDocument("Additional", SourceText.From("hello"), ImmutableArray.Create("test"), @".\Add").Project.Solution;
 
                 return solution
-                    .WithAnalyzerReferences(new[] { new AnalyzerFileReference(Path.Combine(TempRoot.Root, "path2"), new TestAnalyzerAssemblyLoader()) })
+                    .WithAnalyzerReferences([new AnalyzerFileReference(Path.Combine(TempRoot.Root, "path2"), new TestAnalyzerAssemblyLoader())])
                     .AddAnalyzerConfigDocuments(
                     ImmutableArray.Create(
                         DocumentInfo.Create(
@@ -491,13 +491,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var analyzer1 = new AnalyzerFileReference(file1.Path, TestAnalyzerAssemblyLoader.LoadNotImplemented);
             var analyzer2 = new AnalyzerFileReference(file2.Path, TestAnalyzerAssemblyLoader.LoadNotImplemented);
 
-            project = project.AddAnalyzerReferences(new[] { analyzer1, analyzer2 });
+            project = project.AddAnalyzerReferences([analyzer1, analyzer2]);
 
             var validator = new SerializationValidator(workspace.Services);
             using var snapshot = await validator.AssetStorage.StoreAssetsAsync(project.Solution, CancellationToken.None);
 
             var recovered = await validator.GetSolutionAsync(snapshot);
-            AssertEx.Equal(new[] { file1.Path, file2.Path }, recovered.GetProject(project.Id).AnalyzerReferences.Select(r => r.FullPath));
+            AssertEx.Equal([file1.Path, file2.Path], recovered.GetProject(project.Id).AnalyzerReferences.Select(r => r.FullPath));
         }
 
         [Fact]

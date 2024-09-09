@@ -229,7 +229,19 @@ namespace Microsoft.CodeAnalysis
         {
             private readonly AssemblyLoadContext _compilerAlc = compilerContext;
 
-            public Assembly? ResolveAssembly(AssemblyName assemblyName, string assemblyOriginalDirectory) => _compilerAlc.LoadFromAssemblyName(assemblyName);
+            public Assembly? ResolveAssembly(AssemblyName assemblyName)
+            {
+                try
+                {
+                    return _compilerAlc.LoadFromAssemblyName(assemblyName);
+                }
+                catch
+                {
+                    // The LoadFromAssemblyName method will throw if the assembly cannot be found. Need
+                    // to catch this exception and return null to satisfy the interface contract.
+                    return null;
+                }
+            }
         }
     }
 }
