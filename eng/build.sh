@@ -183,11 +183,11 @@ while [[ $# > 0 ]]; do
       args="$args $1"
       shift
       ;;
-    -runtimesourcefeed)
+    --runtimesourcefeed)
       runtime_source_feed=$2
       shift
       ;;
-    -runtimesourcefeedkey)
+    --runtimesourcefeedkey)
       runtime_source_feed_key=$2
       shift
       ;;
