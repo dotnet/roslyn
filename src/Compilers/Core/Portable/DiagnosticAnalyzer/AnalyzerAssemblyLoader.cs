@@ -9,6 +9,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -450,7 +451,7 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
                     }
-                    catch
+                    catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Diagnostic))
                     {
                         // Ignore if the external redirector throws.
                     }
