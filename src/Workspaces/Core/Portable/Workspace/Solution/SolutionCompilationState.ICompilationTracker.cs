@@ -49,7 +49,7 @@ internal partial class SolutionCompilationState
         /// <summary>
         /// Updates the creation policy for this tracker.  Setting it to <see cref="CreationPolicy.DoNotCreate"/>.
         /// </summary>
-        ICompilationTracker WithDoNotCreateCreationPolicy();
+        ICompilationTracker WithDoNotCreateCreationPolicy(CancellationToken cancellationToken);
 
         Task<VersionStamp> GetDependentVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
         Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
