@@ -15,10 +15,7 @@
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
-    <ProjectReference Include="..\..\Features\LanguageServer\Protocol\Microsoft.CodeAnalysis.LanguageServer.Protocol.csproj" />
-    <ProjectReference Include="..\..\Features\TestUtilities\Microsoft.CodeAnalysis.Features.Test.Utilities.csproj" />
-    <ProjectReference Include="..\..\Workspaces\CoreTestUtilities\Microsoft.CodeAnalysis.Workspaces.Test.Utilities.csproj" />
+    <ProjectReference Include="..\..\LanguageServer\Protocol.TestUtilities\Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities.csproj" />
     <ProjectReference Include="..\..\Workspaces\Remote\Core\Microsoft.CodeAnalysis.Remote.Workspaces.csproj" />
     <ProjectReference Include="..\..\Workspaces\Remote\ServiceHub\Microsoft.CodeAnalysis.Remote.ServiceHub.csproj" />
     <ProjectReference Include="..\Core.Wpf\Microsoft.CodeAnalysis.EditorFeatures.Wpf.csproj" />
@@ -26,9 +23,6 @@
     <ProjectReference Include="..\Text\Microsoft.CodeAnalysis.EditorFeatures.Text.csproj" />
     <ProjectReference Include="..\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.vbproj" />
     <ProjectReference Include="..\XunitHook\Microsoft.CodeAnalysis.XunitHook.csproj" />
-    <ProjectReference Include="..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
-      <Aliases>global,WORKSPACES</Aliases>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Moq" />

@@ -47,7 +47,6 @@ internal static class DocumentBasedFixAllProviderHelpers
         var cleanedSolution = await CodeAction.CleanSyntaxAndSemanticsAsync(
             originalSolution,
             dirtySolution,
-            originalFixAllContext.State.CodeActionOptionsProvider,
             progressTracker,
             cancellationToken).ConfigureAwait(false);
 
@@ -72,14 +71,16 @@ internal static class DocumentBasedFixAllProviderHelpers
                 source: fixAllContexts,
                 produceItems: static async (fixAllContext, callback, args, cancellationToken) =>
                 {
+                    var (getFixedDocumentsAsync, progressTracker) = args;
+
                     // Update our progress for each fixAllContext we process.
-                    using var _ = args.progressTracker.ItemCompletedScope();
+                    using var _ = progressTracker.ItemCompletedScope();
 
                     Contract.ThrowIfFalse(
                         fixAllContext.Scope is FixAllScope.Document or FixAllScope.Project or FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
                     // Defer to the FixAllProvider to actually compute each fixed document.
-                    await args.getFixedDocumentsAsync(
+                    await getFixedDocumentsAsync(
                         fixAllContext,
                         async (originalDocument, newDocument) =>
                         {
@@ -91,7 +92,7 @@ internal static class DocumentBasedFixAllProviderHelpers
                             callback((newDocument.Id, (newRoot, newText)));
                         }).ConfigureAwait(false);
                 },
-                args: (getFixedDocumentsAsync, progressTracker, originalSolution),
+                args: (getFixedDocumentsAsync, progressTracker),
                 cancellationToken).ConfigureAwait(false);
 
             // Next, go and insert those all into the solution so all the docs in this particular project point
@@ -101,8 +102,8 @@ internal static class DocumentBasedFixAllProviderHelpers
             // expensive as we'd fork, produce semantics, fork, produce semantics, etc. etc.). Instead, by
             // adding all the changed documents to one solution, and then cleaning *those* we only perform
             // cleanup semantics on one forked solution.
-            var changedRoots = changedRootsAndTexts.SelectAsArray(t => t.Item2.node != null, t => (t.documentId, t.Item2.node!, PreservationMode.PreserveValue));
-            var changedTexts = changedRootsAndTexts.SelectAsArray(t => t.Item2.text != null, t => (t.documentId, t.Item2.text!, PreservationMode.PreserveValue));
+            var changedRoots = changedRootsAndTexts.SelectAsArray(t => t.Item2.node != null, t => (t.documentId, t.Item2.node!));
+            var changedTexts = changedRootsAndTexts.SelectAsArray(t => t.Item2.text != null, t => (t.documentId, t.Item2.text!));
 
             return originalSolution
                 .WithDocumentSyntaxRoots(changedRoots)

@@ -321,7 +321,7 @@ internal abstract class AbstractCodeCleanerService : ICodeCleanerService
         SyntaxNode root, ImmutableArray<TextSpan> spans, CancellationToken cancellationToken)
     {
         // Create interval tree for spans
-        var intervalTree = SimpleIntervalTree.Create(new TextSpanIntervalIntrospector(), spans);
+        var intervalTree = SimpleMutableIntervalTree.Create(new TextSpanIntervalIntrospector(), spans);
 
         // Find tokens that are outside of spans
         var tokenSpans = new List<TextSpan>();

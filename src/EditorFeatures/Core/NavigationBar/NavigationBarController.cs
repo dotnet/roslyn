@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Data.Common;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +23,8 @@ using Roslyn.Utilities;
 using IUIThreadOperationExecutor = Microsoft.VisualStudio.Utilities.IUIThreadOperationExecutor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar;
+
+using LastPresentedInfo = (ImmutableArray<NavigationBarProjectItem> projectItems, NavigationBarProjectItem? selectedProjectItem, NavigationBarModel? model, NavigationBarSelectedTypeAndMember selectedInfo);
 
 /// <summary>
 /// The controller for navigation bars.
@@ -46,7 +49,7 @@ internal partial class NavigationBarController : IDisposable
     /// skip doing that as the UI will already know about this.  This is only ever read or written from <see
     /// cref="_selectItemQueue"/>.  So we don't need to worry about any synchronization over it.
     /// </summary>
-    private (ImmutableArray<NavigationBarProjectItem> projectItems, NavigationBarProjectItem? selectedProjectItem, NavigationBarModel? model, NavigationBarSelectedTypeAndMember selectedInfo) _lastPresentedInfo;
+    private LastPresentedInfo _lastPresentedInfo;
 
     /// <summary>
     /// Source of events that should cause us to update the nav bar model with new information.
@@ -64,7 +67,15 @@ internal partial class NavigationBarController : IDisposable
     /// Queue to batch up work to do to compute the current model.  Used so we can batch up a lot of events and only
     /// compute the model once for every batch.
     /// </summary>
-    private readonly AsyncBatchingWorkQueue<VoidResult, NavigationBarModel?> _computeModelQueue;
+    private readonly AsyncBatchingWorkQueue<NavigationBarQueueItem, NavigationBarModel?> _computeModelQueue;
+
+    /// <summary>
+    /// This cancellation series controls the non-frozen nav-bar computation pass.  We want this to be separately
+    /// cancellable so that if new events come in that we cancel the expensive non-frozen nav-bar pass (which might be
+    /// computing skeletons, SG docs, etc.), do the next cheap frozen-nav-bar-pass, and then push the
+    /// expensive-nonfrozen-nav-bar-pass to the end again.
+    /// </summary>
+    private readonly CancellationSeries _nonFrozenComputationCancellationSeries;
 
     /// <summary>
     /// Queue to batch up work to do to determine the selected item.  Used so we can batch up a lot of events and only
@@ -92,11 +103,12 @@ internal partial class NavigationBarController : IDisposable
         _visibilityTracker = visibilityTracker;
         _uiThreadOperationExecutor = uiThreadOperationExecutor;
         _asyncListener = asyncListener;
+        _nonFrozenComputationCancellationSeries = new(_cancellationTokenSource.Token);
 
-        _computeModelQueue = new AsyncBatchingWorkQueue<VoidResult, NavigationBarModel?>(
-            DelayTimeSpan.Short,
+        _computeModelQueue = new AsyncBatchingWorkQueue<NavigationBarQueueItem, NavigationBarModel?>(
+            DelayTimeSpan.Medium,
             ComputeModelAndSelectItemAsync,
-            EqualityComparer<VoidResult>.Default,
+            EqualityComparer<NavigationBarQueueItem>.Default,
             asyncListener,
             _cancellationTokenSource.Token);
 
@@ -196,7 +208,13 @@ internal partial class NavigationBarController : IDisposable
         if (_disconnected)
             return;
 
-        _computeModelQueue.AddWork(default(VoidResult));
+        // Cancel any expensive, in-flight, nav-bar work as there's now a request to perform lightweight tagging. Note:
+        // intentionally ignoring the return value here.  We're enqueuing normal work here, so it has no associated
+        // token with it.
+        _ = _nonFrozenComputationCancellationSeries.CreateNext();
+        _computeModelQueue.AddWork(
+            new NavigationBarQueueItem(FrozenPartialSemantics: true, NonFrozenComputationToken: null),
+            cancelExistingWork: true);
     }
 
     private void OnCaretMovedOrActiveViewChanged(object? sender, EventArgs e)

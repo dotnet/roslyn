@@ -239,7 +239,7 @@ internal partial class WpfBackgroundWorkIndicatorFactory
                 // Todo: build a richer tool-tip that makes use of things like the progress reported, and perhaps has a
                 // close button.
                 _toolTipPresenter.StartOrUpdate(
-                    _trackingSpan, new[] { string.Format(EditorFeaturesResources._0_Esc_to_cancel, data.description) });
+                    _trackingSpan, [string.Format(EditorFeaturesResources._0_Esc_to_cancel, data.description)]);
             }
         }
 

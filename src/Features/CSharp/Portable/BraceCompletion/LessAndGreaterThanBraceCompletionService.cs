@@ -15,15 +15,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion;
 
-[Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
-internal class LessAndGreaterThanBraceCompletionService : AbstractCSharpBraceCompletionService
+[ExportBraceCompletionService(LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class LessAndGreaterThanBraceCompletionService() : AbstractCSharpBraceCompletionService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public LessAndGreaterThanBraceCompletionService()
-    {
-    }
-
     protected override bool NeedsSemantics => true;
 
     protected override char OpeningBrace => LessAndGreaterThan.OpenCharacter;

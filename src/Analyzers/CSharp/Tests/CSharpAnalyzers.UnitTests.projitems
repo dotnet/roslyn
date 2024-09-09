@@ -33,7 +33,18 @@
     <Compile Include="$(MSBuildThisFileDirectory)FixReturnType\FixReturnTypeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ForEachCast\ForEachCastTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingAnalyzerTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateConstructor\GenerateConstructorTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\GenerateDefaultConstructorsTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateEnumMember\GenerateEnumMemberTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateMethod\GenerateConversionTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateMethod\GenerateDeconstructMethodTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateMethod\GenerateMethodTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests_ThroughMember.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\AddYieldTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\ChangeToIEnumerableTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeAnonymousFunctionStatic\MakeAnonymousFunctionStaticTests.cs" />
@@ -159,6 +170,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndNullCheckTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndMemberAccessTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePrimaryConstructor\UsePrimaryConstructorTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseSystemThreadingLock\UseSystemThreadingLockTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseTupleSwap\UseTupleSwapTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseLocalFunction\UseLocalFunctionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNullPropagation\UseNullPropagationTests.cs" />

@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             var tree = SyntaxFactory.ParseSyntaxTree(text, options: options);
             var compilation = CSharpCompilation.Create(
                 "test",
-                syntaxTrees: new[] { tree },
-                references: new[] { TestMetadata.Net451.mscorlib });
+                syntaxTrees: [tree],
+                references: [NetFramework.mscorlib]);
 
             if (tree.IsInNonUserCode(position, CancellationToken.None) && !absent)
             {

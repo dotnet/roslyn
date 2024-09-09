@@ -31,9 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     (_, false) => DeclarationModifiers.Protected | DeclarationModifiers.Override
                 },
                 hasInitializer: false,
+                hasExplicitAccessMod: false,
                 isAutoProperty: false,
                 isExpressionBodied: false,
                 isInitOnly: false,
+                accessorsHaveImplementation: true,
                 RefKind.None,
                 PropertyName,
                 indexerNameAttributeLists: new SyntaxList<AttributeListSyntax>(),
@@ -47,8 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => ImmutableArray<SyntaxReference>.Empty;
 
-        public override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
-            => new SyntaxList<AttributeListSyntax>();
+        public override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+            => OneOrMany<SyntaxList<AttributeListSyntax>>.Empty;
+
+        protected override SourcePropertySymbolBase? BoundAttributesSource => null;
 
         public override IAttributeTargetSymbol AttributesOwner => this;
 

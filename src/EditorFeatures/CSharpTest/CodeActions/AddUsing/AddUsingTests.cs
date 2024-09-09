@@ -5,18 +5,18 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using static Roslyn.Test.Utilities.TestMetadata;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
 
@@ -2049,7 +2049,7 @@ class Program
     {
         var resolver = new TestMetadataReferenceResolver(assemblyNames: new Dictionary<string, PortableExecutableReference>()
         {
-            { "exprs", AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemCore).GetReference() }
+            { "exprs", AssemblyMetadata.CreateFromImage(Net461.Resources.SystemCore).GetReference() }
         });
 
         await TestAsync(
@@ -6365,7 +6365,7 @@ class Program
 </Workspace>";
 
         await TestMissingAsync(initialWorkspace, new TestParameters(
-            globalOptions: Option(CompletionOptionsStorage.HideAdvancedMembers, true),
+            options: Option(MemberDisplayOptionsStorage.HideAdvancedMembers, true),
             testHost: testHost));
     }
 

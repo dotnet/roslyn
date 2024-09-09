@@ -15,6 +15,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
@@ -46,9 +47,12 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     private readonly object _metadataCacheLock = new();
 
     /// <summary>
-    /// Access locked with <see cref="_metadataCacheLock"/>.
+    /// Access locked with <see cref="_metadataCacheLock"/>.  Maps from file path to metadata and the last time the
+    /// metadata was written to.  We keep this around until we see the file has changed on disk, at which point we'll
+    /// compute the new metadata and update this cache, allowing the old metadata to be released.  Note: this does mean
+    /// that metadata that is no longer used, will be kept around indefinitely.
     /// </summary>
-    private readonly Dictionary<FileKey, AssemblyMetadata> _metadataCache = [];
+    private readonly Dictionary<string, (DateTime lastWriteTime, AssemblyMetadata metadata)> _metadataCache = new(StringComparer.OrdinalIgnoreCase);
 
     private readonly ImmutableArray<string> _runtimeDirectories;
     private readonly TemporaryStorageService _temporaryStorageService;
@@ -88,18 +92,26 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         }
     }
 
-    private bool TryGetMetadata(FileKey key, [NotNullWhen(true)] out AssemblyMetadata? metadata)
+    private bool TryGetMetadata(string filePath, DateTime lastWriteTime, [NotNullWhen(true)] out AssemblyMetadata? metadata)
     {
         lock (_metadataCacheLock)
-            return _metadataCache.TryGetValue(key, out metadata);
+        {
+            if (_metadataCache.TryGetValue(filePath, out var tuple) &&
+                tuple.lastWriteTime == lastWriteTime)
+            {
+                metadata = tuple.metadata;
+                return true;
+            }
+        }
+
+        metadata = null;
+        return false;
     }
 
     public IReadOnlyList<TemporaryStorageStreamHandle>? GetStorageHandles(string fullPath, DateTime snapshotTimestamp)
     {
-        var key = new FileKey(fullPath, snapshotTimestamp);
-        // check existing metadata
-        if (TryGetMetadata(key, out var source) &&
-            s_metadataToStorageHandles.TryGetValue(source, out var handles))
+        if (TryGetMetadata(fullPath, snapshotTimestamp, out var metadata) &&
+            s_metadataToStorageHandles.TryGetValue(metadata, out var handles))
         {
             return handles;
         }
@@ -137,10 +149,8 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     /// <exception cref="BadImageFormatException" />
     internal Metadata GetMetadata(string fullPath, DateTime snapshotTimestamp)
     {
-        var key = new FileKey(fullPath, snapshotTimestamp);
-
         // check existing metadata
-        if (!TryGetMetadata(key, out var metadata))
+        if (!TryGetMetadata(fullPath, snapshotTimestamp, out var metadata))
         {
             // wasn't in the cache.  create a new instance.
             metadata = GetMetadataWorker(fullPath);
@@ -151,14 +161,14 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
                 // Now try to create and add the metadata to the cache. If we fail to add it (because some other thread
                 // beat us to this), then Dispose the metadata we just created and will return the existing metadata
                 // instead.
-                if (_metadataCache.TryGetValue(key, out var cachedMetadata))
+                if (TryGetMetadata(fullPath, snapshotTimestamp, out var cachedMetadata))
                 {
                     metadata.Dispose();
                     return cachedMetadata;
                 }
 
-                // don't use "Add" since key might already exist with already released metadata
-                _metadataCache[key] = metadata;
+                // don't use "Add" since key might already exist with stale metadata
+                _metadataCache[fullPath] = (snapshotTimestamp, metadata);
                 return metadata;
             }
         }
@@ -223,11 +233,14 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
                 // location, so we can create a metadata value wrapping that.  This will also let us share the memory
                 // for that metadata value with our OOP process.
                 copyStream.Position = 0;
-                storageHandle = temporaryStorageService.WriteToTemporaryStorage(copyStream, CancellationToken.None);
+                storageHandle = temporaryStorageService.WriteToTemporaryStorage(copyStream);
             }
 
             // Now, read the data from the memory-mapped-file back into a stream that we load into the metadata value.
-            stream = storageHandle.ReadFromTemporaryStorage(CancellationToken.None);
+            // The ITemporaryStorageStreamHandle should have given us an UnmanagedMemoryStream
+            // since this only runs on Windows for VS.
+            stream = (UnmanagedMemoryStream)storageHandle.ReadFromTemporaryStorage();
+
             // stream size must be same as what metadata reader said the size should be.
             Contract.ThrowIfFalse(stream.Length == size);
         }
@@ -331,9 +344,9 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
             assemblyDir ??= Path.GetDirectoryName(fullPath);
 
             // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
-            var moduleFileKey = PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName)!;
+            var moduleFullPath = PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName)!;
 
-            var (moduleMetadata, moduleHandle) = moduleMetadataFactory(moduleFileKey);
+            var (moduleMetadata, moduleHandle) = moduleMetadataFactory(moduleFullPath);
             modules.Add(moduleMetadata);
             handles.Add(moduleHandle);
         }

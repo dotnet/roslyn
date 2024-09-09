@@ -33,14 +33,14 @@ public class ReferenceDirectiveCompletionProviderTests : AbstractInteractiveCSha
 
     private protected override Task VerifyWorkerAsync(
         string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
-        SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
+        SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool checkForAbsence,
         int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
         string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
         List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null, CompletionOptions options = null, bool skipSpeculation = false)
     {
         return BaseVerifyWorkerAsync(
             code, position, expectedItemOrNull, expectedDescriptionOrNull,
-            sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
+            sourceCodeKind, usePreviousCharAsTrigger, deletedCharTrigger, checkForAbsence,
             glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
             displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags);
     }
@@ -48,7 +48,7 @@ public class ReferenceDirectiveCompletionProviderTests : AbstractInteractiveCSha
     [Fact]
     public async Task IsCommitCharacterTest()
     {
-        var commitCharacters = PathUtilities.IsUnixLikePlatform ? new[] { '"', '/' } : new[] { '"', '\\', '/', ',' };
+        var commitCharacters = PathUtilities.IsUnixLikePlatform ? new[] { '"', '/' } : ['"', '\\', '/', ','];
         await VerifyCommitCharactersAsync("#r \"$$", textTypedSoFar: "", validChars: commitCharacters, sourceCodeKind: SourceCodeKind.Script);
     }
 

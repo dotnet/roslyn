@@ -4,6 +4,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Host;
@@ -11,7 +14,35 @@ namespace Microsoft.CodeAnalysis.Host;
 /// <summary>
 /// Per workspace services provided by the host environment.
 /// </summary>
-public abstract class HostWorkspaceServices
+/// <remarks>
+/// <para>Workspace services which implement <see cref="IDisposable"/> are considered ownable, in which case the
+/// owner is responsible for disposing of owned instances when they are no longer in use. When
+/// <see cref="IWorkspaceService"/> or <see cref="IWorkspaceServiceFactory"/> instances are provided directly to the
+/// <see cref="HostWorkspaceServices"/>, the owner of the instances is the type or container (e.g. a MEF export
+/// provider) which created the instances. For the specific case of ownable workspace services created by a factory
+/// (i.e. instances returned by <see cref="IWorkspaceServiceFactory.CreateService"/>), the <see cref="Workspace"/>
+/// is considered the owner of the resulting instance and is expected to be disposed during the call to
+/// <see cref="Dispose"/>.</para>
+///
+/// <para><strong>Summary of lifetime rules</strong></para>
+///
+/// <list type="bullet">
+/// <item><description>
+///   <strong><see cref="IWorkspaceService"/> instance constructed externally (e.g. MEF):</strong> Owned by the
+///   external source, and will not be automatically disposed when <see cref="Workspace"/> is disposed.
+/// </description></item>
+/// <item><description>
+///   <strong><see cref="IWorkspaceServiceFactory"/> instance constructed externally (e.g. MEF):</strong> Owned by
+///   the external source, and will not be automatically disposed when <see cref="Workspace"/> is disposed.
+/// </description></item>
+/// <item><description>
+///   <strong><see cref="IWorkspaceService"/> instance constructed by <see cref="IWorkspaceServiceFactory"/> within
+///   the context of <see cref="HostWorkspaceServices"/>:</strong> Owned by <see cref="Workspace"/>, and
+///   <strong>will</strong> be automatically disposed when <see cref="Workspace"/> is disposed.
+/// </description></item>
+/// </list>
+/// </remarks>
+public abstract class HostWorkspaceServices : IDisposable
 {
     /// <summary>
     /// The host services this workspace services originated from.
@@ -37,6 +68,11 @@ public abstract class HostWorkspaceServices
 #pragma warning disable 618 // 'HostProjectServices.HostSolutionServices(HostLanguageServices)' is obsolete: 'Do not call directly.
         SolutionServices = new SolutionServices(this);
 #pragma warning restore
+    }
+
+    [SuppressMessage("Usage", "CA1816:Dispose methods should call SuppressFinalize", Justification = "Derived types are not allowed to include a finalizer for this pattern.")]
+    public virtual void Dispose()
+    {
     }
 
     /// <summary>
@@ -86,7 +122,9 @@ public abstract class HostWorkspaceServices
     /// <summary>
     /// A list of language names for supported language services.
     /// </summary>
-    public virtual IEnumerable<string> SupportedLanguages => [];
+    public virtual IEnumerable<string> SupportedLanguages => SupportedLanguagesArray;
+
+    internal virtual ImmutableArray<string> SupportedLanguagesArray => [];
 
     /// <summary>
     /// Returns true if the language is supported.

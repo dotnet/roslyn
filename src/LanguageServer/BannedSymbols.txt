@@ -1,0 +1,23 @@
+T:System.ComponentModel.Composition.ExportAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.ExportMetadataAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.ImportAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.ImportManyAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.ImportMetadataConstraintAttribut; Use types from System.Composition instead
+T:System.ComponentModel.Composition.ImportingConstructorAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.MetadataAttributeAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.OnImportsSatisfiedAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.PartMetadataAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.PartNotDiscoverableAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.SharedAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.SharingBoundaryAttribute; Use types from System.Composition instead
+T:System.ComponentModel.Composition.Convention.AttributedModelProvider; Use types from System.Composition instead
+M:System.Uri.#ctor(System.String); Use ProtocolConversions.CreateAbsoluteUri or ProtocolConversions.CreateUriFromSourceGeneratedFilePath
+M:System.Uri.#ctor(System.String,System.Boolean); Use ProtocolConversions.CreateAbsoluteUri or ProtocolConversions.CreateUriFromSourceGeneratedFilePath
+M:System.Uri.#ctor(System.String,System.UriCreationOptions); Use ProtocolConversions.CreateAbsoluteUri or ProtocolConversions.CreateUriFromSourceGeneratedFilePath
+M:System.Uri.#ctor(System.String,System.UriKind); Use ProtocolConversions.CreateAbsoluteUri or ProtocolConversions.CreateUriFromSourceGeneratedFilePath
+M:System.Uri.#ctor(System.Uri,System.String); Use ProtocolConversions.CreateAbsoluteUri or ProtocolConversions.CreateUriFromSourceGeneratedFilePath
+M:System.Uri.#ctor(System.Uri,System.Uri); Use ProtocolConversions.CreateAbsoluteUri or ProtocolConversions.CreateUriFromSourceGeneratedFilePath
+M:System.Uri.#ctor(System.Uri,System.String,System.Boolean); Use ProtocolConversions.CreateAbsoluteUri or ProtocolConversions.CreateUriFromSourceGeneratedFilePath
+M:System.Uri.TryCreate(System.String,System.UriKind,System.Uri@); Use ProtocolConversions.CreateAbsoluteUri or ProtocolConversions.CreateUriFromSourceGeneratedFilePath
+M:System.Uri.TryCreate(System.Uri,System.String,System.Uri@); Use ProtocolConversions.CreateAbsoluteUri or ProtocolConversions.CreateUriFromSourceGeneratedFilePath
+M:System.Uri.TryCreate(System.Uri,System.Uri,System.Uri@); Use ProtocolConversions.CreateAbsoluteUri or ProtocolConversions.CreateUriFromSourceGeneratedFilePath

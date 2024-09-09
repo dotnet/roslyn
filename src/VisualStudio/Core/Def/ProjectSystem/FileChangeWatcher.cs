@@ -83,10 +83,8 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
         }
     }
 
-    public IFileChangeContext CreateContext(params WatchedDirectory[] watchedDirectories)
-    {
-        return new Context(this, watchedDirectories.ToImmutableArray());
-    }
+    public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
+        => new Context(this, watchedDirectories);
 
     /// <summary>
     /// Represents an operation to subscribe or unsubscribe from <see cref="IVsAsyncFileChangeEx2"/> events. The
@@ -313,7 +311,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
                     _cookies.Add(cookie);
 
                     if (_filter != null)
-                        await service.FilterDirectoryChangesAsync(cookie, new[] { _filter }, cancellationToken).ConfigureAwait(false);
+                        await service.FilterDirectoryChangesAsync(cookie, [_filter], cancellationToken).ConfigureAwait(false);
 
                     return;
 

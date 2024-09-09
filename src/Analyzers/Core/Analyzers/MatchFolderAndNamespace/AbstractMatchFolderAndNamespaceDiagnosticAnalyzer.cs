@@ -79,9 +79,11 @@ internal abstract class AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<TSynta
             var nameSyntax = GetSyntaxFacts().GetNameOfBaseNamespaceDeclaration(namespaceDecl);
             RoslynDebug.AssertNotNull(nameSyntax);
 
-            context.ReportDiagnostic(Diagnostic.Create(
+            context.ReportDiagnostic(DiagnosticHelper.Create(
                 Descriptor,
                 nameSyntax.GetLocation(),
+                option.Notification,
+                context.Options,
                 additionalLocations: null,
                 properties: ImmutableDictionary<string, string?>.Empty.Add(MatchFolderAndNamespaceConstants.TargetNamespace, targetNamespace),
                 messageArgs: new[] { currentNamespace, targetNamespace }));
@@ -146,7 +148,7 @@ internal abstract class AbstractMatchFolderAndNamespaceDiagnosticAnalyzer<TSynta
         var relativeDirectoryPath = PathUtilities.GetRelativePath(
             projectDir,
             PathUtilities.GetDirectoryName(namespaceDeclaration.SyntaxTree.FilePath)!);
-        var folders = relativeDirectoryPath.Split(new[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
+        var folders = relativeDirectoryPath.Split([Path.DirectorySeparatorChar], StringSplitOptions.RemoveEmptyEntries);
 
         var expectedNamespace = PathMetadataUtilities.TryBuildNamespaceFromFolders(folders, GetSyntaxFacts(), rootNamespace);
 

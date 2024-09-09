@@ -39,10 +39,10 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
     /// </summary>
     protected bool ConstructedFromInlineExpression { get; private set; }
 
-    protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
+    protected override bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken)
     {
         var syntaxContext = context.SyntaxContext;
-        var semanticModel = syntaxContext.SemanticModel;
+        var semanticModel = context.SemanticModel;
         var targetToken = syntaxContext.TargetToken;
 
         var syntaxFacts = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -51,7 +51,7 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
             return IsValidAccessingType(type, semanticModel.Compilation);
         }
 
-        return base.IsValidSnippetLocation(in context, cancellationToken);
+        return base.IsValidSnippetLocationCore(context, cancellationToken);
     }
 
     protected sealed override async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)
@@ -83,6 +83,16 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
             syntaxFacts.IsExpressionStatement(parentNode?.Parent))
         {
             var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(parentNode)!;
+            var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
+
+            // Forbid a case when we are dotting of a type, e.g. `string.$$`.
+            // Inline statement snippets are not valid in this context
+            if (symbolInfo.Symbol is ITypeSymbol)
+            {
+                expressionInfo = null;
+                return false;
+            }
+
             var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
             expressionInfo = new(expression, typeInfo);
             return true;
@@ -98,6 +108,16 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
         if (syntaxFacts.IsQualifiedName(parentNode))
         {
             syntaxFacts.GetPartsOfQualifiedName(parentNode, out var expression, out _, out _);
+            var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
+
+            // Forbid a case when we are dotting of a type, e.g. `string.$$`.
+            // Inline statement snippets are not valid in this context
+            if (symbolInfo.Symbol is ITypeSymbol)
+            {
+                expressionInfo = null;
+                return false;
+            }
+
             var typeInfo = semanticModel.GetSpeculativeTypeInfo(expression.SpanStart, expression, SpeculativeBindingOption.BindAsExpression);
             expressionInfo = new(expression, typeInfo);
             return true;

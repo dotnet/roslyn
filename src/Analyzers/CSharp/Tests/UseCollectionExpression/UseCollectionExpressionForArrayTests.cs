@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -1171,6 +1172,66 @@ public class UseCollectionExpressionForArrayTests
                 public class XAttribute : System.Attribute
                 {
                     public XAttribute(int[] values) { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNonTargetTypedAttributeArgument1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                [X(new string[] { })]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public XAttribute(object values) { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNonTargetTypedAttributeArgument2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                [X(new string[] { "" })]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public XAttribute(object values) { }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestNonTargetTypedAttributeArgument3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                [X(new[] { "" })]
+                class C
+                {
+                }
+
+                public class XAttribute : System.Attribute
+                {
+                    public XAttribute(object values) { }
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
@@ -5346,6 +5407,482 @@ public class UseCollectionExpressionForArrayTests
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
+    public async Task PreservesTrailingTriviaAfterInitializer1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = [|[|new|][]|] //Test
+                    { 1, 2, 3 };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+                    //Test
+                    [1, 2, 3];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
+    public async Task PreservesTrailingTriviaAfterInitializer2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = //Test
+                    [|{|] 1, 2, 3 };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i = //Test
+                    [1, 2, 3];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
+    public async Task PreservesTrailingTriviaAfterInitializer3()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[][][] a = //Other comment
+                    [|{|]
+                        [|[|new|] int[][]|] //my comment
+                        {
+                            [|[|new|] int[]|] { 123, 456 }
+                        },
+                        [|[|new|] int[][]|] //my comment 2
+                        {
+                            [|[|new|] int[]|] { 789, 101 }
+                        }
+                    };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[][][] a = //Other comment
+                    [
+                        //my comment
+                        [
+                            [123, 456]
+                        ],
+                        //my comment 2
+                        [
+                            [789, 101]
+                        ]
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
+    public async Task PreservesTrailingTriviaAfterInitializer4()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = [|[|new|] int[]|] //Test
+                    { };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i = //Test
+                    [];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
+    public async Task PreservesTrailingTriviaAfterInitializer5()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = //Test
+                    [|{|] };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i = //Test
+                    [];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
+    public async Task PreservesTrailingTriviaAfterInitializer6()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i =
+                    [|{|] };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+                    [];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
+    public async Task PreservesTrailingTriviaAfterInitializer7()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = [|[|new|] int[]|]
+                    { };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i = [];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
+    public async Task PreservesTrailingTriviaAfterInitializer8()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = [|[|new|][]|] /* Test */
+                    { 1, 2, 3 };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i =
+                    /* Test */
+                    [1, 2, 3];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
+    public async Task PreservesTrailingTriviaAfterInitializer9()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = /* Test */
+                    [|{|] 1, 2, 3 };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i = /* Test */
+                    [1, 2, 3];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
+    public async Task PreservesTrailingTriviaAfterInitializer10()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[][][] a = /* Other comment */
+                    [|{|]
+                        [|[|new|] int[][]|] /* my comment */
+                        {
+                            [|[|new|] int[]|] { 123, 456 }
+                        },
+                        [|[|new|] int[][]|] /* my comment 2 */
+                        {
+                            [|[|new|] int[]|] { 789, 101 }
+                        }
+                    };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[][][] a = /* Other comment */
+                    [
+                        /* my comment */
+                        [
+                            [123, 456]
+                        ],
+                        /* my comment 2 */
+                        [
+                            [789, 101]
+                        ]
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
+    public async Task PreservesTrailingTriviaAfterInitializer11()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = [|[|new|] int[]|] /* Test */
+                    { };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i = /* Test */
+                    [];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
+    public async Task PreservesTrailingTriviaAfterInitializer12()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[] i = /* Test */
+                    [|{|] };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[] i = /* Test */
+                    [];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73740")]
+    public async Task PreservesTrailingTriviaAfterInitializer14()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    int[][][] a = /* Other 
+                    comment */
+                    //other comment
+                    [|{|]
+                        [|[|new|] int[][]|] /* mixed comments */ // here
+                        {
+                            [|[|new|] int[]|] { 123, 456 } //with some trailing comments!
+                        },
+                    };
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    int[][][] a = /* Other 
+                    comment */
+                    //other comment
+                    [
+                        /* mixed comments */ // here
+                        [
+                            [123, 456] //with some trailing comments!
+                        ],
+                    ];
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/74931")]
+    public async Task AllowSwitchToReadOnlySpanCSharp12(bool implicitType, bool whenTypesLooselyMatch)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+
+                class C
+                {
+                    void M(char c)
+                    {
+                        Split([|[|new|]{{(implicitType ? "" : " char")}}[]|] { c });
+                    }
+
+                    void Split(char[] p) { }
+                    void Split(ReadOnlySpan<char> p) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class C
+                {
+                    void M(char c)
+                    {
+                        Split([c]);
+                    }
+                
+                    void Split(char[] p) { }
+                    void Split(ReadOnlySpan<char> p) { }
+                }
+                """,
+            EditorConfig = $$"""
+                [*]
+                dotnet_style_prefer_collection_expression={{(whenTypesLooselyMatch ? "when_types_loosely_match" : "when_types_exactly_match")}}
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/74931")]
+    public async Task AllowSwitchToReadOnlySpanCSharp13(bool implicitType, bool whenTypesLooselyMatch)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+
+                class C
+                {
+                    void M(char c)
+                    {
+                        Split([|[|new|]{{(implicitType ? "" : " char")}}[]|] { c });
+                    }
+
+                    void Split(char[] p) { }
+                    void Split(ReadOnlySpan<char> p) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class C
+                {
+                    void M(char c)
+                    {
+                        Split([c]);
+                    }
+                
+                    void Split(char[] p) { }
+                    void Split(ReadOnlySpan<char> p) { }
+                }
+                """,
+            EditorConfig = $$"""
+                [*]
+                dotnet_style_prefer_collection_expression={{(whenTypesLooselyMatch ? "when_types_loosely_match" : "when_types_exactly_match")}}
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/74931")]
+    public async Task AllowSwitchToReadOnlySpanGeneric1(bool implicitType, bool whenTypesLooselyMatch)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+
+                class C
+                {
+                    void M(char c)
+                    {
+                        Split([|[|new|]{{(implicitType ? "" : " char")}}[]|] { c });
+                    }
+
+                    void Split<T>(T[] p) { }
+                    void Split<T>(ReadOnlySpan<T> p) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class C
+                {
+                    void M(char c)
+                    {
+                        Split([c]);
+                    }
+                
+                    void Split<T>(T[] p) { }
+                    void Split<T>(ReadOnlySpan<T> p) { }
+                }
+                """,
+            EditorConfig = $$"""
+                [*]
+                dotnet_style_prefer_collection_expression={{(whenTypesLooselyMatch ? "when_types_loosely_match" : "when_types_exactly_match")}}
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 }

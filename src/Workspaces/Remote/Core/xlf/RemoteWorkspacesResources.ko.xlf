@@ -117,6 +117,11 @@
         <target state="translated">프로젝트 원격 분석 컬렉션</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_RelatedDocuments">
+        <source>Related documents</source>
+        <target state="new">Related documents</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_Renamer">
         <source>Rename</source>
         <target state="translated">이름 바꾸기</target>
@@ -129,7 +134,7 @@
       </trans-unit>
       <trans-unit id="FeatureName_SemanticSearch">
         <source>Semantic search</source>
-        <target state="new">Semantic search</target>
+        <target state="translated">의미 체계 검색</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">

@@ -35,7 +35,7 @@ public sealed class UnitTestingHotReloadServiceTests : EditAndContinueWorkspaceT
         using var workspace = CreateWorkspace(out var solution, out var encService);
 
         var projectP = solution.
-            AddProject("P", "P", LanguageNames.CSharp).
+            AddTestProject("P").
             WithMetadataReferences(TargetFrameworkUtil.GetReferences(DefaultTargetFramework));
 
         solution = projectP.Solution;
@@ -49,15 +49,15 @@ public sealed class UnitTestingHotReloadServiceTests : EditAndContinueWorkspaceT
 
         var hotReload = new UnitTestingHotReloadService(workspace.Services);
 
-        await hotReload.StartSessionAsync(solution, ImmutableArray.Create("Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"), CancellationToken.None);
+        await hotReload.StartSessionAsync(solution, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"], CancellationToken.None);
 
         var sessionId = hotReload.GetTestAccessor().SessionId;
         var session = encService.GetTestAccessor().GetDebuggingSession(sessionId);
         var matchingDocuments = session.LastCommittedSolution.Test_GetDocumentStates();
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             "(A, MatchesBuildOutput)"
-        }, matchingDocuments.Select(e => (solution.GetDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
+        ], matchingDocuments.Select(e => (solution.GetDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
 
         // Valid change
         solution = solution.WithDocumentText(documentIdA, CreateText(source2));
@@ -71,7 +71,7 @@ public sealed class UnitTestingHotReloadServiceTests : EditAndContinueWorkspaceT
         // Rude edit
         result = await hotReload.EmitSolutionUpdateAsync(solution, commitUpdates: true, CancellationToken.None);
         AssertEx.Equal(
-            new[] { "ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method) },
+            ["ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method)],
             result.diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
         Assert.Empty(result.updates);

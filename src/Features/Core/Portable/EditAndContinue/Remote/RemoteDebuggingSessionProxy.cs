@@ -56,7 +56,7 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
     public async ValueTask<(
             ModuleUpdates updates,
             ImmutableArray<DiagnosticData> diagnostics,
-            ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits,
+            ImmutableArray<DiagnosticData> rudeEdits,
             DiagnosticData? syntaxError)> EmitSolutionUpdateAsync(
         Solution solution,
         ActiveStatementSpanProvider activeStatementSpanProvider,
@@ -64,7 +64,7 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
     {
         ModuleUpdates moduleUpdates;
         ImmutableArray<DiagnosticData> diagnosticData;
-        ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits;
+        ImmutableArray<DiagnosticData> rudeEdits;
         DiagnosticData? syntaxError;
 
         try
@@ -75,7 +75,7 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
                 var results = await GetLocalService().EmitSolutionUpdateAsync(sessionId, solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
                 moduleUpdates = results.ModuleUpdates;
                 diagnosticData = results.Diagnostics.ToDiagnosticData(solution);
-                rudeEdits = results.RudeEdits;
+                rudeEdits = results.RudeEdits.ToDiagnosticData(solution);
                 syntaxError = results.GetSyntaxErrorData(solution);
             }
             else

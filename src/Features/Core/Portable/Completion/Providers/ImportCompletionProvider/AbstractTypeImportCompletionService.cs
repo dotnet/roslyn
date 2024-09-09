@@ -61,7 +61,7 @@ internal abstract partial class AbstractTypeImportCompletionService : ITypeImpor
                 syntaxContext.IsAttributeNameContext,
                 syntaxContext.IsEnumBaseListContext,
                 IsCaseSensitive,
-                options.HideAdvancedMembers);
+                options.MemberDisplayOptions.HideAdvancedMembers);
     }
 
     private async Task<(ImmutableArray<TypeImportCompletionCacheEntry> results, bool isPartial)> GetCacheEntriesAsync(Project currentProject, Compilation originCompilation, bool forceCacheCreation, CancellationToken cancellationToken)

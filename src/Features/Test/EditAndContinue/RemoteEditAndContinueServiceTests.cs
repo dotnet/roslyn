@@ -182,6 +182,7 @@ public class RemoteEditAndContinueServiceTests
             var deltas = ImmutableArray.Create(new ManagedHotReloadUpdate(
                 module: moduleId1,
                 moduleName: "mod",
+                projectId: projectId,
                 ilDelta: ImmutableArray.Create<byte>(1, 2),
                 metadataDelta: ImmutableArray.Create<byte>(3, 4),
                 pdbDelta: ImmutableArray.Create<byte>(5, 6),
@@ -199,14 +200,14 @@ public class RemoteEditAndContinueServiceTests
             var syntaxError = Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), new[] { "doc", "syntax error" });
 
             var updates = new ModuleUpdates(ModuleUpdateStatus.Ready, deltas);
-            var diagnostics = ImmutableArray.Create(new ProjectDiagnostics(project.Id, ImmutableArray.Create(documentDiagnostic, projectDiagnostic)));
-            var documentsWithRudeEdits = ImmutableArray.Create((documentId, ImmutableArray<RudeEditDiagnostic>.Empty));
+            var diagnostics = ImmutableArray.Create(new ProjectDiagnostics(project.Id, [documentDiagnostic, projectDiagnostic]));
+            var documentsWithRudeEdits = ImmutableArray.Create(new ProjectDiagnostics(project.Id, []));
 
             return new()
             {
                 ModuleUpdates = updates,
                 Diagnostics = diagnostics,
-                RudeEdits = documentsWithRudeEdits,
+                RudeEdits = [],
                 SyntaxError = syntaxError
             };
         };

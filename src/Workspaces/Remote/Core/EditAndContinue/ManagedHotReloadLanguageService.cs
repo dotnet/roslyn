@@ -252,7 +252,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
 
             ModuleUpdates moduleUpdates;
             ImmutableArray<DiagnosticData> diagnosticData;
-            ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits;
+            ImmutableArray<DiagnosticData> rudeEdits;
             DiagnosticData? syntaxError;
 
             try
@@ -261,7 +261,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
 
                 moduleUpdates = results.ModuleUpdates;
                 diagnosticData = results.Diagnostics.ToDiagnosticData(solution);
-                rudeEdits = results.RudeEdits;
+                rudeEdits = results.RudeEdits.ToDiagnosticData(solution);
                 syntaxError = results.GetSyntaxErrorData(solution);
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
@@ -285,7 +285,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
                 _pendingUpdatedDesignTimeSolution = designTimeSolution;
             }
 
-            var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, moduleUpdates.Status, cancellationToken).ConfigureAwait(false);
+            var diagnostics = EmitSolutionUpdateResults.GetAllDiagnostics(diagnosticData, rudeEdits, syntaxError, moduleUpdates.Status);
             return new ManagedHotReloadUpdates(moduleUpdates.Updates, diagnostics);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))

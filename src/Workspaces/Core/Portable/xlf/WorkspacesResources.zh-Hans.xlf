@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Applying_changes_to_0">
         <source>Applying changes to {0}</source>
-        <target state="new">Applying changes to {0}</target>
+        <target state="translated">正在将更改应用到 {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_files">
@@ -42,6 +42,16 @@
         <target state="translated">不支持更改文档“{0}”。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_project_between_ordinary_and_interactive_submission_is_not_supported">
+        <source>Changing project between ordinary and interactive submission is not supported</source>
+        <target state="new">Changing project between ordinary and interactive submission is not supported</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_project_language_is_not_supported">
+        <source>Changing project language is not supported</source>
+        <target state="new">Changing project language is not supported</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CodeAction_0_did_not_produce_a_changed_solution">
         <source>CodeAction '{0}' did not produce a changed solution</source>
         <target state="translated">CodeAction "{0}" 未生成更改的解决方案</target>
@@ -55,11 +65,6 @@
       <trans-unit id="DateTimeKind_must_be_Utc">
         <source>DateTimeKind must be Utc</source>
         <target state="translated">DateTimeKind 必须是 Utc</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Document_does_not_support_syntax_trees">
-        <source>Document does not support syntax trees</source>
-        <target state="translated">文档不支持语法树</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_reading_content_of_source_file_0_1">
@@ -127,6 +132,16 @@
         <target state="translated">不支持删除分析器配置文档。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Removing_compilation_options_is_not_supported">
+        <source>Removing compilation options is not supported</source>
+        <target state="new">Removing compilation options is not supported</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_parse_options_is_not_supported">
+        <source>Removing parse options is not supported</source>
+        <target state="new">Removing parse options is not supported</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_0_to_1">
         <source>Rename '{0}' to '{1}'</source>
         <target state="translated">将“{0}” 重命名为“{1}”</target>
@@ -134,7 +149,7 @@
       </trans-unit>
       <trans-unit id="Running_code_cleanup_on_fixed_documents">
         <source>Running code cleanup on fixed documents</source>
-        <target state="new">Running code cleanup on fixed documents</target>
+        <target state="translated">正在于固定文档上运行代码清理</target>
         <note />
       </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">

@@ -2,10 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+#if NET
 
-using System;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
@@ -34,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             // but there is no need to reuse contexts.
             var assembly = new LoadContext(Loader, Path.GetDirectoryName(path)).LoadFromAssemblyPath(path);
 
-            return new AssemblyAndLocation(assembly, path, fromGac: false);
+            return new AssemblyAndLocation(assembly, path, GlobalAssemblyCache: false);
         }
 
         public override void Dispose()
@@ -44,15 +42,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         private sealed class LoadContext : AssemblyLoadContext
         {
-            private readonly string _loadDirectoryOpt;
+            private readonly string? _loadDirectory;
             private readonly InteractiveAssemblyLoader _loader;
 
-            internal LoadContext(InteractiveAssemblyLoader loader, string loadDirectoryOpt)
+            internal LoadContext(InteractiveAssemblyLoader loader, string? loadDirectory)
             {
-                Debug.Assert(loader != null);
-
                 _loader = loader;
-                _loadDirectoryOpt = loadDirectoryOpt;
+                _loadDirectory = loadDirectory;
 
                 // CoreCLR resolves assemblies in steps:
                 //
@@ -68,10 +64,11 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 // This order is necessary to avoid loading assemblies twice (by the host App and by interactive loader).
 
                 Resolving += (_, assemblyName) =>
-                    _loader.ResolveAssembly(AssemblyIdentity.FromAssemblyReference(assemblyName), _loadDirectoryOpt);
+                    _loader.ResolveAssembly(AssemblyIdentity.FromAssemblyReference(assemblyName), _loadDirectory);
             }
 
-            protected override Assembly Load(AssemblyName assemblyName) => null;
+            protected override Assembly? Load(AssemblyName assemblyName) => null;
         }
     }
 }
+#endif

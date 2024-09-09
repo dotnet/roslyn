@@ -35,11 +35,18 @@ internal sealed class PropertySymbolReferenceFinder : AbstractMethodOrPropertyOr
     {
         using var _ = ArrayBuilder<ISymbol>.GetInstance(out var result);
 
+        CascadeToOtherPartOfPartial(symbol, result);
         CascadeToBackingFields(symbol, result);
         CascadeToAccessors(symbol, result);
         CascadeToPrimaryConstructorParameters(symbol, result, cancellationToken);
 
         return new(result.ToImmutable());
+    }
+
+    private static void CascadeToOtherPartOfPartial(IPropertySymbol symbol, ArrayBuilder<ISymbol> result)
+    {
+        result.AddIfNotNull(symbol.PartialDefinitionPart);
+        result.AddIfNotNull(symbol.PartialImplementationPart);
     }
 
     private static void CascadeToBackingFields(IPropertySymbol symbol, ArrayBuilder<ISymbol> result)

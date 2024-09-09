@@ -619,9 +619,12 @@ namespace Microsoft.CodeAnalysis
         System_Span_T__CopyTo_Span_T,
         System_ReadOnlySpan_T__CopyTo_Span_T,
         System_Collections_Immutable_ImmutableArray_T__AsSpan,
+        System_Collections_Immutable_ImmutableArray_T__Empty,
         System_Collections_Generic_List_T__AddRange,
 
         System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
+
+        System_Linq_Enumerable__ToList,
 
         Count,
 

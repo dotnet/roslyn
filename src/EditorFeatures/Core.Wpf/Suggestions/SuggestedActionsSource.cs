@@ -156,6 +156,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             public async Task<ISuggestedActionCategorySet?> GetSuggestedActionCategoriesAsync(
                 ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
             {
+                // This function gets called immediately after operations like scrolling.  We want to wait just a small
+                // amount to ensure that we don't immediately start consuming CPU/memory which then impedes the very
+                // action the user is trying to perform.  To accomplish this, we wait 100ms.  That's longer than normal
+                // keyboard repeat rates (usually around 30ms), but short enough that it's not noticeable to the user.
+                await Task.Delay(100, cancellationToken).NoThrowAwaitable();
+                if (cancellationToken.IsCancellationRequested)
+                    return null;
+
                 using var state = _state.TryAddReference();
                 if (state is null)
                     return null;
@@ -180,14 +188,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (document == null)
                     return null;
 
-                var fallbackOptions = GlobalOptions.GetCodeActionOptionsProvider();
-
                 using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 // Assign over cancellation token so no one accidentally uses the wrong token.
                 cancellationToken = linkedTokenSource.Token;
 
                 // Kick off the work to get errors.
-                var errorTask = GetFixLevelAsync(document, range, fallbackOptions, cancellationToken);
+                var errorTask = GetFixLevelAsync(document, range, cancellationToken);
 
                 // Make a quick jump back to the UI thread to get the user's selection, then go back to the thread pool..
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
@@ -197,7 +203,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 // If we have a selection, kick off the work to get refactorings concurrently with the above work to get errors.
                 var refactoringTask = selection != null
-                    ? TryGetRefactoringSuggestedActionCategoryAsync(document, selection, fallbackOptions, cancellationToken)
+                    ? TryGetRefactoringSuggestedActionCategoryAsync(document, selection, cancellationToken)
                     : SpecializedTasks.Null<string>();
 
                 // If we happen to get the result of the error task before the refactoring task,
@@ -213,7 +219,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private async Task<string?> GetFixLevelAsync(
                 TextDocument document,
                 SnapshotSpan range,
-                CodeActionOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 // Ensure we yield the thread that called into us, allowing it to continue onwards.
@@ -225,13 +230,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 if (state is null)
                     return null;
 
-                var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
+                var lowPriorityAnalyzerData = new SuggestedActionPriorityProvider.LowPriorityAnalyzersAndDiagnosticIds();
 
                 foreach (var order in Orderings)
                 {
                     var priority = TryGetPriority(order);
                     Contract.ThrowIfNull(priority);
-                    var priorityProvider = new SuggestedActionPriorityProvider(priority.Value, lowPriorityAnalyzers);
+                    var priorityProvider = new SuggestedActionPriorityProvider(priority.Value, lowPriorityAnalyzerData);
 
                     var result = await GetFixCategoryAsync(priorityProvider).ConfigureAwait(false);
                     if (result != null)
@@ -246,12 +251,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         state.Target.SubjectBuffer.SupportsCodeFixes())
                     {
                         var result = await state.Target.Owner._codeFixService.GetMostSevereFixAsync(
-                            document, range.Span.ToTextSpan(), priorityProvider, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                            document, range.Span.ToTextSpan(), priorityProvider, cancellationToken).ConfigureAwait(false);
 
-                        if (result.HasFix)
+                        if (result != null)
                         {
                             Logger.Log(FunctionId.SuggestedActions_HasSuggestedActionsAsync);
-                            return result.CodeFixCollection.FirstDiagnostic.Severity switch
+                            return result.FirstDiagnostic.Severity switch
                             {
 
                                 DiagnosticSeverity.Hidden or DiagnosticSeverity.Info or DiagnosticSeverity.Warning => PredefinedSuggestedActionCategoryNames.CodeFix,
@@ -259,9 +264,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 _ => throw ExceptionUtilities.Unreachable(),
                             };
                         }
-
-                        if (!result.UpToDate)
-                            return null;
                     }
 
                     return null;
@@ -271,7 +273,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private async Task<string?> TryGetRefactoringSuggestedActionCategoryAsync(
                 TextDocument document,
                 TextSpan? selection,
-                CodeActionOptionsProvider fallbackOptions,
                 CancellationToken cancellationToken)
             {
                 // Ensure we yield the thread that called into us, allowing it to continue onwards.
@@ -295,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     state.Target.SubjectBuffer.SupportsRefactorings())
                 {
                     if (await state.Target.Owner._codeRefactoringService.HasRefactoringsAsync(
-                            document, selection.Value, fallbackOptions, cancellationToken).ConfigureAwait(false))
+                            document, selection.Value, cancellationToken).ConfigureAwait(false))
                     {
                         return PredefinedSuggestedActionCategoryNames.Refactoring;
                     }

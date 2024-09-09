@@ -108,11 +108,23 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         // We might get symbol w/o name but CanBeReferencedByName is still set to true, 
         // need to filter them out.
         // https://github.com/dotnet/roslyn/issues/47690
-        var symbolGroups = from symbol in symbols
-                           let texts = GetDisplayAndSuffixAndInsertionText(symbol.Symbol, contextLookup(symbol))
-                           where !string.IsNullOrWhiteSpace(texts.displayText)
-                           group symbol by texts into g
-                           select g;
+        //
+        // Use SymbolReferenceEquivalenceComparer.Instance as the value comparer as we
+        // don't want symbols with just the same name to necessarily match
+        // (as the default comparer on SymbolAndSelectionInfo does)
+        var symbolGroups = new MultiDictionary<(string displayText, string suffix, string insertionText), SymbolAndSelectionInfo>(
+            capacity: symbols.Length,
+            comparer: EqualityComparer<(string, string, string)>.Default,
+            valueComparer: SymbolReferenceEquivalenceComparer.Instance);
+
+        foreach (var symbol in symbols)
+        {
+            var texts = GetDisplayAndSuffixAndInsertionText(symbol.Symbol, contextLookup(symbol));
+            if (!string.IsNullOrWhiteSpace(texts.displayText))
+            {
+                symbolGroups.Add(texts, symbol);
+            }
+        }
 
         using var _ = ArrayBuilder<CompletionItem>.GetInstance(out var itemListBuilder);
         var typeConvertibilityCache = new Dictionary<ITypeSymbol, bool>(SymbolEqualityComparer.Default);
@@ -120,8 +132,12 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         foreach (var symbolGroup in symbolGroups)
         {
             var includeItemInTargetTypedCompletion = false;
-            var arbitraryFirstContext = contextLookup(symbolGroup.First());
-            var symbolList = symbolGroup.ToImmutableArray();
+            using var symbolListBuilder = TemporaryArray<SymbolAndSelectionInfo>.Empty;
+            foreach (var symbol in symbolGroup.Value)
+                symbolListBuilder.Add(symbol);
+
+            var symbolList = symbolListBuilder.ToImmutableAndClear();
+            var arbitraryFirstContext = contextLookup(symbolList[0]);
 
             if (completionContext.CompletionOptions.TargetTypedCompletionFilter)
             {
@@ -149,6 +165,20 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         }
 
         return itemListBuilder.ToImmutableAndClear();
+    }
+
+    /// <summary>
+    /// Alternative comparer to SymbolAndSelectionInfo's default which considers both the full symbol and preselect.
+    /// </summary>
+    private sealed class SymbolReferenceEquivalenceComparer : IEqualityComparer<SymbolAndSelectionInfo>
+    {
+        public static readonly SymbolReferenceEquivalenceComparer Instance = new();
+
+        public bool Equals(SymbolAndSelectionInfo x, SymbolAndSelectionInfo y)
+            => x.Symbol == y.Symbol && x.Preselect == y.Preselect;
+
+        public int GetHashCode(SymbolAndSelectionInfo symbol)
+            => Hash.Combine(symbol.Symbol.GetHashCode(), symbol.Preselect ? 1 : 0);
     }
 
     protected static bool TryFindFirstSymbolMatchesTargetTypes(
@@ -329,13 +359,14 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
             source: relatedDocuments,
             produceItems: static async (relatedDocumentId, callback, args, cancellationToken) =>
             {
-                var relatedDocument = args.solution.GetRequiredDocument(relatedDocumentId);
-                var syntaxContext = await args.completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(
+                var (@this, solution, completionContext, options) = args;
+                var relatedDocument = solution.GetRequiredDocument(relatedDocumentId);
+                var syntaxContext = await completionContext.GetSyntaxContextWithExistingSpeculativeModelAsync(
                     relatedDocument, cancellationToken).ConfigureAwait(false) as TSyntaxContext;
 
                 Contract.ThrowIfNull(syntaxContext);
-                var symbols = await args.@this.TryGetSymbolsForContextAsync(
-                    args.completionContext, syntaxContext, args.options, cancellationToken).ConfigureAwait(false);
+                var symbols = await @this.TryGetSymbolsForContextAsync(
+                    completionContext, syntaxContext, options, cancellationToken).ConfigureAwait(false);
 
                 if (!symbols.IsDefault)
                     callback((relatedDocument.Id, syntaxContext, symbols));

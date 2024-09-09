@@ -46,7 +46,6 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
     private TestWorkspace CreateEditorWorkspace(out Solution solution, out EditAndContinueService service, out EditAndContinueLanguageService languageService, Type[] additionalParts = null)
     {
         var composition = EditorTestCompositions.EditorFeatures
-            .RemoveParts(typeof(MockWorkspaceEventListenerProvider))
             .AddParts(
                 typeof(MockHostWorkspaceProvider),
                 typeof(MockManagedHotReloadService),
@@ -54,6 +53,10 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
             .AddParts(additionalParts);
 
         var workspace = new TestWorkspace(composition: composition, solutionTelemetryId: s_solutionTelemetryId);
+
+        var sourceTextProvider = (PdbMatchingSourceTextProvider)workspace.ExportProvider.GetExports<IEventListener>().Single(e => e.Value is PdbMatchingSourceTextProvider).Value;
+        var listenerProvider = workspace.GetService<MockWorkspaceEventListenerProvider>();
+        listenerProvider.EventListeners = [sourceTextProvider];
 
         ((MockServiceBroker)workspace.GetService<IServiceBrokerProvider>().ServiceBroker).CreateService = t => t switch
         {
@@ -109,13 +112,11 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
 
         var localService = localWorkspace.GetService<EditAndContinueLanguageService>();
 
-        var projectId = ProjectId.CreateNewId();
-        var documentId = DocumentId.CreateNewId(projectId);
-
+        DocumentId documentId;
         await localWorkspace.ChangeSolutionAsync(localWorkspace.CurrentSolution
-            .AddProject(projectId, "proj", "proj", LanguageNames.CSharp)
+            .AddTestProject("proj", out var projectId).Solution
             .AddMetadataReferences(projectId, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib40))
-            .AddDocument(documentId, "test.cs", SourceText.From("class C { }", Encoding.UTF8), filePath: "test.cs"));
+            .AddDocument(documentId = DocumentId.CreateNewId(projectId), "test.cs", SourceText.From("class C { }", Encoding.UTF8), filePath: "test.cs"));
 
         var solution = localWorkspace.CurrentSolution;
         var project = solution.GetRequiredProject(projectId);
@@ -162,12 +163,13 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
             var documentDiagnostic = CodeAnalysis.Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), ["doc", "error 1"]);
             var projectDiagnostic = CodeAnalysis.Diagnostic.Create(diagnosticDescriptor1, Location.None, ["proj", "error 2"]);
             var syntaxError = CodeAnalysis.Diagnostic.Create(diagnosticDescriptor1, Location.Create(syntaxTree, TextSpan.FromBounds(1, 2)), ["doc", "syntax error 3"]);
+            var rudeEditDiagnostic = new RudeEditDiagnostic(RudeEditKind.Delete, TextSpan.FromBounds(2, 3), arguments: ["x"]).ToDiagnostic(syntaxTree);
 
             return new()
             {
                 ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Ready, []),
                 Diagnostics = [new ProjectDiagnostics(project.Id, [documentDiagnostic, projectDiagnostic])],
-                RudeEdits = [(documentId, [new RudeEditDiagnostic(RudeEditKind.Delete, TextSpan.FromBounds(2, 3), arguments: ["x"])])],
+                RudeEdits = [new ProjectDiagnostics(project.Id, [rudeEditDiagnostic])],
                 SyntaxError = syntaxError
             };
         };
@@ -179,12 +181,13 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
         AssertEx.Equal(
         [
             $"Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "error 1")}",
-            $"Error ENC1001: {string.Format(FeaturesResources.ErrorReadingFile, "proj", "error 2")}"
+            $"Error ENC1001: proj.csproj(0, 0, 0, 0): {string.Format(FeaturesResources.ErrorReadingFile, "proj", "error 2")}"
         ], sessionState.ApplyChangesDiagnostics.Select(Inspect));
 
         AssertEx.Equal(
         [
             $"Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "error 1")}",
+            $"Error ENC1001: proj.csproj(0, 0, 0, 0): {string.Format(FeaturesResources.ErrorReadingFile, "proj", "error 2")}",
             $"Error ENC1001: test.cs(0, 1, 0, 2): {string.Format(FeaturesResources.ErrorReadingFile, "doc", "syntax error 3")}",
             $"RestartRequired ENC0033: test.cs(0, 2, 0, 3): {string.Format(FeaturesResources.Deleting_0_requires_restarting_the_application, "x")}"
         ], updates.Diagnostics.Select(Inspect));

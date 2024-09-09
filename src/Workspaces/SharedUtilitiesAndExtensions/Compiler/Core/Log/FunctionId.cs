@@ -411,7 +411,7 @@ internal enum FunctionId
     SolutionCreator_AssetDifferences = 326,
     Extension_InfoBar = 327,
     FxCopAnalyzersInstall = 328,
-    AssetStorage_ForceGC = 329,
+    // obsolete: AssetStorage_ForceGC = 329,
     // obsolete: RemoteHost_Bitness = 330,
     Intellisense_Completion = 331,
     MetadataOnlyImage_EmitFailure = 332,
@@ -631,5 +631,6 @@ internal enum FunctionId
     Copilot_On_The_Fly_Docs_Results_Displayed = 812,
     Copilot_On_The_Fly_Docs_Error_Displayed = 813,
     Copilot_On_The_Fly_Docs_Results_Canceled = 814,
+    Copilot_On_The_Fly_Docs_Get_Counts = 815,
     Copilot_Rename = 851
 }

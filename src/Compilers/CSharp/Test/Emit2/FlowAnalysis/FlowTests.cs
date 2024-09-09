@@ -5336,7 +5336,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
     // (17,34): error CS0165: Use of unassigned local variable 'o'
     //         System.Console.WriteLine(o);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "o").WithArguments("o").WithLocation(17, 34)
@@ -5368,7 +5368,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5397,7 +5397,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -5426,7 +5426,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
     );
         }
 
@@ -5453,7 +5453,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         // DataFlowPass.VisitConversion with IsConditionalState.
@@ -5554,7 +5554,7 @@ class C
         }
     }
 ";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (28,17): error CS0165: Use of unassigned local variable 'obj'
                 //                 obj.ToString();
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "obj").WithArguments("obj").WithLocation(28, 17)

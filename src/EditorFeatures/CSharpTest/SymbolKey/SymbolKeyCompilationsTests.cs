@@ -164,6 +164,34 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
         Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
     }
 
+    [Fact]
+    public void ExtendedPartialPropertyDefinitionAndImplementationResolveCorrectly()
+    {
+        var src = """
+            using System;
+            namespace NS
+            {
+                public partial class C1
+                {
+                    private int x;
+                    public partial int Prop { get; set; }
+                    public partial int Prop { get => x; set => x = value; }
+                }
+            }
+            """;
+
+        var comp = (Compilation)CreateCompilation(src, assemblyName: "Test");
+
+        var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as INamespaceSymbol;
+        var type = ns.GetTypeMembers("C1").FirstOrDefault();
+        var definition = type.GetMembers("Prop").First() as IPropertySymbol;
+        var implementation = definition.PartialImplementationPart;
+
+        // Assert that both the definition and implementation resolve back to themselves
+        Assert.Equal(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
+        Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
+    }
+
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916341")]
     public void ExplicitIndexerImplementationResolvesCorrectly()
     {
@@ -299,8 +327,8 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
         // note that the IDE can only distinguish file-local type symbols with the same name when they have distinct file paths.
         // We are OK with this as we will require file types with identical names to have distinct file paths later in the preview.
         // See https://github.com/dotnet/roslyn/issues/61999
-        var originalComp = CreateCompilation(new[] { SyntaxFactory.ParseSyntaxTree(src1, path: "file1.cs"), SyntaxFactory.ParseSyntaxTree(src1, path: "file2.cs") }, assemblyName: "Test");
-        var newComp = CreateCompilation(new[] { SyntaxFactory.ParseSyntaxTree(src1, path: "file1.cs"), SyntaxFactory.ParseSyntaxTree(src1, path: "file2.cs") }, assemblyName: "Test");
+        var originalComp = CreateCompilation([SyntaxFactory.ParseSyntaxTree(src1, path: "file1.cs"), SyntaxFactory.ParseSyntaxTree(src1, path: "file2.cs")], assemblyName: "Test");
+        var newComp = CreateCompilation([SyntaxFactory.ParseSyntaxTree(src1, path: "file1.cs"), SyntaxFactory.ParseSyntaxTree(src1, path: "file2.cs")], assemblyName: "Test");
 
         var originalSymbols = GetSourceSymbols(originalComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
         var newSymbols = GetSourceSymbols(newComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
@@ -328,8 +356,8 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
                 class C { }
             }
             """, path: "File2.cs");
-        var originalComp = CreateCompilation(new[] { src1, src2 }, assemblyName: "Test");
-        var newComp = CreateCompilation(new[] { src1, src2 }, assemblyName: "Test");
+        var originalComp = CreateCompilation([src1, src2], assemblyName: "Test");
+        var newComp = CreateCompilation([src1, src2], assemblyName: "Test");
 
         var originalSymbols = GetSourceSymbols(originalComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();
         var newSymbols = GetSourceSymbols(newComp, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name).ToArray();

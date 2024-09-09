@@ -31,6 +31,7 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
+using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Composition;
 using Microsoft.VisualStudio.Editor;
@@ -42,6 +43,7 @@ using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Microsoft.VisualStudio.Telemetry;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Projection;
@@ -74,7 +76,10 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
     /// <summary>
     /// Guards any updates to the maps here that aren't updated via interlocked updates.
     /// </summary>
-    private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+    // Our usage of SemaphoreSlim is fine.  We don't perform blocking waits for it on the UI thread.
+#pragma warning disable RS0030 // Do not use banned APIs
+    private readonly SemaphoreSlim _gate = new(initialCount: 1);
+#pragma warning restore RS0030 // Do not use banned APIs
 
     private ImmutableDictionary<ProjectId, IVsHierarchy?> _projectToHierarchyMap = ImmutableDictionary<ProjectId, IVsHierarchy?>.Empty;
     private ImmutableDictionary<ProjectId, Guid> _projectToGuidMap = ImmutableDictionary<ProjectId, Guid>.Empty;
@@ -122,17 +127,13 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         FileChangeWatcher = exportProvider.GetExportedValue<FileChangeWatcherProvider>().Watcher;
 
-        ProjectSystemProjectFactory = new ProjectSystemProjectFactory(this, FileChangeWatcher, CheckForAddedFileBeingOpenMaybeAsync, RemoveProjectFromMaps);
+        ProjectSystemProjectFactory = new ProjectSystemProjectFactory(
+            this, FileChangeWatcher, CheckForAddedFileBeingOpenMaybeAsync, RemoveProjectFromMaps, _threadingContext.DisposalToken);
 
         InitializeUIAffinitizedServicesAsync(asyncServiceProvider).Forget();
 
         _lazyExternalErrorDiagnosticUpdateSource = new Lazy<ExternalErrorDiagnosticUpdateSource>(() =>
-            new ExternalErrorDiagnosticUpdateSource(
-                this,
-                exportProvider.GetExportedValue<IDiagnosticAnalyzerService>(),
-                exportProvider.GetExportedValue<IGlobalOperationNotificationService>(),
-                exportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
-                _threadingContext),
+            exportProvider.GetExportedValue<ExternalErrorDiagnosticUpdateSource>(),
             isThreadSafe: true);
 
         _workspaceListener = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
@@ -679,7 +680,7 @@ internal abstract partial class VisualStudioWorkspaceImpl : VisualStudioWorkspac
 
         bool ShouldApplyChangesToMappedDocuments(CodeAnalysis.Document document, [NotNullWhen(true)] out ISpanMappingService? spanMappingService)
         {
-            spanMappingService = document.Services.GetService<ISpanMappingService>();
+            spanMappingService = document.DocumentServiceProvider.GetService<ISpanMappingService>();
             // Only consider files that are mapped and that we are unable to apply changes to.
             // TODO - refactor how this is determined - https://github.com/dotnet/roslyn/issues/47908
             return spanMappingService != null && document?.CanApplyChange() == false;

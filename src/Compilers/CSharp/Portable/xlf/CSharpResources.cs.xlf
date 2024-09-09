@@ -34,7 +34,7 @@
       </trans-unit>
       <trans-unit id="ERR_AddressOfInIterator">
         <source>The '&amp;' operator cannot be used on parameters or local variables in iterator methods.</source>
-        <target state="new">The '&amp;' operator cannot be used on parameters or local variables in iterator methods.</target>
+        <target state="translated">Operátor &amp; nelze použít u parametrů nebo místních proměnných v metodách iterátoru.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AddressOfMethodGroupInExpressionTree">
@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="ERR_AllowsClauseMustBeLast">
         <source>The 'allows' constraint clause must be the last constraint specified</source>
-        <target state="new">The 'allows' constraint clause must be the last constraint specified</target>
+        <target state="translated">Klauzule omezení allows musí být posledním zadaným omezením.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AltInterpolatedVerbatimStringsNotAvailable">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadAllowByRefLikeEnumerator">
         <source>foreach statement cannot operate on enumerators of type '{0}' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.</source>
-        <target state="new">foreach statement cannot operate on enumerators of type '{0}' because it is a type parameter that allows ref struct and it is not known at compile time to implement IDisposable.</target>
+        <target state="translated">Výraz foreach nejde použít na enumerátorech typu {0}, protože se jedná o parametr typu, který umožňuje strukturu ref struct, a v době kompilace není známo, že by implementoval rozhraní IDisposable.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadArgExtraRefLangVersion">
@@ -249,7 +249,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike">
         <source>A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.</source>
-        <target state="new">A non-virtual instance interface member cannot be accessed on a type parameter that allows ref struct.</target>
+        <target state="translated">K členu rozhraní nevirtuální instance nelze přistupovat na základě parametru typu, který umožňuje struktury ref struct.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadNullableContextOption">
@@ -287,14 +287,9 @@
         <target state="translated">Člen záznamu {0} musí být čitelná vlastnost instance nebo pole typu {1}, která se bude shodovat s pozičním parametrem {2}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
-        <target state="new">foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
-        <target state="new">Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</target>
+        <target state="translated">Parametry typu {0} nemůžou být deklarované v asynchronních metodách nebo asynchronních výrazech lambda.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadRefInUsingAlias">
@@ -324,12 +319,22 @@
       </trans-unit>
       <trans-unit id="ERR_BadYieldInUnsafe">
         <source>Cannot use 'yield return' in an 'unsafe' block</source>
-        <target state="new">Cannot use 'yield return' in an 'unsafe' block</target>
+        <target state="translated">V bloku unsafe nejde použít příkaz yield return.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
         <source>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</source>
         <target state="translated">Atribut AsyncMethodBuilder je u anonymních metod bez explicitního návratového typu zakázaný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on this member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUtf8">
@@ -354,7 +359,7 @@
       </trans-unit>
       <trans-unit id="ERR_CannotDynamicInvokeOnExpression">
         <source>Cannot perform a dynamic invocation on an expression with type '{0}'.</source>
-        <target state="new">Cannot perform a dynamic invocation on an expression with type '{0}'.</target>
+        <target state="translated">U výrazu s typem {0} nelze provést dynamické vyvolání.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotInferDelegateType">
@@ -424,7 +429,7 @@
       </trans-unit>
       <trans-unit id="ERR_ClassIsCombinedWithRefStruct">
         <source>Cannot allow ref structs for a type parameter known from other constraints to be a class</source>
-        <target state="new">Cannot allow ref structs for a type parameter known from other constraints to be a class</target>
+        <target state="translated">Nelze povolit struktury ref struct pro parametr typu, který je známý z jiných omezení jako třída.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CloneDisallowedInRecord">
@@ -614,7 +619,7 @@
       </trans-unit>
       <trans-unit id="ERR_DynamicDispatchToParamsCollection">
         <source>'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</source>
-        <target state="new">'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</target>
+        <target state="translated">{0} lze použít pouze v případě rozšířené podoby kolekce parametrů, která není pole, což není při dynamickém odesílání podporováno.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ElseCannotStartStatement">
@@ -770,6 +775,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion12">
         <source>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</source>
         <target state="translated">Funkce {0} není v jazyce C# 12.0 k dispozici. Použijte prosím jazykovou verzi {1} nebo vyšší.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion13">
+        <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -972,6 +982,11 @@
         <target state="translated">Přístupové objekty init se nedají označit jako jen pro čtení. Místo toho označte jako jen pro čtení {0}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayAttributeOnRecord">
+        <source>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</source>
+        <target state="translated">Atribut System.Runtime.CompilerServices.InlineArray nejde použít pro strukturu záznamu.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InlineArrayBadIndex">
         <source>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</source>
         <target state="translated">K prvkům typu vloženého pole lze přistupovat pouze s jedním argumentem implicitně převoditelným na int, System.Index nebo System.Range.</target>
@@ -1128,33 +1143,33 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="translated">Experimentální funkce interceptors není v tomto oboru názvů povolená. Přidejte do projektu {0}.</target>
+        <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="needs-review-translation">Experimentální funkce interceptors není v tomto oboru názvů povolená. Přidejte do projektu {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
         <source>The data argument to InterceptsLocationAttribute is not in the correct format.</source>
-        <target state="new">The data argument to InterceptsLocationAttribute is not in the correct format.</target>
+        <target state="translated">Datový argument k InterceptsLocationAttribute nemá správný formát.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidPosition">
         <source>The data argument to InterceptsLocationAttribute refers to an invalid position in file '{0}'.</source>
-        <target state="new">The data argument to InterceptsLocationAttribute refers to an invalid position in file '{0}'.</target>
+        <target state="translated">Datový argument pro InterceptsLocationAttribute odkazuje na neplatnou pozici v souboru {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDuplicateFile">
         <source>Cannot intercept a call in file '{0}' because it is duplicated elsewhere in the compilation.</source>
-        <target state="new">Cannot intercept a call in file '{0}' because it is duplicated elsewhere in the compilation.</target>
+        <target state="translated">Nelze zachytit volání v souboru {0}, protože je duplicitní jinde v kompilaci.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationFileNotFound">
         <source>Cannot intercept a call in file '{0}' because a matching file was not found in the compilation.</source>
-        <target state="new">Cannot intercept a call in file '{0}' because a matching file was not found in the compilation.</target>
+        <target state="translated">Nelze zachytit volání v souboru {0}, protože v kompilaci nebyl nalezen odpovídající soubor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationUnsupportedVersion">
         <source>Version '{0}' of the interceptors format is not supported. The latest supported version is '1'.</source>
-        <target state="new">Version '{0}' of the interceptors format is not supported. The latest supported version is '1'.</target>
+        <target state="translated">Verze {0} formátu interceptorů se nepodporuje. Nejnovější podporovaná verze je 1.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
@@ -1443,13 +1458,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
-        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="translated">{0}: typ použitý v asynchronním příkazu using musí být implicitně převoditelný na System.IAsyncDisposable nebo musí implementovat odpovídající metodu DisposeAsync. Měli jste v úmyslu použít using nebo await using?</target>
+        <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
+        <target state="needs-review-translation">{0}: typ použitý v asynchronním příkazu using musí být implicitně převoditelný na System.IAsyncDisposable nebo musí implementovat odpovídající metodu DisposeAsync. Měli jste v úmyslu použít using nebo await using?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
-        <target state="translated">{0}: Typ použitý v příkazu using musí být implicitně převoditelný na System.IDisposable. Neměli jste v úmyslu použít await using místo using?</target>
+        <source>'{0}': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
+        <target state="needs-review-translation">{0}: Typ použitý v příkazu using musí být implicitně převoditelný na System.IDisposable. Neměli jste v úmyslu použít await using místo using?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForCallerArgumentExpressionParam">
@@ -1529,7 +1544,7 @@
       </trans-unit>
       <trans-unit id="ERR_NotRefStructConstraintNotSatisfied">
         <source>The type '{2}' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
-        <target state="new">The type '{2}' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '{1}' in the generic type or method '{0}'</target>
+        <target state="translated">Typ {2} nesmí být ref struct nebo parametr typu, který povoluje struktury ref struct, aby ho bylo možné použít jako parametr {1} v obecném typu nebo metodě {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NullInvalidInterpolatedStringHandlerArgumentName">
@@ -1602,11 +1617,6 @@
         <target state="translated">Funkce parameter null-checking se nepodporuje.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
-        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="translated">Nejednoznačnost mezi rozbalenými a normálními tvary parametru kolekce parametrů mimo pole {0}, jediný odpovídající argument má dynamický typ. Zvažte přetypování dynamického argumentu.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">Konstruktor {0} ponechá požadovaný člen {1} neinicializovaný.</target>
@@ -1642,24 +1652,49 @@
         <target state="translated">Parametr params musí mít platný typ kolekce.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodAccessibilityDifference">
-        <source>Both partial method declarations must have identical accessibility modifiers.</source>
-        <target state="translated">Obě deklarace částečných metod musí mít shodné modifikátory přístupnosti.</target>
+      <trans-unit id="ERR_PartialMemberAccessibilityDifference">
+        <source>Both partial member declarations must have identical accessibility modifiers.</source>
+        <target state="translated">Obě deklarace částečných členů musí mít shodné modifikátory přístupnosti.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodExtendedModDifference">
-        <source>Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
-        <target state="translated">Obě deklarace částečných metod musí mít shodné kombinace modifikátorů virtual, override, sealed a new.</target>
+      <trans-unit id="ERR_PartialMemberCannotBeAbstract">
+        <source>A partial member cannot have the 'abstract' modifier</source>
+        <target state="translated">Částečný člen nemůže mít modifikátor abstract.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodReadOnlyDifference">
-        <source>Both partial method declarations must be readonly or neither may be readonly</source>
-        <target state="translated">Obě deklarace částečné metody musí mít modifikátor readonly, nebo nesmí mít modifikátor readonly žádná z nich.</target>
+      <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
+        <source>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</source>
+        <target state="translated">V deklaracích částečných členů, {0} a {1} se musí používat stejné názvy prvků řazené kolekce členů.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodRefReturnDifference">
-        <source>Partial method declarations must have matching ref return values.</source>
-        <target state="translated">Deklarace částečných metod musí mít odpovídající referenční návratové hodnoty.</target>
+      <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
+        <source>A partial member must be declared within a partial type</source>
+        <target state="translated">Částečný člen musí být deklarován v rámci částečného typu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberParamsDifference">
+        <source>Both partial member declarations must use a params parameter or neither may use a params parameter</source>
+        <target state="translated">Obě deklarace částečného člena musí používat parametr params nebo ho nepoužívat.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberReadOnlyDifference">
+        <source>Both partial member declarations must be readonly or neither may be readonly</source>
+        <target state="translated">Obě deklarace částečného člena musí mít modifikátor readonly, nebo nesmí mít modifikátor readonly žádná z nich.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberExtendedModDifference">
+        <source>Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
+        <target state="translated">Obě deklarace částečných členů musí mít shodné kombinace modifikátorů virtual, override, sealed a new.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberRefReturnDifference">
+        <source>Partial member declarations must have matching ref return values.</source>
+        <target state="translated">Deklarace částečných členů musí mít odpovídající referenční návratové hodnoty.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialMemberUnsafeDifference">
+        <source>Both partial member declarations must be unsafe or neither may be unsafe</source>
+        <target state="translated">Obě deklarace částečného člena musí být nezabezpečené, nebo nesmí být nezabezpečená žádná z nich.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodReturnTypeDifference">
@@ -1685,6 +1720,51 @@
       <trans-unit id="ERR_PartialMethodWithOutParamMustHaveAccessMods">
         <source>Partial method '{0}' must have accessibility modifiers because it has 'out' parameters.</source>
         <target state="translated">Částečná metoda {0} musí mít modifikátory přístupnosti, protože má parametry out.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateDefinition">
+        <source>A partial property may not have multiple defining declarations, and cannot be an auto-property.</source>
+        <target state="translated">Částečná vlastnost nemůže mít více definujících deklarací a nemůže být automatickou vlastností.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateImplementation">
+        <source>A partial property may not have multiple implementing declarations</source>
+        <target state="translated">Částečná vlastnost nesmí mít víc implementujících deklarací.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyInitMismatch">
+        <source>Property accessor '{0}' must be '{1}' to match the definition part</source>
+        <target state="translated">Přístupový objekt vlastnosti {0} musí být {1}, aby odpovídal definiční části.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyMissingAccessor">
+        <source>Property accessor '{0}' must be implemented because it is declared on the definition part</source>
+        <target state="translated">Přístupový objekt vlastnosti {0} musí být implementován, protože je deklarován v definiční části.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyMissingDefinition">
+        <source>Partial property '{0}' must have a definition part.</source>
+        <target state="translated">Částečná vlastnost {0} musí mít definiční část.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyMissingImplementation">
+        <source>Partial property '{0}' must have an implementation part.</source>
+        <target state="translated">Částečná vlastnost {0} musí mít implementační část.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyRequiredDifference">
+        <source>Both partial property declarations must be required or neither may be required</source>
+        <target state="translated">Obě deklarace částečných vlastností musí být vyžadovány, nebo nesmí být vyžadována žádná z nich.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyTypeDifference">
+        <source>Both partial property declarations must have the same type.</source>
+        <target state="translated">Obě deklarace částečných vlastností musí mít stejný typ.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyUnexpectedAccessor">
+        <source>Property accessor '{0}' does not implement any accessor declared on the definition part</source>
+        <target state="translated">Přístupový objekt vlastnosti {0} neimplementuje žádný přístupový objekt deklarovaný v definiční části.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
@@ -1779,7 +1859,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefLocalAcrossAwait">
         <source>A 'ref' local cannot be preserved across 'await' or 'yield' boundary.</source>
-        <target state="new">A 'ref' local cannot be preserved across 'await' or 'yield' boundary.</target>
+        <target state="translated">Lokální proměnnou ref nejde zachovat v rámci hranice await nebo yield.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefLocalOrParamExpected">
@@ -1844,12 +1924,12 @@
       </trans-unit>
       <trans-unit id="ERR_RefStructConstraintAlreadySpecified">
         <source>'ref struct' is already specified.</source>
-        <target state="new">'ref struct' is already specified.</target>
+        <target state="translated">Struktura ref struct je už zadaná.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember">
         <source>'{0}' cannot implement interface member '{1}' for ref struct '{2}'.</source>
-        <target state="new">'{0}' cannot implement interface member '{1}' for ref struct '{2}'.</target>
+        <target state="translated">{0} nemůže implementovat člen rozhraní {1} pro ref struct {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RelationalPatternWithNaN">
@@ -1899,7 +1979,7 @@
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportByRefLikeGenerics">
         <source>Target runtime doesn't support by-ref-like generics.</source>
-        <target state="new">Target runtime doesn't support by-ref-like generics.</target>
+        <target state="translated">Cílový modul runtime nepodporuje obecné typy by-ref-like.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantPropertiesOfClasses">
@@ -1953,8 +2033,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
-        <source>The 'scoped' modifier of parameter '{0}' doesn't match partial method declaration.</source>
-        <target state="translated">Modifikátor scoped parametru {0} neodpovídá částečné deklaraci metody.</target>
+        <source>The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</source>
+        <target state="translated">Modifikátor scoped parametru {0} neodpovídá částečné definici.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
@@ -2179,12 +2259,12 @@
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeInterfaceImplementation">
         <source>UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</source>
-        <target state="new">UnscopedRefAttribute cannot be applied to an interface implementation because implemented member '{0}' doesn't have this attribute.</target>
+        <target state="translated">UnscopedRefAttribute nelze použít pro implementaci rozhraní, protože implementovaný člen {0} nemá tento atribut.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedMemberTarget">
         <source>UnscopedRefAttribute can only be applied to struct or virtual interface instance methods and properties, and cannot be applied to constructors or init-only members.</source>
-        <target state="needs-review-translation">Atribut UnscopedRefAttribute lze použít pouze pro metody a vlastnosti instance struktury a nelze ho použít u konstruktorů nebo členů init-only.</target>
+        <target state="translated">UnscopedRefAttribute lze použít pouze pro metody a vlastnosti instance struktury nebo virtuálního rozhraní a nelze ho použít u konstruktorů nebo členů init-only.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnscopedRefAttributeUnsupportedTarget">
@@ -2272,6 +2352,11 @@
         <target state="translated">přepsání tvůrce asynchronní metody</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
+        <source>allows ref struct constraint</source>
+        <target state="translated">povoluje omezení ref struct</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureAutoDefaultStructs">
         <source>auto default struct fields</source>
         <target state="translated">pole s automatickou výchozí strukturou</target>
@@ -2305,6 +2390,11 @@
       <trans-unit id="IDS_FeatureExtendedPropertyPatterns">
         <source>extended property patterns</source>
         <target state="translated">vzory rozšířených vlastností</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureFieldKeyword">
+        <source>field keyword</source>
+        <target state="new">field keyword</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFileScopedNamespace">
@@ -2434,12 +2524,12 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRefStructInterfaces">
         <source>ref struct interfaces</source>
-        <target state="new">ref struct interfaces</target>
+        <target state="translated">rozhraní ref struct</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRefUnsafeInIteratorAsync">
         <source>ref and unsafe in async and iterator methods</source>
-        <target state="new">ref and unsafe in async and iterator methods</target>
+        <target state="translated">ref a unsafe v asynchronních metodách a metodách iterátorů</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -2507,6 +2597,11 @@
         <target state="translated">&lt;missing&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_OverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="new">overload resolution priority</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">přístup k elementu ukazatele</target>
@@ -2532,14 +2627,24 @@
         <target state="translated">ukazatel</target>
         <note />
       </trans-unit>
+      <trans-unit id="INF_IdentifierConflictWithContextualKeyword">
+        <source>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</source>
+        <target state="translated">{0} je kontextové klíčové slovo v přístupových objektech vlastností počínaje jazykovou verzí {1}. Místo toho použijte @{0}.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
+        <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
+        <target state="translated">Identifikátor je kontextové klíčové slovo se specifickým významem v novější jazykové verzi.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="INF_TooManyBoundLambdas">
         <source>Compiling requires binding the lambda expression at least {0} times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</source>
-        <target state="new">Compiling requires binding the lambda expression at least {0} times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</target>
+        <target state="translated">Kompilace vyžaduje alespoň {0}krát vazbu výrazu lambda. Zvažte možnost deklarace výrazu lambda s explicitními typy parametrů nebo pokud je volání metody, které je obsahuje, generické, zvažte použití explicitních typů argumentů.</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_TooManyBoundLambdas_Title">
         <source>Compiling requires binding the lambda expression many times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</source>
-        <target state="new">Compiling requires binding the lambda expression many times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</target>
+        <target state="translated">Kompilace vyžaduje mnohokrát vazbu výrazu lambda. Zvažte možnost deklarace výrazu lambda s explicitními typy parametrů nebo pokud je volání metody, které je obsahuje, generické, zvažte použití explicitních typů argumentů.</target>
         <note />
       </trans-unit>
       <trans-unit id="ISpreadOperationIsNotCSharpSpread">
@@ -2615,16 +2720,6 @@
       <trans-unit id="WRN_BadArgRef_Title">
         <source>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
         <target state="translated">Modifikátor ref pro argument odpovídající parametru in je ekvivalentem in. Místo toho zvažte použití in.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="new">'yield return' should not be used in the body of a lock statement</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock_Title">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="new">'yield return' should not be used in the body of a lock statement</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired">
@@ -2785,36 +2880,6 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">Odkaz analyzátoru byl zadán vícekrát</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor">
-        <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">Jedno nebo více přetížení konstruktoru s parametrem kolekce parametrů mimo pole může být použitelné pouze v rozbalené podobě, která není během dynamického odesílání podporována.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor_Title">
-        <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">Jedno nebo více přetížení konstruktoru s parametrem kolekce parametrů mimo pole může být použitelné pouze v rozbalené podobě, která není během dynamického odesílání podporována.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer">
-        <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">Jedno nebo více přetížení indexeru s parametrem kolekce parametrů mimo pole může být použitelné pouze v rozbalené podobě, která není během dynamického odesílání podporována.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer_Title">
-        <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">Jedno nebo více přetížení indexeru s parametrem kolekce parametrů mimo pole může být použitelné pouze v rozbalené podobě, která není během dynamického odesílání podporována.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod">
-        <source>One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">Jedno nebo více přetížení metody{0} s parametrem kolekce parametrů mimo pole může být použitelné pouze v rozbalené podobě, která není během dynamického odesílání podporována.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod_Title">
-        <source>One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
-        <target state="translated">Jedno nebo více přetížení metody s parametrem kolekce parametrů mimo pole může být použitelné pouze v rozbalené podobě, která není během dynamického odesílání podporována.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall">
@@ -3045,6 +3110,16 @@
       <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
         <source>Parameter has params modifier in lambda but not in target delegate type.</source>
         <target state="translated">Parametr má modifikátor params ve výrazu lambda, ale ne v cílovém typu delegáta.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialPropertySignatureDifference">
+        <source>Partial property declarations '{0}' and '{1}' have signature differences.</source>
+        <target state="translated">Deklarace částečných vlastností {0} a {1} mají rozdíly v signaturách.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PartialPropertySignatureDifference_Title">
+        <source>Partial property declarations have signature differences.</source>
+        <target state="translated">Deklarace částečných vlastností mají rozdíly v signaturách.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
@@ -5195,12 +5270,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</source>
-        <target state="needs-review-translation">Proměnná {0} {1}, která nemůže být null, musí při ukončování konstruktoru obsahovat hodnotu, která není null. Zvažte možnost deklarovat {0} jako proměnnou s možnou hodnotou null.</target>
+        <target state="translated">Proměnná {0} {1}, která nemůže být null, musí při ukončování konstruktoru obsahovat hodnotu, která není null. Zvažte přidání modifikátoru required nebo deklaraci {0} s možnou hodnotou null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField_Title">
         <source>Non-nullable field must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring as nullable.</source>
-        <target state="needs-review-translation">Pole, které nemůže být null, musí při ukončování konstruktoru obsahovat hodnotu, která není null. Zvažte možnost deklarovat ho jako pole s možnou hodnotou null.</target>
+        <target state="translated">Pole, které nemůže být null, musí při ukončování konstruktoru obsahovat hodnotu, která není null. Zvažte přidání modifikátoru required nebo deklaraci s možnou hodnotou null.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnreadPrimaryConstructorParameter">
@@ -6524,8 +6599,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
-        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.</source>
-        <target state="translated">Modifikátor partial se může objevit jen bezprostředně před klíčovými slovy class, record, struct, interface nebo návratovým typem metody.</target>
+        <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
+        <target state="translated">Modifikátor partial se může objevit jen bezprostředně před klíčovými slovy class, record, struct, interface nebo návratovým typem metody nebo vlastnosti.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -6685,7 +6760,7 @@
       </trans-unit>
       <trans-unit id="ERR_NewBoundMustBeLast">
         <source>The new() constraint must be the last restrictive constraint specified</source>
-        <target state="needs-review-translation">Omezení new() musí být poslední zadané omezení.</target>
+        <target state="translated">Omezení new() musí být poslední zadané restriktivní omezení.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_MainCantBeGeneric">
@@ -8132,19 +8207,9 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <target state="translated">Nekonzistentní použití parametru lambda. Typy parametrů musí být buď všechny explicitní, nebo všechny implicitní.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodInvalidModifier">
-        <source>A partial method cannot have the 'abstract' modifier</source>
-        <target state="translated">Částečná metoda nemůže mít modifikátor abstract.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodOnlyInPartialClass">
-        <source>A partial method must be declared within a partial type</source>
-        <target state="translated">Částečná metoda musí být deklarovaná uvnitř částečného typu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodNotExplicit">
-        <source>A partial method may not explicitly implement an interface method</source>
-        <target state="translated">Částečná metoda nesmí explicitně implementovat metodu rozhraní.</target>
+      <trans-unit id="ERR_PartialMemberNotExplicit">
+        <source>A partial member may not explicitly implement an interface member</source>
+        <target state="translated">Částečný člen nesmí explicitně implementovat člena rozhraní.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodExtensionDifference">
@@ -8162,19 +8227,9 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <target state="translated">Částečná metoda nesmí mít víc implementujících deklarací.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodParamsDifference">
-        <source>Both partial method declarations must use a params parameter or neither may use a params parameter</source>
-        <target state="translated">Obě deklarace částečné metody musí používat parametr params nebo ho nepoužívat.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_PartialMethodMustHaveLatent">
         <source>No defining declaration found for implementing declaration of partial method '{0}'</source>
         <target state="translated">Nenašla se žádná definující deklarace pro implementující deklaraci částečné metody {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodInconsistentTupleNames">
-        <source>Both partial method declarations, '{0}' and '{1}', must use the same tuple element names.</source>
-        <target state="translated">V deklaracích metod, {0} a {1} se musí používat stejné názvy prvků řazené kolekce členů.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInconsistentConstraints">
@@ -8187,14 +8242,9 @@ Pokud se taková třída používá jako základní třída a pokud odvozující
         <target state="translated">Nejde vytvořit delegáta z metody {0}, protože se jedná o částečnou metodu bez implementující deklarace.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_PartialMethodStaticDifference">
-        <source>Both partial method declarations must be static or neither may be static</source>
-        <target state="translated">Obě deklarace částečné metody musí být statické, nebo nesmí být statická žádná z nich.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_PartialMethodUnsafeDifference">
-        <source>Both partial method declarations must be unsafe or neither may be unsafe</source>
-        <target state="translated">Obě deklarace částečné metody musí být nezabezpečené, nebo nesmí být nezabezpečená žádná z nich.</target>
+      <trans-unit id="ERR_PartialMemberStaticDifference">
+        <source>Both partial member declarations must be static or neither may be static</source>
+        <target state="translated">Obě deklarace částečného člena musí být statické, nebo nesmí být statická žádná z nich.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInExpressionTree">
@@ -9522,8 +9572,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
-        <target state="translated">{0}: Typ použitý v příkazu using musí být implicitně převeditelný na System.IDisposable.</target>
+        <source>'{0}': type used in a using statement must implement 'System.IDisposable'.</source>
+        <target state="needs-review-translation">{0}: Typ použitý v příkazu using musí být implicitně převeditelný na System.IDisposable.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -10636,7 +10686,7 @@ Poskytněte kompilátoru nějaký způsob, jak metody rozlišit. Můžete např�
       </trans-unit>
       <trans-unit id="ERR_ByRefTypeAndAwait">
         <source>Instance of type '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
-        <target state="needs-review-translation">'Operátor await nejde použít ve výrazu, který obsahuje typ {0}.</target>
+        <target state="translated">Instanci typu {0} nejde zachovat v rámci hranice await nebo yield.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
@@ -11223,7 +11273,7 @@ Potlačení upozornění zvažte jenom v případě, když určitě nechcete če
       </trans-unit>
       <trans-unit id="ERR_SpecialByRefInLambda">
         <source>Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</source>
-        <target state="new">Instance of type '{0}' cannot be used inside a nested function, query expression, iterator block or async method</target>
+        <target state="translated">Instance typu {0} nelze použít uvnitř vnořené funkce, výrazu dotazu, bloku iterátoru nebo asynchronní metody.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SecurityAttributeMissingAction">
@@ -13050,8 +13100,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
-        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="translated">{0}: typ použitý v asynchronním příkazu using musí být implicitně převoditelný na System.IAsyncDisposable nebo musí implementovat odpovídající metodu DisposeAsync.</target>
+        <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
+        <target state="needs-review-translation">{0}: typ použitý v asynchronním příkazu using musí být implicitně převoditelný na System.IAsyncDisposable nebo musí implementovat odpovídající metodu DisposeAsync.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

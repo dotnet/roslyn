@@ -6,11 +6,12 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.NamingStyles;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -704,11 +705,10 @@ public {record} R(MyClass $$
         using var workspaceFixture = GetOrCreateWorkspaceFixture();
 
         var workspace = workspaceFixture.Target.GetWorkspace(GetComposition());
-
-        var options = new CompletionOptions()
+        workspace.SetAnalyzerFallbackOptions(new OptionsCollection(LanguageNames.CSharp)
         {
-            NamingStyleFallbackOptions = ParameterCamelCaseWithPascalCaseFallback()
-        };
+            { NamingStyleOptions.NamingPreferences, ParameterCamelCaseWithPascalCaseFallback() }
+        });
 
         var markup = """
             using System.Threading;
@@ -717,8 +717,8 @@ public {record} R(MyClass $$
                 void Goo(CancellationToken $$
             }
             """;
-        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter, options: options);
-        await VerifyItemIsAbsentAsync(markup, "CancellationToken", options: options);
+        await VerifyItemExistsAsync(markup, "cancellationToken", glyph: (int)Glyph.Parameter);
+        await VerifyItemIsAbsentAsync(markup, "CancellationToken");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/52534")]
@@ -1170,7 +1170,7 @@ public {record} R(MyClass $$
             """;
         var items = await GetCompletionItemsAsync(markup, SourceCodeKind.Regular);
         Assert.Equal(
-            new[] { "myClass", "my", "@class", "MyClass", "My", "Class", "GetMyClass", "GetMy", "GetClass" },
+            ["myClass", "my", "@class", "MyClass", "My", "Class", "GetMyClass", "GetMy", "GetClass"],
             items.Select(item => item.DisplayText));
     }
 
@@ -2355,10 +2355,10 @@ public {record} R(MyClass $$
 
         var workspace = workspaceFixture.Target.GetWorkspace(GetComposition());
 
-        var options = new CompletionOptions()
+        workspace.SetAnalyzerFallbackOptions(new OptionsCollection(LanguageNames.CSharp)
         {
-            NamingStyleFallbackOptions = NamesEndWithSuffixPreferences()
-        };
+            { NamingStyleOptions.NamingPreferences, NamesEndWithSuffixPreferences() }
+        });
 
         var markup = """
             class Configuration
@@ -2367,13 +2367,13 @@ public {record} R(MyClass $$
             }
             """;
         await VerifyItemExistsAsync(markup, "ConfigurationField", glyph: (int)Glyph.FieldPublic,
-            expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name, options: options);
+            expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         await VerifyItemExistsAsync(markup, "ConfigurationProperty", glyph: (int)Glyph.PropertyPublic,
-            expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name, options: options);
+            expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         await VerifyItemExistsAsync(markup, "ConfigurationMethod", glyph: (int)Glyph.MethodPublic,
-            expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name, options: options);
-        await VerifyItemIsAbsentAsync(markup, "ConfigurationLocal", options: options);
-        await VerifyItemIsAbsentAsync(markup, "ConfigurationLocalFunction", options: options);
+            expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        await VerifyItemIsAbsentAsync(markup, "ConfigurationLocal");
+        await VerifyItemIsAbsentAsync(markup, "ConfigurationLocalFunction");
     }
 
     [Fact]
@@ -2383,10 +2383,10 @@ public {record} R(MyClass $$
 
         var workspace = workspaceFixture.Target.GetWorkspace(GetComposition());
 
-        var options = new CompletionOptions()
+        workspace.SetAnalyzerFallbackOptions(new OptionsCollection(LanguageNames.CSharp)
         {
-            NamingStyleFallbackOptions = NamesEndWithSuffixPreferences()
-        };
+            { NamingStyleOptions.NamingPreferences, NamesEndWithSuffixPreferences() }
+        });
 
         var markup = """
             class Configuration
@@ -2398,12 +2398,12 @@ public {record} R(MyClass $$
             }
             """;
         await VerifyItemExistsAsync(markup, "ConfigurationLocal", glyph: (int)Glyph.Local,
-            expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name, options: options);
+            expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
         await VerifyItemExistsAsync(markup, "ConfigurationLocalFunction", glyph: (int)Glyph.MethodPublic,
-            expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name, options: options);
-        await VerifyItemIsAbsentAsync(markup, "ConfigurationField", options: options);
-        await VerifyItemIsAbsentAsync(markup, "ConfigurationMethod", options: options);
-        await VerifyItemIsAbsentAsync(markup, "ConfigurationProperty", options: options);
+            expectedDescriptionOrNull: CSharpFeaturesResources.Suggested_name);
+        await VerifyItemIsAbsentAsync(markup, "ConfigurationField");
+        await VerifyItemIsAbsentAsync(markup, "ConfigurationMethod");
+        await VerifyItemIsAbsentAsync(markup, "ConfigurationProperty");
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31304")]
@@ -2799,10 +2799,10 @@ public {record} R(MyClass $$
 
         var workspace = workspaceFixture.Target.GetWorkspace(GetComposition());
 
-        var options = new CompletionOptions()
+        workspace.SetAnalyzerFallbackOptions(new OptionsCollection(LanguageNames.CSharp)
         {
-            NamingStyleFallbackOptions = MultipleCamelCaseLocalRules()
-        };
+            { NamingStyleOptions.NamingPreferences, MultipleCamelCaseLocalRules() }
+        });
 
         var markup = """
             public class MyClass
@@ -2814,7 +2814,7 @@ public {record} R(MyClass $$
                 }
             }
             """;
-        await VerifyItemExistsAsync(markup, "myClass1", glyph: (int)Glyph.Local, options: options);
+        await VerifyItemExistsAsync(markup, "myClass1", glyph: (int)Glyph.Local);
     }
 
     [Fact]

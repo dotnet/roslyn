@@ -322,11 +322,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                         // Symbol key will happily resolve to a definition part that has no implementation, so we validate that
                         // differently
-                        if (expectedOldSymbol is IMethodSymbol { IsPartialDefinition: true } &&
-                            symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol is IMethodSymbol resolvedMethod)
+                        if (expectedOldSymbol.IsPartialDefinition() &&
+                            symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol is ISymbol resolvedSymbol)
                         {
-                            Assert.Equal(expectedOldSymbol, resolvedMethod.PartialDefinitionPart);
-                            Assert.Equal(null, resolvedMethod.PartialImplementationPart);
+                            Assert.Equal(expectedOldSymbol, resolvedSymbol.PartialDefinitionPart());
+                            Assert.Equal(null, resolvedSymbol.PartialImplementationPart());
                         }
                         else
                         {
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     name: "project",
                     assemblyName: "project",
                     language: LanguageName,
-                    compilationOutputFilePaths: default,
+                    compilationOutputInfo: default,
                     filePath: Path.Combine(TempRoot.Root, "project" + ProjectFileExtension),
                     checksumAlgorithm: SourceHashAlgorithms.Default));
 

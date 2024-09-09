@@ -26,8 +26,6 @@ internal interface IFixAllState
     /// </summary>
     object Provider { get; }
 
-    CodeActionOptionsProvider CodeActionOptionsProvider { get; }
-
     IFixAllState With(
         Optional<(Document? document, Project project)> documentAndProject = default,
         Optional<FixAllScope> scope = default,

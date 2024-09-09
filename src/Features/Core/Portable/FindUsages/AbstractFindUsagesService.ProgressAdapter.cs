@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -49,7 +50,11 @@ internal abstract partial class AbstractFindUsagesService
     /// Forwards IFindReferencesProgress calls to an IFindUsagesContext instance.
     /// </summary>
     private sealed class FindReferencesProgressAdapter(
-        Solution solution, IFindUsagesContext context, FindReferencesSearchOptions searchOptions, OptionsProvider<ClassificationOptions> classificationOptions)
+        Solution solution,
+        ISymbol symbol,
+        IFindUsagesContext context,
+        FindReferencesSearchOptions searchOptions,
+        OptionsProvider<ClassificationOptions> classificationOptions)
         : IStreamingFindReferencesProgress
     {
         /// <summary>
@@ -84,11 +89,14 @@ internal abstract partial class AbstractFindUsagesService
             {
                 if (!_definitionToItem.TryGetValue(group, out var definitionItem))
                 {
+                    // Ensure that we prioritize the symbol the user is searching for as the primary definition. This
+                    // will ensure it shows up above the rest in the final results.
+                    var isPrimary = group.Symbols.Contains(symbol.OriginalDefinition);
                     definitionItem = await group.ToClassifiedDefinitionItemAsync(
                         classificationOptions,
                         solution,
                         searchOptions,
-                        isPrimary: _definitionToItem.Count == 0,
+                        isPrimary,
                         includeHiddenLocations: false,
                         cancellationToken).ConfigureAwait(false);
 
@@ -106,16 +114,18 @@ internal abstract partial class AbstractFindUsagesService
         }
 
         public async ValueTask OnReferencesFoundAsync(
-            IAsyncEnumerable<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
+            ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken)
         {
             await ProducerConsumer<SourceReferenceItem>.RunParallelAsync(
                 source: references,
                 produceItems: static async (tuple, callback, args, cancellationToken) =>
                 {
                     var (group, _, location) = tuple;
-                    var definitionItem = await args.@this.GetDefinitionItemAsync(group, cancellationToken).ConfigureAwait(false);
+                    var (@this, context, classificationOptions) = args;
+
+                    var definitionItem = await @this.GetDefinitionItemAsync(group, cancellationToken).ConfigureAwait(false);
                     var sourceReferenceItem = await location.TryCreateSourceReferenceItemAsync(
-                        args.classificationOptions,
+                        classificationOptions,
                         definitionItem,
                         includeHiddenLocations: false,
                         cancellationToken).ConfigureAwait(false);

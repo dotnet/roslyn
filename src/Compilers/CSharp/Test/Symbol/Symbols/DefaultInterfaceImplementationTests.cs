@@ -1594,7 +1594,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.RegularPreview);
 
             var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
@@ -1632,7 +1632,7 @@ class Test2 : I1
 ";
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
-                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                  parseOptions: isStatic ? TestOptions.Regular11 : TestOptions.Regular8);
 
             m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
@@ -1688,7 +1688,7 @@ class Test2 : I1
             foreach (var reference in new[] { compilation1.EmitToImageReference(), compilation1.ToMetadataReference() })
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference },
-                                                     options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
+                                                     options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                      parseOptions: isStatic ? TestOptions.Regular11 : TestOptions.Regular8);
 
                 var m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
@@ -1754,7 +1754,7 @@ class Test2 : I2
             foreach (var reference in new[] { compilation1.EmitToImageReference(), compilation1.ToMetadataReference() })
             {
                 var compilation3 = CreateCompilation(source2, new[] { reference }, options: TestOptions.DebugDll,
-                                                     targetFramework: TargetFramework.DesktopLatestExtended,
+                                                     targetFramework: TargetFramework.Mscorlib461Extended,
                                                      parseOptions: TestOptions.Regular7_3);
                 Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 var m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
@@ -1785,7 +1785,7 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.Mscorlib461Extended,
                                                  parseOptions: isStatic ? TestOptions.Regular10 : TestOptions.Regular7_3, skipUsesIsNullable: true);
 
             var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
@@ -1829,7 +1829,7 @@ class Test2 : I1
 ";
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
-                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                  parseOptions: isStatic ? TestOptions.Regular10 : TestOptions.Regular7_3);
 
             m1 = compilation3.GetMember<MethodSymbol>("I1.M1");
@@ -1980,7 +1980,7 @@ public interface I1
     }
 }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.Regular11);
 
             var m1 = compilation1.GetMember<MethodSymbol>("I1.M1");
@@ -2049,7 +2049,7 @@ class Test1 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation2.VerifyDiagnostics(
                 // (4,17): error CS8701: Target runtime doesn't support default interface implementation.
@@ -4037,7 +4037,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
 
             if (!isStatic)
@@ -4090,7 +4090,7 @@ class Test2 : I1
 ";
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
-                                                 options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended,
+                                                 options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.RegularPreview);
 
             if (!isStatic)
@@ -4218,7 +4218,7 @@ class Test2 : I1
 ";
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() },
-                                                 options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended,
+                                                 options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.RegularPreview);
 
             if (!isStatic)
@@ -4302,7 +4302,7 @@ class Test2 : I2
 ";
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() },
-                                                 targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.DebugDll,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -4346,7 +4346,7 @@ public interface I1
 class Test1 : I1
 {}
 ";
-                var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
+                var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                      parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
                 Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -4392,7 +4392,7 @@ class Test2 : I1
 ";
 
                 var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
-                                                     options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
+                                                     options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                      parseOptions: TestOptions.Regular7_3);
                 Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -5638,7 +5638,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation1.VerifyDiagnostics(
@@ -5668,7 +5668,7 @@ class Test2 : I1
 ";
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
-                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.Regular);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -5778,7 +5778,7 @@ class Test2 : I1
 ";
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() },
-                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.Regular);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -5843,7 +5843,7 @@ class Test2 : I2
 ";
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.Regular);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -5893,7 +5893,7 @@ public interface I1
 class Test1 : I1
 {}
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -5939,7 +5939,7 @@ class Test2 : I1
 ";
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
-                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.Regular7_3);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -7121,7 +7121,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
 
             if (!isStatic)
@@ -7156,7 +7156,7 @@ class Test2 : I1
 ";
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
-                                                 options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended,
+                                                 options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.RegularPreview);
 
             if (!isStatic)
@@ -7242,7 +7242,7 @@ class Test2 : I1
 ";
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() },
-                                                 targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended, options: TestOptions.DebugDll,
+                                                 targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.Mscorlib461Extended, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview);
 
             if (!isStatic)
@@ -7309,7 +7309,7 @@ class Test2 : I2
 ";
 
             var compilation3 = CreateCompilation(source2, new[] { compilation1.EmitToImageReference() }, options: TestOptions.DebugDll,
-                                                 targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.RegularPreview);
 
             var test2 = compilation3.GetTypeByMetadataName("Test2");
@@ -7344,7 +7344,7 @@ public interface I1
 class Test1 : I1
 {}
 ";
-                var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
+                var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                      parseOptions: TestOptions.Regular7_3, skipUsesIsNullable: true);
                 Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -7372,7 +7372,7 @@ class Test2 : I1
 ";
 
                 var compilation3 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
-                                                     options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
+                                                     options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                      parseOptions: TestOptions.Regular7_3);
                 Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -8492,7 +8492,7 @@ public interface I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
@@ -10319,7 +10319,7 @@ class Test2 : I1
 
             Validate(compilation2.SourceModule);
 
-            var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
+            var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -10889,7 +10889,7 @@ M2");
             Assert.False(m1.IsAsync);
             Assert.False(m1.IsOverride);
             Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
-            Assert.True(m1.IsPartialMethod());
+            Assert.True(m1.IsPartialMember());
             Assert.Null(m1.PartialImplementationPart);
 
             var m2 = i1.GetMember<MethodSymbol>("M2");
@@ -10903,7 +10903,7 @@ M2");
             Assert.False(m2.IsAsync);
             Assert.False(m2.IsOverride);
             Assert.Equal(Accessibility.Private, m2.DeclaredAccessibility);
-            Assert.True(m2.IsPartialMethod());
+            Assert.True(m2.IsPartialMember());
 
             Assert.Equal(2, m2.GetAttributes().Length);
             Assert.Equal("Test2(1)", m2.GetAttributes()[0].ToString());
@@ -10920,7 +10920,7 @@ M2");
             Assert.False(m2Impl.IsAsync);
             Assert.False(m2Impl.IsOverride);
             Assert.Equal(Accessibility.Private, m2Impl.DeclaredAccessibility);
-            Assert.True(m2Impl.IsPartialMethod());
+            Assert.True(m2Impl.IsPartialMember());
             Assert.Same(m2, m2Impl.PartialDefinitionPart);
 
             Assert.Equal(2, m2Impl.GetAttributes().Length);
@@ -10996,7 +10996,7 @@ M2",
             Assert.False(m1.IsAsync);
             Assert.False(m1.IsOverride);
             Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
-            Assert.True(m1.IsPartialMethod());
+            Assert.True(m1.IsPartialMember());
             Assert.Null(m1.PartialImplementationPart);
 
             var m2 = i1.GetMember<MethodSymbol>("M2");
@@ -11010,7 +11010,7 @@ M2",
             Assert.False(m2.IsAsync);
             Assert.False(m2.IsOverride);
             Assert.Equal(Accessibility.Private, m2.DeclaredAccessibility);
-            Assert.True(m2.IsPartialMethod());
+            Assert.True(m2.IsPartialMember());
 
             Assert.Equal(2, m2.GetAttributes().Length);
             Assert.Equal("Test2(1)", m2.GetAttributes()[0].ToString());
@@ -11027,7 +11027,7 @@ M2",
             Assert.False(m2Impl.IsAsync);
             Assert.False(m2Impl.IsOverride);
             Assert.Equal(Accessibility.Private, m2Impl.DeclaredAccessibility);
-            Assert.True(m2Impl.IsPartialMethod());
+            Assert.True(m2Impl.IsPartialMember());
             Assert.Same(m2, m2Impl.PartialDefinitionPart);
 
             Assert.Equal(2, m2Impl.GetAttributes().Length);
@@ -11167,7 +11167,7 @@ public partial interface I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularWithExtendedPartialMethods,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation2.VerifyDiagnostics(
                 // (4,24): error CS8794: Partial method 'I1.M1()' must have accessibility modifiers because it has a non-void return type.
@@ -11275,24 +11275,24 @@ interface I2
                 // (4,25): error CS8796: Partial method 'I1.M1()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     sealed partial void M1();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M1").WithArguments("I1.M1()").WithLocation(4, 25),
-                // (5,27): error CS0750: A partial method cannot have the 'abstract' modifier
+                // (5,27): error CS0750: A partial member cannot have the 'abstract' modifier
                 //     abstract partial void M2();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M2").WithLocation(5, 27),
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "M2").WithLocation(5, 27),
                 // (6,26): error CS8796: Partial method 'I1.M3()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     virtual partial void M3();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M3").WithArguments("I1.M3()").WithLocation(6, 26),
-                // (10,21): error CS0754: A partial method may not explicitly implement an interface method
+                // (10,21): error CS0754: A partial member may not explicitly implement an interface member
                 //     partial void I2.M7();
-                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M7").WithLocation(10, 21),
+                Diagnostic(ErrorCode.ERR_PartialMemberNotExplicit, "M7").WithLocation(10, 21),
                 // (15,25): error CS8796: Partial method 'I1.M4()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     sealed partial void M4() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M4").WithArguments("I1.M4()").WithLocation(15, 25),
-                // (15,25): error CS8798: Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                // (15,25): error CS8798: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
                 //     sealed partial void M4() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M4").WithLocation(15, 25),
-                // (16,27): error CS0750: A partial method cannot have the 'abstract' modifier
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "M4").WithLocation(15, 25),
+                // (16,27): error CS0750: A partial member cannot have the 'abstract' modifier
                 //     abstract partial void M5();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M5").WithLocation(16, 27),
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "M5").WithLocation(16, 27),
                 // (16,27): error CS0756: A partial method may not have multiple defining declarations
                 //     abstract partial void M5();
                 Diagnostic(ErrorCode.ERR_PartialMethodOnlyOneLatent, "M5").WithLocation(16, 27),
@@ -11302,15 +11302,15 @@ interface I2
                 // (17,26): error CS8796: Partial method 'I1.M6()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     virtual partial void M6() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "M6").WithArguments("I1.M6()").WithLocation(17, 26),
-                // (17,26): error CS8798: Both partial method declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
+                // (17,26): error CS8798: Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.
                 //     virtual partial void M6() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodExtendedModDifference, "M6").WithLocation(17, 26),
-                // (19,21): error CS0754: A partial method may not explicitly implement an interface method
+                Diagnostic(ErrorCode.ERR_PartialMemberExtendedModDifference, "M6").WithLocation(17, 26),
+                // (19,21): error CS0754: A partial member may not explicitly implement an interface member
                 //     partial void I2.M7() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M7").WithLocation(19, 21),
-                // (25,18): error CS0751: A partial method must be declared within a partial type
+                Diagnostic(ErrorCode.ERR_PartialMemberNotExplicit, "M7").WithLocation(19, 21),
+                // (25,18): error CS0751: A partial member must be declared within a partial type
                 //     partial void M8();
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M8").WithLocation(25, 18)
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M8").WithLocation(25, 18)
                 );
         }
 
@@ -11426,12 +11426,12 @@ public partial interface I1
                 // (5,25): error CS0761: Partial method declarations of 'I1.M1<T>()' have inconsistent constraints for type parameter 'T'
                 //     static partial void M1<T>() {}
                 Diagnostic(ErrorCode.ERR_PartialMethodInconsistentConstraints, "M1").WithArguments("I1.M1<T>()", "T").WithLocation(5, 25),
-                // (8,25): error CS0758: Both partial method declarations must use a params parameter or neither may use a params parameter
+                // (8,25): error CS0758: Both partial member declarations must use a params parameter or neither may use a params parameter
                 //     static partial void M2(int[] x) {}
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "M2").WithLocation(8, 25),
-                // (11,18): error CS0763: Both partial method declarations must be static or neither may be static
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "M2").WithLocation(8, 25),
+                // (11,18): error CS0763: Both partial member declarations must be static or neither may be static
                 //     partial void M3() {}
-                Diagnostic(ErrorCode.ERR_PartialMethodStaticDifference, "M3").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_PartialMemberStaticDifference, "M3").WithLocation(11, 18)
                 );
         }
 
@@ -11447,7 +11447,7 @@ partial interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation1.VerifyDiagnostics();
 
@@ -11460,7 +11460,7 @@ partial interface I1
 ";
             var compilation2 = CreateCompilation(source1 + source2, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation2.VerifyDiagnostics(
                 // (9,18): error CS8701: Target runtime doesn't support default interface implementation.
@@ -13471,7 +13471,7 @@ public interface I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
@@ -14043,7 +14043,7 @@ set_P8", symbolValidator: Validate);
             Validate(compilation1.SourceModule);
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation2.VerifyDiagnostics(
                 // (6,9): error CS8701: Target runtime doesn't support default interface implementation.
@@ -16737,7 +16737,7 @@ class Test2 : I1, I2, I3, I4, I5
 
             Validate(compilation2.SourceModule);
 
-            var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
+            var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -21945,7 +21945,7 @@ public interface I19{ int this[int x] { get; private protected set;} }
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.VerifyDiagnostics(
                 // (3,37): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
@@ -27037,7 +27037,7 @@ public interface I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
             compilation2.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_EventNeedsBothAccessors).Verify(
                 // (5,35): error CS8707: Target runtime doesn't support 'protected', 'protected internal', or 'private protected' accessibility for a member of an interface.
@@ -27696,7 +27696,7 @@ class Test1 : I1
             Validate(compilation2.SourceModule);
 
             var compilation3 = CreateCompilation(source2, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All),
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation3.VerifyEmitDiagnostics(
                 // (4,39): error CS8701: Target runtime doesn't support default interface implementation.
@@ -30131,7 +30131,7 @@ class Test2 : I1, I2, I3, I4, I5
 
             Validate(compilation2.SourceModule);
 
-            var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
+            var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
             Assert.False(compilation3.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -31746,7 +31746,7 @@ class Test1 : I1
 
             var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             for (int i = 1; i <= 5; i++)
             {
@@ -31937,7 +31937,7 @@ class Test1
 
             var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             for (int i = 1; i <= 5; i++)
             {
@@ -32295,7 +32295,7 @@ class Test1
 
             var compilation1 = CreateCompilation(source0 + source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             for (int i = 1; i <= 5; i++)
             {
@@ -33095,7 +33095,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -33120,7 +33120,7 @@ class Test1 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
-                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.Regular);
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -33644,7 +33644,7 @@ class Test1 : I1
 
             Validate1(compilation2.SourceModule);
 
-            var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended,
+            var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
 
             if (!isStatic)
@@ -37187,7 +37187,7 @@ class Test1 : I1
 
         private void ValidatePropertyImplementationInDerived_03(string source1, bool isStatic, DiagnosticDescription[] expected1, params DiagnosticDescription[] expected2)
         {
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
 
             compilation1.VerifyDiagnostics(expected1);
@@ -37204,7 +37204,7 @@ class Test1 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
-                                                 options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended,
+                                                 options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.RegularPreview);
 
             compilation2.VerifyDiagnostics(expected2);
@@ -37807,7 +37807,7 @@ class Test1 : I1
 
             Validate1(compilation2.SourceModule);
 
-            var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended,
+            var compilation3 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.RegularPreview, skipUsesIsNullable: true);
 
             compilation3.VerifyDiagnostics(expected3);
@@ -40205,7 +40205,7 @@ class Test1 : I1
 {}
 ";
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.Regular, skipUsesIsNullable: true);
             Assert.False(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -40236,7 +40236,7 @@ class Test1 : I1
 ";
 
             var compilation2 = CreateCompilation(source2, new[] { compilation1.ToMetadataReference() },
-                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 options: TestOptions.DebugDll, targetFramework: TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.Regular);
             Assert.False(compilation2.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
@@ -43510,7 +43510,7 @@ public interface I1
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation1.VerifyEmitDiagnostics(
                 // (4,9): error CS0525: Interfaces cannot contain instance fields
@@ -43682,7 +43682,7 @@ class Test2 : I1
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
                 // (4,16): error CS8701: Target runtime doesn't support default interface implementation.
@@ -43817,7 +43817,7 @@ class Test2 : I1
             Validate1(compilation4.SourceModule);
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
                 // (4,25): error CS8701: Target runtime doesn't support default interface implementation.
@@ -43947,7 +43947,7 @@ class Test2 : I1
             Validate1(compilation4.SourceModule);
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
                 // (4,15): error CS8701: Target runtime doesn't support default interface implementation.
@@ -44234,7 +44234,7 @@ interface I6
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                   parseOptions: TestOptions.Regular,
-                                                  targetFramework: TargetFramework.DesktopLatestExtended);
+                                                  targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation2.VerifyDiagnostics(
                 // (4,12): error CS8701: Target runtime doesn't support default interface implementation.
@@ -44958,7 +44958,7 @@ class Test2 : I1
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
                 // (4,20): error CS8701: Target runtime doesn't support default interface implementation.
@@ -45111,7 +45111,7 @@ class Test2 : I1
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
                 // (4,20): error CS8701: Target runtime doesn't support default interface implementation.
@@ -45253,7 +45253,7 @@ class Test2 : I1
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
                 // (4,20): error CS8701: Target runtime doesn't support default interface implementation.
@@ -45440,7 +45440,7 @@ class Test2 : I1
             Validate1(compilation4.SourceModule);
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
                 // (4,32): error CS8701: Target runtime doesn't support default interface implementation.
@@ -45577,7 +45577,7 @@ class Test2 : I1
             Validate1(compilation4.SourceModule);
 
             var compilation5 = CreateCompilation(source1, options: TestOptions.DebugExe,
-                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 parseOptions: TestOptions.Regular, targetFramework: TargetFramework.Mscorlib461Extended);
 
             compilation5.VerifyDiagnostics(
                 // (4,32): error CS8701: Target runtime doesn't support default interface implementation.
@@ -45748,7 +45748,7 @@ M30
 P50
 ");
 
-                var compilation4 = CreateCompilation(source4, options: TestOptions.DebugExe, targetFramework: TargetFramework.DesktopLatestExtended,
+                var compilation4 = CreateCompilation(source4, options: TestOptions.DebugExe, targetFramework: TargetFramework.Mscorlib461Extended,
                                                      parseOptions: TestOptions.Regular);
                 compilation4 = compilation4.AddReferences(refs.comp1);
                 Assert.False(compilation4.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
@@ -45847,7 +45847,7 @@ class Test2 : Test1
             foreach (var reference in new[] { compilation0.ToMetadataReference(), compilation0.EmitToImageReference() })
             {
                 var compilation2 = CreateCompilation(source2, options: TestOptions.DebugExe,
-                                                     targetFramework: TargetFramework.DesktopLatestExtended,
+                                                     targetFramework: TargetFramework.Mscorlib461Extended,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular);
 
@@ -45973,7 +45973,7 @@ interface Test4 : I1
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe,
-                                                     targetFramework: TargetFramework.DesktopLatestExtended,
+                                                     targetFramework: TargetFramework.Mscorlib461Extended,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular);
 
@@ -46011,7 +46011,7 @@ interface Test4 : I1
                     );
 
                 var compilation4 = CreateCompilation(source4, options: TestOptions.DebugExe,
-                                                     targetFramework: TargetFramework.DesktopLatestExtended,
+                                                     targetFramework: TargetFramework.Mscorlib461Extended,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular);
 
@@ -46116,7 +46116,7 @@ class Test4 : I1
             foreach (var reference in new[] { compilation1.ToMetadataReference(), compilation1.EmitToImageReference() })
             {
                 var compilation3 = CreateCompilation(source3, options: TestOptions.DebugExe,
-                                                     targetFramework: TargetFramework.DesktopLatestExtended,
+                                                     targetFramework: TargetFramework.Mscorlib461Extended,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular);
 
@@ -46130,7 +46130,7 @@ class Test4 : I1
                     );
 
                 var compilation4 = CreateCompilation(source4, options: TestOptions.DebugDll,
-                                                     targetFramework: TargetFramework.DesktopLatestExtended,
+                                                     targetFramework: TargetFramework.Mscorlib461Extended,
                                                      references: new[] { reference },
                                                      parseOptions: TestOptions.Regular);
 
@@ -46503,7 +46503,7 @@ true
                 );
 
             var compilation61 = CreateCompilation(source1 + source2, options: TestOptions.DebugDll,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended,
+                                                 targetFramework: TargetFramework.Mscorlib461Extended,
                                                  parseOptions: TestOptions.RegularPreview);
 
             compilation61.VerifyDiagnostics(
@@ -51897,12 +51897,12 @@ class Test1 : I2
             validate(compilation1.SourceModule);
 
             compilation1.VerifyDiagnostics(
-                // (9,30): error CS0754: A partial method may not explicitly implement an interface method
+                // (9,30): error CS0754: A partial member may not explicitly implement an interface member
                 //     abstract partial void I1.M1();
-                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M1").WithLocation(9, 30 + implModifiers.Length),
-                // (9,30): error CS0750: A partial method cannot have the 'abstract' modifier
+                Diagnostic(ErrorCode.ERR_PartialMemberNotExplicit, "M1").WithLocation(9, 30 + implModifiers.Length),
+                // (9,30): error CS0750: A partial member cannot have the 'abstract' modifier
                 //     abstract partial void I1.M1();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "M1").WithLocation(9, 30 + implModifiers.Length),
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "M1").WithLocation(9, 30 + implModifiers.Length),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.M1()'
                 // class Test1 : I2
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I2").WithArguments("Test1", "I1.M1()").WithLocation(12, 15)
@@ -52246,7 +52246,7 @@ public interface I2 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.RegularPreview,
-                                                 targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: isStatic ? TargetFramework.Net50 : TargetFramework.Mscorlib461Extended);
 
             if (!isStatic)
             {
@@ -57045,7 +57045,7 @@ public interface I2 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
             compilation2.VerifyDiagnostics(
                 // (9,25): error CS8701: Target runtime doesn't support default interface implementation.
                 //     abstract int I1.P1 {get; set;}
@@ -57127,7 +57127,7 @@ public interface I2 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
             compilation2.VerifyDiagnostics(
                 // (9,25): error CS8701: Target runtime doesn't support default interface implementation.
                 //     abstract int I1.P1 {get;}
@@ -57203,7 +57203,7 @@ public interface I2 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
             compilation2.VerifyDiagnostics(
                 // (9,25): error CS8701: Target runtime doesn't support default interface implementation.
                 //     abstract int I1.P1 {set;}
@@ -59236,7 +59236,7 @@ public interface I2 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
             compilation2.VerifyDiagnostics(
                 // (9,37): error CS8701: Target runtime doesn't support default interface implementation.
                 //     abstract event System.Action I1.P1;
@@ -62023,7 +62023,7 @@ public interface I2 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
             compilation2.VerifyDiagnostics(
                 // (9,34): error CS8701: Target runtime doesn't support default interface implementation.
                 //     abstract int I1.this[int i] {get; set;}
@@ -62061,7 +62061,7 @@ public interface I2 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
             compilation2.VerifyDiagnostics(
                 // (9,34): error CS8701: Target runtime doesn't support default interface implementation.
                 //     abstract int I1.this[int i] {get;}
@@ -62096,7 +62096,7 @@ public interface I2 : I1
 
             var compilation2 = CreateCompilation(source1, options: TestOptions.DebugDll,
                                                  parseOptions: TestOptions.Regular,
-                                                 targetFramework: TargetFramework.DesktopLatestExtended);
+                                                 targetFramework: TargetFramework.Mscorlib461Extended);
             compilation2.VerifyDiagnostics(
                 // (9,34): error CS8701: Target runtime doesn't support default interface implementation.
                 //     abstract int I1.this[int i] {set;}

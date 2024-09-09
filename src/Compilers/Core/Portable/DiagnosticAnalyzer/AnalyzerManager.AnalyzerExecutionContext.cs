@@ -90,8 +90,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         return Task.Run(() =>
                         {
-                            var sessionScope = new HostSessionStartAnalysisScope();
-                            executor.ExecuteInitializeMethod(context._analyzer, sessionScope, executor.SeverityFilter, cancellationToken);
+                            var sessionScope = new HostSessionStartAnalysisScope(context._analyzer);
+                            executor.ExecuteInitializeMethod(sessionScope, executor.SeverityFilter, cancellationToken);
                             return sessionScope;
                         }, cancellationToken);
                     }
@@ -117,8 +117,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     {
                         _lazyCompilationScopeTask = Task.Run(() =>
                         {
+                            Debug.Assert(sessionScope.Analyzer == _analyzer);
                             var compilationAnalysisScope = new HostCompilationStartAnalysisScope(sessionScope);
-                            analyzerExecutor.ExecuteCompilationStartActions(sessionScope.GetAnalyzerActions(_analyzer).CompilationStartActions, compilationAnalysisScope, cancellationToken);
+                            analyzerExecutor.ExecuteCompilationStartActions(sessionScope.GetAnalyzerActions().CompilationStartActions, compilationAnalysisScope, cancellationToken);
                             return compilationAnalysisScope;
                         }, cancellationToken);
                     }
@@ -157,10 +158,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     HostSymbolStartAnalysisScope getSymbolAnalysisScopeCore()
                     {
-                        var symbolAnalysisScope = new HostSymbolStartAnalysisScope();
-                        analyzerExecutor.ExecuteSymbolStartActions(symbol, _analyzer, symbolStartActions, symbolAnalysisScope, isGeneratedCodeSymbol, filterTree, filterSpan, cancellationToken);
+                        var symbolAnalysisScope = new HostSymbolStartAnalysisScope(_analyzer);
+                        analyzerExecutor.ExecuteSymbolStartActions(symbol, symbolStartActions, symbolAnalysisScope, isGeneratedCodeSymbol, filterTree, filterSpan, cancellationToken);
 
-                        var symbolEndActions = symbolAnalysisScope.GetAnalyzerActions(_analyzer);
+                        var symbolEndActions = symbolAnalysisScope.GetAnalyzerActions();
                         if (symbolEndActions.SymbolEndActionsCount > 0)
                         {
                             var dependentSymbols = getDependentSymbols();
@@ -203,12 +204,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 memberSet ??= new HashSet<ISymbol>();
                                 memberSet.Add(member);
 
-                                // Ensure that we include symbols for both parts of partial methods.
-                                if (member is IMethodSymbol method &&
-                                    !(method.PartialImplementationPart is null))
-                                {
-                                    memberSet.Add(method.PartialImplementationPart);
-                                }
+                                if (member is IMethodSymbol { PartialImplementationPart: { } methodImplementation })
+                                    memberSet.Add(methodImplementation);
+                                else if (member is IPropertySymbol { PartialImplementationPart: { } propertyImplementation })
+                                    memberSet.Add(propertyImplementation);
                             }
 
                             if (member is INamedTypeSymbol typeMember)

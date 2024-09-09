@@ -11,12 +11,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -34,11 +31,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue;
 [ContentType(ContentTypeNames.VisualBasicContentType)]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class ActiveStatementTaggerProvider(
-    IThreadingContext threadingContext,
-    IGlobalOptionService globalOptions,
-    [Import(AllowDefault = true)] ITextBufferVisibilityTracker? visibilityTracker,
-    IAsynchronousOperationListenerProvider listenerProvider) : AsynchronousTaggerProvider<ITextMarkerTag>(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
+internal partial class ActiveStatementTaggerProvider(TaggerHost taggerHost)
+    : AsynchronousTaggerProvider<ITextMarkerTag>(taggerHost, FeatureAttribute.Classification)
 {
     protected override TaggerDelay EventChangeDelay => TaggerDelay.NearImmediate;
 
@@ -55,9 +49,9 @@ internal partial class ActiveStatementTaggerProvider(
     protected override async Task ProduceTagsAsync(
         TaggerContext<ITextMarkerTag> context, CancellationToken cancellationToken)
     {
-        Debug.Assert(context.SpansToTag.IsSingle());
+        Contract.ThrowIfTrue(context.SpansToTag.Count != 1);
 
-        var spanToTag = context.SpansToTag.Single();
+        var spanToTag = context.SpansToTag.First();
 
         var document = spanToTag.Document;
         if (document == null)

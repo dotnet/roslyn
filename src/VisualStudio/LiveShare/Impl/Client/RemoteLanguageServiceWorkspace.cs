@@ -42,7 +42,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         /// Gate to make sure we only update the paths and trigger RDT one at a time.
         /// Guards <see cref="_remoteWorkspaceRootPaths"/> and <see cref="_registeredExternalPaths"/>
         /// </summary>
+        // Our usage of SemaphoreSlim is fine.  We don't perform blocking waits for it on the UI thread.
+#pragma warning disable RS0030 // Do not use banned APIs
         private static readonly SemaphoreSlim s_RemotePathsGate = new SemaphoreSlim(initialCount: 1);
+#pragma warning restore RS0030 // Do not use banned APIs
 
         private readonly IServiceProvider _serviceProvider;
         private readonly IThreadingContext _threadingContext;
@@ -95,8 +98,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy) => NotifyOnDocumentOpened(moniker, textBuffer);
 
-        void IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame) { }
-
         void IOpenTextBufferEventListener.OnCloseDocument(string moniker) => NotifyOnDocumentClosing(moniker);
 
         void IOpenTextBufferEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
@@ -108,6 +109,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         {
             // Handled by Add/Remove.
         }
+
+        void IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame) { }
+
+        void IOpenTextBufferEventListener.OnSaveDocument(string moniker) { }
 
         public async Task SetSessionAsync(CollaborationSession session)
         {
@@ -319,7 +324,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
                         name: projectName,
                         assemblyName: projectName,
                         language,
-                        compilationOutputFilePaths: default,
+                        compilationOutputInfo: default,
                         checksumAlgorithm: SourceHashAlgorithms.Default));
 
                 OnProjectAdded(projectInfo);

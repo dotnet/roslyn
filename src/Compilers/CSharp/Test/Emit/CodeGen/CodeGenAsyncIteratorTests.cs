@@ -9,6 +9,7 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
@@ -642,7 +643,7 @@ ref struct S
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(expectedDiagnostics);
 
-            comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular12);
@@ -650,9 +651,9 @@ ref struct S
                 // source(4,65): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'IAsyncEnumerable<T>'
                 //     static async System.Collections.Generic.IAsyncEnumerable<S> M()
                 Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M").WithArguments("System.Collections.Generic.IAsyncEnumerable<T>", "T", "S").WithLocation(4, 65),
-                // source(11,24): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // source(11,24): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await foreach (var s in M())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(11, 24));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(11, 24));
         }
 
         [Fact]
@@ -690,11 +691,11 @@ ref struct S
 
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
-                // source(8,24): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // source(8,24): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await foreach (var s in new C())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 24));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 24));
 
-            comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
@@ -849,11 +850,11 @@ ref struct S
 
             var comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
-                // source(8,24): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // source(8,24): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await foreach (var s in new C())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 24));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 24));
 
-            comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilationWithAsyncIterator(source, options: TestOptions.DebugExe);
@@ -897,9 +898,9 @@ ref struct S
 
             var comp = CreateCompilationWithAsyncIterator(source, parseOptions: TestOptions.Regular12);
             comp.VerifyDiagnostics(
-                // source(8,24): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // source(8,24): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await foreach (var s in new C())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 24));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 24));
 
             var expectedDiagnostics = new[]
             {
@@ -908,7 +909,7 @@ ref struct S
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "s.F").WithArguments("S").WithLocation(11, 34)
             };
 
-            comp = CreateCompilationWithAsyncIterator(source, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilationWithAsyncIterator(source, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics(expectedDiagnostics);
 
             comp = CreateCompilationWithAsyncIterator(source);
@@ -6475,7 +6476,7 @@ class C
         [Fact]
         public void TestWellKnownMembers()
         {
-            var comp = CreateCompilation(AsyncStreamsTypes, references: new[] { TestMetadata.SystemThreadingTasksExtensions.NetStandard20Lib }, targetFramework: TargetFramework.NetStandard20);
+            var comp = CreateCompilation(AsyncStreamsTypes, references: new[] { NetStandard20.ExtraReferences.SystemThreadingTasksExtensions }, targetFramework: TargetFramework.NetStandard20);
             comp.VerifyDiagnostics();
 
             verifyType(WellKnownType.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T,

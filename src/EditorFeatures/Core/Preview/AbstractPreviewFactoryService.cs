@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -55,6 +56,11 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
     private readonly ITextDifferencingSelectorService _differenceSelectorService = differenceSelectorService;
     private readonly IDifferenceBufferFactoryService _differenceBufferService = differenceBufferService;
     private readonly ITextDocumentFactoryService _textDocumentFactoryService = textDocumentFactoryService;
+
+    private static readonly StringDifferenceOptions s_differenceOptions = new()
+    {
+        DifferenceType = StringDifferenceTypes.Word | StringDifferenceTypes.Line,
+    };
 
     protected readonly IThreadingContext ThreadingContext = threadingContext;
 
@@ -648,8 +654,11 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
 
         var buffer = _textBufferCloneService.Clone(text, contentType);
 
-        // Associate buffer with a text document with random file path to satisfy extensibility points expecting absolute file path.
-        _textDocumentFactoryService.CreateTextDocument(buffer, Path.GetTempFileName());
+        // Associate buffer with a text document with random file path to satisfy extensibility points expecting
+        // absolute file path.  Ensure the new path preserves the same extension as before as that extension is used by
+        // LSP to determine the language of the document.
+        _textDocumentFactoryService.CreateTextDocument(
+            buffer, Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), document.Name));
 
         return buffer;
     }
@@ -778,10 +787,8 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
             oldDocument.Project.Services.GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType());
 
         diffService ??= _differenceSelectorService.DefaultTextDifferencingService;
-        return diffService.DiffStrings(oldText.ToString(), newText.ToString(), new StringDifferenceOptions()
-        {
-            DifferenceType = StringDifferenceTypes.Word | StringDifferenceTypes.Line,
-        });
+
+        return diffService.DiffSourceTexts(oldText, newText, s_differenceOptions);
     }
 
     private static NormalizedSpanCollection GetOriginalSpans(IHierarchicalDifferenceCollection diffResult, CancellationToken cancellationToken)

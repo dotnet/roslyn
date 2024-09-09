@@ -8,6 +8,7 @@ where:
 configuration:
   resourceManagementConfiguration:
     scheduledSearches:
+
     - description: Close "Need More Info" Issues
       frequencies:
       - hourly:
@@ -23,8 +24,12 @@ configuration:
       - closeIssue
       - addReply:
           reply: "Closing this issue as we've seen no reply to the request for more information. If you are able to get the requested information, please add it to the issue and we will retriage it. "
+
     eventResponderTasks:
-    - if:
+
+    - description: Auto-approve auto-merge PRs
+      triggerOnOwnActions: false
+      if:
       - payloadType: Pull_Request
       - isPullRequest
       - labelAdded:
@@ -38,9 +43,10 @@ configuration:
       then:
       - approvePullRequest:
           comment: Auto-approval
-      description: Auto-approve auto-merge PRs
+
+    - description: Auto-approve maestro PRs
       triggerOnOwnActions: false
-    - if:
+      if:
       - payloadType: Pull_Request
       - isPullRequest
       - isActivitySender:
@@ -55,9 +61,10 @@ configuration:
       then:
       - approvePullRequest:
           comment: Auto-approve
-      description: Auto-approve maestro PRs
-      triggerOnOwnActions: false
-    - if:
+
+    - description: Milestone tracking
+      triggerOnOwnActions: true
+      if:
       - payloadType: Pull_Request
       - isPullRequest
       - or:
@@ -72,9 +79,10 @@ configuration:
       then:
       - addMilestone:
           milestone: Next
-      description: Milestone tracking
-      triggerOnOwnActions: true
-    - if:
+
+    - description: Auto-approve OneLoc PRs
+      triggerOnOwnActions: false
+      if:
       - payloadType: Pull_Request
       - isPullRequest
       - isActivitySender:
@@ -88,9 +96,10 @@ configuration:
       then:
       - addLabel:
           label: auto-merge
-      description: Auto-approve OneLoc PRs
+
+    - description: Remove "Need More Info" on comment
       triggerOnOwnActions: false
-    - if:
+      if:
       - payloadType: Issue_Comment
       - isIssue
       - isOpen
@@ -101,9 +110,10 @@ configuration:
           label: untriaged
       - removeLabel:
           label: Need More Info
-      description: Remove "Need More Info" on comment
+
+    - description: Label Community Pull Requests
       triggerOnOwnActions: false
-    - if:
+      if:
       - payloadType: Pull_Request
       - isPullRequest
       - isAction:
@@ -142,13 +152,45 @@ configuration:
       then:
       - addLabel:
           label: Community
-      description: Label Community Pull Requests
+
+    - description: Adds "VSCode" tag on PRs which may affect C# extension.
       triggerOnOwnActions: false
-    - if:
+      if:
       - payloadType: Pull_Request
       - isPullRequest
       - filesMatchPattern:
-          pattern: '[xX][aA][mM][lL]$'
+          pattern: 'src/(Analyzers|CodeStyle|Features|LanguageServer|Workspaces)/.*\.(cs|vb)$'
+          matchAny: true
+      - and:
+        - not:
+            isActivitySender:
+              user: dotnet-bot
+              issueAuthor: False
+        - not:
+            isActivitySender:
+              user: github-actions
+              issueAuthor: False
+      - or:
+        - isAction:
+            action: Opened
+        - isAction:
+            action: Synchronize
+      - and:
+        - not:
+            hasLabel:
+              label: VSCode
+      then:
+      - addLabel:
+          label: VSCode
+
+    - description: Add "Needs UX Triage" on PRs
+      triggerOnOwnActions: false
+      if:
+      - payloadType: Pull_Request
+      - isPullRequest
+      - filesMatchPattern:
+          pattern: '.*\.[xX][aA][mM][lL]$'
+          matchAny: true
       - and:
         - not:
             hasLabel:
@@ -187,12 +229,15 @@ configuration:
       then:
       - addLabel:
           label: Needs UX Triage
-      description: Add "Needs UX Triage" on PRs
+
+    - description: Adds "Needs API Review" on PRs that touch public APIs
       triggerOnOwnActions: false
-    - if:
+      if:
       - payloadType: Pull_Request
+      - isPullRequest
       - filesMatchPattern:
-          pattern: .*/PublicAPI\.(Shipped|Unshipped)\.txt
+          pattern: '.*/PublicAPI\.(Shipped|Unshipped)\.txt'
+          matchAny: true
       - not:
           isActivitySender:
             user: dotnet-bot
@@ -214,9 +259,10 @@ configuration:
           label: Needs API Review
       - addReply:
           reply: This PR modifies public API files. Please follow the instructions at https://github.com/dotnet/roslyn/blob/main/docs/contributing/API%20Review%20Process.md for ensuring all public APIs are reviewed before merging.
-      description: Adds "Needs API Review" on PRs that touch public APIs
+
+    - description: Close automatically generated PR tagger issues
       triggerOnOwnActions: false
-    - if:
+      if:
       - payloadType: Issues
       - isIssue
       - hasLabel:
@@ -226,7 +272,6 @@ configuration:
           isRegex: False
       then:
       - closeIssue
-      description: Close automatically generated PR tagger issues
-      triggerOnOwnActions: false
+
 onFailure: 
 onSuccess:

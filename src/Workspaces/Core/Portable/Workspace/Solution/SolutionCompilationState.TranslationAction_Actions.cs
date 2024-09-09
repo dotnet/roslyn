@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -20,15 +21,16 @@ internal partial class SolutionCompilationState
         internal sealed class TouchDocumentsAction(
             ProjectState oldProjectState,
             ProjectState newProjectState,
+            ImmutableArray<DocumentState> oldStates,
             ImmutableArray<DocumentState> newStates) : TranslationAction(oldProjectState, newProjectState)
         {
-            private readonly ImmutableArray<DocumentState> _oldStates = newStates.SelectAsArray(s => oldProjectState.DocumentStates.GetRequiredState(s.Id));
+            private readonly ImmutableArray<DocumentState> _oldStates = oldStates;
             private readonly ImmutableArray<DocumentState> _newStates = newStates;
 
             public override async Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
             {
                 var finalCompilation = oldCompilation;
-                for (int i = 0, n = _newStates.Length; i < n; i++)
+                for (var i = 0; i < _newStates.Length; i++)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var newState = _newStates[i];
@@ -57,22 +59,22 @@ internal partial class SolutionCompilationState
                 {
                     // As we're merging ourselves with the prior touch action, we want to keep the old project state
                     // that we are translating from.
-                    return new TouchDocumentsAction(priorAction.OldProjectState, this.NewProjectState, _newStates);
+                    return new TouchDocumentsAction(priorAction.OldProjectState, NewProjectState, priorTouchAction._oldStates, _newStates);
                 }
 
                 return null;
             }
         }
 
-        internal sealed class TouchAdditionalDocumentAction(
+        internal sealed class TouchAdditionalDocumentsAction(
             ProjectState oldProjectState,
             ProjectState newProjectState,
-            AdditionalDocumentState oldState,
-            AdditionalDocumentState newState)
+            ImmutableArray<AdditionalDocumentState> oldStates,
+            ImmutableArray<AdditionalDocumentState> newStates)
             : TranslationAction(oldProjectState, newProjectState)
         {
-            private readonly AdditionalDocumentState _oldState = oldState;
-            private readonly AdditionalDocumentState _newState = newState;
+            private readonly ImmutableArray<AdditionalDocumentState> _oldStates = oldStates;
+            private readonly ImmutableArray<AdditionalDocumentState> _newStates = newStates;
 
             // Changing an additional document doesn't change the compilation directly, so we can "apply" the
             // translation (which is a no-op). Since we use a 'false' here to mean that it's not worth keeping the
@@ -84,12 +86,12 @@ internal partial class SolutionCompilationState
 
             public override TranslationAction? TryMergeWithPrior(TranslationAction priorAction)
             {
-                if (priorAction is TouchAdditionalDocumentAction priorTouchAction &&
-                    priorTouchAction._newState == _oldState)
+                if (priorAction is TouchAdditionalDocumentsAction priorTouchAction &&
+                    priorTouchAction._newStates.SequenceEqual(_oldStates))
                 {
                     // As we're merging ourselves with the prior touch action, we want to keep the old project state
                     // that we are translating from.
-                    return new TouchAdditionalDocumentAction(priorAction.OldProjectState, this.NewProjectState, priorTouchAction._oldState, _newState);
+                    return new TouchAdditionalDocumentsAction(priorAction.OldProjectState, NewProjectState, priorTouchAction._oldStates, _newStates);
                 }
 
                 return null;
@@ -97,11 +99,35 @@ internal partial class SolutionCompilationState
 
             public override GeneratorDriver TransformGeneratorDriver(GeneratorDriver generatorDriver)
             {
-                var oldText = _oldState.AdditionalText;
-                var newText = _newState.AdditionalText;
+                for (var i = 0; i < _newStates.Length; i++)
+                {
+                    generatorDriver = generatorDriver.ReplaceAdditionalText(_oldStates[i].AdditionalText, _newStates[i].AdditionalText);
+                }
 
-                return generatorDriver.ReplaceAdditionalText(oldText, newText);
+                return generatorDriver;
             }
+        }
+
+        internal sealed class TouchAnalyzerConfigDocumentsAction(
+            ProjectState oldProjectState,
+            ProjectState newProjectState)
+            : TranslationAction(oldProjectState, newProjectState)
+        {
+            /// <summary>
+            /// Updating editorconfig document updates <see cref="CompilationOptions.SyntaxTreeOptionsProvider"/>.
+            /// </summary>
+            public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
+            {
+                RoslynDebug.AssertNotNull(this.NewProjectState.CompilationOptions);
+                return Task.FromResult(oldCompilation.WithOptions(this.NewProjectState.CompilationOptions));
+            }
+
+            // Updating the analyzer config optons doesn't require us to reparse trees, so we can use this to update
+            // compilations with stale generated trees.
+            public override bool CanUpdateCompilationWithStaleGeneratedTreesIfGeneratorsGiveSameOutput => true;
+
+            public override GeneratorDriver TransformGeneratorDriver(GeneratorDriver generatorDriver)
+                => generatorDriver.WithUpdatedAnalyzerConfigOptions(NewProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider);
         }
 
         internal sealed class RemoveDocumentsAction(
@@ -210,13 +236,11 @@ internal partial class SolutionCompilationState
 
         internal sealed class ProjectCompilationOptionsAction(
             ProjectState oldProjectState,
-            ProjectState newProjectState,
-            bool isAnalyzerConfigChange)
-            : TranslationAction(oldProjectState, newProjectState)
+            ProjectState newProjectState) : TranslationAction(oldProjectState, newProjectState)
         {
             public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
             {
-                RoslynDebug.AssertNotNull(this.NewProjectState.CompilationOptions);
+                Contract.ThrowIfNull(this.NewProjectState.CompilationOptions);
                 return Task.FromResult(oldCompilation.WithOptions(this.NewProjectState.CompilationOptions));
             }
 
@@ -226,16 +250,9 @@ internal partial class SolutionCompilationState
 
             public override GeneratorDriver TransformGeneratorDriver(GeneratorDriver generatorDriver)
             {
-                if (isAnalyzerConfigChange)
-                {
-                    return generatorDriver.WithUpdatedAnalyzerConfigOptions(this.NewProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider);
-                }
-                else
-                {
-                    // Changing any other option is fine and the driver can be reused. The driver
-                    // will get the new compilation once we pass it to it.
-                    return generatorDriver;
-                }
+                // Changing any other option is fine and the driver can be reused. The driver
+                // will get the new compilation once we pass it to it.
+                return generatorDriver;
             }
         }
 

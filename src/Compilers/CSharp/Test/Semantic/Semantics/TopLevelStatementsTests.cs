@@ -1113,20 +1113,21 @@ System.Console.Write(d);
 await System.Threading.Tasks.Task.Yield();
 ";
 
-            var expectedDiagnostics = new[]
-            {
-                // (3,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // ref int d = ref c;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "d").WithArguments("ref and unsafe in async and iterator methods").WithLocation(3, 9)
-            };
-
             var comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: DefaultParseOptions);
-            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp.VerifyDiagnostics(
+                // (3,9): error CS8773: Feature 'ref and unsafe in async and iterator methods' is not available in C# 9.0. Please use language version 13.0 or greater.
+                // ref int d = ref c;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "d").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(3, 9)
+                );
 
             comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular12);
-            comp.VerifyDiagnostics(expectedDiagnostics);
+            comp.VerifyDiagnostics(
+                // (3,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                // ref int d = ref c;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "d").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(3, 9)
+                );
 
-            comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularNext);
+            comp = CreateCompilation(text, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(text, options: TestOptions.DebugExe);
@@ -4422,9 +4423,9 @@ localI();
                 // (14,14): error CS0759: No defining declaration found for implementing declaration of partial method '<invalid-global-code>.localG()'
                 // partial void localG() => System.Console.WriteLine();
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "localG").WithArguments("<invalid-global-code>.localG()").WithLocation(14, 14),
-                // (14,14): error CS0751: A partial method must be declared within a partial type
+                // (14,14): error CS0751: A partial member must be declared within a partial type
                 // partial void localG() => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "localG").WithLocation(14, 14),
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "localG").WithLocation(14, 14),
                 // (15,1): error CS0103: The name 'localG' does not exist in the current context
                 // localG();
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "localG").WithArguments("localG").WithLocation(15, 1),

@@ -3252,7 +3252,7 @@ public class Class1
         var result = await GetResponse();
     }
 }";
-            CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugDll).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib461(source, new[] { SystemCoreRef }, options: TestOptions.DebugDll).VerifyEmitDiagnostics(
                 // (10,28): error CS0656: Missing compiler required member 'Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create'
                 //         var result = await GetResponse();
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "GetResponse()").WithArguments("Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo", "Create").WithLocation(10, 28)
@@ -4434,7 +4434,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
                 // (8,17): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
@@ -4459,7 +4459,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
                 // (8,20): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
@@ -4489,7 +4489,7 @@ class C
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib45AndCSharp(source1, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp1 = CreateCompilationWithMscorlib461AndCSharp(source1, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
 
             comp1.VerifyEmitDiagnostics(
                 // (10,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
@@ -4500,7 +4500,7 @@ class C
                 Diagnostic(ErrorCode.ERR_InDynamicMethodArg, "d").WithLocation(10, 28)
                 );
 
-            comp1 = CreateCompilationWithMscorlib45AndCSharp(source1, parseOptions: TestOptions.Regular7_2, options: TestOptions.DebugExe);
+            comp1 = CreateCompilationWithMscorlib461AndCSharp(source1, parseOptions: TestOptions.Regular7_2, options: TestOptions.DebugExe);
 
             comp1.VerifyEmitDiagnostics(
                 // (10,15): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
@@ -4525,14 +4525,14 @@ class C
 }
 ";
 
-            var comp2 = CreateCompilationWithMscorlib45AndCSharp(source2, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
+            var comp2 = CreateCompilationWithMscorlib461AndCSharp(source2, parseOptions: TestOptions.RegularPreview, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp2, expectedOutput:
 @"
 True
 ").VerifyDiagnostics();
 
-            comp2 = CreateCompilationWithMscorlib45AndCSharp(source2, parseOptions: TestOptions.Regular7_2, options: TestOptions.DebugExe);
+            comp2 = CreateCompilationWithMscorlib461AndCSharp(source2, parseOptions: TestOptions.Regular7_2, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp2, expectedOutput:
 @"
@@ -4561,7 +4561,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
                 // (8,30): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
@@ -4590,7 +4590,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, parseOptions: TestOptions.Regular7_2);
 
             comp.VerifyEmitDiagnostics(
                 // (8,39): error CS8364: Arguments with 'in' modifier cannot be used in dynamically dispatched expressions.
@@ -4635,7 +4635,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45AndCSharp(source);
+            var compilation = CreateCompilationWithMscorlib461AndCSharp(source);
 
             CompileAndVerify(compilation, expectedOutput:
 @"op_Implicit
@@ -4945,7 +4945,7 @@ class C2 : C1
         [CombinatorialData]
         public void SingleCandidate_ResultIsDynamic_01(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 #nullable enable
@@ -5069,7 +5069,7 @@ class JsonSerializer
         [CombinatorialData]
         public void SingleCandidate_ResultIsDynamic_02(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 #nullable enable
@@ -5192,7 +5192,7 @@ class JsonSerializer
         [CombinatorialData]
         public void SingleCandidate_ResultIsDynamic_03(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 #nullable enable
@@ -5316,7 +5316,7 @@ class JsonSerializer
         [CombinatorialData]
         public void SingleCandidate_Extension(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 public class C
@@ -5448,7 +5448,7 @@ unsafe public class C
         [CombinatorialData]
         public void SingleCandidate_ArgumentsNotSupportedByDynamic_03(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 public class C
@@ -5633,7 +5633,7 @@ unsafe public class C
         [CombinatorialData]
         public void SingleCandidate_LocalFunction([CombinatorialValues(0, 12, 13)] int version)
         {
-            var parseOptions = version switch { 12 => TestOptions.Regular12, 13 => TestOptions.RegularNext, _ => TestOptions.RegularPreview };
+            var parseOptions = version switch { 12 => TestOptions.Regular12, 13 => TestOptions.Regular13, _ => TestOptions.RegularPreview };
 
             string source = @"
 public class C
@@ -5665,7 +5665,7 @@ public class C
         [CombinatorialData]
         public void SingleCandidate_ResultIsDynamic_Delegate(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source = @"
 public class C
@@ -5799,7 +5799,7 @@ unsafe public class C
         [CombinatorialData]
         public void SingleCandidate_ArgumentsNotSupportedByDynamic_Delegate_03(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 public class C
@@ -5991,7 +5991,7 @@ unsafe public class C
         [CombinatorialData]
         public void SingleCandidate_ResultIsDynamic_Property_01(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source = @"
 #nullable enable
@@ -6114,7 +6114,7 @@ class JsonSerializer
         [CombinatorialData]
         public void SingleCandidate_ResultIsDynamic_Property_02(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source = @"
 #nullable enable
@@ -6443,7 +6443,7 @@ unsafe public class C
         [CombinatorialData]
         public void SingleCandidate_ArgumentsNotSupportedByDynamic_Property_03(bool testPreview)
         {
-            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.RegularNext;
+            var parseOptions = testPreview ? TestOptions.RegularPreview : TestOptions.Regular13;
 
             string source1 = @"
 public class C
