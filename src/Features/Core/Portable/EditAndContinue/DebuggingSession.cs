@@ -550,6 +550,7 @@ internal sealed class DebuggingSession : IDisposable
         // The debugger will still call commit or discard on the update batch.
         return new EmitSolutionUpdateResults()
         {
+            Solution = solution,
             ModuleUpdates = solutionUpdate.ModuleUpdates,
             Diagnostics = solutionUpdate.Diagnostics,
             RudeEdits = rudeEditDiagnostics.ToImmutable(),

@@ -2697,23 +2697,17 @@ class C { int Y => 2; }
         solution = solution.WithDocumentText(document1.Id, CreateText(sourceV2));
 
         // validate solution update status and emit:
-        var results = await debuggingSession.EmitSolutionUpdateAsync(solution, s_noActiveSpans, CancellationToken.None).ConfigureAwait(false);
-        var updates = results.ModuleUpdates;
-        var diagnosticData = results.Diagnostics.ToDiagnosticData(solution);
-        var rudeEdits = results.RudeEdits.ToDiagnosticData(solution);
-        var syntaxError = results.GetSyntaxErrorData(solution);
-        Assert.Empty(diagnosticData);
-        Assert.Null(syntaxError);
-
-        var diagnostics = EmitSolutionUpdateResults.GetAllDiagnostics(diagnosticData, rudeEdits, syntaxError, updates.Status);
+        var results = (await debuggingSession.EmitSolutionUpdateAsync(solution, s_noActiveSpans, CancellationToken.None).ConfigureAwait(false)).Dehydrate();
+        var diagnostics = results.GetAllDiagnostics();
 
         AssertEx.Equal(
         [
-            "ENC0021: " + string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, FeaturesResources.attribute),
-        ], diagnostics.Select(d => $"{d.Id}: {d.Message}"));
+            @"ENC0021: 'Microsoft.CodeAnalysis.Test.Utilities\Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator\Generated_test1.cs' (0,0)-(0,56): " +
+            string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, FeaturesResources.attribute),
+        ], diagnostics.Select(d => $"{d.Id}: '{d.FilePath}' {d.Span.GetDebuggerDisplay()}: {d.Message}"));
 
-        Assert.Equal(ModuleUpdateStatus.RestartRequired, updates.Status);
-        Assert.Empty(updates.Updates);
+        Assert.Equal(ModuleUpdateStatus.RestartRequired, results.ModuleUpdates.Status);
+        Assert.Empty(results.ModuleUpdates.Updates);
 
         EndDebuggingSession(debuggingSession);
     }

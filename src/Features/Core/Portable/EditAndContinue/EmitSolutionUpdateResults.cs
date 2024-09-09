@@ -36,39 +36,96 @@ internal readonly struct EmitSolutionUpdateResults
 
         [DataMember]
         public required DiagnosticData? SyntaxError { get; init; }
+
+        internal ImmutableArray<ManagedHotReloadDiagnostic> GetAllDiagnostics()
+        {
+            using var _ = ArrayBuilder<ManagedHotReloadDiagnostic>.GetInstance(out var builder);
+
+            // Add semantic and lowering diagnostics reported during delta emit:
+
+            foreach (var diagnostic in Diagnostics)
+            {
+                builder.Add(diagnostic.ToHotReloadDiagnostic(ModuleUpdates.Status, isRudeEdit: false));
+            }
+
+            // Add syntax error:
+
+            if (SyntaxError != null)
+            {
+                Debug.Assert(SyntaxError.DataLocation != null);
+                Debug.Assert(SyntaxError.Message != null);
+
+                var fileSpan = SyntaxError.DataLocation.MappedFileSpan;
+
+                builder.Add(new ManagedHotReloadDiagnostic(
+                    SyntaxError.Id,
+                    SyntaxError.Message,
+                    ManagedHotReloadDiagnosticSeverity.Error,
+                    fileSpan.Path,
+                    fileSpan.Span.ToSourceSpan()));
+            }
+
+            // Report all rude edits.
+
+            foreach (var data in RudeEdits)
+            {
+                builder.Add(data.ToHotReloadDiagnostic(ModuleUpdates.Status, isRudeEdit: true));
+            }
+
+            return builder.ToImmutableAndClear();
+        }
     }
 
     public static readonly EmitSolutionUpdateResults Empty = new()
     {
+        Solution = null,
         ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.None, []),
         Diagnostics = [],
         RudeEdits = [],
         SyntaxError = null
     };
 
+    /// <summary>
+    /// Solution snapshot to resolve diagnostics in.
+    /// Note that this might be a different snapshot from the one passed to <see cref="IEditAndContinueService.EmitSolutionUpdateAsync(DebuggingSessionId, Solution, ActiveStatementSpanProvider, CancellationToken)"/>,
+    /// with source generator files refrshed.
+    /// 
+    /// Null only for empty results.
+    /// </summary>
+    public required Solution? Solution { get; init; }
+
     public required ModuleUpdates ModuleUpdates { get; init; }
     public required ImmutableArray<ProjectDiagnostics> Diagnostics { get; init; }
     public required ImmutableArray<ProjectDiagnostics> RudeEdits { get; init; }
     public required Diagnostic? SyntaxError { get; init; }
 
-    public Data Dehydrate(Solution solution)
-        => new()
+    public Data Dehydrate()
+        => Solution == null
+        ? new()
         {
             ModuleUpdates = ModuleUpdates,
-            Diagnostics = Diagnostics.ToDiagnosticData(solution),
-            RudeEdits = RudeEdits.ToDiagnosticData(solution),
-            SyntaxError = GetSyntaxErrorData(solution)
+            Diagnostics = [],
+            RudeEdits = [],
+            SyntaxError = null
+        }
+        : new()
+        {
+            ModuleUpdates = ModuleUpdates,
+            Diagnostics = Diagnostics.ToDiagnosticData(Solution),
+            RudeEdits = RudeEdits.ToDiagnosticData(Solution),
+            SyntaxError = GetSyntaxErrorData()
         };
 
-    public DiagnosticData? GetSyntaxErrorData(Solution solution)
+    private DiagnosticData? GetSyntaxErrorData()
     {
         if (SyntaxError == null)
         {
             return null;
         }
 
+        Debug.Assert(Solution != null);
         Debug.Assert(SyntaxError.Location.SourceTree != null);
-        return DiagnosticData.Create(SyntaxError, solution.GetRequiredDocument(SyntaxError.Location.SourceTree));
+        return DiagnosticData.Create(SyntaxError, Solution.GetRequiredDocument(SyntaxError.Location.SourceTree));
     }
 
     private IEnumerable<Project> GetProjectsContainingBlockingRudeEdits(Solution solution)
@@ -215,47 +272,5 @@ internal readonly struct EmitSolutionUpdateResults
         }
 
         return diagnostics.ToImmutableAndClear();
-    }
-
-    internal static ImmutableArray<ManagedHotReloadDiagnostic> GetAllDiagnostics(
-        ImmutableArray<DiagnosticData> diagnosticData,
-        ImmutableArray<DiagnosticData> rudeEdits,
-        DiagnosticData? syntaxError,
-        ModuleUpdateStatus updateStatus)
-    {
-        using var _ = ArrayBuilder<ManagedHotReloadDiagnostic>.GetInstance(out var builder);
-
-        // Add semantic and lowering diagnostics reported during delta emit:
-
-        foreach (var data in diagnosticData)
-        {
-            builder.Add(data.ToHotReloadDiagnostic(updateStatus, isRudeEdit: false));
-        }
-
-        // Add syntax error:
-
-        if (syntaxError != null)
-        {
-            Debug.Assert(syntaxError.DataLocation != null);
-            Debug.Assert(syntaxError.Message != null);
-
-            var fileSpan = syntaxError.DataLocation.MappedFileSpan;
-
-            builder.Add(new ManagedHotReloadDiagnostic(
-                syntaxError.Id,
-                syntaxError.Message,
-                ManagedHotReloadDiagnosticSeverity.Error,
-                fileSpan.Path,
-                fileSpan.Span.ToSourceSpan()));
-        }
-
-        // Report all rude edits.
-
-        foreach (var data in rudeEdits)
-        {
-            builder.Add(data.ToHotReloadDiagnostic(updateStatus, isRudeEdit: true));
-        }
-
-        return builder.ToImmutableAndClear();
     }
 }

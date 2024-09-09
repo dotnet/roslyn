@@ -250,19 +250,11 @@ internal sealed partial class ManagedHotReloadLanguageService(
             var designTimeSolution = await GetCurrentDesignTimeSolutionAsync(cancellationToken).ConfigureAwait(false);
             var solution = GetCurrentCompileTimeSolution(designTimeSolution);
 
-            ModuleUpdates moduleUpdates;
-            ImmutableArray<DiagnosticData> diagnosticData;
-            ImmutableArray<DiagnosticData> rudeEdits;
-            DiagnosticData? syntaxError;
+            EmitSolutionUpdateResults.Data results;
 
             try
             {
-                var results = await encService.EmitSolutionUpdateAsync(_debuggingSession.Value, solution, s_emptyActiveStatementProvider, cancellationToken).ConfigureAwait(false);
-
-                moduleUpdates = results.ModuleUpdates;
-                diagnosticData = results.Diagnostics.ToDiagnosticData(solution);
-                rudeEdits = results.RudeEdits.ToDiagnosticData(solution);
-                syntaxError = results.GetSyntaxErrorData(solution);
+                results = (await encService.EmitSolutionUpdateAsync(_debuggingSession.Value, solution, s_emptyActiveStatementProvider, cancellationToken).ConfigureAwait(false)).Dehydrate();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -273,20 +265,22 @@ internal sealed partial class ManagedHotReloadLanguageService(
                     Location.None,
                     string.Format(descriptor.MessageFormat.ToString(), "", e.Message));
 
-                diagnosticData = [DiagnosticData.Create(designTimeSolution, diagnostic, project: null)];
-                rudeEdits = [];
-                moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []);
-                syntaxError = null;
+                results = new EmitSolutionUpdateResults.Data()
+                {
+                    Diagnostics = [DiagnosticData.Create(designTimeSolution, diagnostic, project: null)],
+                    RudeEdits = [],
+                    ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []),
+                    SyntaxError = null
+                };
             }
 
             // Only store the solution if we have any changes to apply, otherwise CommitUpdatesAsync/DiscardUpdatesAsync won't be called.
-            if (moduleUpdates.Status == ModuleUpdateStatus.Ready)
+            if (results.ModuleUpdates.Status == ModuleUpdateStatus.Ready)
             {
                 _pendingUpdatedDesignTimeSolution = designTimeSolution;
             }
 
-            var diagnostics = EmitSolutionUpdateResults.GetAllDiagnostics(diagnosticData, rudeEdits, syntaxError, moduleUpdates.Status);
-            return new ManagedHotReloadUpdates(moduleUpdates.Updates, diagnostics);
+            return new ManagedHotReloadUpdates(results.ModuleUpdates.Updates, results.GetAllDiagnostics());
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
