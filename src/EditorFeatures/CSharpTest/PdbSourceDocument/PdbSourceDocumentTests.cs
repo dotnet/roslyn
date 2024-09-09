@@ -951,4 +951,29 @@ public partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTests
             await GenerateFileAndVerifyAsync(project, symbol, Location.Embedded, source2.ToString(), expectedSpan, expectNullResult: false);
         });
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7532")]
+    public async Task OpenFileWithDifferentCase()
+    {
+        var source = """
+            public class C
+            {
+                public int P { get; set; }
+            }
+            """;
+
+        await RunTestAsync(async path =>
+        {
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, source, c => c.GetMember("C.P"));
+
+            using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
+            var service = workspace.GetService<IMetadataAsSourceFileService>();
+            var file = await service.GetGeneratedFileAsync(project.Solution.Workspace, project, symbol, signaturesOnly: false, options: MetadataAsSourceOptions.Default, cancellationToken: CancellationToken.None);
+
+            var requestPath = file.FilePath.ToUpperInvariant();
+
+            var result = service.TryAddDocumentToWorkspace(requestPath, new StaticSourceTextContainer(SourceText.From(string.Empty)), out var documentId);
+            Assert.True(result);
+        });
+    }
 }
