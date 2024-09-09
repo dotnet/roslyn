@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="assemblyName">The name of the assembly to resolve</param>
         /// <returns>An <see langword="assembly"/> if one of the resolvers is successful, or <see langword="null"/></returns>
-        internal Assembly? ResolveAssemblyExternally(AssemblyName assemblyName, string assemblyOriginalDirectory)
+        internal Assembly? ResolveAssemblyExternally(AssemblyName assemblyName)
         {
             CheckIfDisposed();
 
@@ -414,7 +414,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     try
                     {
-                        if (resolver.ResolveAssembly(assemblyName, assemblyOriginalDirectory) is { } resolvedAssembly)
+                        if (resolver.ResolveAssembly(assemblyName) is { } resolvedAssembly)
                         {
                             return resolvedAssembly;
                         }

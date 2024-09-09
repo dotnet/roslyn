@@ -16,6 +16,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="assemblyName">The assembly to resolve</param>
         /// <returns>The resolved assembly, or <see langword="null"/></returns>
-        Assembly? ResolveAssembly(AssemblyName assemblyName, string assemblyOriginalDirectory);
+        Assembly? ResolveAssembly(AssemblyName assemblyName);
     }
 }

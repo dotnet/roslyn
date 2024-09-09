@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis
 
             protected override Assembly? Load(AssemblyName assemblyName)
             {
-                if (_loader.ResolveAssemblyExternally(assemblyName, Directory) is { } externallyResolvedAssembly)
+                if (_loader.ResolveAssemblyExternally(assemblyName) is { } externallyResolvedAssembly)
                 {
                     return externallyResolvedAssembly;
                 }

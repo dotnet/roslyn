@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         private partial Assembly? Load(AssemblyName assemblyName, string assemblyOriginalPath)
         {
             EnsureResolvedHooked();
-            if (ResolveAssemblyExternally(assemblyName, Path.GetDirectoryName(assemblyOriginalPath)) is { } externallyResolvedAssembly)
+            if (ResolveAssemblyExternally(assemblyName) is { } externallyResolvedAssembly)
             {
                 return externallyResolvedAssembly;
             }

@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
             }
         }
 
-        public Assembly? ResolveAssembly(AssemblyName assemblyName, string assemblyOriginalDirectory)
+        public Assembly? ResolveAssembly(AssemblyName assemblyName)
         {
             s_razorRequested |= assemblyName.FullName.Contains("Razor");
             return s_assemblyResolver?.Invoke(assemblyName);
