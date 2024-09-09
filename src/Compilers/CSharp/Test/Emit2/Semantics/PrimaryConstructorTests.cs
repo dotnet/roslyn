@@ -19787,6 +19787,7 @@ class C1 (int p1)
                 _ = c.P;
                 """;
             var source2 = """
+                #pragma warning disable 9113 // parameter is unread
                 partial class C(int p)
                 {
                     public partial void M() { }
@@ -19798,6 +19799,7 @@ class C1 (int p1)
             var comp = CreateCompilation([source1, source2]);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
+            // https://github.com/dotnet/roslyn/issues/75002: SemanticModel.GetDiagnostics() does not merge partial members.
             model.GetDiagnostics().Verify(
                 // (2,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M()' and 'C.M()'
                 // c.M();
@@ -19818,6 +19820,7 @@ class C1 (int p1)
                 o = c.P;
                 """;
             var source2 = """
+                #pragma warning disable 9113 // parameter is unread
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
                 class C(int p)
@@ -19826,10 +19829,16 @@ class C1 (int p1)
                     [MaybeNull] public object P { get => new(); }
                 }
                 """;
-            var comp = CreateCompilation([source1, source2]);
+            var comp = CreateCompilation([source1, source2], targetFramework: TargetFramework.Net80);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            model.GetDiagnostics().Verify();
+            model.GetDiagnostics().Verify(
+                // (4,5): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // o = c.M();
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.M()").WithLocation(4, 5),
+                // (5,5): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                // o = c.P;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "c.P").WithLocation(5, 5));
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/75002")]
@@ -19844,6 +19853,7 @@ class C1 (int p1)
                 o = c.P;
                 """;
             var source2 = """
+                #pragma warning disable 9113 // parameter is unread
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
                 partial class C(int p)
@@ -19854,9 +19864,10 @@ class C1 (int p1)
                     public partial object P { get => new(); }
                 }
                 """;
-            var comp = CreateCompilation([source1, source2]);
+            var comp = CreateCompilation([source1, source2], targetFramework: TargetFramework.Net80);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
+            // https://github.com/dotnet/roslyn/issues/75002: SemanticModel.GetDiagnostics() does not merge partial members.
             model.GetDiagnostics().Verify(
                 // (4,7): error CS0121: The call is ambiguous between the following methods or properties: 'C.M()' and 'C.M()'
                 // o = c.M();
@@ -19878,6 +19889,7 @@ class C1 (int p1)
                 o = c.P;
                 """;
             var source2 = """
+                #pragma warning disable 9113 // parameter is unread
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
                 partial class C(int p)
@@ -19888,9 +19900,10 @@ class C1 (int p1)
                     [MaybeNull] public partial object P { get => new(); }
                 }
                 """;
-            var comp = CreateCompilation([source1, source2]);
+            var comp = CreateCompilation([source1, source2], targetFramework: TargetFramework.Net80);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
+            // https://github.com/dotnet/roslyn/issues/75002: SemanticModel.GetDiagnostics() does not merge partial members.
             model.GetDiagnostics().Verify(
                 // (4,7): error CS0121: The call is ambiguous between the following methods or properties: 'C.M()' and 'C.M()'
                 // o = c.M();
