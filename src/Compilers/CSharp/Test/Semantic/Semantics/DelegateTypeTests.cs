@@ -6482,7 +6482,7 @@ class Program
                     static public void Test2(this Program p, long[] a) => Console.Write(a.Length);
                 }
                 """;
-            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, CSharp.LanguageVersion.CSharp13, CSharp.LanguageVersion.CSharp12 })
             {
                 CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
                     // (7,18): error CS8917: The delegate type could not be inferred.
@@ -6521,7 +6521,7 @@ class Program
                     static public void Test2(this Program p, long[] a, long[] b) => Console.Write(a.Length);
                 }
                 """;
-            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, CSharp.LanguageVersion.CSharp13, CSharp.LanguageVersion.CSharp12 })
             {
                 CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
                     // (10,9): error CS7036: There is no argument given that corresponds to the required parameter 'arg1' of 'Action<long[], long[]>'
@@ -6566,7 +6566,7 @@ class Program
                     static public void Test2(this Program p, long[] a, params long[] b) => Console.Write(a.Length);
                 }
                 """;
-            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, CSharp.LanguageVersion.CSharp13, CSharp.LanguageVersion.CSharp12 })
             {
                 CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
                     // (7,18): error CS8917: The delegate type could not be inferred.
@@ -6611,7 +6611,7 @@ class Program
                     static public void Test2(this Program p, long a) => Console.Write(a);
                 }
                 """;
-            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, CSharp.LanguageVersion.CSharp13, CSharp.LanguageVersion.CSharp12 })
             {
                 CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
                     // (10,9): error CS7036: There is no argument given that corresponds to the required parameter 'obj' of 'Action<long>'
@@ -6656,7 +6656,7 @@ class Program
                     static public void Test2(this Program p, params long[] a) => Console.Write(a);
                 }
                 """;
-            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, CSharp.LanguageVersion.CSharp13, CSharp.LanguageVersion.CSharp12 })
             {
                 CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
                     // (7,18): error CS8917: The delegate type could not be inferred.
@@ -6701,7 +6701,7 @@ class Program
                     static public void Test2(this Program p, long a) => Console.Write(a);
                 }
                 """;
-            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, CSharp.LanguageVersion.CSharp13, CSharp.LanguageVersion.CSharp12 })
             {
                 CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
                     // (7,18): error CS8917: The delegate type could not be inferred.
@@ -6740,7 +6740,7 @@ class Program
                     static public void Test2(this Program p, long a = 4) => Console.Write(a);
                 }
                 """;
-            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, CSharp.LanguageVersion.CSharp13, CSharp.LanguageVersion.CSharp12 })
             {
                 CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
                     // (7,18): error CS8917: The delegate type could not be inferred.
@@ -6779,7 +6779,7 @@ class Program
                     static public void Test2(this Program p, long a = 2) => Console.Write(a);
                 }
                 """;
-            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, LanguageVersionFacts.CSharpNext, CSharp.LanguageVersion.CSharp12 })
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, CSharp.LanguageVersion.CSharp13, CSharp.LanguageVersion.CSharp12 })
             {
                 CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
                     expectedOutput: "12").VerifyDiagnostics();
@@ -6816,7 +6816,7 @@ class Program
             };
 
             CreateCompilation([source1, source2], parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation([source1, source2], parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation([source1, source2], parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation([source1, source2]).VerifyDiagnostics(expectedDiagnostics);
 
             var expectedOutput = """
@@ -6831,7 +6831,7 @@ class Program
                 """;
 
             CompileAndVerify([source1, source3], parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify([source1, source3], parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify([source1, source3], parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify([source1, source3], symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             static void validateSymbols(ModuleSymbol module)
@@ -6872,7 +6872,7 @@ class Program
                 """;
 
             CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             static void validateSymbols(ModuleSymbol module)
@@ -6913,7 +6913,7 @@ class Program
                 """;
 
             CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             static void validateSymbols(ModuleSymbol module)
@@ -6954,7 +6954,7 @@ class Program
                 """;
 
             CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             static void validateSymbols(ModuleSymbol module)
@@ -7004,7 +7004,7 @@ class Program
                 1
                 """;
 
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             static void validateSymbols(ModuleSymbol module)
@@ -7051,7 +7051,7 @@ class Program
                 """;
 
             CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             static void validateSymbols(ModuleSymbol module)
@@ -7098,7 +7098,7 @@ class Program
                 """;
 
             CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
@@ -7142,7 +7142,7 @@ class Program
                 1
                 """;
 
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
@@ -7178,7 +7178,7 @@ class Program
                 1
                 """;
 
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
@@ -7214,7 +7214,7 @@ class Program
                 1
                 """;
 
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             static void validateSymbols(ModuleSymbol module)
@@ -7263,7 +7263,7 @@ class Program
                 2
                 """;
 
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
@@ -7306,7 +7306,7 @@ class Program
                 2
                 """;
 
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             static void validateSymbols(ModuleSymbol module)
@@ -13364,7 +13364,7 @@ class Program
                 """;
 
             CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
             var verifier = CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
@@ -13405,7 +13405,7 @@ class Program
                 """;
 
             CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
             var verifier = CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
@@ -13438,7 +13438,7 @@ class Program
                 """;
 
             CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
@@ -13468,7 +13468,7 @@ class Program
                 """;
 
             CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
             var verifier = CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
@@ -13535,7 +13535,7 @@ class Program
                 """;
 
             CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()], parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()], parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()], parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
             verifier = CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()], symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
@@ -13585,7 +13585,7 @@ class Program
                 B
                 """;
 
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
             var verifier = CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
@@ -13652,7 +13652,7 @@ class Program
                 B
                 """;
 
-            CompileAndVerify(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
             var verifier = CompileAndVerify(source3, [comp2Ref, comp1bRef], symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
@@ -13703,7 +13703,7 @@ class Program
                 B
                 """;
 
-            CompileAndVerify([source1, source2], parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify([source1, source2], parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify([source1, source2], expectedOutput: expectedOutput).VerifyDiagnostics();
 
             var source3 = """
@@ -13718,7 +13718,7 @@ class Program
                 """;
 
             CompileAndVerify([source1, source3], parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify([source1, source3], parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify([source1, source3], parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
             var verifier = CompileAndVerify([source1, source3], symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
@@ -13784,7 +13784,7 @@ class Program
                 B
                 """;
 
-            CompileAndVerify(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput).VerifyDiagnostics();
             CompileAndVerify(source3, [comp2Ref, comp1bRef], expectedOutput: expectedOutput).VerifyDiagnostics();
 
             var source4 = """
@@ -13799,7 +13799,7 @@ class Program
                 """;
 
             CompileAndVerify(source4, [comp2Ref, comp1bRef], parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source4, [comp2Ref, comp1bRef], parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source4, [comp2Ref, comp1bRef], parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
             var verifier = CompileAndVerify(source4, [comp2Ref, comp1bRef], symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
@@ -13840,7 +13840,7 @@ class Program
                 """;
 
             CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source, parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput).VerifyDiagnostics();
             var verifier = CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
@@ -13883,7 +13883,7 @@ class Program
                 """;
 
             CompileAndVerify(source3, [comp2Ref, comp1aRef], parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source3, [comp2Ref, comp1aRef], parseOptions: TestOptions.RegularNext, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source3, [comp2Ref, comp1aRef], parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
             var verifier = CompileAndVerify(source3, [comp2Ref, comp1aRef], symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
@@ -13912,7 +13912,7 @@ class Program
                 """;
 
             CompileAndVerify(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
-            CompileAndVerify(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.RegularNext, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput).VerifyDiagnostics();
             verifier = CompileAndVerify(source3, [comp2Ref, comp1bRef], expectedOutput: expectedOutput).VerifyDiagnostics();
 
             cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
