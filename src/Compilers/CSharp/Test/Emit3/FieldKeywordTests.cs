@@ -4540,16 +4540,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     partial object P5 { get { return field; } set { field = value; } } = 5; // A5
                     partial object P6 { get { return field; } set { field = value; } }      // A6
 
-
-
                     partial object P1 { get; set; }      // B1
                     partial object P2 { get; set; }      // B2
                     partial object P3 { get { return field; } set { field = value; } }      // B3
                     partial object P4 { get { return field; } set { field = value; } }      // B4
                     partial object P5 { get; set; }      // B5
                     partial object P6 { get { return field; } set { field = value; } }      // B6
-
-
 
                     partial object P1 { get { return field; } set { field = value; } }      // C1
                     partial object P2 { get { return field; } set { field = value; } } = 2; // C2
@@ -4561,42 +4557,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (12,20): error CS9250: A partial property may not have multiple defining declarations, and cannot be an auto-property.
+                // (10,20): error CS9250: A partial property may not have multiple defining declarations, and cannot be an auto-property.
                 //     partial object P1 { get; set; }      // B1
-                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateDefinition, "P1").WithLocation(12, 20),
-                // (12,20): error CS0102: The type 'C' already contains a definition for 'P1'
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateDefinition, "P1").WithLocation(10, 20),
+                // (10,20): error CS0102: The type 'C' already contains a definition for 'P1'
                 //     partial object P1 { get; set; }      // B1
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P1").WithArguments("C", "P1").WithLocation(12, 20),
-                // (13,20): error CS9250: A partial property may not have multiple defining declarations, and cannot be an auto-property.
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P1").WithArguments("C", "P1").WithLocation(10, 20),
+                // (11,20): error CS9250: A partial property may not have multiple defining declarations, and cannot be an auto-property.
                 //     partial object P2 { get; set; }      // B2
-                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateDefinition, "P2").WithLocation(13, 20),
-                // (13,20): error CS0102: The type 'C' already contains a definition for 'P2'
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateDefinition, "P2").WithLocation(11, 20),
+                // (11,20): error CS0102: The type 'C' already contains a definition for 'P2'
                 //     partial object P2 { get; set; }      // B2
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P2").WithArguments("C", "P2").WithLocation(13, 20),
-                // (17,20): error CS9251: A partial property may not have multiple implementing declarations
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P2").WithArguments("C", "P2").WithLocation(11, 20),
+                // (15,20): error CS9251: A partial property may not have multiple implementing declarations
                 //     partial object P6 { get { return field; } set { field = value; } }      // B6
-                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateImplementation, "P6").WithLocation(17, 20),
-                // (23,20): error CS9251: A partial property may not have multiple implementing declarations
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateImplementation, "P6").WithLocation(15, 20),
+                // (19,20): error CS9251: A partial property may not have multiple implementing declarations
                 //     partial object P3 { get { return field; } set { field = value; } }      // C3
-                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateImplementation, "P3").WithLocation(23, 20),
-                // (23,20): error CS0102: The type 'C' already contains a definition for 'P3'
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateImplementation, "P3").WithLocation(19, 20),
+                // (19,20): error CS0102: The type 'C' already contains a definition for 'P3'
                 //     partial object P3 { get { return field; } set { field = value; } }      // C3
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P3").WithArguments("C", "P3").WithLocation(23, 20),
-                // (24,20): error CS9251: A partial property may not have multiple implementing declarations
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P3").WithArguments("C", "P3").WithLocation(19, 20),
+                // (20,20): error CS9251: A partial property may not have multiple implementing declarations
                 //     partial object P4 { get { return field; } set { field = value; } } = 4; // C4
-                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateImplementation, "P4").WithLocation(24, 20),
-                // (24,20): error CS0102: The type 'C' already contains a definition for 'P4'
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateImplementation, "P4").WithLocation(20, 20),
+                // (20,20): error CS0102: The type 'C' already contains a definition for 'P4'
                 //     partial object P4 { get { return field; } set { field = value; } } = 4; // C4
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P4").WithArguments("C", "P4").WithLocation(24, 20),
-                // (25,20): error CS9250: A partial property may not have multiple defining declarations, and cannot be an auto-property.
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P4").WithArguments("C", "P4").WithLocation(20, 20),
+                // (21,20): error CS9250: A partial property may not have multiple defining declarations, and cannot be an auto-property.
                 //     partial object P5 { get; set; }      // C5
-                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateDefinition, "P5").WithLocation(25, 20),
-                // (25,20): error CS0102: The type 'C' already contains a definition for 'P5'
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateDefinition, "P5").WithLocation(21, 20),
+                // (21,20): error CS0102: The type 'C' already contains a definition for 'P5'
                 //     partial object P5 { get; set; }      // C5
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P5").WithArguments("C", "P5").WithLocation(25, 20),
-                // (26,20): error CS0102: The type 'C' already contains a definition for 'P6'
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P5").WithArguments("C", "P5").WithLocation(21, 20),
+                // (22,20): error CS0102: The type 'C' already contains a definition for 'P6'
                 //     partial object P6 { get; set; } = 6; // C6
-                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P6").WithArguments("C", "P6").WithLocation(26, 20));
+                Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P6").WithArguments("C", "P6").WithLocation(22, 20));
 
             var containingType = comp.GetMember<NamedTypeSymbol>("C");
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
