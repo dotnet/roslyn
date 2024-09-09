@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
 
@@ -3873,18 +3874,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
 
             var containingType = comp.GetMember<NamedTypeSymbol>("C");
-            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
                 "System.Object C.<P3>k__BackingField",
                 "System.Object C.<P4>k__BackingField",
             };
-            AssertEx.Equal(expectedFields, actualFields);
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
-            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
             Assert.Equal(2, actualProperties.Length);
             Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
             Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P4", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
         }
 
         [Theory]
@@ -3942,7 +3945,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = (CSharpCompilation)verifier.Compilation;
             var containingType = comp.GetMember<NamedTypeSymbol>("C");
-            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
                 "System.Object C.<P1>k__BackingField",
@@ -3951,15 +3954,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Object C.<P4>k__BackingField",
                 "System.Object C.<P5>k__BackingField",
             };
-            AssertEx.Equal(expectedFields, actualFields);
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
-            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
             Assert.Equal(5, actualProperties.Length);
             Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[4] is SourcePropertySymbol { Name: "P5", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
+        }
+
+        private static void VerifyMergedProperties(ImmutableArray<PropertySymbol> properties, ImmutableArray<FieldSymbol> fields)
+        {
+            int fieldIndex = 0;
+            for (int propertyIndex = 0; propertyIndex < properties.Length; propertyIndex++)
+            {
+                var property = (SourcePropertySymbol)properties[propertyIndex];
+                var field = (property.BackingField is null) ? null : (SynthesizedBackingFieldSymbol)fields[fieldIndex++];
+                Assert.Equal(property.IsPartial, property.IsPartialDefinition);
+                VerifyMergedProperty(property, field);
+            }
+            Assert.Equal(fields.Length, fieldIndex);
+        }
+
+        private static void VerifyMergedProperty(SourcePropertySymbol property, SynthesizedBackingFieldSymbol fieldOpt)
+        {
+            Assert.Same(property.BackingField, fieldOpt);
+            if (property.OtherPartOfPartial is { } otherPart)
+            {
+                Assert.True(otherPart.IsPartial);
+                Assert.Equal(property.IsPartialDefinition, !otherPart.IsPartialDefinition);
+                Assert.Equal(property.IsPartialImplementation, !otherPart.IsPartialImplementation);
+                Assert.Same(property.BackingField, otherPart.BackingField);
+            }
         }
 
         [Theory]
@@ -4019,18 +4049,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = (CSharpCompilation)verifier.Compilation;
             var containingType = comp.GetMember<NamedTypeSymbol>("C");
-            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().OrderBy(f => f.Name).ToTestDisplayStrings();
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().OrderBy(f => f.Name).ToImmutableArray();
             var expectedFields = new[]
             {
                 "System.Object C.<P1>k__BackingField",
                 "System.Object C.<P2>k__BackingField",
             };
-            AssertEx.Equal(expectedFields, actualFields);
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
-            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().Where(p => p.Name != "EqualityContract").OrderBy(p => p.Name).ToArray();
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().Where(p => p.Name != "EqualityContract").OrderBy(p => p.Name).ToImmutableArray();
             Assert.Equal(2, actualProperties.Length);
             Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
         }
 
         [Theory]
@@ -4092,16 +4124,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P3").WithArguments("C", "P3").WithLocation(8, 27));
 
             var containingType = comp.GetMember<NamedTypeSymbol>("C");
-            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
                 "System.Object C.<P1>k__BackingField",
                 "System.Object C.<P2>k__BackingField",
                 "System.Object C.<P3>k__BackingField",
             };
-            AssertEx.Equal(expectedFields, actualFields);
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
-            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
             Assert.Equal(6, actualProperties.Length);
             Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
             Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
@@ -4109,6 +4141,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
             Assert.True(actualProperties[4] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
             Assert.True(actualProperties[5] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
+
+            VerifyMergedProperties(actualProperties, actualFields);
         }
 
         [Theory]
@@ -4164,7 +4198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "Q3").WithLocation(8, 27));
 
             var containingType = comp.GetMember<NamedTypeSymbol>("C");
-            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
                 "System.Object C.<P1>k__BackingField",
@@ -4174,9 +4208,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Object C.<Q2>k__BackingField",
                 "System.Object C.<Q3>k__BackingField",
             };
-            AssertEx.Equal(expectedFields, actualFields);
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
-            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().OrderBy(p => p.Name).ToArray();
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().OrderBy(p => p.Name).ToImmutableArray();
             Assert.Equal(6, actualProperties.Length);
             Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
             Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
@@ -4184,6 +4218,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "Q1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
             Assert.True(actualProperties[4] is SourcePropertySymbol { Name: "Q2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
             Assert.True(actualProperties[5] is SourcePropertySymbol { Name: "Q3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
         }
 
         [Theory]
@@ -4271,7 +4307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = (CSharpCompilation)verifier.Compilation;
             var containingType = comp.GetMember<NamedTypeSymbol>("C");
-            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
                 "System.Object C.<P1>k__BackingField",
@@ -4289,9 +4325,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Object C.<Q6>k__BackingField",
                 "System.Object C.<Q7>k__BackingField",
             };
-            AssertEx.Equal(expectedFields, actualFields);
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
-            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().OrderBy(p => p.Name).ToArray();
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().OrderBy(p => p.Name).ToImmutableArray();
             Assert.Equal(14, actualProperties.Length);
             Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
@@ -4307,6 +4343,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(actualProperties[11] is SourcePropertySymbol { Name: "Q5", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[12] is SourcePropertySymbol { Name: "Q6", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
             Assert.True(actualProperties[13] is SourcePropertySymbol { Name: "Q7", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
         }
 
         [Theory]
@@ -4365,20 +4403,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(5, 27));
 
             var containingType = comp.GetMember<NamedTypeSymbol>("C");
-            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
                 "System.Object C.<P1>k__BackingField",
                 "System.Object C.<P2>k__BackingField",
                 "System.Object C.<P3>k__BackingField",
             };
-            AssertEx.Equal(expectedFields, actualFields);
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
-            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
             Assert.Equal(3, actualProperties.Length);
             Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
             Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
             Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
         }
 
         [Theory]
@@ -4430,7 +4470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P5").WithLocation(7, 34));
 
             var containingType = comp.GetMember<NamedTypeSymbol>("C");
-            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
                 "System.Object C.<P1>k__BackingField",
@@ -4439,15 +4479,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Object C.<P4>k__BackingField",
                 "System.Object C.<P5>k__BackingField",
             };
-            AssertEx.Equal(expectedFields, actualFields);
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
-            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
             Assert.Equal(5, actualProperties.Length);
             Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[4] is SourcePropertySymbol { Name: "P5", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
 
             var actualValues = getInitializerValues(comp, comp.SyntaxTrees[reverseOrder ? 1 : 0]);
             var expectedValues = new[]
@@ -4557,7 +4599,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P6").WithArguments("C", "P6").WithLocation(26, 20));
 
             var containingType = comp.GetMember<NamedTypeSymbol>("C");
-            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
                 "System.Object C.<P1>k__BackingField",
@@ -4570,9 +4612,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Object C.<P4>k__BackingField",
                 "System.Object C.<P6>k__BackingField",
             };
-            AssertEx.Equal(expectedFields, actualFields);
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
-            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
             Assert.Equal(12, actualProperties.Length);
             Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
@@ -4586,6 +4628,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(actualProperties[9] is SourcePropertySymbol { Name: "P4", IsPartialDefinition: false, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[10] is SourcePropertySymbol { Name: "P5", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
             Assert.True(actualProperties[11] is SourcePropertySymbol { Name: "P6", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+
+            VerifyMergedProperty((SourcePropertySymbol)actualProperties[0], (SynthesizedBackingFieldSymbol)actualFields[0]);
+            VerifyMergedProperty((SourcePropertySymbol)actualProperties[1], (SynthesizedBackingFieldSymbol)actualFields[5]);
+            VerifyMergedProperty((SourcePropertySymbol)actualProperties[2], (SynthesizedBackingFieldSymbol)actualFields[1]);
+            VerifyMergedProperty((SourcePropertySymbol)actualProperties[3], (SynthesizedBackingFieldSymbol)actualFields[3]);
+            VerifyMergedProperty((SourcePropertySymbol)actualProperties[4], null);
+            VerifyMergedProperty((SourcePropertySymbol)actualProperties[5], null);
+            VerifyMergedProperty((SourcePropertySymbol)actualProperties[6], (SynthesizedBackingFieldSymbol)actualFields[2]);
+            VerifyMergedProperty((SourcePropertySymbol)actualProperties[7], (SynthesizedBackingFieldSymbol)actualFields[4]);
+            VerifyMergedProperty((SourcePropertySymbol)actualProperties[8], (SynthesizedBackingFieldSymbol)actualFields[6]);
+            VerifyMergedProperty((SourcePropertySymbol)actualProperties[9], (SynthesizedBackingFieldSymbol)actualFields[7]);
+            VerifyMergedProperty((SourcePropertySymbol)actualProperties[10], null);
+            VerifyMergedProperty((SourcePropertySymbol)actualProperties[11], (SynthesizedBackingFieldSymbol)actualFields[8]);
         }
 
         [Theory]
@@ -4777,7 +4832,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(6, 40));
 
             var containingType = comp.GetMember<NamedTypeSymbol>("B");
-            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().OrderBy(f => f.Name).ToTestDisplayStrings();
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().OrderBy(f => f.Name).ToImmutableArray();
             var expectedFields = new[]
             {
                 "System.Object B.<P1>k__BackingField",
@@ -4785,14 +4840,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Object B.<P3>k__BackingField",
                 "System.Object B.<P4>k__BackingField",
             };
-            AssertEx.Equal(expectedFields, actualFields);
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
-            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
             Assert.Equal(4, actualProperties.Length);
             Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
         }
 
         // Similar to previous test, but using backing field within accessors as well as in attributes.
@@ -4846,7 +4903,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(6, 40));
 
             var containingType = comp.GetMember<NamedTypeSymbol>("B");
-            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().OrderBy(f => f.Name).ToTestDisplayStrings();
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().OrderBy(f => f.Name).ToImmutableArray();
             var expectedFields = new[]
             {
                 "System.Object B.<P1>k__BackingField",
@@ -4854,14 +4911,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Object B.<P3>k__BackingField",
                 "System.Object B.<P4>k__BackingField",
             };
-            AssertEx.Equal(expectedFields, actualFields);
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
-            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
             Assert.Equal(4, actualProperties.Length);
             Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
         }
 
         [Theory]
@@ -4906,7 +4965,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(6, 6));
 
             var containingType = comp.GetMember<NamedTypeSymbol>("B");
-            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
                 "System.Object B.<P2>k__BackingField",
@@ -4914,9 +4973,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Object B.<Q2>k__BackingField",
                 "System.Object B.<Q3>k__BackingField",
             };
-            AssertEx.Equal(expectedFields, actualFields);
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
 
-            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
             Assert.Equal(6, actualProperties.Length);
             Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
             Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
@@ -4924,6 +4983,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "Q1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
             Assert.True(actualProperties[4] is SourcePropertySymbol { Name: "Q2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[5] is SourcePropertySymbol { Name: "Q3", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
         }
 
         // Backing field required for implementation part only (no initializer),
@@ -4989,7 +5050,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = (CSharpCompilation)verifier.Compilation;
             var containingType = comp.GetMember<NamedTypeSymbol>("B");
-            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToArray();
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
                 "System.Object B.<P1>k__BackingField",
@@ -5002,11 +5063,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertEx.Equal(["A(3)"], actualFields[1].GetAttributes().ToStrings());
             AssertEx.Equal(["A(5)", "A(6)"], actualFields[2].GetAttributes().ToStrings());
 
-            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
             Assert.Equal(3, actualProperties.Length);
             Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
         }
 
         // Backing field required for definition part only.
@@ -5054,7 +5117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(5, 42));
 
             var containingType = comp.GetMember<NamedTypeSymbol>("B");
-            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToArray();
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
             var expectedFields = new[]
             {
                 "System.Object B.<P1>k__BackingField",
@@ -5067,11 +5130,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             AssertEx.Equal(["A(3)"], actualFields[1].GetAttributes().ToStrings());
             AssertEx.Equal(["A(5)", "A(6)"], actualFields[2].GetAttributes().ToStrings());
 
-            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToArray();
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
             Assert.Equal(3, actualProperties.Length);
             Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
         }
     }
 }
