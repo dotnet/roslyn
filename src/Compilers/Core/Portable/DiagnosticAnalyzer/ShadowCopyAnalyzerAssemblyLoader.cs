@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Reflection;
+using Microsoft.CodeAnalysis.Diagnostics.Redirecting;
 
 #if NET
 using System.Runtime.Loader;

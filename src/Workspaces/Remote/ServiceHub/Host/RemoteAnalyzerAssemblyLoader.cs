@@ -4,6 +4,7 @@
 
 using System.IO;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Diagnostics.Redirecting;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics;
 

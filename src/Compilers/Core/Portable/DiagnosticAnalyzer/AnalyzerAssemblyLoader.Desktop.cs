@@ -10,6 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Threading;
+using Microsoft.CodeAnalysis.Diagnostics.Redirecting;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis

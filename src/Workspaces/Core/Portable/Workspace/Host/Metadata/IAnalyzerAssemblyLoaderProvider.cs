@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Diagnostics.Redirecting;
 
 #if NET
 using Microsoft.CodeAnalysis.Diagnostics;
