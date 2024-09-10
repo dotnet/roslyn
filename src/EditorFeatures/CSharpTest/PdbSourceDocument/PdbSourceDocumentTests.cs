@@ -1025,4 +1025,39 @@ public partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTests
             Assert.False(result);
         });
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7514")]
+    public async Task OpenSameDocument()
+    {
+        var source = """
+            public class C
+            {
+                public int P1 { get; set; }
+
+                public int P2 { get; set; }
+            }
+            """;
+
+        await RunTestAsync(async path =>
+        {
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, source, c => c.GetMember("C.P1"));
+
+            using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
+            var service = workspace.GetService<IMetadataAsSourceFileService>();
+            var fileOne = await service.GetGeneratedFileAsync(project.Solution.Workspace, project, symbol, signaturesOnly: false, options: MetadataAsSourceOptions.Default, cancellationToken: CancellationToken.None);
+
+            var openResult = service.TryAddDocumentToWorkspace(fileOne.FilePath, new StaticSourceTextContainer(SourceText.From(string.Empty)), out var documentId);
+            Assert.True(openResult);
+
+            var compilation = await project.GetCompilationAsync(CancellationToken.None);
+            var symbolTwo = compilation.GetMember("C.P2");
+            var fileTwo = await service.GetGeneratedFileAsync(project.Solution.Workspace, project, symbolTwo, signaturesOnly: false, MetadataAsSourceOptions.Default, CancellationToken.None);
+            Assert.Equal(fileOne.FilePath, fileTwo.FilePath);
+            Assert.NotEqual(fileOne.IdentifierLocation, fileTwo.IdentifierLocation);
+
+            // Opening should still throw (should never be called as we should be able to find the previously
+            // opened document in the MAS workspace).
+            Assert.Throws<System.InvalidOperationException>(() => service.TryAddDocumentToWorkspace(fileTwo.FilePath, new StaticSourceTextContainer(SourceText.From(string.Empty)), out var documentIdTwo));
+        });
+    }
 }

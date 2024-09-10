@@ -257,7 +257,14 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
         var documentInfos = CreateDocumentInfos(sourceFileInfos, encoding, projectId, sourceWorkspace, sourceProject);
         if (documentInfos.Length > 0)
         {
-            pendingSolution = pendingSolution.AddDocuments(documentInfos);
+            foreach (var documentInfo in documentInfos)
+            {
+                // The document might have already been added by a previous go to definition call.
+                if (!pendingSolution.ContainsDocument(documentInfo.Id))
+                {
+                    pendingSolution = pendingSolution.AddDocument(documentInfo);
+                }
+            }
         }
 
         var navigateProject = pendingSolution.GetRequiredProject(projectId);
