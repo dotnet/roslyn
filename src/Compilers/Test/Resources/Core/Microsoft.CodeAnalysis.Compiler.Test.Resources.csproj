@@ -389,8 +389,4 @@
     <Compile Include="TestResources.cs" />
     <EmbeddedResource Include="SymbolsTests\nativeCOFFResources.obj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="NetFX\WinRt\" />
-    <Folder Include="NetFX\PortableProfile7\" />
-  </ItemGroup>
 </Project>

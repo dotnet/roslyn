@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Test.Resources.Proprietary
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
