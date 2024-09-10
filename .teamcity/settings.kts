@@ -17,9 +17,9 @@ project {
     buildType(ReleaseBuild)
     buildType(PublicBuild)
     buildType(PublicDeployment)
-    buildType(VersionBump)
+    buildType(DownstreamMerge)
 
-    buildTypesOrder = arrayListOf(DebugBuild,ReleaseBuild,PublicBuild,PublicDeployment,VersionBump)
+    buildTypesOrder = arrayListOf(DebugBuild,ReleaseBuild,PublicBuild,PublicDeployment,DownstreamMerge)
 
 }
 
@@ -27,40 +27,45 @@ object DebugBuild : BuildType({
 
     name = "Build [Debug]"
 
-    artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Debug/Shipping/**/*=>artifacts/packages/Debug/Shipping\n+:artifacts/testResults/**/*=>artifacts/testResults\n"
+    artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Debug/Shipping/**/*=>artifacts/packages/Debug/Shipping\n+:artifacts/testResults/**/*=>artifacts/testResults\n+:artifacts/logs/**/*=>logs\n"
 
     params {
         text("BuildArguments", "", label = "Build Arguments", description = "Arguments to append to the 'Build' build step.", allowEmpty = true)
+        text("DefaultBranch", "develop/2024.2", label = "Default Branch", description = "The default branch of this build configuration.")
         text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.", regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
     }
+
     vcs {
-        root(DslContext.settingsRoot)
+        root(AbsoluteId("Metalama_Metalama20242_MetalamaCompiler"))
     }
 
     steps {
         powerShell {
             name = "Kill background processes before cleanup"
+            id = "PreKill"
             scriptMode = file {
                 path = "Build.ps1"
             }
             noProfile = false
-            param("jetbrains_powershell_scriptArguments", "tools kill")
+            scriptArgs = "tools kill"
         }
         powerShell {
             name = "Build"
+            id = "Build"
             scriptMode = file {
                 path = "Build.ps1"
             }
             noProfile = false
-            param("jetbrains_powershell_scriptArguments", "test --configuration Debug --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %BuildArguments%")
+            scriptArgs = "test --configuration Debug --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %BuildArguments%"
         }
         powerShell {
             name = "Kill background processes before next build"
+            id = "PostKill"
             scriptMode = file {
                 path = "Build.ps1"
             }
             noProfile = false
-            param("jetbrains_powershell_scriptArguments", "tools kill")
+            scriptArgs = "tools kill"
         }
     }
 
@@ -91,7 +96,7 @@ object DebugBuild : BuildType({
     triggers {
         vcs {
             watchChangesInDependencies = true
-            branchFilter = "+:<default>"
+            branchFilter = "+:develop/2024.2"
             // Build will not trigger automatically if the commit message contains comment value.
             triggerRules = "-:comment=<<VERSION_BUMP>>|<<DEPENDENCIES_UPDATED>>:**"
         }
@@ -103,40 +108,45 @@ object ReleaseBuild : BuildType({
 
     name = "Build [Release]"
 
-    artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Release/Shipping/**/*=>artifacts/packages/Release/Shipping\n+:artifacts/testResults/**/*=>artifacts/testResults\n"
+    artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Release/Shipping/**/*=>artifacts/packages/Release/Shipping\n+:artifacts/testResults/**/*=>artifacts/testResults\n+:artifacts/logs/**/*=>logs\n"
 
     params {
         text("BuildArguments", "", label = "Build Arguments", description = "Arguments to append to the 'Build' build step.", allowEmpty = true)
+        text("DefaultBranch", "develop/2024.2", label = "Default Branch", description = "The default branch of this build configuration.")
         text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.", regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
     }
+
     vcs {
-        root(DslContext.settingsRoot)
+        root(AbsoluteId("Metalama_Metalama20242_MetalamaCompiler"))
     }
 
     steps {
         powerShell {
             name = "Kill background processes before cleanup"
+            id = "PreKill"
             scriptMode = file {
                 path = "Build.ps1"
             }
             noProfile = false
-            param("jetbrains_powershell_scriptArguments", "tools kill")
+            scriptArgs = "tools kill"
         }
         powerShell {
             name = "Build"
+            id = "Build"
             scriptMode = file {
                 path = "Build.ps1"
             }
             noProfile = false
-            param("jetbrains_powershell_scriptArguments", "test --configuration Release --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %BuildArguments%")
+            scriptArgs = "test --configuration Release --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %BuildArguments%"
         }
         powerShell {
             name = "Kill background processes before next build"
+            id = "PostKill"
             scriptMode = file {
                 path = "Build.ps1"
             }
             noProfile = false
-            param("jetbrains_powershell_scriptArguments", "tools kill")
+            scriptArgs = "tools kill"
         }
     }
 
@@ -170,49 +180,55 @@ object PublicBuild : BuildType({
 
     name = "Build [Public]"
 
-    artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Release/Shipping/**/*=>artifacts/packages/Release/Shipping\n+:artifacts/testResults/**/*=>artifacts/testResults\n"
+    artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Release/Shipping/**/*=>artifacts/packages/Release/Shipping\n+:artifacts/testResults/**/*=>artifacts/testResults\n+:artifacts/logs/**/*=>logs\n"
 
     params {
         text("UpstreamCheckArguments", "", label = "Check pending upstream changes Arguments", description = "Arguments to append to the 'Check pending upstream changes' build step.", allowEmpty = true)
         text("BuildArguments", "", label = "Build Arguments", description = "Arguments to append to the 'Build' build step.", allowEmpty = true)
+        text("DefaultBranch", "develop/2024.2", label = "Default Branch", description = "The default branch of this build configuration.")
         text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.", regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
     }
+
     vcs {
-        root(DslContext.settingsRoot)
+        root(AbsoluteId("Metalama_Metalama20242_MetalamaCompiler"))
     }
 
     steps {
         powerShell {
             name = "Kill background processes before cleanup"
+            id = "PreKill"
             scriptMode = file {
                 path = "Build.ps1"
             }
             noProfile = false
-            param("jetbrains_powershell_scriptArguments", "tools kill")
+            scriptArgs = "tools kill"
         }
         powerShell {
             name = "Check pending upstream changes"
+            id = "UpstreamCheck"
             scriptMode = file {
                 path = "Build.ps1"
             }
             noProfile = false
-            param("jetbrains_powershell_scriptArguments", "tools git check-upstream %UpstreamCheckArguments%")
+            scriptArgs = "tools git check-upstream %UpstreamCheckArguments%"
         }
         powerShell {
             name = "Build"
+            id = "Build"
             scriptMode = file {
                 path = "Build.ps1"
             }
             noProfile = false
-            param("jetbrains_powershell_scriptArguments", "test --configuration Public --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %BuildArguments%")
+            scriptArgs = "test --configuration Public --buildNumber %build.number% --buildType %system.teamcity.buildType.id% %BuildArguments%"
         }
         powerShell {
             name = "Kill background processes before next build"
+            id = "PostKill"
             scriptMode = file {
                 path = "Build.ps1"
             }
             noProfile = false
-            param("jetbrains_powershell_scriptArguments", "tools kill")
+            scriptArgs = "tools kill"
         }
     }
 
@@ -254,20 +270,23 @@ object PublicDeployment : BuildType({
 
     params {
         text("PublishArguments", "", label = "Publish Arguments", description = "Arguments to append to the 'Publish' build step.", allowEmpty = true)
+        text("DefaultBranch", "release/2024.2", label = "Default Branch", description = "The default branch of this build configuration.")
         text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.", regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
     }
+
     vcs {
-        root(DslContext.settingsRoot)
+        root(AbsoluteId("Metalama_Metalama20242_MetalamaCompiler"))
     }
 
     steps {
         powerShell {
             name = "Publish"
+            id = "Publish"
             scriptMode = file {
                 path = "Build.ps1"
             }
             noProfile = false
-            param("jetbrains_powershell_scriptArguments", "publish --configuration Public %PublishArguments%")
+            scriptArgs = "publish --configuration Public %PublishArguments%"
         }
     }
 
@@ -307,34 +326,36 @@ object PublicDeployment : BuildType({
 
             artifacts {
                 cleanDestination = true
-                artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Release/Shipping/**/*=>artifacts/packages/Release/Shipping\n+:artifacts/testResults/**/*=>artifacts/testResults"
+                artifactRules = "+:artifacts/publish/public/**/*=>artifacts/publish/public\n+:artifacts/packages/Release/Shipping/**/*=>artifacts/packages/Release/Shipping"
             }
         }
-
      }
 
 })
 
-object VersionBump : BuildType({
+object DownstreamMerge : BuildType({
 
-    name = "Version Bump"
+    name = "Downstream Merge"
 
     params {
-        text("BumpArguments", "", label = "Bump Arguments", description = "Arguments to append to the 'Bump' build step.", allowEmpty = true)
+        text("DownstreamMergeArguments", "", label = "Merge downstream Arguments", description = "Arguments to append to the 'Merge downstream' build step.", allowEmpty = true)
+        text("DefaultBranch", "develop/2024.2", label = "Default Branch", description = "The default branch of this build configuration.")
         text("TimeOut", "300", label = "Time-Out Threshold", description = "Seconds after the duration of the last successful build.", regex = """\d+""", validationMessage = "The timeout has to be an integer number.")
     }
+
     vcs {
-        root(DslContext.settingsRoot)
+        root(AbsoluteId("Metalama_Metalama20242_MetalamaCompiler"))
     }
 
     steps {
         powerShell {
-            name = "Bump"
+            name = "Merge downstream"
+            id = "DownstreamMerge"
             scriptMode = file {
                 path = "Build.ps1"
             }
             noProfile = false
-            param("jetbrains_powershell_scriptArguments", "bump %BumpArguments%")
+            scriptArgs = "tools git merge-downstream %DownstreamMergeArguments%"
         }
     }
 
@@ -365,6 +386,23 @@ object VersionBump : BuildType({
             teamcitySshKey = "PostSharp.Engineering"
         }
     }
+
+    triggers {
+        vcs {
+            watchChangesInDependencies = true
+            branchFilter = "+:develop/2024.2"
+            // Build will not trigger automatically if the commit message contains comment value.
+            triggerRules = "-:comment=<<VERSION_BUMP>>|<<DEPENDENCIES_UPDATED>>:**"
+        }
+    }
+
+    dependencies {
+        dependency(DebugBuild) {
+            snapshot {
+                     onDependencyFailure = FailureAction.FAIL_TO_START
+            }
+        }
+     }
 
 })
 
