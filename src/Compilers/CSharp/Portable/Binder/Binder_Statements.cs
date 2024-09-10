@@ -1749,13 +1749,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new CSDiagnosticInfo(ErrorCode.ERR_BadEventUsageNoField, leastOverridden);
         }
 
-        internal static bool AccessingAutoPropertyFromConstructor(BoundPropertyAccess propertyAccess, Symbol fromMember)
+        internal static bool AccessingAutoPropertyFromConstructor(BoundPropertyAccess propertyAccess, Symbol fromMember, bool allowFieldKeyword = false)
         {
-            return AccessingAutoPropertyFromConstructor(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember);
+            return AccessingAutoPropertyFromConstructor(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember, allowFieldKeyword);
         }
 
-        // PROTOTYPE: Review all callers for allowFieldKeyword.
-        private static bool AccessingAutoPropertyFromConstructor(BoundExpression receiver, PropertySymbol propertySymbol, Symbol fromMember, bool allowFieldKeyword = false)
+        // PROTOTYPE: Review all callers for allowFieldKeyword: false.
+        // PROTOTYPE: Is the spec'ed behavior for a property that uses field always the same as
+        // for an auto property that exposes the same accessors? If not, we may need more
+        // fine-grained control than this method provides.
+        private static bool AccessingAutoPropertyFromConstructor(BoundExpression receiver, PropertySymbol propertySymbol, Symbol fromMember, bool allowFieldKeyword)
         {
             if (!propertySymbol.IsDefinition && propertySymbol.ContainingType.Equals(propertySymbol.ContainingType.OriginalDefinition, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
@@ -1766,10 +1769,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             var propertyIsStatic = propertySymbol.IsStatic;
 
             return (object)sourceProperty != null &&
-                    (allowFieldKeyword ? sourceProperty.IsAutoPropertyOrUsesFieldKeyword : sourceProperty.IsAutoProperty) &&
+                    isExpectedAutoProperty(sourceProperty, allowFieldKeyword) &&
                     TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.AllIgnoreOptions) &&
                     IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
                     (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);
+
+            static bool isExpectedAutoProperty(SourcePropertySymbolBase sourceProperty, bool allowFieldKeyword)
+            {
+                // The property must have a synthesized backing field.
+                if (sourceProperty.BackingField is null)
+                {
+                    return false;
+                }
+                // The property has no setter or has an auto-implemented setter.
+                if (sourceProperty.SetMethod is { } && !sourceProperty.HasAutoPropertySet)
+                {
+                    return false;
+                }
+                if (allowFieldKeyword)
+                {
+                    return true;
+                }
+                return sourceProperty.HasAutoPropertyGet;
+            }
         }
 
         private static bool IsConstructorOrField(Symbol member, bool isStatic)

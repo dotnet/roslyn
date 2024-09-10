@@ -648,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal bool IsAutoPropertyOrUsesFieldKeyword
-            => IsAutoProperty || UsesFieldKeyword;
+            => IsSetOnEitherPart(Flags.HasAutoPropertyGet | Flags.HasAutoPropertySet | Flags.UsesFieldKeyword);
 
         internal bool UsesFieldKeyword
             => IsSetOnEitherPart(Flags.UsesFieldKeyword);
@@ -658,6 +658,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsAutoProperty
             => IsSetOnEitherPart(Flags.HasAutoPropertyGet | Flags.HasAutoPropertySet);
+
+        internal bool HasAutoPropertyGet
+            => IsSetOnEitherPart(Flags.HasAutoPropertyGet);
+
+        internal bool HasAutoPropertySet
+            => IsSetOnEitherPart(Flags.HasAutoPropertySet);
 
         private bool IsSetOnEitherPart(Flags flags)
         {
