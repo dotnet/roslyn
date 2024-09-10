@@ -17,14 +17,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 
 internal static partial class ProtocolConversions
 {
-    public static ImmutableArray<LSP.Diagnostic> ConvertDiagnostic(DiagnosticData diagnosticData, ClientCapabilities capabilities, Project project, bool isLiveSource, bool potentialDuplicate, IGlobalOptionService globalOptionService)
+    /// <summary>
+    /// Converts from <see cref="DiagnosticData"/> to <see cref="LSP.Diagnostic"/>
+    /// </summary>
+    /// <param name="diagnosticData">The diagnostic to convert</param>
+    /// <param name="supportsVisualStudioExtensions">Whether the client is Visual Studio</param>
+    /// <param name="project">The project the diagnostic is relevant to</param>
+    /// <param name="isLiveSource">Whether the diagnostic is considered "live" and should supersede others</param>
+    /// <param name="potentialDuplicate">Whether the diagnostic is potentially a duplicate to a build diagnostic</param>
+    /// <param name="globalOptionService">The global options service</param>
+    public static ImmutableArray<LSP.Diagnostic> ConvertDiagnostic(DiagnosticData diagnosticData, bool supportsVisualStudioExtensions, Project project, bool isLiveSource, bool potentialDuplicate, IGlobalOptionService globalOptionService)
     {
-        if (!ShouldIncludeHiddenDiagnostic(diagnosticData, capabilities))
+        if (!ShouldIncludeHiddenDiagnostic(diagnosticData, supportsVisualStudioExtensions))
         {
             return [];
         }
 
-        var diagnostic = CreateLspDiagnostic(diagnosticData, project, isLiveSource, potentialDuplicate, capabilities);
+        var diagnostic = CreateLspDiagnostic(diagnosticData, project, isLiveSource, potentialDuplicate, supportsVisualStudioExtensions);
 
         // Check if we need to handle the unnecessary tag (fading).
         if (!diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
@@ -48,7 +57,7 @@ internal static partial class ProtocolConversions
             return [diagnostic];
         }
 
-        if (capabilities.HasVisualStudioLspCapability())
+        if (supportsVisualStudioExtensions)
         {
             // Roslyn produces unnecessary diagnostics by using additional locations, however LSP doesn't support tagging
             // additional locations separately.  Instead we just create multiple hidden diagnostics for unnecessary squiggling.
@@ -56,7 +65,7 @@ internal static partial class ProtocolConversions
             diagnosticsBuilder.Add(diagnostic);
             foreach (var location in unnecessaryLocations)
             {
-                var additionalDiagnostic = CreateLspDiagnostic(diagnosticData, project, isLiveSource, potentialDuplicate, capabilities);
+                var additionalDiagnostic = CreateLspDiagnostic(diagnosticData, project, isLiveSource, potentialDuplicate, supportsVisualStudioExtensions);
                 additionalDiagnostic.Severity = LSP.DiagnosticSeverity.Hint;
                 additionalDiagnostic.Range = GetRange(location);
                 additionalDiagnostic.Tags = [DiagnosticTag.Unnecessary, VSDiagnosticTags.HiddenInEditor, VSDiagnosticTags.HiddenInErrorList, VSDiagnosticTags.SuppressEditorToolTip];
@@ -87,7 +96,7 @@ internal static partial class ProtocolConversions
         Project project,
         bool isLiveSource,
         bool potentialDuplicate,
-        ClientCapabilities capabilities)
+        bool supportsVisualStudioExtensions)
     {
         Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
 
@@ -98,13 +107,13 @@ internal static partial class ProtocolConversions
             Code = diagnosticData.Id,
             CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.GetValidHelpLinkUri()),
             Message = diagnosticData.Message,
-            Severity = ConvertDiagnosticSeverity(diagnosticData.Severity, capabilities),
+            Severity = ConvertDiagnosticSeverity(diagnosticData.Severity, supportsVisualStudioExtensions),
             Tags = ConvertTags(diagnosticData, isLiveSource, potentialDuplicate),
             DiagnosticRank = ConvertRank(diagnosticData),
             Range = GetRange(diagnosticData.DataLocation)
         };
 
-        if (capabilities.HasVisualStudioLspCapability())
+        if (supportsVisualStudioExtensions)
         {
             var expandedMessage = string.IsNullOrEmpty(diagnosticData.Description) ? null : diagnosticData.Description;
             var informationService = project.Solution.Services.GetRequiredService<IDiagnosticProjectInformationService>();
@@ -149,10 +158,10 @@ internal static partial class ProtocolConversions
         };
     }
 
-    private static bool ShouldIncludeHiddenDiagnostic(DiagnosticData diagnosticData, ClientCapabilities capabilities)
+    private static bool ShouldIncludeHiddenDiagnostic(DiagnosticData diagnosticData, bool supportsVisualStudioExtensions)
     {
         // VS can handle us reporting any kind of diagnostic using VS custom tags.
-        if (capabilities.HasVisualStudioLspCapability() == true)
+        if (supportsVisualStudioExtensions == true)
         {
             return true;
         }
@@ -198,14 +207,14 @@ internal static partial class ProtocolConversions
         return null;
     }
 
-    private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity, ClientCapabilities clientCapabilities)
+    private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity, bool supportsVisualStudioExtensions)
         => severity switch
         {
             // Hidden is translated in ConvertTags to pass along appropriate _ms tags
             // that will hide the item in a client that knows about those tags.
             DiagnosticSeverity.Hidden => LSP.DiagnosticSeverity.Hint,
             // VSCode shows information diagnostics as blue squiggles, and hint diagnostics as 3 dots.  We prefer the latter rendering so we return hint diagnostics in vscode.
-            DiagnosticSeverity.Info => clientCapabilities.HasVisualStudioLspCapability() ? LSP.DiagnosticSeverity.Information : LSP.DiagnosticSeverity.Hint,
+            DiagnosticSeverity.Info => supportsVisualStudioExtensions ? LSP.DiagnosticSeverity.Information : LSP.DiagnosticSeverity.Hint,
             DiagnosticSeverity.Warning => LSP.DiagnosticSeverity.Warning,
             DiagnosticSeverity.Error => LSP.DiagnosticSeverity.Error,
             _ => throw ExceptionUtilities.UnexpectedValue(severity),

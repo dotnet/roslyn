@@ -314,6 +314,12 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
 
     private ImmutableArray<LSP.Diagnostic> ConvertDiagnostic(IDiagnosticSource diagnosticSource, DiagnosticData diagnosticData, ClientCapabilities capabilities)
     {
-        return ProtocolConversions.ConvertDiagnostic(diagnosticData, capabilities, diagnosticSource.GetProject(), diagnosticSource.IsLiveSource(), PotentialDuplicate, GlobalOptions);
+        return ProtocolConversions.ConvertDiagnostic(
+            diagnosticData,
+            capabilities.HasVisualStudioLspCapability(),
+            diagnosticSource.GetProject(),
+            diagnosticSource.IsLiveSource(),
+            PotentialDuplicate,
+            GlobalOptions);
     }
 }
