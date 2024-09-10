@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -35,6 +36,39 @@ public static class Silverlight
 
     private static (byte[], byte[]) BuildImages()
     {
+        const string corlibExtraCode = """
+            using System;
+            using System.Reflection;
+
+            namespace System.Reflection;
+
+            [AttributeUsage(AttributeTargets.Assembly, Inherited = false)]
+            public sealed class AssemblyFileVersionAttribute : Attribute
+            {
+                public string Version { get; }
+                public AssemblyFileVersionAttribute(string version)
+                {
+                    Version = version;
+                }
+            }
+            [AttributeUsage(AttributeTargets.Assembly, Inherited = false)]
+            public sealed class AssemblyVersionAttribute : Attribute
+            {
+                public string Version { get; }
+                public AssemblyVersionAttribute(string version)
+                {
+                    Version = version;
+                }
+            }
+            """;
+
+        const string assemblyAttributes = """
+            using System.Reflection;
+
+            [assembly: AssemblyFileVersion("5.0.5.0")]
+            [assembly: AssemblyVersion("5.0.5.0")]
+            """;
+
         var publicKeyText = "" +
             "00240000048000009400000006020000002400005253413100040000010001008d56c76f9e8649383049f" +
             "383c44be0ec204181822a6c31cf5eb7ef486944d032188ea1d3920763712ccb12d75fb77e9811149e6148" +
@@ -50,15 +84,18 @@ public static class Silverlight
             optimizationLevel: OptimizationLevel.Release);
         var mscorlibCompilation = CSharpCompilation.Create(
             "mscorlib",
-            [CSharpSyntaxTree.ParseText(SourceText.From(TestResources.NetFX.Minimal.mincorlib_cs))],
-            references: [],
-            options);
+            [
+                CSharpSyntaxTree.ParseText(SourceText.From(TestResources.NetFX.Minimal.mincorlib_cs)),
+                CSharpSyntaxTree.ParseText(SourceText.From(corlibExtraCode)),
+                CSharpSyntaxTree.ParseText(SourceText.From(assemblyAttributes)),
+            ],
+            options: options);
 
-        var mscorlib = mscorlibCompilation.EmitToStream();
+        var mscorlib = mscorlibCompilation.EmitToStream(EmitOptions.Default.WithRuntimeMetadataVersion("v4.0.30319"));
 
         var systemCompilation = CSharpCompilation.Create(
             "System",
-            syntaxTrees: [],
+            syntaxTrees: [CSharpSyntaxTree.ParseText(SourceText.From(assemblyAttributes))],
             references: [mscorlibCompilation.EmitToImageReference()],
             options: options);
 

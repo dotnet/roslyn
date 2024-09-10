@@ -7,6 +7,7 @@
 using System;
 using System.IO;
 using System.Threading;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -688,9 +689,13 @@ public static class TestReferences
 
         public static class NoPia
         {
-            private static readonly Lazy<PortableExecutableReference> s_stdOle = new Lazy<PortableExecutableReference>(
-        () => Roslyn.Test.Utilities.StdOle.Build(TargetFrameworkUtil.StandardReferences), LazyThreadSafetyMode.PublicationOnly);
-            public static PortableExecutableReference StdOle => s_stdOle.Value;
+            private static readonly Lazy<PortableExecutableReference> s_stdOleNetFramework = new Lazy<PortableExecutableReference>(
+        () => StdOle.Build(NetFramework.References), LazyThreadSafetyMode.PublicationOnly);
+            public static PortableExecutableReference StdOleNetFramework => s_stdOleNetFramework.Value;
+
+            private static readonly Lazy<PortableExecutableReference> s_stdOleNet40 = new Lazy<PortableExecutableReference>(
+        () => StdOle.Build(Net40.References.All), LazyThreadSafetyMode.PublicationOnly);
+            public static PortableExecutableReference StdOleNet40 => s_stdOleNet40.Value;
 
             private static readonly Lazy<PortableExecutableReference> s_pia1 = new Lazy<PortableExecutableReference>(
         () => AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.NoPia.Pia1).GetReference(display: "Pia1.dll"),
