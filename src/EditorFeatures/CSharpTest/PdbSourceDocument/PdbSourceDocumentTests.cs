@@ -976,4 +976,53 @@ public partial class PdbSourceDocumentTests : AbstractPdbSourceDocumentTests
             Assert.True(result);
         });
     }
+
+    [Fact]
+    public async Task OpenThenClose()
+    {
+        var source = """
+            public class C
+            {
+                public int P { get; set; }
+            }
+            """;
+
+        await RunTestAsync(async path =>
+        {
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, source, c => c.GetMember("C.P"));
+
+            using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
+            var service = workspace.GetService<IMetadataAsSourceFileService>();
+            var file = await service.GetGeneratedFileAsync(project.Solution.Workspace, project, symbol, signaturesOnly: false, options: MetadataAsSourceOptions.Default, cancellationToken: CancellationToken.None);
+
+            var openResult = service.TryAddDocumentToWorkspace(file.FilePath, new StaticSourceTextContainer(SourceText.From(string.Empty)), out var documentId);
+            Assert.True(openResult);
+
+            var closeResult = service.TryRemoveDocumentFromWorkspace(file.FilePath);
+            Assert.True(closeResult);
+        });
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7514")]
+    public async Task CloseWithoutOpenDoesNotThrow()
+    {
+        var source = """
+            public class C
+            {
+                public int P { get; set; }
+            }
+            """;
+
+        await RunTestAsync(async path =>
+        {
+            var (project, symbol) = await CompileAndFindSymbolAsync(path, Location.Embedded, Location.Embedded, source, c => c.GetMember("C.P"));
+
+            using var workspace = (EditorTestWorkspace)project.Solution.Workspace;
+            var service = workspace.GetService<IMetadataAsSourceFileService>();
+            var file = await service.GetGeneratedFileAsync(project.Solution.Workspace, project, symbol, signaturesOnly: false, options: MetadataAsSourceOptions.Default, cancellationToken: CancellationToken.None);
+
+            var result = service.TryRemoveDocumentFromWorkspace(file.FilePath);
+            Assert.False(result);
+        });
+    }
 }

@@ -70,6 +70,11 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
     /// </summary>
     private readonly ConcurrentDictionary<string, SourceDocumentInfo> _fileToDocumentInfoMap = new(StringComparer.OrdinalIgnoreCase);
 
+    /// <summary>
+    /// Only accessed and mutated in serial calls either from the UI thread or LSP queue.
+    /// </summary>
+    private readonly HashSet<DocumentId> _openedDocumentIds = new();
+
     public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(
         MetadataAsSourceWorkspace metadataWorkspace,
         Workspace sourceWorkspace,
@@ -365,9 +370,12 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
         {
             if (_fileToDocumentInfoMap.TryGetValue(filePath, out var info))
             {
+                Contract.ThrowIfTrue(_openedDocumentIds.Contains(info.DocumentId));
+
                 workspace.OnDocumentAdded(info.DocumentInfo);
                 workspace.OnDocumentOpened(info.DocumentId, sourceTextContainer);
                 documentId = info.DocumentId;
+                _openedDocumentIds.Add(documentId);
                 return true;
             }
 
@@ -382,9 +390,18 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
         {
             if (_fileToDocumentInfoMap.TryGetValue(filePath, out var info))
             {
-                workspace.OnDocumentClosed(info.DocumentId, new WorkspaceFileTextLoader(workspace.Services.SolutionServices, filePath, info.Encoding));
-                workspace.OnDocumentRemoved(info.DocumentId);
-                return true;
+                // In LSP, while calls to TryAddDocumentToWorkspace and TryRemoveDocumentFromWorkspace are handled
+                // serially, it is possible that TryRemoveDocumentFromWorkspace called without TryAddDocumentToWorkspace first.
+                // This can happen if the document is immediately closed after opening - only feature requests that force us
+                // to materialize a solution will trigger TryAddDocumentToWorkspace, if none are made it is never called.
+                // However TryRemoveDocumentFromWorkspace is always called on close.
+                if (_openedDocumentIds.Contains(info.DocumentId))
+                {
+                    workspace.OnDocumentClosed(info.DocumentId, new WorkspaceFileTextLoader(workspace.Services.SolutionServices, filePath, info.Encoding));
+                    workspace.OnDocumentRemoved(info.DocumentId);
+                    _openedDocumentIds.Remove(info.DocumentId);
+                    return true;
+                }
             }
 
             return false;
@@ -426,6 +443,7 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
 
         // The MetadataAsSourceFileService will clean up the entire temp folder so no need to do anything here
         _fileToDocumentInfoMap.Clear();
+        _openedDocumentIds.Clear();
         _sourceLinkEnabledProjects.Clear();
         _implementationAssemblyLookupService.Clear();
     }
