@@ -223,7 +223,7 @@ Provide that attribute in a `RegisterPostInitializationOutput` step. Register fo
 ```csharp
 public partial class UserClass
 {
-    [Generate]
+    [Generated]
     public partial void UserMethod();
 }
 ```
@@ -244,7 +244,7 @@ public class AugmentingGenerator : IIncrementalGenerator
                     {
                     }
                 }
-                """, Encoding.UTF8));
+                """, Encoding.UTF8)));
 
         var pipeline = context.SyntaxProvider.ForAttributeWithMetadataName(
             fullyQualifiedMetadataName: "GeneratedNamespace.GeneratedAttribute",
