@@ -674,16 +674,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// a property with an initializer.
         /// </summary>
         internal SynthesizedBackingFieldSymbol BackingField
+#nullable enable
         {
             get
             {
                 if (_lazyMergedBackingField is null)
                 {
                     var backingField = DeclaredBackingField;
+                    // The property should only be used after members in the containing
+                    // type are complete, and partial members have been merged.
                     if (!_containingType.AreMembersComplete)
                     {
-                        // The property should only be used after members in the containing
-                        // type are complete, and partial members have been merged.
+                        // When calling through the SemanticModel, partial members are not
+                        // necessarily merged when the containing type includes a primary
+                        // constructor - see https://github.com/dotnet/roslyn/issues/75002.
+                        Debug.Assert(_containingType.PrimaryConstructor is { });
                         return backingField;
                     }
                     Interlocked.CompareExchange(ref _lazyMergedBackingField, backingField, null);
@@ -692,7 +697,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-#nullable enable
         internal SynthesizedBackingFieldSymbol? DeclaredBackingField
         {
             get
@@ -709,6 +713,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal void SetMergedBackingField(SynthesizedBackingFieldSymbol? backingField)
         {
             Interlocked.CompareExchange(ref _lazyMergedBackingField, backingField, null);
+            Debug.Assert((object?)_lazyMergedBackingField == backingField);
         }
 
         private SynthesizedBackingFieldSymbol CreateBackingField()
