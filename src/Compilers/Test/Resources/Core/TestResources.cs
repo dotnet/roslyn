@@ -513,7 +513,7 @@ namespace TestResources.SymbolsTests
         public static byte[] InvalidPublicKey => ResourceLoader.GetOrCreateResource(ref s_invalidPublicKey, "SymbolsTests.Metadata.InvalidPublicKey.dll");
 
         private static byte[] s_badDefaultParameterValue;
-        public static byte[] BadDefaultParameterValue => ResourceLoader.GetOrCreateResource(ref s_badDefaultParameterValue, "BadDefaultParameterValue.dll");
+        public static byte[] BadDefaultParameterValue => ResourceLoader.GetOrCreateResource(ref s_badDefaultParameterValue, "SymbolsTests.Metadata.BadDefaultParameterValue.dll");
 
         private static byte[] s_MDTestAttributeApplicationLib;
         public static byte[] MDTestAttributeApplicationLib => ResourceLoader.GetOrCreateResource(ref s_MDTestAttributeApplicationLib, "SymbolsTests.Metadata.MDTestAttributeApplicationLib.dll");

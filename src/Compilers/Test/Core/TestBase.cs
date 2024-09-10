@@ -185,11 +185,6 @@ namespace Roslyn.Test.Utilities
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference MscorlibRef => s_mscorlibRef.Value;
 
-        private static readonly Lazy<MetadataReference> s_mscorlibRefPortable = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.PortableProfile7.Mscorlib).GetReference(display: "mscorlib.v4_0_30319.portable.dll"),
-            LazyThreadSafetyMode.PublicationOnly);
-        public static MetadataReference MscorlibRefPortable => s_mscorlibRefPortable.Value;
-
         private static readonly Lazy<MetadataReference> s_aacorlibRef = new Lazy<MetadataReference>(
             () =>
             {
