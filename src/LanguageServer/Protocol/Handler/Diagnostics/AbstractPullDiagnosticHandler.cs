@@ -55,6 +55,8 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     /// </summary>
     private readonly ConcurrentDictionary<string, VersionedPullCache<(int globalStateVersion, VersionStamp? dependentVersion), (int globalStateVersion, Checksum dependentChecksum)>> _categoryToVersionedCache = [];
 
+    protected virtual bool PotentialDuplicate => false;
+
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;
 
@@ -88,11 +90,6 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     protected abstract TReport CreateRemovedReport(TextDocumentIdentifier identifier);
 
     protected abstract TReturn? CreateReturn(BufferedProgress<TReport> progress);
-
-    /// <summary>
-    /// Generate the right diagnostic tags for a particular diagnostic.
-    /// </summary>
-    protected abstract DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource);
 
     protected abstract string? GetRequestDiagnosticCategory(TDiagnosticsParams diagnosticsParams);
 
@@ -319,13 +316,17 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
 
     private ImmutableArray<LSP.Diagnostic> ConvertDiagnostic(IDiagnosticSource diagnosticSource, DiagnosticData diagnosticData, ClientCapabilities capabilities)
     {
+        return ConvertDiagnostic(diagnosticData, capabilities, diagnosticSource.GetProject(), diagnosticSource.IsLiveSource(), PotentialDuplicate, GlobalOptions);
+    }
+
+    private static ImmutableArray<LSP.Diagnostic> ConvertDiagnostic(DiagnosticData diagnosticData, ClientCapabilities capabilities, Project project, bool isLiveSource, bool potentialDuplicate, IGlobalOptionService globalOptionService)
+    {
         if (!ShouldIncludeHiddenDiagnostic(diagnosticData, capabilities))
         {
             return [];
         }
 
-        var project = diagnosticSource.GetProject();
-        var diagnostic = CreateLspDiagnostic(diagnosticData, project, capabilities);
+        var diagnostic = CreateLspDiagnostic(diagnosticData, project, isLiveSource, potentialDuplicate, capabilities);
 
         // Check if we need to handle the unnecessary tag (fading).
         if (!diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
@@ -334,7 +335,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
         }
 
         // DiagnosticId supports fading, check if the corresponding VS option is turned on.
-        if (!SupportsFadingOption(diagnosticData))
+        if (!SupportsFadingOption(diagnosticData, globalOptionService))
         {
             return [diagnostic];
         }
@@ -357,7 +358,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             diagnosticsBuilder.Add(diagnostic);
             foreach (var location in unnecessaryLocations)
             {
-                var additionalDiagnostic = CreateLspDiagnostic(diagnosticData, project, capabilities);
+                var additionalDiagnostic = CreateLspDiagnostic(diagnosticData, project, isLiveSource, potentialDuplicate, capabilities);
                 additionalDiagnostic.Severity = LSP.DiagnosticSeverity.Hint;
                 additionalDiagnostic.Range = GetRange(location);
                 additionalDiagnostic.Tags = [DiagnosticTag.Unnecessary, VSDiagnosticTags.HiddenInEditor, VSDiagnosticTags.HiddenInErrorList, VSDiagnosticTags.SuppressEditorToolTip];
@@ -381,104 +382,106 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             diagnostic.RelatedInformation = diagnosticRelatedInformation;
             return [diagnostic];
         }
+    }
 
-        LSP.VSDiagnostic CreateLspDiagnostic(
-            DiagnosticData diagnosticData,
-            Project project,
-            ClientCapabilities capabilities)
+    private static LSP.VSDiagnostic CreateLspDiagnostic(
+        DiagnosticData diagnosticData,
+        Project project,
+        bool isLiveSource,
+        bool potentialDuplicate,
+        ClientCapabilities capabilities)
+    {
+        Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
+
+        // We can just use VSDiagnostic as it doesn't have any default properties set that
+        // would get automatically serialized.
+        var diagnostic = new LSP.VSDiagnostic
         {
-            Contract.ThrowIfNull(diagnosticData.Message, $"Got a document diagnostic that did not have a {nameof(diagnosticData.Message)}");
+            Code = diagnosticData.Id,
+            CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.GetValidHelpLinkUri()),
+            Message = diagnosticData.Message,
+            Severity = ConvertDiagnosticSeverity(diagnosticData.Severity, capabilities),
+            Tags = ConvertTags(diagnosticData, isLiveSource, potentialDuplicate),
+            DiagnosticRank = ConvertRank(diagnosticData),
+            Range = GetRange(diagnosticData.DataLocation)
+        };
 
-            // We can just use VSDiagnostic as it doesn't have any default properties set that
-            // would get automatically serialized.
-            var diagnostic = new LSP.VSDiagnostic
-            {
-                Code = diagnosticData.Id,
-                CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.GetValidHelpLinkUri()),
-                Message = diagnosticData.Message,
-                Severity = ConvertDiagnosticSeverity(diagnosticData.Severity, capabilities),
-                Tags = ConvertTags(diagnosticData, diagnosticSource.IsLiveSource()),
-                DiagnosticRank = ConvertRank(diagnosticData),
-                Range = GetRange(diagnosticData.DataLocation)
-            };
+        if (capabilities.HasVisualStudioLspCapability())
+        {
+            var expandedMessage = string.IsNullOrEmpty(diagnosticData.Description) ? null : diagnosticData.Description;
+            var informationService = project.Solution.Services.GetRequiredService<IDiagnosticProjectInformationService>();
 
-            if (capabilities.HasVisualStudioLspCapability())
-            {
-                var expandedMessage = string.IsNullOrEmpty(diagnosticData.Description) ? null : diagnosticData.Description;
-                var informationService = project.Solution.Services.GetRequiredService<IDiagnosticProjectInformationService>();
+            diagnostic.DiagnosticType = diagnosticData.Category;
+            diagnostic.ExpandedMessage = expandedMessage;
+            diagnostic.Projects = [informationService.GetDiagnosticProjectInformation(project)];
 
-                diagnostic.DiagnosticType = diagnosticData.Category;
-                diagnostic.ExpandedMessage = expandedMessage;
-                diagnostic.Projects = [informationService.GetDiagnosticProjectInformation(project)];
-
-                // Defines an identifier used by the client for merging diagnostics across projects. We want diagnostics
-                // to be merged from separate projects if they have the same code, filepath, range, and message.
-                //
-                // Note: LSP pull diagnostics only operates on unmapped locations.
-                diagnostic.Identifier = (diagnostic.Code, diagnosticData.DataLocation.UnmappedFileSpan.Path, diagnostic.Range, diagnostic.Message)
-                    .GetHashCode().ToString();
-            }
-
-            return diagnostic;
+            // Defines an identifier used by the client for merging diagnostics across projects. We want diagnostics
+            // to be merged from separate projects if they have the same code, filepath, range, and message.
+            //
+            // Note: LSP pull diagnostics only operates on unmapped locations.
+            diagnostic.Identifier = (diagnostic.Code, diagnosticData.DataLocation.UnmappedFileSpan.Path, diagnostic.Range, diagnostic.Message)
+                .GetHashCode().ToString();
         }
 
-        static LSP.Range GetRange(DiagnosticDataLocation dataLocation)
-        {
-            // We currently do not map diagnostics spans as
-            //   1.  Razor handles span mapping for razor files on their side.
-            //   2.  LSP does not allow us to report document pull diagnostics for a different file path.
-            //   3.  The VS LSP client does not support document pull diagnostics for files outside our content type.
-            //   4.  This matches classic behavior where we only squiggle the original location anyway.
+        return diagnostic;
+    }
 
-            // We also do not adjust the diagnostic locations to ensure they are in bounds because we've
-            // explicitly requested up to date diagnostics as of the snapshot we were passed in.
-            return new LSP.Range
+    private static LSP.Range GetRange(DiagnosticDataLocation dataLocation)
+    {
+        // We currently do not map diagnostics spans as
+        //   1.  Razor handles span mapping for razor files on their side.
+        //   2.  LSP does not allow us to report document pull diagnostics for a different file path.
+        //   3.  The VS LSP client does not support document pull diagnostics for files outside our content type.
+        //   4.  This matches classic behavior where we only squiggle the original location anyway.
+
+        // We also do not adjust the diagnostic locations to ensure they are in bounds because we've
+        // explicitly requested up to date diagnostics as of the snapshot we were passed in.
+        return new LSP.Range
+        {
+            Start = new Position
             {
-                Start = new Position
-                {
-                    Character = dataLocation.UnmappedFileSpan.StartLinePosition.Character,
-                    Line = dataLocation.UnmappedFileSpan.StartLinePosition.Line,
-                },
-                End = new Position
-                {
-                    Character = dataLocation.UnmappedFileSpan.EndLinePosition.Character,
-                    Line = dataLocation.UnmappedFileSpan.EndLinePosition.Line,
-                }
-            };
+                Character = dataLocation.UnmappedFileSpan.StartLinePosition.Character,
+                Line = dataLocation.UnmappedFileSpan.StartLinePosition.Line,
+            },
+            End = new Position
+            {
+                Character = dataLocation.UnmappedFileSpan.EndLinePosition.Character,
+                Line = dataLocation.UnmappedFileSpan.EndLinePosition.Line,
+            }
+        };
+    }
+
+    private static bool ShouldIncludeHiddenDiagnostic(DiagnosticData diagnosticData, ClientCapabilities capabilities)
+    {
+        // VS can handle us reporting any kind of diagnostic using VS custom tags.
+        if (capabilities.HasVisualStudioLspCapability() == true)
+        {
+            return true;
         }
 
-        static bool ShouldIncludeHiddenDiagnostic(DiagnosticData diagnosticData, ClientCapabilities capabilities)
+        // Diagnostic isn't hidden - we should report this diagnostic in all scenarios.
+        if (diagnosticData.Severity != DiagnosticSeverity.Hidden)
         {
-            // VS can handle us reporting any kind of diagnostic using VS custom tags.
-            if (capabilities.HasVisualStudioLspCapability() == true)
-            {
-                return true;
-            }
+            return true;
+        }
 
-            // Diagnostic isn't hidden - we should report this diagnostic in all scenarios.
-            if (diagnosticData.Severity != DiagnosticSeverity.Hidden)
-            {
-                return true;
-            }
-
-            // Roslyn creates these for example in remove unnecessary imports, see RemoveUnnecessaryImportsConstants.DiagnosticFixableId.
-            // These aren't meant to be visible in anyway, so we can safely exclude them.
-            // TODO - We should probably not be creating these as separate diagnostics or have a 'really really' hidden tag.
-            if (string.IsNullOrEmpty(diagnosticData.Message))
-            {
-                return false;
-            }
-
-            // Hidden diagnostics that are unnecessary are visible to the user in the form of fading.
-            // We can report these diagnostics.
-            if (diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
-            {
-                return true;
-            }
-
-            // We have a hidden diagnostic that has no fading.  This diagnostic can't be visible so don't send it to the client.
+        // Roslyn creates these for example in remove unnecessary imports, see RemoveUnnecessaryImportsConstants.DiagnosticFixableId.
+        // These aren't meant to be visible in anyway, so we can safely exclude them.
+        // TODO - We should probably not be creating these as separate diagnostics or have a 'really really' hidden tag.
+        if (string.IsNullOrEmpty(diagnosticData.Message))
+        {
             return false;
         }
+
+        // Hidden diagnostics that are unnecessary are visible to the user in the form of fading.
+        // We can report these diagnostics.
+        if (diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
+        {
+            return true;
+        }
+
+        // We have a hidden diagnostic that has no fading.  This diagnostic can't be visible so don't send it to the client.
+        return false;
     }
 
     private static VSDiagnosticRank? ConvertRank(DiagnosticData diagnosticData)
@@ -514,7 +517,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
     /// If you make change in this method, please also update the corresponding file in
     /// src\VisualStudio\Xaml\Impl\Implementation\LanguageServer\Handler\Diagnostics\AbstractPullDiagnosticHandler.cs
     /// </summary>
-    protected static DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource, bool potentialDuplicate)
+    private static DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource, bool potentialDuplicate)
     {
         using var _ = ArrayBuilder<DiagnosticTag>.GetInstance(out var result);
 
@@ -552,12 +555,12 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
         return result.ToArray();
     }
 
-    private bool SupportsFadingOption(DiagnosticData diagnosticData)
+    private static bool SupportsFadingOption(DiagnosticData diagnosticData, IGlobalOptionService globalOptionService)
     {
         if (IDEDiagnosticIdToOptionMappingHelper.TryGetMappedFadingOption(diagnosticData.Id, out var fadingOption))
         {
             Contract.ThrowIfNull(diagnosticData.Language, $"diagnostic {diagnosticData.Id} is missing a language");
-            return GlobalOptions.GetOption(fadingOption, diagnosticData.Language);
+            return globalOptionService.GetOption(fadingOption, diagnosticData.Language);
         }
 
         return true;
