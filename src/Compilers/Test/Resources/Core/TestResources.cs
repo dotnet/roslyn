@@ -4,6 +4,8 @@
 
 #nullable disable
 
+using System;
+
 namespace TestResources
 {
     public static class DiagnosticTests
@@ -170,11 +172,32 @@ namespace TestResources.NetFX
         private static byte[] s_mincorlib;
         public static byte[] mincorlib => ResourceLoader.GetOrCreateResource(ref s_mincorlib, "NetFX.Minimal.mincorlib.dll");
 
+        private static string s_mincorlib_cs;
+        public static string mincorlib_cs => ResourceLoader.GetOrCreateResource(ref s_mincorlib_cs, "NetFX.Minimal.mincorlib.cs");
+
         private static byte[] s_minasync;
         public static byte[] minasync => ResourceLoader.GetOrCreateResource(ref s_minasync, "NetFX.Minimal.minasync.dll");
 
         private static byte[] s_minasynccorlib;
         public static byte[] minasynccorlib => ResourceLoader.GetOrCreateResource(ref s_minasynccorlib, "NetFX.Minimal.minasynccorlib.dll");
+    }
+
+    public static class PortableProfile7
+    {
+        private static byte[] s_mscorlib;
+        public static byte[] Mscorlib => ResourceLoader.GetOrCreateResource(ref s_mscorlib, "NetFX.PortableProfile7.mscorlib.dll");
+
+        private static byte[] s_systemRuntime;
+        public static byte[] SystemRuntime => ResourceLoader.GetOrCreateResource(ref s_systemRuntime, "NetFX.PortableProfile7.System.Runtime.dll");
+    }
+
+    public static class WinRt
+    {
+        public static byte[] s_systemRuntimeWindowsRuntime;
+        public static byte[] SystemRuntimeWindowsRuntime => ResourceLoader.GetOrCreateResource(ref s_systemRuntimeWindowsRuntime, "NetFX.WinRt.System.Runtime.WindowsRuntime.dll");
+
+        public static byte[] s_systemRuntimeWindowsRuntimeUIXaml;
+        public static byte[] SystemRuntimeWindowsRuntimeUIXaml => ResourceLoader.GetOrCreateResource(ref s_systemRuntimeWindowsRuntimeUIXaml, "NetFX.WinRt.System.Runtime.WindowsRuntime.UI.Xaml.dll");
     }
 
     public static class ValueTuple
@@ -489,6 +512,9 @@ namespace TestResources.SymbolsTests
         private static byte[] s_invalidPublicKey;
         public static byte[] InvalidPublicKey => ResourceLoader.GetOrCreateResource(ref s_invalidPublicKey, "SymbolsTests.Metadata.InvalidPublicKey.dll");
 
+        private static byte[] s_badDefaultParameterValue;
+        public static byte[] BadDefaultParameterValue => ResourceLoader.GetOrCreateResource(ref s_badDefaultParameterValue, "BadDefaultParameterValue.dll");
+
         private static byte[] s_MDTestAttributeApplicationLib;
         public static byte[] MDTestAttributeApplicationLib => ResourceLoader.GetOrCreateResource(ref s_MDTestAttributeApplicationLib, "SymbolsTests.Metadata.MDTestAttributeApplicationLib.dll");
 
@@ -599,6 +625,12 @@ namespace TestResources.SymbolsTests
 
         private static byte[] s_x64COFF;
         public static byte[] x64COFF => ResourceLoader.GetOrCreateResource(ref s_x64COFF, "SymbolsTests.netModule.x64COFF.obj");
+    }
+
+    public static class StdOle
+    {
+        private static byte[] s_net45;
+        public static byte[] Net45 => ResourceLoader.GetOrCreateResource(ref s_net45, "net45.stdole.dll");
     }
 
     public static class NoPia

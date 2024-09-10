@@ -15,6 +15,7 @@
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <PackageReference Include="stdole" IncludeAssets="none" PrivateAssets="all" GeneratePathProperty="true" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ExpressionCompiler\*.*" LogicalName="ExpressionCompiler.%(FileName)%(Extension)" />
@@ -85,11 +86,16 @@
     <Content Include="NetFX\aacorlib\Key.snk" />
     <EmbeddedResource Include="NetFX\Minimal\minasync.dll" />
     <EmbeddedResource Include="NetFX\Minimal\mincorlib.dll" />
+    <EmbeddedResource Include="NetFX\PortableProfile7\mscorlib.dll" />
+    <EmbeddedResource Include="NetFX\PortableProfile7\System.Runtime.dll" />
+    <EmbeddedResource Include="NetFX\WinRt\System.Runtime.WindowsRuntime.dll" />
+    <EmbeddedResource Include="NetFX\WinRt\System.Runtime.WindowsRuntime.UI.Xaml.dll" />
     <Content Include="NetFX\Minimal\build.cmd" />
     <Content Include="NetFX\Minimal\Key.snk" />
     <Content Include="NetFX\Minimal\minasync.cs" />
     <EmbeddedResource Include="NetFX\Minimal\minasynccorlib.dll" />
     <Content Include="NetFX\Minimal\mincorlib.cs" />
+    <EmbeddedResource Include="NetFX\Minimal\mincorlib.cs" />
     <EmbeddedResource Include="NetFX\ValueTuple\System.ValueTuple.dll" />
     <EmbeddedResource Include="SymbolsTests\Metadata\public-and-private.dll" />
     <EmbeddedResource Include="SymbolsTests\CustomModifiers\GenericMethodWithModifiers.dll" />
@@ -189,6 +195,7 @@
     <EmbeddedResource Include="SymbolsTests\Metadata\MDTestAttributeDefLib.dll" />
     <Content Include="SymbolsTests\Metadata\MDTestAttributeDefLib.vb" />
     <EmbeddedResource Include="SymbolsTests\Metadata\MscorlibNamespacesAndTypes.bsl" />
+    <EmbeddedResource Include="SymbolsTests\Metadata\BadDefaultParameterValue.dll" />
     <EmbeddedResource Include="SymbolsTests\Methods\ByRefReturn.dll" />
     <Content Include="SymbolsTests\Methods\ByRefReturn.il" />
     <Content Include="SymbolsTests\Methods\CSMethods.cs" />
@@ -370,13 +377,9 @@
     <Content Include="WinRt\WImpl.il" />
     <EmbeddedResource Include="WinRt\WImpl.winmd" />
     <EmbeddedResource Include="PerfTests\VBPerfTest.vb" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="NetFX\ValueTuple\ValueTuple.cs" />
     <EmbeddedResource Include="NetFX\ValueTuple\TupleElementNamesAttribute.cs" />
     <None Include="SymbolsTests\Metadata\public-and-private.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Analyzers\README.md" />
     <Compile Include="Analyzers\DoNothingAnalyzer.cs" />
     <Compile Include="Analyzers\DoNothingGenerator.cs" />
@@ -384,8 +387,10 @@
     <Compile Include="ResourceLoader.cs" />
     <Compile Include="TestKeys.cs" />
     <Compile Include="TestResources.cs" />
+    <EmbeddedResource Include="SymbolsTests\nativeCOFFResources.obj" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="SymbolsTests\nativeCOFFResources.obj" />
+    <Folder Include="NetFX\WinRt\" />
+    <Folder Include="NetFX\PortableProfile7\" />
   </ItemGroup>
 </Project>

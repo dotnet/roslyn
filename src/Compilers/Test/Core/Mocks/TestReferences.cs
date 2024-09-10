@@ -8,7 +8,6 @@ using System;
 using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Roslyn.Test.Utilities;
 
 public static class TestReferences
@@ -98,7 +97,7 @@ public static class TestReferences
         public static class silverlight_v5_0_5_0
         {
             private static readonly Lazy<PortableExecutableReference> s_system = new Lazy<PortableExecutableReference>(
-                () => AssemblyMetadata.CreateFromImage(ProprietaryTestResources.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).GetReference(display: "System.v5.0.5.0_silverlight.dll"),
+                () => AssemblyMetadata.CreateFromImage(Silverlight.System).GetReference(display: "System.v5.0.5.0_silverlight.dll"),
                 LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference System => s_system.Value;
         }
@@ -689,7 +688,7 @@ public static class TestReferences
         public static class NoPia
         {
             private static readonly Lazy<PortableExecutableReference> s_stdOle = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(ProprietaryTestResources.ProprietaryPias.stdole).GetReference(display: "stdole.dll"),
+        () => AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.StdOle.Net45).GetReference(display: "stdole.dll"),
         LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference StdOle => s_stdOle.Value;
 

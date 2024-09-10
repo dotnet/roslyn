@@ -13655,7 +13655,7 @@ End Module
     </file>
 </compilation>
 
-            Dim testReference = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.Repros.BadDefaultParameterValue).GetReference()
+            Dim testReference = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.Metadata.BadDefaultParameterValue).GetReference()
             Dim compilation = CompileAndVerify(source, references:=New MetadataReference() {testReference})
             compilation.VerifyIL("C.Main",
             <![CDATA[

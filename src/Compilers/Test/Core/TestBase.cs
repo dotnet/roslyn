@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
 using static TestReferences.NetFx;
-using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Basic.Reference.Assemblies;
 using Roslyn.Utilities;
 using System.Globalization;
@@ -103,7 +102,7 @@ namespace Roslyn.Test.Utilities
                 var winmd = AssemblyMetadata.CreateFromImage(TestResources.WinRt.Windows).GetReference(display: "Windows");
 
                 var windowsruntime =
-                    AssemblyMetadata.CreateFromImage(ProprietaryTestResources.v4_0_30319_17929.System_Runtime_WindowsRuntime).GetReference(display: "System.Runtime.WindowsRuntime.dll");
+                    AssemblyMetadata.CreateFromImage(TestResources.NetFX.WinRt.SystemRuntimeWindowsRuntime).GetReference(display: "System.Runtime.WindowsRuntime.dll");
 
                 var runtime =
                     AssemblyMetadata.CreateFromImage(Net461.Resources.SystemRuntime).GetReference(display: "System.Runtime.dll");
@@ -111,7 +110,7 @@ namespace Roslyn.Test.Utilities
                 var objectModel =
                     AssemblyMetadata.CreateFromImage(Net461.Resources.SystemObjectModel).GetReference(display: "System.ObjectModel.dll");
 
-                var uixaml = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.v4_0_30319_17929.System_Runtime_WindowsRuntime_UI_Xaml).
+                var uixaml = AssemblyMetadata.CreateFromImage(TestResources.NetFX.WinRt.SystemRuntimeWindowsRuntimeUIXaml).
                     GetReference(display: "System.Runtime.WindowsRuntime.UI.Xaml.dll");
 
                 var interop = AssemblyMetadata.CreateFromImage(Net461.Resources.SystemRuntimeInteropServicesWindowsRuntime).
@@ -187,7 +186,7 @@ namespace Roslyn.Test.Utilities
         public static MetadataReference MscorlibRef => s_mscorlibRef.Value;
 
         private static readonly Lazy<MetadataReference> s_mscorlibRefPortable = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ProprietaryTestResources.v4_0_30319.mscorlib_portable).GetReference(display: "mscorlib.v4_0_30319.portable.dll"),
+            () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.PortableProfile7.Mscorlib).GetReference(display: "mscorlib.v4_0_30319.portable.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference MscorlibRefPortable => s_mscorlibRefPortable.Value;
 
@@ -222,14 +221,6 @@ namespace Roslyn.Test.Utilities
             () => AssemblyMetadata.CreateFromImage(Net461.ReferenceInfos.mscorlib.ImageBytes).GetReference(display: "mscorlib.v4_6_1038_0.dll", filePath: @"Z:\FxReferenceAssembliesUri"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference MscorlibRef_v46 => s_mscorlibRef_v46.Value;
-
-        /// <summary>
-        /// Reference to an mscorlib silverlight assembly in which the System.Array does not contain the special member LongLength.
-        /// </summary>
-        private static readonly Lazy<MetadataReference> s_mscorlibRef_silverlight = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ProprietaryTestResources.silverlight_v5_0_5_0.mscorlib_v5_0_5_0_silverlight).GetReference(display: "mscorlib.v5.0.5.0_silverlight.dll"),
-            LazyThreadSafetyMode.PublicationOnly);
-        public static MetadataReference MscorlibRefSilverlight => s_mscorlibRef_silverlight.Value;
 
         public static MetadataReference MinCorlibRef => TestReferences.NetFx.Minimal.mincorlib;
 
@@ -318,12 +309,12 @@ namespace Roslyn.Test.Utilities
         public static MetadataReference SystemThreadingTaskFacadeRef => s_systemThreadingTasksFacadeRef.Value;
 
         private static readonly Lazy<MetadataReference> s_mscorlibPP7Ref = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ProprietaryTestResources.ReferenceAssemblies_PortableProfile7.mscorlib).GetReference(display: "mscorlib.dll"),
+            () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.PortableProfile7.Mscorlib).GetReference(display: "mscorlib.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference MscorlibPP7Ref => s_mscorlibPP7Ref.Value;
 
         private static readonly Lazy<MetadataReference> s_systemRuntimePP7Ref = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ProprietaryTestResources.ReferenceAssemblies_PortableProfile7.System_Runtime).GetReference(display: "System.Runtime.dll"),
+            () => AssemblyMetadata.CreateFromImage(TestResources.NetFX.PortableProfile7.SystemRuntime).GetReference(display: "System.Runtime.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemRuntimePP7Ref => s_systemRuntimePP7Ref.Value;
 
