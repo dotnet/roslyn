@@ -15,9 +15,7 @@
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <PackageReference Include="stdole" IncludeAssets="none" PrivateAssets="all" GeneratePathProperty="true" />
-  </ItemGroup>
-  <ItemGroup>
+
     <EmbeddedResource Include="ExpressionCompiler\*.*" LogicalName="ExpressionCompiler.%(FileName)%(Extension)" />
     <EmbeddedResource Include="DiagnosticTests\badresfile.res" />
     <Content Include="DiagnosticTests\ErrTestLib01.cs" />

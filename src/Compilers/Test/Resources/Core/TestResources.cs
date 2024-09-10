@@ -627,12 +627,6 @@ namespace TestResources.SymbolsTests
         public static byte[] x64COFF => ResourceLoader.GetOrCreateResource(ref s_x64COFF, "SymbolsTests.netModule.x64COFF.obj");
     }
 
-    public static class StdOle
-    {
-        private static byte[] s_net45;
-        public static byte[] Net45 => ResourceLoader.GetOrCreateResource(ref s_net45, "net45.stdole.dll");
-    }
-
     public static class NoPia
     {
         private static byte[] s_A;

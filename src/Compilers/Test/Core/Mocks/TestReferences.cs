@@ -9,6 +9,7 @@ using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Roslyn.Test.Utilities;
+using Xunit;
 
 public static class TestReferences
 {
@@ -688,8 +689,7 @@ public static class TestReferences
         public static class NoPia
         {
             private static readonly Lazy<PortableExecutableReference> s_stdOle = new Lazy<PortableExecutableReference>(
-        () => AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.StdOle.Net45).GetReference(display: "stdole.dll"),
-        LazyThreadSafetyMode.PublicationOnly);
+        () => Roslyn.Test.Utilities.StdOle.Build(TargetFrameworkUtil.StandardReferences), LazyThreadSafetyMode.PublicationOnly);
             public static PortableExecutableReference StdOle => s_stdOle.Value;
 
             private static readonly Lazy<PortableExecutableReference> s_pia1 = new Lazy<PortableExecutableReference>(

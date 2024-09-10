@@ -271,7 +271,6 @@
     <PackageVersion Include="System.Drawing.Common" Version="8.0.0" />
     <PackageVersion Include="NuGet.SolutionRestoreManager.Interop" Version="4.8.0" />
     <PackageVersion Include="Moq" Version="4.10.1" />
-    <PackageVersion Include="stdole" Version="17.11.40262" />
     <PackageVersion Include="System.CodeDom" Version="7.0.0" />
     <PackageVersion Include="InputSimulatorPlus" Version="1.0.7" />
     <PackageVersion Include="UIAComWrapper" Version="1.1.0.14" />
