@@ -56,6 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             LspOptionsStorage.LspEnableTestsCodeLens,
             LanguageServerProjectSystemOptionsStorage.BinaryLogPath,
             LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore,
+            MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources,
         ];
     }
 }
