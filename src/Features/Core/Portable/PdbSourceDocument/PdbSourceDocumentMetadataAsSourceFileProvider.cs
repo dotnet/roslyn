@@ -68,7 +68,7 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
     /// generally run concurrently.  However, to be safe, we make this a concurrent dictionary to be safe to that
     /// potentially happening.
     /// </summary>
-    private readonly ConcurrentDictionary<string, SourceDocumentInfo> _fileToDocumentInfoMap = [];
+    private readonly ConcurrentDictionary<string, SourceDocumentInfo> _fileToDocumentInfoMap = new(StringComparer.OrdinalIgnoreCase);
 
     public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(
         MetadataAsSourceWorkspace metadataWorkspace,
