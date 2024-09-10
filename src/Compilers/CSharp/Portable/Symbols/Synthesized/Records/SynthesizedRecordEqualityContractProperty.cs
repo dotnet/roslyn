@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasAutoPropertyGet: false,
                 hasAutoPropertySet: false,
                 isExpressionBodied: false,
-                isInitOnly: false,
                 accessorsHaveImplementation: true,
                 usesFieldKeyword: false,
                 RefKind.None,

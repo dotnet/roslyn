@@ -7977,6 +7977,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PartialPropertyRequiredDifference" xml:space="preserve">
     <value>Both partial property declarations must be required or neither may be required</value>
   </data>
+  <data name="ERR_PartialPropertyDuplicateInitializer" xml:space="preserve">
+    <value>A partial property cannot have an initializer on both the definition and implementation.</value>
+  </data>
   <data name="IDS_FeatureAllowsRefStructConstraint" xml:space="preserve">
     <value>allows ref struct constraint</value>
   </data>

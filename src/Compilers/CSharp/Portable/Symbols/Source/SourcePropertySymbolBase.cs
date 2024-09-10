@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// so that we do not have to go back to source to compute this data.
         /// </summary>
         [Flags]
-        private enum Flags : byte
+        private enum Flags : ushort
         {
             IsExpressionBodied = 1 << 0,
             HasAutoPropertyGet = 1 << 1,
@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             HasInitializer = 1 << 5,
             AccessorsHaveImplementation = 1 << 6,
             HasExplicitAccessModifier = 1 << 7,
+            RequiresBackingField = 1 << 8,
         }
 
         // TODO (tomat): consider splitting into multiple subclasses/rare data.
@@ -71,6 +72,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public Location Location { get; }
 
 #nullable enable
+        private SynthesizedBackingFieldSymbol? _lazyDeclaredBackingField;
+        private SynthesizedBackingFieldSymbol? _lazyMergedBackingField;
+
         protected SourcePropertySymbolBase(
             SourceMemberContainerTypeSymbol containingType,
             CSharpSyntaxNode syntax,
@@ -85,7 +89,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasAutoPropertyGet,
             bool hasAutoPropertySet,
             bool isExpressionBodied,
-            bool isInitOnly,
             bool accessorsHaveImplementation,
             bool usesFieldKeyword,
             RefKind refKind,
@@ -171,35 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (usesFieldKeyword || hasAutoPropertyGet || hasAutoPropertySet || hasInitializer)
             {
                 Debug.Assert(!IsIndexer);
-                string fieldName = GeneratedNames.MakeBackingFieldName(_name);
-
-                // The backing field is readonly if any of the following holds:
-                // - The containing type is declared readonly and the property is an instance property.
-                bool isReadOnly;
-                if (!IsStatic && containingType.IsReadOnly)
-                {
-                    isReadOnly = true;
-                }
-                // - The property is declared readonly.
-                else if (HasReadOnlyModifier)
-                {
-                    isReadOnly = true;
-                }
-                // - The property has no set accessor (but may have an init accessor) and
-                // the get accessor, if any, is automatically implemented.
-                else if ((!hasSetAccessor || isInitOnly) && (!hasGetAccessor || hasAutoPropertyGet))
-                {
-                    isReadOnly = true;
-                }
-                else
-                {
-                    // PROTOTYPE: We could treat the field as readonly if all manually implemented get and set
-                    // accessors are declared readonly. Although, to do so, we might need to bind the accessor
-                    // declarations before creating the backing field. See FieldKeywordTests.ReadOnly_05().
-                    isReadOnly = false;
-                }
-
-                BackingField = new SynthesizedBackingFieldSymbol(this, fieldName, isReadOnly: isReadOnly, this.IsStatic, hasInitializer);
+                _propertyFlags |= Flags.RequiresBackingField;
             }
 
             if (hasGetAccessor)
@@ -211,6 +186,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 _setMethod = CreateSetAccessorSymbol(hasAutoPropertySet, diagnostics);
             }
+
+            // We shouldn't calculate the backing field before the accessors above are created.
+            Debug.Assert(_lazyDeclaredBackingField is null);
         }
 
         private void EnsureSignatureGuarded(BindingDiagnosticBag diagnostics)
@@ -672,14 +650,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsAutoPropertyOrUsesFieldKeyword
             => IsAutoProperty || UsesFieldKeyword;
 
-        private bool UsesFieldKeyword
-            => (_propertyFlags & Flags.UsesFieldKeyword) != 0;
+        internal bool UsesFieldKeyword
+            => IsSetOnEitherPart(Flags.UsesFieldKeyword);
 
         protected bool HasExplicitAccessModifier
             => (_propertyFlags & Flags.HasExplicitAccessModifier) != 0;
 
         internal bool IsAutoProperty
-            => (_propertyFlags & (Flags.HasAutoPropertyGet | Flags.HasAutoPropertySet)) != 0;
+            => IsSetOnEitherPart(Flags.HasAutoPropertyGet | Flags.HasAutoPropertySet);
+
+        private bool IsSetOnEitherPart(Flags flags)
+        {
+            return (_propertyFlags & flags) != 0 ||
+                (this is SourcePropertySymbol { OtherPartOfPartial: { } otherPart } && (otherPart._propertyFlags & flags) != 0);
+        }
 
         protected bool AccessorsHaveImplementation
             => (_propertyFlags & Flags.AccessorsHaveImplementation) != 0;
@@ -689,7 +673,80 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// a property with an accessor using the 'field' keyword, or
         /// a property with an initializer.
         /// </summary>
-        internal SynthesizedBackingFieldSymbol BackingField { get; }
+        internal SynthesizedBackingFieldSymbol BackingField
+#nullable enable
+        {
+            get
+            {
+                if (_lazyMergedBackingField is null)
+                {
+                    var backingField = DeclaredBackingField;
+                    // The property should only be used after members in the containing
+                    // type are complete, and partial members have been merged.
+                    if (!_containingType.AreMembersComplete)
+                    {
+                        // When calling through the SemanticModel, partial members are not
+                        // necessarily merged when the containing type includes a primary
+                        // constructor - see https://github.com/dotnet/roslyn/issues/75002.
+                        Debug.Assert(_containingType.PrimaryConstructor is { });
+                        return backingField;
+                    }
+                    Interlocked.CompareExchange(ref _lazyMergedBackingField, backingField, null);
+                }
+                return _lazyMergedBackingField;
+            }
+        }
+
+        internal SynthesizedBackingFieldSymbol? DeclaredBackingField
+        {
+            get
+            {
+                if (_lazyDeclaredBackingField is null &&
+                    (_propertyFlags & Flags.RequiresBackingField) != 0)
+                {
+                    Interlocked.CompareExchange(ref _lazyDeclaredBackingField, CreateBackingField(), null);
+                }
+                return _lazyDeclaredBackingField;
+            }
+        }
+
+        internal void SetMergedBackingField(SynthesizedBackingFieldSymbol? backingField)
+        {
+            Interlocked.CompareExchange(ref _lazyMergedBackingField, backingField, null);
+            Debug.Assert((object?)_lazyMergedBackingField == backingField);
+        }
+
+        private SynthesizedBackingFieldSymbol CreateBackingField()
+        {
+            string fieldName = GeneratedNames.MakeBackingFieldName(_name);
+
+            // The backing field is readonly if any of the following holds:
+            // - The containing type is declared readonly and the property is an instance property.
+            bool isReadOnly;
+            if (!IsStatic && ContainingType.IsReadOnly)
+            {
+                isReadOnly = true;
+            }
+            // - The property is declared readonly.
+            else if (HasReadOnlyModifier)
+            {
+                isReadOnly = true;
+            }
+            // - The property has no set accessor or is initonly or is declared readonly, and
+            // the get accessor, if any, is automatically implemented, or declared readonly.
+            else if ((_setMethod is null || _setMethod.IsInitOnly || _setMethod.IsDeclaredReadOnly) &&
+                (_getMethod is null || (_propertyFlags & Flags.HasAutoPropertyGet) != 0 || _getMethod.IsDeclaredReadOnly))
+            {
+                isReadOnly = true;
+            }
+            else
+            {
+                isReadOnly = false;
+            }
+
+            return new SynthesizedBackingFieldSymbol(this, fieldName, isReadOnly: isReadOnly, isStatic: this.IsStatic, hasInitializer: (_propertyFlags & Flags.HasInitializer) != 0);
+        }
+#nullable disable
 
         internal override bool MustCallMethodsDirectly
         {
@@ -1147,17 +1204,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!ReferenceEquals(copyFrom, this));
 
             // The property is responsible for completion of the backing field
-            // NB: when the **field keyword feature** is implemented, it's possible that synthesized field symbols will also be merged or shared between partial property parts.
-            // If we do that then this check should possibly be moved, and asserts adjusted accordingly.
             _ = BackingField?.GetAttributes();
 
             bool bagCreatedOnThisThread;
             if (copyFrom is not null)
             {
-                // When partial properties get the ability to have a backing field,
-                // the implementer will have to decide how the BackingField symbol works in 'copyFrom' scenarios.
-                Debug.Assert(!IsAutoProperty);
-
                 var attributesBag = copyFrom.GetAttributesBag();
                 bagCreatedOnThisThread = Interlocked.CompareExchange(ref _lazyCustomAttributesBag, attributesBag, null) == null;
             }

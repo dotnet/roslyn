@@ -44,7 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 out bool hasGetAccessorImplementation,
                 out bool hasSetAccessorImplementation,
                 out bool usesFieldKeyword,
-                out bool isInitOnly,
                 out var getSyntax,
                 out var setSyntax);
 
@@ -63,8 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 out _);
 
-            bool allowAutoPropertyAccessors = (modifiers & (DeclarationModifiers.Partial | DeclarationModifiers.Abstract | DeclarationModifiers.Extern | DeclarationModifiers.Indexer)) == 0 &&
-                (!containingType.IsInterface || (modifiers & DeclarationModifiers.Static) != 0);
+            bool allowAutoPropertyAccessors = (modifiers & (DeclarationModifiers.Abstract | DeclarationModifiers.Extern | DeclarationModifiers.Indexer)) == 0 &&
+                (!containingType.IsInterface || (modifiers & DeclarationModifiers.Static) != 0) &&
+                ((modifiers & DeclarationModifiers.Partial) == 0 || hasGetAccessorImplementation || hasSetAccessorImplementation);
             bool hasAutoPropertyGet = allowAutoPropertyAccessors && getSyntax != null && !hasGetAccessorImplementation;
             bool hasAutoPropertySet = allowAutoPropertyAccessors && setSyntax != null && !hasSetAccessorImplementation;
 
@@ -86,7 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasAutoPropertyGet: hasAutoPropertyGet,
                 hasAutoPropertySet: hasAutoPropertySet,
                 isExpressionBodied: isExpressionBodied,
-                isInitOnly: isInitOnly,
                 accessorsHaveImplementation: accessorsHaveImplementation,
                 usesFieldKeyword: usesFieldKeyword,
                 memberName,
@@ -107,7 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasAutoPropertyGet,
             bool hasAutoPropertySet,
             bool isExpressionBodied,
-            bool isInitOnly,
             bool accessorsHaveImplementation,
             bool usesFieldKeyword,
             string memberName,
@@ -127,7 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 hasAutoPropertyGet: hasAutoPropertyGet,
                 hasAutoPropertySet: hasAutoPropertySet,
                 isExpressionBodied: isExpressionBodied,
-                isInitOnly: isInitOnly,
                 accessorsHaveImplementation: accessorsHaveImplementation,
                 usesFieldKeyword: usesFieldKeyword,
                 syntax.Type.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
@@ -189,8 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Attributes on partial properties are owned by the definition part.
             // If this symbol has a non-null PartialDefinitionPart, we should have accessed this method through that definition symbol instead
             Debug.Assert(PartialDefinitionPart is null
-                // We might still get here when asking for the attributes on a backing field.
-                // This is an error scenario (requires using a property initializer and field-targeted attributes on partial property implementation part).
+                // We might still get here when asking for the attributes on a backing field in error scenarios.
                 || this.BackingField is not null);
 
             if (SourcePartialImplementationPart is { } implementationPart)
@@ -216,7 +212,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool hasGetAccessorImplementation,
             out bool hasSetAccessorImplementation,
             out bool usesFieldKeyword,
-            out bool isInitOnly,
             out AccessorDeclarationSyntax? getSyntax,
             out AccessorDeclarationSyntax? setSyntax)
         {
@@ -224,7 +219,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             isExpressionBodied = syntax.AccessorList is null;
             getSyntax = null;
             setSyntax = null;
-            isInitOnly = false;
 
             if (!isExpressionBodied)
             {
@@ -252,10 +246,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             {
                                 setSyntax = accessor;
                                 hasSetAccessorImplementation = hasImplementation(accessor);
-                                if (accessor.Keyword.IsKind(SyntaxKind.InitKeyword))
-                                {
-                                    isInitOnly = true;
-                                }
                             }
                             else
                             {
@@ -784,6 +774,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             Debug.Assert(definition._otherPartOfPartial == implementation);
             Debug.Assert(implementation._otherPartOfPartial == definition);
+
+            // Use the same backing field for both parts.
+            var backingField = definition.DeclaredBackingField ?? implementation.DeclaredBackingField;
+            definition.SetMergedBackingField(backingField);
+            implementation.SetMergedBackingField(backingField);
         }
     }
 }
