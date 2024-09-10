@@ -88,7 +88,7 @@ internal readonly struct EmitSolutionUpdateResults
     /// <summary>
     /// Solution snapshot to resolve diagnostics in.
     /// Note that this might be a different snapshot from the one passed to <see cref="IEditAndContinueService.EmitSolutionUpdateAsync(DebuggingSessionId, Solution, ActiveStatementSpanProvider, CancellationToken)"/>,
-    /// with source generator files refrshed.
+    /// with source generator files refreshed.
     /// 
     /// Null only for empty results.
     /// </summary>
