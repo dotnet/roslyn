@@ -169,9 +169,8 @@ while [[ $# > 0 ]]; do
     --warnaserror)
       warn_as_error=true
       ;;
-    --sourcebuild|/p:arcadebuildfromsource=true)
-      # Arcade specifies /p:ArcadeBuildFromSource=true instead of --sourceBuild, but that's not developer friendly so we
-      # have an alias.
+    --sourcebuild|/p:dotnetbuildsourceonly=true)
+      # Arcade passes /p:DotNetBuildSourceOnly=true and /p:DotNetBuildRepo=true when --sourcebuild or -sb is passed. Include this switch in our build scripts.
       source_build=true
       # RestoreUseStaticGraphEvaluation will cause prebuilts
       restoreUseStaticGraphEvaluation=false
@@ -302,7 +301,8 @@ function BuildSolution {
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \
     /p:TestRuntimeAdditionalArguments=$test_runtime_args \
-    /p:ArcadeBuildFromSource=$source_build \
+    /p:DotNetBuildSourceOnly=$source_build \
+    /p:DotNetBuildRepo=$source_build \
     $test_runtime \
     $mono_tool \
     $generate_documentation_file \
