@@ -1838,7 +1838,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             needSynthesizedImplementation = false;
                         }
                     }
-                    else if (implementingMethod.IsMetadataVirtual(ignoreInterfaceImplementationChanges: true))
+                    else if (implementingMethod.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges))
                     {
                         // If the signatures match and the implementation method is definitely virtual, then we're set.
                         needSynthesizedImplementation = false;
