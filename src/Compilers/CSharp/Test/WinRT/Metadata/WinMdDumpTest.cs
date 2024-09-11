@@ -14,7 +14,6 @@ using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -27,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
         private readonly MetadataReference _windowsRef = MetadataReference.CreateFromImage(TestResources.WinRt.Windows.AsImmutableOrNull());
         private readonly MetadataReference _systemRuntimeRef = MetadataReference.CreateFromImage(Net461.Resources.SystemRuntime.AsImmutableOrNull());
         private readonly MetadataReference _systemObjectModelRef = MetadataReference.CreateFromImage(Net461.Resources.SystemObjectModel.AsImmutableOrNull());
-        private readonly MetadataReference _windowsRuntimeUIXamlRef = MetadataReference.CreateFromImage(ProprietaryTestResources.v4_0_30319_17929.System_Runtime_WindowsRuntime_UI_Xaml.AsImmutableOrNull());
+        private readonly MetadataReference _windowsRuntimeUIXamlRef = MetadataReference.CreateFromImage(TestResources.NetFX.WinRt.SystemRuntimeWindowsRuntimeUIXaml.AsImmutableOrNull());
         private readonly MetadataReference _interopServicesWindowsRuntimeRef = MetadataReference.CreateFromImage(Net461.Resources.SystemRuntimeInteropServicesWindowsRuntime.AsImmutableOrNull());
 
         private void AppendMembers(StringBuilder result, NamespaceOrTypeSymbol container, string indent)

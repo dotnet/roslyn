@@ -414,7 +414,8 @@ public delegate void Y(List<string> addin);
 
             var comp1 = CreateCompilation(
                 Parse(text1),
-                new[] { TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(true) },
+                targetFramework: TargetFramework.NetFramework,
+                references: [TestReferences.SymbolsTests.NoPia.StdOleNetFramework.WithEmbedInteropTypes(true)],
                 options: TestOptions.ReleaseDll);
 
             var text2 = @"
@@ -429,22 +430,24 @@ public class Program
 
             var comp2 = CreateCompilation(
                 Parse(text2),
-                new MetadataReference[]
-                    {
+                targetFramework: TargetFramework.NetFramework,
+                references:
+                    [
                         new CSharpCompilationReference(comp1),
-                        TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(true)
-                    },
+                        TestReferences.SymbolsTests.NoPia.StdOleNetFramework.WithEmbedInteropTypes(true)
+                    ],
                 options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp2, expectedOutput: "Y").Diagnostics.Verify();
 
             var comp3 = CreateCompilation(
                 Parse(text2),
-                new MetadataReference[]
-                    {
+                targetFramework: TargetFramework.NetFramework,
+                references:
+                    [
                         comp1.EmitToImageReference(),
-                        TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(true)
-                    },
+                        TestReferences.SymbolsTests.NoPia.StdOleNetFramework.WithEmbedInteropTypes(true)
+                    ],
                 options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp3, expectedOutput: "Y").Diagnostics.Verify();
