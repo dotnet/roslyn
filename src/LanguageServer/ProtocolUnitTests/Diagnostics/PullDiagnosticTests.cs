@@ -978,7 +978,7 @@ class C
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65967")]
-    public async Task TestWorkspaceDiagnosticsForClosedFilesWithWithRunCodeAnalysisFSAOn(bool useVSDiagnostics, bool mutatingLspWorkspace, bool scopeRunCodeAnalysisToProject)
+    public async Task TestWorkspaceDiagnosticsForClosedFilesWithRunCodeAnalysisFSAOn(bool useVSDiagnostics, bool mutatingLspWorkspace, bool scopeRunCodeAnalysisToProject)
     {
         var markup1 =
 @"class A {";
@@ -1023,6 +1023,28 @@ class C
         Assert.Equal(results2[0].Diagnostics, results3[0].Diagnostics);
         Assert.Equal(results2[1].Diagnostics, results3[1].Diagnostics);
         Assert.Equal(results2[2].Diagnostics, results3[2].Diagnostics);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task SourceGeneratorFailures_FSA(bool useVSDiagnostics, bool mutatingLspWorkspace, bool enableDiagnosticsInSourceGeneratedFiles)
+    {
+        await using var testLspServer = await CreateTestLspServerAsync(["class C {}"], mutatingLspWorkspace,
+            GetInitializationOptions(BackgroundAnalysisScope.FullSolution, CompilerDiagnosticsScope.FullSolution, useVSDiagnostics, enableDiagnosticsInSourceGeneratedFiles: enableDiagnosticsInSourceGeneratedFiles));
+
+        var generator = new TestSourceGenerator()
+        {
+            ExecuteImpl = context => throw new InvalidOperationException("Source generator failed")
+        };
+
+        var solution = testLspServer.TestWorkspace.CurrentSolution;
+        solution = solution.AddAnalyzerReference(solution.ProjectIds.Single(), new TestGeneratorReference(generator));
+        Assert.True(testLspServer.TestWorkspace.TryApplyChanges(solution));
+
+        var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
+
+        Assert.Equal(2, results.Length);
+        Assert.Empty(results[0].Diagnostics);
+        Assert.True(results[1].Diagnostics.Single().Message.Contains("Source generator failed"));
     }
 
     [Theory, CombinatorialData]

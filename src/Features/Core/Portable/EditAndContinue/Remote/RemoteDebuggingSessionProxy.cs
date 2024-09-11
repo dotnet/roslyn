@@ -53,64 +53,43 @@ internal sealed class RemoteDebuggingSessionProxy(SolutionServices services, IDi
         Dispose();
     }
 
-    public async ValueTask<(
-            ModuleUpdates updates,
-            ImmutableArray<DiagnosticData> diagnostics,
-            ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits,
-            DiagnosticData? syntaxError)> EmitSolutionUpdateAsync(
+    public async ValueTask<EmitSolutionUpdateResults.Data> EmitSolutionUpdateAsync(
         Solution solution,
         ActiveStatementSpanProvider activeStatementSpanProvider,
         CancellationToken cancellationToken)
     {
-        ModuleUpdates moduleUpdates;
-        ImmutableArray<DiagnosticData> diagnosticData;
-        ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits;
-        DiagnosticData? syntaxError;
-
         try
         {
             var client = await RemoteHostClient.TryGetClientAsync(services, cancellationToken).ConfigureAwait(false);
             if (client == null)
             {
-                var results = await GetLocalService().EmitSolutionUpdateAsync(sessionId, solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false);
-                moduleUpdates = results.ModuleUpdates;
-                diagnosticData = results.Diagnostics.ToDiagnosticData(solution);
-                rudeEdits = results.RudeEdits;
-                syntaxError = results.GetSyntaxErrorData(solution);
+                return (await GetLocalService().EmitSolutionUpdateAsync(sessionId, solution, activeStatementSpanProvider, cancellationToken).ConfigureAwait(false)).Dehydrate();
             }
-            else
-            {
-                var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, EmitSolutionUpdateResults.Data>(
-                    solution,
-                    (service, solutionInfo, callbackId, cancellationToken) => service.EmitSolutionUpdateAsync(solutionInfo, callbackId, sessionId, cancellationToken),
-                    callbackTarget: new ActiveStatementSpanProviderCallback(activeStatementSpanProvider),
-                    cancellationToken).ConfigureAwait(false);
 
-                if (result.HasValue)
-                {
-                    moduleUpdates = result.Value.ModuleUpdates;
-                    diagnosticData = result.Value.Diagnostics;
-                    rudeEdits = result.Value.RudeEdits;
-                    syntaxError = result.Value.SyntaxError;
-                }
-                else
-                {
-                    moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []);
-                    diagnosticData = [];
-                    rudeEdits = [];
-                    syntaxError = null;
-                }
-            }
+            var result = await client.TryInvokeAsync<IRemoteEditAndContinueService, EmitSolutionUpdateResults.Data>(
+                solution,
+                (service, solutionInfo, callbackId, cancellationToken) => service.EmitSolutionUpdateAsync(solutionInfo, callbackId, sessionId, cancellationToken),
+                callbackTarget: new ActiveStatementSpanProviderCallback(activeStatementSpanProvider),
+                cancellationToken).ConfigureAwait(false);
+
+            return result.HasValue ? result.Value : new EmitSolutionUpdateResults.Data()
+            {
+                ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []),
+                Diagnostics = [],
+                RudeEdits = [],
+                SyntaxError = null,
+            };
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
-            diagnosticData = GetInternalErrorDiagnosticData(solution, e);
-            rudeEdits = [];
-            moduleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []);
-            syntaxError = null;
+            return new EmitSolutionUpdateResults.Data()
+            {
+                ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.RestartRequired, []),
+                Diagnostics = GetInternalErrorDiagnosticData(solution, e),
+                RudeEdits = [],
+                SyntaxError = null,
+            };
         }
-
-        return (moduleUpdates, diagnosticData, rudeEdits, syntaxError);
     }
 
     private static ImmutableArray<DiagnosticData> GetInternalErrorDiagnosticData(Solution solution, Exception e)
