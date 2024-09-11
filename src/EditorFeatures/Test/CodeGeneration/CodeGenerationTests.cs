@@ -538,7 +538,7 @@ public partial class CodeGenerationTests
         var codeGenerator = testContext.Document.GetRequiredLanguageService<ICodeGenerationService>();
         var options = await testContext.Document.GetCodeGenerationOptionsAsync(CancellationToken.None);
         var info = codeGenerator.GetInfo(CodeGenerationContext.Default, options, oldNode.SyntaxTree.Options);
-        var newNode = codeGenerator.AddAttributes(oldNode, new[] { attr }, target, info, CancellationToken.None)
+        var newNode = codeGenerator.AddAttributes(oldNode, [attr], target, info, CancellationToken.None)
                                    .WithAdditionalAnnotations(Formatter.Annotation);
         testContext.Result = testContext.Document.WithSyntaxRoot(testContext.SemanticModel.SyntaxTree.GetRoot().ReplaceNode(oldNode, newNode));
     }

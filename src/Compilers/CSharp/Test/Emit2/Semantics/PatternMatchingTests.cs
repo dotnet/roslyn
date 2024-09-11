@@ -249,7 +249,7 @@ class D
     public D(bool b) { Console.WriteLine(b); }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 );
             var expectedOutput =
@@ -972,11 +972,11 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
                 // (9,34): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     static bool Test1 = 1 is int x1 && Dummy(x1); 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 34)
@@ -1010,7 +1010,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True
 2
@@ -1065,11 +1065,11 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
                 // (9,41): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     static bool Test1 {get;} = 1 is int x1 && Dummy(x1); 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 41)
@@ -1142,7 +1142,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput:
 @"1
 2
@@ -1160,7 +1160,7 @@ True");
 
             Assert.Equal("System.Int32", ((ILocalSymbol)compilation.GetSemanticModel(tree).GetDeclaredSymbol(x1Decl[0])).Type.ToTestDisplayString());
 
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
                 // (12,40): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     public D(object o) : base(2 is var x1 && Dummy(x1)) 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(12, 40),
@@ -6600,11 +6600,11 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe);
             CompileAndVerify(compilation, expectedOutput: @"1
 True");
 
-            CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
                 // (9,65): error CS8320: Feature 'declaration of expression variables in member initializers and queries' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //     static event System.Func<bool> Test1 = GetDelegate(1 is int x1 && Dummy(x1)); 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "x1").WithArguments("declaration of expression variables in member initializers and queries", "7.3").WithLocation(9, 65)

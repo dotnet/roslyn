@@ -4,13 +4,13 @@
 
 Imports System.Collections.Immutable
 Imports System.Xml.Linq
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -6666,7 +6666,7 @@ BC30639: Properties cannot be declared 'Partial'.
 
         <Fact()>
         Public Sub BC30645ERR_InvalidOptionalParameterUsage1()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilation(
     <compilation name="InvalidOptionalParameterUsage1">
         <file name="a.vb"><![CDATA[
 Module M1
@@ -6676,8 +6676,7 @@ Module M1
     End Function
 End Module
         ]]></file>
-    </compilation>)
-            compilation1 = compilation1.AddReferences(Net451.SystemWebServices)
+    </compilation>, targetFramework:=TargetFramework.NetFramework)
 
             Dim expectedErrors1 = <errors><![CDATA[
 BC30645: Attribute 'WebMethod' cannot be applied to a method with optional parameters.
@@ -6689,7 +6688,7 @@ BC30645: Attribute 'WebMethod' cannot be applied to a method with optional param
 
         <Fact()>
         Public Sub BC30645ERR_InvalidOptionalParameterUsage1a()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilation(
     <compilation name="InvalidOptionalParameterUsage1a">
         <file name="a.vb"><![CDATA[
 Module M1
@@ -6700,8 +6699,7 @@ Module M1
     End Function
 End Module
         ]]></file>
-    </compilation>)
-            compilation1 = compilation1.AddReferences(Net451.SystemWebServices)
+    </compilation>, targetFramework:=TargetFramework.NetFramework)
 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1,
 <errors><![CDATA[
@@ -6714,9 +6712,10 @@ BC30645: Attribute 'WebMethod' cannot be applied to a method with optional param
 ]]></errors>)
         End Sub
 
-        <Fact()>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/74779")>
         Public Sub BC30645ERR_InvalidOptionalParameterUsage1b()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
+            ' Dim references = {Net461.References.mscorlib, Net461.References.MicrosoftVisualBasic, Net461.References.SystemWebServices, Net461.References.SystemEnterpriseServices
+            Dim compilation1 = CompilationUtils.CreateCompilation(
     <compilation name="InvalidOptionalParameterUsage1b">
         <file name="a.vb"><![CDATA[
 Module M1
@@ -6746,9 +6745,7 @@ Module M1
     End Function
 End Module
         ]]></file>
-    </compilation>)
-            compilation1 = compilation1.AddReferences(Net451.SystemWebServices,
-                                                      Net451.SystemEnterpriseServices)
+    </compilation>, targetFramework:=TargetFramework.NetFramework)
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <errors><![CDATA[
@@ -6908,7 +6905,7 @@ BC30002: Type 'C1' is not defined.
         Public Sub BC30656ERR_UnsupportedField1()
             Dim csharpComp = CSharp.CSharpCompilation.Create("Test", options:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim text = "public class A  {      public static volatile int X;  }"
-            Dim ref = Net40.mscorlib
+            Dim ref = Net40.References.mscorlib
             csharpComp = csharpComp.AddSyntaxTrees(CSharp.SyntaxFactory.ParseSyntaxTree(text))
             csharpComp = csharpComp.AddReferences(ref)
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -8423,7 +8420,7 @@ BC30915: 'goo' cannot expose the underlying delegate type 'i1.gooEventHandler' o
         End Class
     ]]></file>
 </compilation>,
-{Net451.mscorlib, C1, C2})
+{NetFramework.mscorlib, C1, C2})
 
             Dim expectedErrors = <errors><![CDATA[
 BC30916: Type 'C1' is not supported because it either directly or indirectly inherits from itself.
@@ -8455,7 +8452,7 @@ BC30916: Type 'I1' is not supported because it either directly or indirectly inh
         End Class
     ]]></file>
 </compilation>,
-{Net451.mscorlib, C1, C2})
+{NetFramework.mscorlib, C1, C2})
 
             Dim expectedErrors = <errors><![CDATA[
 BC30916: Type 'C2' is not supported because it either directly or indirectly inherits from itself.
@@ -8487,7 +8484,7 @@ BC30916: Type 'I1' is not supported because it either directly or indirectly inh
         End Class
     ]]></file>
 </compilation>,
-{Net451.mscorlib, C1, C2})
+{NetFramework.mscorlib, C1, C2})
 
             Dim expectedErrors = <errors><![CDATA[
 BC30916: Type 'C1' is not supported because it either directly or indirectly inherits from itself.
@@ -17304,7 +17301,7 @@ BC36015: 'Private Sub DisposeI(Of T As base)(ByRef Instance As T)' has the same 
                 End Sub
             End Class
         ]]></file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
 
             Dim expectedErrors1 = <errors><![CDATA[
 BC36551: Extension methods can be defined only in modules.
@@ -17326,7 +17323,7 @@ BC36551: Extension methods can be defined only in modules.
                 End Sub
             End Module
         ]]></file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             Dim expectedErrors1 = <errors><![CDATA[
 BC36552: Extension methods must declare at least one parameter. The first parameter specifies which type to extend.
                 Public Sub Print()
@@ -17347,7 +17344,7 @@ BC36552: Extension methods must declare at least one parameter. The first parame
                 End Sub
             End Module
         ]]></file>
-   </compilation>, {Net40.SystemCore})
+   </compilation>, {Net40.References.SystemCore})
             Dim expectedErrors1 = <errors><![CDATA[
 BC36553: 'Optional' cannot be applied to the first parameter of an extension method. The first parameter specifies which type to extend.
                 Public Sub Print(Optional ByVal str As String = "hello")
@@ -17368,7 +17365,7 @@ BC36553: 'Optional' cannot be applied to the first parameter of an extension met
                 End Sub
             End Module
         ]]></file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             Dim expectedErrors1 = <errors><![CDATA[
 BC36554: 'ParamArray' cannot be applied to the first parameter of an extension method. The first parameter specifies which type to extend.
                 Public Sub Print(ByVal ParamArray str() As String)
@@ -17400,7 +17397,7 @@ Module M
     End Sub
 End Module
 ]]></file>
-</compilation>, {Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
             Dim expectedErrors1 = <errors><![CDATA[
 BC36561: Extension method 'M2' has type constraints that can never be satisfied.
     Sub M2(Of T As I(Of U), U)(o As T)
@@ -23950,7 +23947,7 @@ Imports GlobEnumsClass
 Friend MustOverride Function F() As Object
 Friend MustOverride ReadOnly Property P
 ]]>
-            Dim comp = CreateCompilationWithMscorlib45(
+            Dim comp = CreateCompilationWithMscorlib461(
                 {VisualBasicSyntaxTree.ParseText(source.Value, TestOptions.Script)},
                 references:={SystemCoreRef})
             comp.AssertTheseDiagnostics(<expected>

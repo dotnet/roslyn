@@ -20,7 +20,6 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
         Project project, Diagnostic diagnostic,
         AbstractSuppressionCodeFixProvider fixer) : AbstractGlobalSuppressMessageCodeAction(fixer, project)
     {
-        private readonly ISymbol _targetSymbol = targetSymbol;
         private readonly INamedTypeSymbol _suppressMessageAttribute = suppressMessageAttribute;
         private readonly Diagnostic _diagnostic = diagnostic;
 
@@ -33,12 +32,12 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             var options = await suppressionsDoc.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             suppressionsRoot = Fixer.AddGlobalSuppressMessageAttribute(
-                suppressionsRoot, _targetSymbol, _suppressMessageAttribute, _diagnostic, services, options, addImportsService, cancellationToken);
+                suppressionsRoot, TargetSymbol_TestOnly, _suppressMessageAttribute, _diagnostic, services, options, addImportsService, cancellationToken);
             return suppressionsDoc.WithSyntaxRoot(suppressionsRoot);
         }
 
         protected override string DiagnosticIdForEquivalenceKey => _diagnostic.Id;
 
-        internal ISymbol TargetSymbol_TestOnly => _targetSymbol;
+        internal ISymbol TargetSymbol_TestOnly { get; } = targetSymbol;
     }
 }

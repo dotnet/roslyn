@@ -291,7 +291,7 @@ class A : System.Attribute
             var source0 = @"public class C { public static void F() { System.Console.WriteLine(1); } }";
             var source1 = @"public class C { public static void F() { System.Console.WriteLine(2); } }";
 
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(source0, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
@@ -10067,7 +10067,7 @@ class C
             var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
             var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
 
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation0.WithSource(source2.Tree);
 
@@ -10190,7 +10190,7 @@ class C
             var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
             var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
 
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation0.WithSource(source2.Tree);
 
@@ -10359,7 +10359,7 @@ class C
     }
 }
 ");
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -10424,7 +10424,7 @@ class C
             var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
             var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
 
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(new[] { source0.Tree }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
 
@@ -11100,7 +11100,7 @@ class C
             var source0 = MarkedSource(template.Replace("<<VALUE>>", "0"));
             var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
             var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
 
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);

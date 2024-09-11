@@ -7,14 +7,19 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class which represents the initialization setting for hover.
-    ///
+    /// Client capabilities specific to the `textDocument/hover` request.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#hoverClientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class HoverSetting : DynamicRegistrationSetting
     {
         /// <summary>
-        /// Gets or sets the <see cref="MarkupKind"/> values supported.
+        /// The client supports the following content formats in a <see cref="MarkupContent"/>
+        /// instance in <see cref="Hover.Contents"/>.
+        /// <para>
+        /// The order describes the preferred format of the client.
+        /// </para>
         /// </summary>
         [JsonPropertyName("contentFormat")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

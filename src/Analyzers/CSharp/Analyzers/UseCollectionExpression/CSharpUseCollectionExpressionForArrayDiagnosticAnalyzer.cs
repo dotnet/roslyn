@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
-using static SyntaxFactory;
+using static UseCollectionExpressionHelpers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer()
@@ -49,7 +49,8 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
 
         // Analyze the statements that follow to see if they can initialize this array.
         var allowSemanticsChange = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
-        var matches = TryGetMatches(semanticModel, arrayCreationExpression, expressionType, allowSemanticsChange, cancellationToken, out var changesSemantics);
+        var replacementExpression = CreateReplacementCollectionExpressionForAnalysis(arrayCreationExpression.Initializer);
+        var matches = TryGetMatches(semanticModel, arrayCreationExpression, replacementExpression, expressionType, allowSemanticsChange, cancellationToken, out var changesSemantics);
         if (matches.IsDefault)
             return;
 
@@ -59,6 +60,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
     public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches(
         SemanticModel semanticModel,
         ArrayCreationExpressionSyntax expression,
+        CollectionExpressionSyntax replacementExpression,
         INamedTypeSymbol? expressionType,
         bool allowSemanticsChange,
         CancellationToken cancellationToken,
@@ -69,6 +71,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         var matches = UseCollectionExpressionHelpers.TryGetMatches(
             semanticModel,
             expression,
+            replacementExpression,
             expressionType,
             isSingletonInstance: false,
             allowSemanticsChange,
@@ -79,8 +82,8 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         if (matches.IsDefault)
             return default;
 
-        if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, expression, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
+        if (!CanReplaceWithCollectionExpression(
+                semanticModel, expression, replacementExpression, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
         {
             return default;
         }
@@ -101,7 +104,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
             if (ienumerableType is null)
                 return default;
 
-            if (!UseCollectionExpressionHelpers.IsConstructibleCollectionType(
+            if (!IsConstructibleCollectionType(
                     semanticModel.Compilation, ienumerableType.TypeArguments.Single()))
             {
                 return default;
@@ -114,6 +117,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
     public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches(
         SemanticModel semanticModel,
         ImplicitArrayCreationExpressionSyntax expression,
+        CollectionExpressionSyntax replacementExpression,
         INamedTypeSymbol? expressionType,
         bool allowSemanticsChange,
         CancellationToken cancellationToken,
@@ -121,8 +125,8 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
     {
         // if we have `new[] { ... }` we have no subsequent matches to add to the collection. All values come
         // from within the initializer.
-        if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, expression, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
+        if (!CanReplaceWithCollectionExpression(
+                semanticModel, expression, replacementExpression, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
         {
             return default;
         }
@@ -154,11 +158,10 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
 
         // Have to actually examine what would happen when we do the replacement, as the replaced value may interact
         // with inference based on the values within.
-        var replacementCollectionExpression = CollectionExpression(
-            [.. initializer.Expressions.Select(ExpressionElement)]);
+        var replacementCollectionExpression = CreateReplacementCollectionExpressionForAnalysis(initializer);
 
         var allowSemanticsChange = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
-        if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
+        if (!CanReplaceWithCollectionExpression(
                 semanticModel, arrayCreationExpression, replacementCollectionExpression,
                 expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken,
                 out var changesSemantics))
@@ -170,8 +173,8 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         {
             var matches = initializer.Parent switch
             {
-                ArrayCreationExpressionSyntax arrayCreation => TryGetMatches(semanticModel, arrayCreation, expressionType, allowSemanticsChange, cancellationToken, out _),
-                ImplicitArrayCreationExpressionSyntax arrayCreation => TryGetMatches(semanticModel, arrayCreation, expressionType, allowSemanticsChange, cancellationToken, out _),
+                ArrayCreationExpressionSyntax arrayCreation => TryGetMatches(semanticModel, arrayCreation, replacementCollectionExpression, expressionType, allowSemanticsChange, cancellationToken, out _),
+                ImplicitArrayCreationExpressionSyntax arrayCreation => TryGetMatches(semanticModel, arrayCreation, replacementCollectionExpression, expressionType, allowSemanticsChange, cancellationToken, out _),
                 _ => throw ExceptionUtilities.Unreachable(),
             };
 

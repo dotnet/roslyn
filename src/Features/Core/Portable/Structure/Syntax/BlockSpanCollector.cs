@@ -5,7 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Structure;
@@ -34,14 +34,14 @@ internal sealed class BlockSpanCollector
         BlockStructureOptions options,
         ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> nodeOutlinerMap,
         ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> triviaOutlinerMap,
-        ref TemporaryArray<BlockSpan> spans,
+        ArrayBuilder<BlockSpan> spans,
         CancellationToken cancellationToken)
     {
         var collector = new BlockSpanCollector(options, nodeOutlinerMap, triviaOutlinerMap, cancellationToken);
-        collector.Collect(syntaxRoot, ref spans);
+        collector.Collect(syntaxRoot, spans);
     }
 
-    private void Collect(SyntaxNode root, ref TemporaryArray<BlockSpan> spans)
+    private void Collect(SyntaxNode root, ArrayBuilder<BlockSpan> spans)
     {
         _cancellationToken.ThrowIfCancellationRequested();
 
@@ -50,17 +50,17 @@ internal sealed class BlockSpanCollector
         {
             if (nodeOrToken.AsNode(out var childNode))
             {
-                GetBlockSpans(previousToken, childNode, ref spans);
+                GetBlockSpans(previousToken, childNode, spans);
             }
             else
             {
-                GetBlockSpans(nodeOrToken.AsToken(), ref spans);
+                GetBlockSpans(nodeOrToken.AsToken(), spans);
                 previousToken = nodeOrToken.AsToken();
             }
         }
     }
 
-    private void GetBlockSpans(SyntaxToken previousToken, SyntaxNode node, ref TemporaryArray<BlockSpan> spans)
+    private void GetBlockSpans(SyntaxToken previousToken, SyntaxNode node, ArrayBuilder<BlockSpan> spans)
     {
         if (_nodeProviderMap.TryGetValue(node.GetType(), out var providers))
         {
@@ -68,18 +68,18 @@ internal sealed class BlockSpanCollector
             {
                 _cancellationToken.ThrowIfCancellationRequested();
 
-                provider.CollectBlockSpans(previousToken, node, ref spans, _options, _cancellationToken);
+                provider.CollectBlockSpans(previousToken, node, spans, _options, _cancellationToken);
             }
         }
     }
 
-    private void GetBlockSpans(SyntaxToken token, ref TemporaryArray<BlockSpan> spans)
+    private void GetBlockSpans(SyntaxToken token, ArrayBuilder<BlockSpan> spans)
     {
-        GetOutliningSpans(token.LeadingTrivia, ref spans);
-        GetOutliningSpans(token.TrailingTrivia, ref spans);
+        GetOutliningSpans(token.LeadingTrivia, spans);
+        GetOutliningSpans(token.TrailingTrivia, spans);
     }
 
-    private void GetOutliningSpans(SyntaxTriviaList triviaList, ref TemporaryArray<BlockSpan> spans)
+    private void GetOutliningSpans(SyntaxTriviaList triviaList, ArrayBuilder<BlockSpan> spans)
     {
         foreach (var trivia in triviaList)
         {
@@ -90,7 +90,7 @@ internal sealed class BlockSpanCollector
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    provider.CollectBlockSpans(trivia, ref spans, _options, _cancellationToken);
+                    provider.CollectBlockSpans(trivia, spans, _options, _cancellationToken);
                 }
             }
         }

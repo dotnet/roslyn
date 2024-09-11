@@ -2734,7 +2734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var m in syntax.Members)
                 {
-                    if (HasInstanceData(m))
+                    if (hasInstanceData(m))
                     {
                         if (whereFoundField != null && whereFoundField != syntaxRef)
                         {
@@ -2754,35 +2754,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_SequentialOnPartialClass, GetFirstLocation(), this);
                 return;
             }
-        }
 
-        private static bool HasInstanceData(MemberDeclarationSyntax m)
-        {
-            switch (m.Kind())
+            static bool hasInstanceData(MemberDeclarationSyntax m)
             {
-                case SyntaxKind.FieldDeclaration:
-                    var fieldDecl = (FieldDeclarationSyntax)m;
-                    return
-                        !ContainsModifier(fieldDecl.Modifiers, SyntaxKind.StaticKeyword) &&
-                        !ContainsModifier(fieldDecl.Modifiers, SyntaxKind.ConstKeyword);
-                case SyntaxKind.PropertyDeclaration:
-                    // auto-property
-                    var propertyDecl = (PropertyDeclarationSyntax)m;
-                    return
-                        !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.StaticKeyword) &&
-                        !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.AbstractKeyword) &&
-                        !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.ExternKeyword) &&
-                        propertyDecl.AccessorList != null &&
-                        All(propertyDecl.AccessorList.Accessors, a => a.Body == null && a.ExpressionBody == null);
-                case SyntaxKind.EventFieldDeclaration:
-                    // field-like event declaration
-                    var eventFieldDecl = (EventFieldDeclarationSyntax)m;
-                    return
-                        !ContainsModifier(eventFieldDecl.Modifiers, SyntaxKind.StaticKeyword) &&
-                        !ContainsModifier(eventFieldDecl.Modifiers, SyntaxKind.AbstractKeyword) &&
-                        !ContainsModifier(eventFieldDecl.Modifiers, SyntaxKind.ExternKeyword);
-                default:
-                    return false;
+                switch (m.Kind())
+                {
+                    case SyntaxKind.FieldDeclaration:
+                        var fieldDecl = (FieldDeclarationSyntax)m;
+                        return
+                            !ContainsModifier(fieldDecl.Modifiers, SyntaxKind.StaticKeyword) &&
+                            !ContainsModifier(fieldDecl.Modifiers, SyntaxKind.ConstKeyword);
+                    case SyntaxKind.PropertyDeclaration:
+                        // auto-property
+                        var propertyDecl = (PropertyDeclarationSyntax)m;
+                        return
+                            !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.StaticKeyword) &&
+                            !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.AbstractKeyword) &&
+                            !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.ExternKeyword) &&
+                            !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.PartialKeyword) &&
+                            propertyDecl.AccessorList != null &&
+                            All(propertyDecl.AccessorList.Accessors, a => a.Body == null && a.ExpressionBody == null);
+                    case SyntaxKind.EventFieldDeclaration:
+                        // field-like event declaration
+                        var eventFieldDecl = (EventFieldDeclarationSyntax)m;
+                        return
+                            !ContainsModifier(eventFieldDecl.Modifiers, SyntaxKind.StaticKeyword) &&
+                            !ContainsModifier(eventFieldDecl.Modifiers, SyntaxKind.AbstractKeyword) &&
+                            !ContainsModifier(eventFieldDecl.Modifiers, SyntaxKind.ExternKeyword);
+                    default:
+                        return false;
+                }
             }
         }
 
@@ -3667,12 +3668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    if ((object)membersByName == _lazyEarlyAttributeDecodingMembersDictionary)
-                    {
-                        // Avoid mutating the cached dictionary and especially avoid doing this possibly on multiple threads in parallel.
-                        membersByName = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>(membersByName, ReadOnlyMemoryOfCharComparer.Instance);
-                    }
-
+                    DuplicateMembersByNameIfCached(ref membersByName);
                     membersByName[name] = FixPartialMember(membersByName[name], prevMethod, currentMethod);
                 }
             }
@@ -3691,40 +3687,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    var (currentGet, prevGet) = ((SourcePropertyAccessorSymbol?)currentProperty.GetMethod, (SourcePropertyAccessorSymbol?)prevProperty.GetMethod);
-                    if (currentGet != null || prevGet != null)
-                    {
-                        var accessorName = (currentGet ?? prevGet)!.Name.AsMemory();
-                        mergeAccessors(ref membersByName, accessorName, currentGet, prevGet);
-                    }
-
-                    var (currentSet, prevSet) = ((SourcePropertyAccessorSymbol?)currentProperty.SetMethod, (SourcePropertyAccessorSymbol?)prevProperty.SetMethod);
-                    if (currentSet != null || prevSet != null)
-                    {
-                        var accessorName = (currentSet ?? prevSet)!.Name.AsMemory();
-                        mergeAccessors(ref membersByName, accessorName, currentSet, prevSet);
-                    }
-
-                    if ((object)membersByName == _lazyEarlyAttributeDecodingMembersDictionary)
-                    {
-                        // Avoid mutating the cached dictionary and especially avoid doing this possibly on multiple threads in parallel.
-                        membersByName = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>(membersByName, ReadOnlyMemoryOfCharComparer.Instance);
-                    }
-
+                    DuplicateMembersByNameIfCached(ref membersByName);
+                    mergeAccessors(ref membersByName, (SourcePropertyAccessorSymbol?)currentProperty.GetMethod, (SourcePropertyAccessorSymbol?)prevProperty.GetMethod);
+                    mergeAccessors(ref membersByName, (SourcePropertyAccessorSymbol?)currentProperty.SetMethod, (SourcePropertyAccessorSymbol?)prevProperty.SetMethod);
                     membersByName[name] = FixPartialMember(membersByName[name], prevProperty, currentProperty);
                 }
 
-                void mergeAccessors(ref Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName, ReadOnlyMemory<char> name, SourcePropertyAccessorSymbol? currentAccessor, SourcePropertyAccessorSymbol? prevAccessor)
+                void mergeAccessors(ref Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName, SourcePropertyAccessorSymbol? currentAccessor, SourcePropertyAccessorSymbol? prevAccessor)
                 {
-                    Debug.Assert(currentAccessor != null || prevAccessor != null);
-                    if (currentAccessor != null && prevAccessor != null)
+                    if (currentAccessor is { } && prevAccessor is { })
                     {
+                        var name = currentAccessor.Name.AsMemory();
                         var implementationAccessor = currentProperty.IsPartialDefinition ? prevAccessor : currentAccessor;
                         membersByName[name] = Remove(membersByName[name], implementationAccessor);
                     }
-                    else
+                    else if (currentAccessor is { } || prevAccessor is { })
                     {
-                        var (foundAccessor, containingProperty, otherProperty) = prevAccessor != null ? (prevAccessor, prevProperty, currentProperty) : (currentAccessor!, currentProperty, prevProperty);
+                        var (foundAccessor, containingProperty, otherProperty) = prevAccessor is { } ? (prevAccessor, prevProperty, currentProperty) : (currentAccessor!, currentProperty, prevProperty);
                         // When an accessor is present on definition but not on implementation, the accessor is said to be missing on the implementation.
                         // When an accessor is present on implementation but not on definition, the accessor is said to be unexpected on the implementation.
                         var (errorCode, propertyToBlame) = foundAccessor.IsPartialDefinition
@@ -3733,6 +3712,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(errorCode, propertyToBlame.GetFirstLocation(), foundAccessor);
                     }
                 }
+            }
+        }
+
+        private void DuplicateMembersByNameIfCached(ref Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName)
+        {
+            if ((object)membersByName == _lazyEarlyAttributeDecodingMembersDictionary)
+            {
+                // Avoid mutating the cached dictionary and especially avoid doing this possibly on multiple threads in parallel.
+                membersByName = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>(membersByName, ReadOnlyMemoryOfCharComparer.Instance);
             }
         }
 

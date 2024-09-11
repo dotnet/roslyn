@@ -4392,7 +4392,7 @@ public class C<T>
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(3, 22)
                 );
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.DesktopLatestExtended, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Mscorlib461Extended, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (3,22): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //     where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 22)
@@ -4442,7 +4442,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(5, 26)
                 );
 
-            CreateCompilation(src, targetFramework: TargetFramework.DesktopLatestExtended, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            CreateCompilation(src, targetFramework: TargetFramework.Mscorlib461Extended, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (5,26): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //         where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(5, 26)
@@ -16373,10 +16373,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (27,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (27,9): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in new S1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(27, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }").WithArguments("S2").WithLocation(27, 9)
                 );
         }
 
@@ -16422,10 +16425,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (30,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (30,9): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in new S1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(30, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }").WithArguments("S2").WithLocation(30, 9)
                 );
         }
 
@@ -16480,10 +16486,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (39,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (39,9): error CS4007: Instance of type 'TEnumerator' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in default(TEnumerable))
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(39, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }").WithArguments("TEnumerator").WithLocation(39, 9)
                 );
         }
 
@@ -16544,10 +16553,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (45,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (45,9): error CS4007: Instance of type 'TEnumerator' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in default(TEnumerable))
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(45, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }").WithArguments("TEnumerator").WithLocation(45, 9)
                 );
         }
 
@@ -16733,10 +16745,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (27,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (27,9): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in new S1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(27, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }").WithArguments("S2").WithLocation(27, 9)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -16795,10 +16810,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (27,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (27,9): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in new S1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(27, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }").WithArguments("S2").WithLocation(27, 9)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -16857,10 +16875,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (27,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (27,9): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in new S1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(27, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }").WithArguments("S2").WithLocation(27, 9)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -16938,10 +16959,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (46,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (46,9): error CS4007: Instance of type 'TEnumerator' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in default(TEnumerable))
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(46, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }").WithArguments("TEnumerator").WithLocation(46, 9)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -17023,10 +17047,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (50,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (50,9): error CS4007: Instance of type 'TEnumerator' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in default(TEnumerable))
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(50, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }").WithArguments("TEnumerator").WithLocation(50, 9)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -17113,10 +17140,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (55,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (55,9): error CS4007: Instance of type 'TEnumerator' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in default(TEnumerable))
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(55, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }").WithArguments("TEnumerator").WithLocation(55, 9)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -17207,10 +17237,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (59,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (59,9): error CS4007: Instance of type 'TEnumerator' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in default(TEnumerable))
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(59, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }").WithArguments("TEnumerator").WithLocation(59, 9)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -17288,10 +17321,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (46,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (46,9): error CS4007: Instance of type 'TEnumerator' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in default(TEnumerable))
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(46, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }").WithArguments("TEnumerator").WithLocation(46, 9)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -17354,23 +17390,27 @@ class C
 ";
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (10,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+                // (10,15): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await foreach (var i in new S1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(10, 15)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(10, 15)
                 );
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (10,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+                // (10,9): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in new S1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(10, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in new S1())
+        {
+        }").WithArguments("S2").WithLocation(10, 9)
                 );
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp2.VerifyEmitDiagnostics(
-                // (10,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+                // (10,9): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in new S1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(10, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in new S1())
+        {
+        }").WithArguments("S2").WithLocation(10, 9)
                 );
         }
 
@@ -17429,9 +17469,9 @@ class C
                 // (6,9): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await foreach (var i in new S1()) {}
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "await foreach (var i in new S1()) {}").WithArguments("ref struct interfaces", "13.0").WithLocation(6, 9),
-                // (6,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+                // (6,15): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await foreach (var i in new S1()) {}
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 15)
                 );
 
             comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
@@ -17439,23 +17479,23 @@ class C
                 // (14,24): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 // public ref struct S2 : IAsyncDisposable
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "IAsyncDisposable").WithArguments("ref struct interfaces", "13.0").WithLocation(14, 24),
-                // (40,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+                // (40,15): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await foreach (var i in new S1()) {}
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(40, 15)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(40, 15)
                 );
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+                // (6,9): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in new S1()) {}
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await foreach (var i in new S1()) {}").WithArguments("S2").WithLocation(6, 9)
                 );
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp2.VerifyEmitDiagnostics(
-                // (6,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+                // (6,9): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in new S1()) {}
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await foreach (var i in new S1()) {}").WithArguments("S2").WithLocation(6, 9)
                 );
 
             var src3 = @"
@@ -17518,23 +17558,23 @@ class C
                 // (22,73): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         where TEnumerator : ICustomEnumerator, IAsyncDisposable, allows ref struct 
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(22, 73),
-                // (24,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+                // (24,15): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await foreach (var i in default(TEnumerable)) {}
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(24, 15)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(24, 15)
                 );
 
             comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics(
-                // (24,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+                // (24,9): error CS4007: Instance of type 'TEnumerator' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in default(TEnumerable)) {}
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(24, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await foreach (var i in default(TEnumerable)) {}").WithArguments("TEnumerator").WithLocation(24, 9)
                 );
 
             comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp.VerifyEmitDiagnostics(
-                // (24,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+                // (24,9): error CS4007: Instance of type 'TEnumerator' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in default(TEnumerable)) {}
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(24, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await foreach (var i in default(TEnumerable)) {}").WithArguments("TEnumerator").WithLocation(24, 9)
                 );
         }
 
@@ -20017,7 +20057,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "Helper.Test").WithArguments("allows ref struct constraint", "13.0").WithLocation(200, 9)
                 );
 
-            CreateCompilation([src1, src2], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CreateCompilation([src1, src2], targetFramework: TargetFramework.Mscorlib461Extended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (100,54): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //     public static void Test<T>(T x) where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(100, 54)
@@ -20055,21 +20095,21 @@ class C
             CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
 
-            CreateCompilation([src1, src3], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CreateCompilation([src1, src3], targetFramework: TargetFramework.Mscorlib461Extended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (100,54): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //     public static void Test<T>(T x) where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(100, 54)
                 );
 
-            comp1Ref = CreateCompilation(src1, targetFramework: TargetFramework.DesktopLatestExtended).ToMetadataReference();
+            comp1Ref = CreateCompilation(src1, targetFramework: TargetFramework.Mscorlib461Extended).ToMetadataReference();
 
-            CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Mscorlib461Extended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (200,9): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //         Helper.Test(new S1());
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "Helper.Test").WithLocation(200, 9)
                 );
 
-            CreateCompilation(src3, references: [comp1Ref], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyEmitDiagnostics();
+            CreateCompilation(src3, references: [comp1Ref], targetFramework: TargetFramework.Mscorlib461Extended, options: TestOptions.ReleaseExe).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -20274,7 +20314,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "S1").WithArguments("allows ref struct constraint", "13.0").WithLocation(200, 16)
                 );
 
-            CreateCompilation([src1, src2], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CreateCompilation([src1, src2], targetFramework: TargetFramework.Mscorlib461Extended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (100,41): error CS9240: Target runtime doesn't support by-ref-like generics.
                 // public class Helper<T> where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(100, 41)
@@ -20312,21 +20352,21 @@ class C
             CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
 
-            CreateCompilation([src1, src3], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CreateCompilation([src1, src3], targetFramework: TargetFramework.Mscorlib461Extended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (100,41): error CS9240: Target runtime doesn't support by-ref-like generics.
                 // public class Helper<T> where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(100, 41)
                 );
 
-            comp1Ref = CreateCompilation(src1, targetFramework: TargetFramework.DesktopLatestExtended).ToMetadataReference();
+            comp1Ref = CreateCompilation(src1, targetFramework: TargetFramework.Mscorlib461Extended).ToMetadataReference();
 
-            CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Mscorlib461Extended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (200,16): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //         Helper<S1>.Test(new S1());
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "S1").WithLocation(200, 16)
                 );
 
-            CreateCompilation(src3, references: [comp1Ref], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyEmitDiagnostics();
+            CreateCompilation(src3, references: [comp1Ref], targetFramework: TargetFramework.Mscorlib461Extended, options: TestOptions.ReleaseExe).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -21704,14 +21744,7 @@ ref struct S
 ";
             var comp = CreateCompilation(sourceA, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
-            comp.VerifyDiagnostics(
-                // (7,30): error CS9244: The type 'T' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Activator.CreateInstance<T>()'
-                //         _ = System.Activator.CreateInstance<T>();
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "CreateInstance<T>").WithArguments("System.Activator.CreateInstance<T>()", "T", "T").WithLocation(7, 30),
-                // (12,30): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Activator.CreateInstance<T>()'
-                //         _ = System.Activator.CreateInstance<S>();
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "CreateInstance<S>").WithArguments("System.Activator.CreateInstance<T>()", "T", "S").WithLocation(12, 30)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -22793,6 +22826,408 @@ namespace System
                 comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"<>f__AnonymousDelegate0 Test1" : null,
                 verify: Verification.Skipped
                 ).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74823")]
+        public void AnonymousDelegateType_09_ParamsArray()
+        {
+            var source = """
+                var d = M;
+                System.Console.WriteLine(d.GetType());
+
+                void M(params int[] arr) { }
+                """;
+            var verifier = CompileAndVerify(source,
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics,
+                symbolValidator: validate,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "<>f__AnonymousDelegate0`1[System.Int32]" : null);
+            verifier.VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                AssertEx.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+                Assert.False(m.ContainingType.TypeParameters.Single().AllowsRefLikeType);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74823")]
+        public void AnonymousDelegateType_10_ParamsArray()
+        {
+            var source = """
+                var d = M;
+                System.Console.WriteLine(d.GetType());
+
+                void M(string s, params int[] arr) { }
+                """;
+            var verifier = CompileAndVerify(source,
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics,
+                symbolValidator: validate,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "<>f__AnonymousDelegate0`2[System.String,System.Int32]" : null);
+            verifier.VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                AssertEx.Equal("void <>f__AnonymousDelegate0<T1, T2>.Invoke(T1 arg1, params T2[] arg2)", m.ToTestDisplayString());
+                Assert.Equal([true, false], m.ContainingType.TypeParameters.Select(t => t.AllowsRefLikeType));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74823")]
+        public void AnonymousDelegateType_11_ParamsArray()
+        {
+            var source = """
+                unsafe
+                {
+                    var d = M;
+                    System.Console.WriteLine(d.GetType());
+
+                    void M(int* p, params int[] arr) { }
+                }
+                """;
+            var verifier = CompileAndVerify(source,
+                options: TestOptions.UnsafeReleaseExe,
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics,
+                symbolValidator: validate,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "<>f__AnonymousDelegate0" : null);
+            verifier.VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                AssertEx.Equal("void <>f__AnonymousDelegate0.Invoke(System.Int32* arg1, params System.Int32[] arg2)", m.ToTestDisplayString());
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74823")]
+        public void AnonymousDelegateType_12_ParamsArray()
+        {
+            var source = """
+                M<string>();
+                unsafe static void M<T>()
+                {
+                    var d = C<T>.M;
+                    System.Console.WriteLine(d.GetType());
+                }
+                unsafe static class C<T>
+                {
+                    public static void M(int* p, T x, params int[] arr) { }
+                }
+                """;
+            var verifier = CompileAndVerify(source,
+                options: TestOptions.UnsafeReleaseExe,
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics,
+                symbolValidator: validate,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "<>f__AnonymousDelegate0`1[System.String]" : null);
+            verifier.VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                AssertEx.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(System.Int32* arg1, T1 arg2, params System.Int32[] arg3)", m.ToTestDisplayString());
+                Assert.False(m.ContainingType.TypeParameters.Single().AllowsRefLikeType);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74823")]
+        public void AnonymousDelegateType_13_ParamsArray()
+        {
+            var source = """
+                M<string>();
+                unsafe static void M<T>() where T : allows ref struct
+                {
+                    var d = C<T>.M;
+                    System.Console.WriteLine(d.GetType());
+                }
+                unsafe static class C<T> where T : allows ref struct
+                {
+                    public static void M(int* p, T x, params int[] arr) { }
+                }
+                """;
+            var verifier = CompileAndVerify(source,
+                options: TestOptions.UnsafeReleaseExe,
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics,
+                symbolValidator: validate,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "<>f__AnonymousDelegate0`1[System.String]" : null);
+            verifier.VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                AssertEx.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(System.Int32* arg1, T1 arg2, params System.Int32[] arg3)", m.ToTestDisplayString());
+                Assert.True(m.ContainingType.TypeParameters.Single().AllowsRefLikeType);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74823")]
+        public void AnonymousDelegateType_14_ParamsArray()
+        {
+            var source = """
+                M<string>();
+                unsafe static void M<T>()
+                {
+                    var d = C<T>.M;
+                    System.Console.WriteLine(d.GetType());
+                }
+                unsafe static class C<T>
+                {
+                    public static void M(int* p, T x, params T[] arr) { }
+                }
+                """;
+            var verifier = CompileAndVerify(source,
+                options: TestOptions.UnsafeReleaseExe,
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics,
+                symbolValidator: validate,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "<>f__AnonymousDelegate0`1[System.String]" : null);
+            verifier.VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                AssertEx.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(System.Int32* arg1, T1 arg2, params T1[] arg3)", m.ToTestDisplayString());
+                Assert.False(m.ContainingType.TypeParameters.Single().AllowsRefLikeType);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74823")]
+        public void AnonymousDelegateType_15_ParamsArray()
+        {
+            var source = """
+                M<string>();
+                unsafe static void M<T>()
+                {
+                    var d = C<T>.M;
+                    System.Console.WriteLine(d.GetType());
+                }
+                unsafe static class C<T>
+                {
+                    public static void M(int* p, params T[] arr) { }
+                }
+                """;
+            var verifier = CompileAndVerify(source,
+                options: TestOptions.UnsafeReleaseExe,
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics,
+                symbolValidator: validate,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "<>f__AnonymousDelegate0`1[System.String]" : null);
+            verifier.VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                AssertEx.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(System.Int32* arg1, params T1[] arg2)", m.ToTestDisplayString());
+                Assert.False(m.ContainingType.TypeParameters.Single().AllowsRefLikeType);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74823")]
+        public void AnonymousDelegateType_16_ParamsArray()
+        {
+            var source = """
+                #nullable enable
+                M<string>();
+                unsafe static void M<T>()
+                {
+                    var d = C<T>.M;
+                    System.Console.WriteLine(d.GetType());
+                }
+                unsafe static class C<T>
+                {
+                    public static void M(int* p, params T?[] arr) { }
+                }
+                """;
+            var verifier = CompileAndVerify(source,
+                options: TestOptions.UnsafeReleaseExe,
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics,
+                symbolValidator: validate,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "<>f__AnonymousDelegate0`1[System.String]" : null);
+            verifier.VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                AssertEx.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(System.Int32* arg1, params T1?[] arg2)", m.ToTestDisplayString());
+                Assert.False(m.ContainingType.TypeParameters.Single().AllowsRefLikeType);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74823")]
+        public void AnonymousDelegateType_17_ParamsArray()
+        {
+            var source = """
+                M<short>();
+                unsafe static void M<T>() where T : struct
+                {
+                    var d = C<T>.M;
+                    System.Console.WriteLine(d.GetType());
+                }
+                unsafe static class C<T> where T : struct
+                {
+                    public static void M(int* p, params T?[] arr) { }
+                }
+                """;
+            var verifier = CompileAndVerify(source,
+                options: TestOptions.UnsafeReleaseExe,
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics,
+                symbolValidator: validate,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "<>f__AnonymousDelegate0`1[System.Int16]" : null);
+            verifier.VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                AssertEx.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(System.Int32* arg1, params T1?[] arg2)", m.ToTestDisplayString());
+                Assert.False(m.ContainingType.TypeParameters.Single().AllowsRefLikeType);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74823")]
+        public void AnonymousDelegateType_18_ParamsArray()
+        {
+            var source = """
+                M<short>();
+                unsafe static void M<T>()
+                {
+                    var d = C<T>.M;
+                    System.Console.WriteLine(d.GetType());
+                }
+                unsafe static class C<T>
+                {
+                    public static void M(int* p, params T[][] arr) { }
+                }
+                """;
+            var verifier = CompileAndVerify(source,
+                options: TestOptions.UnsafeReleaseExe,
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics,
+                symbolValidator: validate,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "<>f__AnonymousDelegate0`1[System.Int16]" : null);
+            verifier.VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                AssertEx.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(System.Int32* arg1, params T1[][] arg2)", m.ToTestDisplayString());
+                Assert.False(m.ContainingType.TypeParameters.Single().AllowsRefLikeType);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74823")]
+        public void AnonymousDelegateType_19_ParamsCollection()
+        {
+            var source = """
+                var d = M;
+                System.Console.WriteLine(d.GetType());
+
+                void M(params System.Collections.Generic.IEnumerable<int> e) { }
+                """;
+            var verifier = CompileAndVerify(source,
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics,
+                symbolValidator: validate,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "<>f__AnonymousDelegate0" : null);
+            verifier.VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                AssertEx.Equal("void <>f__AnonymousDelegate0.Invoke(params System.Collections.Generic.IEnumerable<System.Int32> arg)", m.ToTestDisplayString());
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74823")]
+        public void AnonymousDelegateType_20()
+        {
+            var source = """
+                M<short>();
+                unsafe static void M<T>()
+                {
+                    var d = C<T>.M;
+                    System.Console.WriteLine(d.GetType());
+                }
+                unsafe static class C<T>
+                {
+                    public static void M(int* p, T[] arr) { }
+                }
+                """;
+            var verifier = CompileAndVerify(source,
+                options: TestOptions.UnsafeReleaseExe,
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics,
+                symbolValidator: validate,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "<>f__AnonymousDelegate0`1[System.Int16]" : null);
+            verifier.VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                AssertEx.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(System.Int32* arg1, T1[] arg2)", m.ToTestDisplayString());
+                Assert.False(m.ContainingType.TypeParameters.Single().AllowsRefLikeType);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74823")]
+        public void AnonymousDelegateType_21()
+        {
+            var source = """
+                M<short>();
+                unsafe static void M<T>() where T : allows ref struct
+                {
+                    var d = C<T>.M;
+                    System.Console.WriteLine(d.GetType());
+                }
+                unsafe static class C<T> where T : allows ref struct
+                {
+                    public static void M(int* p, T t) { }
+                }
+                """;
+            var verifier = CompileAndVerify(source,
+                options: TestOptions.UnsafeReleaseExe,
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics,
+                symbolValidator: validate,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "<>f__AnonymousDelegate0`1[System.Int16]" : null);
+            verifier.VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                AssertEx.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(System.Int32* arg1, T1 arg2)", m.ToTestDisplayString());
+                Assert.True(m.ContainingType.TypeParameters.Single().AllowsRefLikeType);
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74823")]
+        public void AnonymousDelegateType_22()
+        {
+            var source = """
+                var d = M;
+                System.Console.WriteLine(d.GetType());
+
+                void M(ref short p, int[] arr) { }
+                """;
+            var verifier = CompileAndVerify(source,
+                targetFramework: s_targetFrameworkSupportingByRefLikeGenerics,
+                symbolValidator: validate,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "<>A{00000001}`2[System.Int16,System.Int32[]]" : null);
+            verifier.VerifyDiagnostics();
+
+            static void validate(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>A{00000001}.Invoke");
+                AssertEx.Equal("void <>A{00000001}<T1, T2>.Invoke(ref T1 arg1, T2 arg2)", m.ToTestDisplayString());
+                Assert.Equal([true, true], m.ContainingType.TypeParameters.Select(t => t.AllowsRefLikeType));
+            }
         }
 
         [Fact]

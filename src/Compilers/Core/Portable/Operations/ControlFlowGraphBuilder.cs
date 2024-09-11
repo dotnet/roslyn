@@ -6586,12 +6586,13 @@ oneMoreTime:
                     }
                     else
                     {
-                        // In object initializers with invalid assignments we can get this operation with a None parent
-                        // So we expect this to be a valid case
-                        if (operation.Parent?.Kind is not OperationKind.None)
-                        {
-                            Debug.Fail("This code path should not be reachable.");
-                        }
+                        Debug.Assert(
+                            // We have a collection expression infinite chain case
+                            (operation.Parent is InvocationOperation { Parent: CollectionExpressionOperation ce } && ce.HasErrors(_compilation)) ||
+                            // We have an object initializer with an invalid assignment
+                            (operation.Parent is { Kind: OperationKind.None }),
+                            "Expected to reach this only in collection expression infinite chain cases, or in invalid assignments inside object initializers.");
+
                         return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
                     }
 

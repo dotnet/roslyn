@@ -111,8 +111,7 @@ internal static class Program
 
         Assert.Collection(
             results,
-            new Action<ITableEntryHandle2>[]
-            {
+            [
                 reference =>
                 {
                     Assert.Equal(expected: "/// <summary><see cref=\"HelloWorld\" /> is a simple class to fetch the classic message.</summary>", actual: reference.GetText());
@@ -131,7 +130,7 @@ internal static class Program
                     Assert.Equal(expected: 5, actual: reference.GetLine());
                     Assert.Equal(expected: 26, actual: reference.GetColumn());
                 },
-            });
+            ]);
     }
 
     [IdeTheory, CombinatorialData]

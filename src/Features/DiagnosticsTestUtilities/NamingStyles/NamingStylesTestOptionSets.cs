@@ -19,15 +19,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.NamingStyles
     internal sealed class NamingStylesTestOptionSets
     {
         private readonly string _languageName;
-        private readonly OptionKey2 _optionKey;
 
         public NamingStylesTestOptionSets(string languageName)
         {
             _languageName = languageName;
-            _optionKey = new OptionKey2(NamingStyleOptions.NamingPreferences, languageName);
+            OptionKey = new OptionKey2(NamingStyleOptions.NamingPreferences, languageName);
         }
 
-        public OptionKey2 OptionKey => _optionKey;
+        public OptionKey2 OptionKey { get; }
 
         internal OptionsCollection MergeStyles(OptionsCollection first, OptionsCollection second)
         {

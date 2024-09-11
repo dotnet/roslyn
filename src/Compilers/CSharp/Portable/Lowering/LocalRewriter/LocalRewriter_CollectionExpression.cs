@@ -43,9 +43,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (collectionTypeKind)
                 {
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                        if (useListOptimization(_compilation, node, out var listElementType))
+                        if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Generic_List_T, out var listElementType))
                         {
-                            return CreateAndPopulateList(node, listElementType, node.Elements.SelectAsArray(static (element, node) => unwrapListElement(node, element), node));
+                            if (TryRewriteSingleElementSpreadToList(node, listElementType, out var result))
+                            {
+                                return result;
+                            }
+
+                            if (useListOptimization(_compilation, node))
+                            {
+                                return CreateAndPopulateList(node, listElementType, node.Elements.SelectAsArray(static (element, node) => unwrapListElement(node, element), node));
+                            }
                         }
                         return VisitCollectionInitializerCollectionExpression(node, node.Type);
                     case CollectionExpressionTypeKind.Array:
@@ -88,12 +96,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If the collection type is List<T> and items are added using the expected List<T>.Add(T) method,
             // then construction can be optimized to use CollectionsMarshal methods.
-            static bool useListOptimization(CSharpCompilation compilation, BoundCollectionExpression node, out TypeWithAnnotations elementType)
+            static bool useListOptimization(CSharpCompilation compilation, BoundCollectionExpression node)
             {
-                if (!ConversionsBase.IsSpanOrListType(compilation, node.Type, WellKnownType.System_Collections_Generic_List_T, out elementType))
-                {
-                    return false;
-                }
                 var elements = node.Elements;
                 if (elements.Length == 0)
                 {
@@ -149,6 +153,62 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return result;
                 }
             }
+        }
+
+        // If we have something like `List<int> l = [.. someEnumerable]`
+        // try rewrite it using `Enumerable.ToList` member if possible
+        private bool TryRewriteSingleElementSpreadToList(BoundCollectionExpression node, TypeWithAnnotations listElementType, [NotNullWhen(true)] out BoundExpression? result)
+        {
+            result = null;
+
+            if (node.Elements is not [BoundCollectionExpressionSpreadElement singleSpread])
+            {
+                return false;
+            }
+
+            if (!TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Linq_Enumerable__ToList, out MethodSymbol? toListGeneric, isOptional: true))
+            {
+                return false;
+            }
+
+            var toListOfElementType = toListGeneric.Construct([listElementType]);
+
+            Debug.Assert(singleSpread.Expression.Type is not null);
+
+            if (!ShouldUseAddRangeOrToListMethod(singleSpread.Expression.Type, toListOfElementType.Parameters[0].Type, singleSpread.EnumeratorInfoOpt?.GetEnumeratorInfo.Method))
+            {
+                return false;
+            }
+
+            var rewrittenSpreadExpression = VisitExpression(singleSpread.Expression);
+            result = _factory.Call(receiver: null, toListOfElementType, rewrittenSpreadExpression);
+            return true;
+        }
+
+        private bool ShouldUseAddRangeOrToListMethod(TypeSymbol spreadType, TypeSymbol targetEnumerableType, MethodSymbol? getEnumeratorMethod)
+        {
+            Debug.Assert(targetEnumerableType.OriginalDefinition == (object)_compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T));
+
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+            Conversion conversion;
+
+            // If collection has a struct enumerator but doesn't implement ICollection<T>
+            // then manual `foreach` is always more efficient then using `ToList` or `AddRange` methods
+            if (getEnumeratorMethod?.ReturnType.IsValueType == true)
+            {
+                var iCollectionOfTType = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T);
+                var iCollectionOfElementType = iCollectionOfTType.Construct(((NamedTypeSymbol)targetEnumerableType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics);
+
+                conversion = _compilation.Conversions.ClassifyBuiltInConversion(spreadType, iCollectionOfElementType, isChecked: false, ref discardedUseSiteInfo);
+                if (conversion.Kind is not (ConversionKind.Identity or ConversionKind.ImplicitReference))
+                {
+                    return false;
+                }
+            }
+
+            conversion = _compilation.Conversions.ClassifyImplicitConversionFromType(spreadType, targetEnumerableType, ref discardedUseSiteInfo);
+            return conversion.Kind is ConversionKind.Identity or ConversionKind.ImplicitReference;
         }
 
         private static bool CanOptimizeSingleSpreadAsCollectionBuilderArgument(BoundCollectionExpression node, [NotNullWhen(true)] out BoundExpression? spreadExpression)
@@ -1064,22 +1124,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     },
                     tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression listTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
                     {
+                        Debug.Assert(rewrittenSpreadOperand.Type is not null);
+
                         if (addRangeMethod is null)
                             return false;
 
-                        var type = rewrittenSpreadOperand.Type!;
-
-                        var useSiteInfo = GetNewCompoundUseSiteInfo();
-                        var conversion = _compilation.Conversions.ClassifyConversionFromType(type, addRangeMethod.Parameters[0].Type, isChecked: false, ref useSiteInfo);
-                        _diagnostics.Add(rewrittenSpreadOperand.Syntax, useSiteInfo);
-                        if (conversion.IsIdentity || (conversion.IsImplicit && conversion.IsReference))
+                        if (!ShouldUseAddRangeOrToListMethod(rewrittenSpreadOperand.Type, addRangeMethod.Parameters[0].Type, spreadElement.EnumeratorInfoOpt?.GetEnumeratorInfo.Method))
                         {
-                            conversion.MarkUnderlyingConversionsCheckedRecursive();
-                            sideEffects.Add(_factory.Call(listTemp, addRangeMethod, rewrittenSpreadOperand));
-                            return true;
+                            return false;
                         }
 
-                        return false;
+                        sideEffects.Add(_factory.Call(listTemp, addRangeMethod, rewrittenSpreadOperand));
+                        return true;
                     });
             }
 

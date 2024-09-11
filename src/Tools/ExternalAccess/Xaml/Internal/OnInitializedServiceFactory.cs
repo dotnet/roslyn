@@ -15,41 +15,56 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Xaml;
 [ExportCSharpVisualBasicLspServiceFactory(typeof(OnInitializedService)), Shared]
 internal sealed class OnInitializedServiceFactory : ILspServiceFactory
 {
+#pragma warning disable CS0618 // Type or member is obsolete
     private readonly IInitializationService? _initializationService;
+#pragma warning restore CS0618 // Type or member is obsolete
+    private readonly IOnInitializedService? _onInitializedService;
 
     [ImportingConstructor]
     [Obsolete(StringConstants.ImportingConstructorMessage, error: true)]
-    public OnInitializedServiceFactory([Import(AllowDefault = true)] IInitializationService? initializationService)
+    public OnInitializedServiceFactory(
+        [Import(AllowDefault = true)] IInitializationService? initializationService,
+        [Import(AllowDefault = true)] IOnInitializedService? onInitializedService)
     {
         _initializationService = initializationService;
+        _onInitializedService = onInitializedService;
     }
 
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
     {
         var clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
 
-        return new OnInitializedService(_initializationService, clientLanguageServerManager);
+        return new OnInitializedService(_initializationService, _onInitializedService, clientLanguageServerManager);
     }
 
     private class OnInitializedService : ILspService, IOnInitialized
     {
+#pragma warning disable CS0618 // Type or member is obsolete
         private readonly IInitializationService? _initializationService;
+#pragma warning restore CS0618 // Type or member is obsolete
+        private readonly IOnInitializedService? _onInitializedService;
         private readonly IClientLanguageServerManager _clientLanguageServerManager;
 
-        public OnInitializedService(IInitializationService? initializationService, IClientLanguageServerManager clientLanguageServerManager)
+#pragma warning disable CS0618 // Type or member is obsolete
+        public OnInitializedService(IInitializationService? initializationService, IOnInitializedService? onInitializedService, IClientLanguageServerManager clientLanguageServerManager)
+#pragma warning restore CS0618 // Type or member is obsolete
         {
             _initializationService = initializationService;
+            _onInitializedService = onInitializedService;
             _clientLanguageServerManager = clientLanguageServerManager;
         }
 
         public async Task OnInitializedAsync(LSP.ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
-            if (_initializationService is null)
+            if (_initializationService is not null)
             {
-                return;
+                await _initializationService.OnInitializedAsync(new ClientRequestManager(_clientLanguageServerManager), new ClientCapabilityProvider(clientCapabilities), cancellationToken).ConfigureAwait(false);
             }
 
-            await _initializationService.OnInitializedAsync(new ClientRequestManager(_clientLanguageServerManager), new ClientCapabilityProvider(clientCapabilities), cancellationToken).ConfigureAwait(false);
+            if (_onInitializedService is not null)
+            {
+                await _onInitializedService.OnInitializedAsync(new ClientRequestManager(_clientLanguageServerManager), clientCapabilities, cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private class ClientRequestManager : IClientRequestManager

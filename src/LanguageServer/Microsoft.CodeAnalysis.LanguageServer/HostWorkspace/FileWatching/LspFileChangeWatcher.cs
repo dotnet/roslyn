@@ -40,12 +40,10 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
         return clientCapabilitiesProvider.GetClientCapabilities().Workspace?.DidChangeWatchedFiles?.DynamicRegistration ?? false;
     }
 
-    public IFileChangeContext CreateContext(params WatchedDirectory[] watchedDirectories)
-    {
-        return new FileChangeContext([.. watchedDirectories], this);
-    }
+    public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
+        => new FileChangeContext(watchedDirectories, this);
 
-    private class FileChangeContext : IFileChangeContext
+    private sealed class FileChangeContext : IFileChangeContext
     {
         private readonly ImmutableArray<WatchedDirectory> _watchedDirectories;
         private readonly LspFileChangeWatcher _lspFileChangeWatcher;
@@ -234,7 +232,7 @@ internal sealed class LspFileChangeWatcher : IFileChangeWatcher
 
             _registrationTask.ContinueWith(async _ =>
             {
-                var unregistrationParams = new UnregistrationParamsWithMisspelling()
+                var unregistrationParams = new UnregistrationParams()
                 {
                     Unregistrations =
                     [

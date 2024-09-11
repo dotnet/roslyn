@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
-            var expected = await CreateCompletionItemAsync(label: "A", kind: LSP.CompletionItemKind.Class, tags: new string[] { "Class", "Internal" },
+            var expected = await CreateCompletionItemAsync(label: "A", kind: LSP.CompletionItemKind.Class, tags: ["Class", "Internal"],
                 request: completionParams, document: document, commitCharacters: CompletionRules.Default.DefaultCommitCharacters).ConfigureAwait(false);
             var expectedCommitCharacters = expected.CommitCharacters;
 
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
-            var expected = await CreateCompletionItemAsync(label: "A", kind: LSP.CompletionItemKind.Class, tags: new string[] { "Class", "Internal" },
+            var expected = await CreateCompletionItemAsync(label: "A", kind: LSP.CompletionItemKind.Class, tags: ["Class", "Internal"],
                 request: completionParams, document: document, commitCharacters: CompletionRules.Default.DefaultCommitCharacters).ConfigureAwait(false);
             var expectedCommitCharacters = expected.CommitCharacters;
 
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
-            var expected = await CreateCompletionItemAsync(label: "A", kind: LSP.CompletionItemKind.Class, tags: new string[] { "Class", "Internal" },
+            var expected = await CreateCompletionItemAsync(label: "A", kind: LSP.CompletionItemKind.Class, tags: ["Class", "Internal"],
                 request: completionParams, document: document, commitCharacters: null).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
@@ -208,7 +208,7 @@ static class Extensions
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
-            var expected = await CreateCompletionItemAsync(label: "Goo", kind: LSP.CompletionItemKind.Method, tags: new string[] { "ExtensionMethod", "Public" },
+            var expected = await CreateCompletionItemAsync(label: "Goo", kind: LSP.CompletionItemKind.Method, tags: ["ExtensionMethod", "Public"],
                 request: completionParams, document: document, commitCharacters: null).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
@@ -247,7 +247,7 @@ static class Extensions
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
-            var expected = await CreateCompletionItemAsync(label: "Goo", kind: LSP.CompletionItemKind.ExtensionMethod, tags: new string[] { "ExtensionMethod", "Public" },
+            var expected = await CreateCompletionItemAsync(label: "Goo", kind: LSP.CompletionItemKind.ExtensionMethod, tags: ["ExtensionMethod", "Public"],
                 request: completionParams, document: document, commitCharacters: null).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
@@ -275,7 +275,7 @@ static class Extensions
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
-            var expected = await CreateCompletionItemAsync(label: "A", kind: LSP.CompletionItemKind.Class, tags: new string[] { "Class", "Internal" },
+            var expected = await CreateCompletionItemAsync(label: "A", kind: LSP.CompletionItemKind.Class, tags: ["Class", "Internal"],
                 request: completionParams, document: document, commitCharacters: null).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
@@ -353,7 +353,7 @@ static class Extensions
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
-            var expected = await CreateCompletionItemAsync("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" },
+            var expected = await CreateCompletionItemAsync("A", LSP.CompletionItemKind.Class, ["Class", "Internal"],
                 completionParams, document, preselect: true, commitCharacters: ImmutableArray.Create(' ', '(', '[', '{', ';', '.')).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
@@ -412,7 +412,7 @@ class A
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
             var expected = await CreateCompletionItemAsync(
-                label: "d", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document, sortText: "0000",
+                label: "d", kind: LSP.CompletionItemKind.Text, tags: ["Text"], request: completionParams, document: document, sortText: "0000",
                 labelDetails: new() { Description = "shortdate" }).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
@@ -473,7 +473,7 @@ class A
             };
 
             var expected = await CreateCompletionItemAsync(
-                label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document, textEditText: @"\\A",
+                label: @"\A", kind: LSP.CompletionItemKind.Text, tags: ["Text"], request: completionParams, document: document, textEditText: @"\\A",
                 sortText: "0000", labelDetails: new() { Description = "startofstringonly" }).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
@@ -510,7 +510,7 @@ class A
             };
 
             var expected = await CreateCompletionItemAsync(
-                label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document,
+                label: @"\A", kind: LSP.CompletionItemKind.Text, tags: ["Text"], request: completionParams, document: document,
                 sortText: "0000", vsResolveTextEditOnCommit: true, labelDetails: new() { Description = "startofstringonly" }).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
@@ -547,7 +547,7 @@ class A
             };
 
             var expected = await CreateCompletionItemAsync(
-                label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document,
+                label: @"\A", kind: LSP.CompletionItemKind.Text, tags: ["Text"], request: completionParams, document: document,
                 sortText: "0000", vsResolveTextEditOnCommit: true, labelDetails: new() { Description = "startofstringonly" }).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
@@ -601,7 +601,7 @@ class A
             var textEdit = GenerateTextEdit(@"\\A", startLine: 5, startChar: 19, endLine: 5, endChar: 19);
 
             var expected = await CreateCompletionItemAsync(
-                label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document, textEdit: textEdit,
+                label: @"\A", kind: LSP.CompletionItemKind.Text, tags: ["Text"], request: completionParams, document: document, textEdit: textEdit,
                 sortText: "0000", labelDetails: new() { Description = "startofstringonly" }).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
@@ -692,7 +692,7 @@ class A
 
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
-            var expected = await CreateCompletionItemAsync("A", LSP.CompletionItemKind.Class, new string[] { "Class", "Internal" },
+            var expected = await CreateCompletionItemAsync("A", LSP.CompletionItemKind.Class, ["Class", "Internal"],
                 completionParams, document, commitCharacters: CompletionRules.Default.DefaultCommitCharacters).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
