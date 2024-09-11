@@ -16,6 +16,14 @@
     <!-- TODO: https://github.com/dotnet/roslyn/issues/71667 -->
     <NoWarn>$(NoWarn);NU1507</NoWarn>
 
+    <!--
+      Do not error on NuGet audit warnings. These are warnings that are introduced asynchronously as
+      new vulnerabilities are discovered. Having these as errors means that CI would pass on on job,
+      and then potentially fail on the next. This is meant to be an early warning system, not a 
+      random CI failure generator.
+    -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
+
     <CommonExtensionInstallationRoot>CommonExtensions</CommonExtensionInstallationRoot>
     <LanguageServicesExtensionInstallationFolder>Microsoft\VBCSharp\LanguageServices</LanguageServicesExtensionInstallationFolder>
 
