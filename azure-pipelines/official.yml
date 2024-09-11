@@ -127,6 +127,3 @@ extends:
               os: macOS
             EnableMacOSBuild: ${{ parameters.EnableMacOSBuild }}
             RunTests: ${{ parameters.RunTests }}
-      - template: /azure-pipelines/prepare-insertion-stages.yml@self
-        parameters:
-          RealSign: false
