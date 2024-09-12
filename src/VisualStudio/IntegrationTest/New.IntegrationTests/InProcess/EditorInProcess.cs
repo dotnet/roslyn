@@ -5,8 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel.Design;
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -685,6 +685,22 @@ internal partial class EditorInProcess : ITextViewWindowInProcess
 
         var broker = await GetComponentModelServiceAsync<ICompletionBroker>(cancellationToken);
         broker.DismissAllSessions(view);
+    }
+
+    public async Task WaitForCompletionSessionsAsync(CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        await WaitForCompletionSetAsync(cancellationToken);
+
+        var view = await GetActiveTextViewAsync(cancellationToken);
+        var broker = await GetComponentModelServiceAsync<ICompletionBroker>(cancellationToken);
+        var sessions = broker.GetSessions(view);
+        while (sessions.Count == 0)
+        {
+            await Task.Delay(100, cancellationToken);
+            sessions = broker.GetSessions(view);
+        }
     }
 
     public async Task<Completion> GetCurrentCompletionItemAsync(CancellationToken cancellationToken)

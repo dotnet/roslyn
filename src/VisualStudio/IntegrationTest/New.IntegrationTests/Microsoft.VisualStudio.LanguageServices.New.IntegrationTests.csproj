@@ -7,7 +7,7 @@
     <TargetFramework>net472</TargetFramework>
     <UseWPF>true</UseWPF>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    
+
     <!-- this project is also used as a test input for Go To Definition tests in it, so needs some test data embedded -->
     <DebugType>embedded</DebugType>
     <EmbedAllSources>true</EmbedAllSources>
