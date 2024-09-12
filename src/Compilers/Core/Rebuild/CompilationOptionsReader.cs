@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Rebuild
                 var content = new byte[length];
                 Marshal.Copy(new IntPtr(contentPtr), content, 0, length);
 
-                var isPublic = (resource.Attributes & ManifestResourceAttributes.Public) != 0;
+                var isPublic = (resource.Attributes & ManifestResourceAttributes.VisibilityMask) == ManifestResourceAttributes.Public;
                 var description = new ResourceDescription(name, dataProvider: () => new MemoryStream(content), isPublic);
                 return description;
             }).ToArray();

@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override bool IsExtern => HasFlag(MethodAttributes.PinvokeImpl);
 
-        internal override bool IsExternal => IsExtern || (ImplementationAttributes & MethodImplAttributes.Runtime) != 0;
+        internal override bool IsExternal => IsExtern || (ImplementationAttributes & MethodImplAttributes.CodeTypeMask) == MethodImplAttributes.Runtime;
 
         public override bool IsVararg => Signature.Header.CallingConvention == SignatureCallingConvention.VarArgs;
 
