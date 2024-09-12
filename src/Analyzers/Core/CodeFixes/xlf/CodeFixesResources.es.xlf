@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Add_explicit_cast">
         <source>Add explicit cast</source>
-        <target state="needs-review-translation">Agregar conversión explícita</target>
+        <target state="translated">Agregar conversión explícita</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_file_header">

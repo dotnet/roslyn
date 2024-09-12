@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Add_explicit_cast">
         <source>Add explicit cast</source>
-        <target state="needs-review-translation">明示的なキャストの追加</target>
+        <target state="translated">明示的なキャストの追加</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_file_header">

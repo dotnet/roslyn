@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Add_explicit_cast">
         <source>Add explicit cast</source>
-        <target state="needs-review-translation">新增明確轉換</target>
+        <target state="translated">新增明確轉換</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_file_header">
