@@ -558,4 +558,22 @@ public class OrderModifiersTests : AbstractCSharpDiagnosticProviderBasedUserDiag
             }
             """);
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/vscode-csharp/issues/7553")]
+    public async Task TestEmptySelection()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            namespace M;
+            [||]static internal class C
+            {
+            }
+            """,
+            """
+            namespace M;
+            internal static class C
+            {
+            }
+            """, TestParameters.Default.WithIncludeDiagnosticsOutsideSelection(false));
+    }
 }
