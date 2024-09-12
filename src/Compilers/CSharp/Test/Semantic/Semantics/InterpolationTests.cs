@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -3652,13 +3653,11 @@ System.Console.WriteLine(" + expression + @");";
 
             var verifier = CompileAndVerify(new[] { source, interpolatedStringBuilder }, expectedOutput: @"
 value:1
-value:2
-value:
-value:");
+value:2");
 
             verifier.VerifyIL("<top-level-statements-entry-point>", @"
 {
-  // Code size       81 (0x51)
+  // Code size       65 (0x41)
   .maxstack  3
   .locals init (bool V_0, //b
                 object V_1,
@@ -3667,7 +3666,7 @@ value:");
   IL_0001:  stloc.0
   IL_0002:  ldloca.s   V_2
   IL_0004:  ldc.i4.0
-  IL_0005:  ldc.i4.4
+  IL_0005:  ldc.i4.2
   IL_0006:  call       ""System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)""
   IL_000b:  ldloc.0
   IL_000c:  brfalse.s  IL_0017
@@ -3689,15 +3688,9 @@ value:");
   IL_002e:  ldnull
   IL_002f:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)""
   IL_0034:  ldloca.s   V_2
-  IL_0036:  ldnull
-  IL_0037:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)""
-  IL_003c:  ldloca.s   V_2
-  IL_003e:  ldnull
-  IL_003f:  call       ""void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)""
-  IL_0044:  ldloca.s   V_2
-  IL_0046:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
-  IL_004b:  call       ""void System.Console.WriteLine(string)""
-  IL_0050:  ret
+  IL_0036:  call       ""string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()""
+  IL_003b:  call       ""void System.Console.WriteLine(string)""
+  IL_0040:  ret
 }
 ");
         }
@@ -13541,6 +13534,81 @@ Expression<Func<string, string>> e = o => $""{o.Length}"" + $""literal"";";
 ");
         }
 
+        [Fact, WorkItem(72308, "https://github.com/dotnet/roslyn/issues/72308")]
+        public void AsStringInExpressionTrees_06()
+        {
+            var toObject = Environment.Version.Major > 4 ? ", Object" : "";
+            var code = @"
+using System;
+using System.Linq.Expressions;
+
+const char sp = ' ';
+Expression<Func<string, string>> e = o => $""{o}l{sp}{nameof(sp)}"";
+Console.Write(e);";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+            var verifier = CompileAndVerify(comp, expectedOutput: @"o => Format(""{0}l{1}{2}"", o, Convert( " + toObject + @"), ""sp"")
+");
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("<top-level-statements-entry-point>", @"
+{
+  // Code size      159 (0x9f)
+  .maxstack  7
+  .locals init (System.Linq.Expressions.ParameterExpression V_0)
+  IL_0000:  ldtoken    ""string""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""o""
+  IL_000f:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0014:  stloc.0
+  IL_0015:  ldnull
+  IL_0016:  ldtoken    ""string string.Format(string, object, object, object)""
+  IL_001b:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0020:  castclass  ""System.Reflection.MethodInfo""
+  IL_0025:  ldc.i4.4
+  IL_0026:  newarr     ""System.Linq.Expressions.Expression""
+  IL_002b:  dup
+  IL_002c:  ldc.i4.0
+  IL_002d:  ldstr      ""{0}l{1}{2}""
+  IL_0032:  ldtoken    ""string""
+  IL_0037:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_003c:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_0041:  stelem.ref
+  IL_0042:  dup
+  IL_0043:  ldc.i4.1
+  IL_0044:  ldloc.0
+  IL_0045:  stelem.ref
+  IL_0046:  dup
+  IL_0047:  ldc.i4.2
+  IL_0048:  ldc.i4.s   32
+  IL_004a:  box        ""char""
+  IL_004f:  ldtoken    ""char""
+  IL_0054:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0059:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_005e:  ldtoken    ""object""
+  IL_0063:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0068:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+  IL_006d:  stelem.ref
+  IL_006e:  dup
+  IL_006f:  ldc.i4.3
+  IL_0070:  ldstr      ""sp""
+  IL_0075:  ldtoken    ""string""
+  IL_007a:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_007f:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_0084:  stelem.ref
+  IL_0085:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+  IL_008a:  ldc.i4.1
+  IL_008b:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_0090:  dup
+  IL_0091:  ldc.i4.0
+  IL_0092:  ldloc.0
+  IL_0093:  stelem.ref
+  IL_0094:  call       ""System.Linq.Expressions.Expression<System.Func<string, string>> System.Linq.Expressions.Expression.Lambda<System.Func<string, string>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_0099:  call       ""void System.Console.Write(object)""
+  IL_009e:  ret
+}
+");
+        }
+
         [Theory]
         [CombinatorialData]
         public void CustomHandlerUsedAsArgumentToCustomHandler(bool useBoolReturns, bool validityParameter, [CombinatorialValues(@"$""""", @"$"""" + $""""")] string expression)
@@ -16050,11 +16118,9 @@ System.Console.WriteLine({expression});";
             CompileAndVerify(comp, expectedOutput: @"
 (
 value:1
-),
-[
+),[
 value:2
-],
-{
+],{
 value:3
 }
 ");
@@ -18982,6 +19048,368 @@ literal:literal
                 //     public static implicit operator C1(System.IFormattable x) => new C1(x);
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "C1").WithArguments("C1.implicit operator C1(System.IFormattable)").WithLocation(18, 37)
             );
+        }
+
+        [Theory]
+        [InlineData(@"$""{obj}{obj}{StrNull}{CChar}{""""}{obj}""", "o|o|c|o")]
+        [InlineData(@"$""{obj}{obj}{""""}{CChar}{StrNull}{obj}""", "o|o|c|o")]
+        [InlineData(@"$""{obj}{obj}{null}{CChar}{(string?)default}{obj}""", "o|o|c|o")]
+        [InlineData(@"$""{obj}{""""}{obj}{CChar}{obj}""", "o|o|c|o")]
+        [InlineData(@"$""{obj}{Emp}{obj}{CChar}{obj}{CStr}""", "o|o|c|o|s")]
+        [InlineData(@"$""{CChar}{CStr}{StrNull}{CStr}{obj}{obj}{CChar}{CChar}{obj}""", "css|o|o|cc|o")]
+        public void MixStringCharConstantsToHandler_01(string expression, string output)
+        {
+            var code = """
+                #pragma warning disable CS0219
+                const char CChar = 'c';
+                const string CStr = "s";
+                const string? StrNull = null;
+                const string Emp = "";
+                object obj = "o";
+                #pragma warning enable CS0219
+                System.Console.Write(
+                """ + expression + ");";
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+            var verifier = CompileAndVerify(comp, expectedOutput: string.Concat(output.Split('|').Select(s => s switch
+            {
+                "o" => "value:o",
+                _ => s,
+            } + Environment.NewLine)));
+            verifier.VerifyIL("<top-level-statements-entry-point>", getIl());
+
+            string getIl() => output switch
+            {
+                "o|o|c|o" => """
+ {
+  // Code size       64 (0x40)
+  .maxstack  3
+  .locals init (object V_0, //obj
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
+  IL_0000:  ldstr      "o"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  ldc.i4.1
+  IL_0009:  ldc.i4.3
+  IL_000a:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldloc.0
+  IL_0012:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  ldloc.0
+  IL_001a:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldstr      "c"
+  IL_0026:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+  IL_002b:  ldloca.s   V_1
+  IL_002d:  ldloc.0
+  IL_002e:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_0033:  ldloca.s   V_1
+  IL_0035:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+  IL_003a:  call       "void System.Console.Write(string)"
+  IL_003f:  ret
+}
+""",
+                "o|o|c|o|s" => """
+    {
+  // Code size       76 (0x4c)
+  .maxstack  3
+  .locals init (object V_0, //obj
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
+  IL_0000:  ldstr      "o"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  ldc.i4.2
+  IL_0009:  ldc.i4.3
+  IL_000a:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldloc.0
+  IL_0012:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  ldloc.0
+  IL_001a:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_001f:  ldloca.s   V_1
+  IL_0021:  ldstr      "c"
+  IL_0026:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+  IL_002b:  ldloca.s   V_1
+  IL_002d:  ldloc.0
+  IL_002e:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_0033:  ldloca.s   V_1
+  IL_0035:  ldstr      "s"
+  IL_003a:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+  IL_003f:  ldloca.s   V_1
+  IL_0041:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+  IL_0046:  call       "void System.Console.Write(string)"
+  IL_004b:  ret
+}
+""",
+                "css|o|o|cc|o" => """
+{
+  // Code size       76 (0x4c)
+  .maxstack  3
+  .locals init (object V_0, //obj
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
+  IL_0000:  ldstr      "o"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  ldc.i4.5
+  IL_0009:  ldc.i4.3
+  IL_000a:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldstr      "css"
+  IL_0016:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+  IL_001b:  ldloca.s   V_1
+  IL_001d:  ldloc.0
+  IL_001e:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_0023:  ldloca.s   V_1
+  IL_0025:  ldloc.0
+  IL_0026:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_002b:  ldloca.s   V_1
+  IL_002d:  ldstr      "cc"
+  IL_0032:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendLiteral(string)"
+  IL_0037:  ldloca.s   V_1
+  IL_0039:  ldloc.0
+  IL_003a:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_003f:  ldloca.s   V_1
+  IL_0041:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+  IL_0046:  call       "void System.Console.Write(string)"
+  IL_004b:  ret
+}
+""",
+                _ => "",
+            };
+        }
+        [Theory]
+        [InlineData(@"$""{ConstChar}l{ConstString}l{varString}""", "clslv")]
+        [InlineData(@"$""{ConstChar}{varString}{null}{varString}{null}""", "cvv")]
+        [InlineData(@"$""{null}{varString}{null}{null}{varString}{null}{ConstChar}{ConstChar}{default}l{null}{varString}{default(string?)}""", "vvcclv")]
+        public void MixStringCharNullConstantsToConcat(string expression, string output)
+        {
+            var code = @"
+const char ConstChar = 'c';
+const string ConstString = ""s"";
+const string? NullString = null;
+string varString = ""v"";
+System.Console.Write(" + expression + @");";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+            var verifier = CompileAndVerify(comp, expectedOutput: output);
+            verifier.VerifyIL("<top-level-statements-entry-point>", getIl());
+
+            string getIl() => output switch
+            {
+                "clslv" => """
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (string V_0) //varString
+  IL_0000:  ldstr      "v"
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      "clsl"
+  IL_000b:  ldloc.0
+  IL_000c:  call       "string string.Concat(string, string)"
+  IL_0011:  call       "void System.Console.Write(string)"
+  IL_0016:  ret
+}
+""",
+                "cvv" => """
+{
+  // Code size       24 (0x18)
+  .maxstack  3
+  .locals init (string V_0) //varString
+  IL_0000:  ldstr      "v"
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      "c"
+  IL_000b:  ldloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  call       "string string.Concat(string, string, string)"
+  IL_0012:  call       "void System.Console.Write(string)"
+  IL_0017:  ret
+}
+""",
+                "vvcclv" => """
+{
+  // Code size       25 (0x19)
+  .maxstack  4
+  .locals init (string V_0) //varString
+  IL_0000:  ldstr      "v"
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldstr      "ccl"
+  IL_000d:  ldloc.0
+  IL_000e:  call       "string string.Concat(string, string, string, string)"
+  IL_0013:  call       "void System.Console.Write(string)"
+  IL_0018:  ret
+}
+""",
+                _ => "",
+            };
+        }
+
+        [Theory]
+        [InlineData(@"$""{ConstChar}l{ConstString}l{ConstString}""", "clsls", true)]
+        [InlineData(@"$""{ConstChar}""", "c", true)]
+        [InlineData(@"$""{ConstChar}{ConstChar}""", "cc", true)]
+        [InlineData(@"$""{ConstString}{ConstString}""", "ss", true)]
+        [InlineData(@"$""{null}""", "", true)]
+        [InlineData(@"$""{NullString}""", "", true)]
+        [InlineData(@"$""{null}{NullString}""", "", true)]
+        [InlineData(@"$""n{NullString}u{NullString}{default(string)}{'l'}{""l ""}{NullString}{'v'}{NullString}{""alue""}""", "null value", true)]
+        [InlineData(@"$""null{(string)null}"" + $""{null}"" + $""{default}""", "null", false)]
+        public void MixStringCharNullConstantsToLiteral(string expression, string output, bool isConst)
+        {
+            var code = @"
+#pragma warning disable CS0219
+const char ConstChar = 'c';
+const string ConstString = ""s"";
+const string NullString = null;
+#pragma warning restore CS0219
+" + (isConst ? "const " : "") + @"string expression = " + expression + @";
+System.Console.Write(expression);";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+
+            var verifier = CompileAndVerify(comp, expectedOutput: output);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @$"
+{{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldstr      ""{output}""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ret
+}}
+");
+        }
+        [Theory]
+        [InlineData(@"$""{'c'}""", "c")]
+        [InlineData(@"$""{$""{'c'}h""}ar""", "char")]
+        [InlineData(@"$""{'c'}h{'a'}r{'a'}{'c'}t{'e'}"" + $""{'r'}{'s'}""", "characters")]
+        public void CharConstantToConstString(string expression, string output)
+        {
+            var code = @"
+const string expression = " + expression + @";
+System.Console.Write(expression);";
+
+            var comp = CreateCompilation(new[] { code, GetInterpolatedStringHandlerDefinition(includeSpanOverloads: false, useDefaultParameters: false, useBoolReturns: false) });
+
+            var verifier = CompileAndVerify(comp, expectedOutput: output);
+
+            verifier.VerifyIL("<top-level-statements-entry-point>", @$"
+{{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldstr      ""{output}""
+  IL_0005:  call       ""void System.Console.Write(string)""
+  IL_000a:  ret
+}}
+");
+        }
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void MissingAppendLiteral(bool addStringOverload)
+        {
+            var code = """
+using System;
+
+const string C = "C";
+object o = "o";
+Console.WriteLine($"{o}{C}{nameof(C)}{C}");
+
+namespace System.Runtime.CompilerServices
+{
+    using System.Text;
+    using System.Globalization;
+
+    public ref struct DefaultInterpolatedStringHandler
+    {
+        private readonly StringBuilder _builder;
+
+        public DefaultInterpolatedStringHandler(int literalLength, int formattedCount)
+        {
+            _builder = new StringBuilder();
+        }
+
+        public void AppendFormatted(object o)
+        {
+            _builder.Append("[" + o.ToString() + "]");
+        }
+        
+""" + (addStringOverload ? """
+        public void AppendFormatted(string s)
+        {
+            _builder.Append("[" + s + "]");
+        }
+
+""" : "") + """
+        public string ToStringAndClear()
+            => _builder.ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(code);
+            var verifier = CompileAndVerify(comp, expectedOutput: "[o][C][C][C]");
+            verifier.VerifyIL("<top-level-statements-entry-point>", addStringOverload ? """
+{
+  // Code size       72 (0x48)
+  .maxstack  3
+  .locals init (object V_0, //o
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
+  IL_0000:  ldstr      "o"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.4
+  IL_000a:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldloc.0
+  IL_0012:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  ldstr      "C"
+  IL_001e:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)"
+  IL_0023:  ldloca.s   V_1
+  IL_0025:  ldstr      "C"
+  IL_002a:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)"
+  IL_002f:  ldloca.s   V_1
+  IL_0031:  ldstr      "C"
+  IL_0036:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)"
+  IL_003b:  ldloca.s   V_1
+  IL_003d:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+  IL_0042:  call       "void System.Console.WriteLine(string)"
+  IL_0047:  ret
+}
+""" : """
+{
+  // Code size       72 (0x48)
+  .maxstack  3
+  .locals init (object V_0, //o
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
+  IL_0000:  ldstr      "o"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.4
+  IL_000a:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldloc.0
+  IL_0012:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  ldstr      "C"
+  IL_001e:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_0023:  ldloca.s   V_1
+  IL_0025:  ldstr      "C"
+  IL_002a:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_002f:  ldloca.s   V_1
+  IL_0031:  ldstr      "C"
+  IL_0036:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_003b:  ldloca.s   V_1
+  IL_003d:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+  IL_0042:  call       "void System.Console.WriteLine(string)"
+  IL_0047:  ret
+}
+""");
         }
     }
 }
