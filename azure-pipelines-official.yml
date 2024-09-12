@@ -127,6 +127,7 @@ extends:
 
       - template: /eng/common/templates-official/jobs/source-build.yml@self
         parameters:
+          # Enable internal sources to add internal feeds and run NuGetAuthenticate for internal builds.
           enableInternalSources: true
 
       - job: OfficialBuild
