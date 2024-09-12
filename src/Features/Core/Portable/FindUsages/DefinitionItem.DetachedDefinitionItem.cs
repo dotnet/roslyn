@@ -15,46 +15,34 @@ using static Microsoft.CodeAnalysis.FindUsages.DefinitionItem;
 namespace Microsoft.CodeAnalysis.FindUsages
 {
     [DataContract]
-    internal sealed class DetachedDefinitionItem : IEquatable<DetachedDefinitionItem>
+    internal sealed class DetachedDefinitionItem(
+        ImmutableArray<string> tags,
+        ImmutableArray<TaggedText> displayParts,
+        ImmutableArray<TaggedText> nameDisplayParts,
+        ImmutableArray<TaggedText> originationParts,
+        ImmutableArray<DocumentIdSpan> sourceSpans,
+        ImmutableDictionary<string, string> properties,
+        ImmutableDictionary<string, string> displayableProperties,
+        bool displayIfNoReferences) : IEquatable<DetachedDefinitionItem>
     {
         [DataMember(Order = 0)]
-        public readonly ImmutableArray<string> Tags;
+        public readonly ImmutableArray<string> Tags = tags;
         [DataMember(Order = 1)]
-        public readonly ImmutableArray<TaggedText> DisplayParts;
+        public readonly ImmutableArray<TaggedText> DisplayParts = displayParts;
         [DataMember(Order = 2)]
-        public readonly ImmutableArray<TaggedText> NameDisplayParts;
+        public readonly ImmutableArray<TaggedText> NameDisplayParts = nameDisplayParts;
         [DataMember(Order = 3)]
-        public readonly ImmutableArray<TaggedText> OriginationParts;
+        public readonly ImmutableArray<TaggedText> OriginationParts = originationParts;
         [DataMember(Order = 4)]
-        public readonly ImmutableArray<DocumentIdSpan> SourceSpans;
+        public readonly ImmutableArray<DocumentIdSpan> SourceSpans = sourceSpans;
         [DataMember(Order = 5)]
-        public readonly ImmutableDictionary<string, string> Properties;
+        public readonly ImmutableDictionary<string, string> Properties = properties;
         [DataMember(Order = 6)]
-        public readonly ImmutableDictionary<string, string> DisplayableProperties;
+        public readonly ImmutableDictionary<string, string> DisplayableProperties = displayableProperties;
         [DataMember(Order = 7)]
-        public readonly bool DisplayIfNoReferences;
+        public readonly bool DisplayIfNoReferences = displayIfNoReferences;
 
         private int _hashCode;
-
-        public DetachedDefinitionItem(
-            ImmutableArray<string> tags,
-            ImmutableArray<TaggedText> displayParts,
-            ImmutableArray<TaggedText> nameDisplayParts,
-            ImmutableArray<TaggedText> originationParts,
-            ImmutableArray<DocumentIdSpan> sourceSpans,
-            ImmutableDictionary<string, string> properties,
-            ImmutableDictionary<string, string> displayableProperties,
-            bool displayIfNoReferences)
-        {
-            Tags = tags;
-            DisplayParts = displayParts;
-            NameDisplayParts = nameDisplayParts;
-            OriginationParts = originationParts;
-            Properties = properties;
-            DisplayableProperties = displayableProperties;
-            DisplayIfNoReferences = displayIfNoReferences;
-            SourceSpans = sourceSpans;
-        }
 
         public override bool Equals(object? obj)
             => Equals(obj as DetachedDefinitionItem);

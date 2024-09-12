@@ -10,10 +10,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -31,13 +30,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
                 SupportsVisualStudioExtensions = true,
                 TextDocument = new()
                 {
-                    Completion = new()
+                    Completion = new VSInternalCompletionSetting()
                     {
-                        CompletionListSetting = new()
+                        CompletionListSetting = new CompletionListSetting()
                         {
-                            ItemDefaults = new[] { CompletionHandler.EditRangeSetting },
+                            ItemDefaults = new[] { CompletionCapabilityHelper.EditRangePropertyName },
                         },
                         CompletionItemKind = new(),
+
+                        CompletionList = new VSInternalCompletionListSetting()
+                        {
+                            CommitCharacters = true,
+                        }
                     },
                 },
             };
@@ -47,8 +51,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
         }
 
         [Theory, CombinatorialData]
-        public async Task TestGetCompletionsAsync_PromotesCommitCharactersToListAsync(bool mutatingLspWorkspace)
+        public async Task TestGetCompletionsAsync_PromotesCommitCharactersToListAsync(bool mutatingLspWorkspace, bool isPublicDefaultCommitChars)
         {
+            var itemDefaultArray = isPublicDefaultCommitChars
+                ? new string[] { CompletionCapabilityHelper.EditRangePropertyName, CompletionCapabilityHelper.CommitCharactersPropertyName }
+                : new string[] { CompletionCapabilityHelper.EditRangePropertyName };
+
             var clientCapabilities = new LSP.VSInternalClientCapabilities
             {
                 SupportsVisualStudioExtensions = true,
@@ -58,12 +66,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
                     {
                         CompletionListSetting = new LSP.CompletionListSetting
                         {
-                            ItemDefaults = new string[] { CompletionHandler.EditRangeSetting }
+                            ItemDefaults = itemDefaultArray
+
                         },
-                        CompletionList = new LSP.VSInternalCompletionListSetting
-                        {
-                            CommitCharacters = true,
-                        }
+                        CompletionList = isPublicDefaultCommitChars ? null : new LSP.VSInternalCompletionListSetting { CommitCharacters = true }
                     },
                 }
             };
@@ -94,7 +100,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
             var vsCompletionList = Assert.IsAssignableFrom<LSP.VSInternalCompletionList>(results);
-            Assert.Equal(expectedCommitCharacters, vsCompletionList.CommitCharacters.Value.First);
+
+            if (isPublicDefaultCommitChars)
+                Assert.Equal(expectedCommitCharacters, vsCompletionList.ItemDefaults.CommitCharacters);
+            else
+                Assert.Equal(expectedCommitCharacters, vsCompletionList.CommitCharacters.Value.First);
         }
 
         [Theory, CombinatorialData]
@@ -109,7 +119,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
                     {
                         CompletionListSetting = new LSP.CompletionListSetting
                         {
-                            ItemDefaults = new string[] { CompletionHandler.EditRangeSetting }
+                            ItemDefaults = new string[] { CompletionCapabilityHelper.EditRangePropertyName }
                         },
                         CompletionList = new LSP.VSInternalCompletionListSetting
                         {
@@ -132,7 +142,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Completion
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
             var expected = await CreateCompletionItemAsync(label: "A", kind: LSP.CompletionItemKind.Class, tags: new string[] { "Class", "Internal" },
-                request: completionParams, document: document, commitCharacters: CompletionRules.Default.DefaultCommitCharacters, insertText: "A").ConfigureAwait(false);
+                request: completionParams, document: document, commitCharacters: CompletionRules.Default.DefaultCommitCharacters).ConfigureAwait(false);
             var expectedCommitCharacters = expected.CommitCharacters;
 
             // Null out the commit characters since we're expecting the commit characters will be lifted onto the completion list.
@@ -286,8 +296,9 @@ static class Extensions
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
             var solution = testLspServer.TestWorkspace.CurrentSolution;
 
-            // Make sure the unimported types option is on by default.
+            // Make sure the unimported types option is on
             testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, true);
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, true);
 
             var completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("caret").Single(),
@@ -401,7 +412,8 @@ class A
             var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
 
             var expected = await CreateCompletionItemAsync(
-                label: "d", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document, sortText: "0000").ConfigureAwait(false);
+                label: "d", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document, sortText: "0000",
+                labelDetails: new() { Description = "shortdate" }).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -461,8 +473,8 @@ class A
             };
 
             var expected = await CreateCompletionItemAsync(
-                label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document, insertText: @"\\A",
-                sortText: "0000").ConfigureAwait(false);
+                label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document, textEditText: @"\\A",
+                sortText: "0000", labelDetails: new() { Description = "startofstringonly" }).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -493,13 +505,13 @@ class A
 
             var defaultRange = new LSP.Range
             {
-                Start = new LSP.Position { Line = 5, Character = 20 },
+                Start = new LSP.Position { Line = 5, Character = 21 },
                 End = new LSP.Position { Line = 5, Character = 21 }
             };
 
             var expected = await CreateCompletionItemAsync(
                 label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document,
-                sortText: "0000").ConfigureAwait(false);
+                sortText: "0000", vsResolveTextEditOnCommit: true, labelDetails: new() { Description = "startofstringonly" }).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -530,13 +542,13 @@ class A
 
             var defaultRange = new LSP.Range
             {
-                Start = new LSP.Position { Line = 5, Character = 23 },
+                Start = new LSP.Position { Line = 5, Character = 25 },
                 End = new LSP.Position { Line = 5, Character = 25 }
             };
 
             var expected = await CreateCompletionItemAsync(
-                label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document, insertText: @"\\A",
-                sortText: "0000").ConfigureAwait(false);
+                label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document,
+                sortText: "0000", vsResolveTextEditOnCommit: true, labelDetails: new() { Description = "startofstringonly" }).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -557,7 +569,13 @@ class A
                         {
                             ItemDefaults = null,
                         },
+
+                        CompletionList = new VSInternalCompletionListSetting
+                        {
+                            CommitCharacters = true,
+                        }
                     },
+
                 }
             };
 
@@ -584,7 +602,7 @@ class A
 
             var expected = await CreateCompletionItemAsync(
                 label: @"\A", kind: LSP.CompletionItemKind.Text, tags: new string[] { "Text" }, request: completionParams, document: document, textEdit: textEdit,
-                sortText: "0000").ConfigureAwait(false);
+                sortText: "0000", labelDetails: new() { Description = "startofstringonly" }).ConfigureAwait(false);
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             AssertJsonEquals(expected, results.Items.First());
@@ -739,33 +757,6 @@ partial class C
         }
 
         [Theory, CombinatorialData]
-        public async Task TestAlwaysHasCommitCharactersWithoutVSCapabilityAsync(bool mutatingLspWorkspace)
-        {
-            var markup =
-@"using System;
-class A
-{
-    void M()
-    {
-        {|caret:|}
-    }
-}";
-            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
-            var completionParams = CreateCompletionParams(
-                testLspServer.GetLocations("caret").Single(),
-                invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
-                triggerCharacter: "\0",
-                triggerKind: LSP.CompletionTriggerKind.Invoked);
-
-            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
-
-            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-            Assert.NotNull(results);
-            Assert.NotEmpty(results.Items);
-            Assert.All(results.Items, (item) => Assert.NotNull(item.CommitCharacters));
-        }
-
-        [Theory, CombinatorialData]
         public async Task TestSoftSelectedItemsHaveNoCommitCharactersWithoutVSCapabilityAsync(bool mutatingLspWorkspace)
         {
             var markup =
@@ -789,7 +780,7 @@ class A
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             Assert.NotNull(results);
             Assert.NotEmpty(results.Items);
-            Assert.All(results.Items, (item) => Assert.Null(item.CommitCharacters));
+            Assert.All(results.Items, (item) => Assert.Empty(item.CommitCharacters));
         }
 
         [Theory, CombinatorialData]
@@ -1158,7 +1149,7 @@ class A
 
     void M2()
     {
-        Console.W{|secondCaret:|}
+        Console.WH{|secondCaret:|}
     }
 }";
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
@@ -1170,22 +1161,22 @@ class A
                 firstCaret,
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
                 triggerCharacter: "T",
-                triggerKind: LSP.CompletionTriggerKind.Invoked);
+                triggerKind: LSP.CompletionTriggerKind.TriggerCharacter);
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             Assert.Equal(1000, results.Items.Length);
             Assert.True(results.IsIncomplete);
-            Assert.Equal("T", results.Items.First().Label);
+            Assert.Contains(results.Items, i => i.Label == "T"); // It's client's responsibility to sort, so we can't assume the best match is the first item.
 
             // Make a second completion request, but not for the original incomplete list.
             completionParams = CreateCompletionParams(
                 testLspServer.GetLocations("secondCaret").Single(),
                 invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
-                triggerCharacter: "W",
-                triggerKind: LSP.CompletionTriggerKind.Invoked);
+                triggerCharacter: "H",
+                triggerKind: LSP.CompletionTriggerKind.TriggerForIncompleteCompletions);
             results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             Assert.False(results.IsIncomplete);
             Assert.True(results.Items.Length < 1000);
-            Assert.Equal("WindowHeight", results.Items.First().Label);
+            Assert.Contains(results.Items, i => i.Label == "WindowHeight"); // It's client's responsibility to sort, so we can't assume the best match is the first item.
         }
 
         [Theory, CombinatorialData]
@@ -1333,16 +1324,6 @@ class A
             Assert.True(results.Items.Length < 1000);
             Assert.DoesNotContain(results.Items, item => item.Label == "Saaa");
             Assert.Contains(results.Items, item => item.Label == "Taaa");
-
-            static LSP.Location GetLocationPlusOne(LSP.Location originalLocation)
-            {
-                var newPosition = new LSP.Position { Character = originalLocation.Range.Start.Character + 1, Line = originalLocation.Range.Start.Line };
-                return new LSP.Location
-                {
-                    Uri = originalLocation.Uri,
-                    Range = new LSP.Range { Start = newPosition, End = newPosition }
-                };
-            }
         }
 
         [Theory, CombinatorialData]
@@ -1439,7 +1420,7 @@ class A
         }
 
         [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1755138")]
-        public async Task TestOnlyHasSuggestionModeItemAsync(bool mutatingLspWorkspace)
+        public async Task TestHasSuggestionModeItemAsync(bool mutatingLspWorkspace)
         {
             var markup =
 @"using System.Threading.Tasks;
@@ -1461,37 +1442,33 @@ class A
 
             var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
             var list = (LSP.VSInternalCompletionList)results;
-            Assert.Empty(list.Items);
+            Assert.False(list.IsIncomplete);
+            Assert.NotEmpty(list.Items); // it client's responsibility to filter, server should return all items available regardless of the filter text (unless item counts exceeds the limit)
             Assert.True(list.SuggestionMode);
         }
 
-        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1755955")]
-        public async Task TestNotTriggerCompletionInArgumentListAsync(bool mutatingLspWorkspace)
+        [Theory, CombinatorialData]
+        public async Task EditRangeShouldNotEndAtCursorPosition(bool mutatingLspWorkspace)
         {
             var markup =
-@"
-using System;
-using System.Text;
+@"public class C1 {}
 
-public class A
-{
-    public void M()
-    {
-        var x = new StringBuilder();
-        x.Append({|caret:|}
-    }
-}";
+pub{|caret:|}class";
+
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, s_vsCompletionCapabilities);
+            var caret = testLspServer.GetLocations("caret").Single();
+            testLspServer.TestWorkspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.SnippetsBehavior, LanguageNames.CSharp, SnippetsRule.NeverInclude);
+
             var completionParams = CreateCompletionParams(
-                testLspServer.GetLocations("caret").Single(),
-                invokeKind: LSP.VSInternalCompletionInvokeKind.Typing,
-                triggerCharacter: "(",
+                caret,
+                invokeKind: LSP.VSInternalCompletionInvokeKind.Explicit,
+                triggerCharacter: "\0",
                 triggerKind: LSP.CompletionTriggerKind.Invoked);
 
-            var document = testLspServer.GetCurrentSolution().Projects.First().Documents.First();
-
-            var results = await RunGetCompletionsAsync(testLspServer, completionParams).ConfigureAwait(false);
-            Assert.Null(results);
+            var results = await RunGetCompletionsAsync(testLspServer, completionParams);
+            AssertEx.NotNull(results);
+            Assert.NotEmpty(results.Items);
+            Assert.Equal(new() { Start = new(2, 0), End = new(2, 8) }, results.ItemDefaults.EditRange.Value.First);
         }
 
         internal static Task<LSP.CompletionList> RunGetCompletionsAsync(TestLspServer testLspServer, LSP.CompletionParams completionParams)

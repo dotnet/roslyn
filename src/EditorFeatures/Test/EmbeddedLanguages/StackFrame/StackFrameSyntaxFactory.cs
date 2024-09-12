@@ -46,10 +46,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
         public static readonly StackFrameToken ColonToken = CreateToken(StackFrameKind.ColonToken, ":");
         public static readonly StackFrameToken DollarToken = CreateToken(StackFrameKind.DollarToken, "$");
         public static readonly StackFrameToken PipeToken = CreateToken(StackFrameKind.PipeToken, "|");
+        public static readonly StackFrameToken ConstructorToken = CreateToken(StackFrameKind.ConstructorToken, ".ctor");
+        public static readonly StackFrameToken StaticConstructorToken = CreateToken(StackFrameKind.ConstructorToken, ".cctor");
 
         public static readonly StackFrameTrivia AtTrivia = CreateTrivia(StackFrameKind.AtTrivia, "at ");
         public static readonly StackFrameTrivia LineTrivia = CreateTrivia(StackFrameKind.LineTrivia, "line ");
         public static readonly StackFrameTrivia InTrivia = CreateTrivia(StackFrameKind.InTrivia, " in ");
+
+        public static readonly StackFrameConstructorNode Constructor = new(ConstructorToken);
+        public static readonly StackFrameConstructorNode StaticConstructor = new(StaticConstructorToken);
 
         public static readonly StackFrameParameterList EmptyParams = ParameterList(OpenParenToken, CloseParenToken);
 

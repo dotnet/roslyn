@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeActions
@@ -10,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
@@ -30,13 +32,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
 
                 Dim cleanupOptions = CodeCleanupOptions.GetDefault(document.Project.Services)
 
-                If hostDocument.AnnotatedSpans.ContainsKey("Expand") Then
-                    For Each span In hostDocument.AnnotatedSpans("Expand")
+                Dim spans As ImmutableArray(Of TextSpan) = Nothing
+                If hostDocument.AnnotatedSpans.TryGetValue("Expand", spans) Then
+                    For Each span In spans
                         Dim node = GetExpressionSyntaxWithSameSpan(root.FindToken(span.Start).Parent, span.End)
                         root = root.ReplaceNode(node, Await Simplifier.ExpandAsync(node, document, expandInsideNode:=Nothing, expandParameter:=expandParameter))
                     Next
-                ElseIf hostDocument.AnnotatedSpans.ContainsKey("ExpandAndSimplify") Then
-                    For Each span In hostDocument.AnnotatedSpans("ExpandAndSimplify")
+                ElseIf hostDocument.AnnotatedSpans.TryGetValue("ExpandAndSimplify", spans) Then
+                    For Each span In spans
                         Dim node = GetExpressionSyntaxWithSameSpan(root.FindToken(span.Start).Parent, span.End)
                         root = root.ReplaceNode(node, Await Simplifier.ExpandAsync(node, document, expandInsideNode:=Nothing, expandParameter:=expandParameter))
                         document = document.WithSyntaxRoot(root)

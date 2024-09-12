@@ -12,21 +12,14 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
 {
     internal partial class AbstractGenerateParameterizedMemberService<TService, TSimpleNameSyntax, TExpressionSyntax, TInvocationExpressionSyntax>
     {
-        protected class MethodSignatureInfo : SignatureInfo
+        protected class MethodSignatureInfo(
+            SemanticDocument document,
+            State state,
+            IMethodSymbol methodSymbol,
+            ImmutableArray<string> parameterNames = default) : SignatureInfo(document, state)
         {
-            private readonly IMethodSymbol _methodSymbol;
-            private readonly ImmutableArray<string> _parameterNames;
-
-            public MethodSignatureInfo(
-                SemanticDocument document,
-                State state,
-                IMethodSymbol methodSymbol,
-                ImmutableArray<string> parameterNames = default)
-                : base(document, state)
-            {
-                _methodSymbol = methodSymbol;
-                _parameterNames = parameterNames;
-            }
+            private readonly IMethodSymbol _methodSymbol = methodSymbol;
+            private readonly ImmutableArray<string> _parameterNames = parameterNames;
 
             protected override ITypeSymbol DetermineReturnTypeWorker(CancellationToken cancellationToken)
                 => _methodSymbol.ReturnType;

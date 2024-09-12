@@ -2,13 +2,13 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeQuality;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -16,13 +16,20 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 {
-    internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax>
+    internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
+        TDocumentationCommentTriviaSyntax,
+        TIdentifierNameSyntax,
+        TTypeDeclarationSyntax,
+        TMemberDeclarationSyntax>
         : AbstractCodeQualityDiagnosticAnalyzer
         where TDocumentationCommentTriviaSyntax : SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
+        where TTypeDeclarationSyntax : TMemberDeclarationSyntax
+        where TMemberDeclarationSyntax : SyntaxNode
     {
         /// <summary>
         /// Produces names like TypeName.MemberName
@@ -53,6 +60,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                    GeneratedCodeAnalysisFlags.Analyze) // We want to analyze references in generated code, but not report unused members in generated code.
         {
         }
+
+        protected abstract IEnumerable<TTypeDeclarationSyntax> GetTypeDeclarations(INamedTypeSymbol namedType, CancellationToken cancellationToken);
+        protected abstract SyntaxList<TMemberDeclarationSyntax> GetMembers(TTypeDeclarationSyntax typeDeclaration);
 
         // We need to analyze the whole document even for edits within a method body,
         // because we might add or remove references to members in executable code.
@@ -91,15 +101,16 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             /// Here, 'get' accessor is used in an increment operation, but the result of the increment operation isn't used and 'P' itself is not used anywhere else, so it can be safely removed
             /// </summary>
             private readonly HashSet<IPropertySymbol> _propertiesWithShadowGetAccessorUsages = new();
-            private readonly INamedTypeSymbol _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
-            private readonly INamedTypeSymbol _eventArgsType;
+            private readonly INamedTypeSymbol? _taskType, _genericTaskType, _debuggerDisplayAttributeType, _structLayoutAttributeType;
+            private readonly INamedTypeSymbol? _eventArgsType;
+            private readonly INamedTypeSymbol? _iNotifyCompletionType;
             private readonly DeserializationConstructorCheck _deserializationConstructorCheck;
-            private readonly ImmutableHashSet<INamedTypeSymbol> _attributeSetForMethodsToIgnore;
-            private readonly AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax> _analyzer;
+            private readonly ImmutableHashSet<INamedTypeSymbol?> _attributeSetForMethodsToIgnore;
+            private readonly AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax, TTypeDeclarationSyntax, TMemberDeclarationSyntax> _analyzer;
 
             private CompilationAnalyzer(
                 Compilation compilation,
-                AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax> analyzer)
+                AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax, TTypeDeclarationSyntax, TMemberDeclarationSyntax> analyzer)
             {
                 _gate = new object();
                 _analyzer = analyzer;
@@ -109,9 +120,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 _debuggerDisplayAttributeType = compilation.DebuggerDisplayAttributeType();
                 _structLayoutAttributeType = compilation.StructLayoutAttributeType();
                 _eventArgsType = compilation.EventArgsType();
+                _iNotifyCompletionType = compilation.GetBestTypeByMetadataName(typeof(INotifyCompletion).FullName!);
                 _deserializationConstructorCheck = new DeserializationConstructorCheck(compilation);
-                _attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange(GetAttributesForMethodsToIgnore(compilation));
+                _attributeSetForMethodsToIgnore = ImmutableHashSet.CreateRange<INamedTypeSymbol?>(GetAttributesForMethodsToIgnore(compilation));
             }
+
+            private static Location GetDiagnosticLocation(ISymbol symbol)
+                => symbol.Locations[0];
 
             private static IEnumerable<INamedTypeSymbol> GetAttributesForMethodsToIgnore(Compilation compilation)
             {
@@ -156,7 +171,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
             public static void CreateAndRegisterActions(
                 CompilationStartAnalysisContext compilationStartContext,
-                AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax> analyzer)
+                AbstractRemoveUnusedMembersDiagnosticAnalyzer<TDocumentationCommentTriviaSyntax, TIdentifierNameSyntax, TTypeDeclarationSyntax, TMemberDeclarationSyntax> analyzer)
             {
                 var compilationAnalyzer = new CompilationAnalyzer(compilationStartContext.Compilation, analyzer);
                 compilationAnalyzer.RegisterActions(compilationStartContext);
@@ -178,6 +193,9 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 Action<ISymbol, ValueUsageInfo> onSymbolUsageFound = OnSymbolUsage;
                 compilationStartContext.RegisterSymbolStartAction(symbolStartContext =>
                 {
+                    if (!ShouldAnalyze(symbolStartContext, (INamedTypeSymbol)symbolStartContext.Symbol))
+                        return;
+
                     var hasUnsupportedOperation = false;
                     symbolStartContext.RegisterOperationAction(AnalyzeMemberReferenceOperation, OperationKind.FieldReference, OperationKind.MethodReference, OperationKind.PropertyReference, OperationKind.EventReference);
                     symbolStartContext.RegisterOperationAction(AnalyzeFieldInitializer, OperationKind.FieldInitializer);
@@ -199,12 +217,32 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                     // Register custom language-specific actions, if any.
                     _analyzer.HandleNamedTypeSymbolStart(symbolStartContext, onSymbolUsageFound);
                 }, SymbolKind.NamedType);
+
+                bool ShouldAnalyze(SymbolStartAnalysisContext context, INamedTypeSymbol namedType)
+                {
+                    // Check if we have at least one candidate symbol in analysis scope.
+                    foreach (var member in namedType.GetMembers())
+                    {
+                        if (IsCandidateSymbol(member.OriginalDefinition)
+                            && context.ShouldAnalyzeLocation(GetDiagnosticLocation(member)))
+                        {
+                            return true;
+                        }
+                    }
+
+                    // We have to analyze nested types if containing type contains a candidate field in analysis scope.
+                    if (namedType.ContainingType is { } containingType)
+                        return ShouldAnalyze(context, containingType);
+
+                    return false;
+                }
             }
 
             private void AnalyzeSymbolDeclaration(SymbolAnalysisContext symbolContext)
             {
                 var symbol = symbolContext.Symbol.OriginalDefinition;
-                if (IsCandidateSymbol(symbol))
+                if (IsCandidateSymbol(symbol)
+                    && symbolContext.ShouldAnalyzeLocation(GetDiagnosticLocation(symbol)))
                 {
                     lock (_gate)
                     {
@@ -239,7 +277,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 }
             }
 
-            private void OnSymbolUsage(ISymbol memberSymbol, ValueUsageInfo usageInfo)
+            private void OnSymbolUsage(ISymbol? memberSymbol, ValueUsageInfo usageInfo)
             {
                 if (!IsCandidateSymbol(memberSymbol))
                 {
@@ -304,8 +342,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                         // Note that the increment operation '_f1++' is child of an expression statement, which drops the result of the increment.
                         // while the increment operation '_f2++' is child of a return statement, which uses the result of the increment.
                         // For the above test, '_f1' can be safely removed without affecting the semantics of the program, while '_f2' cannot be removed.
+                        // Additionally, we special case ICoalesceAssignmentOperation (??=) and treat it as a read-write,
+                        // see https://github.com/dotnet/roslyn/issues/66975 for more details
 
-                        if (memberReference.Parent.Parent is IExpressionStatementOperation)
+                        if (memberReference?.Parent?.Parent is IExpressionStatementOperation &&
+                            memberReference.Parent is not ICoalesceAssignmentOperation)
                         {
                             valueUsageInfo = ValueUsageInfo.Write;
 
@@ -360,7 +401,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 // Workaround for https://github.com/dotnet/roslyn/issues/19965
                 // IOperation API does not expose potential references to methods/properties within
                 // a bound method group/property group.
-                var symbolInfo = nameofArgument.SemanticModel.GetSymbolInfo(nameofArgument.Syntax, operationContext.CancellationToken);
+                var symbolInfo = nameofArgument.SemanticModel!.GetSymbolInfo(nameofArgument.Syntax, operationContext.CancellationToken);
                 foreach (var symbol in symbolInfo.GetAllSymbols())
                 {
                     switch (symbol.Kind)
@@ -377,7 +418,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
             private void AnalyzeObjectCreationOperation(OperationAnalysisContext operationContext)
             {
-                var constructor = ((IObjectCreationOperation)operationContext.Operation).Constructor.OriginalDefinition;
+                var constructor = ((IObjectCreationOperation)operationContext.Operation).Constructor?.OriginalDefinition;
 
                 // An object creation is considered as a read reference to the constructor
                 // to ensure that we consider the constructor as "used".
@@ -400,93 +441,85 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
                 // Report diagnostics for unused candidate members.
                 var first = true;
-                PooledHashSet<ISymbol> symbolsReferencedInDocComments = null;
-                ArrayBuilder<string> debuggerDisplayAttributeArguments = null;
-                try
-                {
-                    var entryPoint = symbolEndContext.Compilation.GetEntryPoint(symbolEndContext.CancellationToken);
+                using var _1 = PooledHashSet<ISymbol>.GetInstance(out var symbolsReferencedInDocComments);
+                using var _2 = ArrayBuilder<string>.GetInstance(out var debuggerDisplayAttributeArguments);
 
-                    var namedType = (INamedTypeSymbol)symbolEndContext.Symbol;
-                    foreach (var member in namedType.GetMembers())
+                var entryPoint = symbolEndContext.Compilation.GetEntryPoint(symbolEndContext.CancellationToken);
+
+                var namedType = (INamedTypeSymbol)symbolEndContext.Symbol;
+                foreach (var member in namedType.GetMembers())
+                {
+                    if (SymbolEqualityComparer.Default.Equals(entryPoint, member))
                     {
-                        if (SymbolEqualityComparer.Default.Equals(entryPoint, member))
+                        continue;
+                    }
+
+                    // Check if the underlying member is neither read nor a readable reference to the member is taken.
+                    // If so, we flag the member as either unused (never written) or unread (written but not read).
+                    if (TryRemove(member, out var valueUsageInfo) &&
+                        !valueUsageInfo.IsReadFrom())
+                    {
+                        Debug.Assert(IsCandidateSymbol(member));
+                        Debug.Assert(!member.IsImplicitlyDeclared);
+
+                        if (first)
+                        {
+                            // Bail out if there are syntax errors in any of the declarations of the containing type.
+                            // Note that we check this only for the first time that we report an unused or unread member for the containing type.
+                            if (HasSyntaxErrors(namedType, symbolEndContext.CancellationToken))
+                            {
+                                return;
+                            }
+
+                            // Compute the set of candidate symbols referenced in all the documentation comments within the named type declarations.
+                            // This set is computed once and used for all the iterations of the loop.
+                            AddCandidateSymbolsReferencedInDocComments(
+                                namedType, symbolEndContext.Compilation, symbolsReferencedInDocComments, symbolEndContext.CancellationToken);
+
+                            // Compute the set of string arguments to DebuggerDisplay attributes applied to any symbol within the named type declaration.
+                            // These strings may have an embedded reference to the symbol.
+                            // This set is computed once and used for all the iterations of the loop.
+                            AddDebuggerDisplayAttributeArguments(namedType, debuggerDisplayAttributeArguments);
+
+                            first = false;
+                        }
+
+                        // Simple heuristic for members referenced in DebuggerDisplayAttribute's string argument:
+                        // bail out if any of the DebuggerDisplay string arguments contains the member name.
+                        // In future, we can consider improving this heuristic to parse the embedded expression
+                        // and resolve symbol references.
+                        if (debuggerDisplayAttributeArguments.Any(arg => arg.Contains(member.Name)))
                         {
                             continue;
                         }
 
-                        // Check if the underlying member is neither read nor a readable reference to the member is taken.
-                        // If so, we flag the member as either unused (never written) or unread (written but not read).
-                        if (TryRemove(member, out var valueUsageInfo) &&
-                            !valueUsageInfo.IsReadFrom())
+                        // Report IDE0051 or IDE0052 based on whether the underlying member has any Write/WritableRef/NonReadWriteRef references or not.
+                        var rule = !valueUsageInfo.IsWrittenTo() && !valueUsageInfo.IsNameOnly() && !symbolsReferencedInDocComments.Contains(member)
+                            ? s_removeUnusedMembersRule
+                            : s_removeUnreadMembersRule;
+
+                        // Do not flag write-only properties that are not read.
+                        // Write-only properties are assumed to have side effects
+                        // visible through other means than a property getter.
+                        if (rule == s_removeUnreadMembersRule &&
+                            member is IPropertySymbol property &&
+                            property.IsWriteOnly)
                         {
-                            Debug.Assert(IsCandidateSymbol(member));
-                            Debug.Assert(!member.IsImplicitlyDeclared);
-
-                            if (first)
-                            {
-                                // Bail out if there are syntax errors in any of the declarations of the containing type.
-                                // Note that we check this only for the first time that we report an unused or unread member for the containing type.
-                                if (HasSyntaxErrors(namedType, symbolEndContext.CancellationToken))
-                                {
-                                    return;
-                                }
-
-                                // Compute the set of candidate symbols referenced in all the documentation comments within the named type declarations.
-                                // This set is computed once and used for all the iterations of the loop.
-                                symbolsReferencedInDocComments = GetCandidateSymbolsReferencedInDocComments(namedType, symbolEndContext.Compilation, symbolEndContext.CancellationToken);
-
-                                // Compute the set of string arguments to DebuggerDisplay attributes applied to any symbol within the named type declaration.
-                                // These strings may have an embedded reference to the symbol.
-                                // This set is computed once and used for all the iterations of the loop.
-                                debuggerDisplayAttributeArguments = GetDebuggerDisplayAttributeArguments(namedType);
-
-                                first = false;
-                            }
-
-                            // Simple heuristic for members referenced in DebuggerDisplayAttribute's string argument:
-                            // bail out if any of the DebuggerDisplay string arguments contains the member name.
-                            // In future, we can consider improving this heuristic to parse the embedded expression
-                            // and resolve symbol references.
-                            if (debuggerDisplayAttributeArguments.Any(arg => arg.Contains(member.Name)))
-                            {
-                                continue;
-                            }
-
-                            // Report IDE0051 or IDE0052 based on whether the underlying member has any Write/WritableRef/NonReadWriteRef references or not.
-                            var rule = !valueUsageInfo.IsWrittenTo() && !valueUsageInfo.IsNameOnly() && !symbolsReferencedInDocComments.Contains(member)
-                                ? s_removeUnusedMembersRule
-                                : s_removeUnreadMembersRule;
-
-                            // Do not flag write-only properties that are not read.
-                            // Write-only properties are assumed to have side effects
-                            // visible through other means than a property getter.
-                            if (rule == s_removeUnreadMembersRule &&
-                                member is IPropertySymbol property &&
-                                property.IsWriteOnly)
-                            {
-                                continue;
-                            }
-
-                            // Most of the members should have a single location, except for partial methods.
-                            // We report the diagnostic on the first location of the member.
-                            var diagnostic = DiagnosticHelper.CreateWithMessage(
-                                rule,
-                                member.Locations[0],
-                                rule.GetEffectiveSeverity(symbolEndContext.Compilation.Options),
-                                additionalLocations: null,
-                                properties: null,
-                                GetMessage(rule, member));
-                            symbolEndContext.ReportDiagnostic(diagnostic);
+                            continue;
                         }
+
+                        // Most of the members should have a single location, except for partial methods.
+                        // We report the diagnostic on the first location of the member.
+                        var diagnostic = DiagnosticHelper.CreateWithMessage(
+                            rule,
+                            GetDiagnosticLocation(member),
+                            rule.GetEffectiveSeverity(symbolEndContext.Compilation.Options),
+                            additionalLocations: null,
+                            properties: null,
+                            GetMessage(rule, member));
+                        symbolEndContext.ReportDiagnostic(diagnostic);
                     }
                 }
-                finally
-                {
-                    symbolsReferencedInDocComments?.Free();
-                    debuggerDisplayAttributeArguments?.Free();
-                }
-
-                return;
             }
 
             private LocalizableString GetMessage(
@@ -522,7 +555,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
 
             private static bool HasSyntaxErrors(INamedTypeSymbol namedTypeSymbol, CancellationToken cancellationToken)
             {
-                foreach (var tree in namedTypeSymbol.Locations.Select(l => l.SourceTree))
+                foreach (var tree in namedTypeSymbol.Locations.Select(l => l.SourceTree).Distinct().WhereNotNull())
                 {
                     if (tree.GetDiagnostics(cancellationToken).Any(d => d.Severity == DiagnosticSeverity.Error))
                     {
@@ -533,33 +566,87 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                 return false;
             }
 
-            private PooledHashSet<ISymbol> GetCandidateSymbolsReferencedInDocComments(INamedTypeSymbol namedTypeSymbol, Compilation compilation, CancellationToken cancellationToken)
+            private void AddCandidateSymbolsReferencedInDocComments(
+                INamedTypeSymbol namedTypeSymbol,
+                Compilation compilation,
+                HashSet<ISymbol> builder,
+                CancellationToken cancellationToken)
             {
-                var builder = PooledHashSet<ISymbol>.GetInstance();
-                foreach (var root in namedTypeSymbol.Locations.Select(l => l.SourceTree.GetRoot(cancellationToken)))
+                using var _ = ArrayBuilder<TDocumentationCommentTriviaSyntax>.GetInstance(out var documentationComments);
+                AddAllDocumentationComments();
+
+                // Group by syntax tree so we can process all partial types within a tree at once, using just a single
+                // semantic model.
+                foreach (var group in documentationComments.GroupBy(d => d.SyntaxTree))
                 {
-                    SemanticModel lazyModel = null;
-                    foreach (var node in root.DescendantNodes(descendIntoTrivia: true)
-                                             .OfType<TDocumentationCommentTriviaSyntax>()
-                                             .SelectMany(n => n.DescendantNodes().OfType<TIdentifierNameSyntax>()))
+                    var syntaxTree = group.Key;
+                    SemanticModel? lazyModel = null;
+
+                    foreach (var docComment in group)
                     {
-                        lazyModel ??= compilation.GetSemanticModel(root.SyntaxTree);
-                        var symbol = lazyModel.GetSymbolInfo(node, cancellationToken).Symbol?.OriginalDefinition;
-                        if (symbol != null && IsCandidateSymbol(symbol))
+                        // Note: we could likely optimize this further by only analyzing identifier nodes that have a
+                        // matching name to one of the candidate symbols we care about.
+                        foreach (var node in docComment.DescendantNodes().OfType<TIdentifierNameSyntax>())
                         {
-                            builder.Add(symbol);
+                            lazyModel ??= compilation.GetSemanticModel(syntaxTree);
+                            var symbol = lazyModel.GetSymbolInfo(node, cancellationToken).Symbol?.OriginalDefinition;
+
+                            if (IsCandidateSymbol(symbol))
+                                builder.Add(symbol);
                         }
                     }
                 }
 
-                return builder;
-            }
+                return;
 
-            private ArrayBuilder<string> GetDebuggerDisplayAttributeArguments(INamedTypeSymbol namedTypeSymbol)
-            {
-                var builder = ArrayBuilder<string>.GetInstance();
-                AddDebuggerDisplayAttributeArguments(namedTypeSymbol, builder);
-                return builder;
+                void AddAllDocumentationComments()
+                {
+                    using var _ = ArrayBuilder<TTypeDeclarationSyntax>.GetInstance(out var stack);
+
+                    // Defer to subclass to give us the type decl nodes for this named type.
+                    foreach (var typeDeclaration in _analyzer.GetTypeDeclarations(namedTypeSymbol, cancellationToken))
+                    {
+                        stack.Clear();
+                        stack.Push(typeDeclaration);
+
+                        while (stack.Count > 0)
+                        {
+                            var currentType = stack.Pop();
+
+                            // Add the doc comments on the type itself.
+                            AddDocumentationComments(currentType, documentationComments);
+
+                            // Walk each member
+                            foreach (var member in _analyzer.GetMembers(currentType))
+                            {
+                                if (member is TTypeDeclarationSyntax childType)
+                                {
+                                    // If the member is a nested type, recurse into it.
+                                    stack.Push(childType);
+                                }
+                                else
+                                {
+                                    // Otherwise, add the doc comments on the member itself.
+                                    AddDocumentationComments(member, documentationComments);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                static void AddDocumentationComments(
+                    SyntaxNode memberDeclaration, ArrayBuilder<TDocumentationCommentTriviaSyntax> documentationComments)
+                {
+                    var firstToken = memberDeclaration.GetFirstToken();
+                    if (!firstToken.HasStructuredTrivia)
+                        return;
+
+                    foreach (var trivia in firstToken.LeadingTrivia)
+                    {
+                        if (trivia.HasStructure)
+                            documentationComments.AddIfNotNull(trivia.GetStructure() as TDocumentationCommentTriviaSyntax);
+                    }
+                }
             }
 
             private void AddDebuggerDisplayAttributeArguments(INamedTypeSymbol namedTypeSymbol, ArrayBuilder<string> builder)
@@ -604,11 +691,15 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
             ///        such that is meets a few criteria (see implementation details below).
             ///     5. If field, then it must not be a backing field for an auto property.
             ///        Backing fields have a non-null <see cref="IFieldSymbol.AssociatedSymbol"/>.
-            ///     6. If property, then it must not be an explicit interface property implementation.
+            ///     6. If property, then it must not be an explicit interface property implementation
+            ///        or the 'IsCompleted' property which is needed to make a type awaitable.
             ///     7. If event, then it must not be an explicit interface event implementation.
             /// </summary>
-            private bool IsCandidateSymbol(ISymbol memberSymbol)
+            private bool IsCandidateSymbol([NotNullWhen(true)] ISymbol? memberSymbol)
             {
+                if (memberSymbol is null)
+                    return false;
+
                 Debug.Assert(memberSymbol == memberSymbol.OriginalDefinition);
 
                 if (memberSymbol.DeclaredAccessibility == Accessibility.Private &&
@@ -694,6 +785,13 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                                         return false;
                                     }
 
+                                    // Ignore methods which make a type awaitable.
+                                    if (_iNotifyCompletionType != null && Roslyn.Utilities.ImmutableArrayExtensions.Contains(methodSymbol.ContainingType.AllInterfaces, _iNotifyCompletionType, SymbolEqualityComparer.Default)
+                                        && methodSymbol.Name is "GetAwaiter" or "GetResult")
+                                    {
+                                        return false;
+                                    }
+
                                     return true;
 
                                 default:
@@ -704,6 +802,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnusedMembers
                             return ((IFieldSymbol)memberSymbol).AssociatedSymbol == null;
 
                         case SymbolKind.Property:
+                            if (_iNotifyCompletionType != null && memberSymbol.ContainingType.AllInterfaces.Contains(_iNotifyCompletionType) && memberSymbol.Name == "IsCompleted")
+                            {
+                                return false;
+                            }
+
                             return ((IPropertySymbol)memberSymbol).ExplicitInterfaceImplementations.IsEmpty;
 
                         case SymbolKind.Event:

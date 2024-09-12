@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Simplification
             CancellationToken cancellationToken)
         {
             // Create a simple interval tree for simplification spans.
-            var spansTree = new SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>(new TextSpanIntervalIntrospector(), spans);
+            var spansTree = new TextSpanIntervalTree(spans);
 
             bool isNodeOrTokenOutsideSimplifySpans(SyntaxNodeOrToken nodeOrToken)
                 => !spansTree.HasIntervalThatOverlapsWith(nodeOrToken.FullSpan.Start, nodeOrToken.FullSpan.Length);

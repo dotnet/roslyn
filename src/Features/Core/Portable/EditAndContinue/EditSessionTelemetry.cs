@@ -13,36 +13,21 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
     // EncEditSessionInfo is populated on a background thread and then read from the UI thread
     internal sealed class EditSessionTelemetry
     {
-        internal readonly struct Data
+        internal readonly struct Data(EditSessionTelemetry telemetry)
         {
-            public readonly ImmutableArray<(ushort EditKind, ushort SyntaxKind, Guid projectId)> RudeEdits;
-            public readonly ImmutableArray<string> EmitErrorIds;
-            public readonly ImmutableArray<Guid> ProjectsWithValidDelta;
-            public readonly EditAndContinueCapabilities Capabilities;
-            public readonly bool HadCompilationErrors;
-            public readonly bool HadRudeEdits;
-            public readonly bool HadValidChanges;
-            public readonly bool HadValidInsignificantChanges;
-            public readonly bool InBreakState;
-            public readonly bool IsEmpty;
-            public readonly bool Committed;
-
-            public Data(EditSessionTelemetry telemetry)
-            {
-                Contract.ThrowIfNull(telemetry._inBreakState);
-
-                RudeEdits = telemetry._rudeEdits.AsImmutable();
-                EmitErrorIds = telemetry._emitErrorIds.AsImmutable();
-                ProjectsWithValidDelta = telemetry._projectsWithValidDelta.AsImmutable();
-                HadCompilationErrors = telemetry._hadCompilationErrors;
-                HadRudeEdits = telemetry._hadRudeEdits;
-                HadValidChanges = telemetry._hadValidChanges;
-                HadValidInsignificantChanges = telemetry._hadValidInsignificantChanges;
-                InBreakState = telemetry._inBreakState.Value;
-                Capabilities = telemetry._capabilities;
-                IsEmpty = telemetry.IsEmpty;
-                Committed = telemetry._committed;
-            }
+            public readonly ImmutableArray<(ushort EditKind, ushort SyntaxKind, Guid projectId)> RudeEdits = telemetry._rudeEdits.AsImmutable();
+            public readonly ImmutableArray<string> EmitErrorIds = telemetry._emitErrorIds.AsImmutable();
+            public readonly ImmutableArray<Guid> ProjectsWithValidDelta = telemetry._projectsWithValidDelta.AsImmutable();
+            public readonly EditAndContinueCapabilities Capabilities = telemetry._capabilities;
+            public readonly bool HadCompilationErrors = telemetry._hadCompilationErrors;
+            public readonly bool HadRudeEdits = telemetry._hadRudeEdits;
+            public readonly bool HadValidChanges = telemetry._hadValidChanges;
+            public readonly bool HadValidInsignificantChanges = telemetry._hadValidInsignificantChanges;
+            public readonly bool InBreakState = telemetry._inBreakState!.Value;
+            public readonly bool IsEmpty = telemetry.IsEmpty;
+            public readonly bool Committed = telemetry._committed;
+            public readonly TimeSpan EmitDifferenceTime = telemetry._emitDifferenceTime;
+            public readonly TimeSpan AnalysisTime = telemetry._analysisTime;
         }
 
         private readonly object _guard = new();
@@ -60,6 +45,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private bool _hadValidInsignificantChanges;
         private bool? _inBreakState;
         private bool _committed;
+        private TimeSpan _emitDifferenceTime;
+        private TimeSpan _analysisTime;
 
         private EditAndContinueCapabilities _capabilities;
 
@@ -78,6 +65,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 _inBreakState = null;
                 _capabilities = EditAndContinueCapabilities.None;
                 _committed = false;
+                _emitDifferenceTime = TimeSpan.Zero;
                 return data;
             }
         }
@@ -86,6 +74,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
         public void SetBreakState(bool value)
             => _inBreakState = value;
+
+        public void LogEmitDifferenceTime(TimeSpan span)
+            => _emitDifferenceTime += span;
+
+        public void LogAnalysisTime(TimeSpan span)
+            => _analysisTime += span;
 
         public void LogProjectAnalysisSummary(ProjectAnalysisSummary summary, Guid projectTelemetryId, ImmutableArray<string> errorsIds)
         {
@@ -149,7 +143,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        internal void LogCommitted()
+        public void LogCommitted()
             => _committed = true;
     }
 }

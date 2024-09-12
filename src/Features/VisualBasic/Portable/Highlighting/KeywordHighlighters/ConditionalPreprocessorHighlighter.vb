@@ -21,10 +21,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.KeywordHighlighting
 
         Protected Overloads Overrides Sub AddHighlights(directive As DirectiveTriviaSyntax, highlights As List(Of TextSpan), cancellationToken As CancellationToken)
             Dim conditionals = directive.GetMatchingConditionalDirectives(cancellationToken)
-            If conditionals Is Nothing Then
-                Return
-            End If
-
             For Each conditional In conditionals
                 If TypeOf conditional Is IfDirectiveTriviaSyntax Then
                     With DirectCast(conditional, IfDirectiveTriviaSyntax)

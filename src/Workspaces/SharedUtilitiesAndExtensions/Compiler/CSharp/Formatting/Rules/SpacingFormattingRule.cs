@@ -4,13 +4,10 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
@@ -207,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // List patterns
-            if (currentKind == SyntaxKind.OpenBracketToken && currentToken.Parent.IsKind(SyntaxKind.ListPattern))
+            if (currentKind == SyntaxKind.OpenBracketToken && currentToken.Parent.Kind() is SyntaxKind.ListPattern or SyntaxKind.CollectionExpression)
             {
                 // For the space after the middle comma in ([1, 2], [1, 2])
                 if (previousKind == SyntaxKind.CommaToken)
@@ -215,8 +212,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return AdjustSpacesOperationZeroOrOne(_options.Spacing.HasFlag(SpacePlacement.AfterComma));
                 }
 
-                // For "is [", "and [", but not "(["
-                if (previousKind != SyntaxKind.OpenParenToken)
+                // For "is [", "and [", but not "([" or "[["
+                if (previousKind is not (SyntaxKind.OpenParenToken or SyntaxKind.OpenBracketToken))
                 {
                     return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
                 }
@@ -282,6 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // For spacing delimiters - after comma
             if ((previousToken.IsCommaInArgumentOrParameterList() && currentKind != SyntaxKind.OmittedTypeArgumentToken)
                 || previousToken.IsCommaInInitializerExpression()
+                || previousToken.IsCommaInCollectionExpression()
                 || (previousKind == SyntaxKind.CommaToken
                     && currentKind != SyntaxKind.OmittedArraySizeExpressionToken
                     && HasFormattableBracketParent(previousToken)))
@@ -292,6 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // For spacing delimiters - before comma
             if ((currentToken.IsCommaInArgumentOrParameterList() && previousKind != SyntaxKind.OmittedTypeArgumentToken)
                 || currentToken.IsCommaInInitializerExpression()
+                || previousToken.IsCommaInCollectionExpression()
                 || (currentKind == SyntaxKind.CommaToken
                     && previousKind != SyntaxKind.OmittedArraySizeExpressionToken
                     && HasFormattableBracketParent(currentToken)))
@@ -573,9 +572,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private void SuppressVariableDeclaration(List<SuppressOperation> list, SyntaxNode node)
         {
-            if (node.IsKind(SyntaxKind.FieldDeclaration) || node.IsKind(SyntaxKind.EventDeclaration) ||
-                node.IsKind(SyntaxKind.EventFieldDeclaration) || node.IsKind(SyntaxKind.LocalDeclarationStatement) ||
-                node.IsKind(SyntaxKind.EnumMemberDeclaration))
+            if (node.Kind()
+                    is SyntaxKind.FieldDeclaration
+                    or SyntaxKind.EventDeclaration
+                    or SyntaxKind.EventFieldDeclaration
+                    or SyntaxKind.LocalDeclarationStatement
+                    or SyntaxKind.EnumMemberDeclaration)
             {
                 if (_options.Spacing.HasFlag(SpacePlacement.IgnoreAroundVariableDeclaration))
                 {
@@ -600,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         }
 
         private static bool HasFormattableBracketParent(SyntaxToken token)
-            => token.Parent is (kind: SyntaxKind.ArrayRankSpecifier or SyntaxKind.BracketedArgumentList or SyntaxKind.BracketedParameterList or SyntaxKind.ImplicitArrayCreationExpression or SyntaxKind.ListPattern);
+            => token.Parent is (kind: SyntaxKind.ArrayRankSpecifier or SyntaxKind.BracketedArgumentList or SyntaxKind.BracketedParameterList or SyntaxKind.ImplicitArrayCreationExpression or SyntaxKind.ListPattern or SyntaxKind.CollectionExpression);
 
         private static bool IsFunctionLikeKeywordExpressionKind(SyntaxKind syntaxKind)
             => (syntaxKind is SyntaxKind.TypeOfExpression or SyntaxKind.DefaultExpression or SyntaxKind.SizeOfExpression);

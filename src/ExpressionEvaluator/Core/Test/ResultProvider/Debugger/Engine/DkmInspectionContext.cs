@@ -64,6 +64,15 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
         {
             return InspectionSession.InvokeFormatter(this, MethodId.GetTypeName, f => f.GetTypeName(this, ClrType, CustomTypeInfo, FormatSpecifiers));
         }
+
+        public DkmInspectionContext WithProperties(uint Timeout, DkmEvaluationFlags EvaluationFlags, DkmFuncEvalFlags FuncEvalFlags, uint Radix)
+        {
+            return new DkmInspectionContext(
+                this.InspectionSession,
+                EvaluationFlags,
+                Radix,
+                this.RuntimeInstance);
+        }
     }
 
     public enum DkmFuncEvalFlags

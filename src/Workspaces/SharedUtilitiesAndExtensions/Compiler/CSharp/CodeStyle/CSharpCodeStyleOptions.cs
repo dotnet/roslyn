@@ -252,6 +252,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
             "csharp_style_prefer_top_level_statements",
             CSharpSyntaxFormattingOptions.Default.PreferTopLevelStatements);
 
+        public static readonly Option2<CodeStyleOption2<bool>> PreferPrimaryConstructors = CreateOption(
+            CSharpCodeStyleOptionGroups.CodeBlockPreferences,
+            "csharp_style_prefer_primary_constructors",
+            CSharpIdeCodeStyleOptions.Default.PreferPrimaryConstructors);
+
         internal static readonly ImmutableArray<IOption2> AllOptions = s_allOptionsBuilder.ToImmutable();
     }
 

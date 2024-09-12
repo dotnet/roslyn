@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Shared
 {
-    internal class NormalizedTextSpanCollection : ReadOnlyCollection<TextSpan>
+    internal sealed class NormalizedTextSpanCollection : ReadOnlyCollection<TextSpan>
     {
         /// <summary>
         /// Initializes a new instance of <see cref="NormalizedTextSpanCollection"/> that is

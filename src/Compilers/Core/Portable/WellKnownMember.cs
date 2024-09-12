@@ -123,6 +123,9 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_InteropServices_LCIDConversionAttribute__ctor,
         System_Runtime_InteropServices_UnmanagedFunctionPointerAttribute__ctor,
 
+        System_Runtime_InteropServices_MemoryMarshal__CreateSpan,
+        System_Runtime_InteropServices_MemoryMarshal__CreateReadOnlySpan,
+
         System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__AddEventHandler,
         System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__GetOrCreateEventRegistrationTokenTable,
         System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__InvocationList,
@@ -154,6 +157,10 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_RuntimeHelpers__get_OffsetToStringData,
         System_Runtime_CompilerServices_RuntimeHelpers__GetSubArray_T,
         System_Runtime_CompilerServices_RuntimeHelpers__EnsureSufficientExecutionStack,
+
+        System_Runtime_CompilerServices_Unsafe__Add_T,
+        System_Runtime_CompilerServices_Unsafe__As_T,
+        System_Runtime_CompilerServices_Unsafe__AsRef_T,
 
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Capture,
         System_Runtime_ExceptionServices_ExceptionDispatchInfo__Throw,
@@ -474,6 +481,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_NullablePublicOnlyAttribute__ctor,
         System_Runtime_CompilerServices_ReferenceAssemblyAttribute__ctor,
         System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
+        System_Runtime_CompilerServices_RequiresLocationAttribute__ctor,
         System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
 
         System_ObsoleteAttribute__ctor,
@@ -482,12 +490,14 @@ namespace Microsoft.CodeAnalysis
         System_Span_T__ctor_Array,
         System_Span_T__get_Item,
         System_Span_T__get_Length,
+        System_Span_T__Slice_Int_Int,
 
         System_ReadOnlySpan_T__ctor_Pointer,
         System_ReadOnlySpan_T__ctor_Array,
         System_ReadOnlySpan_T__ctor_Array_Start_Length,
         System_ReadOnlySpan_T__get_Item,
         System_ReadOnlySpan_T__get_Length,
+        System_ReadOnlySpan_T__Slice_Int_Int,
 
         System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
 
@@ -575,10 +585,39 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
         System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
 
+        System_NotSupportedException__ctor,
         System_MissingMethodException__ctor,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
 
-        Count
+        System_Collections_Generic_IReadOnlyCollection_T__Count,
+        System_Collections_Generic_IReadOnlyList_T__get_Item,
+        System_Collections_Generic_ICollection_T__Count,
+        System_Collections_Generic_ICollection_T__IsReadOnly,
+        System_Collections_Generic_ICollection_T__Add,
+        System_Collections_Generic_ICollection_T__Clear,
+        System_Collections_Generic_ICollection_T__Contains,
+        System_Collections_Generic_ICollection_T__CopyTo,
+        System_Collections_Generic_ICollection_T__Remove,
+        System_Collections_Generic_IList_T__get_Item,
+        System_Collections_Generic_IList_T__IndexOf,
+        System_Collections_Generic_IList_T__Insert,
+        System_Collections_Generic_IList_T__RemoveAt,
+
+        System_Collections_Generic_List_T__ctor,
+        System_Collections_Generic_List_T__ctorInt32,
+        System_Collections_Generic_List_T__Add,
+        System_Collections_Generic_List_T__Count,
+        System_Collections_Generic_List_T__Contains,
+        System_Collections_Generic_List_T__CopyTo,
+        System_Collections_Generic_List_T__get_Item,
+        System_Collections_Generic_List_T__IndexOf,
+        System_Collections_Generic_List_T__ToArray,
+
+        System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T,
+        System_Runtime_InteropServices_CollectionsMarshal__SetCount_T,
+        System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T,
+
+        Count,
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here
     }

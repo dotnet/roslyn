@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Indentation
         {
             return endToken.IsKind(SyntaxKind.CloseBraceToken) &&
                 endToken.Parent.IsKind(SyntaxKind.Block) &&
-                (endToken.Parent.IsParentKind(SyntaxKind.TryStatement) || endToken.Parent.IsParentKind(SyntaxKind.DoStatement));
+                endToken.Parent.Parent?.Kind() is SyntaxKind.TryStatement or SyntaxKind.DoStatement;
         }
 
         public IList<TextChange> FormatToken(SyntaxToken token, CancellationToken cancellationToken)

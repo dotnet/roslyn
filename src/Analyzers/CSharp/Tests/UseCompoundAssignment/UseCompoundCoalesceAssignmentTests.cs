@@ -896,6 +896,46 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63552")]
+        public async Task TestIfStatementWithPreprocessorBlock7()
+        {
+            await TestMissingAsync(
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        if (o is null)
+                #if true
+                            o = "";
+                #endif
+                    }
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63552")]
+        public async Task TestIfStatementWithPreprocessorBlock8()
+        {
+            await TestMissingAsync(
+                """
+                using System;
+                class C
+                {
+                    static void Main(object o)
+                    {
+                        if (o is null)
+                #if true
+                            o = "";
+                #else
+                            o = "";
+                #endif
+                    }
+                }
+                """);
+        }
+
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62473")]
         public async Task TestPointerCannotUseCoalesceAssignment()
         {
@@ -915,7 +955,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 
                     static byte* Get() => null;
                 }
-                """, LanguageVersion.Preview);
+                """, LanguageVersion.CSharp12);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62473")]
@@ -935,7 +975,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
 
                     static byte* Get() => null;
                 }
-                """, LanguageVersion.Preview);
+                """, LanguageVersion.CSharp12);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63551")]
@@ -958,7 +998,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCompoundAssignment
                         return func;
                     }
                 }
-                """, LanguageVersion.Preview);
+                """, LanguageVersion.CSharp12);
         }
     }
 }

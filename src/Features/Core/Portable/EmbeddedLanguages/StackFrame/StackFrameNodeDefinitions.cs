@@ -30,22 +30,14 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         }
     }
 
-    internal sealed class StackFrameMethodDeclarationNode : StackFrameDeclarationNode
+    internal sealed class StackFrameMethodDeclarationNode(
+        StackFrameQualifiedNameNode memberAccessExpression,
+        StackFrameTypeArgumentList? typeArguments,
+        StackFrameParameterList argumentList) : StackFrameDeclarationNode(StackFrameKind.MethodDeclaration)
     {
-        public readonly StackFrameQualifiedNameNode MemberAccessExpression;
-        public readonly StackFrameTypeArgumentList? TypeArguments;
-        public readonly StackFrameParameterList ArgumentList;
-
-        public StackFrameMethodDeclarationNode(
-            StackFrameQualifiedNameNode memberAccessExpression,
-            StackFrameTypeArgumentList? typeArguments,
-            StackFrameParameterList argumentList)
-            : base(StackFrameKind.MethodDeclaration)
-        {
-            MemberAccessExpression = memberAccessExpression;
-            TypeArguments = typeArguments;
-            ArgumentList = argumentList;
-        }
+        public readonly StackFrameQualifiedNameNode MemberAccessExpression = memberAccessExpression;
+        public readonly StackFrameTypeArgumentList? TypeArguments = typeArguments;
+        public readonly StackFrameParameterList ArgumentList = argumentList;
 
         internal override int ChildCount => 3;
 
@@ -96,7 +88,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
 
         protected StackFrameSimpleNameNode(StackFrameToken identifier, StackFrameKind kind) : base(kind)
         {
-            Debug.Assert(identifier.Kind == StackFrameKind.IdentifierToken);
+            Debug.Assert(identifier.Kind is StackFrameKind.IdentifierToken or StackFrameKind.ConstructorToken);
             Identifier = identifier;
         }
     }
@@ -113,6 +105,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         public StackFrameQualifiedNameNode(StackFrameNameNode left, StackFrameToken dotToken, StackFrameSimpleNameNode right) : base(StackFrameKind.MemberAccess)
         {
             Debug.Assert(dotToken.Kind == StackFrameKind.DotToken);
+            Debug.Assert(left.Kind is not StackFrameKind.Constructor);
 
             Left = left;
             DotToken = dotToken;
@@ -137,14 +130,24 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
     /// <summary>
     /// The simplest identifier node, which wraps a <see cref="StackFrameKind.IdentifierToken" />
     /// </summary>
-    internal sealed class StackFrameIdentifierNameNode : StackFrameSimpleNameNode
+    internal sealed class StackFrameIdentifierNameNode(StackFrameToken identifier) : StackFrameSimpleNameNode(identifier, StackFrameKind.TypeIdentifier)
     {
         internal override int ChildCount => 1;
 
-        public StackFrameIdentifierNameNode(StackFrameToken identifier)
-            : base(identifier, StackFrameKind.TypeIdentifier)
-        {
-        }
+        public override void Accept(IStackFrameNodeVisitor visitor)
+            => visitor.Visit(this);
+
+        internal override StackFrameNodeOrToken ChildAt(int index)
+            => index switch
+            {
+                0 => Identifier,
+                _ => throw new InvalidOperationException()
+            };
+    }
+
+    internal sealed class StackFrameConstructorNode(StackFrameToken constructor) : StackFrameSimpleNameNode(constructor, StackFrameKind.Constructor)
+    {
+        internal override int ChildCount => 1;
 
         public override void Accept(IStackFrameNodeVisitor visitor)
             => visitor.Visit(this);

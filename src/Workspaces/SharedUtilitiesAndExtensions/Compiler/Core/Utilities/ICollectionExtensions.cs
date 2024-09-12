@@ -26,6 +26,30 @@ namespace Roslyn.Utilities
             }
         }
 
+        public static void AddRange<T>(this ICollection<T> collection, HashSet<T>? values)
+        {
+            if (collection == null)
+                throw new ArgumentNullException(nameof(collection));
+
+            if (values != null)
+            {
+                foreach (var item in values)
+                    collection.Add(item);
+            }
+        }
+
+        public static void AddRange<TKey, TValue>(this ICollection<TKey> collection, Dictionary<TKey, TValue>.KeyCollection? keyCollection) where TKey : notnull
+        {
+            if (collection == null)
+                throw new ArgumentNullException(nameof(collection));
+
+            if (keyCollection != null)
+            {
+                foreach (var key in keyCollection)
+                    collection.Add(key);
+            }
+        }
+
         public static void AddRange<T>(this ICollection<T> collection, ImmutableArray<T> values)
         {
             if (collection == null)

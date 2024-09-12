@@ -22,12 +22,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
         [Fact]
         public async Task FileType_01()
         {
-            var typeSource = @"
-file class C1
-{
-    public static void M() { }
-}
-";
+            var typeSource = """
+                file class C1
+                {
+                    public static void M() { }
+                }
+                """;
 
             var workspaceXml = @$"
 <Workspace>
@@ -130,23 +130,24 @@ file class C
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/45437")]
         public async Task TestGenericsAndNullability()
         {
-            var typeSource = @"
-#nullable enable
+            var typeSource = """
+                #nullable enable
 
-    public sealed class ConditionalWeakTableTest<TKey, TValue> /*: IEnumerable<KeyValuePair<TKey, TValue>>, IEnumerable*/
-        where TKey : class
-        where TValue : class
-    {
-        public ConditionalWeakTable() { }
-        public void Add(TKey key, TValue value) { }
-        public void AddOrUpdate(TKey key, TValue value) { }
-        public void Clear() { }
-        public TValue GetOrCreateValue(TKey key) => default;
-        public TValue GetValue(TKey key, ConditionalWeakTableTest<TKey, TValue>.CreateValueCallback createValueCallback) => default;
-        public bool Remove(TKey key) => false;
+                    public sealed class ConditionalWeakTableTest<TKey, TValue> /*: IEnumerable<KeyValuePair<TKey, TValue>>, IEnumerable*/
+                        where TKey : class
+                        where TValue : class
+                    {
+                        public ConditionalWeakTable() { }
+                        public void Add(TKey key, TValue value) { }
+                        public void AddOrUpdate(TKey key, TValue value) { }
+                        public void Clear() { }
+                        public TValue GetOrCreateValue(TKey key) => default;
+                        public TValue GetValue(TKey key, ConditionalWeakTableTest<TKey, TValue>.CreateValueCallback createValueCallback) => default;
+                        public bool Remove(TKey key) => false;
 
-        public delegate TValue CreateValueCallback(TKey key);
-    }".Replace("<", "&lt;").Replace(">", "&gt;");
+                        public delegate TValue CreateValueCallback(TKey key);
+                    }
+                """.Replace("<", "&lt;").Replace(">", "&gt;");
 
             var workspaceXml = @$"
 <Workspace>
@@ -209,24 +210,26 @@ file class C
 
             TestWorkspace GetWorkspace()
             {
-                var bodyProject = @"
-    <Project Language=""C#"" AssemblyName=""BodyProject"" CommonReferences=""true"">
-        <Document>
-class Program
-{
-    void M()
-    {
-        int local;
-    }
-}
-        </Document>
-    </Project>";
-                var referenceProject = @"
-    <Project Language=""C#"" AssemblyName=""ReferenceProject"" CommonReferences=""true"">
-        <ProjectReference>BodyProject</ProjectReference>
-        <Document>
-        </Document>
-    </Project>";
+                var bodyProject = """
+                        <Project Language="C#" AssemblyName="BodyProject" CommonReferences="true">
+                            <Document>
+                    class Program
+                    {
+                        void M()
+                        {
+                            int local;
+                        }
+                    }
+                            </Document>
+                        </Project>
+                    """;
+                var referenceProject = """
+                    <Project Language="C#" AssemblyName="ReferenceProject" CommonReferences="true">
+                        <ProjectReference>BodyProject</ProjectReference>
+                        <Document>
+                        </Document>
+                    </Project>
+                    """;
 
                 // Randomize the order of the projects in the workspace.
                 if (random.Next() % 2 == 0)

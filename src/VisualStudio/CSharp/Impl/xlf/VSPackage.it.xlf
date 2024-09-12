@@ -114,7 +114,7 @@ Evidenzia riferimenti al simbolo sotto il cursore;
 Evidenzia parole chiave correlate sotto il cursore;
 Struttura;
 Attiva la modalità struttura all'apertura del file;
-Comprimi #regioni all’apertura del file 
+Comprimi #regions all’apertura del file 
 Comprimi gli utilizzi all’apertura del file;
 Comprimi le implementazioni dei metadati all’apertura del file;
 Mostra separatori di riga routine;

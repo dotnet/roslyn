@@ -27,20 +27,15 @@ namespace Microsoft.CodeAnalysis.Interactive
     [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name("Interactive Command Handler")]
-    internal class ExecuteInInteractiveCommandHandler
-        : ICommandHandler<ExecuteInInteractiveCommandArgs>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class ExecuteInInteractiveCommandHandler(
+        [ImportMany] IEnumerable<Lazy<IExecuteInInteractiveCommandHandler, ContentTypeMetadata>> executeInInteractiveHandlers)
+                : ICommandHandler<ExecuteInInteractiveCommandArgs>
     {
-        private readonly IEnumerable<Lazy<IExecuteInInteractiveCommandHandler, ContentTypeMetadata>> _executeInInteractiveHandlers;
+        private readonly IEnumerable<Lazy<IExecuteInInteractiveCommandHandler, ContentTypeMetadata>> _executeInInteractiveHandlers = executeInInteractiveHandlers;
 
         public string DisplayName => EditorFeaturesResources.Execute_In_Interactive;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ExecuteInInteractiveCommandHandler(
-            [ImportMany] IEnumerable<Lazy<IExecuteInInteractiveCommandHandler, ContentTypeMetadata>> executeInInteractiveHandlers)
-        {
-            _executeInInteractiveHandlers = executeInInteractiveHandlers;
-        }
 
         private Lazy<IExecuteInInteractiveCommandHandler> GetCommandHandler(ITextBuffer textBuffer)
         {

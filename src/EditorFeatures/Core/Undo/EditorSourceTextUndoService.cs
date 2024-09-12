@@ -16,16 +16,13 @@ using System;
 namespace Microsoft.CodeAnalysis.Editor.Undo
 {
     [ExportWorkspaceService(typeof(ISourceTextUndoService), ServiceLayer.Editor), Shared]
-    internal sealed class EditorSourceTextUndoService : ISourceTextUndoService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class EditorSourceTextUndoService(ITextUndoHistoryRegistry undoHistoryRegistry) : ISourceTextUndoService
     {
         private readonly Dictionary<SourceText, SourceTextUndoTransaction> _transactions = new();
 
-        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public EditorSourceTextUndoService(ITextUndoHistoryRegistry undoHistoryRegistry)
-            => _undoHistoryRegistry = undoHistoryRegistry;
+        private readonly ITextUndoHistoryRegistry _undoHistoryRegistry = undoHistoryRegistry;
 
         public ISourceTextUndoTransaction RegisterUndoTransaction(SourceText sourceText, string description)
         {
@@ -65,20 +62,13 @@ namespace Microsoft.CodeAnalysis.Editor.Undo
             return false;
         }
 
-        private sealed class SourceTextUndoTransaction : ISourceTextUndoTransaction
+        private sealed class SourceTextUndoTransaction(ISourceTextUndoService service, SourceText sourceText, string description) : ISourceTextUndoTransaction
         {
-            private readonly ISourceTextUndoService _service;
-            public SourceText SourceText { get; }
-            public string Description { get; }
+            private readonly ISourceTextUndoService _service = service;
+            public SourceText SourceText { get; } = sourceText;
+            public string Description { get; } = description;
 
             private ITextUndoTransaction _transaction;
-
-            public SourceTextUndoTransaction(ISourceTextUndoService service, SourceText sourceText, string description)
-            {
-                _service = service;
-                SourceText = sourceText;
-                Description = description;
-            }
 
             internal bool Begin(ITextUndoHistory undoHistory)
             {

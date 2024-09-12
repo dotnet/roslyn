@@ -57,14 +57,9 @@
         <target state="translated">C#</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_Coding_Conventions">
-        <source>C# Coding Conventions</source>
-        <target state="translated">Convenções de Codificação em C#</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CSharp_Formatting_Rules">
-        <source>C# Formatting Rules</source>
-        <target state="translated">Regras de Formatação de C#</target>
+      <trans-unit id="CSharp_Interactive">
+        <source>C# Interactive</source>
+        <target state="new">C# Interactive</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">

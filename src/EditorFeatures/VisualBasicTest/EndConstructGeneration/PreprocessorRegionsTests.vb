@@ -33,14 +33,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyAfterHashRegionWithoutStringConstant()
+        Public Sub DoNotApplyAfterHashRegionWithoutStringConstant()
             VerifyStatementEndConstructNotApplied(
                 text:="#Region",
                 caret:={0, -1})
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyAfterHashRegionWhenEndRegionExists1()
+        Public Sub DoNotApplyAfterHashRegionWhenEndRegionExists1()
             VerifyStatementEndConstructNotApplied(
                 text:="#Region ""Goo""
 #End Region",
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyAfterHashRegionWhenEndRegionExists2()
+        Public Sub DoNotApplyAfterHashRegionWhenEndRegionExists2()
             VerifyStatementEndConstructNotApplied(
                 text:="#Region ""Goo""
 #Region ""Bar""
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Sub
 
         <WpfFact>
-        Public Sub DontApplyAfterHashRegionWhenEndRegionExists3()
+        Public Sub DoNotApplyAfterHashRegionWhenEndRegionExists3()
             VerifyStatementEndConstructNotApplied(
                 text:="#Region ""Goo""
 #Region ""Bar""

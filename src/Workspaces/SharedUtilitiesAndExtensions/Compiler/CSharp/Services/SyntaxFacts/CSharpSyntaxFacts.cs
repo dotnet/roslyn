@@ -1063,7 +1063,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             return constructors;
         }
 
-        private void AppendConstructors(SyntaxList<MemberDeclarationSyntax> members, List<SyntaxNode> constructors, CancellationToken cancellationToken)
+        private static void AppendConstructors(SyntaxList<MemberDeclarationSyntax> members, List<SyntaxNode> constructors, CancellationToken cancellationToken)
         {
             foreach (var member in members)
             {
@@ -1168,12 +1168,10 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                anonObject.NameEquals == null;
 
         public bool IsOperandOfIncrementExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node.IsParentKind(SyntaxKind.PostIncrementExpression) ||
-               node.IsParentKind(SyntaxKind.PreIncrementExpression);
+            => node?.Parent?.Kind() is SyntaxKind.PostIncrementExpression or SyntaxKind.PreIncrementExpression;
 
         public static bool IsOperandOfDecrementExpression([NotNullWhen(true)] SyntaxNode? node)
-            => node.IsParentKind(SyntaxKind.PostDecrementExpression) ||
-               node.IsParentKind(SyntaxKind.PreDecrementExpression);
+            => node?.Parent?.Kind() is SyntaxKind.PostDecrementExpression or SyntaxKind.PreDecrementExpression;
 
         public bool IsOperandOfIncrementOrDecrementExpression([NotNullWhen(true)] SyntaxNode? node)
             => IsOperandOfIncrementExpression(node) || IsOperandOfDecrementExpression(node);
@@ -1217,10 +1215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             => SyntaxFacts.IsDocumentationCommentTrivia(node.Kind());
 
         public bool IsUsingOrExternOrImport([NotNullWhen(true)] SyntaxNode? node)
-        {
-            return node.IsKind(SyntaxKind.UsingDirective) ||
-                   node.IsKind(SyntaxKind.ExternAliasDirective);
-        }
+            => node?.Kind() is SyntaxKind.UsingDirective or SyntaxKind.ExternAliasDirective;
 
         public bool IsGlobalAssemblyAttribute([NotNullWhen(true)] SyntaxNode? node)
             => IsGlobalAttribute(node, SyntaxKind.AssemblyKeyword);
@@ -1259,8 +1254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
                 // Because fields declarations can define multiple symbols "public int a, b;"
                 // We want to get the VariableDeclarator node inside the field declaration to print out the symbol for the name.
                 case SyntaxKind.VariableDeclarator:
-                    return node.Parent.IsParentKind(SyntaxKind.FieldDeclaration) ||
-                           node.Parent.IsParentKind(SyntaxKind.EventFieldDeclaration);
+                    return node.Parent?.Parent?.Kind() is SyntaxKind.FieldDeclaration or SyntaxKind.EventFieldDeclaration;
 
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.MethodDeclaration:
@@ -1331,10 +1325,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             };
 
         public bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declarator, SyntaxNode localDeclarationStatement)
-        {
-            return ((LocalDeclarationStatementSyntax)localDeclarationStatement).Declaration.Variables.Contains(
-                (VariableDeclaratorSyntax)declarator);
-        }
+            => declarator is VariableDeclaratorSyntax variableDeclarator &&
+               ((LocalDeclarationStatementSyntax)localDeclarationStatement).Declaration.Variables.Contains(variableDeclarator);
 
         public bool AreEquivalent(SyntaxToken token1, SyntaxToken token2)
             => SyntaxFactory.AreEquivalent(token1, token2);
@@ -1348,9 +1340,6 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public bool IsExpressionOfForeach([NotNullWhen(true)] SyntaxNode? node)
             => node?.Parent is ForEachStatementSyntax foreachStatement && foreachStatement.Expression == node;
 
-        public SyntaxNode GetExpressionOfForeachStatement(SyntaxNode node)
-            => ((CommonForEachStatementSyntax)node).Expression;
-
         public SyntaxNode GetExpressionOfExpressionStatement(SyntaxNode node)
             => ((ExpressionStatementSyntax)node).Expression;
 
@@ -1359,7 +1348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         {
             var tupleExpression = (TupleExpressionSyntax)node;
             openParen = tupleExpression.OpenParenToken;
-            arguments = (SeparatedSyntaxList<SyntaxNode>)tupleExpression.Arguments;
+            arguments = (SeparatedSyntaxList<TArgumentSyntax>)(SeparatedSyntaxList<SyntaxNode>)tupleExpression.Arguments;
             closeParen = tupleExpression.CloseParenToken;
         }
 
@@ -1381,6 +1370,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 
         public SyntaxNode? GetInitializerOfVariableDeclarator(SyntaxNode node)
             => ((VariableDeclaratorSyntax)node).Initializer;
+
+        public SyntaxNode? GetInitializerOfPropertyDeclaration(SyntaxNode node)
+            => ((PropertyDeclarationSyntax)node).Initializer;
 
         public SyntaxNode GetTypeOfVariableDeclarator(SyntaxNode node)
             => ((VariableDeclarationSyntax)((VariableDeclaratorSyntax)node).Parent!).Type;
@@ -1514,9 +1506,8 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
         public SyntaxNode GetTypeOfTypePattern(SyntaxNode node)
             => ((TypePatternSyntax)node).Type;
 
-        public bool IsVerbatimInterpolatedStringExpression(SyntaxNode node)
-            => node is InterpolatedStringExpressionSyntax interpolatedString &&
-                interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
+        public bool IsVerbatimInterpolatedStringExpression([NotNullWhen(true)] SyntaxNode? node)
+            => node is InterpolatedStringExpressionSyntax { StringStartToken: (kind: SyntaxKind.InterpolatedVerbatimStringStartToken) } interpolatedString;
 
         public bool IsInInactiveRegion(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
@@ -1544,6 +1535,9 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
 
         public bool IsMemberAccessExpression([NotNullWhen(true)] SyntaxNode? node)
             => node is MemberAccessExpressionSyntax;
+
+        public bool IsMethodDeclaration([NotNullWhen(true)] SyntaxNode? node)
+            => node is MethodDeclarationSyntax;
 
         public bool IsSimpleName([NotNullWhen(true)] SyntaxNode? node)
             => node is SimpleNameSyntax;
@@ -1610,6 +1604,12 @@ namespace Microsoft.CodeAnalysis.CSharp.LanguageService
             condition = conditionalExpression.Condition;
             whenTrue = conditionalExpression.WhenTrue;
             whenFalse = conditionalExpression.WhenFalse;
+        }
+
+        public SyntaxNode GetExpressionOfForeachStatement(SyntaxNode statement)
+        {
+            var commonForeach = (CommonForEachStatementSyntax)statement;
+            return commonForeach.Expression;
         }
 
         public void GetPartsOfGenericName(SyntaxNode node, out SyntaxToken identifier, out SeparatedSyntaxList<SyntaxNode> typeArguments)

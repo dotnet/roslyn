@@ -36,14 +36,9 @@ internal sealed class CSharpCodeLensMemberFinder : ICodeLensMemberFinder
         return codeLensNodes.ToImmutable();
     }
 
-    private sealed class CSharpCodeLensVisitor : CSharpSyntaxWalker
+    private sealed class CSharpCodeLensVisitor(ArrayBuilder<CodeLensMember> memberBuilder) : CSharpSyntaxWalker
     {
-        private readonly ArrayBuilder<CodeLensMember> _memberBuilder;
-
-        public CSharpCodeLensVisitor(ArrayBuilder<CodeLensMember> memberBuilder)
-        {
-            _memberBuilder = memberBuilder;
-        }
+        private readonly ArrayBuilder<CodeLensMember> _memberBuilder = memberBuilder;
 
         public override void VisitClassDeclaration(ClassDeclarationSyntax node)
         {
@@ -60,6 +55,7 @@ internal sealed class CSharpCodeLensMemberFinder : ICodeLensMemberFinder
         public override void VisitEnumDeclaration(EnumDeclarationSyntax node)
         {
             _memberBuilder.Add(new CodeLensMember(node, node.Identifier.Span));
+            base.VisitEnumDeclaration(node);
         }
 
         public override void VisitPropertyDeclaration(PropertyDeclarationSyntax node)
@@ -87,6 +83,42 @@ internal sealed class CSharpCodeLensMemberFinder : ICodeLensMemberFinder
         {
             _memberBuilder.Add(new CodeLensMember(node, node.Identifier.Span));
             base.VisitRecordDeclaration(node);
+        }
+
+        public override void VisitDelegateDeclaration(DelegateDeclarationSyntax node)
+        {
+            _memberBuilder.Add(new CodeLensMember(node, node.Identifier.Span));
+        }
+
+        public override void VisitEnumMemberDeclaration(EnumMemberDeclarationSyntax node)
+        {
+            _memberBuilder.Add(new CodeLensMember(node, node.Identifier.Span));
+        }
+
+        public override void VisitFieldDeclaration(FieldDeclarationSyntax node)
+        {
+            foreach (var variable in node.Declaration.Variables)
+            {
+                _memberBuilder.Add(new CodeLensMember(variable, variable.Identifier.Span));
+            }
+        }
+
+        public override void VisitEventFieldDeclaration(EventFieldDeclarationSyntax node)
+        {
+            foreach (var variable in node.Declaration.Variables)
+            {
+                _memberBuilder.Add(new CodeLensMember(variable, variable.Identifier.Span));
+            }
+        }
+
+        public override void VisitEventDeclaration(EventDeclarationSyntax node)
+        {
+            _memberBuilder.Add(new CodeLensMember(node, node.Identifier.Span));
+        }
+
+        public override void VisitDestructorDeclaration(DestructorDeclarationSyntax node)
+        {
+            _memberBuilder.Add(new CodeLensMember(node, node.Identifier.Span));
         }
     }
 }

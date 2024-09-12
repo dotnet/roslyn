@@ -119,7 +119,7 @@ namespace Microsoft.VisualStudio.LanguageServices.StackTraceExplorer
                     // While navigating do not activate the tab, which will change focus from the tool window
                     var options = new NavigationOptions(PreferProvisionalTab: true, ActivateTab: false);
 
-                    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                     // If the line number is larger than the total lines in the file
                     // then just go to the end of the file (lines count). This can happen

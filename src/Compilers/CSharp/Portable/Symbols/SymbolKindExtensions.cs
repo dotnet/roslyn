@@ -23,6 +23,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return MessageID.IDS_SK_TYPE.Localize();
                 case SymbolKind.TypeParameter:
                     return MessageID.IDS_SK_TYVAR.Localize();
+                case SymbolKind.ArrayType:
+                    return MessageID.IDS_SK_ARRAY.Localize();
+                case SymbolKind.PointerType:
+                    return MessageID.IDS_SK_POINTER.Localize();
+                case SymbolKind.FunctionPointerType:
+                    return MessageID.IDS_SK_FUNCTION_POINTER.Localize();
+                case SymbolKind.DynamicType:
+                    return MessageID.IDS_SK_DYNAMIC.Localize();
                 case SymbolKind.Method:
                     return MessageID.IDS_SK_METHOD.Localize();
                 case SymbolKind.Property:

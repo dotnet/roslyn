@@ -56,13 +56,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                     equivalenceKey: title);
             }
 
-            private class GlobalSuppressionSolutionChangeAction : SolutionChangeAction
+            private class GlobalSuppressionSolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey) : SolutionChangeAction(title, createChangedSolution, equivalenceKey)
             {
-                public GlobalSuppressionSolutionChangeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey)
-                    : base(title, createChangedSolution, equivalenceKey)
-                {
-                }
-
                 protected override Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
                 {
                     // PERF: We don't to formatting on the entire global suppressions document, but instead do it for each attribute individual in the fixer.

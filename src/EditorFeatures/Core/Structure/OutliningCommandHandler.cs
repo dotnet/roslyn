@@ -15,14 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Structure
     [Export(typeof(ICommandHandler))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Name("Outlining Command Handler")]
-    internal sealed class OutliningCommandHandler : ICommandHandler<StartAutomaticOutliningCommandArgs>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class OutliningCommandHandler(IOutliningManagerService outliningManagerService) : ICommandHandler<StartAutomaticOutliningCommandArgs>
     {
-        private readonly IOutliningManagerService _outliningManagerService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public OutliningCommandHandler(IOutliningManagerService outliningManagerService)
-            => _outliningManagerService = outliningManagerService;
+        private readonly IOutliningManagerService _outliningManagerService = outliningManagerService;
 
         public string DisplayName => EditorFeaturesResources.Outlining;
 

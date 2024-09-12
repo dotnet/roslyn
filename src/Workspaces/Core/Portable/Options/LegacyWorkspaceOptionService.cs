@@ -14,37 +14,27 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Options;
 
 [Export(typeof(ILegacyGlobalOptionService)), Shared]
-internal sealed class LegacyGlobalOptionService : ILegacyGlobalOptionService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class LegacyGlobalOptionService(IGlobalOptionService globalOptionService) : ILegacyGlobalOptionService
 {
     [ExportWorkspaceService(typeof(ILegacyWorkspaceOptionService)), Shared]
-    internal sealed class WorkspaceService : ILegacyWorkspaceOptionService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class WorkspaceService(ILegacyGlobalOptionService legacyGlobalOptions) : ILegacyWorkspaceOptionService
     {
-        public ILegacyGlobalOptionService LegacyGlobalOptions { get; }
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public WorkspaceService(ILegacyGlobalOptionService legacyGlobalOptions)
-            => LegacyGlobalOptions = legacyGlobalOptions;
+        public ILegacyGlobalOptionService LegacyGlobalOptions { get; } = legacyGlobalOptions;
     }
 
-    public IGlobalOptionService GlobalOptions { get; }
+    public IGlobalOptionService GlobalOptions { get; } = globalOptionService;
 
     // access is interlocked
-    private ImmutableArray<WeakReference<Workspace>> _registeredWorkspaces;
+    private ImmutableArray<WeakReference<Workspace>> _registeredWorkspaces = ImmutableArray<WeakReference<Workspace>>.Empty;
 
     /// <summary>
     /// Stores options that are not defined by Roslyn and do not implement <see cref="IOption2"/>.
     /// </summary>
-    private ImmutableDictionary<OptionKey, object?> _currentExternallyDefinedOptionValues;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public LegacyGlobalOptionService(IGlobalOptionService globalOptionService)
-    {
-        GlobalOptions = globalOptionService;
-        _registeredWorkspaces = ImmutableArray<WeakReference<Workspace>>.Empty;
-        _currentExternallyDefinedOptionValues = ImmutableDictionary.Create<OptionKey, object?>();
-    }
+    private ImmutableDictionary<OptionKey, object?> _currentExternallyDefinedOptionValues = ImmutableDictionary.Create<OptionKey, object?>();
 
     public object? GetExternallyDefinedOption(OptionKey key)
     {

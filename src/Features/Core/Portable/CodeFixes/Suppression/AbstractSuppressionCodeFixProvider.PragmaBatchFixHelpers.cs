@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                             var endTokenChanges = await GetTextChangesAsync(newPragmaAction, currentDocument,
                                 includeStartTokenChange: false, includeEndTokenChange: true, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                            var currentText = await currentDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                            var currentText = await currentDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                             var orderedChanges = startTokenChanges.Concat(endTokenChanges).OrderBy(change => change.Span).Distinct();
                             var newText = currentText.WithChanges(orderedChanges);
                             currentDocument = currentDocument.WithText(newText);

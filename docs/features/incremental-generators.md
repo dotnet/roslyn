@@ -390,18 +390,18 @@ public static partial class IncrementalValueSourceExtensions
 ```
 
 ```ascii
-                                          Select<TSource, TResult>
+                                               Where<TSource>
                                    .......................................
                                    .                   ┌───────────┐     .
                                    .   predicate(Item1)│           │     .
                                    . ┌────────────────►│   Item1   ├───┐ .
                                    . │                 │           │   │ .
-IncrementalValuesProvider<TSource> . │                 └───────────┘   │ . IncrementalValuesProvider<TResult>
-          ┌───────────┐            . │                                 │ .        ┌────────────┐
-          │           │            . │ predicate(Item2)                │ .        │            │
-          │  TSource  ├──────────────┼─────────────────X               ├─────────►│   TResult  │
-          │           │            . │                                 │ .        │            │
-          └───────────┘            . │                                 │ .        └────────────┘
+IncrementalValuesProvider<TSource> . │                 └───────────┘   │ . IncrementalValuesProvider<TSource>
+          ┌───────────┐            . │                                 │ .        ┌───────────┐
+          │           │            . │ predicate(Item2)                │ .        │           │
+          │  TSource  ├──────────────┼─────────────────X               ├─────────►│  TSource  │
+          │           │            . │                                 │ .        │           │
+          └───────────┘            . │                                 │ .        └───────────┘
              3 Items               . │                 ┌───────────┐   │ .           2 Items
                                    . │ predicate(Item3)│           │   │ .
                                    . └────────────────►│   Item3   ├───┘ .
@@ -658,7 +658,7 @@ inputs and combine them into a single source of data. For example:
 IncrementalValuesProvider<AdditionalText> additionalTexts = initContext.AdditionalTextsProvider;
 
 // combine each additional text with the parse options
-IncrementalValuesProvider<(AdditionalText, ParseOptions)> combined = initContext.AdditionalTextsProvider.Combine(initContext.ParseOptionsProvider);
+IncrementalValuesProvider<(AdditionalText, ParseOptions)> combined = additionalTexts.Combine(initContext.ParseOptionsProvider);
 
 // perform a transform on each text, with access to the options
 var transformed = combined.Select(static (pair, _) => 
@@ -731,7 +731,7 @@ As an author I can make an input node that extracts the return type information
 
 ```csharp
 // create a syntax provider that extracts the return type kind of method symbols
-    var returnKinds = initContext.SyntaxProvider.CreateSyntaxProvider(static (n, _) => n is MethodDeclarationSyntax,
+var returnKinds = initContext.SyntaxProvider.CreateSyntaxProvider(static (n, _) => n is MethodDeclarationSyntax,
                                                                   static (n, _) => ((IMethodSymbol)n.SemanticModel.GetDeclaredSymbol(n.Node)).ReturnType.Kind);
 ```
 
@@ -768,7 +768,7 @@ public class Class4
 The `predicate` will be re-run for `file1.cs` as it has changed, and will pick
 out the method symbol `Method1()` again.  Next, because the `transform` is
 re-run for _all_ the methods, the return type kind for `Method2()` is correctly
-changed to `Error` as `Class1` no longer exists.
+changed to `ErrorType` as `Class1` no longer exists.
 
 Note that we didn't need to run the `predicate` over for nodes in `file2.cs`
 even though they referenced something in `file1.cs`. Because the first check is
@@ -901,7 +901,7 @@ public void Initialize(IncrementalGeneratorInitializationContext context)
 {
     var txtFiles = context.AdditionalTextsProvider.Where(static f => f.Path.EndsWith(".txt", StringComparison.OrdinalIgnoreCase));
     
-    // ensure we forward the cancellation token to GeText
+    // ensure we forward the cancellation token to GetText
     var fileContents = txtFiles.Select(static (file, cancellationToken) => file.GetText(cancellationToken));   
 }
 ```

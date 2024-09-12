@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
 {
     internal partial class CSharpMethodExtractor : MethodExtractor
     {
-        private class CSharpAnalyzer : Analyzer
+        private class CSharpAnalyzer(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken) : Analyzer(selectionResult, localFunction, cancellationToken)
         {
             private static readonly HashSet<int> s_nonNoisySyntaxKindSet = new HashSet<int>(new int[] { (int)SyntaxKind.WhitespaceTrivia, (int)SyntaxKind.EndOfLineTrivia });
 
@@ -26,11 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
             {
                 var analyzer = new CSharpAnalyzer(selectionResult, localFunction, cancellationToken);
                 return analyzer.AnalyzeAsync();
-            }
-
-            public CSharpAnalyzer(SelectionResult selectionResult, bool localFunction, CancellationToken cancellationToken)
-                : base(selectionResult, localFunction, cancellationToken)
-            {
             }
 
             protected override VariableInfo CreateFromSymbol(

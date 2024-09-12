@@ -204,5 +204,39 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             for (var i = 0; i < initialItems; i++)
                 Assert.Equal(array[i], initialItems - 1 - i);
         }
+
+        [Theory, CombinatorialData]
+        public void TestRemoveLast([CombinatorialRange(0, 6)] int initialItems)
+        {
+            using var array = TemporaryArray<int>.Empty;
+            for (var i = 0; i < initialItems; i++)
+                array.Add(i);
+
+            if (initialItems == 0)
+            {
+                Assert.Throws<IndexOutOfRangeException>(() => array.RemoveLast());
+            }
+            else
+            {
+                var count = array.Count;
+                var last = array.RemoveLast();
+                Assert.Equal(initialItems - 1, last);
+                Assert.Equal(count - 1, array.Count);
+            }
+        }
+
+        [Theory, CombinatorialData]
+        public void TestContains([CombinatorialRange(0, 6)] int initialItems)
+        {
+            using var array = TemporaryArray<int>.Empty;
+            for (var i = 0; i < initialItems; i++)
+                array.Add(i);
+
+            for (var i = 0; i < initialItems; i++)
+                Assert.True(array.Contains(i));
+
+            Assert.False(array.Contains(-1));
+            Assert.False(array.Contains(initialItems));
+        }
     }
 }

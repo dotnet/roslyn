@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -106,6 +107,7 @@ namespace Roslyn.Test.Utilities.TestGenerators
         }
     }
 
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal class InMemoryAdditionalText : AdditionalText
     {
         private readonly SourceText _content;
@@ -125,6 +127,11 @@ namespace Roslyn.Test.Utilities.TestGenerators
             public BinaryText(string path) : base(path, string.Empty) { }
 
             public override SourceText GetText(CancellationToken cancellationToken = default) => throw new InvalidDataException("Binary content not supported");
+        }
+
+        internal string GetDebuggerDisplay()
+        {
+            return $"'{Path}': '{_content.Lines[0]}'";
         }
     }
 

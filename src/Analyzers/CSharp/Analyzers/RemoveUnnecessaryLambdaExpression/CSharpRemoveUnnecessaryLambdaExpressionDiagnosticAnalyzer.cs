@@ -176,6 +176,26 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression
             if (invokedMethod.GetAttributes().Any(a => Equals(a.AttributeClass, conditionalAttributeType)))
                 return;
 
+            // In the case where we have `() => expr.m()`, check if `expr` is overwritten anywhere. If so then we do not
+            // want to remove the lambda, as that will bind eagerly to the original `expr` and will not see the write
+            // that later happens
+            if (invokedExpression is MemberAccessExpressionSyntax { Expression: var accessedExpression })
+            {
+                // Limit the search space to the outermost code block that could contain references to this expr (or
+                // fall back to compilation unit for top level statements).
+                var outermostBody = invokedExpression.AncestorsAndSelf().Last(
+                    n => n is BlockSyntax or ArrowExpressionClauseSyntax or AnonymousFunctionExpressionSyntax or CompilationUnitSyntax);
+                foreach (var candidate in outermostBody.DescendantNodes().OfType<ExpressionSyntax>())
+                {
+                    if (candidate != accessedExpression &&
+                        SemanticEquivalence.AreEquivalent(semanticModel, candidate, accessedExpression) &&
+                        candidate.IsWrittenTo(semanticModel, cancellationToken))
+                    {
+                        return;
+                    }
+                }
+            }
+
             // Semantically, this looks good to go.  Now, do an actual speculative replacement to ensure that the
             // non-invoked method reference refers to the same method symbol, and that it converts to the same type that
             // the lambda was.

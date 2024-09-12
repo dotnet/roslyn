@@ -29,6 +29,61 @@ pr:
       - CONTRIBUTING.md
       - README.md
 
+variables:
+  # This value is conditionally overriden by the variable group DotNet-HelixApi-Access.
+  # ADO only lets us conditionally include a variable group on individual stages.
+  - name: HelixApiAccessToken
+    value: ''
+
+  # Set pool / queue name variables depending on which instance we're running in.
+  - name: PoolName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: NetCore-Public
+    ${{ else }}:
+      value: NetCore1ESPool-Internal
+
+  - name: Vs2022PreviewQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: windows.vs2022preview.amd64.open
+    ${{ else }}:
+      value: windows.vs2022preview.amd64
+
+  - name: Vs2022QueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: windows.vs2022.amd64.open
+    ${{ else }}:
+      value: windows.vs2022.amd64
+
+  - name: UbuntuQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: Build.Ubuntu.2004.Amd64.Open
+    ${{ else }}:
+      value: Build.Ubuntu.2004.Amd64
+
+  - name: HelixWindowsQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: Windows.10.Amd64.Open
+    ${{ else }}:
+      value: Windows.10.Amd64
+
+  - name: HelixWindowsSpanishQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: Windows.10.Amd64.Server2022.ES.Open
+    ${{ else }}:
+      value: Windows.10.Amd64.Server2022.ES
+
+  - name: HelixUbuntuQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: Ubuntu.2004.Amd64.Open
+    ${{ else }}:
+      value: Ubuntu.2004.Amd64
+
+  - name: HelixMacOsQueueName
+    ${{ if eq(variables['System.TeamProject'], 'public') }}:
+      value: OSX.13.Amd64.Open
+    ${{ else }}:
+      value: OSX.13.Amd64
+
 stages:
 - stage: Windows_Debug_Build
   dependsOn: []
@@ -38,7 +93,8 @@ stages:
       jobName: Build_Windows_Debug
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
-      queueName: windows.vs2022preview.amd64.open
+      poolName: $(PoolName)
+      queueName: $(Vs2022PreviewQueueName)
       restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
       buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
@@ -50,7 +106,8 @@ stages:
       jobName: Build_Windows_Release
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
-      queueName: windows.vs2022preview.amd64.open
+      poolName: $(PoolName)
+      queueName: $(Vs2022PreviewQueueName)
       restoreArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false
       buildArguments: -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false
 
@@ -62,7 +119,8 @@ stages:
       jobName: Build_Unix_Debug
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
-      queueName: Build.Ubuntu.2004.Amd64.Open
+      poolName: $(PoolName)
+      queueName: $(UbuntuQueueName)
 
 - stage: Source_Build
   dependsOn: []
@@ -90,6 +148,9 @@ stages:
 
 - stage: Windows_Debug_Desktop
   dependsOn: Windows_Debug_Build
+  variables:
+  - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+    - group: DotNet-HelixApi-Access
   jobs:
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
@@ -99,6 +160,8 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
         testArguments: -testDesktop -testArch x86
+        helixQueueName: $(HelixWindowsQueueName)
+        helixApiAccessToken: $(HelixApiAccessToken)
 
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -107,9 +170,14 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testDesktop -testArch x64
+      helixQueueName: $(HelixWindowsQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
 
 - stage: Windows_Release_Desktop
   dependsOn: Windows_Release_Build
+  variables:
+  - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+    - group: DotNet-HelixApi-Access
   jobs:
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -118,6 +186,8 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testDesktop -testArch x86
+      helixQueueName: $(HelixWindowsQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job.yml
@@ -127,6 +197,8 @@ stages:
         testArtifactName: Transport_Artifacts_Windows_Release
         configuration: Release
         testArguments: -testDesktop -testArch x64
+        helixQueueName: $(HelixWindowsQueueName)
+        helixApiAccessToken: $(HelixApiAccessToken)
 
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -134,10 +206,15 @@ stages:
       jobName: Test_Windows_Desktop_Spanish_Release_64
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
-      testArguments: -testDesktop -testArch x64 -helixQueueName Windows.10.Amd64.Server2022.ES.Open
+      testArguments: -testDesktop -testArch x64
+      helixQueueName: $(HelixWindowsSpanishQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
 
 - stage: Windows_Debug_CoreClr
   dependsOn: Windows_Debug_Build
+  variables:
+  - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+    - group: DotNet-HelixApi-Access
   jobs:
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -146,6 +223,8 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr
+      helixQueueName: $(HelixWindowsQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-windows-job-single-machine.yml
@@ -154,6 +233,8 @@ stages:
         jobName: Test_Windows_CoreClr_Debug_Single_Machine
         testArtifactName: Transport_Artifacts_Windows_Debug
         configuration: Debug
+        poolName: $(PoolName)
+        queueName: $(Vs2022QueueName)
         testArguments: -testCoreClr
 
   - template: eng/pipelines/test-windows-job.yml
@@ -163,6 +244,8 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr -testIOperation -testCompilerOnly
+      helixQueueName: $(HelixWindowsQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
 
   # This leg runs almost all the compiler tests supported on CoreCLR, but
   #  with additional validation for used assemblies and GetEmitDiagnostics
@@ -173,9 +256,14 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Debug
       configuration: Debug
       testArguments: -testCoreClr -testUsedAssemblies -testCompilerOnly
+      helixQueueName: $(HelixWindowsQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
 
 - stage: Windows_Release_CoreClr
   dependsOn: Windows_Release_Build
+  variables:
+  - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+    - group: DotNet-HelixApi-Access
   jobs:
   - template: eng/pipelines/test-windows-job.yml
     parameters:
@@ -184,9 +272,14 @@ stages:
       testArtifactName: Transport_Artifacts_Windows_Release
       configuration: Release
       testArguments: -testCoreClr
+      helixQueueName: $(HelixWindowsQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
 
 - stage: Unix_Debug_CoreClr
   dependsOn: Unix_Build
+  variables:
+  - ${{ if ne(variables['System.TeamProject'], 'public') }}:
+    - group: DotNet-HelixApi-Access
   jobs:
   - template: eng/pipelines/test-unix-job.yml
     parameters:
@@ -194,7 +287,9 @@ stages:
       jobName: Test_Linux_Debug
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
-      testArguments: --testCoreClr --helixQueueName Ubuntu.2004.Amd64.Open
+      testArguments: --testCoreClr
+      helixQueueName: $(HelixUbuntuQueueName)
+      helixApiAccessToken: $(HelixApiAccessToken)
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-unix-job-single-machine.yml
@@ -204,15 +299,19 @@ stages:
         testArtifactName: Transport_Artifacts_Unix_Debug
         configuration: Debug
         testArguments: --testCoreClr
-        queueName: Build.Ubuntu.2004.Amd64.Open
+        poolName: $(PoolName)
+        queueName: $(UbuntuQueueName)
 
-  - template: eng/pipelines/test-unix-job.yml
-    parameters:
-      testRunName: 'Test macOS Debug'
-      jobName: Test_macOS_Debug
-      testArtifactName: Transport_Artifacts_Unix_Debug
-      configuration: Debug
-      testArguments: --testCoreClr --helixQueueName OSX.13.Amd64.Open
+  - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
+    - template: eng/pipelines/test-unix-job.yml
+      parameters:
+        testRunName: 'Test macOS Debug'
+        jobName: Test_macOS_Debug
+        testArtifactName: Transport_Artifacts_Unix_Debug
+        configuration: Debug
+        testArguments: --testCoreClr 
+        helixQueueName: $(HelixMacOsQueueName)
+        helixApiAccessToken: $(HelixApiAccessToken)
 
 - stage: Correctness
   dependsOn: []
@@ -220,6 +319,7 @@ stages:
   - template: eng/pipelines/evaluate-changed-files.yml
     parameters:
       jobName: Determine_Changes
+      poolName: $(PoolName)
       vmImageName: ubuntu-latest
       paths:
         - subset: compilers
@@ -233,8 +333,8 @@ stages:
   - job: Correctness_Build_Artifacts
     dependsOn: Determine_Changes
     pool:
-      name: NetCore-Public
-      demands: ImageOverride -equals windows.vs2022preview.amd64.open
+      name: $(PoolName)
+      demands: ImageOverride -equals $(Vs2022PreviewQueueName)
     timeoutInMinutes: 90
     variables:
       - template: eng/pipelines/variables-build.yml
@@ -283,8 +383,8 @@ stages:
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
-      name: NetCore-Public
-      demands: ImageOverride -equals windows.vs2022preview.amd64.open
+      name: $(PoolName)
+      demands: ImageOverride -equals $(Vs2022PreviewQueueName)
     timeoutInMinutes: 90
     variables:
       - template: eng/pipelines/variables-build.yml
@@ -305,8 +405,8 @@ stages:
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
-      name: NetCore-Public
-      demands: ImageOverride -equals windows.vs2022preview.amd64.open
+      name: $(PoolName)
+      demands: ImageOverride -equals $(Vs2022PreviewQueueName)
     timeoutInMinutes: 90
     variables:
       - template: eng/pipelines/variables-build.yml
@@ -321,8 +421,8 @@ stages:
     dependsOn: Determine_Changes
     condition: ne(variables['Build.Reason'], 'Pull Request')
     pool:
-      name: NetCore-Public
-      demands: ImageOverride -equals windows.vs2022preview.amd64.open
+      name: $(PoolName)
+      demands: ImageOverride -equals $(Vs2022PreviewQueueName)
     timeoutInMinutes: 90
     variables:
       - template: eng/pipelines/variables-build.yml
@@ -347,8 +447,8 @@ stages:
     dependsOn: Determine_Changes
     condition: or(ne(variables['Build.Reason'], 'PullRequest'), eq(dependencies.Determine_Changes.outputs['SetPathVars_compilers.containsChange'], 'true'))
     pool:
-      name: NetCore-Public
-      demands: ImageOverride -equals windows.vs2022preview.amd64.open
+      name: $(PoolName)
+      demands: ImageOverride -equals $(Vs2022PreviewQueueName)
     timeoutInMinutes: 90
     variables:
       - template: eng/pipelines/variables-build.yml
@@ -376,8 +476,8 @@ stages:
 
   - job: Correctness_Analyzers
     pool:
-      name: NetCore-Public
-      demands: ImageOverride -equals Build.Ubuntu.2004.Amd64.Open
+      name: $(PoolName)
+      demands: ImageOverride -equals $(UbuntuQueueName)
     timeoutInMinutes: 35
     variables:
       - template: eng/pipelines/variables-build.yml
@@ -389,3 +489,8 @@ stages:
 
       - script: ./eng/build.sh --solution Roslyn.sln --restore --build --configuration Debug --prepareMachine --ci --binaryLog --runanalyzers --warnaserror /p:RoslynEnforceCodeStyle=true
         displayName: Build with analyzers
+
+      - template: eng/pipelines/publish-logs.yml
+        parameters:
+          jobName: Correctness_Analyzers
+          configuration: Debug

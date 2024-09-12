@@ -7,14 +7,9 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider
 {
-    internal class CombinedOptionsProviderFactory<T> : ISettingsProviderFactory<T>
+    internal class CombinedOptionsProviderFactory<T>(ImmutableArray<ISettingsProviderFactory<T>> factories) : ISettingsProviderFactory<T>
     {
-        private readonly ImmutableArray<ISettingsProviderFactory<T>> _factories;
-
-        public CombinedOptionsProviderFactory(ImmutableArray<ISettingsProviderFactory<T>> factories)
-        {
-            _factories = factories;
-        }
+        private readonly ImmutableArray<ISettingsProviderFactory<T>> _factories = factories;
 
         public ISettingsProvider<T> GetForFile(string filePath)
         {

@@ -3112,6 +3112,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestNormalizeDeclaration("enum      C       ;    ", "enum C;");
         }
 
+        [Fact]
+        public void RefReadonlyParameters()
+        {
+            TestNormalizeDeclaration("""
+                class   C  {  int  this  [  ref  readonly   int  x ,  ref  readonly  int  y ]  {  get  ;  } 
+                void  M ( ref  readonly  int  x ,  ref  readonly  int  y ) ; }
+                """, """
+                class C
+                {
+                  int this[ref readonly int x, ref readonly int y] { get; }
+
+                  void M(ref readonly int x, ref readonly int y);
+                }
+                """);
+        }
+
         [Fact, WorkItem(23618, "https://github.com/dotnet/roslyn/issues/23618")]
         public void TestSpacingOnInvocationLikeKeywords()
         {

@@ -3807,7 +3807,7 @@ class C
   // Code size      112 (0x70)
   .maxstack  9
   IL_0000:  nop
-  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, object, <empty anonymous type>>> C.<>o__0.<>p__0""
+  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, object, <empty anonymous type>>> C.<>o__0.<>p__0""
   IL_0006:  brfalse.s  IL_000a
   IL_0008:  br.s       IL_0053
   IL_000a:  ldc.i4     0x100
@@ -3836,15 +3836,15 @@ class C
   IL_003e:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
   IL_0043:  stelem.ref
   IL_0044:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_0049:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, object, <empty anonymous type>>> System.Runtime.CompilerServices.CallSite<<>A{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, object, <empty anonymous type>>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_004e:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, object, <empty anonymous type>>> C.<>o__0.<>p__0""
-  IL_0053:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, object, <empty anonymous type>>> C.<>o__0.<>p__0""
-  IL_0058:  ldfld      ""<>A{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, object, <empty anonymous type>> System.Runtime.CompilerServices.CallSite<<>A{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, object, <empty anonymous type>>>.Target""
-  IL_005d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, object, <empty anonymous type>>> C.<>o__0.<>p__0""
+  IL_0049:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, object, <empty anonymous type>>> System.Runtime.CompilerServices.CallSite<<>A{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, object, <empty anonymous type>>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_004e:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, object, <empty anonymous type>>> C.<>o__0.<>p__0""
+  IL_0053:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, object, <empty anonymous type>>> C.<>o__0.<>p__0""
+  IL_0058:  ldfld      ""<>A{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, object, <empty anonymous type>> System.Runtime.CompilerServices.CallSite<<>A{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, object, <empty anonymous type>>>.Target""
+  IL_005d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, object, <empty anonymous type>>> C.<>o__0.<>p__0""
   IL_0062:  ldarg.0
   IL_0063:  ldarg.1
   IL_0064:  newobj     ""<>f__AnonymousType0..ctor()""
-  IL_0069:  callvirt   ""void <>A{00000010}<System.Runtime.CompilerServices.CallSite, dynamic, object, <empty anonymous type>>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, ref object, <empty anonymous type>)""
+  IL_0069:  callvirt   ""void <>A{00000040}<System.Runtime.CompilerServices.CallSite, dynamic, object, <empty anonymous type>>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, ref object, <empty anonymous type>)""
   IL_006e:  nop
   IL_006f:  ret
 }");
@@ -3858,7 +3858,7 @@ class C
   // Code size      113 (0x71)
   .maxstack  9
   IL_0000:  nop
-  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000010}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>> C.<>o__0#1.<>p__0""
+  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000040}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>> C.<>o__0#1.<>p__0""
   IL_0006:  brfalse.s  IL_000a
   IL_0008:  br.s       IL_0053
   IL_000a:  ldc.i4     0x100
@@ -3887,16 +3887,16 @@ class C
   IL_003e:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
   IL_0043:  stelem.ref
   IL_0044:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_0049:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000010}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>> System.Runtime.CompilerServices.CallSite<<>A{00000010}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_004e:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000010}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>> C.<>o__0#1.<>p__0""
-  IL_0053:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000010}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>> C.<>o__0#1.<>p__0""
-  IL_0058:  ldfld      ""<>A{00000010}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>> System.Runtime.CompilerServices.CallSite<<>A{00000010}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>>.Target""
-  IL_005d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000010}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>> C.<>o__0#1.<>p__0""
+  IL_0049:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000040}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>> System.Runtime.CompilerServices.CallSite<<>A{00000040}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_004e:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000040}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>> C.<>o__0#1.<>p__0""
+  IL_0053:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000040}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>> C.<>o__0#1.<>p__0""
+  IL_0058:  ldfld      ""<>A{00000040}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>> System.Runtime.CompilerServices.CallSite<<>A{00000040}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>>.Target""
+  IL_005d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000040}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>> C.<>o__0#1.<>p__0""
   IL_0062:  ldarg.0
   IL_0063:  ldarg.1
   IL_0064:  ldarg.2
   IL_0065:  newobj     ""<>f__AnonymousType1<object>..ctor(object)""
-  IL_006a:  callvirt   ""void <>A{00000010}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, ref object, <anonymous type: object y>)""
+  IL_006a:  callvirt   ""void <>A{00000040}#1<System.Runtime.CompilerServices.CallSite, dynamic, object, <anonymous type: object y>>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, ref object, <anonymous type: object y>)""
   IL_006f:  nop
   IL_0070:  ret
 }");
@@ -3910,7 +3910,7 @@ class C
   // Code size      113 (0x71)
   .maxstack  9
   IL_0000:  nop
-  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000040}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>> C.<>o__0#2.<>p__0""
+  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000200}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>> C.<>o__0#2.<>p__0""
   IL_0006:  brfalse.s  IL_000a
   IL_0008:  br.s       IL_0053
   IL_000a:  ldc.i4     0x100
@@ -3939,16 +3939,16 @@ class C
   IL_003e:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
   IL_0043:  stelem.ref
   IL_0044:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
-  IL_0049:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000040}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>> System.Runtime.CompilerServices.CallSite<<>A{00000040}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_004e:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000040}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>> C.<>o__0#2.<>p__0""
-  IL_0053:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000040}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>> C.<>o__0#2.<>p__0""
-  IL_0058:  ldfld      ""<>A{00000040}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object> System.Runtime.CompilerServices.CallSite<<>A{00000040}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>>.Target""
-  IL_005d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000040}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>> C.<>o__0#2.<>p__0""
+  IL_0049:  call       ""System.Runtime.CompilerServices.CallSite<<>A{00000200}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>> System.Runtime.CompilerServices.CallSite<<>A{00000200}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_004e:  stsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000200}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>> C.<>o__0#2.<>p__0""
+  IL_0053:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000200}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>> C.<>o__0#2.<>p__0""
+  IL_0058:  ldfld      ""<>A{00000200}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object> System.Runtime.CompilerServices.CallSite<<>A{00000200}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>>.Target""
+  IL_005d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<<>A{00000200}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>> C.<>o__0#2.<>p__0""
   IL_0062:  ldarg.0
   IL_0063:  ldarg.2
   IL_0064:  newobj     ""<>f__AnonymousType1<object>..ctor(object)""
   IL_0069:  ldarg.1
-  IL_006a:  callvirt   ""void <>A{00000040}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, ref object)""
+  IL_006a:  callvirt   ""void <>A{00000200}#2<System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, object>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic, <anonymous type: object y>, ref object)""
   IL_006f:  nop
   IL_0070:  ret
 }");

@@ -33,8 +33,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.AddImport
         protected abstract bool IsNameOf(SyntaxNode node);
 
         // High priority as we need to know about unbound identifiers so that we can run add-using to fix them.
-        public CodeActionRequestPriority RequestPriority
-            => CodeActionRequestPriority.High;
+        public bool IsHighPriority
+            => true;
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
             => ImmutableArray.Create(DiagnosticDescriptor);

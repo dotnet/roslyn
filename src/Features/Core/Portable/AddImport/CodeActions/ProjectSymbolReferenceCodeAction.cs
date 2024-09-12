@@ -53,18 +53,11 @@ namespace Microsoft.CodeAnalysis.AddImport
                 return Task.FromResult<CodeActionOperation?>(new AddProjectReferenceCodeActionOperation(OriginalDocument.Project.Id, FixData.ProjectReferenceToAdd, applyOperation));
             }
 
-            private sealed class AddProjectReferenceCodeActionOperation : CodeActionOperation
+            private sealed class AddProjectReferenceCodeActionOperation(ProjectId referencingProject, ProjectId referencedProject, ApplyChangesOperation applyOperation) : CodeActionOperation
             {
-                private readonly ProjectId _referencingProject;
-                private readonly ProjectId _referencedProject;
-                private readonly ApplyChangesOperation _applyOperation;
-
-                public AddProjectReferenceCodeActionOperation(ProjectId referencingProject, ProjectId referencedProject, ApplyChangesOperation applyOperation)
-                {
-                    _referencingProject = referencingProject;
-                    _referencedProject = referencedProject;
-                    _applyOperation = applyOperation;
-                }
+                private readonly ProjectId _referencingProject = referencingProject;
+                private readonly ProjectId _referencedProject = referencedProject;
+                private readonly ApplyChangesOperation _applyOperation = applyOperation;
 
                 internal override bool ApplyDuringTests => true;
 

@@ -256,7 +256,7 @@ namespace Roslyn.Utilities
 
                 // We only need to allocate a new WeakReference<T> for this reference if one has not already been
                 // created for it.
-                LazyInitialization.EnsureInitialized(ref referenceCount._weakInstance, static instance => new WeakReference<T>(instance), instance);
+                InterlockedOperations.Initialize(ref referenceCount._weakInstance, static instance => new WeakReference<T>(instance), instance);
 
                 _boxedReferenceCount = referenceCount;
             }
@@ -306,7 +306,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Holds the reference count associated with a disposable object.
         /// </summary>
-        private sealed class BoxedReferenceCount
+        private sealed class BoxedReferenceCount(int referenceCount)
         {
             /// <summary>
             /// Holds the weak reference used by instances of <see cref="WeakReference"/> to obtain a reference-counted
@@ -319,12 +319,7 @@ namespace Roslyn.Utilities
             [DisallowNull]
             public WeakReference<T>? _weakInstance;
 
-            public int _referenceCount;
-
-            public BoxedReferenceCount(int referenceCount)
-            {
-                _referenceCount = referenceCount;
-            }
+            public int _referenceCount = referenceCount;
         }
     }
 }

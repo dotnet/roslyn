@@ -20,44 +20,31 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
     internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
     {
-        private partial class GenerateEqualsAndGetHashCodeAction : CodeAction
+        private partial class GenerateEqualsAndGetHashCodeAction(
+            Document document,
+            SyntaxNode typeDeclaration,
+            INamedTypeSymbol containingType,
+            ImmutableArray<ISymbol> selectedMembers,
+            CleanCodeGenerationOptionsProvider fallbackOptions,
+            bool generateEquals,
+            bool generateGetHashCode,
+            bool implementIEquatable,
+            bool generateOperators) : CodeAction
         {
             // https://docs.microsoft.com/dotnet/standard/design-guidelines/naming-parameters#naming-operator-overload-parameters
             //  DO use left and right for binary operator overload parameter names if there is no meaning to the parameters.
             private const string LeftName = "left";
             private const string RightName = "right";
 
-            private readonly bool _generateEquals;
-            private readonly bool _generateGetHashCode;
-            private readonly bool _implementIEquatable;
-            private readonly bool _generateOperators;
-            private readonly Document _document;
-            private readonly SyntaxNode _typeDeclaration;
-            private readonly INamedTypeSymbol _containingType;
-            private readonly ImmutableArray<ISymbol> _selectedMembers;
-            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
-
-            public GenerateEqualsAndGetHashCodeAction(
-                Document document,
-                SyntaxNode typeDeclaration,
-                INamedTypeSymbol containingType,
-                ImmutableArray<ISymbol> selectedMembers,
-                CleanCodeGenerationOptionsProvider fallbackOptions,
-                bool generateEquals,
-                bool generateGetHashCode,
-                bool implementIEquatable,
-                bool generateOperators)
-            {
-                _document = document;
-                _typeDeclaration = typeDeclaration;
-                _containingType = containingType;
-                _selectedMembers = selectedMembers;
-                _fallbackOptions = fallbackOptions;
-                _generateEquals = generateEquals;
-                _generateGetHashCode = generateGetHashCode;
-                _implementIEquatable = implementIEquatable;
-                _generateOperators = generateOperators;
-            }
+            private readonly bool _generateEquals = generateEquals;
+            private readonly bool _generateGetHashCode = generateGetHashCode;
+            private readonly bool _implementIEquatable = implementIEquatable;
+            private readonly bool _generateOperators = generateOperators;
+            private readonly Document _document = document;
+            private readonly SyntaxNode _typeDeclaration = typeDeclaration;
+            private readonly INamedTypeSymbol _containingType = containingType;
+            private readonly ImmutableArray<ISymbol> _selectedMembers = selectedMembers;
+            private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
             public override string EquivalenceKey => Title;
 

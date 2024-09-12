@@ -3,185 +3,32 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
-using System.Reflection.Metadata;
-using System.Runtime.InteropServices;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Xunit;
+using Public = Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel;
 
-namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
+namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
+
+internal sealed class EditAndContinueTest(
+    CSharpCompilationOptions? options = null,
+    CSharpParseOptions? parseOptions = null,
+    TargetFramework targetFramework = TargetFramework.Standard,
+    Verification? verification = null)
+    : EditAndContinueTest<EditAndContinueTest>(verification)
 {
-    internal sealed partial class EditAndContinueTest : IDisposable
-    {
-        private readonly CSharpCompilationOptions? _options;
-        private readonly CSharpParseOptions? _parseOptions;
-        private readonly TargetFramework _targetFramework;
+    private readonly CSharpCompilationOptions _compilationOptions = options ?? EditAndContinueTestBase.ComSafeDebugDll;
+    private readonly CSharpParseOptions _parseOptions = parseOptions ?? TestOptions.Regular.WithNoRefSafetyRulesAttribute();
 
-        private readonly List<IDisposable> _disposables = new();
-        private readonly List<GenerationInfo> _generations = new();
-        private readonly List<SourceWithMarkedNodes> _sources = new();
+    protected override Compilation CreateCompilation(SyntaxTree tree)
+        => CSharpTestBase.CreateCompilation(tree, options: _compilationOptions, targetFramework: targetFramework);
 
-        private bool _hasVerified;
+    protected override SourceWithMarkedNodes CreateSourceWithMarkedNodes(string source)
+        => EditAndContinueTestBase.MarkedSource(source, options: _parseOptions);
 
-        public EditAndContinueTest(CSharpCompilationOptions? options = null, CSharpParseOptions? parseOptions = null, TargetFramework targetFramework = TargetFramework.Standard)
-        {
-            _options = options ?? TestOptions.DebugDll;
-            _targetFramework = targetFramework;
-            _parseOptions = parseOptions ?? TestOptions.Regular.WithNoRefSafetyRulesAttribute();
-        }
-
-        internal EditAndContinueTest AddBaseline(string source, Action<GenerationVerifier> validator)
-            => AddBaseline(EditAndContinueTestBase.MarkedSource(source, options: _parseOptions), validator);
-
-        internal EditAndContinueTest AddBaseline(SourceWithMarkedNodes source, Action<GenerationVerifier> validator)
-        {
-            _hasVerified = false;
-
-            Assert.Empty(_generations);
-
-            var compilation = CSharpTestBase.CreateCompilation(source.Tree, options: _options, targetFramework: _targetFramework);
-
-            var verifier = new CompilationVerifier(compilation);
-
-            verifier.Emit(
-                expectedOutput: null,
-                trimOutput: false,
-                expectedReturnCode: null,
-                args: null,
-                manifestResources: null,
-                emitOptions: EmitOptions.Default,
-                peVerify: Verification.Passes,
-                expectedSignatures: null);
-
-            var md = ModuleMetadata.CreateFromImage(verifier.EmittedAssemblyData);
-            _disposables.Add(md);
-
-            var baseline = EmitBaseline.CreateInitialBaseline(md, EditAndContinueTestBase.EmptyLocalsProvider);
-
-            _generations.Add(new GenerationInfo(compilation, md.MetadataReader, diff: null, verifier, baseline, validator));
-            _sources.Add(source);
-
-            return this;
-        }
-
-        internal EditAndContinueTest AddGeneration(string source, SemanticEditDescription[] edits, Action<GenerationVerifier> validator)
-            => AddGeneration(EditAndContinueTestBase.MarkedSource(source), edits, validator);
-
-        internal EditAndContinueTest AddGeneration(SourceWithMarkedNodes source, SemanticEditDescription[] edits, Action<GenerationVerifier> validator)
-        {
-            _hasVerified = false;
-
-            Assert.NotEmpty(_generations);
-            Assert.NotEmpty(_sources);
-
-            var previousGeneration = _generations[^1];
-            var previousSource = _sources[^1];
-
-            Assert.Equal(previousSource.MarkedSpans.IsEmpty, source.MarkedSpans.IsEmpty);
-
-            var compilation = previousGeneration.Compilation.WithSource(source.Tree);
-
-            var unmappedNodes = new List<SyntaxNode>();
-
-            var semanticEdits = GetSemanticEdits(edits, previousGeneration.Compilation, previousSource, compilation, source, unmappedNodes);
-
-            CompilationDifference diff;
-            try
-            {
-                diff = compilation.EmitDifference(previousGeneration.Baseline, semanticEdits);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Exception during generation #{_generations.Count}. See inner stack trace for details.", ex);
-            }
-
-            // EncVariableSlotAllocator attempted to map from current source to the previous one,
-            // but the mapping failed for these nodes. Mark the nodes in sources with node markers <N:x>...</N:x>.
-            Assert.Empty(unmappedNodes);
-
-            var md = diff.GetMetadata();
-            _disposables.Add(md);
-
-            _generations.Add(new GenerationInfo(compilation, md.Reader, diff, compilationVerifier: null, diff.NextGeneration, validator));
-            _sources.Add(source);
-
-            return this;
-        }
-
-        internal EditAndContinueTest Verify()
-        {
-            _hasVerified = true;
-
-            Assert.NotEmpty(_generations);
-
-            var readers = new List<MetadataReader>();
-            int index = 0;
-            foreach (var generation in _generations)
-            {
-                if (readers.Count > 0)
-                {
-                    EncValidation.VerifyModuleMvid(index, readers[^1], generation.MetadataReader);
-                }
-
-                readers.Add(generation.MetadataReader);
-                var verifier = new GenerationVerifier(index, generation, readers);
-                generation.Verifier(verifier);
-
-                index++;
-            }
-
-            return this;
-        }
-
-        private ImmutableArray<SemanticEdit> GetSemanticEdits(
-            SemanticEditDescription[] edits,
-            Compilation oldCompilation,
-            SourceWithMarkedNodes oldSource,
-            Compilation newCompilation,
-            SourceWithMarkedNodes newSource,
-            List<SyntaxNode> unmappedNodes)
-        {
-            var syntaxMapFromMarkers = oldSource.MarkedSpans.IsEmpty ? null : SourceWithMarkedNodes.GetSyntaxMap(oldSource, newSource, unmappedNodes);
-
-            return ImmutableArray.CreateRange(edits.Select(e =>
-            {
-                var oldSymbol = e.SymbolProvider(oldCompilation);
-                var newSymbol = e.NewSymbolProvider(newCompilation);
-
-                Func<SyntaxNode, SyntaxNode?>? syntaxMap;
-                if (e.PreserveLocalVariables)
-                {
-                    Assert.Equal(SemanticEditKind.Update, e.Kind);
-                    syntaxMap = syntaxMapFromMarkers ?? EditAndContinueTestBase.GetEquivalentNodesMap((MethodSymbol)oldSymbol, (MethodSymbol)newSymbol);
-                }
-                else
-                {
-                    syntaxMap = null;
-                }
-
-                return new SemanticEdit(e.Kind, oldSymbol, newSymbol, syntaxMap, e.PreserveLocalVariables);
-            }));
-        }
-
-        public void Dispose()
-        {
-            // If the test has thrown an exception, or the test host has crashed, we don't want to assert here
-            // or we'll hide it, so we need to do this dodgy looking thing.
-            var isInException = Marshal.GetExceptionPointers() != IntPtr.Zero;
-
-            Assert.True(isInException || _hasVerified, "No Verify call since the last AddGeneration call.");
-            foreach (var disposable in _disposables)
-            {
-                disposable.Dispose();
-            }
-        }
-    }
+    protected override Func<SyntaxNode, SyntaxNode> GetEquivalentNodesMap(ISymbol left, ISymbol right)
+        => EditAndContinueTestBase.GetEquivalentNodesMap(
+            ((Public.MethodSymbol)left).GetSymbol<MethodSymbol>(), ((Public.MethodSymbol)right).GetSymbol<MethodSymbol>());
 }

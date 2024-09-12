@@ -2,6 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 
@@ -756,6 +758,61 @@ $$</Document>
                 Assert.Contains("args", description.Text)
                 state.SendTab()
                 Assert.Contains("args", state.GetCurrentViewLineText())
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function CommitUnimportedTypeShouldFullyQualify(isImmediateWindow As Boolean) As Task
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>class Program
+{
+    static void Main(string[] args)
+    [|{|]
+    }
+}</Document>
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, isImmediateWindow)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+
+                state.SendTypeChars("Console")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
+                Await state.AssertSelectedCompletionItem("Console", inlineDescription:="System")
+
+                state.SendTab()
+
+                Assert.Contains("System.Console", state.GetCurrentViewLineText())
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        Public Async Function ShouldNotProvideUnimportedExtensionMethods(isImmediateWindow As Boolean) As Task
+            Dim text = <Workspace>
+                           <Project Language="C#" CommonReferences="true">
+                               <Document>class Program
+{
+    static void Main(string[] args)
+    [|{|]
+    }
+}</Document>
+                           </Project>
+                       </Workspace>
+
+            Using state = TestState.CreateCSharpTestState(text, isImmediateWindow)
+
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ForceExpandedCompletionIndexCreation, True)
+                state.Workspace.GlobalOptions.SetGlobalOption(CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces, LanguageNames.CSharp, True)
+
+                state.SendTypeChars("args.To")
+                Await state.WaitForAsynchronousOperationsAsync()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("ToString", "")
+                Await state.AssertCompletionItemsDoNotContainAny("ToArray", "ToDictionary", "ToList")
             End Using
         End Function
     End Class

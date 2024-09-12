@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
     {
         Task<bool> HasRefactoringsAsync(TextDocument document, TextSpan textSpan, CodeActionOptionsProvider options, CancellationToken cancellationToken);
 
-        Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(TextDocument document, TextSpan textSpan, CodeActionRequestPriority priority, CodeActionOptionsProvider options, bool isBlocking, Func<string, IDisposable?> addOperationScope, CancellationToken cancellationToken);
+        Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(TextDocument document, TextSpan textSpan, CodeActionRequestPriority? priority, CodeActionOptionsProvider options, Func<string, IDisposable?> addOperationScope, CancellationToken cancellationToken);
     }
 
     internal static class ICodeRefactoringServiceExtensions
     {
-        public static Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(this ICodeRefactoringService service, TextDocument document, TextSpan state, CodeActionOptionsProvider options, bool isBlocking, CancellationToken cancellationToken)
-            => service.GetRefactoringsAsync(document, state, CodeActionRequestPriority.None, options, isBlocking, addOperationScope: _ => null, cancellationToken);
+        public static Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(this ICodeRefactoringService service, TextDocument document, TextSpan state, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+            => service.GetRefactoringsAsync(document, state, priority: null, options, addOperationScope: _ => null, cancellationToken);
     }
 }

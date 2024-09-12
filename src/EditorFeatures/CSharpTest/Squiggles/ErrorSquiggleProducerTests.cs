@@ -37,51 +37,52 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
     [Trait(Traits.Feature, Traits.Features.ErrorSquiggles), Trait(Traits.Feature, Traits.Features.Tagging)]
     public class ErrorSquiggleProducerTests
     {
-        [WpfTheory, CombinatorialData]
-        public async Task ErrorTagGeneratedForError(bool pull)
+        [WpfFact]
+        public async Task ErrorTagGeneratedForError()
         {
-            var spans = await GetTagSpansAsync("class C {", pull);
+            var spans = await GetTagSpansAsync("class C {");
             var firstSpan = Assert.Single(spans);
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType);
         }
 
-        [WpfTheory, CombinatorialData]
-        public async Task ErrorTagGeneratedForErrorInSourceGeneratedDocument(bool pull)
+        [WpfFact]
+        public async Task ErrorTagGeneratedForErrorInSourceGeneratedDocument()
         {
-            var spans = await GetTagSpansInSourceGeneratedDocumentAsync("class C {", pull);
+            var spans = await GetTagSpansInSourceGeneratedDocumentAsync("class C {");
             var firstSpan = Assert.Single(spans);
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, firstSpan.Tag.ErrorType);
         }
 
-        [WpfTheory, CombinatorialData]
-        public async Task ErrorTagGeneratedForWarning(bool pull)
+        [WpfFact]
+        public async Task ErrorTagGeneratedForWarning()
         {
-            var spans = await GetTagSpansAsync("class C { long x = 5l; }", pull);
+            var spans = await GetTagSpansAsync("class C { long x = 5l; }");
             Assert.Equal(1, spans.Count());
             Assert.Equal(PredefinedErrorTypeNames.Warning, spans.First().Tag.ErrorType);
         }
 
-        [WpfTheory, CombinatorialData]
-        public async Task ErrorTagGeneratedForWarningAsError(bool pull)
+        [WpfFact]
+        public async Task ErrorTagGeneratedForWarningAsError()
         {
             var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <CompilationOptions ReportDiagnostic = ""Error"" />
-            <Document FilePath = ""Test.cs"" >
-                class Program
-                {
-                    void Test()
-                    {
-                        int a = 5;
-                    }
-                }
-        </Document>
-    </Project>
-</Workspace>";
+                """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <CompilationOptions ReportDiagnostic = "Error" />
+                            <Document FilePath = "Test.cs" >
+                                class Program
+                                {
+                                    void Test()
+                                    {
+                                        int a = 5;
+                                    }
+                                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             using var workspace = TestWorkspace.Create(workspaceXml);
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             var spans = (await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
 
@@ -89,35 +90,35 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Squiggles
             Assert.Equal(PredefinedErrorTypeNames.SyntaxError, spans.First().Tag.ErrorType);
         }
 
-        [WpfTheory, CombinatorialData]
-        public async Task CustomizableTagsForUnnecessaryCode(bool pull)
+        [WpfFact]
+        public async Task CustomizableTagsForUnnecessaryCode()
         {
             var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document FilePath = ""Test.cs"" >
-// System is used - rest are unused.
-using System.Collections;
-using System;
-using System.Diagnostics;
-using System.Collections.Generic;
+                """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath = "Test.cs" >
+                // System is used - rest are unused.
+                using System.Collections;
+                using System;
+                using System.Diagnostics;
+                using System.Collections.Generic;
 
-class Program
-{
-    void Test()
-    {
-        Int32 x = 2; // Int32 can be simplified.
-        x += 1;
-    }
-}
-        </Document>
-    </Project>
-</Workspace>";
+                class Program
+                {
+                    void Test()
+                    {
+                        Int32 x = 2; // Int32 can be simplified.
+                        x += 1;
+                    }
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             using var workspace = TestWorkspace.Create(workspaceXml, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
             var language = workspace.Projects.Single().Language;
-
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             workspace.GlobalOptions.SetGlobalOption(
                 CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInDeclaration, language,
@@ -204,19 +205,17 @@ class Program
             Assert.Equal(5, fourth.Span.Length);
         }
 
-        [WpfTheory, CombinatorialData]
-        public async Task ErrorDoesNotCrashPastEOF(bool pull)
+        [WpfFact]
+        public async Task ErrorDoesNotCrashPastEOF()
         {
-            var spans = await GetTagSpansAsync("class C { int x =", pull);
+            var spans = await GetTagSpansAsync("class C { int x =");
             Assert.Equal(3, spans.Count());
         }
 
-        [WpfTheory, CombinatorialData]
-        public async Task SemanticErrorReported(bool pull)
+        [WpfFact]
+        public async Task SemanticErrorReported()
         {
             using var workspace = TestWorkspace.CreateCSharp("class C : Bar { }", composition: SquiggleUtilities.CompositionWithSolutionCrawler);
-
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             var spans = await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace);
 
@@ -238,12 +237,10 @@ class Program
             ToolTipAssert.EqualContent(expectedToolTip, firstSpan.Tag.ToolTipContent);
         }
 
-        [WpfTheory, CombinatorialData]
-        public async Task TestNoErrorsAfterDocumentRemoved(bool pull)
+        [WpfFact]
+        public async Task TestNoErrorsAfterDocumentRemoved()
         {
             using var workspace = TestWorkspace.CreateCSharp("class");
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
-
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
 
             var firstDocument = workspace.Documents.First();
@@ -268,12 +265,10 @@ class Program
             Assert.True(spans.Count == 0);
         }
 
-        [WpfTheory, CombinatorialData]
-        public async Task TestNoErrorsAfterProjectRemoved(bool pull)
+        [WpfFact]
+        public async Task TestNoErrorsAfterProjectRemoved()
         {
             using var workspace = TestWorkspace.CreateCSharp("class");
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
-
             using var wrapper = new DiagnosticTaggerWrapper<DiagnosticsSquiggleTaggerProvider, IErrorTag>(workspace);
 
             var firstDocument = workspace.Documents.First();
@@ -303,22 +298,23 @@ class Program
             .AddExcludedPartTypes(typeof(IDiagnosticAnalyzerService))
             .AddParts(typeof(MockDiagnosticAnalyzerService));
 
-        [WpfTheory, CombinatorialData]
-        public async Task BuildErrorZeroLengthSpan(bool pull)
+        [WpfFact]
+        public async Task BuildErrorZeroLengthSpan()
         {
             var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document FilePath = ""Test.cs"" >
-            class Test
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath = "Test.cs" >
+                            class Test
+                {
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             using var workspace = TestWorkspace.Create(workspaceXml, composition: s_mockComposition);
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             var document = workspace.Documents.First();
 
@@ -330,39 +326,31 @@ class Program
 
             var spans = await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetErrorsFromUpdateSource(workspace, updateArgs, DiagnosticKind.CompilerSyntax);
 
-            if (pull)
-            {
-                Assert.Equal(2, spans.Count());
-                var first = spans.First();
-                var second = spans.Last();
+            Assert.Equal(2, spans.Count());
+            var first = spans.First();
+            var second = spans.Last();
 
-                Assert.Equal(1, first.Span.Span.Length);
-                Assert.Equal(1, second.Span.Span.Length);
-            }
-            else
-            {
-                Assert.Equal(1, spans.Count());
-                var first = spans.First();
-                Assert.Equal(1, first.Span.Span.Length);
-            }
+            Assert.Equal(1, first.Span.Span.Length);
+            Assert.Equal(1, second.Span.Span.Length);
         }
 
-        [WpfTheory, CombinatorialData]
-        public async Task LiveErrorZeroLengthSpan(bool pull)
+        [WpfFact]
+        public async Task LiveErrorZeroLengthSpan()
         {
             var workspaceXml =
-@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"">
-        <Document FilePath = ""Test.cs"" >
-            class Test
-{
-}
-        </Document>
-    </Project>
-</Workspace>";
+                """
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true">
+                        <Document FilePath = "Test.cs" >
+                            class Test
+                {
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             using var workspace = TestWorkspace.Create(workspaceXml, composition: s_mockComposition);
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
 
             var document = workspace.Documents.First();
 
@@ -389,25 +377,23 @@ class Program
             }
         }
 
-        private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(string content, bool pull)
+        private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(string content)
         {
             using var workspace = TestWorkspace.CreateCSharp(content, composition: SquiggleUtilities.CompositionWithSolutionCrawler);
-            return await GetTagSpansAsync(workspace, pull);
+            return await GetTagSpansAsync(workspace);
         }
 
-        private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansInSourceGeneratedDocumentAsync(string content, bool pull)
+        private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansInSourceGeneratedDocumentAsync(string content)
         {
             using var workspace = TestWorkspace.CreateCSharp(
                 files: Array.Empty<string>(),
                 sourceGeneratedFiles: new[] { content },
                 composition: SquiggleUtilities.WpfCompositionWithSolutionCrawler);
-            return await GetTagSpansAsync(workspace, pull);
+            return await GetTagSpansAsync(workspace);
         }
 
-        private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(TestWorkspace workspace, bool pull)
+        private static async Task<ImmutableArray<ITagSpan<IErrorTag>>> GetTagSpansAsync(TestWorkspace workspace)
         {
-            workspace.GlobalOptions.SetGlobalOption(DiagnosticTaggingOptionsStorage.PullDiagnosticTagging, pull);
-
             return (await TestDiagnosticTagProducer<DiagnosticsSquiggleTaggerProvider, IErrorTag>.GetDiagnosticsAndErrorSpans(workspace)).Item2;
         }
 

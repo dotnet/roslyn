@@ -13,31 +13,24 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddPackage
 {
-    internal class InstallPackageDirectlyCodeAction : CodeAction
+    internal class InstallPackageDirectlyCodeAction(
+        IPackageInstallerService installerService,
+        Document document,
+        string source,
+        string packageName,
+        string versionOpt,
+        bool includePrerelease,
+        bool isLocal) : CodeAction
     {
-        private readonly CodeActionOperation _installPackageOperation;
+        private readonly CodeActionOperation _installPackageOperation = new InstallPackageDirectlyCodeActionOperation(
+                installerService, document, source, packageName,
+                versionOpt, includePrerelease, isLocal);
 
-        public override string Title { get; }
-
-        public InstallPackageDirectlyCodeAction(
-            IPackageInstallerService installerService,
-            Document document,
-            string source,
-            string packageName,
-            string versionOpt,
-            bool includePrerelease,
-            bool isLocal)
-        {
-            Title = versionOpt == null
+        public override string Title { get; } = versionOpt == null
                 ? FeaturesResources.Find_and_install_latest_version
                 : isLocal
                     ? string.Format(FeaturesResources.Use_local_version_0, versionOpt)
                     : string.Format(FeaturesResources.Install_version_0, versionOpt);
-
-            _installPackageOperation = new InstallPackageDirectlyCodeActionOperation(
-                installerService, document, source, packageName,
-                versionOpt, includePrerelease, isLocal);
-        }
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
             => Task.FromResult(SpecializedCollections.SingletonEnumerable(_installPackageOperation));

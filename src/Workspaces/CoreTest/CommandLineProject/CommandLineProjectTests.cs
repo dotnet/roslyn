@@ -130,6 +130,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void TestAnalyzerConfigFiles()
+        {
+            var commandLine = @"/analyzerconfig:.editorconfig";
+            var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
+
+            var document = Assert.Single(info.AnalyzerConfigDocuments);
+            Assert.Equal(".editorconfig", document.Name);
+            Assert.Equal(Path.Combine(@"C:\ProjectDirectory", ".editorconfig"), document.FilePath);
+        }
+
+        [Fact]
         public void TestAnalyzerReferences()
         {
             var pathToAssembly = typeof(object).Assembly.Location;

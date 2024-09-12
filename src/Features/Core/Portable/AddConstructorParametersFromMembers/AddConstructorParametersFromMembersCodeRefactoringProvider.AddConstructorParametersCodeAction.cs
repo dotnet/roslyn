@@ -19,36 +19,26 @@ namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers
 {
     internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider
     {
-        private class AddConstructorParametersCodeAction : CodeAction
+        private class AddConstructorParametersCodeAction(
+            Document document,
+            CodeGenerationContextInfo info,
+            ConstructorCandidate constructorCandidate,
+            ISymbol containingType,
+            ImmutableArray<IParameterSymbol> missingParameters,
+            bool useSubMenuName) : CodeAction
         {
-            private readonly Document _document;
-            private readonly CodeGenerationContextInfo _info;
-            private readonly ConstructorCandidate _constructorCandidate;
-            private readonly ISymbol _containingType;
-            private readonly ImmutableArray<IParameterSymbol> _missingParameters;
+            private readonly Document _document = document;
+            private readonly CodeGenerationContextInfo _info = info;
+            private readonly ConstructorCandidate _constructorCandidate = constructorCandidate;
+            private readonly ISymbol _containingType = containingType;
+            private readonly ImmutableArray<IParameterSymbol> _missingParameters = missingParameters;
 
             /// <summary>
             /// If there is more than one constructor, the suggested actions will be split into two sub menus,
             /// one for regular parameters and one for optional. This boolean is used by the Title property
             /// to determine if the code action should be given the complete title or the sub menu title
             /// </summary>
-            private readonly bool _useSubMenuName;
-
-            public AddConstructorParametersCodeAction(
-                Document document,
-                CodeGenerationContextInfo info,
-                ConstructorCandidate constructorCandidate,
-                ISymbol containingType,
-                ImmutableArray<IParameterSymbol> missingParameters,
-                bool useSubMenuName)
-            {
-                _document = document;
-                _info = info;
-                _constructorCandidate = constructorCandidate;
-                _containingType = containingType;
-                _missingParameters = missingParameters;
-                _useSubMenuName = useSubMenuName;
-            }
+            private readonly bool _useSubMenuName = useSubMenuName;
 
             protected override Task<Solution?> GetChangedSolutionAsync(CancellationToken cancellationToken)
             {

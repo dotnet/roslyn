@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return result;
         }
 
-        private HashSet<string> Keys(int[] numbers, bool randomCase, IEqualityComparer<string> comparer)
+        private SegmentedHashSet<string> Keys(int[] numbers, bool randomCase, IEqualityComparer<string> comparer)
         {
-            var keys = new HashSet<string>(comparer);
+            var keys = new SegmentedHashSet<string>(comparer);
             foreach (var n in numbers)
             {
                 keys.Add(GetKey(n, randomCase));
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private void CompareLookups1(ILookup<string, int> look1, CachingDictionary<string, int> look2, HashSet<string> keys)
+        private void CompareLookups1(ILookup<string, int> look1, CachingDictionary<string, int> look2, SegmentedHashSet<string> keys)
         {
             foreach (string k in keys)
             {
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private void CompareLookups2(ILookup<string, int> look1, CachingDictionary<string, int> look2, HashSet<string> keys)
+        private void CompareLookups2(ILookup<string, int> look1, CachingDictionary<string, int> look2, SegmentedHashSet<string> keys)
         {
             foreach (string k in look1.Select(g => g.Key))
             {
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(look1.Count, look2.Count);
         }
 
-        private void CompareLookups2(CachingDictionary<string, int> look1, ILookup<string, int> look2, HashSet<string> keys)
+        private void CompareLookups2(CachingDictionary<string, int> look1, ILookup<string, int> look2, SegmentedHashSet<string> keys)
         {
             foreach (string k in look1.Keys)
             {
@@ -161,20 +161,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var look1 = CreateLookup(numbers, false);
             var look2 = new CachingDictionary<string, int>(
-                s => dict.ContainsKey(s) ? dict[s] : ImmutableArray.Create<int>(),
+                s => dict.TryGetValue(s, out var value) ? value : ImmutableArray.Create<int>(),
                 (c) => Keys(numbers, false, comparer: c), comparer);
             CompareLookups1(look1, look2, Keys(numbers, false, comparer));
 
             look1 = CreateLookup(numbers, false);
             look2 = new CachingDictionary<string, int>(
-                s => dict.ContainsKey(s) ? dict[s] : ImmutableArray.Create<int>(),
+                s => dict.TryGetValue(s, out var value) ? value : ImmutableArray.Create<int>(),
                 (c) => Keys(numbers, false, comparer: c), comparer);
             CompareLookups2(look1, look2, Keys(numbers, false, comparer));
             CompareLookups1(look1, look2, Keys(numbers, false, comparer));
 
             look1 = CreateLookup(numbers, false);
             look2 = new CachingDictionary<string, int>(
-                s => dict.ContainsKey(s) ? dict[s] : ImmutableArray.Create<int>(),
+                s => dict.TryGetValue(s, out var value) ? value : ImmutableArray.Create<int>(),
                 (c) => Keys(numbers, false, comparer: c), comparer);
             CompareLookups2(look2, look1, Keys(numbers, false, comparer));
             CompareLookups1(look1, look2, Keys(numbers, false, comparer));
@@ -193,20 +193,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var look1 = CreateLookup(numbers, true);
             var look2 = new CachingDictionary<string, int>(
-                s => dict.ContainsKey(s) ? dict[s] : ImmutableArray.Create<int>(),
+                s => dict.TryGetValue(s, out var value) ? value : ImmutableArray.Create<int>(),
                 (c) => Keys(numbers, true, comparer: c), comparer);
             CompareLookups1(look1, look2, Keys(numbers, true, comparer));
 
             look1 = CreateLookup(numbers, true);
             look2 = new CachingDictionary<string, int>(
-                s => dict.ContainsKey(s) ? dict[s] : ImmutableArray.Create<int>(),
+                s => dict.TryGetValue(s, out var value) ? value : ImmutableArray.Create<int>(),
                 (c) => Keys(numbers, true, comparer: c), comparer);
             CompareLookups2(look1, look2, Keys(numbers, true, comparer));
             CompareLookups1(look1, look2, Keys(numbers, true, comparer));
 
             look1 = CreateLookup(numbers, true);
             look2 = new CachingDictionary<string, int>(
-                s => dict.ContainsKey(s) ? dict[s] : ImmutableArray.Create<int>(),
+                s => dict.TryGetValue(s, out var value) ? value : ImmutableArray.Create<int>(),
                 (c) => Keys(numbers, true, comparer: c), comparer);
             CompareLookups2(look2, look1, Keys(numbers, true, comparer));
             CompareLookups1(look1, look2, Keys(numbers, true, comparer));
@@ -224,18 +224,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
 
             var look1 = CreateLookup(numbers, true);
-            var look2 = new CachingDictionary<string, int>(s => dict.ContainsKey(s) ? dict[s] : ImmutableArray.Create<int>(),
+            var look2 = new CachingDictionary<string, int>(s => dict.TryGetValue(s, out var value) ? value : ImmutableArray.Create<int>(),
                                                                         (c) => Keys(numbers, true, comparer: c), comparer);
             CompareLookups1(look1, look2, Keys(numbers, true, comparer));
 
             look1 = CreateLookup(numbers, true);
-            look2 = new CachingDictionary<string, int>(s => dict.ContainsKey(s) ? dict[s] : ImmutableArray.Create<int>(),
+            look2 = new CachingDictionary<string, int>(s => dict.TryGetValue(s, out var value) ? value : ImmutableArray.Create<int>(),
                                                    (c) => Keys(numbers, true, comparer: c), comparer);
             CompareLookups2(look1, look2, Keys(numbers, true, comparer));
             CompareLookups1(look1, look2, Keys(numbers, true, comparer));
 
             look1 = CreateLookup(numbers, true);
-            look2 = new CachingDictionary<string, int>(s => dict.ContainsKey(s) ? dict[s] : ImmutableArray.Create<int>(),
+            look2 = new CachingDictionary<string, int>(s => dict.TryGetValue(s, out var value) ? value : ImmutableArray.Create<int>(),
                                                    (c) => Keys(numbers, true, comparer: c), comparer);
             CompareLookups2(look2, look1, Keys(numbers, true, comparer));
             CompareLookups1(look1, look2, Keys(numbers, true, comparer));
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 Assert.False(lookedUp.Contains(s));
                 lookedUp.Add(s);
-                return dict.ContainsKey(s) ? dict[s] : ImmutableArray.Create<int>();
+                return dict.TryGetValue(s, out var value) ? value : ImmutableArray.Create<int>();
             },
                  (c) =>
             {
@@ -313,9 +313,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 return ImmutableArray.Create<FullyPopulateRaceHelper>(new FullyPopulateRaceHelper());
             }
 
-            HashSet<int> getKeys(IEqualityComparer<int> comparer)
+            SegmentedHashSet<int> getKeys(IEqualityComparer<int> comparer)
             {
-                return new HashSet<int>(new[] { 1 }, comparer);
+                return new SegmentedHashSet<int>(new[] { 1 }, comparer);
             }
 
             FullyPopulateRaceHelper getItem()
@@ -356,9 +356,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 return ImmutableArray.Create<FullyPopulateRaceHelper>(new FullyPopulateRaceHelper());
             }
 
-            HashSet<int> getKeys(IEqualityComparer<int> comparer)
+            SegmentedHashSet<int> getKeys(IEqualityComparer<int> comparer)
             {
-                return new HashSet<int>(new[] { 1 }, comparer);
+                return new SegmentedHashSet<int>(new[] { 1 }, comparer);
             }
 
             FullyPopulateRaceHelper getItem()

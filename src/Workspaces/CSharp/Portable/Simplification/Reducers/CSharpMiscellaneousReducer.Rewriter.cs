@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -18,32 +16,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
             }
 
-            public override SyntaxNode VisitParameter(ParameterSyntax node)
-            {
-                return SimplifyNode(
+            public override SyntaxNode? VisitParameter(ParameterSyntax node)
+                => SimplifyNode(
                     node,
                     newNode: base.VisitParameter(node),
-                    parentNode: node.Parent,
                     simplifier: s_simplifyParameter);
-            }
 
-            public override SyntaxNode VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
-            {
-                return SimplifyNode(
+            public override SyntaxNode? VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
+                => SimplifyNode(
                     node,
                     newNode: base.VisitParenthesizedLambdaExpression(node),
-                    parentNode: node.Parent,
                     simplifier: s_simplifyParenthesizedLambdaExpression);
-            }
 
-            public override SyntaxNode VisitBlock(BlockSyntax node)
-            {
-                return SimplifyNode(
+            public override SyntaxNode? VisitBlock(BlockSyntax node)
+                => SimplifyNode(
                     node,
                     newNode: base.VisitBlock(node),
-                    parentNode: node.Parent,
                     simplifier: s_simplifyBlock);
-            }
         }
     }
 }

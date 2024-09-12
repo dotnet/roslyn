@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 {
     internal partial class InteractiveWorkspace
     {
-        internal sealed class SolutionAnalyzerSetter : ISolutionAnalyzerSetterWorkspaceService
+        internal sealed class SolutionAnalyzerSetter(InteractiveWorkspace workspace) : ISolutionAnalyzerSetterWorkspaceService
         {
             [ExportWorkspaceServiceFactory(typeof(ISolutionAnalyzerSetterWorkspaceService), WorkspaceKind.Interactive), Shared]
             internal sealed class Factory : IWorkspaceServiceFactory
@@ -28,10 +28,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     => new SolutionAnalyzerSetter((InteractiveWorkspace)workspaceServices.Workspace);
             }
 
-            private readonly InteractiveWorkspace _workspace;
-
-            public SolutionAnalyzerSetter(InteractiveWorkspace workspace)
-                => _workspace = workspace;
+            private readonly InteractiveWorkspace _workspace = workspace;
 
             public void SetAnalyzerReferences(ImmutableArray<AnalyzerReference> references)
                 => _workspace.SetCurrentSolution(s => s.WithAnalyzerReferences(references), WorkspaceChangeKind.SolutionChanged);

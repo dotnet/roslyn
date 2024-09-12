@@ -78,5 +78,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             return -1;
         }
+
+        public static void AddRangeWhere<T>(this List<T> list, List<T> collection, Func<T, bool> predicate)
+        {
+            foreach (var element in collection)
+            {
+                if (predicate(element))
+                    list.Add(element);
+            }
+        }
     }
 }

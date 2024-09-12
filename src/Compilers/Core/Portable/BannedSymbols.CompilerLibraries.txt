@@ -1,0 +1,2 @@
+M:System.IO.Path.GetTempPath(); Cannot be used safely in APIs or compiler server as underlying environment variables can change during build.
+P:System.Environment.CurrentDirectory; Cannot be used safely in APIs or compiler server as underlying environment variables can change during build.

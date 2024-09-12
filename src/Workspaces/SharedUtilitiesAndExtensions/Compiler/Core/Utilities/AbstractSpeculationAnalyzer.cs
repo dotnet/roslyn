@@ -211,22 +211,24 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
         #region Semantic comparison helpers
 
-        protected virtual bool ReplacementIntroducesErrorType(TExpressionSyntax originalExpression, TExpressionSyntax newExpression)
+        protected virtual bool ReplacementIntroducesDisallowedNullType(
+            TExpressionSyntax originalExpression,
+            TExpressionSyntax newExpression,
+            TypeInfo originalTypeInfo,
+            TypeInfo newTypeInfo)
         {
-            RoslynDebug.AssertNotNull(originalExpression);
-            Debug.Assert(this.SemanticRootOfOriginalExpression.DescendantNodesAndSelf().Contains(originalExpression));
-            RoslynDebug.AssertNotNull(newExpression);
-            Debug.Assert(this.SemanticRootOfReplacedExpression.DescendantNodesAndSelf().Contains(newExpression));
-
-            var originalTypeInfo = this.OriginalSemanticModel.GetTypeInfo(originalExpression);
-            var newTypeInfo = this.SpeculativeSemanticModel.GetTypeInfo(newExpression);
+            // If the original expression had no type, it's fine for the new one to have no type either.
             if (originalTypeInfo.Type == null)
-            {
                 return false;
-            }
 
-            return newTypeInfo.Type == null ||
-                (newTypeInfo.Type.IsErrorType() && !originalTypeInfo.Type.IsErrorType());
+            // If the original had a type, but the new expression doesn't, this is *normally* bad.  However, there are
+            // some cases where it is ok (untyped language expressions that have natural conversions to typed
+            // expressions).  Subclasses can override this for those cases.
+            if (newTypeInfo.Type == null)
+                return true;
+
+            // Otherwise, things look ok so far.
+            return false;
         }
 
         protected bool TypesAreCompatible(TExpressionSyntax originalExpression, TExpressionSyntax newExpression)
@@ -238,7 +240,19 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             var originalTypeInfo = this.OriginalSemanticModel.GetTypeInfo(originalExpression);
             var newTypeInfo = this.SpeculativeSemanticModel.GetTypeInfo(newExpression);
-            return SymbolsAreCompatible(originalTypeInfo.Type, newTypeInfo.Type);
+            if (SymbolsAreCompatible(originalTypeInfo.Type, newTypeInfo.Type))
+                return true;
+
+            // types changed between the old and new expression (specifically, the new type became null, while the
+            // original type was not).  That's ok in some circumstance.  Check for those and allow in that specific
+            // case.
+            if (originalTypeInfo.Type != null && newTypeInfo.Type == null &&
+                !ReplacementIntroducesDisallowedNullType(originalExpression, newExpression, originalTypeInfo, newTypeInfo))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         protected bool ConvertedTypesAreCompatible(TExpressionSyntax originalExpression, TExpressionSyntax newExpression)
@@ -581,11 +595,23 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             else if (currentOriginalNode is TExpressionSyntax originalExpression)
             {
                 var newExpression = (TExpressionSyntax)currentReplacedNode;
-                if (!ImplicitConversionsAreCompatible(originalExpression, newExpression) ||
-                    ReplacementIntroducesErrorType(originalExpression, newExpression))
-                {
+                if (!ImplicitConversionsAreCompatible(originalExpression, newExpression))
                     return true;
-                }
+
+                RoslynDebug.AssertNotNull(originalExpression);
+                Debug.Assert(this.SemanticRootOfOriginalExpression.DescendantNodesAndSelf().Contains(originalExpression));
+                RoslynDebug.AssertNotNull(newExpression);
+                Debug.Assert(this.SemanticRootOfReplacedExpression.DescendantNodesAndSelf().Contains(newExpression));
+
+                var originalTypeInfo = this.OriginalSemanticModel.GetTypeInfo(originalExpression);
+                var newTypeInfo = this.SpeculativeSemanticModel.GetTypeInfo(newExpression);
+
+                // If we didn't have an error before, but now we got one, that's bad and should block conversion in all cases.
+                if (newTypeInfo.Type.IsErrorType() && !originalTypeInfo.Type.IsErrorType())
+                    return true;
+
+                if (ReplacementIntroducesDisallowedNullType(originalExpression, newExpression, originalTypeInfo, newTypeInfo))
+                    return true;
             }
 
             return false;

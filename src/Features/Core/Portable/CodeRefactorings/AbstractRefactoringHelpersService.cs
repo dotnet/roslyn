@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             // closest token/Node. Thus, we move the location to the token in whose `.FullSpan` the original location was.
             if (tokenToLeft == default && tokenToRight == default)
             {
-                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                 if (IsAcceptableLineDistanceAway(sourceText, tokenOnLocation, location))
                 {
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             {
                 if (ancestor is TSyntaxNode correctTypeNode)
                 {
-                    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                    var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
                     var argumentStartLine = sourceText.Lines.GetLineFromPosition(correctTypeNode.Span.Start).LineNumber;
                     var caretLine = sourceText.Lines.GetLineFromPosition(position).LineNumber;

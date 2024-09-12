@@ -1393,7 +1393,7 @@ class C
         }
 
         [WpfFact]
-        public void PressingEnter_DontInsertSlashes1()
+        public void PressingEnter_DoNotInsertSlashes1()
         {
             var code =
 @"/// <summary></summary>
@@ -1415,7 +1415,7 @@ class C
 
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538701")]
         [WpfFact]
-        public void PressingEnter_DontInsertSlashes2()
+        public void PressingEnter_DoNotInsertSlashes2()
         {
             var code =
 @"///<summary></summary>

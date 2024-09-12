@@ -5,27 +5,25 @@
 using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue
 {
-    internal sealed class PendingSolutionUpdate
+    internal abstract class PendingUpdate(
+        ImmutableArray<ProjectBaseline> projectBaselines,
+        ImmutableArray<ManagedHotReloadUpdate> deltas)
     {
-        public readonly Solution Solution;
-        public readonly ImmutableArray<(ProjectId ProjectId, EmitBaseline Baseline)> EmitBaselines;
-        public readonly ImmutableArray<ModuleUpdate> Deltas;
-        public readonly ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)> Regions)> NonRemappableRegions;
+        public readonly ImmutableArray<ProjectBaseline> ProjectBaselines = projectBaselines;
+        public readonly ImmutableArray<ManagedHotReloadUpdate> Deltas = deltas;
+    }
 
-        public PendingSolutionUpdate(
-            Solution solution,
-            ImmutableArray<(ProjectId ProjectId, EmitBaseline Baseline)> emitBaselines,
-            ImmutableArray<ModuleUpdate> deltas,
-            ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> nonRemappableRegions)
-        {
-            Solution = solution;
-            EmitBaselines = emitBaselines;
-            Deltas = deltas;
-            NonRemappableRegions = nonRemappableRegions;
-        }
+    internal sealed class PendingSolutionUpdate(
+        Solution solution,
+        ImmutableArray<ProjectBaseline> projectBaselines,
+        ImmutableArray<ManagedHotReloadUpdate> deltas,
+        ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)>)> nonRemappableRegions) : PendingUpdate(projectBaselines, deltas)
+    {
+        public readonly Solution Solution = solution;
+        public readonly ImmutableArray<(Guid ModuleId, ImmutableArray<(ManagedModuleMethodId Method, NonRemappableRegion Region)> Regions)> NonRemappableRegions = nonRemappableRegions;
     }
 }

@@ -49,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         public const string ImplementInterfaceExplicitly = nameof(ImplementInterfaceExplicitly);
         public const string ImplementInterfaceImplicitly = nameof(ImplementInterfaceImplicitly);
         public const string InitializeMemberFromParameter = nameof(InitializeMemberFromParameter);
+        public const string InitializeMemberFromPrimaryConstructorParameter = nameof(InitializeMemberFromPrimaryConstructorParameter);
         public const string InlineMethod = "Inline Method Code Action Provider";
         public const string InlineTemporary = "Inline Temporary Code Action Provider";
         public const string IntroduceLocalForExpression = nameof(IntroduceLocalForExpression);

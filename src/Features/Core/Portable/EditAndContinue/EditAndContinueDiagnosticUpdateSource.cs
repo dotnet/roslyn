@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
 
             if (documentDiagnostics.Length > 0)
             {
-                foreach (var (documentId, diagnosticData) in documentDiagnostics.ToDictionary(data => data.DocumentId!))
+                foreach (var (documentId, diagnosticData) in documentDiagnostics.GroupBy(static data => data.DocumentId!))
                 {
                     var diagnosticGroupId = (this, documentId);
 
@@ -114,13 +114,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         solution,
                         documentId.ProjectId,
                         documentId: documentId,
-                        diagnostics: diagnosticData));
+                        diagnostics: diagnosticData.ToImmutableArray()));
                 }
             }
 
             if (projectDiagnostics.Length > 0)
             {
-                foreach (var (projectId, diagnosticData) in projectDiagnostics.ToDictionary(data => data.ProjectId!))
+                foreach (var (projectId, diagnosticData) in projectDiagnostics.GroupBy(static data => data.ProjectId!))
                 {
                     var diagnosticGroupId = (this, projectId);
 
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                         solution,
                         projectId,
                         documentId: null,
-                        diagnostics: diagnosticData));
+                        diagnostics: diagnosticData.ToImmutableArray()));
                 }
             }
 

@@ -11,7 +11,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.EditAndContinue;
-using Microsoft.CodeAnalysis.EditAndContinue.Contracts;
+using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Emit;
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             for (var i = 0; i < markedSources.Length; i++)
             {
                 var name = $"test{i + 1}.cs";
-                var text = SourceText.From(ActiveStatementsDescription.ClearTags(markedSources[i]), Encoding.UTF8);
+                var text = SourceText.From(SourceMarkers.Clear(markedSources[i]), Encoding.UTF8);
                 var id = DocumentId.CreateNewId(project.Id, name);
                 solution = solution.AddDocument(id, name, text, filePath: Path.Combine(TempRoot.Root, name));
             }
@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     ActiveStatementFlags.None | ActiveStatementFlags.NonLeafFrame,           // F4
                 });
 
-            var exceptionSpans = ActiveStatementsDescription.GetExceptionRegions(markedSourceV1);
+            var exceptionSpans = SourceMarkers.GetExceptionRegions(markedSourceV1);
 
             var filePath = activeStatementsPreRemap[0].DocumentName;
             var spanPreRemap2 = new SourceFileSpan(filePath, activeStatementsPreRemap[2].SourceSpan.ToLinePositionSpan());

@@ -13,13 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch
 {
     internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider
     {
-        private sealed class CSharpAnalyzer : Analyzer
+        private sealed class CSharpAnalyzer(ISyntaxFacts syntaxFacts, Feature features) : Analyzer(syntaxFacts, features)
         {
-            public CSharpAnalyzer(ISyntaxFacts syntaxFacts, Feature features)
-                : base(syntaxFacts, features)
-            {
-            }
-
             public override bool HasUnreachableEndPoint(IOperation operation)
                 => !operation.SemanticModel.AnalyzeControlFlow(operation.Syntax).EndPointIsReachable;
 

@@ -51,10 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool CanBeReplacedWithAnyName(this NameSyntax nameSyntax)
         {
-            if (nameSyntax.IsParentKind(SyntaxKind.AliasQualifiedName) ||
-                nameSyntax.IsParentKind(SyntaxKind.NameColon) ||
-                nameSyntax.IsParentKind(SyntaxKind.NameEquals) ||
-                nameSyntax.IsParentKind(SyntaxKind.TypeParameterConstraintClause))
+            if (nameSyntax.Parent?.Kind()
+                    is SyntaxKind.AliasQualifiedName
+                    or SyntaxKind.NameColon
+                    or SyntaxKind.NameEquals
+                    or SyntaxKind.TypeParameterConstraintClause)
             {
                 return false;
             }

@@ -29,6 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             Dim originalCode = <![CDATA[]]>.Value
             Dim namespacesToAdd = {"System"}
             Dim expectedUpdatedCode = <![CDATA[Imports System
+
 ]]>.Value
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
@@ -39,6 +40,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
             Dim namespacesToAdd = {"First.Alphabetically", "System.Bar"}
             Dim expectedUpdatedCode = <![CDATA[Imports System.Bar
 Imports First.Alphabetically
+
 ]]>.Value
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
@@ -49,6 +51,7 @@ Imports First.Alphabetically
             Dim namespacesToAdd = {"First.Alphabetically", "System.Bar"}
             Dim expectedUpdatedCode = <![CDATA[Imports First.Alphabetically
 Imports System.Bar
+
 ]]>.Value
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=False, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
@@ -141,6 +144,7 @@ Imports G=   H.I
             Dim originalCode = <![CDATA[]]>.Value
             Dim namespacesToAdd = {"<xmlns:db=""http://example.org/database-two"">"}
             Dim expectedUpdatedCode = <![CDATA[Imports <xmlns:db="http://example.org/database-two">
+
 ]]>.Value
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
@@ -180,6 +184,7 @@ Imports G=   H.I
             Dim originalCode = <![CDATA[]]>.Value
             Dim namespacesToAdd = {"$system"}
             Dim expectedUpdatedCode = <![CDATA[Imports $system
+
 ]]>.Value
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
@@ -189,6 +194,7 @@ Imports G=   H.I
             Dim originalCode = <![CDATA[]]>.Value
             Dim namespacesToAdd = {"System.Data ' Trivia!"}
             Dim expectedUpdatedCode = <![CDATA[Imports System.Data ' Trivia!
+
 ]]>.Value
             Await TestSnippetAddImportsAsync(originalCode, namespacesToAdd, placeSystemNamespaceFirst:=True, expectedUpdatedCode:=expectedUpdatedCode)
         End Function
@@ -428,7 +434,7 @@ End Class</Test>
                     snippetNode,
                     CancellationToken.None)
 
-                Assert.Equal(expectedUpdatedCode.Replace(vbLf, vbCrLf),
+                AssertEx.EqualOrDiff(expectedUpdatedCode.Replace(vbLf, vbCrLf),
                              (Await updatedDocument.GetTextAsync()).ToString())
             End Using
         End Function

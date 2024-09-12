@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -56,10 +57,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private async ValueTask<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeAsync(
             DiagnosticAnalyzer analyzer,
             HostSessionStartAnalysisScope sessionScope,
-            AnalyzerExecutor analyzerExecutor)
+            AnalyzerExecutor analyzerExecutor,
+            CancellationToken cancellationToken)
         {
             var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
-            return await GetCompilationAnalysisScopeCoreAsync(sessionScope, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
+            return await GetCompilationAnalysisScopeCoreAsync(sessionScope, analyzerExecutor, analyzerExecutionContext, cancellationToken).ConfigureAwait(false);
         }
 
         [PerformanceSensitive(
@@ -68,11 +70,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private async ValueTask<HostCompilationStartAnalysisScope> GetCompilationAnalysisScopeCoreAsync(
             HostSessionStartAnalysisScope sessionScope,
             AnalyzerExecutor analyzerExecutor,
-            AnalyzerExecutionContext analyzerExecutionContext)
+            AnalyzerExecutionContext analyzerExecutionContext,
+            CancellationToken cancellationToken)
         {
             try
             {
-                return await analyzerExecutionContext.GetCompilationAnalysisScopeAsync(sessionScope, analyzerExecutor).ConfigureAwait(false);
+                return await analyzerExecutionContext.GetCompilationAnalysisScopeAsync(sessionScope, analyzerExecutor, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -80,32 +83,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Clear the compilation scope for analyzer, so we can attempt a retry.
                 analyzerExecutionContext.ClearCompilationScopeTask();
 
-                analyzerExecutor.CancellationToken.ThrowIfCancellationRequested();
-                return await GetCompilationAnalysisScopeCoreAsync(sessionScope, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+                return await GetCompilationAnalysisScopeCoreAsync(sessionScope, analyzerExecutor, analyzerExecutionContext, cancellationToken).ConfigureAwait(false);
             }
         }
 
         private async Task<HostSymbolStartAnalysisScope> GetSymbolAnalysisScopeAsync(
             ISymbol symbol,
             bool isGeneratedCodeSymbol,
+            SyntaxTree? filterTree,
+            TextSpan? filterSpan,
             DiagnosticAnalyzer analyzer,
             ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions,
-            AnalyzerExecutor analyzerExecutor)
+            AnalyzerExecutor analyzerExecutor,
+            CancellationToken cancellationToken)
         {
             var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
-            return await GetSymbolAnalysisScopeCoreAsync(symbol, isGeneratedCodeSymbol, symbolStartActions, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
+            return await GetSymbolAnalysisScopeCoreAsync(symbol, isGeneratedCodeSymbol, filterTree, filterSpan, symbolStartActions, analyzerExecutor, analyzerExecutionContext, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<HostSymbolStartAnalysisScope> GetSymbolAnalysisScopeCoreAsync(
             ISymbol symbol,
             bool isGeneratedCodeSymbol,
+            SyntaxTree? filterTree,
+            TextSpan? filterSpan,
             ImmutableArray<SymbolStartAnalyzerAction> symbolStartActions,
             AnalyzerExecutor analyzerExecutor,
-            AnalyzerExecutionContext analyzerExecutionContext)
+            AnalyzerExecutionContext analyzerExecutionContext,
+            CancellationToken cancellationToken)
         {
             try
             {
-                return await analyzerExecutionContext.GetSymbolAnalysisScopeAsync(symbol, isGeneratedCodeSymbol, symbolStartActions, analyzerExecutor).ConfigureAwait(false);
+                return await analyzerExecutionContext.GetSymbolAnalysisScopeAsync(symbol, isGeneratedCodeSymbol, filterTree, filterSpan, symbolStartActions, analyzerExecutor, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {
@@ -113,28 +122,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Clear the symbol scope for analyzer, so we can attempt a retry.
                 analyzerExecutionContext.ClearSymbolScopeTask(symbol);
 
-                analyzerExecutor.CancellationToken.ThrowIfCancellationRequested();
-                return await GetSymbolAnalysisScopeCoreAsync(symbol, isGeneratedCodeSymbol, symbolStartActions, analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+                return await GetSymbolAnalysisScopeCoreAsync(symbol, isGeneratedCodeSymbol, filterTree, filterSpan, symbolStartActions, analyzerExecutor, analyzerExecutionContext, cancellationToken).ConfigureAwait(false);
             }
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
         private async ValueTask<HostSessionStartAnalysisScope> GetSessionAnalysisScopeAsync(
             DiagnosticAnalyzer analyzer,
-            AnalyzerExecutor analyzerExecutor)
+            AnalyzerExecutor analyzerExecutor,
+            CancellationToken cancellationToken)
         {
             var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
-            return await GetSessionAnalysisScopeCoreAsync(analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
+            return await GetSessionAnalysisScopeCoreAsync(analyzerExecutor, analyzerExecutionContext, cancellationToken).ConfigureAwait(false);
         }
 
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
         private async ValueTask<HostSessionStartAnalysisScope> GetSessionAnalysisScopeCoreAsync(
             AnalyzerExecutor analyzerExecutor,
-            AnalyzerExecutionContext analyzerExecutionContext)
+            AnalyzerExecutionContext analyzerExecutionContext,
+            CancellationToken cancellationToken)
         {
             try
             {
-                var task = analyzerExecutionContext.GetSessionAnalysisScopeAsync(analyzerExecutor);
+                var task = analyzerExecutionContext.GetSessionAnalysisScopeAsync(analyzerExecutor, cancellationToken);
                 return await task.ConfigureAwait(false);
             }
             catch (OperationCanceledException)
@@ -143,8 +154,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Clear the entry in scope map for analyzer, so we can attempt a retry.
                 analyzerExecutionContext.ClearSessionScopeTask();
 
-                analyzerExecutor.CancellationToken.ThrowIfCancellationRequested();
-                return await GetSessionAnalysisScopeCoreAsync(analyzerExecutor, analyzerExecutionContext).ConfigureAwait(false);
+                cancellationToken.ThrowIfCancellationRequested();
+                return await GetSessionAnalysisScopeCoreAsync(analyzerExecutor, analyzerExecutionContext, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -154,12 +165,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// the actions registered during <see cref="CompilationStartAnalyzerAction"/> for the given compilation.
         /// </summary>
         [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/23582", OftenCompletesSynchronously = true)]
-        public async ValueTask<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        public async ValueTask<AnalyzerActions> GetAnalyzerActionsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor, CancellationToken cancellationToken)
         {
-            var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+            var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor, cancellationToken).ConfigureAwait(false);
             if (sessionScope.GetAnalyzerActions(analyzer).CompilationStartActionsCount > 0 && analyzerExecutor.Compilation != null)
             {
-                var compilationScope = await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor).ConfigureAwait(false);
+                var compilationScope = await GetCompilationAnalysisScopeAsync(analyzer, sessionScope, analyzerExecutor, cancellationToken).ConfigureAwait(false);
                 return compilationScope.GetAnalyzerActions(analyzer);
             }
 
@@ -174,16 +185,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public async ValueTask<AnalyzerActions> GetPerSymbolAnalyzerActionsAsync(
             ISymbol symbol,
             bool isGeneratedCodeSymbol,
+            SyntaxTree? filterTree,
+            TextSpan? filterSpan,
             DiagnosticAnalyzer analyzer,
-            AnalyzerExecutor analyzerExecutor)
+            AnalyzerExecutor analyzerExecutor,
+            CancellationToken cancellationToken)
         {
-            var analyzerActions = await GetAnalyzerActionsAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+            var analyzerActions = await GetAnalyzerActionsAsync(analyzer, analyzerExecutor, cancellationToken).ConfigureAwait(false);
             if (analyzerActions.SymbolStartActionsCount > 0)
             {
                 var filteredSymbolStartActions = getFilteredActionsByKind(analyzerActions.SymbolStartActions);
                 if (filteredSymbolStartActions.Length > 0)
                 {
-                    var symbolScope = await GetSymbolAnalysisScopeAsync(symbol, isGeneratedCodeSymbol, analyzer, filteredSymbolStartActions, analyzerExecutor).ConfigureAwait(false);
+                    var symbolScope = await GetSymbolAnalysisScopeAsync(symbol, isGeneratedCodeSymbol, filterTree, filterSpan, analyzer, filteredSymbolStartActions, analyzerExecutor, cancellationToken).ConfigureAwait(false);
                     return symbolScope.GetAnalyzerActions(analyzer);
                 }
             }
@@ -216,9 +230,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Returns true if the given analyzer has enabled concurrent execution by invoking <see cref="AnalysisContext.EnableConcurrentExecution"/>.
         /// </summary>
-        public async Task<bool> IsConcurrentAnalyzerAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        public async Task<bool> IsConcurrentAnalyzerAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor, CancellationToken cancellationToken)
         {
-            var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+            var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor, cancellationToken).ConfigureAwait(false);
             return sessionScope.IsConcurrentAnalyzer(analyzer);
         }
 
@@ -226,20 +240,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Returns <see cref="GeneratedCodeAnalysisFlags"/> for the given analyzer.
         /// If an analyzer hasn't configured generated code analysis, returns <see cref="AnalyzerDriver.DefaultGeneratedCodeAnalysisFlags"/>.
         /// </summary>
-        public async Task<GeneratedCodeAnalysisFlags> GetGeneratedCodeAnalysisFlagsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor)
+        public async Task<GeneratedCodeAnalysisFlags> GetGeneratedCodeAnalysisFlagsAsync(DiagnosticAnalyzer analyzer, AnalyzerExecutor analyzerExecutor, CancellationToken cancellationToken)
         {
-            var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor).ConfigureAwait(false);
+            var sessionScope = await GetSessionAnalysisScopeAsync(analyzer, analyzerExecutor, cancellationToken).ConfigureAwait(false);
             return sessionScope.GetGeneratedCodeAnalysisFlags(analyzer);
-        }
-
-        private static void ForceLocalizableStringExceptions(LocalizableString localizableString, EventHandler<Exception> handler)
-        {
-            if (localizableString.CanThrowExceptions)
-            {
-                localizableString.OnException += handler;
-                localizableString.ToString();
-                localizableString.OnException -= handler;
-            }
         }
 
         /// <summary>
@@ -247,10 +251,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableArray<DiagnosticDescriptor> GetSupportedDiagnosticDescriptors(
             DiagnosticAnalyzer analyzer,
-            AnalyzerExecutor analyzerExecutor)
+            AnalyzerExecutor analyzerExecutor,
+            CancellationToken cancellationToken)
         {
             var analyzerExecutionContext = GetAnalyzerExecutionContext(analyzer);
-            return analyzerExecutionContext.GetOrComputeDiagnosticDescriptors(analyzer, analyzerExecutor);
+            return analyzerExecutionContext.GetOrComputeDiagnosticDescriptors(analyzer, analyzerExecutor, cancellationToken);
         }
 
         /// <summary>
@@ -258,13 +263,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public ImmutableArray<SuppressionDescriptor> GetSupportedSuppressionDescriptors(
             DiagnosticSuppressor suppressor,
-            AnalyzerExecutor analyzerExecutor)
+            AnalyzerExecutor analyzerExecutor,
+            CancellationToken cancellationToken)
         {
             var analyzerExecutionContext = GetAnalyzerExecutionContext(suppressor);
-            return analyzerExecutionContext.GetOrComputeSuppressionDescriptors(suppressor, analyzerExecutor);
+            return analyzerExecutionContext.GetOrComputeSuppressionDescriptors(suppressor, analyzerExecutor, cancellationToken);
         }
 
-        internal bool IsSupportedDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer, AnalyzerExecutor analyzerExecutor)
+        internal bool IsSupportedDiagnostic(DiagnosticAnalyzer analyzer, Diagnostic diagnostic, Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer, AnalyzerExecutor analyzerExecutor, CancellationToken cancellationToken)
         {
             // Avoid realizing all the descriptors for all compiler diagnostics by assuming that compiler analyzer doesn't report unsupported diagnostics.
             if (isCompilerAnalyzer(analyzer))
@@ -274,7 +280,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             // Get all the supported diagnostics and scan them linearly to see if the reported diagnostic is supported by the analyzer.
             // The linear scan is okay, given that this runs only if a diagnostic is being reported and a given analyzer is quite unlikely to have hundreds of thousands of supported diagnostics.
-            var supportedDescriptors = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
+            var supportedDescriptors = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor, cancellationToken);
             foreach (var descriptor in supportedDescriptors)
             {
                 if (descriptor.Id.Equals(diagnostic.Id, StringComparison.OrdinalIgnoreCase))
@@ -294,7 +300,52 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CompilationOptions options,
             Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
             AnalyzerExecutor analyzerExecutor,
-            SeverityFilter severityFilter)
+            AnalysisScope analysisScope,
+            SeverityFilter severityFilter,
+            CancellationToken cancellationToken)
+        {
+            Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnosticDescriptors =
+                analyzer => GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor, cancellationToken);
+            Func<DiagnosticSuppressor, ImmutableArray<SuppressionDescriptor>> getSupportedSuppressionDescriptors =
+                suppressor => GetSupportedSuppressionDescriptors(suppressor, analyzerExecutor, cancellationToken);
+
+            return IsDiagnosticAnalyzerSuppressed(analyzer, options, isCompilerAnalyzer, severityFilter,
+                isEnabledWithAnalyzerConfigOptions, getSupportedDiagnosticDescriptors, getSupportedSuppressionDescriptors, cancellationToken);
+
+            bool isEnabledWithAnalyzerConfigOptions(DiagnosticDescriptor descriptor)
+            {
+                if (analyzerExecutor.Compilation.Options.SyntaxTreeOptionsProvider is { } treeOptions)
+                {
+                    foreach (var tree in analysisScope.SyntaxTrees)
+                    {
+                        // Check if diagnostic is enabled by SyntaxTree.DiagnosticOptions or Bulk configuration from AnalyzerConfigOptions.
+                        if (treeOptions.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out var configuredValue) ||
+                            analyzerExecutor.AnalyzerOptions.TryGetSeverityFromBulkConfiguration(tree, analyzerExecutor.Compilation, descriptor, cancellationToken, out configuredValue))
+                        {
+                            if (configuredValue != ReportDiagnostic.Suppress && !severityFilter.Contains(configuredValue))
+                            {
+                                return true;
+                            }
+                        }
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
+        /// </summary>
+        internal static bool IsDiagnosticAnalyzerSuppressed(
+            DiagnosticAnalyzer analyzer,
+            CompilationOptions options,
+            Func<DiagnosticAnalyzer, bool> isCompilerAnalyzer,
+            SeverityFilter severityFilter,
+            Func<DiagnosticDescriptor, bool> isEnabledWithAnalyzerConfigOptions,
+            Func<DiagnosticAnalyzer, ImmutableArray<DiagnosticDescriptor>> getSupportedDiagnosticDescriptors,
+            Func<DiagnosticSuppressor, ImmutableArray<SuppressionDescriptor>> getSupportedSuppressionDescriptors,
+            CancellationToken cancellationToken)
         {
             if (isCompilerAnalyzer(analyzer))
             {
@@ -302,9 +353,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            var supportedDiagnostics = GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
+            var supportedDiagnostics = getSupportedDiagnosticDescriptors(analyzer);
             var diagnosticOptions = options.SpecificDiagnosticOptions;
-            analyzerExecutor.TryGetCompilationAndAnalyzerOptions(out var compilation, out var analyzerOptions);
 
             foreach (var diag in supportedDiagnostics)
             {
@@ -330,7 +380,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Note that "/warnaserror-:DiagnosticId" adds a diagnostic option with value 'ReportDiagnostic.Default',
                 // which should not alter 'isSuppressed'.
                 if ((diagnosticOptions.TryGetValue(diag.Id, out var severity) ||
-                    options.SyntaxTreeOptionsProvider is object && options.SyntaxTreeOptionsProvider.TryGetGlobalDiagnosticValue(diag.Id, analyzerExecutor.CancellationToken, out severity)) &&
+                    options.SyntaxTreeOptionsProvider is object && options.SyntaxTreeOptionsProvider.TryGetGlobalDiagnosticValue(diag.Id, cancellationToken, out severity)) &&
                     severity != ReportDiagnostic.Default)
                 {
                     isSuppressed = severity == ReportDiagnostic.Suppress;
@@ -348,7 +398,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Editorconfig user settings override compilation wide settings.
                 if (isSuppressed &&
-                    isEnabledWithAnalyzerConfigOptions(diag, severityFilter, compilation, analyzerOptions, analyzerExecutor.CancellationToken))
+                    isEnabledWithAnalyzerConfigOptions(diag))
                 {
                     isSuppressed = false;
                 }
@@ -361,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (analyzer is DiagnosticSuppressor suppressor)
             {
-                foreach (var suppressionDescriptor in GetSupportedSuppressionDescriptors(suppressor, analyzerExecutor))
+                foreach (var suppressionDescriptor in getSupportedSuppressionDescriptors(suppressor))
                 {
                     if (!suppressionDescriptor.IsDisabled(options))
                     {
@@ -371,32 +421,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return true;
-
-            static bool isEnabledWithAnalyzerConfigOptions(
-                DiagnosticDescriptor descriptor,
-                SeverityFilter severityFilter,
-                Compilation? compilation,
-                AnalyzerOptions? analyzerOptions,
-                CancellationToken cancellationToken)
-            {
-                if (compilation != null && compilation.Options.SyntaxTreeOptionsProvider is { } treeOptions)
-                {
-                    foreach (var tree in compilation.SyntaxTrees)
-                    {
-                        // Check if diagnostic is enabled by SyntaxTree.DiagnosticOptions or Bulk configuration from AnalyzerConfigOptions.
-                        if (treeOptions.TryGetDiagnosticValue(tree, descriptor.Id, cancellationToken, out var configuredValue) ||
-                            analyzerOptions.TryGetSeverityFromBulkConfiguration(tree, compilation, descriptor, cancellationToken, out configuredValue))
-                        {
-                            if (configuredValue != ReportDiagnostic.Suppress && !severityFilter.Contains(configuredValue))
-                            {
-                                return true;
-                            }
-                        }
-                    }
-                }
-
-                return false;
-            }
         }
 
         internal static bool HasCompilerOrNotConfigurableTag(ImmutableArray<string> customTags)

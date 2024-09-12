@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -28,8 +29,9 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         public static void InitializeFatalErrorHandlers()
         {
-            FatalError.Handler = static (exception, severity, forceDump) => ReportFault(exception, ConvertSeverity(severity), forceDump);
-            FatalError.CopyHandlerTo(typeof(Compilation).Assembly);
+            FatalError.ErrorReporterHandler handler = static (exception, severity, forceDump) => ReportFault(exception, ConvertSeverity(severity), forceDump);
+            FatalError.SetHandlers(handler, nonFatalHandler: handler);
+            FatalError.CopyHandlersTo(typeof(Compilation).Assembly);
         }
 
         private static FaultSeverity ConvertSeverity(ErrorSeverity severity)
@@ -75,6 +77,18 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                 s_loggers = s_loggers.Remove(logger);
             }
         }
+
+        /// <summary>
+        /// The bucket parameter for the blamed module.
+        /// </summary>
+        private const int P4ModuleNameDefaultIndex = 4;
+
+        /// <summary>
+        /// The bucket parameter for the blamed method.
+        /// </summary>
+        private const int P5MethodNameDefaultIndex = 5;
+
+        private static readonly ImmutableArray<string> UnblameableMethodPrefixes = ImmutableArray.Create("Roslyn.Utilities.Contract.");
 
         /// <summary>
         /// Report Non-Fatal Watson for a given unhandled exception.
@@ -124,6 +138,8 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                                 faultUtility.AddProcessDump(currentProcess.Id);
                         }
 
+                        UpdateBlamedMethod(faultUtility, exception);
+
                         if (faultUtility is FaultEvent { IsIncludedInWatsonSample: true })
                         {
                             // add ServiceHub log files:
@@ -158,6 +174,39 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
             {
                 FailFast.OnFatalException(e);
             }
+        }
+
+        private static void UpdateBlamedMethod(IFaultUtility faultUtility, Exception exception)
+        {
+            var blamedMethod = faultUtility.GetBucketParameter(P5MethodNameDefaultIndex);
+
+            // We'll only override anything if the default logic blamed something we didn't want
+            if (!UnblameableMethodPrefixes.Any(p => blamedMethod.StartsWith(p)))
+            {
+                return;
+            }
+
+            // If anything fails here, we'll just keep the failure as is rather than potentially losing it
+            try
+            {
+                var stackTrace = new StackTrace(exception);
+                foreach (var stackFrame in stackTrace.GetFrames())
+                {
+                    var method = stackFrame.GetMethod();
+                    if (method != null && method.DeclaringType != null)
+                    {
+                        // Get the full name of the method, without parameters
+                        var methodName = method.DeclaringType.FullName + "." + method.Name;
+                        if (!UnblameableMethodPrefixes.Any(p => methodName.StartsWith(p)))
+                        {
+                            faultUtility.SetBucketParameter(P4ModuleNameDefaultIndex, method.DeclaringType.Assembly.GetName().Name);
+                            faultUtility.SetBucketParameter(P5MethodNameDefaultIndex, methodName);
+                            return;
+                        }
+                    }
+                }
+            }
+            catch { }
         }
 
         private static string GetDescription(Exception exception)

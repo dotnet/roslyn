@@ -8,6 +8,7 @@ docs/compilers @dotnet/roslyn-compiler
 docs/ide @dotnet/roslyn-ide
 
 eng/ @dotnet/roslyn-infrastructure
+eng/SourceBuild* @dotnet/source-build-internal
 scripts/ @dotnet/roslyn-infrastructure
 
 src/Analyzers/ @dotnet/roslyn-ide
@@ -18,13 +19,6 @@ src/Compilers/ @dotnet/roslyn-compiler
 # to happen.
 src/Compilers/Test/Core/Traits/Traits.cs
 src/EditorFeatures/ @dotnet/roslyn-ide
-
-# If we touch the WPF layer or Cocoa layers, the VS for Mac team also should take a look. We do this even if it's
-# only touching WPF since the change might also need to be made (and validated) on the Cocoa side of things.
-src/EditorFeatures/Core.Cocoa/ @dotnet/roslyn-ide @dotnet/roslyn-vs-for-mac
-src/EditorFeatures/Core.Wpf/ @dotnet/roslyn-ide @dotnet/roslyn-vs-for-mac
-src/EditorFeatures/CSharp.Wpf/ @dotnet/roslyn-ide @dotnet/roslyn-vs-for-mac
-
 src/Features/ @dotnet/roslyn-ide
 src/Interactive/ @dotnet/roslyn-interactive
 src/NuGet/ @dotnet/roslyn-infrastructure
@@ -52,3 +46,4 @@ src/EditorFeatures/**/PublicAPI.Unshipped.txt @dotnet/roslyn-api-owners
 
 src/Tools/ExternalAccess/OmniSharp*/ @333fred @dibarbet
 src/Tools/ExternalAccess/RazorCompiler*/ @dotnet/roslyn-compiler
+src/Tools/ExternalAccess/CompilerDeveloperSDK/ @333fred

@@ -6,16 +6,10 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
-    internal readonly struct RenameTrackingSpan
+    internal readonly struct RenameTrackingSpan(ITrackingSpan trackingSpan, RenameSpanKind type)
     {
-        public readonly ITrackingSpan TrackingSpan;
-        public readonly RenameSpanKind Type;
-
-        public RenameTrackingSpan(ITrackingSpan trackingSpan, RenameSpanKind type)
-        {
-            this.TrackingSpan = trackingSpan;
-            this.Type = type;
-        }
+        public readonly ITrackingSpan TrackingSpan = trackingSpan;
+        public readonly RenameSpanKind Type = type;
     }
 
     internal enum RenameSpanKind

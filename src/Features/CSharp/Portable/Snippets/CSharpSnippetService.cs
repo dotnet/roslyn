@@ -22,13 +22,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets
 {
     [ExportLanguageService(typeof(ISnippetService), LanguageNames.CSharp), Shared]
-    internal class CSharpSnippetService : AbstractSnippetService
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class CSharpSnippetService([ImportMany] IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> snippetProviders) : AbstractSnippetService(snippetProviders)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpSnippetService([ImportMany] IEnumerable<Lazy<ISnippetProvider, LanguageMetadata>> snippetProviders)
-            : base(snippetProviders)
-        {
-        }
     }
 }

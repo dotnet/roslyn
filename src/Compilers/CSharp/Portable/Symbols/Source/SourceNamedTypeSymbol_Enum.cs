@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             NamedTypeSymbol defaultUnderlyingType = compilation.GetSpecialType(SpecialType.System_Int32);
-            Binder.ReportUseSite(defaultUnderlyingType, diagnostics, this.Locations[0]);
+            Binder.ReportUseSite(defaultUnderlyingType, diagnostics, this.GetFirstLocation());
             return defaultUnderlyingType;
         }
 

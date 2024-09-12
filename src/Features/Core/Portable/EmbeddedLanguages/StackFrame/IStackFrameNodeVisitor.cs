@@ -19,5 +19,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         void Visit(StackFrameParameterDeclarationNode node);
         void Visit(StackFrameGeneratedMethodNameNode stackFrameGeneratedNameNode);
         void Visit(StackFrameLocalMethodNameNode stackFrameLocalMethodNameNode);
+        void Visit(StackFrameConstructorNode constructorNode);
     }
 }

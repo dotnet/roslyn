@@ -1132,7 +1132,7 @@ End Class";
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530621")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631933")]
-        public async Task DontRemoveLineContinuationAfterColonInSingleLineIfStatement()
+        public async Task DoNotRemoveLineContinuationAfterColonInSingleLineIfStatement()
         {
             var code = @"[|Module Program
     Dim x = Sub() If True Then Dim y : _
@@ -1149,7 +1149,7 @@ End Module";
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609481")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631933")]
-        public async Task DontRemoveLineContinuationInSingleLineIfStatement()
+        public async Task DoNotRemoveLineContinuationInSingleLineIfStatement()
         {
             var code = @"[|
 Module Program
@@ -1179,7 +1179,7 @@ End Module
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/609481")]
         [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/631933")]
-        public async Task DontRemoveLineContinuationInNestedSingleLineIfStatement()
+        public async Task DoNotRemoveLineContinuationInNestedSingleLineIfStatement()
         {
             var code = @"[|
 Module Program
@@ -1236,7 +1236,7 @@ End Module
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/710")]
-        public async Task DontRemoveLineContinuationInStringInterpolation1()
+        public async Task DoNotRemoveLineContinuationInStringInterpolation1()
         {
             var code = @"[|
 Module Program
@@ -1255,7 +1255,7 @@ End Module
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/710")]
-        public async Task DontRemoveLineContinuationInStringInterpolation2()
+        public async Task DoNotRemoveLineContinuationInStringInterpolation2()
         {
             var code = @"[|
 Module Program
@@ -1274,7 +1274,7 @@ End Module
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/710")]
-        public async Task DontRemoveLineContinuationInStringInterpolation3()
+        public async Task DoNotRemoveLineContinuationInStringInterpolation3()
         {
             var code = @"[|
 Module Program
@@ -1299,7 +1299,7 @@ End Module
         }
 
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1085887")]
-        public async Task DontRemoveLineContinuationInVisualBasic9()
+        public async Task DoNotRemoveLineContinuationInVisualBasic9()
         {
             var code = @"[|
 Module Program
@@ -1371,8 +1371,7 @@ End Class";
 
         private static async Task VerifyAsync(string codeWithMarker, string expectedResult, LanguageVersion langVersion = LanguageVersion.VisualBasic14)
         {
-            MarkupTestFile.GetSpans(codeWithMarker,
-                out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
+            MarkupTestFile.GetSpans(codeWithMarker, out var codeWithoutMarker, out var textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic, langVersion);
             var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name is PredefinedCodeCleanupProviderNames.RemoveUnnecessaryLineContinuation or PredefinedCodeCleanupProviderNames.Format);

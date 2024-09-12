@@ -38,7 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
 
             public async Task AddItemAsync(Project project, INavigateToSearchResult result, CancellationToken cancellationToken)
             {
-                var node = await _graphBuilder.CreateNodeAsync(result, cancellationToken).ConfigureAwait(false);
+                var node = await _graphBuilder.CreateNodeAsync(project.Solution, result, cancellationToken).ConfigureAwait(false);
                 if (node != null)
                 {
                     // _context.OutputNodes is not threadsafe.  So ensure only one navto callback can mutate it at a time.

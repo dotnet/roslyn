@@ -10,7 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.CSharp.DecompiledSource;
+using Microsoft.CodeAnalysis.CSharp.DecompiledSource;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
     [UseExportProvider]
     public abstract partial class AbstractMetadataAsSourceTests : IAsyncLifetime
     {
-        protected static readonly string ICSharpCodeDecompilerVersion = "7.1.0.6543";
+        protected static readonly string ICSharpCodeDecompilerVersion = "8.1.1.7464";
 
         public virtual Task InitializeAsync()
         {

@@ -330,7 +330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return
             End If
 
-            Dim diagnostics As DiagnosticBag = Nothing
+            Dim diagnostics = BindingDiagnosticBag.GetInstance(withDiagnostics:=True, withDependencies:=False)
             Dim infosBuffer As ArrayBuilder(Of DiagnosticInfo) = Nothing
 
             Select Case Me.TypeKind
@@ -351,11 +351,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             m_containingModule.AtomicSetFlagAndStoreDiagnostics(m_lazyState,
                                                                 StateFlags.ReportedVarianceDiagnostics,
                                                                 0,
-                                                                If(diagnostics IsNot Nothing, New BindingDiagnosticBag(diagnostics), Nothing))
+                                                                diagnostics)
 
-            If diagnostics IsNot Nothing Then
-                diagnostics.Free()
-            End If
+            diagnostics.Free()
 
             If infosBuffer IsNot Nothing Then
                 ' all diagnostics were reported to diagnostic bag:
@@ -364,7 +362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Sub
 
-        Private Sub ReportNestingIntoVariantInterface(<[In], Out> ByRef diagnostics As DiagnosticBag)
+        Private Sub ReportNestingIntoVariantInterface(diagnostics As BindingDiagnosticBag)
             If Not _containingSymbol.IsType Then
                 Return
             End If
@@ -392,16 +390,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If container IsNot Nothing Then
                 Debug.Assert(container.IsInterfaceType() AndAlso container.HasVariance())
-                If diagnostics Is Nothing Then
-                    diagnostics = DiagnosticBag.GetInstance()
-                End If
 
                 diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_VarianceInterfaceNesting), Locations(0)))
             End If
         End Sub
 
         Private Sub GenerateVarianceDiagnosticsForInterface(
-            <[In], Out> ByRef diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             <[In], Out> ByRef infosBuffer As ArrayBuilder(Of DiagnosticInfo)
         )
             ' Dev10 didn't do this shortcut, but I and Lucian believe that the checks below
@@ -512,7 +507,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Protected MustOverride Function GetInheritsOrImplementsLocation(base As NamedTypeSymbol, getInherits As Boolean) As Location
 
         Private Sub GenerateVarianceDiagnosticsForDelegate(
-            <[In], Out> ByRef diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             <[In], Out> ByRef infosBuffer As ArrayBuilder(Of DiagnosticInfo)
         )
             ' Dev10 didn't do this shortcut, but I and Lucian believe that the checks below
@@ -541,14 +536,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Private Shared Sub ReportDiagnostics(
-            <[In], Out> ByRef diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             location As Location,
             infos As ArrayBuilder(Of DiagnosticInfo)
         )
-            If diagnostics Is Nothing Then
-                diagnostics = DiagnosticBag.GetInstance()
-            End If
-
             For Each info In infos
                 diagnostics.Add(info, location)
             Next
@@ -961,7 +952,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub GenerateVarianceDiagnosticsForMethod(
             method As MethodSymbol,
-            <[In], Out> ByRef diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             <[In], Out> ByRef infosBuffer As ArrayBuilder(Of DiagnosticInfo)
         )
             Debug.Assert(Not HaveDiagnostics(infosBuffer))
@@ -1000,7 +991,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub GenerateVarianceDiagnosticsForParameters(
             parameters As ImmutableArray(Of ParameterSymbol),
-            <[In], Out> ByRef diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             <[In], Out> ByRef infosBuffer As ArrayBuilder(Of DiagnosticInfo)
         )
             Debug.Assert(Not HaveDiagnostics(infosBuffer))
@@ -1036,7 +1027,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub GenerateVarianceDiagnosticsForConstraints(
             parameters As ImmutableArray(Of TypeParameterSymbol),
-            <[In], Out> ByRef diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             <[In], Out> ByRef infosBuffer As ArrayBuilder(Of DiagnosticInfo)
         )
             Debug.Assert(Not HaveDiagnostics(infosBuffer))
@@ -1069,7 +1060,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub GenerateVarianceDiagnosticsForProperty(
             [property] As PropertySymbol,
-            <[In], Out> ByRef diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             <[In], Out> ByRef infosBuffer As ArrayBuilder(Of DiagnosticInfo)
         )
             Debug.Assert(Not HaveDiagnostics(infosBuffer))
@@ -1109,7 +1100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Sub GenerateVarianceDiagnosticsForEvent(
             [event] As EventSymbol,
-            <[In], Out> ByRef diagnostics As DiagnosticBag,
+            diagnostics As BindingDiagnosticBag,
             <[In], Out> ByRef infosBuffer As ArrayBuilder(Of DiagnosticInfo)
         )
             Debug.Assert(Not HaveDiagnostics(infosBuffer))
@@ -1811,9 +1802,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Dim candidateLocation As Location = candidate.NonMergedLocation
                             Debug.Assert(candidateLocation IsNot Nothing)
 
-                            If partialMethods.Contains(candidate) Then
+                            If partialMethods.Remove(candidate) Then
                                 '  partial-partial conflict
-                                partialMethods.Remove(candidate)
 
                                 '  the 'best' partial method is the one with the 'smallest' 
                                 ' location, we should report errors on the other
@@ -4040,6 +4030,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 Return Me._lazyAnyMemberHasAttributes.Value()
+            End Get
+        End Property
+
+        Friend NotOverridable Overrides ReadOnly Property HasAnyDeclaredRequiredMembers As Boolean
+            Get
+                Return False
             End Get
         End Property
     End Class

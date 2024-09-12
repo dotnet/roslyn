@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         ParameterList,
         ArrayExpression,
         FileInformation,
+        Constructor,
 
         // Tokens 
         EndOfFrame,
@@ -49,6 +50,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame
         PipeToken,
         GeneratedNameSeparatorToken, // {character}__{identifier}
         GeneratedNameSuffixToken, // {numeric}_{numeric}
+        ConstructorToken, // .ctor
 
         // Trivia
         WhitespaceTrivia,

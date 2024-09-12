@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     if (analyzer is DiagnosticSuppressor suppressor)
                     {
-                        foreach (var descriptor in suppressor.SupportedSuppressions)
+                        foreach (var descriptor in analyzerInfoCache.GetDiagnosticSuppressions(suppressor))
                         {
                             projectSuppressedDiagnosticIds.Add(descriptor.SuppressedDiagnosticId);
                         }
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     // Only execute host suppressor if it does not suppress any diagnostic ID reported by project analyzer
                     // and does not share any suppression ID with a project suppressor.
-                    foreach (var descriptor in suppressor.SupportedSuppressions)
+                    foreach (var descriptor in analyzerInfoCache.GetDiagnosticSuppressions(suppressor))
                     {
                         if (projectAnalyzerDiagnosticIds.Contains(descriptor.SuppressedDiagnosticId) ||
                             projectSuppressedDiagnosticIds.Contains(descriptor.SuppressedDiagnosticId))

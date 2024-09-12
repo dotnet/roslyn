@@ -64,7 +64,7 @@ End Module";
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+            MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
             var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
@@ -114,7 +114,7 @@ End Module";
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
             await TestServices.InlineRename.ToggleIncludeCommentsAsync(HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+            MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
             var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
@@ -159,7 +159,7 @@ End Module";
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
             await TestServices.InlineRename.ToggleIncludeStringsAsync(HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+            MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
             var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
@@ -199,7 +199,7 @@ End Class";
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
             await TestServices.InlineRename.ToggleIncludeOverloadsAsync(HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+            MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
             var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
@@ -231,7 +231,7 @@ End Class";
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+            MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
             var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
@@ -259,7 +259,7 @@ End Class";
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+            MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
             var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
@@ -290,7 +290,7 @@ End Class";
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> renameSpans);
+            MarkupTestFile.GetSpans(markup, out _, out var renameSpans);
             var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
@@ -325,7 +325,7 @@ End Class";
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out _, out ImmutableArray<TextSpan> renameSpans);
+            MarkupTestFile.GetSpans(markup, out _, out var renameSpans);
             var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
@@ -356,7 +356,7 @@ End Class";
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+            MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
             var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);
@@ -383,7 +383,7 @@ End Class";
             await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
             await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
 
-            MarkupTestFile.GetSpans(markup, out var _, out ImmutableArray<TextSpan> renameSpans);
+            MarkupTestFile.GetSpans(markup, out var _, out var renameSpans);
             var tags = await TestServices.Editor.GetRenameTagsAsync(HangMitigatingCancellationToken);
             var tagSpans = tags.SelectAsArray(tag => new TextSpan(tag.Span.Start, tag.Span.Length));
             AssertEx.SetEqual(renameSpans, tagSpans);

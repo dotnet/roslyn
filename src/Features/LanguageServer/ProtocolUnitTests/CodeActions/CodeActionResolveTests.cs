@@ -6,10 +6,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -136,6 +138,413 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
             AssertJsonEquals(expectedResolvedAction, actualResolvedAction);
         }
 
+        [WpfTheory, CombinatorialData]
+        public async Task TestRename(bool mutatingLspWorkspace)
+        {
+            var markUp = @"
+class {|caret:ABC|}
+{
+}";
+
+            await using var testLspServer = await CreateTestLspServerAsync(markUp, mutatingLspWorkspace, new InitializationOptions
+            {
+                ClientCapabilities = new ClientCapabilities()
+                {
+                    Workspace = new WorkspaceClientCapabilities
+                    {
+                        WorkspaceEdit = new WorkspaceEditSetting
+                        {
+                            ResourceOperations = new ResourceOperationKind[] { ResourceOperationKind.Rename }
+                        }
+                    }
+                }
+            });
+            var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
+                title: string.Format(FeaturesResources.Rename_file_to_0, "ABC.cs"),
+                kind: CodeActionKind.Refactor,
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                data: CreateCodeActionResolveData(
+                    string.Format(FeaturesResources.Rename_file_to_0, "ABC.cs"),
+                    testLspServer.GetLocations("caret").Single()),
+                priority: VSInternalPriorityLevel.Normal,
+                groupName: "Roslyn2",
+                applicableRange: new LSP.Range { Start = new Position { Line = 0, Character = 6 }, End = new Position { Line = 0, Character = 9 } },
+                diagnostics: null);
+
+            var testWorkspace = testLspServer.TestWorkspace;
+            var documentBefore = testWorkspace.CurrentSolution.GetDocument(testWorkspace.Documents.Single().Id);
+            var documentUriBefore = documentBefore.GetUriForRenamedDocument();
+
+            var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
+
+            var documentAfter = testWorkspace.CurrentSolution.GetDocument(testWorkspace.Documents.Single().Id);
+            var documentUriAfter = documentBefore.WithName("ABC.cs").GetUriForRenamedDocument();
+
+            var expectedCodeAction = CodeActionsTests.CreateCodeAction(
+                title: string.Format(FeaturesResources.Rename_file_to_0, "ABC.cs"),
+                kind: CodeActionKind.Refactor,
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                data: CreateCodeActionResolveData(
+                    string.Format(FeaturesResources.Rename_file_to_0, "ABC.cs"),
+                    testLspServer.GetLocations("caret").Single()),
+                priority: VSInternalPriorityLevel.Normal,
+                groupName: "Roslyn2",
+                applicableRange: new LSP.Range { Start = new Position { Line = 0, Character = 6 }, End = new Position { Line = 0, Character = 9 } },
+                diagnostics: null,
+                edit: GenerateRenameFileEdit(new List<(Uri, Uri)> { (documentUriBefore, documentUriAfter) }));
+
+            AssertJsonEquals(expectedCodeAction, actualResolvedAction);
+        }
+
+        [WpfTheory, CombinatorialData]
+        public async Task TestLinkedDocuments(bool mutatingLspWorkspace)
+        {
+            var xmlWorkspace = @"
+                <Workspace>
+                    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.1'>
+                        <Document FilePath='C:\C.cs'>class C
+{
+    public static readonly int {|caret:_value|} = 10;
+}
+                        </Document>
+                    </Project>
+                    <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj' Name='CSProj.2'>
+                        <Document IsLinkFile='true' LinkProjectName='CSProj.1' LinkFilePath='C:\C.cs'/>
+                    </Project>
+                </Workspace>
+";
+            await using var testLspServer = await CreateXmlTestLspServerAsync(xmlWorkspace, mutatingLspWorkspace);
+
+            var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
+                title: string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, "_value"),
+                kind: CodeActionKind.Refactor,
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                data: CreateCodeActionResolveData(
+                    string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, "_value"),
+                    testLspServer.GetLocations("caret").Single()),
+                priority: VSInternalPriorityLevel.Normal,
+                groupName: "Roslyn2",
+                applicableRange: new LSP.Range { Start = new Position { Line = 2, Character = 33 }, End = new Position { Line = 39, Character = 2 } },
+                diagnostics: null);
+
+            var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
+            var edits = new TextEdit[]
+            {
+                new TextEdit()
+                {
+                    NewText = "private",
+                    Range = new LSP.Range()
+                    {
+                        Start = new Position
+                        {
+                            Line = 2,
+                            Character = 4
+                        },
+                        End = new Position
+                        {
+                            Line = 2,
+                            Character = 10
+                        }
+                    }
+                },
+                new TextEdit
+                {
+                    NewText = string.Empty,
+                    Range = new LSP.Range
+                    {
+                        Start = new Position
+                        {
+                            Line = 2,
+                            Character = 31
+                        },
+                        End = new Position
+                        {
+                            Line = 2,
+                            Character = 32
+                        }
+                    }
+                },
+                new TextEdit
+                {
+                    NewText = @"
+
+    public static int Value => value;",
+                    Range = new LSP.Range
+                    {
+                        Start = new Position
+                        {
+                            Line = 2,
+                            Character = 43
+                        },
+                        End = new Position
+                        {
+                            Line = 2,
+                            Character = 43
+                        }
+                    }
+                }
+            };
+            var expectedCodeAction = CodeActionsTests.CreateCodeAction(
+                title: string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, "_value"),
+                kind: CodeActionKind.Refactor,
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                data: CreateCodeActionResolveData(
+                    string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, "_value"),
+                    testLspServer.GetLocations("caret").Single()),
+                priority: VSInternalPriorityLevel.Normal,
+                groupName: "Roslyn2",
+                applicableRange: new LSP.Range { Start = new Position { Line = 2, Character = 33 }, End = new Position { Line = 39, Character = 2 } },
+                diagnostics: null,
+                edit: GenerateWorkspaceEdit(testLspServer.GetLocations("caret"), edits));
+            AssertJsonEquals(expectedCodeAction, actualResolvedAction);
+        }
+
+        [WpfTheory, CombinatorialData]
+        public async Task TestMoveTypeToDifferentFile(bool mutatingLspWorkspace)
+        {
+            var markUp = @"
+class {|caret:ABC|}
+{
+}
+class BCD 
+{
+}";
+
+            await using var testLspServer = await CreateTestLspServerAsync(markUp, mutatingLspWorkspace, new InitializationOptions
+            {
+                ClientCapabilities = new ClientCapabilities()
+                {
+                    Workspace = new WorkspaceClientCapabilities
+                    {
+                        WorkspaceEdit = new WorkspaceEditSetting
+                        {
+                            ResourceOperations = new ResourceOperationKind[] { ResourceOperationKind.Create }
+                        }
+                    }
+                }
+            });
+
+            var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
+                title: string.Format(FeaturesResources.Move_type_to_0, "ABC.cs"),
+                kind: CodeActionKind.Refactor,
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                data: CreateCodeActionResolveData(
+                    string.Format(FeaturesResources.Move_type_to_0, "ABC.cs"),
+                    testLspServer.GetLocations("caret").Single()),
+                priority: VSInternalPriorityLevel.Normal,
+                groupName: "Roslyn2",
+                applicableRange: new LSP.Range { Start = new Position { Line = 0, Character = 6 }, End = new Position { Line = 0, Character = 9 } },
+                diagnostics: null);
+
+            var testWorkspace = testLspServer.TestWorkspace;
+            var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
+
+            var project = testWorkspace.CurrentSolution.Projects.Single();
+            var newDocumentUri = ProtocolConversions.CreateAbsoluteUri(Path.Combine(Path.GetDirectoryName(project.FilePath), "ABC.cs"));
+            var existingDocumentUri = testWorkspace.CurrentSolution.GetRequiredDocument(testWorkspace.Documents.Single().Id).GetURI();
+            var workspaceEdit = new WorkspaceEdit()
+            {
+                DocumentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
+                {
+                    // Create file
+                    new CreateFile() { Uri = newDocumentUri },
+                    // Add content to file
+                    new TextDocumentEdit()
+                    {
+                        TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = newDocumentUri },
+                        Edits = new TextEdit[]
+                        {
+                            new TextEdit()
+                            {
+                                Range = new LSP.Range
+                                {
+                                    Start = new Position()
+                                    {
+                                        Line = 0,
+                                        Character = 0,
+                                    },
+                                    End = new Position()
+                                    {
+                                        Line = 0,
+                                        Character = 0
+                                    }
+                                },
+                                NewText = @"class ABC
+{
+}
+"
+                            }
+                        }
+                    },
+                    // Remove the declaration from existing file
+                    new TextDocumentEdit()
+                    {
+                        TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = existingDocumentUri },
+                        Edits = new TextEdit[]
+                        {
+                            new TextEdit()
+                            {
+                                Range = new LSP.Range
+                                {
+                                    Start = new Position()
+                                    {
+                                        Line = 0,
+                                        Character = 0,
+                                    },
+                                    End = new Position()
+                                    {
+                                        Line = 4,
+                                        Character = 0
+                                    }
+                                },
+                                NewText = ""
+                            }
+                        }
+                    }
+                }
+            };
+
+            var expectedCodeAction = CodeActionsTests.CreateCodeAction(
+                title: string.Format(FeaturesResources.Move_type_to_0, "ABC.cs"),
+                kind: CodeActionKind.Refactor,
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                data: CreateCodeActionResolveData(
+                    string.Format(FeaturesResources.Move_type_to_0, "ABC.cs"),
+                    testLspServer.GetLocations("caret").Single()),
+                priority: VSInternalPriorityLevel.Normal,
+                groupName: "Roslyn2",
+                applicableRange: new LSP.Range { Start = new Position { Line = 0, Character = 6 }, End = new Position { Line = 0, Character = 9 } },
+                diagnostics: null,
+                edit: workspaceEdit);
+
+            AssertJsonEquals(expectedCodeAction, actualResolvedAction);
+        }
+
+        [WpfTheory, CombinatorialData]
+        public async Task TestMoveTypeToDifferentFileInDirectory(bool mutatingLspWorkspace)
+        {
+            var markup =
+@"class ABC
+{
+}
+class {|caret:BCD|} 
+{
+}";
+
+            await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new InitializationOptions
+            {
+                ClientCapabilities = new ClientCapabilities()
+                {
+                    Workspace = new WorkspaceClientCapabilities
+                    {
+                        WorkspaceEdit = new WorkspaceEditSetting
+                        {
+                            ResourceOperations = new ResourceOperationKind[] { ResourceOperationKind.Create }
+                        }
+                    }
+                },
+
+                DocumentFileContainingFolders = new[] { Path.Combine("dir1", "dir2", "dir3") },
+            });
+
+            var unresolvedCodeAction = CodeActionsTests.CreateCodeAction(
+                title: string.Format(FeaturesResources.Move_type_to_0, "BCD.cs"),
+                kind: CodeActionKind.Refactor,
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                data: CreateCodeActionResolveData(
+                    string.Format(FeaturesResources.Move_type_to_0, "BCD.cs"),
+                    testLspServer.GetLocations("caret").Single()),
+                priority: VSInternalPriorityLevel.Normal,
+                groupName: "Roslyn2",
+                applicableRange: new LSP.Range { Start = new Position { Line = 3, Character = 6 }, End = new Position { Line = 3, Character = 9 } },
+                diagnostics: null);
+
+            var testWorkspace = testLspServer.TestWorkspace;
+            var actualResolvedAction = await RunGetCodeActionResolveAsync(testLspServer, unresolvedCodeAction);
+
+            var existingDocument = testWorkspace.CurrentSolution.GetRequiredDocument(testWorkspace.Documents.Single().Id);
+            var existingDocumentUri = existingDocument.GetURI();
+
+            Assert.Contains(Path.Combine("dir1", "dir2", "dir3"), existingDocument.FilePath);
+            var newDocumentUri = ProtocolConversions.CreateAbsoluteUri(
+                Path.Combine(Path.GetDirectoryName(existingDocument.FilePath), "BCD.cs"));
+            var workspaceEdit = new WorkspaceEdit()
+            {
+                DocumentChanges = new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>[]
+                {
+                    // Create file
+                    new CreateFile() { Uri = newDocumentUri },
+                    // Add content to file
+                    new TextDocumentEdit()
+                    {
+                        TextDocument = new OptionalVersionedTextDocumentIdentifier { Uri = newDocumentUri },
+                        Edits = new TextEdit[]
+                        {
+                            new TextEdit()
+                            {
+                                Range = new LSP.Range
+                                {
+                                    Start = new Position()
+                                    {
+                                        Line = 0,
+                                        Character = 0,
+                                    },
+                                    End = new Position()
+                                    {
+                                        Line = 0,
+                                        Character = 0
+                                    }
+                                },
+                                NewText = @"class BCD
+{
+}"
+                            }
+                        }
+                    },
+                    // Remove the declaration from existing file
+                    new TextDocumentEdit()
+                    {
+                        TextDocument = new OptionalVersionedTextDocumentIdentifier() { Uri = existingDocumentUri },
+                        Edits = new TextEdit[]
+                        {
+                            new TextEdit()
+                            {
+                                Range = new LSP.Range
+                                {
+                                    Start = new Position()
+                                    {
+                                        Line = 3,
+                                        Character = 0,
+                                    },
+                                    End = new Position()
+                                    {
+                                        Line = 5,
+                                        Character = 1
+                                    }
+                                },
+                                NewText = ""
+                            }
+                        }
+                    }
+                }
+            };
+
+            var expectedCodeAction = CodeActionsTests.CreateCodeAction(
+                title: string.Format(FeaturesResources.Move_type_to_0, "BCD.cs"),
+                kind: CodeActionKind.Refactor,
+                children: Array.Empty<LSP.VSInternalCodeAction>(),
+                data: CreateCodeActionResolveData(
+                    string.Format(FeaturesResources.Move_type_to_0, "BCD.cs"),
+                    testLspServer.GetLocations("caret").Single()),
+                priority: VSInternalPriorityLevel.Normal,
+                groupName: "Roslyn2",
+                applicableRange: new LSP.Range { Start = new Position { Line = 3, Character = 6 }, End = new Position { Line = 3, Character = 9 } },
+                diagnostics: null,
+                edit: workspaceEdit);
+
+            AssertJsonEquals(expectedCodeAction, actualResolvedAction);
+        }
+
         private static async Task<LSP.VSInternalCodeAction> RunGetCodeActionResolveAsync(
             TestLspServer testLspServer,
             VSInternalCodeAction unresolvedCodeAction)
@@ -168,6 +577,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.CodeActions
                         Edits = edits,
                     }
                 }
+            };
+
+        private static WorkspaceEdit GenerateRenameFileEdit(IList<(Uri oldUri, Uri newUri)> renameLocations)
+            => new()
+            {
+                DocumentChanges = renameLocations.Select(
+                    locations => new SumType<TextDocumentEdit, CreateFile, RenameFile, DeleteFile>(new RenameFile() { OldUri = locations.oldUri, NewUri = locations.newUri })).ToArray()
             };
     }
 }

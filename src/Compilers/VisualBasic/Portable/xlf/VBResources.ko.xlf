@@ -17,6 +17,11 @@
         <target state="translated">명령줄 구문 오류: '{0}'은(는) '{1}' 옵션에 유효한 값이 아닙니다. 값은 '{2}' 형식이어야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
+        <source>Cannot inherit from '{0}' because it has required members.</source>
+        <target state="translated">필요한 멤버가 있어 '{0}'에서 상속할 수 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
         <target state="translated">줄 연속 문자 뒤에 주석을 사용하려면 언어 버전 {0} 이상을 사용하세요.</target>
@@ -32,9 +37,19 @@
         <target state="translated">'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute'는 컴파일러 용도로만 예약되어 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoNotUseRequiredMember">
+        <source>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">'System.Runtime.CompilerServices.RequiredMemberAttribute'는 컴파일러 용도로만 예약되어 있습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">분석기 구성 파일 여러 개가 동일한 디렉터리('{0}')에 있을 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
+        <source>'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
+        <target state="translated">'{2}'에 필수 멤버가 있으므로 '{2}'은(는) 제네릭 형식 또는 메서드 '{0}'의 '{1}' 매개 변수에 대한 'New' 제약 조건을 충족할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverridingInitOnlyProperty">
@@ -52,6 +67,16 @@
         <target state="translated">'{0}' 형식에는 기본 인터페이스 멤버의 재추상화가 있으므로 해당 형식을 포함할 수 없습니다. 'Interop 형식 포함' 속성을 false로 설정해 보세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSet">
+        <source>Required member '{0}' must be set in the object initializer or attribute arguments.</source>
+        <target state="translated">필수 멤버 '{0}'은(는) 개체 이니셜라이저 또는 특성 인수에서 설정해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMembersInvalid">
+        <source>The required members list for '{0}' is malformed and cannot be interpreted.</source>
+        <target state="translated">'{0}'에 대한 필수 구성원 목록 형식이 잘못되어 해석할 수 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
         <target state="translated">대상 런타임이 기본 인터페이스 구현을 지원하지 않습니다.</target>
@@ -67,6 +92,11 @@
         <target state="translated">공유 WithEvents 변수의 이벤트는 다른 형식의 메서드에서 처리할 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="translated">'{0}'은(는) '{1}' 어셈블리에 정의되어 있습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
         <target state="translated">{0} '{1}'은(는) 공유 추상 또는 가상 '{2}'이(가) 포함되어 있으므로 '{3}' 인터페이스를 구현할 수 없습니다.</target>
@@ -80,6 +110,11 @@
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
         <target state="translated">'{0}'에는 이 버전의 Visual Basic 컴파일러에서 지원하지 않는 컴파일러 기능 '{1}'이(가) 필요합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedRefReturningCallInWithStatement">
+        <source>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</source>
+        <target state="translated">참조로 반환하는 메서드 또는 속성에 대한 호출은 비동기 메서드나 반복기 메서드에서 또는 람다에서 암시적으로 참조되는 경우 'With' 문 식으로 사용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
@@ -257,6 +292,9 @@
                                   AnyCPU32BitPreferred or anycpu (default).
 -preferreduilang                  Specify the preferred output language name.
 -nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
 -sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
@@ -301,138 +339,141 @@
                                   오류 경고를 생성하기 위해 분석기에 사용되는
                                   추가 파일입니다.
 
-                                  - 리소스 -
+                                  - RESOURCES -
 -linkresource:&lt;resinfo&gt; 지정된 파일을 외부 어셈블리 리소스로 파일을
                                   추가합니다.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                   (약식: -linkres)
--nowin32manifest 기본 매니페스트를 출력 PE의 매니페스트 섹션에
+-nowin32manifest                  기본 매니페스트를 출력 PE의 매니페스트 섹션에
                                   포함시키면 안됩니다.
--resource:&lt;resinfo&gt; 지정된 파일을 어셈블리 리소스로
+-resource:&lt;resinfo&gt;               지정된 파일을 어셈블리 리소스로
                                   추가합니다.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                   (약식: -res)
--win32icon:&lt;file&gt; 기본 Win32 리소스용 Win32 아이콘 파일(.ico)을
+-win32icon:&lt;file&gt;                기본 Win32 리소스용 Win32 아이콘 파일(.ico)을
                                   지정합니다.
--win32manifest:&lt;file&gt; 제공된 파일이 출력 PE의 매니페스트
+-win32manifest:&lt;file&gt;             제공된 파일이 출력 PE의 매니페스트
                                   섹션에 포함되었습니다.
--win32resource:&lt;file&gt; Win32 리소스 파일(.res)을 지정합니다.
+-win32resource:&lt;file&gt;             Win32 리소스 파일(.res)을 지정합니다.
 
                                   - 코드 생성 -
--optimize[+|-] 최적화를 사용하도록 설정합니다.
--removeintchecks[+|-] 정수 검사를 제거합니다. 기본값을 해제합니다.
--debug[+|-] 디버깅 정보를 내보냅니다.
--debug:full 전체 디버깅 정보를 내보냅니다(기본값).
--debug:pdbonly 전체 디버깅 정보를 내보냅니다.
--debug:portable Emit 플랫폼 간 디버깅 정보를 내보냅니다.
--debug:embedded 플랫폼 간 디버깅 정보를
+-optimize[+|-]                    최적화를 사용하도록 설정합니다.
+-removeintchecks[+|-]             정수 검사를 제거합니다. 기본값을 해제합니다.
+-debug[+|-]                       디버깅 정보를 내보냅니다.
+-debug:full                       전체 디버깅 정보를 내보냅니다(기본값).
+-debug:pdbonly                   전체 디버깅 정보를 내보냅니다.
+-debug:portable                   플랫폼 간 디버깅 정보를 내보냅니다.
+-debug:embedded                  플랫폼 간 디버깅 정보를
                                   대상 .dll 또는 .exe로 내보냅니다.
--deterministic 결정적 어셈블리 생성
+-deterministic                    결정적 어셈블리 생성
                                   (모듈 버전 GUID 및 타임스탬프 포함)
--refonly 주 출력 대신 참조 어셈블리 생성
--instrument:TestCoverage 검사 정보를 수집하도록 사용될
+-refonly                          주 출력 대신 참조 어셈블리 생성
+-instrument:TestCoverage          검사 정보를 수집하도록 사용될
                                   어셈블리 생성
--sourcelink:&lt;file&gt; PDB에 포함할 원본 링크 정보입니다.
+-sourcelink:&lt;file&gt;                PDB에 포함할 원본 링크 정보입니다.
 
                                   - 오류 및 경고 -
 -nowarn 모든 경고를 사용하지 않도록 설정합니다.
--nowarn:&lt;number_list&gt; 개별 경고 목록을 사용하지 않도록 설정합니다.
--warnaserror[+|-] 모든 경고를 오류로 처리합니다.
--warnaserror[+|-]:&lt;number_list&gt; 경고 목록을 오류로 처리합니다.
--ruleset:&lt;file&gt; 특정 진단을 사용하지 않도록 설정하는 규칙 집합 파일을
+-nowarn:&lt;number_list&gt;             개별 경고 목록을 사용하지 않도록 설정합니다.
+-warnaserror[+|-]                 모든 경고를 오류로 처리합니다.
+-warnaserror[+|-]:&lt;number_list&gt;   경고 목록을 오류로 처리합니다.
+-ruleset:&lt;file&gt;                   특정 진단을 사용하지 않도록 설정하는 규칙 집합 파일을
                                   지정합니다.
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]         
                                   모든 컴파일러 및 분석기의 진단을 SARIF 형식으로 기록하기 위해
                                   파일을 지정합니다.
                                   sarif_version:{1|2|2.1} 기본값은 1. 2과 2.1이며
                                   둘 다 SARIF 버전 2.1.0을 의미합니다.
--reportanalyzer 실행 시간과 같은 추가 분석기 정보를
+-reportanalyzer                   실행 시간과 같은 추가 분석기 정보를
                                   보고합니다.
--skipanalyzers[+|-] 진단 분석기 실행을 건너뜁니다.
+-skipanalyzers[+|-]                   진단 분석기 실행을 건너뜁니다.
 
                                   -언어-
--define:&lt;symbol_list&gt; 전역 조건부 컴파일 기호를 선언합니다.
+-define:&lt;symbol_list&gt;                   전역 조건부 컴파일 기호를 선언합니다.
                                   symbol_list:name=value,...
                                   (약식: -d)
--imports:&lt;import_list&gt; 참조한 메타데이터 파일의 네임스페이스에 대해
+-imports:&lt;import_list&gt;             참조한 메타데이터 파일의 네임스페이스에 대해
                                   전역 가져오기를 선언합니다.
                                   import_list:namespace,...
 -langversion:?                    언어 버전에 허용되는 값을 표시합니다.
--langversion:&lt;string&gt; 다음과 같이 언어 버전을 지정합니다.
+-langversion:&lt;string&gt;                   다음과 같이 언어 버전을 지정합니다.
                                   'default'(최신 주 버전), 또는
                                   'latest'(부 버전을 포함한 최신 버전),
                                   또는 특정 버전(예: '14' 또는 '15.3')
--optionexplicit[+|-] 변수의 명시적 선언이 필요합니다.
--optioninfer[+|-] 변수의 형식 유추를 허용합니다.
--rootnamespace:&lt;string&gt; 모든 형식 선언에 대한 루트 네임스페이스를
+-optionexplicit[+|-]                   변수의 명시적 선언이 필요합니다.
+-optioninfer[+|-]                   변수의 형식 유추를 허용합니다.
+-rootnamespace:&lt;string&gt;                   모든 형식 선언에 대한 루트 네임스페이스를
                                   지정합니다.
--optionstrict[+|-] 언어 의미 체계를 엄격하게 확인합니다.
--optionstrict:custom 엄격한 언어 의미 체계를 준수하지 않을 경우
+-optionstrict[+|-]                   언어 의미 체계를 엄격하게 확인합니다.
+-optionstrict:custom                   엄격한 언어 의미 체계를 준수하지 않을 경우
                                   경고합니다.
--optioncompare:binary 이진 형식 문자열 비교를 지정합니다.
-                                  이것이 기본값입니다.
--optioncompare:text 텍스트 형식 문자열 비교를 지정합니다.
+-optioncompare:binary             이진 형식 문자열 비교를 지정합니다.
+                                  기본값입니다.
+-optioncompare:text               텍스트 형식 문자열 비교를 지정합니다.
 
                                   - 기타 -
--help 사용법 메시지를 표시합니다. (약식: -?)
--noconfig VBC.RSP 파일을 자동으로 포함하지 않습니다.
--nologo 컴파일러 저작권 배너를 표시하지 않습니다.
--quiet 자동 출력 모드입니다.
--verbose 자세한 메시지를 표시합니다.
--parallel[+|-] 동시 빌드입니다.
--version 컴파일러 버전 번호를 표시하고 종료합니다.
+-help                             사용법 메시지를 표시합니다. (약식: -?)
+-noconfig                         파일을 자동으로 포함하지 않습니다.
+-nologo                          컴파일러 저작권 배너를 표시하지 않습니다.
+-quiet                            자동 출력 모드입니다.
+-verbose                           자세한 메시지를 표시합니다.
+-parallel[+|-]                           동시 빌드입니다.
+-version                           컴파일러 버전 번호를 표시하고 종료합니다.
 
                                   - 고급 -
--baseaddress:&lt;number&gt; 라이브러리 또는 모듈의 기준 주소입니다
+-baseaddress:&lt;number&gt;             라이브러리 또는 모듈의 기준 주소입니다
                                   (16진수).
--checksumalgorithm:&lt;alg&gt; PBD에 저장된 소스 파일 체크섬을 계싼하기 위한
+-checksumalgorithm:&lt;alg&gt;          PBD에 저장된 소스 파일 체크섬을 계싼하기 위한
                                   알고리즘을 지정합니다. 지원되는 값은 다음과 같습니다.
                                   SHA1 또는 SHA256(기본값)입니다.
--codepage:&lt;number&gt; 소스 파일을 열 때 사용할 코드 페이지를
+-codepage:&lt;number&gt;                소스 파일을 열 때 사용할 코드 페이지를
                                   지정합니다.
--delaysign[+|-] 강력한 이름의 키의 공개 부분만 사용하여 어셈블리 서명을
+-delaysign[+|-]                   강력한 이름의 키의 공개 부분만 사용하여 어셈블리 서명을
                                   공개적으로 진행합니다.
--publicsign[+|-] 강력한 이름의 키의 공개 부분만 사용하여 어셈블리 서명을
+-publicsign[+|-]                  강력한 이름의 키의 공개 부분만 사용하여 어셈블리 서명을
                                   공개적으로 진행합니다.
--errorreport:&lt;string&gt; 내부 컴파일러 오류를 처리하는 방법을 지정합니다.
+-errorreport:&lt;string&gt;             내부 컴파일러 오류를 처리하는 방법을 지정합니다.
                                   이는 프롬프트, 보내기, 없음 또는 큐(기본값)여야
                                   합니다.
--generatedfilesout:&lt;dir&gt; 지정된 디렉터리에 컴파일 중 생성된 파일을
+-generatedfilesout:&lt;dir&gt;          지정된 디렉터리에 컴파일 중 생성된 파일을
                                   이동합니다.
--filealign:&lt;number&gt; 출력 파일 섹션에 사용되는 맞춤을
+-filealign:&lt;number&gt;               출력 파일 섹션에 사용되는 맞춤을
                                   지정합니다.
--highentropyva[+|-] 높은 엔트로피 ASLR을 사용하도록 설정합니다.
--keycontainer:&lt;string&gt; 강력한 이름의 키 컨테이너를 지정합니다.
--keyfile:&lt;file&gt; 강력한 이름의 키 파일을 지정합니다.
--libpath:&lt;path_list&gt; 메타데이터 참조를 검색할 디렉터리
+-highentropyva[+|-]               높은 엔트로피 ASLR을 사용하도록 설정합니다.
+-keycontainer:&lt;string&gt;            강력한 이름의 키 컨테이너를 지정합니다.
+-keyfile:&lt;file&gt;                   강력한 이름의 키 파일을 지정합니다.
+-libpath:&lt;path_list&gt;                   메타데이터 참조를 검색할 디렉터리
                                   목록입니다. (세미콜론으로 구분됨)
--main:&lt;class&gt; Sub Main을 포함하는 클래스 또는 모듈을
+-main:&lt;class&gt;                   Sub Main을 포함하는 클래스 또는 모듈을
                                   지정합니다. System.Windows.Forms.Form를 상속하는
                                   Class도 가능합니다.
                                   (약식: -m)
--moduleassemblyname:&lt;string&gt; 이 모듈이 속할 어셈블리의
+-moduleassemblyname:&lt;string&gt;       이 모듈이 속할 어셈블리의
                                   이름입니다.
--netcf .NET Compact Framework를 지정하십시오.
--nostdlib 표준 라이브러리를 참조하지 마십시오
+-netcf                           .NET Compact Framework를 지정하세요.
+-nostdlib                         표준 라이브러리를 참조하지 마세요
                                   (system.dll 및 VBC. RSP 파일).
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                   컴파일러를 이용하여 원본 경로 이름 출력의 매핑을
                                   구체화합니다.
--platform:&lt;string&gt; 이 코드를 실행할 수 있는 플랫폼을 제한합니다.
+-platform:&lt;string&gt;               이 코드를 실행할 수 있는 플랫폼을 제한합니다.
                                   x86, x64, Itanium, arm, arm64
                                   AnyCPU32BitPreferred 또는 anycpu(기본값)이어야 합니다.
--preferreduilang 기본 출력 언어 이름을 지정합니다.
--nosdkpath 표준 라이브러리 어셈블리의 기본 SDK 경로 검색을 사용하지 않도록 설정합니다.
--sdkpath:&lt;path&gt; .NET Framework SDK 디렉터리 위치
+-preferreduilang                  기본 출력 언어 이름을 지정합니다.
+-nosdkpath                       표준 라이브러리 어셈블리의 기본 SDK 경로 검색을 사용하지 않도록 설정합니다.
+-reportivts[+|-]                  여기에 부여된 모든 IVT에 대한 출력 정보
+                                  모든 종속 항목에 의한 어셈블리 및 외부 어셈블리 주석
+                                  어떤 어셈블리에서 왔는지에 대한 접근성 오류
+-sdkpath:&lt;path&gt;                   .NET Framework SDK 디렉터리 위치
                                   (mscorlib.dll).
--subsystemversion:&lt;version&gt; 출력 PE의 하위 시스템 버전을 지정하십시오.
-                                  버전:&lt;number&gt;[.&lt;숫자&gt;]
--utf8output[+|-] UTF8 문자 인코딩으로 컴파일러 출력을
+-subsystemversion:&lt;version&gt;        출력 PE의 하위 시스템 버전을 지정하세요.
+                                  버전:&lt;number&gt;[.&lt;number&gt;]
+-utf8output[+|-]                  UTF8 문자 인코딩으로 컴파일러 출력을
                                   내보냅니다.
-@&lt;file&gt; 텍스트 파일에서 명령줄 설정을 삽입합니다.
--vbruntime[+|-|*] 기본 Visual Basic 런타임을 사용하거나 사용하지 않고
+@&lt;file&gt;                           텍스트 파일에서 명령줄 설정을 삽입합니다.
+-vbruntime[+|-|*]                기본 Visual Basic 런타임을 사용하거나 사용하지 않고
                                   컴파일합니다.
--vbruntime:&lt;file&gt; &lt;file&gt;에서 대체 Visual Basic 런타임을 사용하여
+-vbruntime:&lt;file&gt;                 &lt;file&gt;에서 대체 Visual Basic 런타임을 사용하여
                                   컴파일합니다.
 </target>
         <note />
@@ -573,16 +614,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">생성기 '{0}'이(가) 소스를 생성하지 못했습니다. 출력에 기여하지 않으므로 컴파일 오류가 발생할 수 있습니다. 예외의 형식은 '{1}'이고 메시지는 '{2}'입니다.</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">생성기에서 다음 예외를 throw했습니다.
-'{0}'.</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">생성기 '{0}'이(가) 소스를 생성하지 못했습니다. 출력에 기여하지 않으므로 컴파일 오류가 발생할 수 있습니다. 예외의 형식은 '{1}'이고 메시지는 '{2}'입니다.
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -590,16 +629,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">생성기 '{0}'이(가) 초기화하지 못했습니다. 출력에 기여하지 않으므로 컴파일 오류가 발생할 수 있습니다. 예외의 형식은 '{1}'이고 메시지는 '{2}'입니다.</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">생성기에서 다음 예외를 throw했습니다.
-'{0}'.</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">생성기 '{0}'이(가) 초기화하지 못했습니다. 출력에 기여하지 않으므로 컴파일 오류가 발생할 수 있습니다. 예외의 형식은 '{1}'이고 메시지는 '{2}'입니다.
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>

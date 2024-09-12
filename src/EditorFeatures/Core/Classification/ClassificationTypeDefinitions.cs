@@ -100,6 +100,17 @@ namespace Microsoft.CodeAnalysis.Classification
         internal readonly ClassificationTypeDefinition UserTypeTypeParametersTypeDefinition;
         #endregion
 
+        #region Test Code
+        [Export]
+        [Name(ClassificationTypeNames.TestCode)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition TestCodeTypeDefinition;
+        [Export]
+        [Name(ClassificationTypeNames.TestCodeMarkdown)]
+        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
+        internal readonly ClassificationTypeDefinition TestCodeMarkdownTypeDefinition;
+        #endregion
+
         // User Members - * set their BaseDefinitions to be Identifier so that
         // in the absence of specific styling they will appear as identifiers. 
         // Extension Methods are an exception and their base definition is Method

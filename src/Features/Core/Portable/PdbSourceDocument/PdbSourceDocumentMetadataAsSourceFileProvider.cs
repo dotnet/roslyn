@@ -27,14 +27,20 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
 {
     [ExportMetadataAsSourceFileProvider(ProviderName), Shared]
     [ExtensionOrder(Before = DecompilationMetadataAsSourceFileProvider.ProviderName)]
-    internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider : IMetadataAsSourceFileProvider
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
+        IPdbFileLocatorService pdbFileLocatorService,
+        IPdbSourceDocumentLoaderService pdbSourceDocumentLoaderService,
+        IImplementationAssemblyLookupService implementationAssemblyLookupService,
+        [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger) : IMetadataAsSourceFileProvider
     {
         internal const string ProviderName = "PdbSource";
 
-        private readonly IPdbFileLocatorService _pdbFileLocatorService;
-        private readonly IPdbSourceDocumentLoaderService _pdbSourceDocumentLoaderService;
-        private readonly IImplementationAssemblyLookupService _implementationAssemblyLookupService;
-        private readonly IPdbSourceDocumentLogger? _logger;
+        private readonly IPdbFileLocatorService _pdbFileLocatorService = pdbFileLocatorService;
+        private readonly IPdbSourceDocumentLoaderService _pdbSourceDocumentLoaderService = pdbSourceDocumentLoaderService;
+        private readonly IImplementationAssemblyLookupService _implementationAssemblyLookupService = implementationAssemblyLookupService;
+        private readonly IPdbSourceDocumentLogger? _logger = logger;
 
         /// <summary>
         /// Accessed only in <see cref="GetGeneratedFileAsync"/> and <see cref="CleanupGeneratedFiles"/>, both of which
@@ -56,20 +62,6 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
         /// potentially happening.
         /// </summary>
         private readonly ConcurrentDictionary<string, SourceDocumentInfo> _fileToDocumentInfoMap = new();
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public PdbSourceDocumentMetadataAsSourceFileProvider(
-            IPdbFileLocatorService pdbFileLocatorService,
-            IPdbSourceDocumentLoaderService pdbSourceDocumentLoaderService,
-            IImplementationAssemblyLookupService implementationAssemblyLookupService,
-            [Import(AllowDefault = true)] IPdbSourceDocumentLogger? logger)
-        {
-            _pdbFileLocatorService = pdbFileLocatorService;
-            _pdbSourceDocumentLoaderService = pdbSourceDocumentLoaderService;
-            _implementationAssemblyLookupService = implementationAssemblyLookupService;
-            _logger = logger;
-        }
 
         public async Task<MetadataAsSourceFile?> GetGeneratedFileAsync(
             MetadataAsSourceWorkspace metadataWorkspace,
@@ -139,14 +131,15 @@ namespace Microsoft.CodeAnalysis.PdbSourceDocument
                     // Now that we have the right DLL, we need to look up the symbol in this DLL, because the one
                     // we have is from the reference assembly. To do this we create an empty compilation,
                     // add our DLL as a reference, and use SymbolKey to map the type across.
-                    var compilationFactory = sourceProject.Services.GetRequiredService<ICompilationFactoryService>();
-                    var dllReference = IOUtilities.PerformIO(() => MetadataReference.CreateFromFile(dllPath));
+                    var documentationProvider = sourceWorkspace.Services.GetRequiredService<IDocumentationProviderService>();
+                    var dllReference = IOUtilities.PerformIO(() => MetadataReference.CreateFromFile(dllPath, documentation: documentationProvider.GetDocumentationProvider(dllPath)));
                     if (dllReference is null)
                     {
                         _logger?.Log(FeaturesResources.Could_not_find_implementation_of_symbol_0, symbolToFind.MetadataName);
                         return null;
                     }
 
+                    var compilationFactory = sourceProject.Services.GetRequiredService<ICompilationFactoryService>();
                     var tmpCompilation = compilationFactory
                         .CreateCompilation("tmp", compilationFactory.GetDefaultCompilationOptions())
                         .AddReferences(dllReference);

@@ -6,10 +6,8 @@ using System;
 using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.TaskStatusCenter;
 using Roslyn.Utilities;
 
@@ -34,8 +32,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         /// report UI changes concurrently.
         /// </summary>
         private readonly object _lock = new();
-        private readonly IThreadingContext _threadingContext;
         private readonly VisualStudioWorkspace _workspace;
+        private readonly IVsService<IVsTaskStatusCenterService> _taskStatusCenterService;
 
         /// <summary>
         /// Task used to trigger throttled UI updates in an interval
@@ -87,16 +85,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
         public TaskCenterSolutionAnalysisProgressReporter(
-            IThreadingContext threadingContext,
-            VisualStudioWorkspace workspace)
+            VisualStudioWorkspace workspace,
+            IVsService<SVsTaskStatusCenterService, IVsTaskStatusCenterService> taskStatusCenterService)
         {
-            _threadingContext = threadingContext;
             _workspace = workspace;
+            _taskStatusCenterService = taskStatusCenterService;
         }
 
-        public async Task InitializeAsync(IAsyncServiceProvider serviceProvider)
+        public async Task InitializeAsync()
         {
-            _taskCenterService = await serviceProvider.GetServiceAsync<SVsTaskStatusCenterService, IVsTaskStatusCenterService>(_threadingContext.JoinableTaskFactory).ConfigureAwait(false);
+            _taskCenterService = await _taskStatusCenterService.GetValueAsync().ConfigureAwait(false);
 
             var crawlerService = _workspace.Services.GetRequiredService<ISolutionCrawlerService>();
             var reporter = crawlerService.GetProgressReporter(_workspace);

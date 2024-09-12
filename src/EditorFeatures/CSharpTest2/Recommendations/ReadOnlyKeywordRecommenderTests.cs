@@ -23,24 +23,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         public async Task TestAfterClass()
         {
             await VerifyKeywordAsync(
-@"class C { }
-$$");
+                """
+                class C { }
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalStatement()
         {
             await VerifyKeywordAsync(
-@"System.Console.WriteLine();
-$$");
+                """
+                System.Console.WriteLine();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalVariableDeclaration()
         {
             await VerifyKeywordAsync(
-@"int i = 0;
-$$");
+                """
+                int i = 0;
+                $$
+                """);
         }
 
         [Fact]
@@ -67,182 +73,228 @@ $$");
         [Fact]
         public async Task TestAfterExtern()
         {
-            await VerifyKeywordAsync(@"extern alias Goo;
-$$");
+            await VerifyKeywordAsync("""
+                extern alias Goo;
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterUsing()
         {
-            await VerifyKeywordAsync(@"using Goo;
-$$");
+            await VerifyKeywordAsync("""
+                using Goo;
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterGlobalUsing()
         {
-            await VerifyKeywordAsync(@"global using Goo;
-$$");
+            await VerifyKeywordAsync("""
+                global using Goo;
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterNamespace()
         {
-            await VerifyKeywordAsync(@"namespace N {}
-$$");
+            await VerifyKeywordAsync("""
+                namespace N {}
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterFileScopedNamespace()
         {
             await VerifyKeywordAsync(
-@"namespace N;
-$$");
+                """
+                namespace N;
+                $$
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestFileKeywordInsideNamespace()
         {
             await VerifyKeywordAsync(
-@"namespace N {
-file $$
-}");
+                """
+                namespace N {
+                file $$
+                }
+                """);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66319")]
         public async Task TestFileKeywordInsideNamespaceBeforeClass()
         {
             await VerifyKeywordAsync(
-@"namespace N {
-file $$
-class C {}
-}");
+                """
+                namespace N {
+                file $$
+                class C {}
+                }
+                """);
         }
 
         [Fact]
         public async Task TestAfterTypeDeclaration()
         {
-            await VerifyKeywordAsync(@"class C {}
-$$");
+            await VerifyKeywordAsync("""
+                class C {}
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterDelegateDeclaration()
         {
-            await VerifyKeywordAsync(@"delegate void Goo();
-$$");
+            await VerifyKeywordAsync("""
+                delegate void Goo();
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterMethod()
         {
             await VerifyKeywordAsync(
-@"class C {
-  void Goo() {}
-  $$");
+                """
+                class C {
+                  void Goo() {}
+                  $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterField()
         {
             await VerifyKeywordAsync(
-@"class C {
-  int i;
-  $$");
+                """
+                class C {
+                  int i;
+                  $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterProperty()
         {
             await VerifyKeywordAsync(
-@"class C {
-  int i { get; }
-  $$");
+                """
+                class C {
+                  int i { get; }
+                  $$
+                """);
         }
 
         [Fact]
         public async Task TestNotBeforeUsing()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Regular,
-@"$$
-using Goo;");
+                """
+                $$
+                using Goo;
+                """);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotBeforeUsing_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"$$
-using Goo;");
+                """
+                $$
+                using Goo;
+                """);
         }
 
         [Fact]
         public async Task TestNotBeforeGlobalUsing()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Regular,
-@"$$
-global using Goo;");
+                """
+                $$
+                global using Goo;
+                """);
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotBeforeGlobalUsing_Interactive()
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
-@"$$
-global using Goo;");
+                """
+                $$
+                global using Goo;
+                """);
         }
 
         [Fact]
         public async Task TestAfterAssemblyAttribute()
         {
-            await VerifyKeywordAsync(@"[assembly: goo]
-$$");
+            await VerifyKeywordAsync("""
+                [assembly: goo]
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterRootAttribute()
         {
-            await VerifyKeywordAsync(@"[goo]
-$$");
+            await VerifyKeywordAsync("""
+                [goo]
+                $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterNestedAttribute()
         {
             await VerifyKeywordAsync(
-@"class C {
-  [goo]
-  $$");
+                """
+                class C {
+                  [goo]
+                  $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideStruct()
         {
             await VerifyKeywordAsync(
-@"struct S {
-   $$");
+                """
+                struct S {
+                   $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideInterface()
         {
-            await VerifyKeywordAsync(@"interface I {
-   $$");
+            await VerifyKeywordAsync("""
+                interface I {
+                   $$
+                """);
         }
 
         [Fact]
         public async Task TestNotInsideEnum()
         {
-            await VerifyAbsenceAsync(@"enum E {
-   $$");
+            await VerifyAbsenceAsync("""
+                enum E {
+                   $$
+                """);
         }
 
         [Fact]
         public async Task TestInsideClass()
         {
             await VerifyKeywordAsync(
-@"class C {
-   $$");
+                """
+                class C {
+                   $$
+                """);
         }
 
         [Fact]
@@ -261,8 +313,10 @@ $$");
         public async Task TestAfterNestedInternal()
         {
             await VerifyKeywordAsync(
-@"class C {
-    internal $$");
+                """
+                class C {
+                    internal $$
+                """);
         }
 
         [Fact]
@@ -277,8 +331,10 @@ $$");
         public async Task TestAfterNestedPublic()
         {
             await VerifyKeywordAsync(
-@"class C {
-    public $$");
+                """
+                class C {
+                    public $$
+                """);
         }
 
         [Fact]
@@ -291,8 +347,10 @@ $$");
         public async Task TestAfterNestedPrivate()
         {
             await VerifyKeywordAsync(
-@"class C {
-    private $$");
+                """
+                class C {
+                    private $$
+                """);
         }
 
         [Fact]
@@ -306,8 +364,10 @@ $$");
         public async Task TestAfterNestedProtected()
         {
             await VerifyKeywordAsync(
-@"class C {
-    protected $$");
+                """
+                class C {
+                    protected $$
+                """);
         }
 
         [Fact]
@@ -318,8 +378,10 @@ $$");
         public async Task TestAfterNestedSealed()
         {
             await VerifyKeywordAsync(
-@"class C {
-    sealed $$");
+                """
+                class C {
+                    sealed $$
+                """);
         }
 
         [Fact]
@@ -330,8 +392,10 @@ $$");
         public async Task TestAfterNestedStatic()
         {
             await VerifyKeywordAsync(
-@"class C {
-    static $$");
+                """
+                class C {
+                    static $$
+                """);
         }
 
         [Fact]
@@ -342,8 +406,10 @@ $$");
         public async Task TestAfterNestedStaticPublic()
         {
             await VerifyKeywordAsync(
-@"class C {
-    static public $$");
+                """
+                class C {
+                    static public $$
+                """);
         }
 
         [Fact]
@@ -354,32 +420,40 @@ $$");
         public async Task TestNotAfterEvent()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    event $$");
+                """
+                class C {
+                    event $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterConst()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    const $$");
+                """
+                class C {
+                    const $$
+                """);
         }
 
         [Fact]
         public async Task TestAfterReadOnly()
         {
             await VerifyKeywordAsync(
-@"class C {
-    readonly $$");
+                """
+                class C {
+                    readonly $$
+                """);
         }
 
         [Fact]
         public async Task TestNotAfterVolatile()
         {
             await VerifyAbsenceAsync(
-@"class C {
-    volatile $$");
+                """
+                class C {
+                    volatile $$
+                """);
         }
 
         [Fact]
@@ -407,138 +481,146 @@ $$");
         public async Task TestAfterNestedNew()
         {
             await VerifyKeywordAsync(
-@"class C {
-   new $$");
+                """
+                class C {
+                   new $$
+                """);
         }
 
         [Fact]
         public async Task TestNotInMethod()
         {
             await VerifyAbsenceAsync(
-@"class C {
-   void Goo() {
-     $$");
+                """
+                class C {
+                   void Goo() {
+                     $$
+                """);
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestRefReadonlyNotAsParameterModifierInMethods()
+        public async Task TestRefReadonlyAsParameterModifierInMethods()
         {
-            await VerifyAbsenceAsync(@"
-class Program
-{
-    public static void Test(ref $$ p) { }
-}");
+            await VerifyKeywordAsync("""
+                class Program
+                {
+                    public static void Test(ref $$ p) { }
+                }
+                """);
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestRefReadonlyNotAsParameterModifierInSecondParameter()
+        public async Task TestRefReadonlyAsParameterModifierInSecondParameter()
         {
-            await VerifyAbsenceAsync(@"
-class Program
-{
-    public static void Test(int p1, ref $$ p2) { }
-}");
+            await VerifyKeywordAsync("""
+                class Program
+                {
+                    public static void Test(int p1, ref $$ p2) { }
+                }
+                """);
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestRefReadonlyNotAsParameterModifierInDelegates()
+        public async Task TestRefReadonlyAsParameterModifierInDelegates()
         {
-            await VerifyAbsenceAsync(@"
-public delegate int Delegate(ref $$ int p);");
+            await VerifyKeywordAsync("""
+                public delegate int Delegate(ref $$ int p);
+                """);
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Theory, Trait(Traits.Feature, Traits.Features.Completion)]
         [CombinatorialData]
-        public async Task TestRefReadonlyNotAsParameterModifierInLocalFunctions(bool topLevelStatement)
+        public async Task TestRefReadonlyAsParameterModifierInLocalFunctions(bool topLevelStatement)
         {
-            await VerifyAbsenceAsync(AddInsideMethod(
+            await VerifyKeywordAsync(AddInsideMethod(
 @"void localFunc(ref $$ int p) { }", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestRefReadonlyNotAsParameterModifierInLambdaExpressions()
+        public async Task TestRefReadonlyAsParameterModifierInLambdaExpressions()
         {
-            await VerifyAbsenceAsync(@"
-public delegate int Delegate(ref int p);
+            await VerifyKeywordAsync("""
+                public delegate int Delegate(ref int p);
 
-class Program
-{
-    public static void Test()
-    {
-        // This is bad. We can't put 'ref $ int p' like in the other tests here because in this scenario:
-        // 'Delegate lambda = (ref r int p) => p;' (partially written 'readonly' keyword),
-        // the syntax tree is completely broken and there is no lambda expression at all here.
-        // 'ref' starts a new local declaration and therefore we do offer 'readonly'.
-        // Fixing that would have to involve either changing the parser or doing some really nasty hacks.
-        // Delegate lambda = (ref $$ int p) => p;
-    }
-}");
+                class Program
+                {
+                    public static void Test()
+                    {
+                        Delegate lambda = (ref $$ int p) => p;
+                    }
+                }
+                """);
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestRefReadonlyNotAsParameterModifierInAnonymousMethods()
+        public async Task TestRefReadonlyAsParameterModifierInAnonymousMethods()
         {
-            await VerifyAbsenceAsync(@"
-public delegate int Delegate(ref int p);
+            await VerifyKeywordAsync("""
+                public delegate int Delegate(ref int p);
 
-class Program
-{
-    public static void Test()
-    {
-        Delegate anonymousDelegate = delegate (ref $$ int p) { return p; };
-    }
-}");
+                class Program
+                {
+                    public static void Test()
+                    {
+                        Delegate anonymousDelegate = delegate (ref $$ int p) { return p; };
+                    }
+                }
+                """);
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyAsModifierInMethodReturnTypes()
         {
-            await VerifyKeywordAsync(@"
-class Program
-{
-    public ref $$ int Test()
-    {
-        return ref x;
-    }
-}");
+            await VerifyKeywordAsync("""
+                class Program
+                {
+                    public ref $$ int Test()
+                    {
+                        return ref x;
+                    }
+                }
+                """);
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyAsModifierInGlobalMemberDeclaration()
         {
-            await VerifyKeywordAsync(@"
-public ref $$ ");
+            await VerifyKeywordAsync("""
+                public ref $$
+                """);
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyAsModifierInDelegateReturnType()
         {
-            await VerifyKeywordAsync(@"
-public delegate ref $$ int Delegate();
+            await VerifyKeywordAsync("""
+                public delegate ref $$ int Delegate();
 
-class Program
-{
-}");
+                class Program
+                {
+                }
+                """);
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task TestRefReadonlyAsModifierInMemberDeclaration()
         {
-            await VerifyKeywordAsync(@"
-class Program
-{
-    public ref $$ int Test { get; set; }
-}");
+            await VerifyKeywordAsync("""
+                class Program
+                {
+                    public ref $$ int Test { get; set; }
+                }
+                """);
         }
 
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
@@ -575,25 +657,38 @@ class Program
         public async Task TestRefReadonlyNotInRefExpression(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"ref int x = ref $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
+@"ref int x = ref $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions,
+                // Top level statement with script tested below, so skip it here.
+                scriptOptions: topLevelStatement ? CSharp9ParseOptions : null);
+        }
+
+        [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyInRefExpression_TopLevelStatementScript()
+        {
+            // Recognized as parameter context, so readonly keyword is suggested.
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref int x = ref $$", topLevelStatement: true), options: CSharp9ParseOptions.WithKind(SourceCodeKind.Script));
         }
 
         [Fact]
         public async Task TestInFunctionPointerTypeAfterRef()
         {
-            await VerifyKeywordAsync(@"
-class C
-{
-    delegate*<ref $$");
+            await VerifyKeywordAsync("""
+                class C
+                {
+                    delegate*<ref $$
+                """);
         }
 
         [Fact]
         public async Task TestNotInFunctionPointerTypeWithoutRef()
         {
-            await VerifyAbsenceAsync(@"
-class C
-{
-    delegate*<$$");
+            await VerifyAbsenceAsync("""
+                class C
+                {
+                    delegate*<$$
+                """);
         }
 
         [Theory, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

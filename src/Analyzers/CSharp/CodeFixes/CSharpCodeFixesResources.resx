@@ -245,4 +245,16 @@
     <value>Make property 'required'</value>
     <comment>{Locked="required"} "required" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="Use_primary_constructor_and_remove_members" xml:space="preserve">
+    <value>Use primary constructor (and remove members)</value>
+  </data>
+  <data name="Use_primary_constructor_and_remove_fields" xml:space="preserve">
+    <value>Use primary constructor (and remove fields)</value>
+  </data>
+  <data name="Use_primary_constructor_and_remove_properties" xml:space="preserve">
+    <value>Use primary constructor (and remove properties)</value>
+  </data>
+  <data name="Use_collection_expression" xml:space="preserve">
+    <value>Use collection expression</value>
+  </data>
 </root>

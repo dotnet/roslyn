@@ -17,6 +17,11 @@
         <target state="translated">Komut satırı söz dizimi hatası: '{0}', '{1}' seçeneği için geçerli bir değer değil. Değer '{2}' biçiminde olmalıdır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotInheritFromTypeWithRequiredMembers">
+        <source>Cannot inherit from '{0}' because it has required members.</source>
+        <target state="translated">Gerekli üyelere sahip olduğu için '{0}' öğesinden devralınamaz.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CommentsAfterLineContinuationNotAvailable1">
         <source>Please use language version {0} or greater to use comments after line continuation character.</source>
         <target state="translated">Lütfen satır devamı karakterinden sonra açıklama kullanmak için {0} veya daha yüksek bir dil sürümü kullanın.</target>
@@ -32,9 +37,19 @@
         <target state="translated">'System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute' yalnızca derleyici kullanımı için ayrılmıştır.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DoNotUseRequiredMember">
+        <source>'System.Runtime.CompilerServices.RequiredMemberAttribute' is reserved for compiler usage only.</source>
+        <target state="translated">'System.Runtime.CompilerServices.RequiredMemberAttribute' yalnızca derleyici kullanımı için ayrılmıştır.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">Birden çok çözümleyici yapılandırma dosyası aynı dizinde ('{0}') olamaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NewConstraintCannotHaveRequiredMembers">
+        <source>'{2}' cannot satisfy the 'New' constraint on parameter '{1}' in the generic type or or method '{0}' because '{2}' has required members.</source>
+        <target state="translated">'{2}' gerekli üyelere sahip olduğundan '{2}', '{0}' genel türünde veya metodunda bulunan '{1}' parametresindeki 'new()' kısıtlamasını karşılayamıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverridingInitOnlyProperty">
@@ -52,6 +67,16 @@
         <target state="translated">'{0}' türünün temel arabirimden yeniden soyutlanmış bir üyesi olduğundan bu tür eklenemiyor. 'Embed Interop Types' özelliğini false olarak ayarlamayı deneyin.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_RequiredMemberMustBeSet">
+        <source>Required member '{0}' must be set in the object initializer or attribute arguments.</source>
+        <target state="translated">Gerekli '{0}' üyesi nesne başlatıcısında veya öznitelik bağımsız değişkeninde ayarlanmış olmalıdır.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RequiredMembersInvalid">
+        <source>The required members list for '{0}' is malformed and cannot be interpreted.</source>
+        <target state="translated">'{0}' için gerekli üye listesi hatalı biçimlendirilmiş ve yorumlanamıyor.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation">
         <source>Target runtime doesn't support default interface implementation.</source>
         <target state="translated">Hedef çalışma zamanı varsayılan arabirim uygulamasını desteklemiyor.</target>
@@ -67,6 +92,11 @@
         <target state="translated">Paylaşılan WithEvents değişkenlerinin olayları farklı türdeki metotlar tarafından işlenemez.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="translated">'{0}', '{1}' derlemesinde tanımlı.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
         <source>{0} '{1}' cannot implement interface '{3}' because it contains shared abstract or virtual '{2}'.</source>
         <target state="translated">{0} '{1}', paylaşılan soyut veya sanal '{2}' içerdiğinden '{3}' arabirimini uygulayamıyor.</target>
@@ -80,6 +110,11 @@
       <trans-unit id="ERR_UnsupportedCompilerFeature">
         <source>'{0}' requires compiler feature '{1}', which is not supported by this version of the Visual Basic compiler.</source>
         <target state="translated">'{0}', Visual Basic derleyicisinin bu sürümü tarafından desteklenmeyen '{1}' derleyici özelliğini gerektirir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnsupportedRefReturningCallInWithStatement">
+        <source>A call to a method or property that returns by reference may not be used as 'With' statement expression in an async or iterator method, or if referenced implicitly in a lambda.</source>
+        <target state="translated">Başvuruya göre dönen bir yönteme veya özelliğe yapılan çağrı, bir zaman uyumsuz veya yineleyici yöntemde veya bir lambda'da dolaylı olarak başvuruluyorsa 'With' deyimi olarak kullanılamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="FEATURE_CallerArgumentExpression">
@@ -257,6 +292,9 @@
                                   AnyCPU32BitPreferred or anycpu (default).
 -preferreduilang                  Specify the preferred output language name.
 -nosdkpath                        Disable searching the default SDK path for standard library assemblies.
+-reportivts[+|-]                  Output information on all IVTs granted to this
+                                  assembly by all dependencies, and annotate foreign assembly
+                                  accessibility errors with what assembly they came from.
 -sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Specify subsystem version of the output PE.
@@ -289,7 +327,7 @@
                                   - GİRİŞ DOSYALARI -
 -addmodule:&lt;file_list&gt;            Belirtilen modüllerdeki başvuru meta verileri
 -link:&lt;file_list&gt;                 Belirtilen birlikte çalışma derlemesinden meta veri
-                                  ekler. (Kısa biçimi: -l)
+                                  meta verileri. (Kısa biçimi: -l)
 -recurse:&lt;wildcard&gt;               Joker karakter belirtimlerine göre
                                   geçerli dizindeki ve alt dizinlerdeki tüm
                                   dosyaları ekler.
@@ -303,7 +341,7 @@
 
                                   - KAYNAKLAR -
 -linkresource:&lt;resinfo&gt;           Belirtilen dosyayı bir dış derleme kaynağı
-                                  olarak bağlar.
+                                  olarak ekler.
                                   resinfo:&lt;file&gt;[,&lt;name&gt;[,public|private]]
                                   (Kısa biçimi: -linkres)
 -nowin32manifest                  Varsayılan bildirim çıkış PE’sinin bildirim bölümüne
@@ -391,7 +429,7 @@
 -codepage:&lt;number&gt;                Kaynak dosyalar açılırken kullanılan kod sayfasını
                                   belirtir.
 -delaysign[+|-]                   Tanımlayıcı ad anahtarının ortak bölümünü kullanarak
-                                  derlemeyi gecikmeli imzalar.
+                                  derlemeyi genel imzalar.
 -publicsign[+|-]                   Tanımlayıcı ad anahtarının ortak bölümünü kullanarak
                                   derlemeyi genel imzalar.
 -errorreport:&lt;string&gt;             İç derleyici hatalarının nasıl işleneceğini belirtir;
@@ -423,6 +461,9 @@
                                   AnyCPU32BitPreferred veya anycpu (varsayılan) olmalıdır.
 -preferreduilang                  Tercih edilen çıkış dili adını belirtir.
 -nosdkpath                        Standart kitaplık derlemeleri için varsayılan SDK yolunu aramayı devre dışı bırakır.
+-reportivts[+|-]                  Bu derlemeye tüm bağımlılıklar tarafından verilen tüm IVT'ler hakkında çıkış bilgisi
+                                  ve hangi derlemeden geldikleri dahil olmak üzere
+                                  yabancı derleme erişilebilirlik hataları hakkında ek açıklamalar.
 -sdkpath:&lt;path&gt;                   .NET Framework SDK dizininin konumu
                                   (mscorlib.dll).
 -subsystemversion:&lt;version&gt;       Çıkış PE’sinin alt sistem sürümünü belirtir.
@@ -433,6 +474,7 @@
 -vbruntime[+|-|*]                 Varsayılan Visual Basic çalışma zamanı ile/olmadan
                                   derler.
 -vbruntime:&lt;file&gt;                 &lt;file&gt; içindeki alternatif Visual Basic çalışma zamanı ile
+
                                   derler.
 </target>
         <note />
@@ -573,16 +615,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">'{0}' oluşturucusu kaynak oluşturamadı. Oluşturucu çıkışa katkıda bulunmayacağından, bunun sonucunda derleme hataları oluşabilir. Özel durum '{2}' iletisi ile '{1}' türündeydi</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">Oluşturucu aşağıdaki özel durumu oluşturdu:
-'{0}'.</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">'{0}' oluşturucusu kaynak oluşturamadı. Oluşturucu çıkışa katkıda bulunamaz, bunun sonucunda derleme hataları oluşabilir. Özel durum '{2}' iletisi ile '{1}' türündeydi.
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -590,16 +630,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">'{0}' oluşturucusu başlatılamadı. Oluşturucu çıkışa katkıda bulunmayacağından, bunun sonucunda derleme hataları oluşabilir. Özel durum '{2}' iletisi ile '{1}' türündeydi</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">Oluşturucu aşağıdaki özel durumu oluşturdu:
-'{0}'.</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">'{0}' oluşturucusu başlatılamadı. Oluşturucu çıkışa katkıda bulunamaz, bunun sonucunda derleme hataları oluşabilir. Özel durum '{2}' iletisi ile '{1}' türündeydi.
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>

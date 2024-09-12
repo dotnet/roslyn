@@ -26,6 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private NamedTypeSymbol[] _lazySpecialTypes;
 
+        private TypeConversions _lazyTypeConversions;
+
         /// <summary>
         /// How many Cor types have we cached so far.
         /// </summary>
@@ -270,6 +272,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_assembliesToWhichInternalAccessHasBeenAnalyzed == null)
                     Interlocked.CompareExchange(ref _assembliesToWhichInternalAccessHasBeenAnalyzed, new ConcurrentDictionary<AssemblySymbol, IVTConclusion>(), null);
                 return _assembliesToWhichInternalAccessHasBeenAnalyzed;
+            }
+        }
+
+        internal sealed override TypeConversions TypeConversions
+        {
+            get
+            {
+                if (this != CorLibrary)
+                {
+                    return CorLibrary.TypeConversions;
+                }
+
+                if (_lazyTypeConversions is null)
+                {
+                    Interlocked.CompareExchange(ref _lazyTypeConversions, new TypeConversions(this), null);
+                }
+
+                return _lazyTypeConversions;
             }
         }
 

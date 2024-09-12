@@ -697,9 +697,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             }
         }
 
-        public async Task<GraphNode?> CreateNodeAsync(INavigateToSearchResult result, CancellationToken cancellationToken)
+        public async Task<GraphNode?> CreateNodeAsync(Solution solution, INavigateToSearchResult result, CancellationToken cancellationToken)
         {
-            var document = result.NavigableItem.Document;
+            var document = await result.NavigableItem.Document.GetRequiredDocumentAsync(solution, cancellationToken).ConfigureAwait(false);
             var project = document.Project;
 
             // If it doesn't belong to a document or project we can navigate to, then ignore entirely.
@@ -744,7 +744,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             if (existing != null)
                 return null;
 
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var span = text.Lines.GetLinePositionSpan(NavigateToUtilities.GetBoundedSpan(result.NavigableItem, text));
             var sourceLocation = TryCreateSourceLocation(document.FilePath, span);
             if (sourceLocation == null)
@@ -756,7 +756,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             symbolNode.AddCategory(category);
             symbolNode[DgmlNodeProperties.Icon] = GetIconString(result.NavigableItem.Glyph);
             symbolNode[RoslynGraphProperties.ContextDocumentId] = document.Id;
-            symbolNode[RoslynGraphProperties.ContextProjectId] = project.Id;
+            symbolNode[RoslynGraphProperties.ContextProjectId] = document.Project.Id;
 
             symbolNode[CodeNodeProperties.SourceLocation] = sourceLocation.Value;
 

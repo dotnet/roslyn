@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.InKeyword:
                     case SyntaxKind.RequiredKeyword:
                     case SyntaxKind.FileKeyword:
+                    case SyntaxKind.PartialKeyword:
                         result.Add(token.Kind());
                         positionBeforeModifiers = token.FullSpan.Start;
                         token = token.GetPreviousToken(includeSkipped: true);
@@ -67,6 +68,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         if (token.HasMatchingText(SyntaxKind.FileKeyword))
                         {
                             result.Add(SyntaxKind.FileKeyword);
+                            positionBeforeModifiers = token.FullSpan.Start;
+                            token = token.GetPreviousToken(includeSkipped: true);
+                            continue;
+                        }
+                        if (token.HasMatchingText(SyntaxKind.PartialKeyword))
+                        {
+                            result.Add(SyntaxKind.PartialKeyword);
                             positionBeforeModifiers = token.FullSpan.Start;
                             token = token.GetPreviousToken(includeSkipped: true);
                             continue;
@@ -360,19 +368,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static bool AtEndOfIncompleteStringOrCharLiteral(SyntaxToken token, int position, char lastChar, CancellationToken cancellationToken)
         {
-            if (token.Kind() is not (
+            var kind = token.Kind();
+            if (kind is not (
                     SyntaxKind.StringLiteralToken or
                     SyntaxKind.CharacterLiteralToken or
                     SyntaxKind.SingleLineRawStringLiteralToken or
-                    SyntaxKind.MultiLineRawStringLiteralToken))
+                    SyntaxKind.MultiLineRawStringLiteralToken or
+                    SyntaxKind.Utf8StringLiteralToken or
+                    SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                    SyntaxKind.Utf8MultiLineRawStringLiteralToken))
             {
                 throw new ArgumentException(CSharpCompilerExtensionsResources.Expected_string_or_char_literal, nameof(token));
+            }
+
+            // A UTF8 string literal must end with `"u8` and is thus never incomplete.
+            if (kind is
+                    SyntaxKind.Utf8StringLiteralToken or
+                    SyntaxKind.Utf8SingleLineRawStringLiteralToken or
+                    SyntaxKind.Utf8MultiLineRawStringLiteralToken)
+            {
+                return false;
             }
 
             if (position != token.Span.End)
                 return false;
 
-            if (token.Kind() is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
+            if (kind is SyntaxKind.SingleLineRawStringLiteralToken or SyntaxKind.MultiLineRawStringLiteralToken)
             {
                 var sourceText = token.SyntaxTree!.GetText(cancellationToken);
                 var startDelimeterLength = 0;
@@ -412,18 +433,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 syntaxTree.IsEntirelyWithinCharLiteral(position, cancellationToken);
         }
 
+        public static bool IsEntirelyWithinStringLiteral(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+            => IsEntirelyWithinStringLiteral(syntaxTree, position, out _, cancellationToken);
+
         public static bool IsEntirelyWithinStringLiteral(
-            this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+            this SyntaxTree syntaxTree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken)
         {
             var token = syntaxTree.GetRoot(cancellationToken).FindToken(position, findInsideTrivia: true);
 
             // If we ask right at the end of the file, we'll get back nothing. We handle that case
             // specially for now, though SyntaxTree.FindToken should work at the end of a file.
             if (token.Kind() is SyntaxKind.EndOfDirectiveToken or SyntaxKind.EndOfFileToken)
-            {
                 token = token.GetPreviousToken(includeSkipped: true, includeDirectives: true);
-            }
 
+            stringLiteral = token;
             if (token.Kind() is
                     SyntaxKind.StringLiteralToken or
                     SyntaxKind.SingleLineRawStringLiteralToken or

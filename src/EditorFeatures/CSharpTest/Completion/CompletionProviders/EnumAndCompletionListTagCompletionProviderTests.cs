@@ -20,31 +20,32 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         [Fact]
         public async Task NullableEnum()
         {
-            var markup = @"class Program
-{
-    static void Main(string[] args)
-    {
-        Colors? d = $$
-        Colors c = Colors.Blue;
-    }
-}
-";
-            var colors = @"
-enum Colors
-{
-    Red,
-    Blue,
-    Green,
-}
-";
-            var colorsLike = @"
-readonly struct Colors
-{
-    public static readonly Colors Red;
-    public static readonly Colors Blue;
-    public static readonly Colors Green;
-}
-";
+            var markup = """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        Colors? d = $$
+                        Colors c = Colors.Blue;
+                    }
+                }
+                """;
+            var colors = """
+                enum Colors
+                {
+                    Red,
+                    Blue,
+                    Green,
+                }
+                """;
+            var colorsLike = """
+                readonly struct Colors
+                {
+                    public static readonly Colors Red;
+                    public static readonly Colors Blue;
+                    public static readonly Colors Green;
+                }
+                """;
 
             await VerifyItemExistsAsync(markup + colors, "Colors");
             await VerifyItemIsAbsentAsync(markup + colorsLike, "Colors");
@@ -53,21 +54,22 @@ readonly struct Colors
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_EnumMemberAlways()
         {
-            var markup = @"
-class Program
-{
-    public void M()
-    {
-        Goo d = $$
-    }
-}
-";
-            var referencedCode = @"
-[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)]
-public enum Goo
-{
-    Member
-}";
+            var markup = """
+                class Program
+                {
+                    public void M()
+                    {
+                        Goo d = $$
+                    }
+                }
+                """;
+            var referencedCode = """
+                [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)]
+                public enum Goo
+                {
+                    Member
+                }
+                """;
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -81,21 +83,22 @@ public enum Goo
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_EnumMemberNever()
         {
-            var markup = @"
-class Program
-{
-    public void M()
-    {
-        Goo d = $$
-    }
-}
-";
-            var referencedCode = @"
-[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-public enum Goo
-{
-    Member
-}";
+            var markup = """
+                class Program
+                {
+                    public void M()
+                    {
+                        Goo d = $$
+                    }
+                }
+                """;
+            var referencedCode = """
+                [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+                public enum Goo
+                {
+                    Member
+                }
+                """;
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
                 referencedCode: referencedCode,
@@ -109,21 +112,22 @@ public enum Goo
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545678")]
         public async Task EditorBrowsable_EnumMemberAdvanced()
         {
-            var markup = @"
-class Program
-{
-    public void M()
-    {
-        Goo d = $$
-    }
-}
-";
-            var referencedCode = @"
-[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)]
-public enum Goo
-{
-    Member
-}";
+            var markup = """
+                class Program
+                {
+                    public void M()
+                    {
+                        Goo d = $$
+                    }
+                }
+                """;
+            var referencedCode = """
+                [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)]
+                public enum Goo
+                {
+                    Member
+                }
+                """;
             HideAdvancedMembers = true;
 
             await VerifyItemInEditorBrowsableContextsAsync(
@@ -150,29 +154,30 @@ public enum Goo
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/854099")]
         public async Task NotInComment()
         {
-            var markup = @"class Program
-{
-    static void Main(string[] args)
-    {
-        Colors c = // $$
-    }
-";
-            var colors = @"
-enum Colors
-{
-    Red,
-    Blue,
-    Green,
-}
-";
-            var colorsLike = @"
-readonly struct Colors
-{
-    public static readonly Colors Red;
-    public static readonly Colors Blue;
-    public static readonly Colors Green;
-}
-";
+            var markup = """
+                class Program
+                {
+                    static void Main(string[] args)
+                    {
+                        Colors c = // $$
+                    }
+                """;
+            var colors = """
+                enum Colors
+                {
+                    Red,
+                    Blue,
+                    Green,
+                }
+                """;
+            var colorsLike = """
+                readonly struct Colors
+                {
+                    public static readonly Colors Red;
+                    public static readonly Colors Blue;
+                    public static readonly Colors Green;
+                }
+                """;
 
             await VerifyNoItemsExistAsync(markup + colors);
             await VerifyNoItemsExistAsync(markup + colorsLike);
@@ -471,21 +476,23 @@ class Program
         public async Task NoCompletionListTag()
         {
             var markup =
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-class C
-{
-    
-}
+                class C
+                {
 
-class Program
-{
-    void Goo()
-    {
-        C c = $$
-    }
-}";
+                }
+
+                class Program
+                {
+                    void Goo()
+                    {
+                        C c = $$
+                    }
+                }
+                """;
             await VerifyNoItemsExistAsync(markup);
         }
 
@@ -493,22 +500,24 @@ class Program
         public async Task CompletionList()
         {
             var markup =
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-/// <completionlist cref=""C""/>
-class C
-{
-    
-}
+                /// <completionlist cref="C"/>
+                class C
+                {
 
-class Program
-{
-    void Goo()
-    {
-        C c = $$
-    }
-}";
+                }
+
+                class Program
+                {
+                    void Goo()
+                    {
+                        C c = $$
+                    }
+                }
+                """;
             await VerifyItemExistsAsync(markup, "C");
         }
 
@@ -516,22 +525,24 @@ class Program
         public async Task CompletionListCrefToString()
         {
             var markup =
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-/// <completionlist cref=""string""/>
-class C
-{
-    
-}
+                /// <completionlist cref="string"/>
+                class C
+                {
 
-class Program
-{
-    void Goo()
-    {
-        C c = $$
-    }
-}";
+                }
+
+                class Program
+                {
+                    void Goo()
+                    {
+                        C c = $$
+                    }
+                }
+                """;
             await VerifyItemExistsAsync(markup, "string", glyph: (int)Glyph.ClassPublic);
         }
 
@@ -539,22 +550,24 @@ class Program
         public async Task CompletionListEmptyCref()
         {
             var markup =
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-/// <completionlist cref=""""/>
-class C
-{
-    
-}
+                /// <completionlist cref=""/>
+                class C
+                {
 
-class Program
-{
-    void Goo()
-    {
-        C c = $$
-    }
-}";
+                }
+
+                class Program
+                {
+                    void Goo()
+                    {
+                        C c = $$
+                    }
+                }
+                """;
             await VerifyNoItemsExistAsync(markup);
         }
 
@@ -562,24 +575,26 @@ class Program
         public async Task CompletionListInaccessibleType()
         {
             var markup =
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-/// <completionlist cref=""C.Inner""/>
-class C
-{
-    private class Inner
-    {   
-    }
-}
+                /// <completionlist cref="C.Inner"/>
+                class C
+                {
+                    private class Inner
+                    {   
+                    }
+                }
 
-class Program
-{
-    void Goo()
-    {
-        C c = $$
-    }
-}";
+                class Program
+                {
+                    void Goo()
+                    {
+                        C c = $$
+                    }
+                }
+                """;
             await VerifyNoItemsExistAsync(markup);
         }
 
@@ -587,24 +602,26 @@ class Program
         public async Task CompletionListNotAType()
         {
             var markup =
-@"using System;
-using System.Threading.Tasks;
+                """
+                using System;
+                using System.Threading.Tasks;
 
-/// <completionlist cref=""C.Z()""/>
-class C
-{
-    public void Z()
-    {   
-    }
-}
+                /// <completionlist cref="C.Z()"/>
+                class C
+                {
+                    public void Z()
+                    {   
+                    }
+                }
 
-class Program
-{
-    void Goo()
-    {
-        C c = $$
-    }
-}";
+                class Program
+                {
+                    void Goo()
+                    {
+                        C c = $$
+                    }
+                }
+                """;
             await VerifyNoItemsExistAsync(markup);
         }
 
@@ -612,24 +629,25 @@ class Program
         public async Task CompletionListContainingMembers()
         {
             var markup =
-@"
-/// <completionlist cref=""TypeContainer"" />
- public class SomeType
- { }
+                """
+                /// <completionlist cref="TypeContainer" />
+                 public class SomeType
+                 { }
 
- public static class TypeContainer
- {
-     public static SomeType Foo1 = new SomeType();
-     public static Program Foo2 = new Program();
- }
+                 public static class TypeContainer
+                 {
+                     public static SomeType Foo1 = new SomeType();
+                     public static Program Foo2 = new Program();
+                 }
 
- class Program
- {
-     void Goo()
-     {
-         SomeType c = $$
-     }
- }";
+                 class Program
+                 {
+                     void Goo()
+                     {
+                         SomeType c = $$
+                     }
+                 }
+                """;
             await VerifyItemExistsAsync(markup, "TypeContainer");
             await VerifyItemExistsAsync(markup, "TypeContainer.Foo1");
             await VerifyItemExistsAsync(markup, "TypeContainer.Foo2");
@@ -715,27 +733,27 @@ class Program
         [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]
         public async Task NotInParameterNameContext()
         {
-            var enumE = @"
-enum E
-{
-    a
-}
-";
-            var enumLikeE = @"
-readonly struct E
-{
-    public static readonly E a;
-}
-";
-            var markup = @"
-class C
-{
-    void goo(E first, E second) 
-    {
-        goo(first: E.a, $$
-    }
-}
-";
+            var enumE = """
+                enum E
+                {
+                    a
+                }
+                """;
+            var enumLikeE = """
+                readonly struct E
+                {
+                    public static readonly E a;
+                }
+                """;
+            var markup = """
+                class C
+                {
+                    void goo(E first, E second) 
+                    {
+                        goo(first: E.a, $$
+                    }
+                }
+                """;
 
             await VerifyItemIsAbsentAsync(enumE + markup, "E");
 
@@ -746,27 +764,28 @@ class C
         public async Task InExpressionBodiedProperty()
         {
             var markup =
-@"class C
-{
-    Colors Colors => $$
-}
-";
-            var colors = @"
-enum Colors
-{
-    Red,
-    Blue,
-    Green,
-}
-";
-            var colorsLike = @"
-readonly struct Colors
-{
-    public static readonly Colors Red;
-    public static readonly Colors Blue;
-    public static readonly Colors Green;
-}
-";
+                """
+                class C
+                {
+                    Colors Colors => $$
+                }
+                """;
+            var colors = """
+                enum Colors
+                {
+                    Red,
+                    Blue,
+                    Green,
+                }
+                """;
+            var colorsLike = """
+                readonly struct Colors
+                {
+                    public static readonly Colors Red;
+                    public static readonly Colors Blue;
+                    public static readonly Colors Green;
+                }
+                """;
 
             await VerifyItemExistsAsync(markup + colors, "Colors");
             await VerifyItemIsAbsentAsync(markup + colorsLike, "Colors");
@@ -776,27 +795,28 @@ readonly struct Colors
         public async Task InExpressionBodiedMethod()
         {
             var markup =
-@"class C
-{
-    Colors GetColors() => $$
-}
-";
-            var colors = @"
-enum Colors
-{
-    Red,
-    Blue,
-    Green,
-}
-";
-            var colorsLike = @"
-readonly struct Colors
-{
-    public static readonly Colors Red;
-    public static readonly Colors Blue;
-    public static readonly Colors Green;
-}
-";
+                """
+                class C
+                {
+                    Colors GetColors() => $$
+                }
+                """;
+            var colors = """
+                enum Colors
+                {
+                    Red,
+                    Blue,
+                    Green,
+                }
+                """;
+            var colorsLike = """
+                readonly struct Colors
+                {
+                    public static readonly Colors Red;
+                    public static readonly Colors Blue;
+                    public static readonly Colors Green;
+                }
+                """;
 
             await VerifyItemExistsAsync(markup + colors, "Colors");
             await VerifyItemIsAbsentAsync(markup + colorsLike, "Colors");
@@ -805,11 +825,12 @@ readonly struct Colors
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
         public async Task NotAfterAsync1()
         {
-            var markup = @"
-class Test
-{
-    public async $$
-}";
+            var markup = """
+                class Test
+                {
+                    public async $$
+                }
+                """;
 
             await VerifyNoItemsExistAsync(markup);
         }
@@ -817,12 +838,13 @@ class Test
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60341")]
         public async Task NotAfterAsync2()
         {
-            var markup = @"
-class Test
-{
-    public async $$
-    public void M() {}
-}";
+            var markup = """
+                class Test
+                {
+                    public async $$
+                    public void M() {}
+                }
+                """;
 
             await VerifyNoItemsExistAsync(markup);
         }
@@ -831,33 +853,34 @@ class Test
         public async Task NotAfterDot()
         {
             var markup =
-@"namespace ConsoleApplication253
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            M(E.$$)
-        }
+                """
+                namespace ConsoleApplication253
+                {
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                            M(E.$$)
+                        }
 
-        static void M(E e) { }
-    }
-}
-";
-            var enumE = @"
-enum E
-{
-    A,
-    B,
-}
-";
-            var enumLikeE = @"
-readonly struct E
-{
-    public static readonly E A;
-    public static readonly E B;
-}
-";
+                        static void M(E e) { }
+                    }
+                }
+                """;
+            var enumE = """
+                enum E
+                {
+                    A,
+                    B,
+                }
+                """;
+            var enumLikeE = """
+                readonly struct E
+                {
+                    public static readonly E A;
+                    public static readonly E B;
+                }
+                """;
 
             await VerifyNoItemsExistAsync(markup + enumE);
             await VerifyNoItemsExistAsync(markup + enumLikeE);
@@ -867,33 +890,34 @@ readonly struct E
         public async Task NotAfterDotWithTextTyped()
         {
             var markup =
-@"namespace ConsoleApplication253
-{
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            M(E.a$$)
-        }
+                """
+                namespace ConsoleApplication253
+                {
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+                            M(E.a$$)
+                        }
 
-        static void M(E e) { }
-    }
-}
-";
-            var enumE = @"
-enum E
-{
-    A,
-    B,
-}
-";
-            var enumLikeE = @"
-readonly struct E
-{
-    public static readonly E A;
-    public static readonly E B;
-}
-";
+                        static void M(E e) { }
+                    }
+                }
+                """;
+            var enumE = """
+                enum E
+                {
+                    A,
+                    B,
+                }
+                """;
+            var enumLikeE = """
+                readonly struct E
+                {
+                    public static readonly E A;
+                    public static readonly E B;
+                }
+                """;
 
             await VerifyNoItemsExistAsync(markup + enumE);
             await VerifyNoItemsExistAsync(markup + enumLikeE);
@@ -903,18 +927,20 @@ readonly struct E
         public async Task TestInEnumInitializer1()
         {
             var markup =
-@"using System;
+                """
+                using System;
 
-[Flags]
-internal enum ProjectTreeWriterOptions
-{
-    None,
-    Tags,
-    FilePath,
-    Capabilities,
-    Visibility,
-    AllProperties = FilePath | Visibility | $$
-}";
+                [Flags]
+                internal enum ProjectTreeWriterOptions
+                {
+                    None,
+                    Tags,
+                    FilePath,
+                    Capabilities,
+                    Visibility,
+                    AllProperties = FilePath | Visibility | $$
+                }
+                """;
             await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
         }
 
@@ -922,18 +948,20 @@ internal enum ProjectTreeWriterOptions
         public async Task TestInEnumInitializer2()
         {
             var markup =
-@"using System;
+                """
+                using System;
 
-[Flags]
-internal enum ProjectTreeWriterOptions
-{
-    None,
-    Tags,
-    FilePath,
-    Capabilities,
-    Visibility,
-    AllProperties = FilePath | $$ Visibility
-}";
+                [Flags]
+                internal enum ProjectTreeWriterOptions
+                {
+                    None,
+                    Tags,
+                    FilePath,
+                    Capabilities,
+                    Visibility,
+                    AllProperties = FilePath | $$ Visibility
+                }
+                """;
             await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
         }
 
@@ -941,18 +969,20 @@ internal enum ProjectTreeWriterOptions
         public async Task TestInEnumInitializer3()
         {
             var markup =
-@"using System;
+                """
+                using System;
 
-[Flags]
-internal enum ProjectTreeWriterOptions
-{
-    None,
-    Tags,
-    FilePath,
-    Capabilities,
-    Visibility,
-    AllProperties = FilePath | $$ | Visibility
-}";
+                [Flags]
+                internal enum ProjectTreeWriterOptions
+                {
+                    None,
+                    Tags,
+                    FilePath,
+                    Capabilities,
+                    Visibility,
+                    AllProperties = FilePath | $$ | Visibility
+                }
+                """;
             await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
         }
 
@@ -960,18 +990,20 @@ internal enum ProjectTreeWriterOptions
         public async Task TestInEnumInitializer4()
         {
             var markup =
-@"using System;
+                """
+                using System;
 
-[Flags]
-internal enum ProjectTreeWriterOptions
-{
-    None,
-    Tags,
-    FilePath,
-    Capabilities,
-    Visibility,
-    AllProperties = FilePath ^ $$
-}";
+                [Flags]
+                internal enum ProjectTreeWriterOptions
+                {
+                    None,
+                    Tags,
+                    FilePath,
+                    Capabilities,
+                    Visibility,
+                    AllProperties = FilePath ^ $$
+                }
+                """;
             await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
         }
 
@@ -979,18 +1011,20 @@ internal enum ProjectTreeWriterOptions
         public async Task TestInEnumInitializer5()
         {
             var markup =
-@"using System;
+                """
+                using System;
 
-[Flags]
-internal enum ProjectTreeWriterOptions
-{
-    None,
-    Tags,
-    FilePath,
-    Capabilities,
-    Visibility,
-    AllProperties = FilePath & $$
-}";
+                [Flags]
+                internal enum ProjectTreeWriterOptions
+                {
+                    None,
+                    Tags,
+                    FilePath,
+                    Capabilities,
+                    Visibility,
+                    AllProperties = FilePath & $$
+                }
+                """;
             await VerifyItemExistsAsync(markup, "ProjectTreeWriterOptions");
         }
 
@@ -998,16 +1032,18 @@ internal enum ProjectTreeWriterOptions
         public async Task TestInEnumHasFlag()
         {
             var markup =
-@"using System.IO;
+                """
+                using System.IO;
 
-class C
-{
-    void M()
-    {
-        FileInfo f;
-        f.Attributes.HasFlag($$
-    }
-}";
+                class C
+                {
+                    void M()
+                    {
+                        FileInfo f;
+                        f.Attributes.HasFlag($$
+                    }
+                }
+                """;
             await VerifyItemExistsAsync(markup, "FileAttributes");
         }
 
@@ -1130,31 +1166,54 @@ class C
             await VerifyItemIsAbsentAsync(markup, "ConsoleColor");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68240")]
+        public async Task TestNotCompilerGeneratedField()
+        {
+            var markup = """
+                class Sample
+                {
+                    public static Sample Instance { get; } = new Sample();
+
+                    private sealed class Nested
+                    {
+                        Sample A()
+                        {
+                            return $$
+                        }
+                    }
+                }
+                """;
+            await VerifyItemIsAbsentAsync(markup, "Sample.<Instance>k__BackingField");
+        }
+
         #region enum members
 
         [Fact]
         public async Task TestEditorBrowsable_EnumTypeDotMemberAlways()
         {
-            var markup = @"
-class P
-{
-    public void S()
-    {
-        MyEnum d = $$;
-    }
-}";
-            var referencedCode = @"
-public enum MyEnum
-{
-    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)]
-    Member
-}";
-            var referencedCode_EnumLike = @"
-public readonly struct MyEnum
-{
-    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)]
-    public static readonly MyEnum Member;
-}";
+            var markup = """
+                class P
+                {
+                    public void S()
+                    {
+                        MyEnum d = $$;
+                    }
+                }
+                """;
+            var referencedCode = """
+                public enum MyEnum
+                {
+                    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)]
+                    Member
+                }
+                """;
+            var referencedCode_EnumLike = """
+                public readonly struct MyEnum
+                {
+                    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Always)]
+                    public static readonly MyEnum Member;
+                }
+                """;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -1178,26 +1237,29 @@ public readonly struct MyEnum
         [Fact]
         public async Task TestEditorBrowsable_EnumTypeDotMemberNever()
         {
-            var markup = @"
-class P
-{
-    public void S()
-    {
-        MyEnum d = $$;
-    }
-}";
-            var referencedCode = @"
-public enum MyEnum
-{
-    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-    Member
-}";
-            var referencedCode_EnumLike = @"
-public readonly struct MyEnum
-{
-    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-    public static readonly MyEnum Member;
-}";
+            var markup = """
+                class P
+                {
+                    public void S()
+                    {
+                        MyEnum d = $$;
+                    }
+                }
+                """;
+            var referencedCode = """
+                public enum MyEnum
+                {
+                    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+                    Member
+                }
+                """;
+            var referencedCode_EnumLike = """
+                public readonly struct MyEnum
+                {
+                    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+                    public static readonly MyEnum Member;
+                }
+                """;
 
             await VerifyItemInEditorBrowsableContextsAsync(
                 markup: markup,
@@ -1221,26 +1283,29 @@ public readonly struct MyEnum
         [Fact]
         public async Task TestEditorBrowsable_EnumTypeDotMemberAdvanced()
         {
-            var markup = @"
-class P
-{
-    public void S()
-    {
-        MyEnum d = $$;
-    }
-}";
-            var referencedCode = @"
-public enum MyEnum
-{
-    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)]
-    Member
-}";
-            var referencedCode_EnumLike = @"
-public readonly struct MyEnum
-{
-    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)]
-    public static readonly MyEnum Member;
-}";
+            var markup = """
+                class P
+                {
+                    public void S()
+                    {
+                        MyEnum d = $$;
+                    }
+                }
+                """;
+            var referencedCode = """
+                public enum MyEnum
+                {
+                    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)]
+                    Member
+                }
+                """;
+            var referencedCode_EnumLike = """
+                public readonly struct MyEnum
+                {
+                    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Advanced)]
+                    public static readonly MyEnum Member;
+                }
+                """;
 
             HideAdvancedMembers = true;
 
@@ -1290,36 +1355,36 @@ public readonly struct MyEnum
         [Fact]
         public async Task TestTriggeredOnOpenParen()
         {
-            var markup = @"
-static class Program
-{
-    public static void Main(string[] args)
-    {
-        // type after this line
-        Bar($$
-    }
+            var markup = """
+                static class Program
+                {
+                    public static void Main(string[] args)
+                    {
+                        // type after this line
+                        Bar($$
+                    }
 
-    public static void Bar(Goo f)
-    {
-    }
-}
-";
-            var goo = @"
-enum Goo
-{
-    AMember,
-    BMember,
-    CMember
-}
-";
-            var gooLike = @"
-readonly struct Goo
-{
-    public static readonly Goo AMember;
-    public static readonly Goo BMember;
-    public static readonly Goo CMember;
-}
-";
+                    public static void Bar(Goo f)
+                    {
+                    }
+                }
+                """;
+            var goo = """
+                enum Goo
+                {
+                    AMember,
+                    BMember,
+                    CMember
+                }
+                """;
+            var gooLike = """
+                readonly struct Goo
+                {
+                    public static readonly Goo AMember;
+                    public static readonly Goo BMember;
+                    public static readonly Goo CMember;
+                }
+                """;
 
             await VerifyItemExistsAsync(markup + goo, "Goo.AMember", usePreviousCharAsTrigger: true);
             await VerifyItemExistsAsync(markup + goo, "Goo.AMember", usePreviousCharAsTrigger: false);
@@ -1330,32 +1395,32 @@ readonly struct Goo
         [Fact]
         public async Task TestRightSideOfAssignment()
         {
-            var markup = @"
-static class Program
-{
-    public static void Main(string[] args)
-    {
-        Goo x;
-        x = $$;
-    }
-}
-";
-            var goo = @"
-enum Goo
-{
-    AMember,
-    BMember,
-    CMember
-}
-";
-            var gooLike = @"
-readonly struct Goo
-{
-    public static readonly Goo AMember;
-    public static readonly Goo BMember;
-    public static readonly Goo CMember;
-}
-";
+            var markup = """
+                static class Program
+                {
+                    public static void Main(string[] args)
+                    {
+                        Goo x;
+                        x = $$;
+                    }
+                }
+                """;
+            var goo = """
+                enum Goo
+                {
+                    AMember,
+                    BMember,
+                    CMember
+                }
+                """;
+            var gooLike = """
+                readonly struct Goo
+                {
+                    public static readonly Goo AMember;
+                    public static readonly Goo BMember;
+                    public static readonly Goo CMember;
+                }
+                """;
 
             await VerifyItemExistsAsync(markup + goo, "Goo.AMember", usePreviousCharAsTrigger: true);
             await VerifyItemExistsAsync(markup + goo, "Goo.AMember", usePreviousCharAsTrigger: false);
@@ -1366,36 +1431,36 @@ readonly struct Goo
         [Fact]
         public async Task TestCaseStatement()
         {
-            var markup = @"
-static class Module1
-{
-    public static void Main(string[] args)
-    {
-        var value = E.A;
+            var markup = """
+                static class Module1
+                {
+                    public static void Main(string[] args)
+                    {
+                        var value = E.A;
 
-        switch (value)
-        {
-            case $$
-        }
-    }
-}
-";
-            var e = @"
-enum E
-{
-    A,
-    B,
-    C
-}
-";
-            var eLike = @"
-readonly struct E
-{
-    public static readonly E A;
-    public static readonly E B;
-    public static readonly E C;
-}
-";
+                        switch (value)
+                        {
+                            case $$
+                        }
+                    }
+                }
+                """;
+            var e = """
+                enum E
+                {
+                    A,
+                    B,
+                    C
+                }
+                """;
+            var eLike = """
+                readonly struct E
+                {
+                    public static readonly E A;
+                    public static readonly E B;
+                    public static readonly E C;
+                }
+                """;
 
             await VerifyItemExistsAsync(e + markup, "E.A", usePreviousCharAsTrigger: true);
             await VerifyItemExistsAsync(e + markup, "E.A", usePreviousCharAsTrigger: false);
@@ -1574,27 +1639,27 @@ class C
         [Fact]
         public async Task TestCaseStatementWithInt32InferredType()
         {
-            var markup = @"
-class C
-{
-    public void M(DayOfWeek day)
-    {
-        switch (day)
-        {
-            case DayOfWeek.A:
-                break;
+            var markup = """
+                class C
+                {
+                    public void M(DayOfWeek day)
+                    {
+                        switch (day)
+                        {
+                            case DayOfWeek.A:
+                                break;
 
-            case $$
-        }
-    }
+                            case $$
+                        }
+                    }
 
-    enum DayOfWeek
-    {
-        A,
-        B
-    }
-}
-";
+                    enum DayOfWeek
+                    {
+                        A,
+                        B
+                    }
+                }
+                """;
 
             await VerifyItemExistsAsync(markup, "DayOfWeek.A");
             await VerifyItemExistsAsync(markup, "DayOfWeek.B");
@@ -1603,20 +1668,20 @@ class C
         [Fact]
         public async Task TestLocalNoAs()
         {
-            var markup = @"
-enum E
-{
-    A
-}
+            var markup = """
+                enum E
+                {
+                    A
+                }
 
-class C
-{
-    public void M()
-    {
-        const E e = e$$;
-    }
-}
-";
+                class C
+                {
+                    public void M()
+                    {
+                        const E e = e$$;
+                    }
+                }
+                """;
 
             await VerifyItemExistsAsync(markup, "E.A");
             await VerifyItemIsAbsentAsync(markup, "e as E");
@@ -1625,20 +1690,20 @@ class C
         [Fact]
         public async Task TestIncludeEnumAfterTyping()
         {
-            var markup = @"
-enum E
-{
-    A
-}
+            var markup = """
+                enum E
+                {
+                    A
+                }
 
-class C
-{
-    public void M()
-    {
-        const E e = e$$;
-    }
-}
-";
+                class C
+                {
+                    public void M()
+                    {
+                        const E e = e$$;
+                    }
+                }
+                """;
 
             await VerifyItemExistsAsync(markup, "E.A");
         }
@@ -1646,62 +1711,62 @@ class C
         [Fact]
         public async Task TestNotInTrivia()
         {
-            var markup = @"
-class C
-{
-    public void M(DayOfWeek day)
-    {
-        switch (day)
-        {
-            case DayOfWeek.A:
-            case DayOfWeek.B// $$
-                :
-                    break;
-        }
-    }
+            var markup = """
+                class C
+                {
+                    public void M(DayOfWeek day)
+                    {
+                        switch (day)
+                        {
+                            case DayOfWeek.A:
+                            case DayOfWeek.B// $$
+                                :
+                                    break;
+                        }
+                    }
 
-    enum DayOfWeek
-    {
-        A,
-        B
-    }
-}
-";
+                    enum DayOfWeek
+                    {
+                        A,
+                        B
+                    }
+                }
+                """;
             await VerifyNoItemsExistAsync(markup);
         }
 
         [Fact]
         public async Task TestCommitOnComma()
         {
-            var markup = @"
-enum E
-{
-    A
-}
+            var markup = """
+                enum E
+                {
+                    A
+                }
 
-class C
-{
-    public void M()
-    {
-        const E e = $$
-    }
-}
-";
+                class C
+                {
+                    public void M()
+                    {
+                        const E e = $$
+                    }
+                }
+                """;
 
-            var expected = @"
-enum E
-{
-    A
-}
+            var expected = """
+                enum E
+                {
+                    A
+                }
 
-class C
-{
-    public void M()
-    {
-        const E e = E.A;
-    }
-}
-";
+                class C
+                {
+                    public void M()
+                    {
+                        const E e = E.A;
+                    }
+                }
+                """;
 
             await VerifyProviderCommitAsync(markup, "E.A", expected, ';');
         }
@@ -1778,18 +1843,18 @@ class C
         [Fact]
         public async Task EnumMember_TestInEnumHasFlag()
         {
-            var markup = @"
-using System.IO;
+            var markup = """
+                using System.IO;
 
-class C
-{
-    public void Main()
-    {
-        FileInfo f;
-        f.Attributes.HasFlag($$
-    }
-}
-";
+                class C
+                {
+                    public void Main()
+                    {
+                        FileInfo f;
+                        f.Attributes.HasFlag($$
+                    }
+                }
+                """;
 
             await VerifyItemExistsAsync(markup, "FileAttributes.Hidden");
         }
@@ -1797,44 +1862,44 @@ class C
         [Fact]
         public async Task TestMultipleEnumsCausedByOverloads()
         {
-            var markup = @"
-class C
-{
-    public enum Color
-    {
-        Red,
-        Green,
-    }
+            var markup = """
+                class C
+                {
+                    public enum Color
+                    {
+                        Red,
+                        Green,
+                    }
 
-    public enum Palette
-    {
-        AccentColor1,
-        AccentColor2,
-    }
+                    public enum Palette
+                    {
+                        AccentColor1,
+                        AccentColor2,
+                    }
 
-    public readonly struct ColorLike
-    {
-        public static readonly ColorLike Red;
-        public static readonly ColorLike Green;
-    }
+                    public readonly struct ColorLike
+                    {
+                        public static readonly ColorLike Red;
+                        public static readonly ColorLike Green;
+                    }
 
-    public readonly struct PaletteLike
-    {
-        public static readonly PaletteLike AccentColor1;
-        public static readonly PaletteLike AccentColor2;
-    }
+                    public readonly struct PaletteLike
+                    {
+                        public static readonly PaletteLike AccentColor1;
+                        public static readonly PaletteLike AccentColor2;
+                    }
 
-    public void SetColor(Color color) { }
-    public void SetColor(Palette palette) { }
-    public void SetColor(ColorLike color) { }
-    public void SetColor(PaletteLike palette) { }
+                    public void SetColor(Color color) { }
+                    public void SetColor(Palette palette) { }
+                    public void SetColor(ColorLike color) { }
+                    public void SetColor(PaletteLike palette) { }
 
-    public void Main()
-    {
-        SetColor($$
-    }
-}
-";
+                    public void Main()
+                    {
+                        SetColor($$
+                    }
+                }
+                """;
 
             await VerifyItemExistsAsync(markup, "Color.Red");
             await VerifyItemExistsAsync(markup, "Palette.AccentColor1");
@@ -1982,71 +2047,71 @@ class C
         [Fact]
         public async Task TestPatterns_SwitchStatement_PropertyPattern()
         {
-            var markup = @"
-public enum Color
-{
-    Red,
-    Green,
-}
+            var markup = """
+                public enum Color
+                {
+                    Red,
+                    Green,
+                }
 
-class C
-{
-    public Color Color { get; }
+                class C
+                {
+                    public Color Color { get; }
 
-    public void M()
-    {
-        switch (this)
-        {
-            case { Color: $$
-    }
-}
-";
+                    public void M()
+                    {
+                        switch (this)
+                        {
+                            case { Color: $$
+                    }
+                }
+                """;
             await VerifyItemExistsAsync(markup, "Color.Red");
         }
 
         [Fact]
         public async Task TestPatterns_SwitchExpression_PropertyPattern()
         {
-            var markup = @"
-public enum Color
-{
-    Red,
-    Green,
-}
+            var markup = """
+                public enum Color
+                {
+                    Red,
+                    Green,
+                }
 
-class C
-{
-    public Color Color { get; }
+                class C
+                {
+                    public Color Color { get; }
 
-    public void M()
-    {
-        var isRed = this switch
-        {
-            { Color: $$
-    }
-}
-";
+                    public void M()
+                    {
+                        var isRed = this switch
+                        {
+                            { Color: $$
+                    }
+                }
+                """;
             await VerifyItemExistsAsync(markup, "Color.Red");
         }
 
         [Fact]
         public async Task TestStaticAndInstanceMembers()
         {
-            var markup = @"
-public readonly struct Color
-{
-    public static readonly Color Red;
-    public readonly Color Green;
-}
+            var markup = """
+                public readonly struct Color
+                {
+                    public static readonly Color Red;
+                    public readonly Color Green;
+                }
 
-class C
-{
-    public void M(Color color)
-    {
-        M($$
-    }
-}
-";
+                class C
+                {
+                    public void M(Color color)
+                    {
+                        M($$
+                    }
+                }
+                """;
 
             await VerifyItemExistsAsync(markup, "Color.Red");
             await VerifyItemIsAbsentAsync(markup, "Color.Green");
@@ -2055,21 +2120,21 @@ class C
         [Fact]
         public async Task TestProperties()
         {
-            var markup = @"
-public readonly struct Color
-{
-    public static Color Red { get; }
-    public Color Green { get; }
-}
+            var markup = """
+                public readonly struct Color
+                {
+                    public static Color Red { get; }
+                    public Color Green { get; }
+                }
 
-class C
-{
-    public void M(Color color)
-    {
-        M($$
-    }
-}
-";
+                class C
+                {
+                    public void M(Color color)
+                    {
+                        M($$
+                    }
+                }
+                """;
 
             await VerifyItemExistsAsync(markup, "Color.Red");
             await VerifyItemIsAbsentAsync(markup, "Color.Green");

@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var changedOptions = new List<OptionChangedEventArgs>();
 
             var handler = new EventHandler<OptionChangedEventArgs>((_, e) => changedOptions.Add(e));
-            globalOptions.OptionChanged += handler;
+            globalOptions.AddOptionChangedHandler(this, handler);
 
             var values = globalOptions.GetOptions(ImmutableArray.Create(new OptionKey2(option1), new OptionKey2(option2)));
             Assert.Equal(1, values[0]);
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             Assert.Equal(6, globalOptions.GetOption(option2));
             Assert.Equal(3, globalOptions.GetOption(option3));
 
-            globalOptions.OptionChanged -= handler;
+            globalOptions.RemoveOptionChangedHandler(this, handler);
         }
 
         [Fact]

@@ -17,24 +17,16 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 {
     [ExportWorkspaceService(typeof(ITextFactoryService), ServiceLayer.Editor), Shared]
-    internal sealed class EditorTextFactoryService : ITextFactoryService
+    [method: ImportingConstructor]
+    [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+    internal sealed class EditorTextFactoryService(
+        ITextBufferCloneService textBufferCloneService,
+        ITextBufferFactoryService textBufferFactoryService,
+        IContentTypeRegistryService contentTypeRegistryService) : ITextFactoryService
     {
-        private readonly ITextBufferCloneService _textBufferCloneService;
-        private readonly ITextBufferFactoryService _textBufferFactory;
-        private readonly IContentType _unknownContentType;
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public EditorTextFactoryService(
-            ITextBufferCloneService textBufferCloneService,
-            ITextBufferFactoryService textBufferFactoryService,
-            IContentTypeRegistryService contentTypeRegistryService)
-        {
-            _textBufferCloneService = textBufferCloneService;
-            _textBufferFactory = textBufferFactoryService;
-            _unknownContentType = contentTypeRegistryService.UnknownContentType;
-        }
-
+        private readonly ITextBufferCloneService _textBufferCloneService = textBufferCloneService;
+        private readonly ITextBufferFactoryService _textBufferFactory = textBufferFactoryService;
+        private readonly IContentType _unknownContentType = contentTypeRegistryService.UnknownContentType;
         private static readonly Encoding s_throwingUtf8Encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true);
 
         public SourceText CreateText(Stream stream, Encoding? defaultEncoding, SourceHashAlgorithm checksumAlgorithm, CancellationToken cancellationToken)

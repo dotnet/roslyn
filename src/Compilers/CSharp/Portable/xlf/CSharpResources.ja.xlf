@@ -182,6 +182,11 @@
         <target state="translated">単項演算子のパラメーターは、それを含む型であるか、それに制約された型パラメーターである必要があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_BadArgExtraRefLangVersion">
+        <source>Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.</source>
+        <target state="translated">言語バージョン {1} では、引数 {0} を 'ref' キーワード (keyword)と共に渡すことはできません。'ref' 引数を 'in' パラメーターに渡すには、{2} 以上の言語バージョンにアップグレードしてください。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
         <source>Operator '{0}' cannot be applied to operands of type '{1}' and '{2}' that are not UTF-8 byte representations</source>
         <target state="translated">演算子 '{0}' は、UTF-8 バイト表現ではない型 '{1}' および '{2}' のオペランドには適用できません</target>
@@ -285,6 +290,11 @@
       <trans-unit id="ERR_BadUnsafeInUsingDirective">
         <source>Only a 'using static' or 'using alias' can be 'unsafe'.</source>
         <target state="translated">'unsafe' に設定できるのは、'using static' または 'using エイリアス' のみです。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadUsingStaticType">
+        <source>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</source>
+        <target state="translated">'{0}' 型は 'using static' では無効です。使用できるのは、クラス、構造体、インターフェイス、列挙型、デリゲート、名前空間のみです。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BuilderAttributeDisallowed">
@@ -392,6 +402,46 @@
         <target state="translated">'{0}' は、インターフェイス メンバー '{1}' を実装していません。'{2}' は '{1}' を実装できません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionBuilderAttributeInvalidMethodName">
+        <source>The CollectionBuilderAttribute method name is invalid.</source>
+        <target state="translated">CollectionBuilderAttribute メソッド名が無効です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionBuilderAttributeInvalidType">
+        <source>The CollectionBuilderAttribute builder type must be a non-generic class or struct.</source>
+        <target state="translated">CollectionBuilderAttribute ビルダー型は、非ジェネリック クラスまたは構造体である必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
+        <source>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
+        <target state="translated">必要なシグネチャを持つアクセス可能な '{0}' メソッドが見つかりませんでした:'ReadOnlySpan&lt;{1}&gt;' 型の単一パラメーターを持つ静的メソッドと戻り値の型 '{2}'。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionBuilderNoElementType">
+        <source>'{0}' has a CollectionBuilderAttribute but no element type.</source>
+        <target state="translated">'{0}' に CollectionBuilderAttribute がありますが、要素型がありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionEscape">
+        <source>A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</source>
+        <target state="new">A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionImmutableArray">
+        <source>This version of '{0}' cannot be used with collection expressions.</source>
+        <target state="translated">このバージョンの '{0}' は、コレクション式では使用できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionNoTargetType">
+        <source>There is no target type for the collection expression.</source>
+        <target state="new">There is no target type for the collection expression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
+        <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
+        <target state="new">Cannot initialize type '{0}' with a collection expression because the type is not constructible.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">型パラメーター '{1}' は 'unmanaged' 制約を含むので、'{0}' の制約として '{1}' を使用することはできません</target>
@@ -487,6 +537,11 @@
         <target state="translated">'{0}' が複数回、明示的に実装されています。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_DuplicateInterceptor">
+        <source>The indicated call is intercepted multiple times.</source>
+        <target state="translated">指定された呼び出しは複数回インターセプトされています。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_DuplicateInterfaceWithDifferencesInBaseList">
         <source>'{0}' is already listed in the interface list on type '{2}' as '{1}'.</source>
         <target state="translated">'{0}' は、型 '{2}' のインターフェイス リストに '{1}' として既に指定されています。</target>
@@ -525,6 +580,11 @@
       <trans-unit id="ERR_EscapeVariable">
         <source>Cannot use variable '{0}' in this context because it may expose referenced variables outside of their declaration scope</source>
         <target state="translated">参照される変数が宣言のスコープ外に公開される可能性があるため、このコンテキストで変数 '{0}' を使用することはできません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpectedInterpolatedString">
+        <source>Expected interpolated string</source>
+        <target state="translated">補間された文字列 (期待値)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
@@ -572,9 +632,19 @@
         <target state="translated">式ツリーに静的仮想または抽象インターフェイス メンバーへのアクセス権を含めることはできません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsCollectionExpression">
+        <source>An expression tree may not contain a collection expression.</source>
+        <target state="new">An expression tree may not contain a collection expression.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
         <source>An expression tree may not contain a from-end index ('^') expression.</source>
         <target state="translated">式ツリーに、from-end インデックス ('^') 式を含めることはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsInlineArrayOperation">
+        <source>An expression tree may not contain an inline array access or conversion</source>
+        <target state="translated">式ツリーにインライン配列アクセスまたは変換を含めることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsInterpolatedStringHandlerConversion">
@@ -635,6 +705,11 @@
       <trans-unit id="ERR_FeatureNotAvailableInVersion11">
         <source>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</source>
         <target state="translated">機能 '{0}' は C# 11.0 では使用できません。{1} 以上の言語バージョンをお使いください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion12">
+        <source>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -837,9 +912,164 @@
         <target state="translated">'init' アクセサーを 'readonly' としてマークできません。代わりに '{0}' を readonly としてマークします。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InlineArrayBadIndex">
+        <source>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</source>
+        <target state="translated">インライン配列型の要素にアクセスできるのは、暗黙的に 'int'、'System.Index'、または 'System.Range' に変換できる 1 つの引数を使用する場合のみです。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayConversionToReadOnlySpanNotSupported">
+        <source>Cannot convert expression to '{0}' because it may not be passed or returned by reference</source>
+        <target state="translated">式は参照渡しによって渡したり返したりできないため、式を '{0}' に変換できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayConversionToSpanNotSupported">
+        <source>Cannot convert expression to '{0}' because it is not an assignable variable</source>
+        <target state="translated">式は割り当て可能な変数ではないため、'{0}' に変換できません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayForEachNotSupported">
+        <source>foreach statement on an inline array of type '{0}' is not supported</source>
+        <target state="translated">型 '{0}' のインライン配列の foreach ステートメントはサポートされていません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayIndexOutOfRange">
+        <source>Index is outside the bounds of the inline array</source>
+        <target state="translated">インデックスがインライン配列の範囲外です</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayUnsupportedElementFieldModifier">
+        <source>Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.</source>
+        <target state="translated">インライン配列要素フィールドは、必須、読み取り専用、揮発性、または固定サイズ バッファーとして宣言できません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
         <source>Instance properties in interfaces cannot have initializers.</source>
         <target state="translated">インターフェイス内のインスタンス プロパティは初期化子を持つことができません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptableMethodMustBeOrdinary">
+        <source>Cannot intercept '{0}' because it is not an invocation of an ordinary member method.</source>
+        <target state="translated">通常のメンバー メソッドの呼び出しではないため、'{0}' をインターセプトできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorArityNotCompatible">
+        <source>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</source>
+        <target state="translated">メソッド '{0}' は非ジェネリックであるか、'{2}' と一致するアリティ {1} を持っている必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotBeGeneric">
+        <source>Method '{0}' must be non-generic to match '{1}'.</source>
+        <target state="translated">'{1}' に一致するには、メソッド '{0}' は非ジェネリックである必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotInterceptNameof">
+        <source>A nameof operator cannot be intercepted.</source>
+        <target state="translated">nameof 演算子はインターセプトできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCannotUseUnmanagedCallersOnly">
+        <source>An interceptor cannot be marked with 'UnmanagedCallersOnlyAttribute'.</source>
+        <target state="translated">インターセプターに 'UnmanagedCallersOnlyAttribute' を設定することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorCharacterOutOfRange">
+        <source>The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</source>
+        <target state="translated">与えられた行の長さは '{0}' 文字で、指定された文字数 '{1}' に達していません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorContainingTypeCannotBeGeneric">
+        <source>Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</source>
+        <target state="new">Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorFilePathCannotBeNull">
+        <source>Interceptor cannot have a 'null' file path.</source>
+        <target state="translated">インターセプターに 'null' ファイル パスを指定することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorGlobalNamespace">
+        <source>An interceptor cannot be declared in the global namespace.</source>
+        <target state="translated">グローバル名前空間でインターセプターを宣言することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorLineCharacterMustBePositive">
+        <source>Line and character numbers provided to InterceptsLocationAttribute must be positive.</source>
+        <target state="translated">InterceptsLocationAttribute に指定する行番号と文字番号は正の値である必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorLineOutOfRange">
+        <source>The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</source>
+        <target state="translated">与えられたファイルは '{0}' 行しかなく、指定された行数 '{1}' を下回っています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMethodMustBeOrdinary">
+        <source>An interceptor method must be an ordinary member method.</source>
+        <target state="translated">インターセプター メソッドは通常のメンバー メソッドである必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustHaveMatchingThisParameter">
+        <source>Interceptor must have a 'this' parameter matching parameter '{0}' on '{1}'.</source>
+        <target state="translated">インターセプターには、'{1}' で '{0}' パラメーターと一致する 'this' パラメーターが必要です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustNotHaveThisParameter">
+        <source>Interceptor must not have a 'this' parameter because '{0}' does not have a 'this' parameter.</source>
+        <target state="translated">'{0}' に 'this' パラメーターがないため、インターセプターに 'this' パラメーターを指定することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorMustReferToStartOfTokenPosition">
+        <source>The provided line and character number does not refer to the start of token '{0}'. Did you mean to use line '{1}' and character '{2}'?</source>
+        <target state="translated">指定された行番号と文字番号は、トークン '{0}' の先頭を参照していません。行 '{1}' と文字 '{2}' を使用するつもりでしたか?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNameNotInvoked">
+        <source>Possible method name '{0}' cannot be intercepted because it is not being invoked.</source>
+        <target state="translated">考えられるメソッド名 '{0}' は呼び出されていないため、インターセプトすることができません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNonUniquePath">
+        <source>Cannot intercept a call in file with path '{0}' because multiple files in the compilation have this path.</source>
+        <target state="translated">コンパイル内の複数のファイルにこのパスがあるため、パス '{0}' を持つファイル内の呼び出しをインターセプトできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorNotAccessible">
+        <source>Cannot intercept call with '{0}' because it is not accessible within '{1}'.</source>
+        <target state="translated">'{1}' 内ではアクセスできないため、'{0}' を使用して呼び出しをインターセプトできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilation">
+        <source>Cannot intercept: compilation does not contain a file with path '{0}'.</source>
+        <target state="translated">インターセプトできません。コンパイルにパス '{0}' のファイルが含まれていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilationWithCandidate">
+        <source>Cannot intercept: compilation does not contain a file with path '{0}'. Did you mean to use path '{1}'?</source>
+        <target state="translated">インターセプトできません。コンパイルにパス '{0}' のファイルが含まれていません。パス '{1}' を使うつもりでしたか?</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPathNotInCompilationWithUnmappedCandidate">
+        <source>Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</source>
+        <target state="translated">インターセプトできません。パス '{0}' がマップされていません。マップされたパス '{1}' が必要です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorPositionBadToken">
+        <source>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</source>
+        <target state="translated">指定された行番号と文字番号は、インターセプト可能なメソッド名ではなく、トークン '{0}' を参照しています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorScopedMismatch">
+        <source>Cannot intercept call to '{0}' with '{1}' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.</source>
+        <target state="translated">'scoped' 修飾子または '[UnscopedRef]' 属性の違いにより、'{1}' を使用して '{0}' への呼び出しをインターセプトできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorSignatureMismatch">
+        <source>Cannot intercept method '{0}' with interceptor '{1}' because the signatures do not match.</source>
+        <target state="translated">署名が一致しないため、インターセプター '{1}' でメソッド '{0}' をインターセプトできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
+        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="translated">'インターセプター' の実験的な機能は、この名前空間では有効になっていません。プロジェクトに '{0}' を追加します。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedByUnmanagedCallersOnlyMethod">
@@ -905,6 +1135,21 @@
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="translated">無効なハッシュ アルゴリズム名: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayFields">
+        <source>Inline array struct must declare one and only one instance field.</source>
+        <target state="translated">インライン配列構造体では、インスタンス フィールドを 1 つだけ宣言する必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayLayout">
+        <source>Inline array struct must not have explicit layout.</source>
+        <target state="translated">インライン配列構造体に明示的なレイアウトを含めることはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidInlineArrayLength">
+        <source>Inline array length must be greater than 0.</source>
+        <target state="translated">インライン配列の長さは、0 より大きくなければいけません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidInterpolatedStringHandlerArgumentName">
@@ -1087,6 +1332,11 @@
         <target state="translated">単一の部分型宣言のみがパラメーター リストを持つことができます</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NamedArgumentForInlineArray">
+        <source>An inline array access may not have a named argument specifier</source>
+        <target state="translated">インライン配列のアクセスには名前付き引数の指定子を指定できません</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">new()' 制約は 'unmanaged' 制約と一緒には使用できません</target>
@@ -1215,6 +1465,11 @@
       <trans-unit id="ERR_OperatorCantBeChecked">
         <source>User-defined operator '{0}' cannot be declared checked</source>
         <target state="translated">ユーザー定義演算子 '{0}' はチェック済みと宣言できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_OutAttrOnRefReadonlyParam">
+        <source>A ref readonly parameter cannot have the Out attribute.</source>
+        <target state="translated">ref 読み取り専用パラメーターに Out 属性を指定することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
@@ -1347,11 +1602,6 @@
         <target state="translated">'{0}': 'readonly' は、プロパティまたはインデクサーが get および set の両方のアクセサーを含む場合にのみ、アクセサーで使用できます</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn">
-        <source>'readonly' is not supported as a parameter modifier. Did you mean 'in'?</source>
-        <target state="translated">'readonly' はパラメーター修飾子としてサポートされていません。'in' のことですか?</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RecordAmbigCtor">
         <source>The primary constructor conflicts with the synthesized copy constructor.</source>
         <target state="translated">プライマリ コンストラクターが、合成されたコピー コンストラクターと競合しています。</target>
@@ -1390,6 +1640,11 @@
       <trans-unit id="ERR_RefLocalOrParamExpected">
         <source>The left-hand side of a ref assignment must be a ref variable.</source>
         <target state="translated">ref 代入の左辺は ref 変数である必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefReadOnlyWrongOrdering">
+        <source>'readonly' modifier must be specified after 'ref'.</source>
+        <target state="translated">'readonly' 修飾子は 'ref' の後に指定する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter">
@@ -1495,6 +1750,11 @@
       <trans-unit id="ERR_RuntimeDoesNotSupportCovariantReturnsOfClasses">
         <source>'{0}': Target runtime doesn't support covariant return types in overrides. Return type must be '{2}' to match overridden member '{1}'</source>
         <target state="translated">'{0}': ターゲットのランタイムはオーバーライドで戻り値の型 covariant をサポートしていません。戻り値の型は、オーバーライドされるメンバー '{1}' と一致する '{2}' にする必要があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RuntimeDoesNotSupportInlineArrayTypes">
+        <source>Target runtime doesn't support inline array types.</source>
+        <target state="translated">ターゲットのランタイムはインライン配列型をサポートしていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RuntimeDoesNotSupportProtectedAccessForInterfaceMember">
@@ -1667,6 +1927,11 @@
         <target state="translated">switch を制御する式の周囲にはかっこが必要です。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SymbolDefinedInAssembly">
+        <source>'{0}' is defined in assembly '{1}'.</source>
+        <target state="translated">'{0}' はアセンブリ '{1}' で定義されています。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_TooManyCloseBracesForRawString">
         <source>The interpolated raw string literal does not start with enough '$' characters to allow this many consecutive closing braces as content.</source>
         <target state="translated">補間された生文字列リテラルの先頭に十分な数の '$' 文字がないため、連続する終わり波かっこをコンテンツとして使用できません。</target>
@@ -1777,6 +2042,11 @@
         <target state="translated">インスタンス メンバー内のプライマリ コンストラクター パラメーター '{0}' では ref、out、in を使用できません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny">
+        <source>Cannot use primary constructor parameter of type '{0}' inside an instance member</source>
+        <target state="translated">インスタンス メンバー内に ref に似た型を持つプライマリ コンストラクター パラメーター '{0}' を使用することはできません</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_UnsupportedPrimaryConstructorParameterCapturingRefLike">
         <source>Cannot use primary constructor parameter '{0}' that has ref-like type inside an instance member</source>
         <target state="translated">インスタンス メンバー内に ref に似た型を持つプライマリ コンストラクター パラメーター '{0}' を使用することはできません</target>
@@ -1847,6 +2117,11 @@
         <target state="translated">チェックされたユーザー定義演算子</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureCollectionExpressions">
+        <source>collection expressions</source>
+        <target state="new">collection expressions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
         <source>covariant returns</source>
         <target state="translated">covariant の戻り値</target>
@@ -1900,6 +2175,16 @@
       <trans-unit id="IDS_FeatureInferredDelegateType">
         <source>inferred delegate type</source>
         <target state="translated">推論されたデリゲート型</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInlineArrays">
+        <source>inline arrays</source>
+        <target state="translated">インライン配列</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureInstanceMemberInNameof">
+        <source>instance member in 'nameof'</source>
+        <target state="translated">'nameof' のインスタンス メンバー</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureLambdaAttributes">
@@ -1960,6 +2245,11 @@
       <trans-unit id="IDS_FeatureRefFields">
         <source>ref fields</source>
         <target state="translated">ref フィールド</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefReadonlyParameters">
+        <source>ref readonly parameters</source>
+        <target state="translated">ref 読み取り専用パラメーター</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -2027,6 +2317,26 @@
         <target state="translated">ポインター要素アクセス</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_SK_ARRAY">
+        <source>array</source>
+        <target state="translated">配列</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_DYNAMIC">
+        <source>dynamic</source>
+        <target state="translated">ダイナミック</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_FUNCTION_POINTER">
+        <source>function pointer</source>
+        <target state="translated">関数ポインター</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_SK_POINTER">
+        <source>pointer</source>
+        <target state="translated">ポインター</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
         <target state="translated">'&amp;' 演算子は、非同期メソッドのパラメーターまたはローカル変数では使用できません。</target>
@@ -2057,6 +2367,26 @@
         <target state="translated">アナライザー アセンブリが参照しるコンパイラのバージョンは、現在実行中のバージョンよりも新しいです。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ArgExpectedIn">
+        <source>Argument {0} should be passed with the 'in' keyword</source>
+        <target state="new">Argument {0} should be passed with the 'in' keyword</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ArgExpectedIn_Title">
+        <source>Argument should be passed with the 'in' keyword</source>
+        <target state="new">Argument should be passed with the 'in' keyword</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ArgExpectedRefOrIn">
+        <source>Argument {0} should be passed with 'ref' or 'in' keyword</source>
+        <target state="translated">引数 {0} は 'ref' または 'in' キーワード (keyword)と共に渡す必要があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ArgExpectedRefOrIn_Title">
+        <source>Argument should be passed with 'ref' or 'in' keyword</source>
+        <target state="translated">引数は 'ref' または 'in' キーワード (keyword)で渡す必要があります</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AttrDependentTypeNotAllowed">
         <source>Type '{0}' cannot be used in this context because it cannot be represented in metadata.</source>
         <target state="translated">型 '{0}' は、メタデータで表現できないため、このコンテキストでは使用できません。</target>
@@ -2065,6 +2395,26 @@
       <trans-unit id="WRN_AttrDependentTypeNotAllowed_Title">
         <source>Type cannot be used in this context because it cannot be represented in metadata.</source>
         <target state="translated">型は、メタデータで表現できないため、このコンテキストで使用することはできません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_BadArgRef">
+        <source>The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
+        <target state="translated">'in' パラメーターに対応する引数 {0} の 'ref' 修飾子が 'in' と同じです。代わりに 'in' を使用することを検討してください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_BadArgRef_Title">
+        <source>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
+        <target state="translated">'in' パラメーターに対応する引数の 'ref' 修飾子は 'in' と同じです。代わりに 'in' を使用することを検討してください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ByValArraySizeConstRequired">
+        <source>Attribute parameter 'SizeConst' must be specified.</source>
+        <target state="new">Attribute parameter 'SizeConst' must be specified.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ByValArraySizeConstRequired_Title">
+        <source>Attribute parameter 'SizeConst' must be specified.</source>
+        <target state="new">Attribute parameter 'SizeConst' must be specified.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallArgMixing">
@@ -2135,6 +2485,16 @@
       <trans-unit id="WRN_CallerMemberNamePreferredOverCallerArgumentExpression_Title">
         <source>The CallerArgumentExpressionAttribute will have no effect; it is overridden by the CallerMemberNameAttribute</source>
         <target state="translated">CallerArgumentExpressionAttribute は効果がなく、CallerMemberNameAttribute によってオーバーライドされます</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CapturedPrimaryConstructorParameterInFieldInitializer">
+        <source>Parameter '{0}' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</source>
+        <target state="translated">パラメーター '{0}' は外側の型の状態にキャプチャされ、その値はフィールド、プロパティ、またはイベントの初期化にも使用されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CapturedPrimaryConstructorParameterInFieldInitializer_Title">
+        <source>Parameter is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</source>
+        <target state="translated">パラメーターは外側の型の状態にキャプチャされ、その値はフィールド、プロパティ、またはイベントの初期化にも使用されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CapturedPrimaryConstructorParameterPassedToBase">
@@ -2217,6 +2577,66 @@
         <target state="translated">このコンテキストでの変数の使用は、参照される変数が宣言のスコープ外に公開される可能性があります</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
+        <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
+        <target state="translated">インライン配列変換演算子は、宣言する型の式からの変換には使用されません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed_Title">
+        <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
+        <target state="translated">インライン配列変換演算子は、宣言する型の式からの変換には使用されません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InlineArrayIndexerNotUsed">
+        <source>Inline array indexer will not be used for element access expression.</source>
+        <target state="translated">インライン配列インデクサーは要素アクセス式には使用されません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InlineArrayIndexerNotUsed_Title">
+        <source>Inline array indexer will not be used for element access expression.</source>
+        <target state="translated">インライン配列インデクサーは要素アクセス式には使用されません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
+        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
+        <target state="translated">'Inline arrays' 言語機能は、要素フィールドが 'ref' フィールドであるか、型引数として無効な型を持つインライン配列型ではサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
+        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
+        <target state="translated">'Inline arrays' 言語機能は、要素フィールドが 'ref' フィールドであるか、型引数として無効な型を持つインライン配列型ではサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InlineArraySliceNotUsed">
+        <source>Inline array 'Slice' method will not be used for element access expression.</source>
+        <target state="translated">インライン配列 'Slice' メソッドは要素アクセス式には使用されません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InlineArraySliceNotUsed_Title">
+        <source>Inline array 'Slice' method will not be used for element access expression.</source>
+        <target state="translated">インライン配列 'Slice' メソッドは要素アクセス式には使用されません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_HidingDifferentRefness">
+        <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</source>
+        <target state="translated">パラメーター '{0}' の参照の種類修飾子が、非表示のメンバーの対応するパラメーター '{1}' と一致しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_HidingDifferentRefness_Title">
+        <source>Reference kind modifier of parameter doesn't match the corresponding parameter in hidden member.</source>
+        <target state="translated">パラメーターの参照の種類の修飾子が、非表示のメンバーの対応するパラメーターと一致しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterceptorSignatureMismatch">
+        <source>Intercepting a call to '{0}' with interceptor '{1}', but the signatures do not match.</source>
+        <target state="translated">インターセプター '{1}' を使用して'{0}' への呼び出しをインターセプトしていますが、署名が一致しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_InterceptorSignatureMismatch_Title">
+        <source>Signatures of interceptable and interceptor methods do not match.</source>
+        <target state="translated">インターセプター可能なメソッドとインターセプター メソッドの署名が一致しません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InterpolatedStringHandlerArgumentAttributeIgnoredOnLambdaParameters">
         <source>InterpolatedStringHandlerArgument has no effect when applied to lambda parameters and will be ignored at the call site.</source>
         <target state="translated">ラムダ パラメーターに適用しても InterpolatedStringHandlerArgument は効果がありません。呼び出しサイトでは無視されます。</target>
@@ -2267,6 +2687,26 @@
         <target state="translated">ref 条件演算子のブランチでは、互換性のない宣言スコープを持つ変数を参照します</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnInterceptor">
+        <source>Nullability of reference types in type of parameter '{0}' doesn't match interceptable method '{1}'.</source>
+        <target state="translated">パラメーター '{0}' の型における参照型の Null 許容性が、インターセプト可能なメソッド '{1}' と一致しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnInterceptor_Title">
+        <source>Nullability of reference types in type of parameter doesn't match interceptable method.</source>
+        <target state="translated">パラメーターの型における参照型の Null 許容性が、インターセプト可能なメソッドと一致しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnInterceptor">
+        <source>Nullability of reference types in return type doesn't match interceptable method '{0}'.</source>
+        <target state="translated">戻り値の型における参照型の Null 許容性が、インターセプト可能なメソッド '{0}' と一致しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnInterceptor_Title">
+        <source>Nullability of reference types in return type doesn't match interceptable method.</source>
+        <target state="translated">戻り値の型における参照型の Null 許容性が、インターセプト可能なメソッドと一致しません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ObsoleteMembersShouldNotBeRequired">
         <source>Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.</source>
         <target state="translated">必要なメンバー '{0}' は、包含する型が古い形式であるか、すべてのコンストラクターが古い形式でない限り、属性 'ObsoleteAttribute' が必要ありません。</target>
@@ -2285,6 +2725,16 @@
       <trans-unit id="WRN_OptionalParamValueMismatch_Title">
         <source>The default parameter value does not match in the target delegate type.</source>
         <target state="translated">既定のパラメーター値がターゲット デリゲート型と一致しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OverridingDifferentRefness">
+        <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</source>
+        <target state="translated">パラメーター '{0}' の参照の種類修飾子が、オーバーライドされたメンバーまたは実装されるメンバーの対応するパラメーター '{1}' と一致しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_OverridingDifferentRefness_Title">
+        <source>Reference kind modifier of parameter doesn't match the corresponding parameter in overridden or implemented member.</source>
+        <target state="translated">パラメーターの参照の種類修飾子が、オーバーライドされたメンバーまたは実装されたメンバーの対応するパラメーターと一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -2315,6 +2765,16 @@
       <trans-unit id="WRN_ParamsArrayInLambdaOnly_Title">
         <source>Parameter has params modifier in lambda but not in target delegate type.</source>
         <target state="translated">パラメーターにラムダの params 修飾子がありますが、ターゲット デリゲート型にはありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
+        <source>Primary constructor parameter '{0}' is shadowed by a member from base.</source>
+        <target state="translated">プライマリ コンストラクター パラメーター '{0}' は、ベースのメンバーによってシャドウされています。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase_Title">
+        <source>Primary constructor parameter is shadowed by a member from base</source>
+        <target state="translated">プライマリ コンストラクター パラメーターがベースのメンバーによってシャドウされています</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2380,6 +2840,26 @@
       <trans-unit id="WRN_RefAssignValEscapeWider_Title">
         <source>This ref-assigns a value that has a wider value escape scope than the target allowing assignment through the target of values with narrower escapes scopes.</source>
         <target state="translated">この参照により、ターゲットよりも広い値エスケープ スコープを持つ値が割り当てられ、より狭いエスケープ スコープを持つ値のターゲットを介して割り当てることができます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReadonlyNotVariable">
+        <source>Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</source>
+        <target state="translated">引数 {0} は 'ref readonly' パラメーターに渡されるため、変数である必要があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReadonlyNotVariable_Title">
+        <source>Argument should be a variable because it is passed to a 'ref readonly' parameter</source>
+        <target state="translated">引数は 'ref readonly' パラメーターに渡されるため、変数である必要があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReadonlyParameterDefaultValue">
+        <source>A default value is specified for 'ref readonly' parameter '{0}', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</source>
+        <target state="translated">'ref readonly' パラメーター '{0}' に既定値が指定されていますが、'ref readonly' は参照にのみ使用する必要があります。パラメーターを 'in' として宣言することを検討してください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_RefReadonlyParameterDefaultValue_Title">
+        <source>A default value is specified for 'ref readonly' parameter, but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</source>
+        <target state="translated">'ref readonly' パラメーターに既定値が指定されていますが、'ref readonly' は参照にのみ使用する必要があります。パラメーターを 'in' として宣言することを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
@@ -2778,162 +3258,168 @@
 -modulename:&lt;string&gt;          Specify the name of the source module
 -generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
                               specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </source>
         <target state="translated">
-                             Visual C# Compiler のオプション
+                            Visual C# Compiler のオプション
 
-                       - 出力ファイル -
--out:&lt;file&gt;                   出力ファイル名を指定します (既定: メイン クラスを含むファイル
-                              または最初のファイルのベース名)
--target:exe                   コンソール実行可能ファイルをビルドします (既定) (短い
-                              形式: -t:exe)
+                      - 出力ファイル -
+-out:&lt;file&gt;                   出力ファイル名を指定します (既定値: main クラスを含むファイルの
+                             ベース名また最初のファイル)
+-target:exe                   コンソール アプリケーションをビルドします (既定) (短い
+                             形式: -t:exe)
 -target:winexe                Windows 実行可能ファイルをビルドします (短い形式:
-                              -t:winexe)
+                             -t:winexe)
 -target:library               ライブラリをビルドします (短い形式: -t:library)
 -target:module                別のアセンブリに追加できるモジュールを
-                              ビルドします (短い形式: -t:module)
+                             ビルドします (短い形式: -t:module)
 -target:appcontainerexe       Appcontainer 実行可能ファイルをビルドします (短い形式:
-                              -t:appcontainerexe)
--target:winmdobj              WinMDExp で使用される
-                              Windows ランタイムの中間ファイルをビルドします (短い形式: -t:winmdobj)
--doc:&lt;file&gt;                   生成する XML ドキュメント ファイル
--refout:&lt;file&gt;                生成する参照アセンブリの出力
--platform:&lt;string&gt;            このコードを実行できるプラットフォームを限定します。
-                              x86、Itanium、x64、arm、arm64、anycpu32bitpreferred、
-                              anycpu のいずれかです。既定値は anycpu です。
+                             -t:appcontainerexe)
+-target:winmdobj              WinMDExp が使用する、Windows ランタイムの
+                             中間ファイルをビルドします (短い形式: -t:winmdobj)
+-doc:&lt;file&gt;                   生成する XML ドキュメント ファイルです
+-refout:&lt;file&gt;                    生成する参照アセンブリ出力です
+-platform:&lt;string&gt;                このコードを実行できるプラットフォームを限定します。x86、
+                             Itanium、x64、arm、arm64、anycpu32bitpreferred、
+                             anycpu のいずれかです。既定値は anycpu です。
 
-                       - 入力ファイル -
--recurse:&lt;wildcard&gt;           ワイルドカードの指定に従い、現行ディレクトリおよび
-                              サブディレクトリ内のすべてのファイルを
-                              インクルードします
--reference:&lt;alias&gt;=&lt;file&gt;     指定されたエイリアスを使用して、指定された
-                              アセンブリ ファイルのメタデータを参照します (短い形式: -r)
--reference:&lt;file list&gt;        指定されたアセンブリ ファイルのメタデータを
-                              参照します (短い形式: -r)
+                      - 入力ファイル -
+-recurse:&lt;wildcard&gt;               ワイルドカードの仕様に従って、
+                             現在のディレクトリとサブディレクトリ内のすべてのファイルを
+                             含めます
+-reference:&lt;alias&gt;=&lt;file&gt;     指定されたエイリアスを使用して、指定されたアセンブリ ファイルからの
+                             メタデータを参照します (短い形式: -r)
+-reference:&lt;file list&gt;        指定されたアセンブリ ファイルからのメタデータを
+                             参照します (短い形式: -r)
 -addmodule:&lt;file list&gt;        指定されたモジュールをこのアセンブリにリンクします
--link:&lt;file list&gt;             指定された相互運用アセンブリ ファイルの
-                              メタデータを埋め込みます (短い形式: -l)
+-link:&lt;file list&gt;             指定された相互運用アセンブリからのメタデータを
+                             埋め込みます (短い形式: -l)
 -analyzer:&lt;file list&gt;         このアセンブリからアナライザーを実行します
-                              (短い形式: -a)
--additionalfile:&lt;file list&gt;   コード生成には直接影響しないものの、
-                              アナライザーがエラーまたは警告を
-                              生成するときに使用する可能性のある追加ファイル。
--embed                        すべてのソース ファイルを PDB に埋め込みます。
--embed:&lt;file list&gt;            特定のファイルを PDB に埋め込みます。
+                             (短い形式: -a)
+-additionalfile:&lt;file list&gt;   コードの生成に直接影響しないものの、エラーまたは警告を
+                             生成するためにアナライザーが使用する可能性がある
+                             追加ファイルです。
+-embed                        PDB ファイル内にすべてのソース ファイルを埋め込みます。
+-embed:&lt;file list&gt;            PDB に特定のファイルを埋め込みます。
 
-                       - リソース -
+                      - リソース -
 -win32res:&lt;file&gt;              Win32 リソース ファイル (.res) を指定します
 -win32icon:&lt;file&gt;             出力にこのアイコンを使用します
 -win32manifest:&lt;file&gt;         Win32 マニフェスト ファイル (.xml) を指定します
--nowin32manifest              既定の Win32 マニフェストはインクルードしません
+-nowin32manifest              既定の Win32 マニフェストを含めません
 -resource:&lt;resinfo&gt;           指定されたリソースを埋め込みます (短い形式: -res)
--linkresource:&lt;resinfo&gt;       指定されたリソースをこのアセンブリにリンクします
-                              (短い形式: -linkres) resinfo の形式
-                              は &lt;file&gt;[,&lt;string name&gt;[,public|private]] です
+-linkresource:&lt;resinfo&gt;       このアセンブリに指定されたリソースをリンクします
+                             (短い形式: -linkres) resinfo の形式: 
+                             &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
-                       - コード生成 -
--debug[+|-]                   デバッグ情報を出力します
+                      - コード生成 -
+-debug[+|-]                       デバッグ情報を出力します
 -debug:{full|pdbonly|portable|embedded}
-                              デバッグの種類を指定します ('full' が既定値です。
-                              'portable' はクロスプラットフォーム形式です。
-                              'embedded' は、ターゲット .dll または .exe に
-                              埋め込まれるクロスプラットフォーム形式です)
+                             デバッグの種類を指定します ('full' は既定、
+                             'portable' はクロスプラットフォーム形式、
+                             'embedded' はターゲットの .dll または .exe に埋め込まれる
+                             クロスプラットフォーム形式です)
 -optimize[+|-]                最適化を有効にします (短い形式: -o)
--deterministic                決定論的アセンブリを生成します
-                              (モジュール バージョン GUID やタイムスタンプを含みます)
--refonly                      メイン出力の代わりに参照アセンブリを生成します
--instrument:TestCoverage      カバレッジ情報を収集するようにインストルメント化された
-                              アセンブリを生成します
--sourcelink:&lt;file&gt;            PDB に埋め込むソース リンク情報。
- 
-                       - エラーと警告 -
--warnaserror[+|-]             すべての警告をエラーとして報告します
+-deterministic                   決定論的アセンブリを生成します
+                             (モジュール バージョン GUID とタイムスタンプを含む)
+-refonly                          メイン出力の代わりに参照アセンブリを生成します
+-instrument:TestCoverage          カバレッジ情報を収集するようにインストルメント化されたアセンブリを
+                             生成します
+-sourcelink:&lt;file&gt;                PDB に埋め込むソース リンク情報。
+
+                      - エラーと警告 -
+-warnaserror[+|-]                 すべての警告をエラーとして報告します
 -warnaserror[+|-]:&lt;warn list&gt; 特定の警告をエラーとして報告します
-                              (Null 値の許容の警告をすべて含めるには "nullable" を使用します)
+                             (すべての NULL 値の許容に関する警告に対して "nullable" を使用します)
 -warn:&lt;n&gt;                     警告レベル (0 以上) を設定します (短い形式: -w)
 -nowarn:&lt;warn list&gt;           特定の警告メッセージを無効にします
-                              (Null 値の許容の警告をすべて含めるには "nullable" を使用します)
+                             (すべての NULL 値の許容に関する警告に対して "nullable" を使用します)
 -ruleset:&lt;file&gt;               特定の診断を無効にするルールセット ファイルを
-                              指定します。
+                             指定します。
 -errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
-                              すべてのコンパイラおよびアナライザーの診断を
-                              ログに記録するためのファイルを指定します。
-                              sarif_version:{1|2|2.1} 既定値は 1 です。2 と 2.1 は、
-                              どちらも SARIF バージョン 2.1.0 を意味します。
--reportanalyzer               追加のアナライザー情報を報告します
-                              (実行時間など)。
--skipanalyzers[+|-]           診断アナライザーの実行をスキップします。
+                             すべてのコンパイラとアナライザーの診断をログに記録するファイルを
+                             指定します。
+                             sarif_version:{1|2|2.1} 既定値は 1 です。2 と 2.1 は
+                             両方とも SARIF バージョン 2.1.0 を意味します。
+-reportanalyzer               実行時間などの追加のアナライザー情報を
+                             報告します。
+-skipanalyzers[+|-]               診断アナライザーの実行をスキップします。
 
-                       - 言語 -
--checked[+|-]                 オーバーフロー検査を生成します
--unsafe[+|-]                  '安全でない' コードを許可します
--define:&lt;symbol list&gt;         条件付きコンパイル シンボルを定義します (短い
-                              形式: -d)
--langversion:?                許容される言語バージョンの値を表示します。
--langversion:&lt;string&gt;         `latest` (マイナー バージョンを含む最新バージョン)、
-                              `default` (`latest` と同様)、
-                              `latestmajor` (マイナー バージョンを除く最新バージョン)、
-                              `preview` (サポートされないプレビューの機能を含む、最新バージョン)、
-                              または `6` や `7.1` などの特定のバージョンなど、
-                              言語バージョンを指定します
--nullable[+|-]                Null 許容のコンテキスト オプションの enable|disable を指定します。
+                      - 言語 -
+-checked[+|-]                 オーバーフロー チェックを生成します
+-unsafe[+|-]                  'unsafe' コードの使用を許可します
+-define:&lt;symbol list&gt;             条件付きコンパイル シンボルを定義します (短い
+                             形式: -d)
+-langversion:?              言語バージョンに指定できる値を表示します
+-langversion:&lt;string&gt;             次のような言語バージョンを指定します。
+                             'latest' (マイナー バージョンを含む最新バージョン)、
+                             'default' ('latest' と同じ)、
+                             'latestmajor' (マイナー バージョンを含まない最新バージョン)、
+                             'preview' (サポートされていないプレビューの機能を含む最新バージョン)、
+                             '6' や '7.1' などの特定のバージョン
+-nullable[+|-]                Null 許容コンテキスト オプションの有効または無効を指定します。
 -nullable:{enable|disable|warnings|annotations}
-                              Null 許容のコンテキスト オプションの enable|disable|warnings|annotations を指定します。
+                             Null 許容コンテキスト オプションの enable|disable|warnings|annotations を指定します。
 
-                       - セキュリティ -
--delaysign[+|-]               厳密な名前キーのパブリックな部分のみを使って
-                              アセンブリを遅延署名します
--publicsign[+|-]              厳密な名前キーの公開のみを使って
-                              アセンブリを公開署名します
--keyfile:&lt;file&gt;               厳密な名前キーのファイルを指定します
--keycontainer:&lt;string&gt;        厳密な名前キーのコンテナーを指定します
--highentropyva[+|-]           高エントロピ ASLR を有効にします
+                      - セキュリティ -
+-delaysign[+|-]                   厳密な名前キーの公開部分のみを使用して
+                             アセンブリに遅延署名します
+-publicsign[+|-]                  厳密な名前キーの公開部分のみを使用して
+                             アセンブリに公開署名します
+-keyfile:&lt;file&gt;                   厳密な名前のキー ファイルを指定します
+-keycontainer:&lt;string&gt;            厳密な名前のキー コンテナーを指定します
+-highentropyva[+|-]               高エントロピ ASLR を有効にします
 
-                       - その他 -
-@&lt;file&gt;                       その他のオプションに関して応答ファイルを読み取ります
--help                         この使用法に関するメッセージを表示します (短い形式: -?)
--nologo                       コンパイラの著作権メッセージを非表示にします
+                      - その他 -
+@&lt;file&gt;                       その他のオプションを、応答ファイルから読み取ります
+-help                       この使用法メッセージを表示します (短い形式: -?)
+-nologo                       コンパイラの著作権メッセージを表示しません
 -noconfig                     CSC.RSP ファイルを自動的に含めません
--parallel[+|-]                ビルドを並列処理します。
--version                      コンパイラ バージョンの数字を表示して終了します。
+-parallel[+|-]                同時にビルドします。
+-version                      コンパイラのバージョン番号を表示して終了します。
 
-                       - 高度なオプション -
--baseaddress:&lt;address&gt;        ビルドするライブラリのベース アドレスです
--checksumalgorithm:&lt;alg&gt;      PDB に格納されるソース ファイルのチェックサム
-                              を計算するアルゴリズムを指定します。サポートされる値:
-                              SHA1 または SHA256 (既定)。
+                      - 詳細設定 -
+-baseaddress:&lt;address&gt;        ビルドするライブラリのベース アドレス
+-checksumalgorithm:&lt;alg&gt;      PDB に格納されているソース ファイル チェックサムを計算するための
+                             アルゴリズムを指定します。サポートされている値:
+                             SHA1 または SHA256 (既定値)。
 -codepage:&lt;n&gt;                 ソース ファイルを開くときに使用するコードページを
-                              指定します
--utf8output                   コンパイラ メッセージを UTF-8 エンコードで出力します
+                             指定します
+-utf8output                   UTF-8 エンコードでコンパイラのメッセージを出力します
 -main:&lt;type&gt;                  エントリ ポイントを含む型を指定します
-                              (他のエントリ ポイントはすべて無視します) (短い
-                              形式: -m)
--fullpaths                    コンパイラが完全修飾パスを生成します
--filealign:&lt;n&gt;                出力ファイル セクションで使用する配置を
-                              指定します
+                             (他のすべてのエントリ ポイントを無視します) (短い
+                             形式: -m)
+-fullpaths                    コンパイラは完全修飾パスを生成します
+-filealign:&lt;n&gt;                出力ファイルのセクションに使用する配置を
+                             指定します
 -pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
-                              コンパイラが出力するソース パス名のマッピングをy
-                              指定します。
--pdb:&lt;file&gt;                   デバッグ情報ファイル名を指定します (既定:
-                              出力ファイル名に .pdb 拡張子を付けたもの)
+                             コンパイラが出力するソース パス名のマッピングを
+                             指定します。
+-pdb:&lt;file&gt;                   デバッグ情報のファイル名を指定します (既定値:
+                             出力ファイル名と .pdb 拡張子)
 -errorendlocation             各エラーの終了位置の出力行と
-                              出力列
--preferreduilang              優先する出力言語名を指定します。
+                             出力列です
+-preferreduilang                  優先する出力言語名を指定します。
 -nosdkpath                    標準ライブラリ アセンブリの既定の SDK パスの検索を無効にします。
 -nostdlib[+|-]                標準ライブラリ (mscorlib.dll) を参照しません
 -subsystemversion:&lt;string&gt;    このアセンブリのサブシステム バージョンを指定します
--lib:&lt;file list&gt;              参照を検索する追加ディレクトリを
-                              指定します
--errorreport:&lt;string&gt;         内部コンパイラ エラーの処理方法
-                              (prompt、send、queue、none) を指定します。既定値は
-                              queue です。
--appconfig:&lt;file&gt;             アセンブリ バインド設定を含む
-                              アプリケーション構成ファイルを指定します
--moduleassemblyname:&lt;string&gt;  このモジュールが含められる
-                              アセンブリの名前
+-lib:&lt;file list&gt;              参照を検索する追加のディレクトリを
+                             指定します
+-errorreport:&lt;string&gt;         内部コンパイラ エラーを処理する方法を指定します。
+                             prompt、send、queue、none のいずれかです。既定値は 
+                             queue です。
+-appconfig:&lt;file&gt;             アセンブリ バインド設定を含むアプリケーション
+                             構成ファイルを指定します
+-moduleassemblyname:&lt;string&gt;  このモジュールが属することになるアセンブリの
+                             名前です
 -modulename:&lt;string&gt;          ソース モジュールの名前を指定します
--generatedfilesout:&lt;dir&gt;      コンパイル中に生成されたファイルを、指定した
-                              ディレクトリに配置します。
+-generatedfilesout:&lt;dir&gt;      コンパイル中に生成されたファイルを指定したディレクトリに
+                             配置します。
+-reportivts[+|-]                  すべての依存関係によってこのアセンブリに
+                             付与されたすべての IVT に関する情報を出力し、外部アセンブリの
+                             アクセシビリティ エラーに、発生元のアセンブリに関する注釈をつけます。
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -3688,16 +4174,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">ジェネレーター '{0}' でソースを生成できませんでした。出力には寄与しません。結果として、コンパイル エラーが発生する可能性があります。例外の型: '{1}'。メッセージ: '{2}'</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">ジェネレーターで次の例外がスローされました:
-'{0}'。</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">ジェネレーター '{0}' でソースを生成できませんでした。出力には寄与しません。結果として、コンパイル エラーが発生する可能性があります。例外の型: '{1}'。メッセージ: '{2}'。
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -3705,16 +4189,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">ジェネレーター '{0}' を初期化できませんでした。出力には寄与しません。結果として、コンパイル エラーが発生する可能性があります。例外の型: '{1}'。メッセージ: '{2}'</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">ジェネレーターで次の例外がスローされました:
-'{0}'。</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">ジェネレーター '{0}' を初期化できませんでした。出力には寄与しません。結果として、コンパイル エラーが発生する可能性があります。例外の型: '{1}'。メッセージ: '{2}'。
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
@@ -4261,6 +4743,16 @@
         <target state="translated">switch 式が入力の種類で可能なすべての値を処理していません (すべてを網羅していません)。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_TargetDifferentRefness">
+        <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in target.</source>
+        <target state="translated">パラメーター '{0}' の参照の種類修飾子が、ターゲット内の対応するパラメーター '{1}' と一致しません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TargetDifferentRefness_Title">
+        <source>Reference kind modifier of parameter doesn't match the corresponding parameter in target.</source>
+        <target state="translated">パラメーターの参照の種類修飾子が、ターゲット内の対応するパラメーターと一致しません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
         <source>Thrown value may be null.</source>
         <target state="translated">スローされた値が null である可能性があります。</target>
@@ -4526,6 +5018,16 @@
         <target state="translated">割り当てられていない可能性のある自動実装プロパティの使用</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UseDefViolationRefField">
+        <source>Ref field '{0}' should be ref-assigned before use.</source>
+        <target state="translated">参照フィールド '{0}' は、使用する前に参照を割り当てる必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UseDefViolationRefField_Title">
+        <source>Ref field should be ref-assigned before use.</source>
+        <target state="translated">参照フィールドは、使用する前に参照を割り当てる必要があります。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UseDefViolationThisSupportedVersion">
         <source>The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.</source>
         <target state="translated">'this' オブジェクトは、すべてのフィールドが割り当てられる前に読み取られます。これにより、明示的に割り当てられていないフィールドに対する 'default' の暗黙的な割り当てが先行しています。</target>
@@ -4549,6 +5051,16 @@
       <trans-unit id="WRN_UseDefViolation_Title">
         <source>Use of unassigned local variable</source>
         <target state="translated">割り当てられていないローカル変数の使用</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_WindowsExperimental">
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
+        <target state="translated">'{0}' は、評価の目的でのみ提供されています。将来の更新で変更または削除されることがあります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_WindowsExperimental_Title">
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
+        <target state="translated">型は評価の目的でのみ提供されています。将来の更新で変更または削除されることがあります。</target>
         <note />
       </trans-unit>
       <trans-unit id="XML_InvalidToken">
@@ -6202,8 +6714,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_AttributeCtorInParameter">
-        <source>Cannot use attribute constructor '{0}' because it has 'in' parameters.</source>
-        <target state="translated">'in' パラメーターがあるため、属性のコンストラクター '{0}' を使用できません。</target>
+        <source>Cannot use attribute constructor '{0}' because it has 'in' or 'ref readonly' parameters.</source>
+        <target state="translated">'in' または 'ref readonly' パラメーターがあるため、属性のコンストラクター '{0}' を使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideWithConstraints">
@@ -8525,8 +9037,8 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeIteratorArgType">
-        <source>Iterators cannot have unsafe parameters or yield types</source>
-        <target state="translated">反復子には unsafe パラメーターまたは yield 型を指定できません</target>
+        <source>Iterators cannot have pointer type parameters</source>
+        <target state="translated">反復子にポインター型パラメーターを指定することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
@@ -9868,8 +10380,8 @@ C# では out と ref を区別しますが、CLR では同じと認識します
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnsafeAsyncArgType">
-        <source>Async methods cannot have unsafe parameters or return types</source>
-        <target state="translated">非同期メソッドのパラメーターまたは戻り値の型をアンセーフにすることはできません</target>
+        <source>Async methods cannot have pointer type parameters</source>
+        <target state="translated">非同期メソッドにポインター型パラメーターを指定することはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadAsyncArgType">
@@ -11672,11 +12184,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">'{1}' であるため、'{0}' を参照渡しで返すことはできません</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_RefReturnReadonlyLocal2Cause">
-        <source>Cannot return fields of '{0}' by reference because it is a '{1}'</source>
-        <target state="translated">'{1}' であるため、'{0}' のフィールドを参照渡しで返すことはできません</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RefReturnReadonly">
         <source>A readonly field cannot be returned by writable reference</source>
         <target state="translated">読み取り専用フィールドを書き込み可能な参照渡しで返すことはできません</target>
@@ -11788,8 +12295,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReturningCallAndAwait">
-        <source>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</source>
-        <target state="translated">'参照渡しで返すため、'{0}' の呼び出しが含まれる式では 'await' を使用することができません</target>
+        <source>A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</source>
+        <target state="translated">'{0}' への呼び出しによって返された参照は、'await' または 'yield' 境界を越えて保持することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefConditionalAndAwait">
@@ -12118,13 +12625,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental">
-        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">'{0}' は、評価の目的でのみ提供されています。将来の更新で変更または削除されることがあります。</target>
+        <source>'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="translated">'{0}' は、評価の目的でのみ提供されています。将来の更新で変更または削除されることがあります。続行するには、この診断を非表示にします。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_Experimental_Title">
-        <source>Type is for evaluation purposes only and is subject to change or removal in future updates.</source>
-        <target state="translated">型は評価の目的でのみ提供されています。将来の更新で変更または削除されることがあります。</target>
+        <source>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</source>
+        <target state="translated">種類は、評価の目的でのみ提供されています。将来の更新で変更または削除されることがあります。続行するには、この診断を非表示にします。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CompilerAndLanguageVersion">
@@ -12203,8 +12710,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_InExtensionMustBeValueType">
-        <source>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</source>
-        <target state="translated">'in' 拡張メソッド '{0}' の最初のパラメーターは、具象 (非ジェネリック) の値型である必要があります。</target>
+        <source>The first 'in' or 'ref readonly' parameter of the extension method '{0}' must be a concrete (non-generic) value type.</source>
+        <target state="translated">拡張メソッド '{0}' の最初の 'in' または 'ref readonly' パラメーターは、具象 (非ジェネリック) の値型である必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">

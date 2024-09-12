@@ -20,15 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor
         event EventHandler<SubjectBuffersConnectedEventArgs> SubjectBuffersDisconnected;
     }
 
-    internal class SubjectBuffersConnectedEventArgs
+    internal class SubjectBuffersConnectedEventArgs(ITextView textView, ReadOnlyCollection<ITextBuffer> subjectBuffers)
     {
-        public ReadOnlyCollection<ITextBuffer> SubjectBuffers { get; }
-        public ITextView TextView { get; }
-
-        public SubjectBuffersConnectedEventArgs(ITextView textView, ReadOnlyCollection<ITextBuffer> subjectBuffers)
-        {
-            this.TextView = textView;
-            this.SubjectBuffers = subjectBuffers;
-        }
+        public ReadOnlyCollection<ITextBuffer> SubjectBuffers { get; } = subjectBuffers;
+        public ITextView TextView { get; } = textView;
     }
 }

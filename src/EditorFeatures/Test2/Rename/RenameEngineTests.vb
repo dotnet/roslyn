@@ -5736,7 +5736,7 @@ End Module
 
         <Theory, CombinatorialData>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641231")>
-        Public Sub RenameDontReplaceBaseConstructorToken_CSharp(host As RenameTestHost)
+        Public Sub RenameDoNotReplaceBaseConstructorToken_CSharp(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="C#" CommonReferences="true">
@@ -5766,7 +5766,7 @@ class Program
 
         <Theory, CombinatorialData>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/641231")>
-        Public Sub RenameDontReplaceBaseConstructorToken_VisualBasic(host As RenameTestHost)
+        Public Sub RenameDoNotReplaceBaseConstructorToken_VisualBasic(host As RenameTestHost)
             Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
                         <Project Language="Visual Basic" CommonReferences="true">

@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         private SynthesizedEmbeddedAttributeSymbol _lazyEmbeddedAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsReadOnlyAttribute;
+        private SynthesizedEmbeddedAttributeSymbol _lazyRequiresLocationAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsByRefLikeAttribute;
         private SynthesizedEmbeddedAttributeSymbol _lazyIsUnmanagedAttribute;
         private SynthesizedEmbeddedNullableAttributeSymbol _lazyNullableAttribute;
@@ -94,6 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             builder.AddIfNotNull(_lazyEmbeddedAttribute);
             builder.AddIfNotNull(_lazyIsReadOnlyAttribute);
+            builder.AddIfNotNull(_lazyRequiresLocationAttribute);
             builder.AddIfNotNull(_lazyIsUnmanagedAttribute);
             builder.AddIfNotNull(_lazyIsByRefLikeAttribute);
             builder.AddIfNotNull(_lazyNullableAttribute);
@@ -292,6 +294,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return base.TrySynthesizeIsReadOnlyAttribute();
         }
 
+        protected override SynthesizedAttributeData TrySynthesizeRequiresLocationAttribute()
+        {
+            if ((object)_lazyRequiresLocationAttribute != null)
+            {
+                return new SynthesizedAttributeData(
+                    _lazyRequiresLocationAttribute.Constructors[0],
+                    ImmutableArray<TypedConstant>.Empty,
+                    ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
+            }
+
+            return base.TrySynthesizeRequiresLocationAttribute();
+        }
+
         protected override SynthesizedAttributeData TrySynthesizeIsUnmanagedAttribute()
         {
             if ((object)_lazyIsUnmanagedAttribute != null)
@@ -353,6 +368,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     ref _lazyIsReadOnlyAttribute,
                     diagnostics,
                     AttributeDescription.IsReadOnlyAttribute,
+                    createParameterlessEmbeddedAttributeSymbol);
+            }
+
+            if ((needsAttributes & EmbeddableAttributes.RequiresLocationAttribute) != 0)
+            {
+                CreateAttributeIfNeeded(
+                    ref _lazyRequiresLocationAttribute,
+                    diagnostics,
+                    AttributeDescription.RequiresLocationAttribute,
                     createParameterlessEmbeddedAttributeSymbol);
             }
 
@@ -520,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             if (userDefinedAttribute is not null)
             {
-                diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.Locations[0], description.FullName);
+                diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.GetFirstLocation(), description.FullName);
             }
         }
 

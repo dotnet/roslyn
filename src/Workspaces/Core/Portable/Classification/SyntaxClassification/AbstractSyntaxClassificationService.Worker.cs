@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
@@ -19,18 +21,20 @@ namespace Microsoft.CodeAnalysis.Classification
             private readonly SemanticModel _semanticModel;
             private readonly SyntaxTree _syntaxTree;
             private readonly TextSpan _textSpan;
-            private readonly ArrayBuilder<ClassifiedSpan> _list;
+            private readonly SegmentedList<ClassifiedSpan> _list;
             private readonly CancellationToken _cancellationToken;
             private readonly Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> _getNodeClassifiers;
             private readonly Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> _getTokenClassifiers;
-            private readonly HashSet<ClassifiedSpan> _set;
+            private readonly SegmentedHashSet<ClassifiedSpan> _set;
             private readonly Stack<SyntaxNodeOrToken> _pendingNodes;
             private readonly ClassificationOptions _options;
+
+            private static readonly ObjectPool<SegmentedList<ClassifiedSpan>> s_listPool = new(() => new());
 
             private Worker(
                 SemanticModel semanticModel,
                 TextSpan textSpan,
-                ArrayBuilder<ClassifiedSpan> list,
+                SegmentedList<ClassifiedSpan> list,
                 Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
                 Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
                 ClassificationOptions options,
@@ -46,32 +50,33 @@ namespace Microsoft.CodeAnalysis.Classification
                 _options = options;
 
                 // get one from pool
-                _set = SharedPools.Default<HashSet<ClassifiedSpan>>().AllocateAndClear();
+                _set = SharedPools.Default<SegmentedHashSet<ClassifiedSpan>>().AllocateAndClear();
                 _pendingNodes = SharedPools.Default<Stack<SyntaxNodeOrToken>>().AllocateAndClear();
             }
 
             internal static void Classify(
                 SemanticModel semanticModel,
                 TextSpan textSpan,
-                ArrayBuilder<ClassifiedSpan> list,
+                SegmentedList<ClassifiedSpan> list,
                 Func<SyntaxNode, ImmutableArray<ISyntaxClassifier>> getNodeClassifiers,
                 Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
                 ClassificationOptions options,
                 CancellationToken cancellationToken)
             {
-                var worker = new Worker(semanticModel, textSpan, list, getNodeClassifiers, getTokenClassifiers, options, cancellationToken);
+                using var worker = new Worker(semanticModel, textSpan, list, getNodeClassifiers, getTokenClassifiers, options, cancellationToken);
 
-                try
-                {
-                    worker._pendingNodes.Push(worker._syntaxTree.GetRoot(cancellationToken));
-                    worker.ProcessNodes();
-                }
-                finally
-                {
-                    // release collections to the pool
-                    SharedPools.Default<HashSet<ClassifiedSpan>>().ClearAndFree(worker._set);
-                    SharedPools.Default<Stack<SyntaxNodeOrToken>>().ClearAndFree(worker._pendingNodes);
-                }
+                worker._pendingNodes.Push(worker._syntaxTree.GetRoot(cancellationToken));
+                worker.ProcessNodes();
+            }
+
+            public void Dispose()
+            {
+                // Deliberately do not call ClearAndFree for the set as we can easily have a set that goes past the
+                // threshold simply with a single classified screen.  This allows reuse of those sets without causing
+                // lots of garbage.
+                _set.Clear();
+                SharedPools.Default<SegmentedHashSet<ClassifiedSpan>>().Free(_set);
+                SharedPools.Default<Stack<SyntaxNodeOrToken>>().ClearAndFree(this._pendingNodes);
             }
 
             private void AddClassification(TextSpan textSpan, string type)
@@ -121,27 +126,23 @@ namespace Microsoft.CodeAnalysis.Classification
 
             private void ClassifyNode(SyntaxNode syntax)
             {
-                using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var result);
+                using var obj = s_listPool.GetPooledObject();
+                var list = obj.Object;
 
                 foreach (var classifier in _getNodeClassifiers(syntax))
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    result.Clear();
-                    classifier.AddClassifications(syntax, _semanticModel, _options, result, _cancellationToken);
-                    AddClassifications(result);
+                    list.Clear();
+                    classifier.AddClassifications(syntax, _textSpan, _semanticModel, _options, list, _cancellationToken);
+                    AddClassifications(list);
                 }
             }
 
-            private void AddClassifications(ArrayBuilder<ClassifiedSpan> classifications)
+            private void AddClassifications(SegmentedList<ClassifiedSpan> classifications)
             {
-                if (classifications != null)
-                {
-                    foreach (var classification in classifications)
-                    {
-                        AddClassification(classification);
-                    }
-                }
+                foreach (var classification in classifications)
+                    AddClassification(classification);
             }
 
             private void AddClassification(ClassifiedSpan classification)
@@ -156,15 +157,16 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 ClassifyStructuredTrivia(syntax.LeadingTrivia);
 
-                using var _ = ArrayBuilder<ClassifiedSpan>.GetInstance(out var result);
+                using var obj = s_listPool.GetPooledObject();
+                var list = obj.Object;
 
                 foreach (var classifier in _getTokenClassifiers(syntax))
                 {
                     _cancellationToken.ThrowIfCancellationRequested();
 
-                    result.Clear();
-                    classifier.AddClassifications(syntax, _semanticModel, _options, result, _cancellationToken);
-                    AddClassifications(result);
+                    list.Clear();
+                    classifier.AddClassifications(syntax, _textSpan, _semanticModel, _options, list, _cancellationToken);
+                    AddClassifications(list);
                 }
 
                 ClassifyStructuredTrivia(syntax.TrailingTrivia);

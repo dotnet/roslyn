@@ -6,30 +6,22 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
-    internal class NavigationBarSelectedTypeAndMember : IEquatable<NavigationBarSelectedTypeAndMember>
+    internal class NavigationBarSelectedTypeAndMember(
+        NavigationBarItem? typeItem,
+        bool showTypeItemGrayed,
+        NavigationBarItem? memberItem,
+        bool showMemberItemGrayed) : IEquatable<NavigationBarSelectedTypeAndMember>
     {
         public static readonly NavigationBarSelectedTypeAndMember Empty = new(typeItem: null, memberItem: null);
 
-        public NavigationBarItem? TypeItem { get; }
-        public bool ShowTypeItemGrayed { get; }
-        public NavigationBarItem? MemberItem { get; }
-        public bool ShowMemberItemGrayed { get; }
+        public NavigationBarItem? TypeItem { get; } = typeItem;
+        public bool ShowTypeItemGrayed { get; } = showTypeItemGrayed;
+        public NavigationBarItem? MemberItem { get; } = memberItem;
+        public bool ShowMemberItemGrayed { get; } = showMemberItemGrayed;
 
         public NavigationBarSelectedTypeAndMember(NavigationBarItem? typeItem, NavigationBarItem? memberItem)
             : this(typeItem, showTypeItemGrayed: false, memberItem, showMemberItemGrayed: false)
         {
-        }
-
-        public NavigationBarSelectedTypeAndMember(
-            NavigationBarItem? typeItem,
-            bool showTypeItemGrayed,
-            NavigationBarItem? memberItem,
-            bool showMemberItemGrayed)
-        {
-            TypeItem = typeItem;
-            MemberItem = memberItem;
-            ShowTypeItemGrayed = showTypeItemGrayed;
-            ShowMemberItemGrayed = showMemberItemGrayed;
         }
 
         public override bool Equals(object? obj)

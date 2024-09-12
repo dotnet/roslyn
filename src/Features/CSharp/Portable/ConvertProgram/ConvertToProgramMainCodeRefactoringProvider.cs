@@ -55,11 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertProgram
             if (!CanOfferUseProgramMain(options.PreferTopLevelStatements, root, compilation, forAnalyzer: false))
                 return;
 
-            context.RegisterRefactoring(CodeAction.CreateWithPriority(
-                CodeActionPriority.Low,
+            context.RegisterRefactoring(CodeAction.Create(
                 CSharpAnalyzersResources.Convert_to_Program_Main_style_program,
                 c => ConvertToProgramMainAsync(document, options.AccessibilityModifiersRequired.Value, c),
-                nameof(CSharpAnalyzersResources.Convert_to_Program_Main_style_program)));
+                nameof(CSharpAnalyzersResources.Convert_to_Program_Main_style_program),
+                CodeActionPriority.Low));
         }
     }
 }

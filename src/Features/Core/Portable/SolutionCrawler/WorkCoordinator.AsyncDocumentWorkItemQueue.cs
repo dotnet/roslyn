@@ -14,14 +14,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     {
         internal partial class WorkCoordinator
         {
-            private class AsyncDocumentWorkItemQueue : AsyncWorkItemQueue<DocumentId>
+            private class AsyncDocumentWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace) : AsyncWorkItemQueue<DocumentId>(progressReporter, workspace)
             {
                 private readonly Dictionary<ProjectId, Dictionary<DocumentId, WorkItem>> _documentWorkQueue = new();
-
-                public AsyncDocumentWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace)
-                    : base(progressReporter, workspace)
-                {
-                }
 
                 protected override int WorkItemCount_NoLock => _documentWorkQueue.Count;
 
@@ -46,7 +41,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 protected override bool TryTakeAnyWork_NoLock(
-                    ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService? service,
+                    ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph,
                     out WorkItem workItem)
                 {
                     // there must be at least one item in the map when this is called unless host is shutting down.
@@ -56,7 +51,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return false;
                     }
 
-                    var documentId = GetBestDocumentId_NoLock(preferableProjectId, dependencyGraph, service);
+                    var documentId = GetBestDocumentId_NoLock(preferableProjectId, dependencyGraph);
                     if (TryTake_NoLock(documentId, out workItem))
                     {
                         return true;
@@ -66,9 +61,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 }
 
                 private DocumentId GetBestDocumentId_NoLock(
-                    ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService? analyzerService)
+                    ProjectId? preferableProjectId, ProjectDependencyGraph dependencyGraph)
                 {
-                    var projectId = GetBestProjectId_NoLock(_documentWorkQueue, preferableProjectId, dependencyGraph, analyzerService);
+                    var projectId = GetBestProjectId_NoLock(_documentWorkQueue, preferableProjectId, dependencyGraph);
 
                     var documentMap = _documentWorkQueue[projectId];
 

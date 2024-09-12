@@ -30,16 +30,11 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
         /// <see cref="Accessor{TKey, TDatabaseId}"/> responsible for storing and
         /// retrieving data from <see cref="ProjectDataTableName"/>.
         /// </summary>
-        private sealed class ProjectAccessor : Accessor<ProjectKey, ProjectPrimaryKey>
+        private sealed class ProjectAccessor(SQLitePersistentStorage storage) : Accessor<ProjectKey, ProjectPrimaryKey>(Table.Project,
+                  storage,
+                  (ProjectPathIdColumnName, SQLiteIntegerType),
+                  (ProjectNameIdColumnName, SQLiteIntegerType))
         {
-            public ProjectAccessor(SQLitePersistentStorage storage)
-                : base(Table.Project,
-                      storage,
-                      (ProjectPathIdColumnName, SQLiteIntegerType),
-                      (ProjectNameIdColumnName, SQLiteIntegerType))
-            {
-            }
-
             protected override ProjectPrimaryKey? TryGetDatabaseKey(SqlConnection connection, ProjectKey projectKey, bool allowWrite)
                 => Storage.TryGetProjectPrimaryKey(connection, projectKey, allowWrite);
 

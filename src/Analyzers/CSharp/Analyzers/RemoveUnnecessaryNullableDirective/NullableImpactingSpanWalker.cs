@@ -14,12 +14,16 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirective
 {
-    internal sealed class NullableImpactingSpanWalker : CSharpSyntaxWalker, IDisposable
+    internal sealed class NullableImpactingSpanWalker(
+        SemanticModel semanticModel,
+        int positionOfFirstReducingNullableDirective,
+        TextSpanIntervalTree? ignoredSpans,
+        CancellationToken cancellationToken) : CSharpSyntaxWalker(SyntaxWalkerDepth.StructuredTrivia), IDisposable
     {
-        private readonly SemanticModel _semanticModel;
-        private readonly int _positionOfFirstReducingNullableDirective;
-        private readonly SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? _ignoredSpans;
-        private readonly CancellationToken _cancellationToken;
+        private readonly SemanticModel _semanticModel = semanticModel;
+        private readonly int _positionOfFirstReducingNullableDirective = positionOfFirstReducingNullableDirective;
+        private readonly TextSpanIntervalTree? _ignoredSpans = ignoredSpans;
+        private readonly CancellationToken _cancellationToken = cancellationToken;
 
         private ImmutableArray<TextSpan>.Builder? _spans;
 
@@ -36,19 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirec
 
                 return _spans;
             }
-        }
-
-        public NullableImpactingSpanWalker(
-            SemanticModel semanticModel,
-            int positionOfFirstReducingNullableDirective,
-            SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? ignoredSpans,
-            CancellationToken cancellationToken)
-            : base(SyntaxWalkerDepth.StructuredTrivia)
-        {
-            _semanticModel = semanticModel;
-            _positionOfFirstReducingNullableDirective = positionOfFirstReducingNullableDirective;
-            _ignoredSpans = ignoredSpans;
-            _cancellationToken = cancellationToken;
         }
 
         private bool IsIgnored(SyntaxNode node)

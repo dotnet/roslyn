@@ -8,11 +8,19 @@ using Microsoft.CodeAnalysis.BuildTasks;
 using Microsoft.CodeAnalysis.BuildTasks.UnitTests.TestUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
     public sealed class VbcTests
     {
+        public ITestOutputHelper TestOutputHelper { get; }
+
+        public VbcTests(ITestOutputHelper testOutputHelper)
+        {
+            TestOutputHelper = testOutputHelper;
+        }
+
         [Fact]
         public void SingleSource()
         {
@@ -510,6 +518,41 @@ C:\Test Path (123)\hellovb.vb(7) : error BC30451: 'asdf' is not declared. It may
                 LogFunc = delegate { throw new Exception(""); }
             });
             Assert.False(string.IsNullOrEmpty(engine.Log));
+        }
+
+        [Fact]
+        public void ReportIVTsSwitch()
+        {
+            var vbc = new Vbc();
+            vbc.ReportIVTs = true;
+            AssertEx.Equal("/optionstrict:custom /reportivts", vbc.GenerateResponseFileContents());
+        }
+
+        [Fact]
+        public void CommandLineArgs1()
+        {
+            var engine = new MockEngine(TestOutputHelper);
+            var vbc = new Vbc()
+            {
+                BuildEngine = engine,
+                Sources = MSBuildUtil.CreateTaskItems("test.vb"),
+            };
+
+            TaskTestUtil.AssertCommandLine(vbc, engine, "/optionstrict:custom", "/out:test.exe", "test.vb");
+        }
+
+        [Fact]
+        public void CommandLineArgs2()
+        {
+            var engine = new MockEngine(TestOutputHelper);
+            var vbc = new Vbc()
+            {
+                BuildEngine = engine,
+                Sources = MSBuildUtil.CreateTaskItems("test.vb", "blah.vb"),
+                TargetType = "library"
+            };
+
+            TaskTestUtil.AssertCommandLine(vbc, engine, "/optionstrict:custom", "/out:test.dll", "/target:library", "test.vb", "blah.vb");
         }
     }
 }

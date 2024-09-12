@@ -318,6 +318,18 @@
   <data name="IDS_SK_TYVAR" xml:space="preserve">
     <value>type parameter</value>
   </data>
+  <data name="IDS_SK_ARRAY" xml:space="preserve">
+    <value>array</value>
+  </data>
+  <data name="IDS_SK_POINTER" xml:space="preserve">
+    <value>pointer</value>
+  </data>
+  <data name="IDS_SK_FUNCTION_POINTER" xml:space="preserve">
+    <value>function pointer</value>
+  </data>
+  <data name="IDS_SK_DYNAMIC" xml:space="preserve">
+    <value>dynamic</value>
+  </data>
   <data name="IDS_SK_ALIAS" xml:space="preserve">
     <value>using alias</value>
   </data>
@@ -1474,7 +1486,7 @@
     <value>Cannot return 'this' by reference.</value>
   </data>
   <data name="ERR_AttributeCtorInParameter" xml:space="preserve">
-    <value>Cannot use attribute constructor '{0}' because it has 'in' parameters.</value>
+    <value>Cannot use attribute constructor '{0}' because it has 'in' or 'ref readonly' parameters.</value>
   </data>
   <data name="ERR_OverrideWithConstraints" xml:space="preserve">
     <value>Constraints for override and explicit interface implementation methods are inherited from the base method, so they cannot be specified directly, except for either a 'class', or a 'struct' constraint.</value>
@@ -2860,6 +2872,9 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_BadArgExtraRef" xml:space="preserve">
     <value>Argument {0} may not be passed with the '{1}' keyword</value>
   </data>
+  <data name="ERR_BadArgExtraRefLangVersion" xml:space="preserve">
+    <value>Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.</value>
+  </data>
   <data name="WRN_CmdOptionConflictsSource" xml:space="preserve">
     <value>Option '{0}' overrides attribute '{1}' given in a source file or added module</value>
   </data>
@@ -2880,6 +2895,30 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   </data>
   <data name="ERR_BadArgRef" xml:space="preserve">
     <value>Argument {0} must be passed with the '{1}' keyword</value>
+  </data>
+  <data name="WRN_BadArgRef" xml:space="preserve">
+    <value>The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</value>
+  </data>
+  <data name="WRN_BadArgRef_Title" xml:space="preserve">
+    <value>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</value>
+  </data>
+  <data name="WRN_ArgExpectedRefOrIn" xml:space="preserve">
+    <value>Argument {0} should be passed with 'ref' or 'in' keyword</value>
+  </data>
+  <data name="WRN_ArgExpectedRefOrIn_Title" xml:space="preserve">
+    <value>Argument should be passed with 'ref' or 'in' keyword</value>
+  </data>
+  <data name="WRN_ArgExpectedIn" xml:space="preserve">
+    <value>Argument {0} should be passed with the 'in' keyword</value>
+  </data>
+  <data name="WRN_ArgExpectedIn_Title" xml:space="preserve">
+    <value>Argument should be passed with the 'in' keyword</value>
+  </data>
+  <data name="WRN_RefReadonlyNotVariable" xml:space="preserve">
+    <value>Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</value>
+  </data>
+  <data name="WRN_RefReadonlyNotVariable_Title" xml:space="preserve">
+    <value>Argument should be a variable because it is passed to a 'ref readonly' parameter</value>
   </data>
   <data name="ERR_YieldInAnonMeth" xml:space="preserve">
     <value>The yield statement cannot be used inside an anonymous method or lambda expression</value>
@@ -2942,7 +2981,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>__arglist is not allowed in the parameter list of iterators</value>
   </data>
   <data name="ERR_UnsafeIteratorArgType" xml:space="preserve">
-    <value>Iterators cannot have unsafe parameters or yield types</value>
+    <value>Iterators cannot have pointer type parameters</value>
   </data>
   <data name="ERR_BadCoClassSig" xml:space="preserve">
     <value>The managed coclass wrapper class signature '{0}' for interface '{1}' is not a valid class name signature</value>
@@ -3771,7 +3810,7 @@ Give the compiler some way to differentiate the methods. For example, you can gi
     <value>'await' cannot be used in an expression containing the type '{0}'</value>
   </data>
   <data name="ERR_UnsafeAsyncArgType" xml:space="preserve">
-    <value>Async methods cannot have unsafe parameters or return types</value>
+    <value>Async methods cannot have pointer type parameters</value>
   </data>
   <data name="ERR_BadAsyncArgType" xml:space="preserve">
     <value>Async methods cannot have ref, in or out parameters</value>
@@ -4054,6 +4093,12 @@ You should consider suppressing the warning only if you're sure that you don't w
   </data>
   <data name="WRN_DefaultValueForUnconsumedLocation_Title" xml:space="preserve">
     <value>The default value specified will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
+  </data>
+  <data name="WRN_RefReadonlyParameterDefaultValue" xml:space="preserve">
+    <value>A default value is specified for 'ref readonly' parameter '{0}', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</value>
+  </data>
+  <data name="WRN_RefReadonlyParameterDefaultValue_Title" xml:space="preserve">
+    <value>A default value is specified for 'ref readonly' parameter, but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</value>
   </data>
   <data name="ERR_PublicKeyFileFailure" xml:space="preserve">
     <value>Error signing output with public key from file '{0}' -- {1}</value>
@@ -4794,6 +4839,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
 -modulename:&lt;string&gt;          Specify the name of the source module
 -generatedfilesout:&lt;dir&gt;      Place files generated during compilation in the
                               specified directory.
+-reportivts[+|-]                    Output information on all IVTs granted to this
+                              assembly by all dependencies, and annotate foreign assembly
+                              accessibility errors with what assembly they came from.
 </value>
     <comment>Visual C# Compiler Options</comment>
   </data>
@@ -5074,9 +5122,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefReturnReadonlyLocalCause" xml:space="preserve">
     <value>Cannot return '{0}' by reference because it is a '{1}'</value>
   </data>
-  <data name="ERR_RefReturnReadonlyLocal2Cause" xml:space="preserve">
-    <value>Cannot return fields of '{0}' by reference because it is a '{1}'</value>
-  </data>
   <data name="ERR_RefReturnReadonly" xml:space="preserve">
     <value>A readonly field cannot be returned by writable reference</value>
   </data>
@@ -5249,7 +5294,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Async methods cannot have by-reference locals</value>
   </data>
   <data name="ERR_RefReturningCallAndAwait" xml:space="preserve">
-    <value>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</value>
+    <value>A reference returned by a call to '{0}' cannot be preserved across 'await' or 'yield' boundary.</value>
   </data>
   <data name="ERR_RefConditionalAndAwait" xml:space="preserve">
     <value>'await' cannot be used in an expression containing a ref conditional operator</value>
@@ -5485,11 +5530,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_VoidAssignment" xml:space="preserve">
     <value>A value of type 'void' may not be assigned.</value>
   </data>
-  <data name="WRN_Experimental" xml:space="preserve">
+  <data name="WRN_WindowsExperimental" xml:space="preserve">
     <value>'{0}' is for evaluation purposes only and is subject to change or removal in future updates.</value>
   </data>
-  <data name="WRN_Experimental_Title" xml:space="preserve">
+  <data name="WRN_WindowsExperimental_Title" xml:space="preserve">
     <value>Type is for evaluation purposes only and is subject to change or removal in future updates.</value>
+  </data>
+  <data name="WRN_Experimental" xml:space="preserve">
+    <value>'{0}' is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</value>
+  </data>
+  <data name="WRN_Experimental_Title" xml:space="preserve">
+    <value>Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.</value>
   </data>
   <data name="ERR_CompilerAndLanguageVersion" xml:space="preserve">
     <value>Compiler version: '{0}'. Language version: {1}.</value>
@@ -5858,7 +5909,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>The type name '{0}' is reserved to be used by the compiler.</value>
   </data>
   <data name="ERR_InExtensionMustBeValueType" xml:space="preserve">
-    <value>The first parameter of the 'in' extension method '{0}' must be a concrete (non-generic) value type.</value>
+    <value>The first 'in' or 'ref readonly' parameter of the extension method '{0}' must be a concrete (non-generic) value type.</value>
   </data>
   <data name="ERR_FieldsInRoStruct" xml:space="preserve">
     <value>Instance fields of readonly structs must be readonly.</value>
@@ -5880,6 +5931,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_OutAttrOnInParam" xml:space="preserve">
     <value>An in parameter cannot have the Out attribute.</value>
+  </data>
+  <data name="ERR_OutAttrOnRefReadonlyParam" xml:space="preserve">
+    <value>A ref readonly parameter cannot have the Out attribute.</value>
   </data>
   <data name="ICompoundAssignmentOperationIsNotCSharpCompoundAssignment" xml:space="preserve">
     <value>{0} is not a valid C# compound assignment operation</value>
@@ -6410,28 +6464,26 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>An expression tree may not contain a range ('..') expression.</value>
   </data>
   <data name="WRN_GeneratorFailedDuringGeneration" xml:space="preserve">
-    <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</value>
-    <comment>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</comment>
+    <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</value>
+    <comment>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</comment>
   </data>
   <data name="WRN_GeneratorFailedDuringInitialization" xml:space="preserve">
-    <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</value>
-    <comment>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</comment>
+    <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</value>
+    <comment>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</comment>
   </data>
   <data name="WRN_GeneratorFailedDuringGeneration_Title" xml:space="preserve">
     <value>Generator failed to generate source.</value>
   </data>
   <data name="WRN_GeneratorFailedDuringInitialization_Title" xml:space="preserve">
     <value>Generator failed to initialize.</value>
-  </data>
-  <data name="WRN_GeneratorFailedDuringGeneration_Description" xml:space="preserve">
-    <value>Generator threw the following exception:
-'{0}'.</value>
-    <comment>{0} is the string representation of the exception that was thrown.</comment>
-  </data>
-  <data name="WRN_GeneratorFailedDuringInitialization_Description" xml:space="preserve">
-    <value>Generator threw the following exception:
-'{0}'.</value>
-    <comment>{0} is the string representation of the exception that was thrown.</comment>
   </data>
   <data name="IDS_FeatureRecords" xml:space="preserve">
     <value>records</value>
@@ -6585,6 +6637,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_FeatureNotAvailableInVersion11" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.</value>
+  </data>
+  <data name="ERR_FeatureNotAvailableInVersion12" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</value>
   </data>
   <data name="ERR_UnexpectedArgumentList" xml:space="preserve">
     <value>Unexpected argument list.</value>
@@ -6777,6 +6832,33 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureVarianceSafetyForStaticInterfaceMembers" xml:space="preserve">
     <value>variance safety for static interface members</value>
   </data>
+  <data name="IDS_FeatureCollectionExpressions" xml:space="preserve">
+    <value>collection expressions</value>
+  </data>
+  <data name="ERR_CollectionExpressionTargetTypeNotConstructible" xml:space="preserve">
+    <value>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsCollectionExpression" xml:space="preserve">
+    <value>An expression tree may not contain a collection expression.</value>
+  </data>
+  <data name="ERR_CollectionExpressionNoTargetType" xml:space="preserve">
+    <value>There is no target type for the collection expression.</value>
+  </data>
+  <data name="ERR_CollectionBuilderAttributeMethodNotFound" xml:space="preserve">
+    <value>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</value>
+  </data>
+  <data name="ERR_CollectionBuilderNoElementType" xml:space="preserve">
+    <value>'{0}' has a CollectionBuilderAttribute but no element type.</value>
+  </data>
+  <data name="ERR_CollectionBuilderAttributeInvalidType" xml:space="preserve">
+    <value>The CollectionBuilderAttribute builder type must be a non-generic class or struct.</value>
+  </data>
+  <data name="ERR_CollectionBuilderAttributeInvalidMethodName" xml:space="preserve">
+    <value>The CollectionBuilderAttribute method name is invalid.</value>
+  </data>
+  <data name="ERR_CollectionExpressionEscape" xml:space="preserve">
+    <value>A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</value>
+  </data>
   <data name="ERR_EqualityContractRequiresGetter" xml:space="preserve">
     <value>Record equality contract property '{0}' must have a get accessor.</value>
   </data>
@@ -6816,6 +6898,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_UnreadRecordParameter_Title" xml:space="preserve">
     <value>Parameter is unread. Did you forget to use it to initialize the property with that name?</value>
+  </data>
+  <data name="IDS_FeatureInstanceMemberInNameof" xml:space="preserve">
+    <value>instance member in 'nameof'</value>
   </data>
   <data name="ERR_RecordAmbigCtor" xml:space="preserve">
     <value>The primary constructor conflicts with the synthesized copy constructor.</value>
@@ -7409,8 +7494,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_UnscopedScoped" xml:space="preserve">
     <value>UnscopedRefAttribute cannot be applied to parameters that have a 'scoped' modifier.</value>
   </data>
-  <data name="ERR_ReadOnlyNotSuppAsParamModDidYouMeanIn" xml:space="preserve">
-    <value>'readonly' is not supported as a parameter modifier. Did you mean 'in'?</value>
+  <data name="ERR_RefReadOnlyWrongOrdering" xml:space="preserve">
+    <value>'readonly' modifier must be specified after 'ref'.</value>
   </data>
   <data name="ERR_ScopedDiscard" xml:space="preserve">
     <value>The 'scoped' modifier cannot be used with discard.</value>
@@ -7499,13 +7584,232 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_AddressOfInAsync_Title" xml:space="preserve">
     <value>The '&amp;' operator should not be used on parameters or local variables in async methods.</value>
   </data>
+  <data name="WRN_ByValArraySizeConstRequired" xml:space="preserve">
+    <value>Attribute parameter 'SizeConst' must be specified.</value>
+  </data>
+  <data name="WRN_ByValArraySizeConstRequired_Title" xml:space="preserve">
+    <value>Attribute parameter 'SizeConst' must be specified.</value>
+  </data>
   <data name="ERR_BadStaticAfterUnsafe" xml:space="preserve">
     <value>'static' modifier must precede 'unsafe' modifier.</value>
   </data>
   <data name="ERR_BadCaseInSwitchArm" xml:space="preserve">
     <value>A switch expression arm does not begin with a 'case' keyword.</value>
   </data>
+  <data name="ERR_InterceptorsFeatureNotEnabled" xml:space="preserve">
+    <value>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</value>
+  </data>
+  <data name="ERR_InterceptorGlobalNamespace" xml:space="preserve">
+    <value>An interceptor cannot be declared in the global namespace.</value>
+  </data>
+  <data name="ERR_InterceptableMethodMustBeOrdinary" xml:space="preserve">
+    <value>Cannot intercept '{0}' because it is not an invocation of an ordinary member method.</value>
+  </data>
+  <data name="ERR_InterceptorContainingTypeCannotBeGeneric" xml:space="preserve">
+    <value>Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</value>
+  </data>
+  <data name="ERR_InterceptorArityNotCompatible" xml:space="preserve">
+    <value>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</value>
+  </data>
+  <data name="ERR_InterceptorCannotBeGeneric" xml:space="preserve">
+    <value>Method '{0}' must be non-generic to match '{1}'.</value>
+  </data>
+  <data name="ERR_InterceptorPathNotInCompilation" xml:space="preserve">
+    <value>Cannot intercept: compilation does not contain a file with path '{0}'.</value>
+  </data>
+  <data name="ERR_InterceptorPathNotInCompilationWithCandidate" xml:space="preserve">
+    <value>Cannot intercept: compilation does not contain a file with path '{0}'. Did you mean to use path '{1}'?</value>
+  </data>
+  <data name="ERR_InterceptorPathNotInCompilationWithUnmappedCandidate" xml:space="preserve">
+    <value>Cannot intercept: Path '{0}' is unmapped. Expected mapped path '{1}'.</value>
+  </data>
+  <data name="ERR_InterceptorLineOutOfRange" xml:space="preserve">
+    <value>The given file has '{0}' lines, which is fewer than the provided line number '{1}'.</value>
+  </data>
+  <data name="ERR_InterceptorCharacterOutOfRange" xml:space="preserve">
+    <value>The given line is '{0}' characters long, which is fewer than the provided character number '{1}'.</value>
+  </data>
+  <data name="ERR_InterceptorLineCharacterMustBePositive" xml:space="preserve">
+    <value>Line and character numbers provided to InterceptsLocationAttribute must be positive.</value>
+  </data>
+  <data name="ERR_InterceptorPositionBadToken" xml:space="preserve">
+    <value>The provided line and character number does not refer to an interceptable method name, but rather to token '{0}'.</value>
+  </data>
+  <data name="ERR_InterceptorMustReferToStartOfTokenPosition" xml:space="preserve">
+    <value>The provided line and character number does not refer to the start of token '{0}'. Did you mean to use line '{1}' and character '{2}'?</value>
+  </data>
+  <data name="ERR_InterceptorSignatureMismatch" xml:space="preserve">
+    <value>Cannot intercept method '{0}' with interceptor '{1}' because the signatures do not match.</value>
+  </data>
+  <data name="WRN_InterceptorSignatureMismatch" xml:space="preserve">
+    <value>Intercepting a call to '{0}' with interceptor '{1}', but the signatures do not match.</value>
+  </data>
+  <data name="WRN_InterceptorSignatureMismatch_Title" xml:space="preserve">
+    <value>Signatures of interceptable and interceptor methods do not match.</value>
+  </data>
+  <data name="ERR_InterceptorMethodMustBeOrdinary" xml:space="preserve">
+    <value>An interceptor method must be an ordinary member method.</value>
+  </data>
+  <data name="ERR_InterceptorMustHaveMatchingThisParameter" xml:space="preserve">
+    <value>Interceptor must have a 'this' parameter matching parameter '{0}' on '{1}'.</value>
+  </data>
+  <data name="ERR_InterceptorMustNotHaveThisParameter" xml:space="preserve">
+    <value>Interceptor must not have a 'this' parameter because '{0}' does not have a 'this' parameter.</value>
+  </data>
+  <data name="ERR_InterceptorFilePathCannotBeNull" xml:space="preserve">
+    <value>Interceptor cannot have a 'null' file path.</value>
+  </data>
+  <data name="ERR_InterceptorNameNotInvoked" xml:space="preserve">
+    <value>Possible method name '{0}' cannot be intercepted because it is not being invoked.</value>
+  </data>
+  <data name="ERR_InterceptorNonUniquePath" xml:space="preserve">
+    <value>Cannot intercept a call in file with path '{0}' because multiple files in the compilation have this path.</value>
+  </data>
+  <data name="ERR_DuplicateInterceptor" xml:space="preserve">
+    <value>The indicated call is intercepted multiple times.</value>
+  </data>
+  <data name="ERR_InterceptorNotAccessible" xml:space="preserve">
+    <value>Cannot intercept call with '{0}' because it is not accessible within '{1}'.</value>
+  </data>
+  <data name="ERR_InterceptorScopedMismatch" xml:space="preserve">
+    <value>Cannot intercept call to '{0}' with '{1}' because of a difference in 'scoped' modifiers or '[UnscopedRef]' attributes.</value>
+  </data>
   <data name="ERR_ConstantValueOfTypeExpected" xml:space="preserve">
     <value>A constant value of type '{0}' is expected</value>
+  </data>
+  <data name="ERR_UnsupportedPrimaryConstructorParameterCapturingRefAny" xml:space="preserve">
+    <value>Cannot use primary constructor parameter of type '{0}' inside an instance member</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnInterceptor" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter '{0}' doesn't match interceptable method '{1}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInParameterTypeOnInterceptor_Title" xml:space="preserve">
+    <value>Nullability of reference types in type of parameter doesn't match interceptable method.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnInterceptor" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match interceptable method '{0}'.</value>
+  </data>
+  <data name="WRN_NullabilityMismatchInReturnTypeOnInterceptor_Title" xml:space="preserve">
+    <value>Nullability of reference types in return type doesn't match interceptable method.</value>
+  </data>
+  <data name="ERR_InterceptorCannotInterceptNameof" xml:space="preserve">
+    <value>A nameof operator cannot be intercepted.</value>
+  </data>
+  <data name="ERR_InterceptorCannotUseUnmanagedCallersOnly" xml:space="preserve">
+    <value>An interceptor cannot be marked with 'UnmanagedCallersOnlyAttribute'.</value>
+  </data>
+  <data name="ERR_BadUsingStaticType" xml:space="preserve">
+    <value>'{0}' type is not valid for 'using static'. Only a class, struct, interface, enum, delegate, or namespace can be used.</value>
+  </data>
+  <data name="ERR_SymbolDefinedInAssembly" xml:space="preserve">
+    <value>'{0}' is defined in assembly '{1}'.</value>
+  </data>
+  <data name="WRN_CapturedPrimaryConstructorParameterInFieldInitializer" xml:space="preserve">
+    <value>Parameter '{0}' is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</value>
+  </data>
+  <data name="WRN_CapturedPrimaryConstructorParameterInFieldInitializer_Title" xml:space="preserve">
+    <value>Parameter is captured into the state of the enclosing type and its value is also used to initialize a field, property, or event.</value>
+  </data>
+  <data name="ERR_InlineArrayConversionToSpanNotSupported" xml:space="preserve">
+    <value>Cannot convert expression to '{0}' because it is not an assignable variable</value>
+  </data>
+  <data name="ERR_InlineArrayConversionToReadOnlySpanNotSupported" xml:space="preserve">
+    <value>Cannot convert expression to '{0}' because it may not be passed or returned by reference</value>
+  </data>
+  <data name="IDS_FeatureInlineArrays" xml:space="preserve">
+    <value>inline arrays</value>
+  </data>
+  <data name="ERR_InlineArrayIndexOutOfRange" xml:space="preserve">
+    <value>Index is outside the bounds of the inline array</value>
+  </data>
+  <data name="ERR_InvalidInlineArrayLength" xml:space="preserve">
+    <value>Inline array length must be greater than 0.</value>
+  </data>
+  <data name="ERR_InvalidInlineArrayLayout" xml:space="preserve">
+    <value>Inline array struct must not have explicit layout.</value>
+  </data>
+  <data name="ERR_InvalidInlineArrayFields" xml:space="preserve">
+    <value>Inline array struct must declare one and only one instance field.</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsInlineArrayOperation" xml:space="preserve">
+    <value>An expression tree may not contain an inline array access or conversion</value>
+  </data>
+  <data name="ERR_RuntimeDoesNotSupportInlineArrayTypes" xml:space="preserve">
+    <value>Target runtime doesn't support inline array types.</value>
+  </data>
+  <data name="ERR_InlineArrayBadIndex" xml:space="preserve">
+    <value>Elements of an inline array type can be accessed only with a single argument implicitly convertible to 'int', 'System.Index', or 'System.Range'.</value>
+  </data>
+  <data name="ERR_NamedArgumentForInlineArray" xml:space="preserve">
+    <value>An inline array access may not have a named argument specifier</value>
+  </data>
+  <data name="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase" xml:space="preserve">
+    <value>Primary constructor parameter '{0}' is shadowed by a member from base.</value>
+  </data>
+  <data name="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase_Title" xml:space="preserve">
+    <value>Primary constructor parameter is shadowed by a member from base</value>
+  </data>
+  <data name="ERR_InlineArrayUnsupportedElementFieldModifier" xml:space="preserve">
+    <value>Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.</value>
+  </data>
+  <data name="WRN_InlineArrayIndexerNotUsed" xml:space="preserve">
+    <value>Inline array indexer will not be used for element access expression.</value>
+  </data>
+  <data name="WRN_InlineArrayIndexerNotUsed_Title" xml:space="preserve">
+    <value>Inline array indexer will not be used for element access expression.</value>
+  </data>
+  <data name="WRN_InlineArraySliceNotUsed" xml:space="preserve">
+    <value>Inline array 'Slice' method will not be used for element access expression.</value>
+  </data>
+  <data name="WRN_InlineArraySliceNotUsed_Title" xml:space="preserve">
+    <value>Inline array 'Slice' method will not be used for element access expression.</value>
+  </data>
+  <data name="WRN_InlineArrayConversionOperatorNotUsed" xml:space="preserve">
+    <value>Inline array conversion operator will not be used for conversion from expression of the declaring type.</value>
+  </data>
+  <data name="WRN_InlineArrayConversionOperatorNotUsed_Title" xml:space="preserve">
+    <value>Inline array conversion operator will not be used for conversion from expression of the declaring type.</value>
+  </data>
+  <data name="WRN_InlineArrayNotSupportedByLanguage" xml:space="preserve">
+    <value>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</value>
+  </data>
+  <data name="WRN_InlineArrayNotSupportedByLanguage_Title" xml:space="preserve">
+    <value>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</value>
+  </data>
+  <data name="ERR_InlineArrayForEachNotSupported" xml:space="preserve">
+    <value>foreach statement on an inline array of type '{0}' is not supported</value>
+  </data>
+  <data name="IDS_FeatureRefReadonlyParameters" xml:space="preserve">
+    <value>ref readonly parameters</value>
+  </data>
+  <data name="WRN_OverridingDifferentRefness" xml:space="preserve">
+    <value>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</value>
+  </data>
+  <data name="WRN_OverridingDifferentRefness_Title" xml:space="preserve">
+    <value>Reference kind modifier of parameter doesn't match the corresponding parameter in overridden or implemented member.</value>
+  </data>
+  <data name="WRN_HidingDifferentRefness" xml:space="preserve">
+    <value>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</value>
+  </data>
+  <data name="WRN_HidingDifferentRefness_Title" xml:space="preserve">
+    <value>Reference kind modifier of parameter doesn't match the corresponding parameter in hidden member.</value>
+  </data>
+  <data name="WRN_TargetDifferentRefness" xml:space="preserve">
+    <value>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in target.</value>
+  </data>
+  <data name="WRN_TargetDifferentRefness_Title" xml:space="preserve">
+    <value>Reference kind modifier of parameter doesn't match the corresponding parameter in target.</value>
+  </data>
+  <data name="WRN_UseDefViolationRefField" xml:space="preserve">
+    <value>Ref field '{0}' should be ref-assigned before use.</value>
+  </data>
+  <data name="WRN_UseDefViolationRefField_Title" xml:space="preserve">
+    <value>Ref field should be ref-assigned before use.</value>
+  </data>
+  <data name="ERR_ExpectedInterpolatedString" xml:space="preserve">
+    <value>Expected interpolated string</value>
+  </data>
+  <data name="ERR_CollectionExpressionImmutableArray" xml:space="preserve">
+    <value>This version of '{0}' cannot be used with collection expressions.</value>
   </data>
 </root>

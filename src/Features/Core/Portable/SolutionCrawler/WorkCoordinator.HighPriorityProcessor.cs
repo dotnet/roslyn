@@ -174,7 +174,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return _workItemQueue.TryTakeAnyWork(
                             preferableProjectId: null,
                             dependencyGraph: _processor.DependencyGraph,
-                            analyzerService: _processor.DiagnosticAnalyzerService,
                             workItem: out workItem,
                             cancellationToken: out cancellationToken);
                     }

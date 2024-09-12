@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Editing
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
             // Create a simple interval tree for simplification spans.
-            var spansTree = new SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>(new TextSpanIntervalIntrospector(), spans);
+            var spansTree = new TextSpanIntervalTree(spans);
 
             Func<SyntaxNode, bool> overlapsWithSpan = n => spansTree.HasIntervalThatOverlapsWith(n.FullSpan.Start, n.FullSpan.Length);
 

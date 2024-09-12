@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
             : base(arguments)
         {
             _workQueue = new AsyncBatchingWorkQueue<(Document, ClassificationType, ClassificationOptions)>(
-                DelayTimeSpan.Short,
+                DelayTimeSpan.NonFocus,
                 CacheClassificationsAsync,
                 EqualityComparer<(Document, ClassificationType, ClassificationOptions)>.Default,
                 AsynchronousOperationListenerProvider.NullListener,
@@ -132,10 +132,10 @@ namespace Microsoft.CodeAnalysis.Remote
             if (matches)
                 return;
 
-            using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(out var classifiedSpans);
+            using var _2 = Classifier.GetPooledList(out var classifiedSpans);
 
             // Compute classifications for the full span.
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             await classificationService.AddSemanticClassificationsAsync(document, new TextSpan(0, text.Length), options, classifiedSpans, cancellationToken).ConfigureAwait(false);
 
             using var stream = SerializableBytes.CreateWritableStream();
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Remote
             await storage.WriteStreamAsync(documentKey, persistenceName, stream, checksum, cancellationToken).ConfigureAwait(false);
         }
 
-        private static void WriteTo(ArrayBuilder<ClassifiedSpan> classifiedSpans, ObjectWriter writer)
+        private static void WriteTo(SegmentedList<ClassifiedSpan> classifiedSpans, ObjectWriter writer)
         {
             writer.WriteInt32(ClassificationFormat);
 

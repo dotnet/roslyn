@@ -6,10 +6,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.LanguageServer.Features.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
     {
         public AbstractDocumentPullDiagnosticHandler(
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
-            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
-            IGlobalOptionService globalOptions) : base(diagnosticAnalyzerService, editAndContinueDiagnosticUpdateSource, globalOptions)
+            IDiagnosticsRefresher diagnosticRefresher,
+            IGlobalOptionService globalOptions) : base(diagnosticAnalyzerService, diagnosticRefresher, globalOptions)
         {
         }
 
@@ -49,33 +49,37 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         /// </summary>
         protected const int WorkspaceDiagnosticIdentifier = 1;
         protected const int DocumentDiagnosticIdentifier = 2;
+        // internal for testing purposes
+        internal const int DocumentNonLocalDiagnosticIdentifier = 3;
 
-        private readonly EditAndContinueDiagnosticUpdateSource _editAndContinueDiagnosticUpdateSource;
+        private readonly IDiagnosticsRefresher _diagnosticRefresher;
         protected readonly IGlobalOptionService GlobalOptions;
 
         protected readonly IDiagnosticAnalyzerService DiagnosticAnalyzerService;
 
         /// <summary>
         /// Cache where we store the data produced by prior requests so that they can be returned if nothing of significance 
-        /// changed. The VersionStamp is produced by <see cref="Project.GetDependentVersionAsync(CancellationToken)"/> while the 
-        /// Checksum is produced by <see cref="Project.GetDependentChecksumAsync(CancellationToken)"/>.  The former is faster
+        /// changed. The <see cref="VersionStamp"/> is produced by <see cref="Project.GetDependentVersionAsync(CancellationToken)"/> while the 
+        /// <see cref="Checksum"/> is produced by <see cref="Project.GetDependentChecksumAsync(CancellationToken)"/>.  The former is faster
         /// and works well for us in the normal case.  The latter still allows us to reuse diagnostics when changes happen that
         /// update the version stamp but not the content (for example, forking LSP text).
         /// </summary>
-        private readonly ConcurrentDictionary<string, VersionedPullCache<(int, VersionStamp?), (int, Checksum)>> _categoryToVersionedCache = new();
+        private readonly ConcurrentDictionary<string, VersionedPullCache<(int globalStateVersion, VersionStamp? dependentVersion), (int globalStateVersion, Checksum dependentChecksum)>> _categoryToVersionedCache = new();
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
         protected AbstractPullDiagnosticHandler(
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
-            EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
+            IDiagnosticsRefresher diagnosticRefresher,
             IGlobalOptionService globalOptions)
         {
             DiagnosticAnalyzerService = diagnosticAnalyzerService;
-            _editAndContinueDiagnosticUpdateSource = editAndContinueDiagnosticUpdateSource;
+            _diagnosticRefresher = diagnosticRefresher;
             GlobalOptions = globalOptions;
         }
+
+        protected virtual string? GetDiagnosticSourceIdentifier(TDiagnosticsParams diagnosticsParams) => null;
 
         /// <summary>
         /// Retrieve the previous results we reported.  Used so we can avoid resending data for unchanged files. Also
@@ -127,7 +131,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
         {
             var clientCapabilities = context.GetRequiredClientCapabilities();
             var category = GetDiagnosticCategory(diagnosticsParams) ?? "";
-            var handlerName = $"{this.GetType().Name}(category: {category})";
+            var sourceIdentifier = GetDiagnosticSourceIdentifier(diagnosticsParams) ?? "";
+            var handlerName = $"{this.GetType().Name}(category: {category}, source: {sourceIdentifier})";
             context.TraceInformation($"{handlerName} started getting diagnostics");
 
             var versionedCache = _categoryToVersionedCache.GetOrAdd(handlerName, static handlerName => new(handlerName));
@@ -163,7 +168,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
             foreach (var diagnosticSource in orderedSources)
             {
-                var encVersion = _editAndContinueDiagnosticUpdateSource.Version;
+                var globalStateVersion = _diagnosticRefresher.GlobalStateVersion;
 
                 var project = diagnosticSource.GetProject();
 
@@ -171,8 +176,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     documentToPreviousDiagnosticParams,
                     diagnosticSource.GetId(),
                     project,
-                    computeCheapVersionAsync: async () => (encVersion, await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false)),
-                    computeExpensiveVersionAsync: async () => (encVersion, await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false)),
+                    computeCheapVersionAsync: async () => (globalStateVersion, await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false)),
+                    computeExpensiveVersionAsync: async () => (globalStateVersion, await project.GetDependentChecksumAsync(cancellationToken).ConfigureAwait(false)),
                     cancellationToken).ConfigureAwait(false);
                 if (newResultId != null)
                 {
@@ -190,6 +195,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     progress.Report(CreateUnchangedReport(previousParams.TextDocument, previousParams.PreviousResultId));
                 }
             }
+
+            // Clear out the solution context to avoid retaining memory
+            // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1809058
+            context.ClearSolutionContext();
 
             // Some implementations of the spec will re-open requests as soon as we close them, spamming the server.
             // In those cases, we wait for the implementation to indicate that changes have occurred, then we close the connection
@@ -313,10 +322,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
 
         private ImmutableArray<LSP.Diagnostic> ConvertDiagnostic(IDiagnosticSource diagnosticSource, DiagnosticData diagnosticData, ClientCapabilities capabilities)
         {
-            // VSCode throws on hidden diagnostics without a message (all hint diagnostic messages are rendered on hover).
-            // Roslyn creates these for example in remove unnecessary imports, see RemoveUnnecessaryImportsConstants.DiagnosticFixableId.
-            // TODO - We should probably not be creating these as separate diagnostics or have a 'really really' hidden tag.
-            if (!capabilities.HasVisualStudioLspCapability() && string.IsNullOrEmpty(diagnosticData.Message) && diagnosticData.Severity == DiagnosticSeverity.Hidden)
+            if (!ShouldIncludeHiddenDiagnostic(diagnosticData, capabilities))
             {
                 return ImmutableArray<LSP.Diagnostic>.Empty;
             }
@@ -346,20 +352,38 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 return ImmutableArray.Create<LSP.Diagnostic>(diagnostic);
             }
 
-            // Roslyn produces unnecessary diagnostics by using additional locations, however LSP doesn't support tagging
-            // additional locations separately.  Instead we just create multiple hidden diagnostics for unnecessary squiggling.
-            using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var diagnosticsBuilder);
-            diagnosticsBuilder.Add(diagnostic);
-            foreach (var location in unnecessaryLocations)
+            if (capabilities.HasVisualStudioLspCapability())
             {
-                var additionalDiagnostic = CreateLspDiagnostic(diagnosticData, project, capabilities);
-                additionalDiagnostic.Severity = LSP.DiagnosticSeverity.Hint;
-                additionalDiagnostic.Range = GetRange(location);
-                additionalDiagnostic.Tags = new DiagnosticTag[] { DiagnosticTag.Unnecessary, VSDiagnosticTags.HiddenInEditor, VSDiagnosticTags.HiddenInErrorList, VSDiagnosticTags.SuppressEditorToolTip };
-                diagnosticsBuilder.Add(additionalDiagnostic);
-            }
+                // Roslyn produces unnecessary diagnostics by using additional locations, however LSP doesn't support tagging
+                // additional locations separately.  Instead we just create multiple hidden diagnostics for unnecessary squiggling.
+                using var _ = ArrayBuilder<LSP.Diagnostic>.GetInstance(out var diagnosticsBuilder);
+                diagnosticsBuilder.Add(diagnostic);
+                foreach (var location in unnecessaryLocations)
+                {
+                    var additionalDiagnostic = CreateLspDiagnostic(diagnosticData, project, capabilities);
+                    additionalDiagnostic.Severity = LSP.DiagnosticSeverity.Hint;
+                    additionalDiagnostic.Range = GetRange(location);
+                    additionalDiagnostic.Tags = new DiagnosticTag[] { DiagnosticTag.Unnecessary, VSDiagnosticTags.HiddenInEditor, VSDiagnosticTags.HiddenInErrorList, VSDiagnosticTags.SuppressEditorToolTip };
+                    diagnosticsBuilder.Add(additionalDiagnostic);
+                }
 
-            return diagnosticsBuilder.ToImmutableArray();
+                return diagnosticsBuilder.ToImmutableArray();
+            }
+            else
+            {
+                diagnostic.Tags = diagnostic.Tags != null ? diagnostic.Tags.Append(DiagnosticTag.Unnecessary) : new DiagnosticTag[] { DiagnosticTag.Unnecessary };
+                var diagnosticRelatedInformation = unnecessaryLocations.Value.Select(l => new DiagnosticRelatedInformation
+                {
+                    Location = new LSP.Location
+                    {
+                        Range = GetRange(l),
+                        Uri = ProtocolConversions.CreateAbsoluteUri(l.UnmappedFileSpan.Path)
+                    },
+                    Message = diagnostic.Message
+                }).ToArray();
+                diagnostic.RelatedInformation = diagnosticRelatedInformation;
+                return ImmutableArray.Create<LSP.Diagnostic>(diagnostic);
+            }
 
             LSP.VSDiagnostic CreateLspDiagnostic(
                 DiagnosticData diagnosticData,
@@ -372,11 +396,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                 // would get automatically serialized.
                 var diagnostic = new LSP.VSDiagnostic
                 {
-                    Source = "Roslyn",
                     Code = diagnosticData.Id,
                     CodeDescription = ProtocolConversions.HelpLinkToCodeDescription(diagnosticData.GetValidHelpLinkUri()),
                     Message = diagnosticData.Message,
-                    Severity = ConvertDiagnosticSeverity(diagnosticData.Severity),
+                    Severity = ConvertDiagnosticSeverity(diagnosticData.Severity, capabilities),
                     Tags = ConvertTags(diagnosticData),
                     DiagnosticRank = ConvertRank(diagnosticData),
                 };
@@ -431,6 +454,39 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
                     }
                 };
             }
+
+            static bool ShouldIncludeHiddenDiagnostic(DiagnosticData diagnosticData, ClientCapabilities capabilities)
+            {
+                // VS can handle us reporting any kind of diagnostic using VS custom tags.
+                if (capabilities.HasVisualStudioLspCapability() == true)
+                {
+                    return true;
+                }
+
+                // Diagnostic isn't hidden - we should report this diagnostic in all scenarios.
+                if (diagnosticData.Severity != DiagnosticSeverity.Hidden)
+                {
+                    return true;
+                }
+
+                // Roslyn creates these for example in remove unnecessary imports, see RemoveUnnecessaryImportsConstants.DiagnosticFixableId.
+                // These aren't meant to be visible in anyway, so we can safely exclude them.
+                // TODO - We should probably not be creating these as separate diagnostics or have a 'really really' hidden tag.
+                if (string.IsNullOrEmpty(diagnosticData.Message))
+                {
+                    return false;
+                }
+
+                // Hidden diagnostics that are unnecessary are visible to the user in the form of fading.
+                // We can report these diagnostics.
+                if (diagnosticData.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary))
+                {
+                    return true;
+                }
+
+                // We have a hidden diagnostic that has no fading.  This diagnostic can't be visible so don't send it to the client.
+                return false;
+            }
         }
 
         private static VSDiagnosticRank? ConvertRank(DiagnosticData diagnosticData)
@@ -449,13 +505,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics
             return null;
         }
 
-        private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity)
+        private static LSP.DiagnosticSeverity ConvertDiagnosticSeverity(DiagnosticSeverity severity, ClientCapabilities clientCapabilities)
             => severity switch
             {
                 // Hidden is translated in ConvertTags to pass along appropriate _ms tags
                 // that will hide the item in a client that knows about those tags.
                 DiagnosticSeverity.Hidden => LSP.DiagnosticSeverity.Hint,
-                DiagnosticSeverity.Info => LSP.DiagnosticSeverity.Hint,
+                // VSCode shows information diagnostics as blue squiggles, and hint diagnostics as 3 dots.  We prefer the latter rendering so we return hint diagnostics in vscode.
+                DiagnosticSeverity.Info => clientCapabilities.HasVisualStudioLspCapability() ? LSP.DiagnosticSeverity.Information : LSP.DiagnosticSeverity.Hint,
                 DiagnosticSeverity.Warning => LSP.DiagnosticSeverity.Warning,
                 DiagnosticSeverity.Error => LSP.DiagnosticSeverity.Error,
                 _ => throw ExceptionUtilities.UnexpectedValue(severity),

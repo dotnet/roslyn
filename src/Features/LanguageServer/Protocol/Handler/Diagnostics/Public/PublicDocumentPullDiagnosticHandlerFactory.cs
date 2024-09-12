@@ -16,24 +16,27 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.Public;
 // by n DocumentDiagnosticPartialResult literals.
 // See https://github.com/microsoft/vscode-languageserver-node/blob/main/protocol/src/common/proposed.diagnostics.md#textDocument_diagnostic
 [ExportCSharpVisualBasicLspServiceFactory(typeof(PublicDocumentPullDiagnosticsHandler)), Shared]
-internal class PublicDocumentPullDiagnosticHandlerFactory : ILspServiceFactory
+internal sealed class PublicDocumentPullDiagnosticHandlerFactory : ILspServiceFactory
 {
     private readonly IDiagnosticAnalyzerService _analyzerService;
-    private readonly EditAndContinueDiagnosticUpdateSource _editAndContinueDiagnosticUpdateSource;
+    private readonly IDiagnosticsRefresher _diagnosticRefresher;
     private readonly IGlobalOptionService _globalOptions;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public PublicDocumentPullDiagnosticHandlerFactory(
         IDiagnosticAnalyzerService analyzerService,
-        EditAndContinueDiagnosticUpdateSource editAndContinueDiagnosticUpdateSource,
+        IDiagnosticsRefresher diagnosticRefresher,
         IGlobalOptionService globalOptions)
     {
         _analyzerService = analyzerService;
-        _editAndContinueDiagnosticUpdateSource = editAndContinueDiagnosticUpdateSource;
+        _diagnosticRefresher = diagnosticRefresher;
         _globalOptions = globalOptions;
     }
 
     public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
-        => new PublicDocumentPullDiagnosticsHandler(_analyzerService, _editAndContinueDiagnosticUpdateSource, _globalOptions);
+    {
+        var clientLanguageServerManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
+        return new PublicDocumentPullDiagnosticsHandler(clientLanguageServerManager, _analyzerService, _diagnosticRefresher, _globalOptions);
+    }
 }

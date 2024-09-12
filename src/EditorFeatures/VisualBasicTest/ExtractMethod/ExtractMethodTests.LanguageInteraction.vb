@@ -2066,7 +2066,7 @@ End Module</text>
 
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             <WorkItem(10341, "DevDiv_Projects/Roslyn")>
-            Public Async Function TestTryCatchPartDontCrash() As Task
+            Public Async Function TestTryCatchPartDoNotCrash() As Task
                 Dim code = <text>Module Program
     Sub Main(nwindConn As String())
         Dim nwindTxn As SqlTransaction = nwindConn.BeginTransaction()
@@ -3247,7 +3247,7 @@ End Module
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Async Function TestDontPutOutOrRefOnStructOff() As Task
+            Public Async Function TestDoNotPutOutOrRefOnStructOff() As Task
                 Dim code =
 <text>
 Imports System.Threading.Tasks
@@ -3277,7 +3277,7 @@ End Namespace
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Async Function TestDontPutOutOrRefOnStructOn() As Task
+            Public Async Function TestDoNotPutOutOrRefOnStructOn() As Task
                 Dim code =
 <text>
 Imports System.Threading.Tasks

@@ -4,11 +4,13 @@
 
 using System.Collections;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitializer
@@ -20,16 +22,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseCollectionInitializer)]
     public partial class UseCollectionInitializerTests
     {
-        private static async Task TestInRegularAndScriptAsync(string testCode, string fixedCode, OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
+        private static async Task TestInRegularAndScriptAsync(
+            string testCode,
+            string fixedCode,
+            OutputKind outputKind = OutputKind.DynamicallyLinkedLibrary)
         {
-            await new VerifyCS.Test
+            var test = new VerifyCS.Test
             {
                 ReferenceAssemblies = Testing.ReferenceAssemblies.NetCore.NetCoreApp31,
                 TestCode = testCode,
                 FixedCode = fixedCode,
-                LanguageVersion = LanguageVersion.Preview,
-                TestState = { OutputKind = outputKind }
-            }.RunAsync();
+                LanguageVersion = LanguageVersion.CSharp11,
+                TestState = { OutputKind = outputKind },
+            };
+
+            await test.RunAsync();
         }
 
         private static async Task TestMissingInRegularAndScriptAsync(string testCode, LanguageVersion? languageVersion = null)
@@ -73,6 +80,220 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                         {
                             1
                         };
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotInField1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    List<int> v = new List<int>();
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotInField2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    List<int> v = new List<int>() { 1, 2, 3 };
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestOnVariableDeclarator_AddRange()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        var c = [|new|] List<int>();
+                        [|c.Add(|]1);
+                        c.AddRange(x);
+                    }
+                }
+                """,
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        var c = new List<int>
+                        {
+                            1
+                        };
+                        c.AddRange(x);
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestOnVariableDeclarator_Foreach()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        var c = [|new|] List<int>();
+                        [|c.Add(|]1);
+                        foreach (var v in x)
+                            c.Add(v);
+                    }
+                }
+                """,
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        var c = new List<int>
+                        {
+                            1
+                        };
+                        foreach (var v in x)
+                            c.Add(v);
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestOnVariableDeclarator_If1()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var c = [|new|] List<int>();
+                        [|c.Add(|]1);
+                        if (b)
+                            c.Add(2);
+                    }
+                }
+                """,
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var c = new List<int>
+                        {
+                            1
+                        };
+                        if (b)
+                            c.Add(2);
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestOnVariableDeclarator_If2()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var c = [|new|] List<int>();
+                        [|c.Add(|]1);
+                        if (b)
+                            c.Add(2);
+                        else
+                            c.Add(3);
+                    }
+                }
+                """,
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var c = new List<int>
+                        {
+                            1
+                        };
+                        if (b)
+                            c.Add(2);
+                        else
+                            c.Add(3);
+                    }
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task TestOnVariableDeclarator_If3()
+        {
+            await TestInRegularAndScriptAsync(
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var c = [|new|] List<int>();
+                        [|c.Add(|]1);
+                        if (b)
+                        {
+                            c.Add(2);
+                        }
+                    }
+                }
+                """,
+                """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool b)
+                    {
+                        var c = new List<int>
+                        {
+                            1
+                        };
+                        if (b)
+                        {
+                            c.Add(2);
+                        }
                     }
                 }
                 """);
@@ -1437,7 +1658,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseCollectionInitialize
                 """
                 using System.Collections.Generic;
 
-                var list = new List<int> { 1 };
+                var list = new List<int>
+                {
+                    1
+                };
 
                 """, OutputKind.ConsoleApplication);
         }

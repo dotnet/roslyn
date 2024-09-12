@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp;
@@ -7847,7 +7846,7 @@ class C
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/33949")]
         [InlineData(nameof(PreferDiscard))]
         [InlineData(nameof(PreferUnusedLocal))]
-        public async Task ConpoundAssignmentWithControlFlowInValue(string optionName)
+        public async Task CompoundAssignmentWithControlFlowInValue(string optionName)
         {
             await TestMissingInRegularAndScriptAsync(
 @"class A
@@ -8880,9 +8879,8 @@ class C
             }.RunAsync();
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/64291")]
-        public async Task TestImplicitObjectCreationInAssignement()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/64291")]
+        public async Task TestImplicitObjectCreationInAssignment()
         {
             var source =
 @"class C
@@ -8912,6 +8910,320 @@ class C
                     { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
                 },
                 LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
+        public async Task TestPropertyPatternAssignment1()
+        {
+            var source = """
+                class C
+                {
+                    void M(object obj)
+                    {
+                        if (obj is string { } {|IDE0059:str|})
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var fixedSource = """
+                class C
+                {
+                    void M(object obj)
+                    {
+                        if (obj is string { })
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
+        public async Task TestPropertyPatternAssignment2()
+        {
+            var source = """
+                class C
+                {
+                    void M(object obj)
+                    {
+                        if (obj is string { Length: > 0 } {|IDE0059:str|})
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var fixedSource = """
+                class C
+                {
+                    void M(object obj)
+                    {
+                        if (obj is string { Length: > 0 })
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
+        public async Task TestPropertyPatternAssignment3()
+        {
+            var source = """
+                class C
+                {
+                    void M(object obj)
+                    {
+                        if (obj is string { Length: { } {|IDE0059:length|} })
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var fixedSource = """
+                class C
+                {
+                    void M(object obj)
+                    {
+                        if (obj is string { Length: { } })
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
+        public async Task TestPropertyPatternAssignment4()
+        {
+            var source = """
+                class C
+                {
+                    void M(object obj)
+                    {
+                        if (obj is string { Length: { } {|IDE0059:length|} } {|IDE0059:str|})
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var fixedSource = """
+                class C
+                {
+                    void M(object obj)
+                    {
+                        if (obj is string { Length: { } })
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp9,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
+        public async Task TestListPatternAssignment1()
+        {
+            var source = """
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (s is [] {|IDE0059:str|})
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var fixedSource = """
+                class C
+                {
+                    void M(string s)
+                    {
+                        if (s is [])
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
+        public async Task TestListPatternAssignment2()
+        {
+            var source = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [[] {|IDE0059:str|}])
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var fixedSource = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [[]])
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66573")]
+        public async Task TestListPatternAssignment3()
+        {
+            var source = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [[] {|IDE0059:str|}] {|IDE0059:strings|})
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            var fixedSource = """
+                class C
+                {
+                    void M(string[] ss)
+                    {
+                        if (ss is [[]])
+                        {
+
+                        }
+                    }
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = fixedSource,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp11,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net70,
+            }.RunAsync();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69643")]
+        public async Task TestPrimaryConstructorParameterAssignment()
+        {
+            var source = """
+                class C(string str) {
+                	public void Reset() {
+                		str = string.Empty;
+                	}
+                }
+                """;
+
+            await new VerifyCS.Test
+            {
+                TestCode = source,
+                FixedCode = source,
+                Options =
+                {
+                    { CSharpCodeStyleOptions.UnusedValueAssignment, UnusedValuePreference.DiscardVariable },
+                },
+                LanguageVersion = LanguageVersion.CSharp12,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
             }.RunAsync();
         }
     }

@@ -2745,8 +2745,9 @@ class Program
             methodSymbol = (MethodSymbol)symbolInfo.Symbol.GetSymbol<MethodSymbol>();
             Assert.False(methodSymbol.IsFromCompilation(compilation));
 
-            // 9341 is resolved as Won't Fix since ThisParameter property is internal.
-            Assert.Throws<InvalidOperationException>(() => methodSymbol.ThisParameter);
+            parameter = methodSymbol.ThisParameter;
+            Assert.Equal(-1, parameter.Ordinal);
+            Assert.Equal(parameter.ContainingSymbol, methodSymbol);
         }
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput = null, Action<ModuleSymbol> validator = null,

@@ -122,7 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview
         {
             // Show the whole document.
             var entireSpan = _buffer.CurrentSnapshot.CreateTrackingSpan(0, _buffer.CurrentSnapshot.Length, SpanTrackingMode.EdgeInclusive);
-            var text = document.GetTextAsync().Result.ToString();
+            var text = document.GetTextSynchronously(CancellationToken.None).ToString();
             var displayText = GetDisplayText(text);
             var entireSpanChild = new SpanChange(entireSpan, _buffer, document.Id, displayText, text, text, isDeletion: false, parent: this, engine: engine);
             return new ChangeList(new[] { entireSpanChild });

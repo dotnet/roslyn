@@ -39,13 +39,14 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         private readonly ImmutableArray<EquivalenceVisitor> _equivalenceVisitors;
         private readonly ImmutableArray<GetHashCodeVisitor> _getHashCodeVisitors;
 
-        public static readonly SymbolEquivalenceComparer Instance = new(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true);
-        public static readonly SymbolEquivalenceComparer TupleNamesMustMatchInstance = new(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: true, ignoreNullableAnnotations: true);
-        public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new(assemblyComparerOpt: null, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true);
+        public static readonly SymbolEquivalenceComparer Instance = new(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
+        public static readonly SymbolEquivalenceComparer TupleNamesMustMatchInstance = new(SimpleNameAssemblyComparer.Instance, distinguishRefFromOut: false, tupleNamesMustMatch: true, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
+        public static readonly SymbolEquivalenceComparer IgnoreAssembliesInstance = new(assemblyComparerOpt: null, distinguishRefFromOut: false, tupleNamesMustMatch: false, ignoreNullableAnnotations: true, objectAndDynamicCompareEqually: true);
 
         private readonly IEqualityComparer<IAssemblySymbol>? _assemblyComparerOpt;
         private readonly bool _tupleNamesMustMatch;
         private readonly bool _ignoreNullableAnnotations;
+        private readonly bool _objectAndDynamicCompareEqually;
 
         public ParameterSymbolEqualityComparer ParameterEquivalenceComparer { get; }
         public SignatureTypeSymbolEquivalenceComparer SignatureTypeEquivalenceComparer { get; }
@@ -54,11 +55,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
             IEqualityComparer<IAssemblySymbol>? assemblyComparerOpt,
             bool distinguishRefFromOut,
             bool tupleNamesMustMatch,
-            bool ignoreNullableAnnotations)
+            bool ignoreNullableAnnotations,
+            bool objectAndDynamicCompareEqually)
         {
             _assemblyComparerOpt = assemblyComparerOpt;
             _tupleNamesMustMatch = tupleNamesMustMatch;
             _ignoreNullableAnnotations = ignoreNullableAnnotations;
+            _objectAndDynamicCompareEqually = objectAndDynamicCompareEqually;
 
             this.ParameterEquivalenceComparer = new ParameterSymbolEqualityComparer(this, distinguishRefFromOut);
             this.SignatureTypeEquivalenceComparer = new SignatureTypeSymbolEquivalenceComparer(this);

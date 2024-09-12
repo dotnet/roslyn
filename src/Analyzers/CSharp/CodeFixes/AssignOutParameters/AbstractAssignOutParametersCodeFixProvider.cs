@@ -110,10 +110,10 @@ namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters
                 var parameterList = container.GetParameterList();
                 Contract.ThrowIfNull(parameterList);
 
-                var outParameters =
-                    parameterList.Parameters.Select(p => (IParameterSymbol)semanticModel.GetRequiredDeclaredSymbol(p, cancellationToken))
-                                            .Where(p => p.RefKind == RefKind.Out)
-                                            .ToImmutableArray();
+                var outParameters = parameterList.Parameters
+                    .Select(p => semanticModel.GetRequiredDeclaredSymbol(p, cancellationToken))
+                    .Where(p => p.RefKind == RefKind.Out)
+                    .ToImmutableArray();
 
                 var distinctExprsOrStatements = group.Select(t => t.exprOrStatement).Distinct();
                 foreach (var exprOrStatement in distinctExprsOrStatements)

@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                             // process one of documents remaining
                             if (!_workItemQueue.TryTakeAnyWork(
-                                _currentProjectProcessing, Processor.DependencyGraph, Processor.DiagnosticAnalyzerService,
+                                _currentProjectProcessing, Processor.DependencyGraph,
                                 out var workItem, out var documentCancellation))
                             {
                                 return;
