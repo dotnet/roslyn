@@ -20,6 +20,7 @@
     <LanguageServicesExtensionInstallationFolder>Microsoft\VBCSharp\LanguageServices</LanguageServicesExtensionInstallationFolder>
 
     <RestoreUseStaticGraphEvaluation>true</RestoreUseStaticGraphEvaluation>
+    <RestoreUseStaticGraphEvaluation Condition="'$(DotNetBuildSourceOnly)'=='true'">false</RestoreUseStaticGraphEvaluation>
 
     <!-- Disable the implicit nuget fallback folder as it makes it hard to locate and copy ref assemblies to the test output folder -->
     <DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
