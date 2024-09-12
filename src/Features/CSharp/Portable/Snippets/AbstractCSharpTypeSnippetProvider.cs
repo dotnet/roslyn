@@ -37,13 +37,8 @@ internal abstract class AbstractCSharpTypeSnippetProvider<TTypeDeclarationSyntax
             syntaxContext.IsGlobalStatementContext ||
             syntaxContext.IsTypeDeclarationContext(
                 validModifiers: ValidModifiers,
-<<<<<<< HEAD
                 validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
-                canBePartial: true,
-=======
-                validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations,
                 canBePartial: CanBePartial,
->>>>>>> origin/main
                 cancellationToken: cancellationToken);
     }
 

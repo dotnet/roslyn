@@ -27918,13 +27918,8 @@ class C
         }
     }
 }";
-<<<<<<< HEAD
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45);
-            var type = (SourceNonExtensionNamedTypeSymbol)comp.GetMember("System.ValueTuple");
-=======
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib461);
-            var type = (SourceNamedTypeSymbol)comp.GetMember("System.ValueTuple");
->>>>>>> origin/main
+            var type = (SourceNonExtensionNamedTypeSymbol)comp.GetMember("System.ValueTuple");
             var field = (SourceMemberFieldSymbolFromDeclarator)type.GetMember("Item1");
             var underlyingField = field.TupleUnderlyingField;
 

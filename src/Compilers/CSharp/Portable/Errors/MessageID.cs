@@ -475,13 +475,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PREFER reporting diagnostics in binding when diagnostics do not affect the shape of the syntax tree
 
                 // C# preview features.
-<<<<<<< HEAD
-                case MessageID.IDS_FeatureRefStructInterfaces:
-                case MessageID.IDS_FeatureFieldAndValueKeywords:
-                case MessageID.IDS_FeatureExtensions:
-=======
                 case MessageID.IDS_FeatureFieldKeyword:
->>>>>>> origin/main
+                case MessageID.IDS_FeatureExtensions:
                     return LanguageVersion.Preview;
 
                 // C# 13.0 features.

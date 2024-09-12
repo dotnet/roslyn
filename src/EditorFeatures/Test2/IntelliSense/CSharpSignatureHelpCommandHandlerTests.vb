@@ -930,7 +930,31 @@ class C
             End Using
         End Function
 
-<<<<<<< HEAD
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/72012")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/74383")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/74500")>
+        Public Async Function TestParameterIndexBeyondSyntacticIndex(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    void Main()
+    {
+        M(0, d$$)
+    }
+
+    void M(int a, int b = 0, int c = 0, int d = 0) { }
+}
+                              </Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeSignatureHelp()
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.M(int a, int b = 0, int c = 0, int d = 0)", selectedParameter:="int b = 0")
+                state.SendTypeChars(":")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.M(int a, int b = 0, int c = 0, int d = 0)", selectedParameter:="int d = 0")
+            End Using
+        End Function
+
         ' SemanticModel.GetMemberGroup doesn't work for extension members yet.
         <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/66722"), CombinatorialData>
         Public Async Function TypingUpdatesParameters_ExtensionType1(showCompletionInArgumentLists As Boolean) As Task
@@ -983,30 +1007,6 @@ class C
                 Await state.AssertSelectedSignatureHelpItem(displayText:="void E.Goo(int i, string j)", selectedParameter:="int i")
                 state.SendTypeChars("1,")
                 Await state.AssertSelectedSignatureHelpItem(displayText:="void E.Goo(int i, string j)", selectedParameter:="string j")
-=======
-        <WpfTheory, CombinatorialData>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/72012")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/74383")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/74500")>
-        Public Async Function TestParameterIndexBeyondSyntacticIndex(showCompletionInArgumentLists As Boolean) As Task
-            Using state = TestStateFactory.CreateCSharpTestState(
-                              <Document>
-class C
-{
-    void Main()
-    {
-        M(0, d$$)
-    }
-
-    void M(int a, int b = 0, int c = 0, int d = 0) { }
-}
-                              </Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
-
-                state.SendInvokeSignatureHelp()
-                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.M(int a, int b = 0, int c = 0, int d = 0)", selectedParameter:="int b = 0")
-                state.SendTypeChars(":")
-                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.M(int a, int b = 0, int c = 0, int d = 0)", selectedParameter:="int d = 0")
->>>>>>> origin/main
             End Using
         End Function
     End Class

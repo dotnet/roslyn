@@ -4337,15 +4337,6 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
 
-<<<<<<< HEAD
-                // System_Runtime_CompilerServices_ExtensionErasureAttribute__ctorEncodedType
-                (byte)MemberFlags.Constructor,                                                                              // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ExtensionErasureAttribute - WellKnownType.ExtSentinel), // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    1,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
-=======
                 // System_Linq_Enumerable__ToList
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
                 (byte)WellKnownType.System_Linq_Enumerable,                                                                 // DeclaringTypeId
@@ -4359,7 +4350,14 @@ namespace Microsoft.CodeAnalysis
                         (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Collections_Generic_IEnumerable_T,
                         1,
                         (byte)SignatureTypeCode.GenericMethodParameter, 0,
->>>>>>> origin/main
+
+                // System_Runtime_CompilerServices_ExtensionErasureAttribute__ctorEncodedType
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_ExtensionErasureAttribute - WellKnownType.ExtSentinel), // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -4895,11 +4893,8 @@ namespace Microsoft.CodeAnalysis
                 "Empty",                                    // System_Collections_Immutable_ImmutableArray_T__Empty
                 "AddRange",                                 // System_Collections_Generic_List_T__AddRange
                 ".ctor",                                    // System_Runtime_CompilerServices_ParamCollectionAttribute__ctor
-<<<<<<< HEAD
-                ".ctor",                                    // System_Runtime_CompilerServices_ExtensionErasureAttribute__ctorEncodedType
-=======
                 "ToList",                                   // System_Linq_Enumerable__ToList
->>>>>>> origin/main
+                ".ctor",                                    // System_Runtime_CompilerServices_ExtensionErasureAttribute__ctorEncodedType
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

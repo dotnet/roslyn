@@ -397,12 +397,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref temps,
                     invokedAsExtensionMethod);
 
-<<<<<<< HEAD
                 // PROTOTYPE(roles): Disable interception for extensions?
-                InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, invokedAsExtensionMethod, node.InterceptableNameSyntax);
-=======
                 InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, ref temps, invokedAsExtensionMethod, node.InterceptableNameSyntax);
->>>>>>> origin/main
 
                 if (Instrument)
                 {
