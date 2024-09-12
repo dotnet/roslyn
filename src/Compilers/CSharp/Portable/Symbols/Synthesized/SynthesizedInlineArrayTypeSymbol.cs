@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeParameters = ImmutableArray.Create<TypeParameterSymbol>(typeParameter);
         }
 
+        public override bool IsImplicitlyDeclared => true;
+
         public override int Arity => 1;
 
         public override ImmutableArray<TypeParameterSymbol> TypeParameters { get; }
@@ -110,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool ShouldAddWinRTMembers => false;
 
-        internal override TypeLayout Layout => default;
+        internal override TypeLayout Layout => new TypeLayout(LayoutKind.Sequential, size: 1, alignment: 0);
 
         internal override CharSet MarshallingCharSet => DefaultMarshallingCharSet;
 
@@ -191,6 +193,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var compilation = _containingModule.DeclaringCompilation;
             Debug.Assert(compilation is { });
+
+            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
 
             AddSynthesizedAttribute(
                 ref attributes,
