@@ -304,8 +304,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 tryHandleUnboxNullableValueType(ref unnamedEnumValue) ??
                 tryHandleTuplePattern(ref unnamedEnumValue) ??
                 tryHandleNumericLimits(ref unnamedEnumValue) ??
-                tryHandleRecursivePattern(ref unnamedEnumValue) ??
                 tryHandleListPattern(ref unnamedEnumValue) ??
+                tryHandleRecursivePattern(ref unnamedEnumValue) ??
                 produceFallbackPattern();
 
             static ImmutableArray<T> getArray<T>(Dictionary<BoundDagTemp, ArrayBuilder<T>> map, BoundDagTemp temp)
@@ -403,6 +403,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var lengthTemp = new BoundDagTemp(lengthOrCount.Syntax, lengthOrCount.Property.Type, lengthOrCount);
                     var lengthValues = (IValueSet<int>)computeRemainingValues(ValueSetFactory.ForLength, getArray(constraintMap, lengthTemp));
                     int lengthValue = lengthValues.Sample.Int32Value;
+                    if (lengthValue > 20 ||
+                        // Prefer property-patterns for length-only matches greater than 3
+                        lengthValue > 3 && evaluations.Length == 1)
+                    {
+                        // Avoid generating arbitrarily long pattern examples
+                        return null;
+                    }
+
                     if (slice != null)
                     {
                         if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
