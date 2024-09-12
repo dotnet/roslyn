@@ -7425,13 +7425,14 @@ done:;
                         // nullable-typed pattern
                         if (IsTrueIdentifier(this.CurrentToken))
                         {
-                            // In a non-async method, `await` is a simple identifier.  However, if we see `x ? await`
+                            // 1. `async` can start a simple lambda in a conditional expression
+                            // (e.g. `x is Y ? async a => ...`). The correct behavior is to treat `async` as a keyword
+                            // 2. In a non-async method, `await` is a simple identifier.  However, if we see `x ? await`
                             // it's almost certainly the start of an `await expression` in a conditional expression
                             // (e.g. `x is Y ? await ...`), not a nullable type pattern (since users would not use
                             // 'await' as the name of a variable).  So just treat this as a conditional expression.
-                            // Similarly, `async` can start a simple lambda in a conditional expression
-                            // (e.g. `x is Y ? async a => ...`). The correct behavior is to treat `async` as a keyword
-                            if (this.CurrentToken.ContextualKind is SyntaxKind.AsyncKeyword or SyntaxKind.AwaitKeyword)
+                            // 3. `from` most likely starts a linq query: `x is Y ? from item in collection select item : ...`
+                            if (this.CurrentToken.ContextualKind is SyntaxKind.AsyncKeyword or SyntaxKind.AwaitKeyword or SyntaxKind.FromKeyword)
                                 return false;
 
                             var nextToken = PeekToken(1);
