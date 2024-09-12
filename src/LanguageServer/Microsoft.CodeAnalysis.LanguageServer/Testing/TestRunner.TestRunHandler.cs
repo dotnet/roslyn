@@ -140,18 +140,16 @@ internal partial class TestRunner
             var results = testRunChangedEventArgs.NewTestResults.Select(result =>
             {
                 var messageBuilder = new StringBuilder();
-                messageBuilder.Append($"[{result.Outcome}] {result.TestCase.DisplayName}");
+                messageBuilder.AppendLine($"[{result.Outcome}] {result.TestCase.DisplayName}");
 
                 if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
                 {
-                    messageBuilder.AppendLine();
                     messageBuilder.AppendLine(IndentString($"{LanguageServerResources.Message}:", 4));
                     messageBuilder.AppendLine(IndentString(result.ErrorMessage, 8));
                 }
 
                 if (!string.IsNullOrWhiteSpace(result.ErrorStackTrace))
                 {
-                    messageBuilder.AppendLine();
                     messageBuilder.AppendLine(value: IndentString($"{LanguageServerResources.Stack_Trace}:", 4));
                     messageBuilder.AppendLine(IndentString(result.ErrorStackTrace, 8));
                 }
@@ -159,7 +157,6 @@ internal partial class TestRunner
                 var standardOutputMessages = GetTestMessages(result.Messages, TestResultMessage.StandardOutCategory);
                 if (standardOutputMessages.Length > 0)
                 {
-                    messageBuilder.AppendLine();
                     messageBuilder.AppendLine(value: IndentString($"{LanguageServerResources.Standard_Output_Messages}:", 4));
                     messageBuilder.AppendLine(FormatMessages(standardOutputMessages, 8));
                 }
@@ -167,7 +164,6 @@ internal partial class TestRunner
                 var standardErrorMessages = GetTestMessages(result.Messages, TestResultMessage.StandardErrorCategory);
                 if (standardErrorMessages.Length > 0)
                 {
-                    messageBuilder.AppendLine();
                     messageBuilder.AppendLine(value: IndentString($"{LanguageServerResources.Standard_Error_Messages}:", 4));
                     messageBuilder.AppendLine(FormatMessages(standardErrorMessages, 8));
                 }
@@ -175,7 +171,6 @@ internal partial class TestRunner
                 var debugTraceMessages = GetTestMessages(result.Messages, TestResultMessage.DebugTraceCategory);
                 if (debugTraceMessages.Length > 0)
                 {
-                    messageBuilder.AppendLine();
                     messageBuilder.AppendLine(value: IndentString($"{LanguageServerResources.Debug_Trace_Messages}:", 4));
                     messageBuilder.AppendLine(FormatMessages(debugTraceMessages, 8));
                 }
@@ -183,7 +178,6 @@ internal partial class TestRunner
                 var additionalInfoMessages = GetTestMessages(result.Messages, TestResultMessage.AdditionalInfoCategory);
                 if (additionalInfoMessages.Length > 0)
                 {
-                    messageBuilder.AppendLine();
                     messageBuilder.AppendLine(value: IndentString($"{LanguageServerResources.Additional_Info_Messages}:", 4));
                     messageBuilder.AppendLine(FormatMessages(additionalInfoMessages, 8));
                 }
@@ -191,7 +185,7 @@ internal partial class TestRunner
                 return messageBuilder.ToString();
             });
 
-            return string.Join(Environment.NewLine, results);
+            return string.Join("", results);
 
             static string IndentString(string text, int count)
             {
