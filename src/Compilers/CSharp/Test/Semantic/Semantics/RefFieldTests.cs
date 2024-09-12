@@ -30084,5 +30084,44 @@ Block[B2] - Exit
                 //     public RS() => ri = 0;
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(4, 20));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75035")]
+        public void RefField_AsRefArgument()
+        {
+            var verifier = CompileAndVerify("""
+                ref struct S
+                {
+                    public ref int F1;
+
+                    public static S GetS() => default;
+
+                    static void M(ref int x){}
+
+                    static void Test1()
+                    {
+                        M(ref GetS().F1);
+                    }
+                }
+                """,
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.NetCoreApp);
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("S.Test1",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  call       ""S S.GetS()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldfld      ""ref int S.F1""
+  IL_000d:  call       ""void S.M(ref int)""
+  IL_0012:  ret
+}
+");
+        }
     }
 }
