@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '                 Rank = 3
             '                 ElementType = int
 
-            If format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.ReverseArrayRankSpecifiers) Then
+            If Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.ReverseArrayRankSpecifiers) Then
                 ' Ironically, reverse order is simpler - we just have to recurse on the element type and then add a rank specifier.
                 symbol.ElementType.Accept(Me)
                 AddCustomModifiersIfRequired(symbol.CustomModifiers, trailingSpace:=True)
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Sub AddArrayRank(symbol As IArrayTypeSymbol)
-            Dim insertStars As Boolean = format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays)
+            Dim insertStars As Boolean = Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseAsterisksInMultiDimensionalArrays)
             AddPunctuation(SyntaxKind.OpenParenToken)
             If symbol.Rank > 1 Then
                 If insertStars Then
@@ -79,24 +79,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Sub VisitTypeParameter(symbol As ITypeParameterSymbol)
-            If isFirstSymbolVisited Then
+            If IsFirstSymbolVisited Then
                 AddTypeParameterVarianceIfRequired(symbol)
             End If
 
-            builder.Add(CreatePart(SymbolDisplayPartKind.TypeParameterName, symbol, symbol.Name, False))
+            Builder.Add(CreatePart(SymbolDisplayPartKind.TypeParameterName, symbol, symbol.Name, False))
         End Sub
 
         Public Overrides Sub VisitNamedType(symbol As INamedTypeSymbol)
-            If Me.IsMinimizing AndAlso TryAddAlias(symbol, builder) Then
+            If Me.IsMinimizing AndAlso TryAddAlias(symbol, Builder) Then
                 Return
             End If
 
-            If format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseSpecialTypes) Then
+            If Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseSpecialTypes) Then
                 If AddSpecialTypeKeyword(symbol) Then
                     Return
                 End If
 
-                If Not format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.ExpandNullable) Then
+                If Not Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.ExpandNullable) Then
                     If ITypeSymbolHelpers.IsNullableType(symbol) AndAlso symbol IsNot symbol.OriginalDefinition Then
                         symbol.TypeArguments(0).Accept(Me.NotFirstVisitor())
                         AddPunctuation(SyntaxKind.QuestionToken)
@@ -114,13 +114,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If CanShowDelegateSignature(symbol) Then
                 If symbol.IsAnonymousType OrElse
-                   format.DelegateStyle = SymbolDisplayDelegateStyle.NameAndSignature Then
+                   Format.DelegateStyle = SymbolDisplayDelegateStyle.NameAndSignature Then
 
                     Dim invokeMethod = symbol.DelegateInvokeMethod
                     If invokeMethod.ReturnsVoid Then
                         AddKeyword(SyntaxKind.SubKeyword)
                     Else
-                        If invokeMethod.ReturnsByRef AndAlso format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef) Then
+                        If invokeMethod.ReturnsByRef AndAlso Format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeRef) Then
                             AddKeyword(SyntaxKind.ByRefKeyword)
                             AddSpace()
                         End If
@@ -154,14 +154,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 AddOperator(SyntaxKind.DotToken)
             End If
 
-            If format.TypeQualificationStyle = SymbolDisplayTypeQualificationStyle.NameAndContainingTypes OrElse
-                format.TypeQualificationStyle = SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces Then
+            If Format.TypeQualificationStyle = SymbolDisplayTypeQualificationStyle.NameAndContainingTypes OrElse
+                Format.TypeQualificationStyle = SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces Then
                 Dim containingType = symbol.ContainingType
                 If containingType IsNot Nothing Then
                     visitedParents = True
                     containingType.Accept(Me.NotFirstVisitor())
 
-                    If format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes) Then
+                    If Format.CompilerInternalOptions.HasFlag(SymbolDisplayCompilerInternalOptions.UsePlusForNestedTypes) Then
                         AddOperator(SyntaxKind.PlusToken)
                     Else
                         AddOperator(SyntaxKind.DotToken)
@@ -173,8 +173,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If CanShowDelegateSignature(symbol) Then
                 If symbol.IsAnonymousType OrElse
-                   format.DelegateStyle = SymbolDisplayDelegateStyle.NameAndSignature OrElse
-                   format.DelegateStyle = SymbolDisplayDelegateStyle.NameAndParameters Then
+                   Format.DelegateStyle = SymbolDisplayDelegateStyle.NameAndSignature OrElse
+                   Format.DelegateStyle = SymbolDisplayDelegateStyle.NameAndParameters Then
 
                     Dim method = symbol.DelegateInvokeMethod
                     AddPunctuation(SyntaxKind.OpenParenToken)
@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     AddPunctuation(SyntaxKind.CloseParenToken)
                 End If
 
-                If symbol.IsAnonymousType OrElse format.DelegateStyle = SymbolDisplayDelegateStyle.NameAndSignature Then
+                If symbol.IsAnonymousType OrElse Format.DelegateStyle = SymbolDisplayDelegateStyle.NameAndSignature Then
                     Dim invokeMethod = symbol.DelegateInvokeMethod
                     If Not invokeMethod.ReturnsVoid Then
                         AddSpace()
@@ -195,9 +195,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Function CanShowDelegateSignature(symbol As INamedTypeSymbol) As Boolean
-            Return isFirstSymbolVisited AndAlso
+            Return IsFirstSymbolVisited AndAlso
                 symbol.TypeKind = TypeKind.Delegate AndAlso
-                (symbol.IsAnonymousType OrElse format.DelegateStyle <> SymbolDisplayDelegateStyle.NameOnly) AndAlso
+                (symbol.IsAnonymousType OrElse Format.DelegateStyle <> SymbolDisplayDelegateStyle.NameOnly) AndAlso
                 symbol.DelegateInvokeMethod IsNot Nothing
         End Function
 
@@ -242,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 symbolName = symbol.Name
             End If
 
-            If format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) AndAlso
+            If Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.UseErrorTypeSymbolName) AndAlso
                 String.IsNullOrEmpty(symbolName) Then
 
                 symbolName = StringConstants.NamedSymbolErrorName
@@ -270,19 +270,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Throw ExceptionUtilities.UnexpectedValue(symbol.TypeKind)
             End Select
 
-            builder.Add(CreatePart(partKind, symbol, symbolName, noEscaping))
+            Builder.Add(CreatePart(partKind, symbol, symbolName, noEscaping))
 
             ' Unfortunately, this will only work for VB symbols.  The degraded experience for non-VB symbols seems acceptable for now.
             Dim isMissingMetadataType As Boolean = TypeOf symbol Is MissingMetadataTypeSymbol
 
-            If format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes) Then
+            If Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.UseArityForGenericTypes) Then
                 ' Only the compiler can set the internal option and the compiler doesn't use other implementations of INamedTypeSymbol.
                 If DirectCast(symbol, NamedTypeSymbol).MangleName Then
                     Debug.Assert(symbol.Arity > 0)
-                    builder.Add(CreatePart(InternalSymbolDisplayPartKind.Arity, Nothing,
+                    Builder.Add(CreatePart(InternalSymbolDisplayPartKind.Arity, Nothing,
                                            MetadataHelpers.GenericTypeNameManglingChar & symbol.Arity.ToString(), False))
                 End If
-            ElseIf symbol.Arity > 0 AndAlso format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters) AndAlso Not skipTypeArguments Then
+            ElseIf symbol.Arity > 0 AndAlso Format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeParameters) AndAlso Not skipTypeArguments Then
                 If isMissingMetadataType OrElse symbol.IsUnboundGenericType Then
                     AddPunctuation(SyntaxKind.OpenParenToken)
                     AddKeyword(SyntaxKind.OfKeyword)
@@ -299,20 +299,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Only the compiler can set the internal option and the compiler doesn't use other implementations of INamedTypeSymbol.
-            If format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.FlagMissingMetadataTypes) AndAlso
+            If Format.CompilerInternalOptions.IncludesOption(SymbolDisplayCompilerInternalOptions.FlagMissingMetadataTypes) AndAlso
                 (isMissingMetadataType OrElse
                  (Not symbol.IsDefinition AndAlso TypeOf symbol.OriginalDefinition Is MissingMetadataTypeSymbol)) Then
 
-                builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, Nothing, "[", False))
-                builder.Add(CreatePart(InternalSymbolDisplayPartKind.Other, symbol, "missing", False))
-                builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, Nothing, "]", False))
+                Builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, Nothing, "[", False))
+                Builder.Add(CreatePart(InternalSymbolDisplayPartKind.Other, symbol, "missing", False))
+                Builder.Add(CreatePart(SymbolDisplayPartKind.Punctuation, Nothing, "]", False))
             End If
         End Sub
 
         Private Function ShouldDisplayAsValueTuple(symbol As INamedTypeSymbol) As Boolean
             Debug.Assert(symbol.IsTupleType)
 
-            If format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.ExpandValueTuple) Then
+            If Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.ExpandValueTuple) Then
                 Return True
             End If
 
@@ -326,14 +326,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim members = String.Join(", ", symbol.GetMembers().OfType(Of IPropertySymbol).Select(Function(p) CreateAnonymousTypeMember(p)))
 
                     If members.Length = 0 Then
-                        builder.Add(New SymbolDisplayPart(SymbolDisplayPartKind.ClassName, symbol, "<empty anonymous type>"))
+                        Builder.Add(New SymbolDisplayPart(SymbolDisplayPartKind.ClassName, symbol, "<empty anonymous type>"))
                     Else
                         Dim name = String.Format("<anonymous type: {0}>", members)
-                        builder.Add(New SymbolDisplayPart(SymbolDisplayPartKind.ClassName, symbol, name))
+                        Builder.Add(New SymbolDisplayPart(SymbolDisplayPartKind.ClassName, symbol, name))
                     End If
 
                 Case TypeKind.Delegate
-                    builder.Add(CreatePart(SymbolDisplayPartKind.DelegateName, symbol, "<generated method>", True))
+                    Builder.Add(CreatePart(SymbolDisplayPartKind.DelegateName, symbol, "<generated method>", True))
             End Select
         End Sub
 
@@ -375,8 +375,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub AddTupleTypeName(symbol As INamedTypeSymbol)
             Debug.Assert(symbol.IsTupleType)
 
-            If Me.format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.CollapseTupleTypes) Then
-                builder.Add(CreatePart(SymbolDisplayPartKind.StructName, symbol, "<tuple>", noEscaping:=True))
+            If Me.Format.MiscellaneousOptions.IncludesOption(SymbolDisplayMiscellaneousOptions.CollapseTupleTypes) Then
+                Builder.Add(CreatePart(SymbolDisplayPartKind.StructName, symbol, "<tuple>", noEscaping:=True))
                 Return
             End If
 
@@ -393,7 +393,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 If element.IsExplicitlyNamedTupleElement Then
-                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, element, element.Name, noEscaping:=False))
+                    Builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, element, element.Name, noEscaping:=False))
                     AddSpace()
                     AddKeyword(SyntaxKind.AsKeyword)
                     AddSpace()
@@ -411,7 +411,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function CreateAnonymousTypeMemberWorker(prop As IPropertySymbol) As String
-            Return prop.Name & " As " & prop.Type.ToDisplayString(format)
+            Return prop.Name & " As " & prop.Type.ToDisplayString(Format)
         End Function
 
         Private Function AddSpecialTypeKeyword(symbol As INamedTypeSymbol) As Boolean
@@ -421,18 +421,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End If
 
-            builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, symbol, specialTypeName, False))
+            Builder.Add(CreatePart(SymbolDisplayPartKind.Keyword, symbol, specialTypeName, False))
             Return True
         End Function
 
         Private Sub AddTypeKind(symbol As INamedTypeSymbol)
-            If isFirstSymbolVisited AndAlso format.KindOptions.IncludesOption(SymbolDisplayKindOptions.IncludeTypeKeyword) Then
+            If IsFirstSymbolVisited AndAlso Format.KindOptions.IncludesOption(SymbolDisplayKindOptions.IncludeTypeKeyword) Then
                 If symbol.IsAnonymousType Then
                     ' NOTE: Not actually a keyword, but it's not worth introducing a new kind just for this.
-                    builder.Add(New SymbolDisplayPart(SymbolDisplayPartKind.AnonymousTypeIndicator, Nothing, "AnonymousType"))
+                    Builder.Add(New SymbolDisplayPart(SymbolDisplayPartKind.AnonymousTypeIndicator, Nothing, "AnonymousType"))
                     AddSpace()
                 ElseIf symbol.IsTupleType Then
-                    builder.Add(New SymbolDisplayPart(SymbolDisplayPartKind.AnonymousTypeIndicator, Nothing, "Tuple"))
+                    Builder.Add(New SymbolDisplayPart(SymbolDisplayPartKind.AnonymousTypeIndicator, Nothing, "Tuple"))
                     AddSpace()
                 Else
                     Dim keyword = GetTypeKindKeyword(symbol.TypeKind)
@@ -466,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub AddTypeParameterVarianceIfRequired(symbol As ITypeParameterSymbol)
-            If format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeVariance) Then
+            If Format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeVariance) Then
                 Select Case symbol.Variance
                     Case VarianceKind.In
                         AddKeyword(SyntaxKind.InKeyword)
@@ -500,7 +500,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     AddTypeParameterVarianceIfRequired(typeParam)
                     typeParam.Accept(Me.NotFirstVisitor())
 
-                    If format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeConstraints) Then
+                    If Format.GenericsOptions.IncludesOption(SymbolDisplayGenericsOptions.IncludeTypeConstraints) Then
                         AddTypeParameterConstraints(typeParam)
                     End If
                 Else
@@ -526,7 +526,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Sub AddTypeParameterConstraints(typeParam As ITypeParameterSymbol)
-            If Not isFirstSymbolVisited Then
+            If Not IsFirstSymbolVisited Then
                 Return
             End If
 

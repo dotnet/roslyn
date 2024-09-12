@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SpellCheck
     [UseExportProvider]
     public class SpellCheckFixerProviderTests : AbstractSpellCheckFixerProviderTests
     {
-        protected override TestWorkspace CreateWorkspace(string content)
-            => TestWorkspace.CreateCSharp(content);
+        protected override EditorTestWorkspace CreateWorkspace(string content)
+            => EditorTestWorkspace.CreateCSharp(content);
 
         [WpfFact]
         public async Task TestRenameClassName()

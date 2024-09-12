@@ -5,8 +5,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="vswhere" Version="$(vswhereVersion)" />
-    <PackageReference Include="RoslynTools.VSIXExpInstaller" Version="$(RoslynToolsVSIXExpInstallerVersion)" />
+    <PackageReference Include="vswhere" />
+    <PackageReference Include="RoslynTools.VSIXExpInstaller" />
     <ProjectReference Include="..\..\Deployment\RoslynDeployment.csproj"/>
   </ItemGroup>
 

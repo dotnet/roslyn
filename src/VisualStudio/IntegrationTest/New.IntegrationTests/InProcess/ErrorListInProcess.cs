@@ -108,7 +108,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 
         private static string GetMessage(ITableEntryHandle item)
         {
-            var source = item.GetBuildTool();
             var document = Path.GetFileName(item.GetPath() ?? item.GetDocumentName()) ?? "<unknown>";
             var line = item.GetLine() ?? -1;
             var column = item.GetColumn() ?? -1;
@@ -122,7 +121,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
                 var unknown => unknown.ToString(),
             };
 
-            var message = $"({source}) {document}({line + 1}, {column + 1}): {severity} {errorCode}: {text}";
+            var message = $"{document}({line + 1}, {column + 1}): {severity} {errorCode}: {text}";
             return message;
         }
     }

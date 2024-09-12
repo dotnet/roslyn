@@ -172,11 +172,6 @@
         <target state="translated">冗長な null 許容ディレクティブを削除します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_suppression_operators">
-        <source>Remove suppression operators</source>
-        <target state="translated">抑制演算子の削除</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_lambda_expression">
         <source>Remove unnecessary lambda expression</source>
         <target state="translated">不要なラムダ式の削除</target>
@@ -457,8 +452,8 @@
         <target state="translated">'new' 式を簡素化できます</target>
         <note />
       </trans-unit>
-      <trans-unit id="typeof_can_be_converted_ to_nameof">
-        <source>'typeof' can be converted  to 'nameof'</source>
+      <trans-unit id="typeof_can_be_converted_to_nameof">
+        <source>'typeof' can be converted to 'nameof'</source>
         <target state="translated">'typeof' を 'nameof' に変換できます</target>
         <note />
       </trans-unit>

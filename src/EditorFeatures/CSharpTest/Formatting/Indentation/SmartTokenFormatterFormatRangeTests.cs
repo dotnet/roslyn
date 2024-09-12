@@ -2000,8 +2000,7 @@ class Class
             await AutoFormatOnCloseBraceAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WpfFact]
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537555")]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537555")]
         public async Task SingleLine()
         {
             var code = @"class C { void M() { C.M(    );$$ } }";
@@ -2029,8 +2028,7 @@ class Class
             await AutoFormatOnMarkerAsync(code, expected, SyntaxKind.CharacterLiteralToken, SyntaxKind.None);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44423")]
         public async Task CharLiterals1()
         {
             var code = @"';$$";
@@ -2172,8 +2170,7 @@ int         nextLine            =           30          ;$$
             await AutoFormatOnSemicolonAsync(code, expected, SyntaxKind.OpenBraceToken);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537776")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537776")]
         public async Task DisappearedTokens()
         {
             var code = @"class Class1
@@ -2224,8 +2221,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537793")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537793")]
         public async Task Delegate1()
         {
             var code = @"delegate void MyDelegate(int a,int b);$$";
@@ -2238,8 +2234,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.DelegateKeyword);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537827")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537827")]
         public async Task DoubleInitializer()
         {
             var code = @"class C
@@ -2264,8 +2259,7 @@ int         nextLine            =           30          ;$$
                 SyntaxKind.OpenBraceToken);
         }
 
-        [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537825")]
-        [WpfFact]
+        [WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537825")]
         public async Task MissingToken1()
         {
             var code = @"public class Class1
@@ -2760,7 +2754,7 @@ class Program{
             await AutoFormatOnSemicolonAsync(
                 code,
                 expected,
-                SyntaxKind.OpenBraceToken);
+                SyntaxKind.None);
         }
 
         [WpfTheory]
@@ -3378,7 +3372,7 @@ class Program{
                 expected = expected.Replace("    ", "\t");
             }
 
-            using var workspace = TestWorkspace.CreateCSharp(markup);
+            using var workspace = EditorTestWorkspace.CreateCSharp(markup);
 
             var subjectDocument = workspace.Documents.Single();
             var textBuffer = subjectDocument.GetTextBuffer();
@@ -3412,7 +3406,7 @@ class Program{
 
         private static async Task AutoFormatOnMarkerAsync(string initialMarkup, string expected, bool useTabs, SyntaxKind tokenKind, SyntaxKind startTokenKind)
         {
-            using var workspace = TestWorkspace.CreateCSharp(initialMarkup);
+            using var workspace = EditorTestWorkspace.CreateCSharp(initialMarkup);
 
             var testDocument = workspace.Documents.Single();
             var buffer = testDocument.GetTextBuffer();

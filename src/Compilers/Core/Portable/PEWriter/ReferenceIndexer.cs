@@ -103,29 +103,23 @@ namespace Microsoft.Cci
 
         protected override void ProcessMethodBody(IMethodDefinition method)
         {
-            if (method.HasBody() && !metadataWriter.MetadataOnly)
+            if (method.HasBody && !metadataWriter.MetadataOnly)
             {
                 var body = method.GetBody(Context);
+                Debug.Assert(body != null);
 
-                if (body != null)
+                this.Visit(body);
+
+                for (IImportScope scope = body.ImportScope; scope != null; scope = scope.Parent)
                 {
-                    this.Visit(body);
-
-                    for (IImportScope scope = body.ImportScope; scope != null; scope = scope.Parent)
+                    if (_alreadySeenScopes.Add(scope))
                     {
-                        if (_alreadySeenScopes.Add(scope))
-                        {
-                            VisitImports(scope.GetUsedNamespaces(Context));
-                        }
-                        else
-                        {
-                            break;
-                        }
+                        VisitImports(scope.GetUsedNamespaces(Context));
                     }
-                }
-                else if (!metadataWriter.MetadataOnly)
-                {
-                    throw ExceptionUtilities.Unreachable();
+                    else
+                    {
+                        break;
+                    }
                 }
             }
         }

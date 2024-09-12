@@ -132,6 +132,11 @@
         <target state="translated">資產提供者</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_SourceGeneration">
+        <source>Source generation</source>
+        <target state="translated">來源產生</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_StackTraceExplorer">
         <source>Stack Trace Explorer</source>
         <target state="translated">堆疊追蹤總管</target>

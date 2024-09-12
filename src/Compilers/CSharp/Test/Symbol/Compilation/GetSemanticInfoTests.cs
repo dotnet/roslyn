@@ -5943,7 +5943,7 @@ class C
         public void GetSpecialType_ThrowsOnGreaterThanCount()
         {
             var source = "class C1 { }";
-            var comp = CreateCompilation(source);
+            var comp = (Compilation)CreateCompilation(source);
 
             var specialType = SpecialType.Count + 1;
 

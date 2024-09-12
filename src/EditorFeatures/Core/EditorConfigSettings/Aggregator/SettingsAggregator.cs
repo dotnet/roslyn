@@ -9,99 +9,98 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
+
+internal partial class SettingsAggregator : ISettingsAggregator
 {
-    internal partial class SettingsAggregator : ISettingsAggregator
+    private readonly Workspace _workspace;
+    private readonly ISettingsProviderFactory<AnalyzerSetting> _analyzerProvider;
+    private ISettingsProviderFactory<Setting> _whitespaceProvider;
+    private ISettingsProviderFactory<NamingStyleSetting> _namingStyleProvider;
+    private ISettingsProviderFactory<CodeStyleSetting> _codeStyleProvider;
+
+    public SettingsAggregator(Workspace workspace)
     {
-        private readonly Workspace _workspace;
-        private readonly ISettingsProviderFactory<AnalyzerSetting> _analyzerProvider;
-        private ISettingsProviderFactory<Setting> _whitespaceProvider;
-        private ISettingsProviderFactory<NamingStyleSetting> _namingStyleProvider;
-        private ISettingsProviderFactory<CodeStyleSetting> _codeStyleProvider;
+        _workspace = workspace;
+        _workspace.WorkspaceChanged += UpdateProviders;
+        _whitespaceProvider = GetOptionsProviderFactory<Setting>(_workspace);
+        _codeStyleProvider = GetOptionsProviderFactory<CodeStyleSetting>(_workspace);
+        _namingStyleProvider = GetOptionsProviderFactory<NamingStyleSetting>(_workspace);
+        _analyzerProvider = GetOptionsProviderFactory<AnalyzerSetting>(_workspace);
+    }
 
-        public SettingsAggregator(Workspace workspace)
+    private void UpdateProviders(object? sender, WorkspaceChangeEventArgs e)
+    {
+        switch (e.Kind)
         {
-            _workspace = workspace;
-            _workspace.WorkspaceChanged += UpdateProviders;
-            _whitespaceProvider = GetOptionsProviderFactory<Setting>(_workspace);
-            _codeStyleProvider = GetOptionsProviderFactory<CodeStyleSetting>(_workspace);
-            _namingStyleProvider = GetOptionsProviderFactory<NamingStyleSetting>(_workspace);
-            _analyzerProvider = GetOptionsProviderFactory<AnalyzerSetting>(_workspace);
+            case WorkspaceChangeKind.SolutionChanged:
+            case WorkspaceChangeKind.SolutionAdded:
+            case WorkspaceChangeKind.SolutionRemoved:
+            case WorkspaceChangeKind.SolutionCleared:
+            case WorkspaceChangeKind.SolutionReloaded:
+            case WorkspaceChangeKind.ProjectAdded:
+            case WorkspaceChangeKind.ProjectRemoved:
+            case WorkspaceChangeKind.ProjectChanged:
+                _whitespaceProvider = GetOptionsProviderFactory<Setting>(_workspace);
+                _codeStyleProvider = GetOptionsProviderFactory<CodeStyleSetting>(_workspace);
+                _namingStyleProvider = GetOptionsProviderFactory<NamingStyleSetting>(_workspace);
+                break;
+            default:
+                break;
+        }
+    }
+
+    public ISettingsProvider<TData>? GetSettingsProvider<TData>(string fileName)
+    {
+        if (typeof(TData) == typeof(AnalyzerSetting))
+        {
+            return (ISettingsProvider<TData>)_analyzerProvider.GetForFile(fileName);
         }
 
-        private void UpdateProviders(object? sender, WorkspaceChangeEventArgs e)
+        if (typeof(TData) == typeof(Setting))
         {
-            switch (e.Kind)
-            {
-                case WorkspaceChangeKind.SolutionChanged:
-                case WorkspaceChangeKind.SolutionAdded:
-                case WorkspaceChangeKind.SolutionRemoved:
-                case WorkspaceChangeKind.SolutionCleared:
-                case WorkspaceChangeKind.SolutionReloaded:
-                case WorkspaceChangeKind.ProjectAdded:
-                case WorkspaceChangeKind.ProjectRemoved:
-                case WorkspaceChangeKind.ProjectChanged:
-                    _whitespaceProvider = GetOptionsProviderFactory<Setting>(_workspace);
-                    _codeStyleProvider = GetOptionsProviderFactory<CodeStyleSetting>(_workspace);
-                    _namingStyleProvider = GetOptionsProviderFactory<NamingStyleSetting>(_workspace);
-                    break;
-                default:
-                    break;
-            }
+            return (ISettingsProvider<TData>)_whitespaceProvider.GetForFile(fileName);
         }
 
-        public ISettingsProvider<TData>? GetSettingsProvider<TData>(string fileName)
+        if (typeof(TData) == typeof(NamingStyleSetting))
         {
-            if (typeof(TData) == typeof(AnalyzerSetting))
-            {
-                return (ISettingsProvider<TData>)_analyzerProvider.GetForFile(fileName);
-            }
-
-            if (typeof(TData) == typeof(Setting))
-            {
-                return (ISettingsProvider<TData>)_whitespaceProvider.GetForFile(fileName);
-            }
-
-            if (typeof(TData) == typeof(NamingStyleSetting))
-            {
-                return (ISettingsProvider<TData>)_namingStyleProvider.GetForFile(fileName);
-            }
-
-            if (typeof(TData) == typeof(CodeStyleSetting))
-            {
-                return (ISettingsProvider<TData>)_codeStyleProvider.GetForFile(fileName);
-            }
-
-            return null;
+            return (ISettingsProvider<TData>)_namingStyleProvider.GetForFile(fileName);
         }
 
-        private static ISettingsProviderFactory<T> GetOptionsProviderFactory<T>(Workspace workspace)
+        if (typeof(TData) == typeof(CodeStyleSetting))
         {
-            var providers = new List<ISettingsProviderFactory<T>>();
-            var commonProvider = workspace.Services.GetRequiredService<IWorkspaceSettingsProviderFactory<T>>();
-            providers.Add(commonProvider);
-            var solution = workspace.CurrentSolution;
-            var supportsCSharp = solution.Projects.Any(p => p.Language.Equals(LanguageNames.CSharp, StringComparison.OrdinalIgnoreCase));
-            var supportsVisualBasic = solution.Projects.Any(p => p.Language.Equals(LanguageNames.VisualBasic, StringComparison.OrdinalIgnoreCase));
-            if (supportsCSharp)
-            {
-                TryAddProviderForLanguage(LanguageNames.CSharp, workspace, providers);
-            }
+            return (ISettingsProvider<TData>)_codeStyleProvider.GetForFile(fileName);
+        }
 
-            if (supportsVisualBasic)
-            {
-                TryAddProviderForLanguage(LanguageNames.VisualBasic, workspace, providers);
-            }
+        return null;
+    }
 
-            return new CombinedOptionsProviderFactory<T>(providers.ToImmutableArray());
+    private static ISettingsProviderFactory<T> GetOptionsProviderFactory<T>(Workspace workspace)
+    {
+        var providers = new List<ISettingsProviderFactory<T>>();
+        var commonProvider = workspace.Services.GetRequiredService<IWorkspaceSettingsProviderFactory<T>>();
+        providers.Add(commonProvider);
+        var solution = workspace.CurrentSolution;
+        var supportsCSharp = solution.Projects.Any(p => p.Language.Equals(LanguageNames.CSharp, StringComparison.OrdinalIgnoreCase));
+        var supportsVisualBasic = solution.Projects.Any(p => p.Language.Equals(LanguageNames.VisualBasic, StringComparison.OrdinalIgnoreCase));
+        if (supportsCSharp)
+        {
+            TryAddProviderForLanguage(LanguageNames.CSharp, workspace, providers);
+        }
 
-            static void TryAddProviderForLanguage(string language, Workspace workspace, List<ISettingsProviderFactory<T>> providers)
+        if (supportsVisualBasic)
+        {
+            TryAddProviderForLanguage(LanguageNames.VisualBasic, workspace, providers);
+        }
+
+        return new CombinedOptionsProviderFactory<T>(providers.ToImmutableArray());
+
+        static void TryAddProviderForLanguage(string language, Workspace workspace, List<ISettingsProviderFactory<T>> providers)
+        {
+            var provider = workspace.Services.GetLanguageServices(language).GetService<ILanguageSettingsProviderFactory<T>>();
+            if (provider is not null)
             {
-                var provider = workspace.Services.GetLanguageServices(language).GetService<ILanguageSettingsProviderFactory<T>>();
-                if (provider is not null)
-                {
-                    providers.Add(provider);
-                }
+                providers.Add(provider);
             }
         }
     }

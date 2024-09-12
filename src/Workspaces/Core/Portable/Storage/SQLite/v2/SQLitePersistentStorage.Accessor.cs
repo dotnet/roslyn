@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     static (self, connection, database, rowId) => self.ReadChecksum(connection, database, rowId),
                     this,
                     cancellationToken);
-                return optional.HasValue && checksum.Hash == optional.Value;
+                return optional.HasValue && checksum == optional.Value;
             }
 
             [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/36114", AllowCaptures = false)]
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                     {
                         checksum ??= Checksum.Null;
                         Span<byte> checksumBytes = stackalloc byte[Checksum.HashSize];
-                        checksum.WriteTo(checksumBytes);
+                        checksum.Value.WriteTo(checksumBytes);
 
                         var (dataBytes, dataLength, dataPooled) = GetBytes(stream);
 
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                         // stored in the table already.  If they don't match, don't read
                         // out the data value at all.
                         if (t.checksum != null &&
-                            !t.self.ChecksumsMatch_MustRunInTransaction(t.connection, t.database, t.rowId, t.checksum))
+                            !t.self.ChecksumsMatch_MustRunInTransaction(t.connection, t.database, t.rowId, t.checksum.Value))
                         {
                             return default;
                         }
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
                 return stream;
             }
 
-            private Optional<Checksum.HashData> ReadChecksum(
+            private Optional<Checksum> ReadChecksum(
                 SqlConnection connection, Database database, long rowId)
             {
                 // Have to run the checksum reading in a transaction.  This is necessary as blob reading outside a
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2
             private bool ChecksumsMatch_MustRunInTransaction(SqlConnection connection, Database database, long rowId, Checksum checksum)
             {
                 var storedChecksum = connection.ReadChecksum_MustRunInTransaction(database, Table, rowId);
-                return storedChecksum.HasValue && checksum.Hash == storedChecksum.Value;
+                return storedChecksum.HasValue && checksum == storedChecksum.Value;
             }
 
             private void BindPrimaryKey(SqlStatement statement, TDatabaseKey databaseKey, int dataNameId)

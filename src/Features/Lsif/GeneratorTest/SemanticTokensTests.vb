@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
             ' - Roslyn custom token type ('x' in 'int x' uses a Roslyn custom token type).
             ' - Token in last line with no trailing newline (ensure sufficient range was passed to LSP generator).
 
-            Using semanticTokensWorkspace = TestWorkspace.CreateWorkspace(
+            Using semanticTokensWorkspace = EditorTestWorkspace.CreateWorkspace(
                 <Workspace>
                     <Project Language="C#" AssemblyName=<%= TestProjectAssemblyName %> FilePath="Z:\TestProject.csproj" CommonReferences="true">
                         <Document Name="A.cs" FilePath="Z:\A.cs">

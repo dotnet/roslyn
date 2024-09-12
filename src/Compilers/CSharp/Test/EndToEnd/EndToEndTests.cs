@@ -17,6 +17,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Diagnostics;
+using Roslyn.Test.Utilities.TestGenerators;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 {
@@ -170,17 +172,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 
         // This test is a canary attempting to make sure that we don't regress the # of fluent calls that 
         // the compiler can handle. 
-        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1874763")]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/72678"), WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1874763")]
         public void OverflowOnFluentCall_ExtensionMethods()
         {
-            int numberFluentCalls = (IntPtr.Size, ExecutionConditionUtil.Configuration, RuntimeUtilities.IsDesktopRuntime) switch
+            int numberFluentCalls = (IntPtr.Size, ExecutionConditionUtil.Configuration, RuntimeUtilities.IsDesktopRuntime, RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) switch
             {
-                (8, ExecutionConfiguration.Debug, false) => 750,
-                (8, ExecutionConfiguration.Release, false) => 750, // Should be ~3_400, but is flaky.
-                (4, ExecutionConfiguration.Debug, true) => 450,
-                (4, ExecutionConfiguration.Release, true) => 1_600,
-                (8, ExecutionConfiguration.Debug, true) => 1_100,
-                (8, ExecutionConfiguration.Release, true) => 3_300,
+                (8, ExecutionConfiguration.Debug, false, false) => 750,
+                (8, ExecutionConfiguration.Release, false, false) => 750, // Should be ~3_400, but is flaky.
+                (4, ExecutionConfiguration.Debug, true, false) => 450,
+                (4, ExecutionConfiguration.Release, true, false) => 1_600,
+                (8, ExecutionConfiguration.Debug, true, false) => 1_100,
+                (8, ExecutionConfiguration.Release, true, false) => 3_300,
+                (_, _, _, true) => 200,
                 _ => throw new Exception($"Unexpected configuration {IntPtr.Size * 8}-bit {ExecutionConditionUtil.Configuration}, Desktop: {RuntimeUtilities.IsDesktopRuntime}")
             };
 
@@ -669,6 +672,56 @@ $@"        if (F({i}))
                 comp.VerifyDiagnostics();
                 Assert.Equal(localFunctions ? 20 : 40, data.LambdaBindingCount);
             }, timeout: TimeSpan.FromSeconds(5));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/pull/70791")]
+        public void ForAttributeWithMetadataName_DeepRecursion()
+        {
+            var deeplyRecursive = string.Join("+", Enumerable.Repeat(""" "a" """, 20_000));
+            var source = $$"""
+                class Ex
+                {
+                    void M()
+                    {
+                        var v ={{deeplyRecursive}};
+                    }
+                }
+
+                [N1.X]
+                class C1 { }
+                [N2.X]
+                class C2 { }
+
+                namespace N1
+                {
+                    class XAttribute : System.Attribute { }
+                }
+
+                namespace N2
+                {
+                    class XAttribute : System.Attribute { }
+                }
+                """;
+            var parseOptions = TestOptions.RegularPreview;
+            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+
+            Assert.Single(compilation.SyntaxTrees);
+
+            var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+            {
+                var input = ctx.SyntaxProvider.ForAttributeWithMetadataName(
+                    "N1.XAttribute",
+                    (node, _) => node is ClassDeclarationSyntax,
+                    (context, _) => (ClassDeclarationSyntax)context.TargetNode);
+                ctx.RegisterSourceOutput(input, (spc, node) => { });
+            }));
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new ISourceGenerator[] { generator }, parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult().Results[0];
+
+            Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+                step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" }));
         }
     }
 }

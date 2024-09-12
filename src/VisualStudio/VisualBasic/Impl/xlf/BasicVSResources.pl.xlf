@@ -62,9 +62,9 @@
         <target state="translated">Preferuj uproszczone tworzenie obiektów</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_Imports">
-        <source>Remove unnecessary Imports</source>
-        <target state="translated">Usuń niepotrzebne dyrektywy Import</target>
+      <trans-unit id="Remove_unnecessary_imports">
+        <source>Remove unnecessary imports</source>
+        <target state="translated">Usuń niepotrzebne importy</target>
         <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
@@ -181,11 +181,6 @@
         <source>Import Directives</source>
         <target state="translated">Dyrektywy import</target>
         <note />
-      </trans-unit>
-      <trans-unit id="Sort_imports">
-        <source>Sort imports</source>
-        <target state="translated">Sortuj dyrektywy Import</target>
-        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in _NuGet packages</source>

@@ -24,9 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
     [UseExportProvider]
     public class SuppressMessageAttributeWorkspaceTests : SuppressMessageAttributeTests
     {
-        private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures
-            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
-            .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
+        private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures;
 
         private static readonly Lazy<MetadataReference> _unconditionalSuppressMessageRef = new(() =>
         {
@@ -118,7 +116,7 @@ public class C2
 }
 ",
                 new[] { new ThrowExceptionForEachNamedTypeAnalyzer(ExceptionDispatchInfo.Capture(new Exception())) },
-                diagnostics: new[] { diagnostic, diagnostic, diagnostic });
+                diagnostics: [diagnostic, diagnostic, diagnostic]);
         }
 
         [Fact]
@@ -128,7 +126,7 @@ public class C2
 
             await VerifyCSharpAsync("public class C { }",
                 new[] { new ThrowExceptionFromSupportedDiagnostics(new Exception()) },
-                diagnostics: new[] { diagnostic });
+                diagnostics: [diagnostic]);
         }
     }
 }

@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public static IEnumerable<CSharpAttributeData> GetAttributes(this Symbol @this, AttributeDescription description)
         {
-            return @this.GetAttributes().Where(a => a.IsTargetAttribute(@this, description));
+            return @this.GetAttributes().Where(a => a.IsTargetAttribute(description));
         }
 
         public static CSharpAttributeData GetAttribute(this Symbol @this, NamedTypeSymbol c)
@@ -955,7 +955,7 @@ internal static class Extensions
         return result;
     }
 
-    public static void Verify(this ImmutableBindingDiagnostic<AssemblySymbol> actual, params Microsoft.CodeAnalysis.Test.Utilities.DiagnosticDescription[] expected)
+    public static void Verify(this ReadOnlyBindingDiagnostic<AssemblySymbol> actual, params Microsoft.CodeAnalysis.Test.Utilities.DiagnosticDescription[] expected)
     {
         actual.Diagnostics.Verify(expected);
     }

@@ -10,28 +10,27 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CodeRefactorings
+namespace Microsoft.CodeAnalysis.CodeRefactorings;
+
+[ExportWorkspaceServiceFactory(typeof(ICodeRefactoringHelpersService), ServiceLayer.Editor), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class EditorLayerCodeActionHelpersService(IInlineRenameService renameService) : IWorkspaceServiceFactory
 {
-    [ExportWorkspaceServiceFactory(typeof(ICodeRefactoringHelpersService), ServiceLayer.Editor), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal class EditorLayerCodeActionHelpersService(IInlineRenameService renameService) : IWorkspaceServiceFactory
+    private readonly IInlineRenameService _renameService = renameService;
+
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => new CodeActionHelpersService(this);
+
+    private class CodeActionHelpersService(EditorLayerCodeActionHelpersService service) : ICodeRefactoringHelpersService
     {
-        private readonly IInlineRenameService _renameService = renameService;
+        private readonly EditorLayerCodeActionHelpersService _service = service;
 
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-            => new CodeActionHelpersService(this);
-
-        private class CodeActionHelpersService(EditorLayerCodeActionHelpersService service) : ICodeRefactoringHelpersService
+        public bool ActiveInlineRenameSession
         {
-            private readonly EditorLayerCodeActionHelpersService _service = service;
-
-            public bool ActiveInlineRenameSession
+            get
             {
-                get
-                {
-                    return _service._renameService.ActiveSession != null;
-                }
+                return _service._renameService.ActiveSession != null;
             }
         }
     }

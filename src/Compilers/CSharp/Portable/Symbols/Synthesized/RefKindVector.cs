@@ -86,21 +86,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var pooledBuilder = PooledStringBuilder.GetInstance();
             var builder = pooledBuilder.Builder;
 
-            builder.Append("{");
+            builder.Append('{');
 
             int i = 0;
             foreach (var word in this.Words())
             {
                 if (i > 0)
                 {
-                    builder.Append(",");
+                    builder.Append(',');
                 }
 
                 builder.AppendFormat("{0:x8}", word);
                 i++;
             }
 
-            builder.Append("}");
+            builder.Append('}');
             Debug.Assert(i > 0);
 
             return pooledBuilder.ToStringAndFree();

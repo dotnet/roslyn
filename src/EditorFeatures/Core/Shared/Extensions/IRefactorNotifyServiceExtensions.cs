@@ -4,46 +4,45 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+
+internal static class IRefactorNotifyServiceExtensions
 {
-    internal static class IRefactorNotifyServiceExtensions
+    public static bool TryOnBeforeGlobalSymbolRenamed(
+        this IEnumerable<IRefactorNotifyService> refactorNotifyServices,
+        Workspace workspace,
+        IEnumerable<DocumentId> changedDocuments,
+        ISymbol symbol,
+        string newName,
+        bool throwOnFailure)
     {
-        public static bool TryOnBeforeGlobalSymbolRenamed(
-            this IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            Workspace workspace,
-            IEnumerable<DocumentId> changedDocuments,
-            ISymbol symbol,
-            string newName,
-            bool throwOnFailure)
+        foreach (var refactorNotifyService in refactorNotifyServices)
         {
-            foreach (var refactorNotifyService in refactorNotifyServices)
+            if (!refactorNotifyService.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure))
             {
-                if (!refactorNotifyService.TryOnBeforeGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure))
-                {
-                    return false;
-                }
+                return false;
             }
-
-            return true;
         }
 
-        public static bool TryOnAfterGlobalSymbolRenamed(
-            this IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-            Workspace workspace,
-            IEnumerable<DocumentId> changedDocuments,
-            ISymbol symbol,
-            string newName,
-            bool throwOnFailure)
-        {
-            foreach (var refactorNotifyService in refactorNotifyServices)
-            {
-                if (!refactorNotifyService.TryOnAfterGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure))
-                {
-                    return false;
-                }
-            }
+        return true;
+    }
 
-            return true;
+    public static bool TryOnAfterGlobalSymbolRenamed(
+        this IEnumerable<IRefactorNotifyService> refactorNotifyServices,
+        Workspace workspace,
+        IEnumerable<DocumentId> changedDocuments,
+        ISymbol symbol,
+        string newName,
+        bool throwOnFailure)
+    {
+        foreach (var refactorNotifyService in refactorNotifyServices)
+        {
+            if (!refactorNotifyService.TryOnAfterGlobalSymbolRenamed(workspace, changedDocuments, symbol, newName, throwOnFailure))
+            {
+                return false;
+            }
         }
+
+        return true;
     }
 }

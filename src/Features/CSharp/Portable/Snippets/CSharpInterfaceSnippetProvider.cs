@@ -15,45 +15,44 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
-namespace Microsoft.CodeAnalysis.CSharp.Snippets
+namespace Microsoft.CodeAnalysis.CSharp.Snippets;
+
+[ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
+internal sealed class CSharpInterfaceSnippetProvider : AbstractCSharpTypeSnippetProvider
 {
-    [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpInterfaceSnippetProvider : AbstractCSharpTypeSnippetProvider
+    private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
     {
-        private static readonly ISet<SyntaxKind> s_validModifiers = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
-        {
-            SyntaxKind.InternalKeyword,
-            SyntaxKind.PublicKeyword,
-            SyntaxKind.PrivateKeyword,
-            SyntaxKind.ProtectedKeyword,
-            SyntaxKind.UnsafeKeyword,
-            SyntaxKind.FileKeyword,
-        };
+        SyntaxKind.InternalKeyword,
+        SyntaxKind.PublicKeyword,
+        SyntaxKind.PrivateKeyword,
+        SyntaxKind.ProtectedKeyword,
+        SyntaxKind.UnsafeKeyword,
+        SyntaxKind.FileKeyword,
+    };
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpInterfaceSnippetProvider()
-        {
-        }
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpInterfaceSnippetProvider()
+    {
+    }
 
-        public override string Identifier => "interface";
+    public override string Identifier => "interface";
 
-        public override string Description => FeaturesResources.interface_;
+    public override string Description => FeaturesResources.interface_;
 
-        protected override ISet<SyntaxKind> ValidModifiers => s_validModifiers;
+    protected override ISet<SyntaxKind> ValidModifiers => s_validModifiers;
 
-        protected override async Task<SyntaxNode> GenerateTypeDeclarationAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+    protected override async Task<SyntaxNode> GenerateTypeDeclarationAsync(Document document, int position, CancellationToken cancellationToken)
+    {
+        var generator = SyntaxGenerator.GetGenerator(document);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-            var name = NameGenerator.GenerateUniqueName("MyInterface", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
-            return generator.InterfaceDeclaration(name);
-        }
+        var name = NameGenerator.GenerateUniqueName("MyInterface", name => semanticModel.LookupSymbols(position, name: name).IsEmpty);
+        return generator.InterfaceDeclaration(name);
+    }
 
-        protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
-        {
-            return syntaxFacts.IsInterfaceDeclaration;
-        }
+    protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
+    {
+        return syntaxFacts.IsInterfaceDeclaration;
     }
 }

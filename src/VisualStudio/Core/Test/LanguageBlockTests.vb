@@ -248,7 +248,7 @@ System.Console$$.WriteLine(message)
                 GetType(NoCompilationContentTypeDefinitions),
                 GetType(NoCompilationContentTypeLanguageService))
 
-            Using workspace = TestWorkspace.Create(xml, composition:=composition)
+            Using workspace = EditorTestWorkspace.Create(xml, composition:=composition)
                 Dim hostDocument = workspace.Documents.Single()
 
                 Assert.Null(VsLanguageBlock.GetCurrentBlock(
@@ -266,7 +266,7 @@ System.Console$$.WriteLine(message)
                               </Document>
                           </Project>
                       </Workspace>
-            Using workspace = TestWorkspace.Create(xml)
+            Using workspace = EditorTestWorkspace.Create(xml)
                 Dim hostDocument = workspace.Documents.Single()
 
                 Dim tuple = VsLanguageBlock.GetCurrentBlock(

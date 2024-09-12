@@ -7,11 +7,10 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CommonLanguageServerProtocol.Framework.Example;
-using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Nerdbank.Streams;
-using StreamJsonRpc;
 using Microsoft.Extensions.DependencyInjection;
+using Nerdbank.Streams;
+using Roslyn.LanguageServer.Protocol;
+using StreamJsonRpc;
 
 namespace Microsoft.CommonLanguageServerProtocol.Framework.UnitTests;
 
@@ -160,13 +159,13 @@ internal class TestExampleLanguageServer : ExampleLanguageServer
     }
 }
 
-[LanguageServerEndpoint(Methods.TextDocumentDidOpenName)]
+[LanguageServerEndpoint(Methods.TextDocumentDidOpenName, LanguageServerConstants.DefaultLanguageName)]
 public class ExtraDidOpenHandler :
     IRequestHandler<DidOpenTextDocumentParams, SemanticTokensDeltaPartialResult, ExampleRequestContext>
 {
     public bool MutatesSolutionState => throw new System.NotImplementedException();
 
-    public Task<SemanticTokensDeltaPartialResult> HandleRequestAsync(DidOpenTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
+    Task<SemanticTokensDeltaPartialResult> IRequestHandler<DidOpenTextDocumentParams, SemanticTokensDeltaPartialResult, ExampleRequestContext>.HandleRequestAsync(DidOpenTextDocumentParams request, ExampleRequestContext context, CancellationToken cancellationToken)
     {
         throw new System.NotImplementedException();
     }

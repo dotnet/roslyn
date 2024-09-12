@@ -1811,6 +1811,7 @@ class C1 : IEnumerable<int>
     public IEnumerator<int> GetEnumerator() => throw null;
     IEnumerator IEnumerable.GetEnumerator() => throw null;
     public void Add(int c2) { }
+    public void Add(long c2) { }
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -3327,6 +3328,7 @@ class C1 : IEnumerable<int>
     public IEnumerator<int> GetEnumerator() => throw null;
     IEnumerator IEnumerable.GetEnumerator() => throw null;
     public void Add(int c2) { }
+    public void Add(long c2) { }
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -13276,6 +13278,7 @@ class C1 : IEnumerable<int>
     public IEnumerator<int> GetEnumerator() => throw null;
     IEnumerator IEnumerable.GetEnumerator() => throw null;
     public void Add(int c2) { }
+    public void Add(long c2) { }
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -13361,6 +13364,7 @@ class C1 : IEnumerable<int>
     public IEnumerator<int> GetEnumerator() => throw null;
     IEnumerator IEnumerable.GetEnumerator() => throw null;
     public void Add(int c2) { }
+    public void Add(long c2) { }
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -13490,6 +13494,7 @@ class C2 : IEnumerable<int>
     public IEnumerator<int> GetEnumerator() => throw null;
     IEnumerator IEnumerable.GetEnumerator() => throw null;
     public void Add(int c2) { }
+    public void Add(long c2) { }
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -13658,6 +13663,7 @@ class C2 : IEnumerable<int>
     public IEnumerator<int> GetEnumerator() => throw null;
     IEnumerator IEnumerable.GetEnumerator() => throw null;
     public void Add(int c1, int c2) { }
+    public void Add(long c1, long c2) { }
 }
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
@@ -14310,6 +14316,13 @@ class A
             return new A();
         }
     }
+    A this[long x, long y]
+    {
+        get
+        {
+            return new A();
+        }
+    }
 
     int X, Y, Z;
 
@@ -14600,7 +14613,6 @@ Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
         Entering: {R1}
-
 .locals {R1}
 {
     Locals: [dynamic x]
@@ -14608,66 +14620,39 @@ Block[B0] - Entry
         Predecessors: [B0]
         Statements (1)
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic, IsImplicit) (Syntax: 'x = 1')
-              Left: 
+              Left:
                 ILocalReferenceOperation: x (IsDeclaration: True) (OperationKind.LocalReference, Type: dynamic, IsImplicit) (Syntax: 'x = 1')
-              Right: 
+              Right:
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: dynamic, IsImplicit) (Syntax: '1')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     (Boxing)
-                  Operand: 
+                  Operand:
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
         Next (Regular) Block[B2]
             Entering: {R2}
-
     .locals {R2}
     {
         CaptureIds: [0]
         Block[B2] - Block
             Predecessors: [B1]
-            Statements (1)
+            Statements (4)
                 IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new A {[y:  ...  x] = { } }')
-                  Value: 
+                  Value:
                     IObjectCreationOperation (Constructor: A..ctor()) (OperationKind.ObjectCreation, Type: A) (Syntax: 'new A {[y:  ...  x] = { } }')
                       Arguments(0)
-                      Initializer: 
+                      Initializer:
                         null
-
-            Next (Regular) Block[B3]
-                Entering: {R3}
-
-        .locals {R3}
-        {
-            CaptureIds: [1] [2]
-            Block[B3] - Block
-                Predecessors: [B2]
-                Statements (2)
-                    IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-                      Value: 
-                        ILocalReferenceOperation: x (OperationKind.LocalReference, Type: dynamic) (Syntax: 'x')
-
-                    IFlowCaptureOperation: 2 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'x')
-                      Value: 
-                        ILocalReferenceOperation: x (OperationKind.LocalReference, Type: dynamic) (Syntax: 'x')
-
-                Next (Regular) Block[B4]
-                    Leaving: {R3}
-        }
-
-        Block[B4] - Block
-            Predecessors: [B3]
-            Statements (1)
+                ILocalReferenceOperation: x (OperationKind.LocalReference, Type: dynamic) (Syntax: 'x')
+                ILocalReferenceOperation: x (OperationKind.LocalReference, Type: dynamic) (Syntax: 'x')
                 IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'new A {[y:  ... x] = { } };')
-                  Expression: 
+                  Expression:
                     IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: A, IsImplicit) (Syntax: 'new A {[y:  ...  x] = { } }')
-
-            Next (Regular) Block[B5]
+            Next (Regular) Block[B3]
                 Leaving: {R2} {R1}
     }
 }
-
-Block[B5] - Exit
-    Predecessors: [B4]
+Block[B3] - Exit
+    Predecessors: [B2]
     Statements (0)
 ";
             VerifyFlowGraphAndDiagnosticsForTest<MethodDeclarationSyntax>(source, expectedFlowGraph, expectedDiagnostics);
@@ -15011,6 +14996,42 @@ Block[B0] - Entry
 Block[B8] - Exit
     Predecessors: [B7]
     Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/72931")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72931")]
+        public void ObjectCreationFlow_75_CollectionInitializerError()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    /*<bind>*/{
+        int d = 1;
+        var c = new C() { [d] = {2} };
+    }/*</bind>*/
+
+    C2 _test1 = new C2();    
+    C2 this[int x]
+    {
+        get => _test1;
+    }
+}
+
+class C2
+{
+}
+";
+            var expectedDiagnostics = new[] {
+                // (7,33): error CS1922: Cannot initialize type 'C2' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                //         var c = new C() { [d] = {2} };
+                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{2}").WithArguments("C2").WithLocation(7, 33)
+                };
+
+            string expectedFlowGraph = @"
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }

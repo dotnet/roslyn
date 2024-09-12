@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
-    public class SpellCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class SpellCheckTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public SpellCheckTests(ITestOutputHelper logger)
           : base(logger)
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
     }
 }";
 
-            await TestExactActionSetOfferedAsync(text, new[] { String.Format(FeaturesResources.Change_0_to_1, "Gooa", "Goo") });
+            await TestExactActionSetOfferedAsync(text, [String.Format(FeaturesResources.Change_0_to_1, "Gooa", "Goo")]);
         }
 
         [Fact]
@@ -72,11 +72,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.SpellCheck
     }
 }";
 
-            await TestExactActionSetOfferedAsync(text, new[]
-            {
+            await TestExactActionSetOfferedAsync(text,
+            [
                 String.Format(FeaturesResources.Change_0_to_1, "Foa", "Foo"),
                 String.Format(FeaturesResources.Change_0_to_1, "Foa", "for")
-            });
+            ]);
         }
 
         [Fact]
@@ -92,7 +92,7 @@ class Goo
     }
 }";
             await TestExactActionSetOfferedAsync(text,
-                new[] { String.Format(FeaturesResources.Change_0_to_1, "Goa", "Goo") });
+                [String.Format(FeaturesResources.Change_0_to_1, "Goa", "Goo")]);
         }
 
         [Fact]
@@ -106,7 +106,7 @@ class Goo
         var  y = 2 + [|zza|];
     }
 }";
-            await TestExactActionSetOfferedAsync(text, new[] { String.Format(FeaturesResources.Change_0_to_1, "zza", "zzz") });
+            await TestExactActionSetOfferedAsync(text, [String.Format(FeaturesResources.Change_0_to_1, "zza", "zzz")]);
         }
 
         [Fact]
@@ -120,11 +120,11 @@ public class Class1
         if (x is [|Boolea|]) {}
     }
 }";
-            await TestExactActionSetOfferedAsync(text, new[]
-            {
+            await TestExactActionSetOfferedAsync(text,
+            [
                 String.Format(FeaturesResources.Change_0_to_1, "Boolea", "Boolean"),
                 String.Format(FeaturesResources.Change_0_to_1, "Boolea", "bool")
-            });
+            ]);
         }
 
         [Fact]

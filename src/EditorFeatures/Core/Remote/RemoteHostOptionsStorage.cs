@@ -4,16 +4,15 @@
 
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal sealed class RemoteHostOptionsStorage
 {
-    internal sealed class RemoteHostOptionsStorage
-    {
-        // use 64bit OOP
-        public static readonly Option2<bool> OOP64Bit = new("dotnet_code_analysis_in_separate_process", defaultValue: true);
+    // use 64bit OOP
+    public static readonly Option2<bool> OOP64Bit = new("dotnet_code_analysis_in_separate_process", defaultValue: true);
 
-        // use coreclr host for OOP
-        public static readonly Option2<bool> OOPCoreClr = new("dotnet_enable_core_clr_in_code_analysis_process", defaultValue: true);
+    // use coreclr host for OOP
+    public static readonly Option2<bool> OOPCoreClr = new("dotnet_enable_core_clr_in_code_analysis_process", defaultValue: true);
 
-        public static readonly Option2<bool> OOPServerGCFeatureFlag = new("dotnet_enable_server_garbage_collection_in_code_analysis_process", defaultValue: false);
-    }
+    public static readonly Option2<bool> OOPServerGCFeatureFlag = new("dotnet_enable_server_garbage_collection_in_code_analysis_process", defaultValue: false);
 }

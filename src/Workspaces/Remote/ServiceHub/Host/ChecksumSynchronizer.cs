@@ -3,134 +3,124 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal sealed partial class AssetProvider
 {
-    internal class ChecksumSynchronizer
+    private readonly struct ChecksumSynchronizer(AssetProvider assetProvider)
     {
         // make sure there is always only 1 bulk synchronization
-        private static readonly SemaphoreSlim s_gate = new SemaphoreSlim(initialCount: 1);
+        private static readonly SemaphoreSlim s_gate = new(initialCount: 1);
 
-        private readonly AssetProvider _assetProvider;
+        private readonly AssetProvider _assetProvider = assetProvider;
 
-        public ChecksumSynchronizer(AssetProvider assetProvider)
-            => _assetProvider = assetProvider;
-
-        public async ValueTask SynchronizeAssetsAsync(HashSet<Checksum> checksums, CancellationToken cancellationToken)
+        public async ValueTask SynchronizeAssetsAsync(
+            AssetHint assetHint,
+            HashSet<Checksum> checksums,
+            Dictionary<Checksum, object>? results,
+            CancellationToken cancellationToken)
         {
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                await SynchronizeAssets_NoLockAsync(checksums, cancellationToken).ConfigureAwait(false);
+                await _assetProvider.SynchronizeAssetsAsync(assetHint, checksums, results, cancellationToken).ConfigureAwait(false);
             }
         }
 
         public async ValueTask SynchronizeSolutionAssetsAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
         {
+            SolutionStateChecksums solutionChecksumObject;
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
                 // this will make 4 round trip to data source (VS) to get all assets that belong to the given solution checksum
 
                 // first, get solution checksum object for the given solution checksum
-                var solutionChecksumObject = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(solutionChecksum, cancellationToken).ConfigureAwait(false);
+                var solutionCompilationChecksumObject = await _assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
+                    assetHint: AssetHint.None, solutionChecksum, cancellationToken).ConfigureAwait(false);
+                solutionChecksumObject = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
+                    assetHint: AssetHint.None, solutionCompilationChecksumObject.SolutionState, cancellationToken).ConfigureAwait(false);
 
                 // second, get direct children of the solution
-                await SynchronizeAssets_NoLockAsync(solutionChecksumObject.Children, cancellationToken).ConfigureAwait(false);
+                {
+                    using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
 
-                // third and last get direct children for all projects and documents in the solution 
-                await SynchronizeProjectAssets_NoLockAsync(solutionChecksumObject.Projects, cancellationToken).ConfigureAwait(false);
+                    solutionChecksumObject.AddAllTo(checksums);
+                    checksums.Remove(solutionChecksumObject.Checksum);
+                    await _assetProvider.SynchronizeAssetsAsync(assetHint: AssetHint.None, checksums, results: null, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            // third and last get direct children for all projects and documents in the solution 
+            foreach (var (projectChecksum, _) in solutionChecksumObject.Projects)
+            {
+                // These GetAssetAsync calls should be fast since they were just retrieved above.  There's a small
+                // chance the asset-cache GC pass may have cleaned them up, but that should be exceedingly rare.
+                var projectStateChecksums = await _assetProvider.GetAssetAsync<ProjectStateChecksums>(
+                    assetHint: AssetHint.None, projectChecksum, cancellationToken).ConfigureAwait(false);
+                await SynchronizeProjectAssetsAsync(projectStateChecksums, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        public async ValueTask SynchronizeProjectAssetsAsync(HashSet<Checksum> projectChecksums, CancellationToken cancellationToken)
+        public async ValueTask SynchronizeProjectAssetsAsync(ProjectStateChecksums projectChecksum, CancellationToken cancellationToken)
         {
             using (await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
             {
-                await SynchronizeProjectAssets_NoLockAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
+                await SynchronizeProjectAssets_NoLockAsync(projectChecksum, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        private async ValueTask SynchronizeProjectAssets_NoLockAsync(IReadOnlyCollection<Checksum> projectChecksums, CancellationToken cancellationToken)
+        private async ValueTask SynchronizeProjectAssets_NoLockAsync(ProjectStateChecksums projectChecksum, CancellationToken cancellationToken)
         {
             // get children of project checksum objects at once
-            await SynchronizeProjectsAsync(projectChecksums, cancellationToken).ConfigureAwait(false);
+            using var _ = PooledHashSet<Checksum>.GetInstance(out var checksums);
 
-            // get children of document checksum objects at once
-            using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
-            var checksums = pooledObject.Object;
+            checksums.Add(projectChecksum.Info);
+            checksums.Add(projectChecksum.CompilationOptions);
+            checksums.Add(projectChecksum.ParseOptions);
+            AddAll(checksums, projectChecksum.ProjectReferences);
+            AddAll(checksums, projectChecksum.MetadataReferences);
+            AddAll(checksums, projectChecksum.AnalyzerReferences);
+            AddAll(checksums, projectChecksum.Documents.Checksums);
+            AddAll(checksums, projectChecksum.AdditionalDocuments.Checksums);
+            AddAll(checksums, projectChecksum.AnalyzerConfigDocuments.Checksums);
 
-            foreach (var projectChecksum in projectChecksums)
+            // First synchronize all the top-level info about this project.
+            await _assetProvider.SynchronizeAssetsAsync(
+                assetHint: projectChecksum.ProjectId, checksums, results: null, cancellationToken).ConfigureAwait(false);
+
+            checksums.Clear();
+
+            // Then synchronize the info about all the documents within.
+            await CollectChecksumChildrenAsync(this, projectChecksum.Documents.Checksums).ConfigureAwait(false);
+            await CollectChecksumChildrenAsync(this, projectChecksum.AdditionalDocuments.Checksums).ConfigureAwait(false);
+            await CollectChecksumChildrenAsync(this, projectChecksum.AnalyzerConfigDocuments.Checksums).ConfigureAwait(false);
+
+            await _assetProvider.SynchronizeAssetsAsync(
+                assetHint: projectChecksum.ProjectId, checksums, results: null, cancellationToken).ConfigureAwait(false);
+
+            async ValueTask CollectChecksumChildrenAsync(ChecksumSynchronizer @this, ChecksumCollection collection)
             {
-                var projectChecksumObject = await _assetProvider.GetAssetAsync<ProjectStateChecksums>(projectChecksum, cancellationToken).ConfigureAwait(false);
-
-                await CollectChecksumChildrenAsync(checksums, projectChecksumObject.Documents, cancellationToken).ConfigureAwait(false);
-                await CollectChecksumChildrenAsync(checksums, projectChecksumObject.AdditionalDocuments, cancellationToken).ConfigureAwait(false);
-                await CollectChecksumChildrenAsync(checksums, projectChecksumObject.AnalyzerConfigDocuments, cancellationToken).ConfigureAwait(false);
-            }
-
-            await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async ValueTask SynchronizeProjectsAsync(IReadOnlyCollection<Checksum> projectChecksums, CancellationToken cancellationToken)
-        {
-            // get children of project checksum objects at once
-            using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
-            var checksums = pooledObject.Object;
-
-            await CollectChecksumChildrenAsync(checksums, projectChecksums, cancellationToken).ConfigureAwait(false);
-            await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async ValueTask SynchronizeAssets_NoLockAsync(IReadOnlyCollection<object> checksumOrCollections, CancellationToken cancellationToken)
-        {
-            // get children of solution checksum object at once
-            using var pooledObject = SharedPools.Default<HashSet<Checksum>>().GetPooledObject();
-            var checksums = pooledObject.Object;
-
-            AddIfNeeded(checksums, checksumOrCollections);
-            await _assetProvider.SynchronizeAssetsAsync(checksums, cancellationToken).ConfigureAwait(false);
-        }
-
-        private async ValueTask CollectChecksumChildrenAsync(HashSet<Checksum> set, IReadOnlyCollection<Checksum> checksums, CancellationToken cancellationToken)
-        {
-            foreach (var checksum in checksums)
-            {
-                var checksumObject = await _assetProvider.GetAssetAsync<ChecksumWithChildren>(checksum, cancellationToken).ConfigureAwait(false);
-                AddIfNeeded(set, checksumObject.Children);
-            }
-        }
-
-        private void AddIfNeeded(HashSet<Checksum> checksums, IEnumerable<object> checksumOrCollections)
-        {
-            foreach (var checksumOrCollection in checksumOrCollections)
-            {
-                switch (checksumOrCollection)
+                foreach (var checksum in collection)
                 {
-                    case Checksum checksum:
-                        AddIfNeeded(checksums, checksum);
-                        continue;
-                    case ChecksumCollection checksumCollection:
-                        AddIfNeeded(checksums, checksumCollection);
-                        continue;
-                }
-
-                throw ExceptionUtilities.UnexpectedValue(checksumOrCollection);
-            }
-        }
-
-        private void AddIfNeeded(HashSet<Checksum> checksums, Checksum checksum)
-        {
-            if (checksum != Checksum.Null)
-            {
-                if (!_assetProvider.EnsureCacheEntryIfExists(checksum))
-                {
-                    checksums.Add(checksum);
+                    // These GetAssetAsync calls should be fast since they were just retrieved above.  There's a small
+                    // chance the asset-cache GC pass may have cleaned them up, but that should be exceedingly rare.
+                    var checksumObject = await @this._assetProvider.GetAssetAsync<DocumentStateChecksums>(
+                        assetHint: projectChecksum.ProjectId, checksum, cancellationToken).ConfigureAwait(false);
+                    checksums.Add(checksumObject.Info);
+                    checksums.Add(checksumObject.Text);
                 }
             }
+        }
+
+        private static void AddAll(HashSet<Checksum> checksums, ChecksumCollection checksumCollection)
+        {
+            foreach (var checksum in checksumCollection)
+                checksums.Add(checksum);
         }
     }
 }

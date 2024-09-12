@@ -76,11 +76,6 @@ namespace Roslyn.Test.Utilities
                     }
                 }
 
-                if (x.GetType() != y.GetType())
-                {
-                    return false;
-                }
-
                 if (x is IEquatable<T> equatable)
                 {
                     return equatable.Equals(y);
@@ -96,10 +91,7 @@ namespace Roslyn.Test.Utilities
                     return comparable.CompareTo(y) == 0;
                 }
 
-                var enumerableX = x as IEnumerable;
-                var enumerableY = y as IEnumerable;
-
-                if (enumerableX != null && enumerableY != null)
+                if (x is IEnumerable enumerableX && y is IEnumerable enumerableY)
                 {
                     var enumeratorX = enumerableX.GetEnumerator();
                     var enumeratorY = enumerableY.GetEnumerator();
@@ -960,6 +952,18 @@ namespace Roslyn.Test.Utilities
             Debug.Assert(value is object);
         }
 
-#nullable disable
+        public static void Contains<T>(IEnumerable<T> collection, Predicate<T> filter, Func<T, string>? itemInspector = null, string? itemSeparator = null)
+        {
+            foreach (var item in collection)
+            {
+                if (filter(item))
+                {
+                    return;
+                }
+            }
+
+            Fail("Filter does not match any item in the collection: " + Environment.NewLine +
+                ToString(collection, itemSeparator ?? Environment.NewLine, itemInspector));
+        }
     }
 }

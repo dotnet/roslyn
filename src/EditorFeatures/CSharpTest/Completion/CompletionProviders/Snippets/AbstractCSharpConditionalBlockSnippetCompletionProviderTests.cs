@@ -580,5 +580,113 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
 
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
         }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
+        public async Task InsertInlineSnippetWhenDottingBeforeContextualKeywordTest1()
+        {
+            var markupBeforeCommit = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool flag)
+                    {
+                        flag.$$
+                        var a = 0;
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool flag)
+                    {
+                        {{ItemToCommit}} (flag)
+                        {
+                            $$
+                        }
+                        var a = 0;
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
+        public async Task InsertInlineSnippetWhenDottingBeforeContextualKeywordTest2()
+        {
+            var markupBeforeCommit = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool flag, Task t)
+                    {
+                        flag.$$
+                        await t;
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool flag, Task t)
+                    {
+                        {{ItemToCommit}} (flag)
+                        {
+                            $$
+                        }
+                        await t;
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
+
+        [WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/69598")]
+        [InlineData("Task")]
+        [InlineData("Task<int>")]
+        [InlineData("System.Threading.Tasks.Task<int>")]
+        public async Task InsertInlineSnippetWhenDottingBeforeNameSyntaxTest(string nameSyntax)
+        {
+            var markupBeforeCommit = $$"""
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool flag)
+                    {
+                        flag.$$
+                        {{nameSyntax}} t = null;
+                    }
+                }
+                """;
+
+            var expectedCodeAfterCommit = $$"""
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M(bool flag)
+                    {
+                        {{ItemToCommit}} (flag)
+                        {
+                            $$
+                        }
+                        {{nameSyntax}} t = null;
+                    }
+                }
+                """;
+
+            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+        }
     }
 }

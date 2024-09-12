@@ -490,13 +490,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// Not preserved in types constructed from this one.
         /// </remarks>
-        public virtual SpecialType SpecialType
+        public virtual ExtendedSpecialType ExtendedSpecialType
         {
             get
             {
-                return SpecialType.None;
+                return default;
             }
         }
+
+        public SpecialType SpecialType => (SpecialType)ExtendedSpecialType;
 
         /// <summary>
         /// Gets corresponding primitive type code for this type declaration.

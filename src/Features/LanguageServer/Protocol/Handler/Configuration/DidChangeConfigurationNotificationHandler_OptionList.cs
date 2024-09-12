@@ -19,23 +19,18 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
 {
     internal partial class DidChangeConfigurationNotificationHandler
     {
-        public static readonly ImmutableArray<IOption2> SupportedOptions = ImmutableArray.Create<IOption2>(
-            // Code Action
+        public static readonly ImmutableArray<IOption2> SupportedOptions =
+        [
             SymbolSearchOptionsStorage.SearchReferenceAssemblies,
-            // Implement Type
             ImplementTypeOptionsStorage.InsertionBehavior,
             ImplementTypeOptionsStorage.PropertyGenerationBehavior,
-            // Completion
             CompletionOptionsStorage.ShowNameSuggestions,
             CompletionOptionsStorage.ProvideRegexCompletions,
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
             QuickInfoOptionsStorage.ShowRemarksInQuickInfo,
-            // Go to definition
             MetadataAsSourceOptionsStorage.NavigateToDecompiledSources,
-            // Document highlighting
             HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor,
             HighlightingOptionsStorage.HighlightRelatedRegexComponentsUnderCursor,
-            // Inline hints
             InlineHintsOptionsStorage.EnabledForParameters,
             InlineHintsOptionsStorage.ForLiteralParameters,
             InlineHintsOptionsStorage.ForIndexerParameters,
@@ -48,20 +43,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             InlineHintsOptionsStorage.ForImplicitVariableTypes,
             InlineHintsOptionsStorage.ForLambdaParameterTypes,
             InlineHintsOptionsStorage.ForImplicitObjectCreation,
-            // EditorConfig
             FormattingOptions2.TabSize,
             FormattingOptions2.IndentationSize,
             FormattingOptions2.UseTabs,
             FormattingOptions2.NewLine,
             FormattingOptions2.InsertFinalNewLine,
-            // Background analysis
             SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption,
             SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
-            // Code lens options
             LspOptionsStorage.LspEnableReferencesCodeLens,
             LspOptionsStorage.LspEnableTestsCodeLens,
-            // Project system
             LanguageServerProjectSystemOptionsStorage.BinaryLogPath,
-            LanguageServerProjectSystemOptionsStorage.LoadInProcess);
+            LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore,
+        ];
     }
 }

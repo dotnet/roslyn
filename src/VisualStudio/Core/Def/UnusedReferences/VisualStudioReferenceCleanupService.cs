@@ -12,36 +12,35 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.UnusedReferences;
 using Microsoft.VisualStudio.LanguageServices.ExternalAccess.ProjectSystem.Api;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.UnusedReferences;
+
+/// <summary>
+/// This service forwards Reference requests from the feature layer to the ProjectSystem.
+/// </summary>
+[ExportWorkspaceService(typeof(IReferenceCleanupService), ServiceLayer.Host), Shared]
+internal sealed class VisualStudioReferenceCleanupService : IReferenceCleanupService
 {
-    /// <summary>
-    /// This service forwards Reference requests from the feature layer to the ProjectSystem.
-    /// </summary>
-    [ExportWorkspaceService(typeof(IReferenceCleanupService), ServiceLayer.Host), Shared]
-    internal sealed class VisualStudioReferenceCleanupService : IReferenceCleanupService
+    private readonly IProjectSystemReferenceCleanupService2 _projectSystemReferenceUpdateService;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VisualStudioReferenceCleanupService(IProjectSystemReferenceCleanupService projectSystemReferenceUpdateService)
     {
-        private readonly IProjectSystemReferenceCleanupService2 _projectSystemReferenceUpdateService;
+        _projectSystemReferenceUpdateService = (IProjectSystemReferenceCleanupService2)projectSystemReferenceUpdateService;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VisualStudioReferenceCleanupService(IProjectSystemReferenceCleanupService projectSystemReferenceUpdateService)
-        {
-            _projectSystemReferenceUpdateService = (IProjectSystemReferenceCleanupService2)projectSystemReferenceUpdateService;
-        }
+    public async Task<ImmutableArray<ReferenceInfo>> GetProjectReferencesAsync(string projectPath, CancellationToken cancellationToken)
+    {
+        var projectSystemReferences = await _projectSystemReferenceUpdateService.GetProjectReferencesAsync(projectPath, cancellationToken).ConfigureAwait(false);
+        return projectSystemReferences.Select(reference => reference.ToReferenceInfo()).ToImmutableArray();
+    }
 
-        public async Task<ImmutableArray<ReferenceInfo>> GetProjectReferencesAsync(string projectPath, CancellationToken cancellationToken)
-        {
-            var projectSystemReferences = await _projectSystemReferenceUpdateService.GetProjectReferencesAsync(projectPath, cancellationToken).ConfigureAwait(false);
-            return projectSystemReferences.Select(reference => reference.ToReferenceInfo()).ToImmutableArray();
-        }
+    public async Task<bool> TryUpdateReferenceAsync(string projectPath, ReferenceUpdate referenceUpdate, CancellationToken cancellationToken)
+    {
+        var operation = await _projectSystemReferenceUpdateService.GetUpdateReferenceOperationAsync(projectPath, referenceUpdate.ToProjectSystemReferenceUpdate(), cancellationToken).ConfigureAwait(true);
+        if (operation is null)
+            return false;
 
-        public async Task<bool> TryUpdateReferenceAsync(string projectPath, ReferenceUpdate referenceUpdate, CancellationToken cancellationToken)
-        {
-            var operation = await _projectSystemReferenceUpdateService.GetUpdateReferenceOperationAsync(projectPath, referenceUpdate.ToProjectSystemReferenceUpdate(), cancellationToken).ConfigureAwait(true);
-            if (operation is null)
-                return false;
-
-            return await operation.ApplyAsync(cancellationToken).ConfigureAwait(true);
-        }
+        return await operation.ApplyAsync(cancellationToken).ConfigureAwait(true);
     }
 }

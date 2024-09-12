@@ -52,6 +52,16 @@ if ((output = await sr.ReadLineAsync().ConfigureAwait(false)) is not null)
         return null;
     };
 #endif
+
+    string testDescriptor = Path.GetFileName(assemblyFileName);
+#if NET
+    testDescriptor += " (.NET Core)";
+#else
+    testDescriptor += " (.NET Framework)";
+#endif
+
+    await Console.Out.WriteLineAsync($"Discovering tests in {testDescriptor}...").ConfigureAwait(false);
+
     using var xunit = new XunitFrontController(AppDomainSupport.IfAvailable, assemblyFileName, shadowCopy: false);
     var configuration = ConfigReader.Load(assemblyFileName);
     var sink = new Sink();
@@ -72,9 +82,9 @@ if ((output = await sr.ReadLineAsync().ConfigureAwait(false)) is not null)
     }
 
 #if NET6_0_OR_GREATER
-    await Console.Out.WriteLineAsync($"Discovered {testsToWrite.Count} tests in {Path.GetFileName(assemblyFileName)} (.NET Core)").ConfigureAwait(false);
+    await Console.Out.WriteLineAsync($"Discovered {testsToWrite.Count} tests in {testDescriptor}").ConfigureAwait(false);
 #else
-    await Console.Out.WriteLineAsync($"Discovered {testsToWrite.Count} tests in {Path.GetFileName(assemblyFileName)} (.NET Framework)").ConfigureAwait(false);
+    await Console.Out.WriteLineAsync($"Discovered {testsToWrite.Count} tests in {testDescriptor}").ConfigureAwait(false);
 #endif
 
     var directory = Path.GetDirectoryName(assemblyFileName);
@@ -85,7 +95,7 @@ if ((output = await sr.ReadLineAsync().ConfigureAwait(false)) is not null)
 
 return ExitFailure;
 
-internal sealed class Sink : IMessageSink
+file class Sink : IMessageSink
 {
     public bool AnyWriteFailures { get; private set; }
 

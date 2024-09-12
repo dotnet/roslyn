@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -218,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var underlyingType = type.GetEnumUnderlyingType();
             // SpecialType will be None if the underlying type is invalid.
-            return (underlyingType is object) && (underlyingType.SpecialType != SpecialType.None);
+            return underlyingType is not null && underlyingType.SpecialType.CanOptimizeBehavior();
         }
 
         /// <summary>
@@ -1834,7 +1833,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// no more, no less. Validation of builder type B is left for elsewhere. This method returns B
         /// without validation of any kind.
         /// </remarks>
-        internal static bool IsCustomTaskType(this NamedTypeSymbol type, [NotNullWhen(true)] out object? builderArgument)
+        internal static bool IsCustomTaskType(this NamedTypeSymbol type, [NotNullWhen(true)] out TypeSymbol? builderArgument)
         {
             RoslynDebug.Assert((object)type != null);
 
@@ -2077,6 +2076,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => typeSymbol.IsWellKnownCompilerServicesTopLevelType("IsExternalInit");
 
         internal static bool IsWellKnownTypeOutAttribute(this TypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("OutAttribute");
+
+        // Keep consistent with ISymbolExtensions.IsWellKnownTypeLock and VB equivalent.
+        internal static bool IsWellKnownTypeLock(this TypeSymbol typeSymbol)
+        {
+            return typeSymbol is NamedTypeSymbol { Name: WellKnownMemberNames.LockTypeName, Arity: 0, ContainingType: null } &&
+                typeSymbol.IsContainedInNamespace(nameof(System), nameof(System.Threading));
+        }
 
         private static bool IsWellKnownInteropServicesTopLevelType(this TypeSymbol typeSymbol, string name)
         {

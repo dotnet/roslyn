@@ -236,7 +236,7 @@ class Deconstructable
             End Using
         End Function
 
-        Private Shared Async Function VerifyRenameOptionChangedSessionCommit(workspace As TestWorkspace,
+        Private Shared Async Function VerifyRenameOptionChangedSessionCommit(workspace As EditorTestWorkspace,
                                                            originalTextToRename As String,
                                                            renameTextPrefix As String,
                                                            Optional renameOverloads As Boolean = False,
@@ -254,7 +254,7 @@ class Deconstructable
             Dim session = StartSession(workspace)
 
             ' Type a bit in the file
-            Dim renameDocument As TestHostDocument = workspace.DocumentWithCursor
+            Dim renameDocument = workspace.DocumentWithCursor
             renameDocument.GetTextBuffer().Insert(renameDocument.CursorPosition.Value, renameTextPrefix)
 
             Dim replacementText = renameTextPrefix + originalTextToRename
@@ -1296,9 +1296,9 @@ class C
                     workspace,
                     workspace.CurrentSolution,
                     workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id),
-                    Await actions.First().NestedCodeActions.First().GetOperationsAsync(CancellationToken.None),
+                    Await actions.First().NestedActions.First().GetOperationsAsync(CancellationToken.None),
                     "unused",
-                    New ProgressTracker(),
+                    CodeAnalysisProgress.None,
                     CancellationToken.None)
 
                 ' CodeAction should be rejected

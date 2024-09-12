@@ -5,14 +5,13 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Serialization
+namespace Microsoft.CodeAnalysis.Serialization;
+
+/// <summary>
+/// This lets consumer to get to inner temporary storage that references use
+/// as its shadow copy storage
+/// </summary>
+internal interface ISupportTemporaryStorage
 {
-    /// <summary>
-    /// This lets consumer to get to inner temporary storage that references use
-    /// as its shadow copy storage
-    /// </summary>
-    internal interface ISupportTemporaryStorage
-    {
-        IReadOnlyList<ITemporaryStreamStorageInternal>? GetStorages();
-    }
+    IReadOnlyList<ITemporaryStreamStorageInternal>? GetStorages();
 }

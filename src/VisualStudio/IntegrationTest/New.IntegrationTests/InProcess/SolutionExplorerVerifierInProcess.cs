@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Test.Utilities;
-using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.InProcess
 {
@@ -67,19 +66,6 @@ namespace Roslyn.VisualStudio.IntegrationTests.InProcess
             }
 
             AssertEx.EqualOrDiff("", string.Join(Environment.NewLine, unsavedFiles), "Unexpected dirty documents after failed Save All");
-        }
-
-        public async Task AssemblyReferencePresentAsync(string projectName, string assemblyName, string assemblyVersion, string assemblyPublicKeyToken, CancellationToken cancellationToken)
-        {
-            var assemblyReferences = await TestServices.SolutionExplorer.GetAssemblyReferencesAsync(projectName, cancellationToken);
-            var expectedAssemblyReference = assemblyName + "," + assemblyVersion + "," + assemblyPublicKeyToken.ToUpper();
-            Assert.Contains(expectedAssemblyReference, assemblyReferences);
-        }
-
-        public async Task ProjectReferencePresentAsync(string projectName, string referencedProjectName, CancellationToken cancellationToken)
-        {
-            var projectReferences = await TestServices.SolutionExplorer.GetProjectReferencesAsync(projectName, cancellationToken);
-            Assert.Contains(referencedProjectName, projectReferences);
         }
     }
 }

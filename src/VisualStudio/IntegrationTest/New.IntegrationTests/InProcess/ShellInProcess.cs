@@ -7,17 +7,16 @@ using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.UnitTests;
+using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
-using Microsoft.VisualStudio.Utilities;
 using Xunit;
 using IAsyncDisposable = System.IAsyncDisposable;
 
@@ -89,6 +88,30 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return (bool)isProvisionalObject;
         }
 
+        public Task ExecuteCommandAsync<TCommand>(CancellationToken cancellationToken) where TCommand : Commands.Command
+            => ExecuteRemotableCommandAsync(typeof(TCommand).FullName, cancellationToken);
+
+        private async Task ExecuteRemotableCommandAsync(string commandName, CancellationToken cancellationToken)
+        {
+            await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+            var commandService = await GetRequiredGlobalServiceAsync<SVsRemotableCommandInteropService, IVsRemotableCommandInteropService2>(cancellationToken);
+
+            ErrorHandler.ThrowOnFailure(commandService.GetControlDataSourceAsync(
+                (uint)__VSCOMMANDTYPES.cCommandTypeButton,
+                commandName,
+                timeout: 0,
+                out var dataSourceTask));
+
+            Assumes.NotNull(dataSourceTask);
+            if (dataSourceTask.GetResult() is not IVsUIDataSource commandSource)
+            {
+                throw new InvalidOperationException($"Error resolving command '{commandName}'.");
+            }
+
+            ErrorHandler.ThrowOnFailure(commandSource.Invoke("Execute", pvaIn: null, out _));
+        }
+
         public async Task<string> GetActiveDocumentFileNameAsync(CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -120,33 +143,29 @@ namespace Microsoft.VisualStudio.Extensibility.Testing
             return new PauseFileChangesRestorer(fileChangeService);
         }
 
-        public Task ExecuteCommandAsync(CommandID command, string argument, CancellationToken cancellationToken)
-            => ExecuteCommandAsync(command.Guid, (uint)command.ID, argument, cancellationToken);
+        public Task<bool> IsCommandAvailableAsync(CommandID command, CancellationToken cancellationToken)
+            => IsCommandAvailableAsync(command.Guid, (uint)command.ID, cancellationToken);
 
-        public async Task ExecuteCommandAsync(Guid commandGuid, uint commandId, string argument, CancellationToken cancellationToken)
+        public Task<bool> IsCommandAvailableAsync<TEnum>(TEnum command, CancellationToken cancellationToken)
+            where TEnum : struct, Enum
+        {
+            return IsCommandAvailableAsync(typeof(TEnum).GUID, Convert.ToUInt32(command), cancellationToken);
+        }
+
+        public async Task<bool> IsCommandAvailableAsync(Guid commandGuid, uint commandId, CancellationToken cancellationToken)
         {
             await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
             var dispatcher = await TestServices.Shell.GetRequiredGlobalServiceAsync<SUIHostCommandDispatcher, IOleCommandTarget>(cancellationToken);
+            OLECMD[] commands =
+            [
+                new OLECMD { cmdID = commandId },
+            ];
 
-            var pvaIn = Marshal.AllocHGlobal(Marshal.SizeOf<VARIANT>());
-            try
-            {
-                Marshal.GetNativeVariantForObject(argument, pvaIn);
-                ErrorHandler.ThrowOnFailure(dispatcher.Exec(commandGuid, commandId, (uint)OLECMDEXECOPT.OLECMDEXECOPT_DODEFAULT, pvaIn, IntPtr.Zero));
-            }
-            finally
-            {
-                var variant = Marshal.PtrToStructure<VARIANT>(pvaIn);
-                Marshal.FreeBSTR(variant.bstrVal);
-                Marshal.FreeHGlobal(pvaIn);
-            }
-        }
-
-        public Task ExecuteCommandAsync<TEnum>(TEnum command, string argument, CancellationToken cancellationToken)
-            where TEnum : struct, Enum
-        {
-            return ExecuteCommandAsync(typeof(TEnum).GUID, Convert.ToUInt32(command), argument, cancellationToken);
+            var status = dispatcher.QueryStatus(commandGuid, (uint)commands.Length, commands, pCmdText: IntPtr.Zero);
+            ErrorHandler.ThrowOnFailure(status);
+            return ((OLECMDF)commands[0].cmdf).HasFlag(OLECMDF.OLECMDF_SUPPORTED)
+                && ((OLECMDF)commands[0].cmdf).HasFlag(OLECMDF.OLECMDF_ENABLED);
         }
 
         // This is based on WaitForQuiescenceAsync in the FileChangeService tests

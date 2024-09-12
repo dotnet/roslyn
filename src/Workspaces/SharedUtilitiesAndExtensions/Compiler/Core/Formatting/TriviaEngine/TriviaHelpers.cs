@@ -4,23 +4,22 @@
 
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.Formatting;
+
+internal static class TriviaHelpers
 {
-    internal static class TriviaHelpers
+    public static SyntaxTriviaList CreateTriviaListFromTo(SyntaxTriviaList triviaList, int startIndex, int endIndex)
     {
-        public static SyntaxTriviaList CreateTriviaListFromTo(SyntaxTriviaList triviaList, int startIndex, int endIndex)
-        {
-            if (startIndex > endIndex)
-                return default;
+        if (startIndex > endIndex)
+            return default;
 
-            if (startIndex == 0 && endIndex == triviaList.Count)
-                return triviaList;
+        if (startIndex == 0 && endIndex == triviaList.Count)
+            return triviaList;
 
-            using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var builder);
-            for (var i = startIndex; i <= endIndex; i++)
-                builder.Add(triviaList[i]);
+        using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var builder);
+        for (var i = startIndex; i <= endIndex; i++)
+            builder.Add(triviaList[i]);
 
-            return new SyntaxTriviaList(builder);
-        }
+        return new SyntaxTriviaList(builder);
     }
 }

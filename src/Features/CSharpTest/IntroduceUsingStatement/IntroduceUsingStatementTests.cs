@@ -14,9 +14,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceUsingStatement
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceUsingStatement)]
-    public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest
+    public sealed class IntroduceUsingStatementTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpIntroduceUsingStatementCodeRefactoringProvider();
 
         private Task TestAsync(string initialMarkup, string expectedMarkup, LanguageVersion languageVersion = LanguageVersion.CSharp7)

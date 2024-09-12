@@ -32,6 +32,11 @@
         <target state="translated">이벤트 구독 생성</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generating_event">
+        <source>Generating event...</source>
+        <target state="translated">이벤트를 생성하는 중...</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Grow_raw_string">
         <source>Grow raw string</source>
         <target state="translated">원시 문자열 증가</target>
@@ -45,11 +50,6 @@
       <trans-unit id="Press_TAB_to_insert">
         <source>     (Press TAB to insert)</source>
         <target state="translated">     (삽입하려면 &lt;Tab&gt; 키 누름)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Smart_Indenting">
-        <source>Smart Indenting</source>
-        <target state="translated">스마트 들여쓰기</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_raw_string">

@@ -35,7 +35,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
 
             var filePath = _searchResult.NavigableItem.Document.FilePath;
             if (filePath != null)
-                this.FileLocation = new HighlightedText(filePath, Array.Empty<VisualStudio.Text.Span>());
+                this.FileLocation = new HighlightedText(filePath, []);
         }
 
         public override void Invoke(CancellationToken cancellationToken)

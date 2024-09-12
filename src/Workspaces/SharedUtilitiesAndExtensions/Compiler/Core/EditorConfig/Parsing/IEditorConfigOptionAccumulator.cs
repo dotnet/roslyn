@@ -6,13 +6,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.EditorConfig.Parsing
+namespace Microsoft.CodeAnalysis.EditorConfig.Parsing;
+
+internal interface IEditorConfigOptionAccumulator<TResults, TResult>
+    where TResults : EditorConfigFile<TResult>
+    where TResult : EditorConfigOption
 {
-    internal interface IEditorConfigOptionAccumulator<TResults, TResult>
-        where TResults : EditorConfigFile<TResult>
-        where TResult : EditorConfigOption
-    {
-        void ProcessSection(Section section, IReadOnlyDictionary<string, (string value, TextLine? line)> properties);
-        TResults Complete(string? filePath);
-    }
+    void ProcessSection(Section section, IReadOnlyDictionary<string, (string value, TextLine? line)> properties);
+    TResults Complete(string? filePath);
 }

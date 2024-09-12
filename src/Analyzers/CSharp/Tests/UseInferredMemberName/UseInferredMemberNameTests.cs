@@ -16,7 +16,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InferredMemberName
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseInferredMemberName)]
-    public class UseInferredMemberNameTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class UseInferredMemberNameTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public UseInferredMemberNameTests(ITestOutputHelper logger)
           : base(logger)

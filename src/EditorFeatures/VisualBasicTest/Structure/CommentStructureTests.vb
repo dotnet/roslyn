@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Structure
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Outlining
     <Trait(Traits.Feature, Traits.Features.Outlining)>
-    Public Class CommentTests
+    Public Class CommentStructureTests
         Inherits AbstractSyntaxStructureProviderTests
 
         Protected Overrides ReadOnly Property LanguageName As String

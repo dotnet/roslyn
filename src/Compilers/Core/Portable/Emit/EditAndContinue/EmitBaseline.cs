@@ -5,12 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -77,56 +79,25 @@ namespace Microsoft.CodeAnalysis.Emit
             public readonly ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> AssemblyReferenceIdentityMap = assemblyReferenceIdentityMap;
         }
 
-        /// <summary>
-        /// Creates an <see cref="EmitBaseline"/> from the metadata of the module before editing
-        /// and from a function that maps from a method to an array of local names. 
-        /// </summary>
-        /// <param name="module">The metadata of the module before editing.</param>
-        /// <param name="debugInformationProvider">
-        /// A function that for a method handle returns Edit and Continue debug information emitted by the compiler into the PDB.
-        /// The function shall throw <see cref="InvalidDataException"/> if the debug information can't be read for the specified method.
-        /// This exception and <see cref="IOException"/> are caught and converted to an emit diagnostic. Other exceptions are passed through.
-        /// </param>
-        /// <returns>An <see cref="EmitBaseline"/> for the module.</returns>
-        /// <exception cref="ArgumentException"><paramref name="module"/> is not a PE image.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="module"/> is null.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="debugInformationProvider"/> is null.</exception>
-        /// <exception cref="IOException">Error reading module metadata.</exception>
-        /// <exception cref="BadImageFormatException">Module metadata is invalid.</exception>
-        /// <exception cref="ObjectDisposedException">Module has been disposed.</exception>
+        [Obsolete("This overload is no longer supported", error: true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static EmitBaseline CreateInitialBaseline(ModuleMetadata module, Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider)
-        {
-            if (module == null)
-            {
-                throw new ArgumentNullException(nameof(module));
-            }
+            => throw new NotSupportedException();
 
-            if (!module.Module.HasIL)
-            {
-                throw new ArgumentException(CodeAnalysisResources.PEImageNotAvailable, nameof(module));
-            }
-
-            var hasPortablePdb = module.Module.PEReaderOpt.ReadDebugDirectory().Any(static entry => entry.IsPortableCodeView);
-
-            var localSigProvider = new Func<MethodDefinitionHandle, StandaloneSignatureHandle>(methodHandle =>
-            {
-                try
-                {
-                    return module.Module.GetMethodBodyOrThrow(methodHandle)?.LocalSignature ?? default;
-                }
-                catch (Exception e) when (e is BadImageFormatException || e is IOException)
-                {
-                    throw new InvalidDataException(e.Message, e);
-                }
-            });
-
-            return CreateInitialBaseline(module, debugInformationProvider, localSigProvider, hasPortablePdb);
-        }
+        [Obsolete("This overload is no longer supported", error: true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static EmitBaseline CreateInitialBaseline(
+            ModuleMetadata module,
+            Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
+            Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider,
+            bool hasPortableDebugInformation)
+            => throw new NotSupportedException();
 
         /// <summary>
         /// Creates an <see cref="EmitBaseline"/> from the metadata of the module before editing
         /// and from a function that maps from a method to an array of local names. 
         /// </summary>
+        /// <param name="compilation">Initial <see cref="Compilation"/>.</param>
         /// <param name="module">The metadata of the module before editing.</param>
         /// <param name="debugInformationProvider">
         /// A function that for a method handle returns Edit and Continue debug information emitted by the compiler into the PDB.
@@ -165,11 +136,17 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <exception cref="BadImageFormatException">Module metadata is invalid.</exception>
         /// <exception cref="ObjectDisposedException">Module has been disposed.</exception>
         public static EmitBaseline CreateInitialBaseline(
+            Compilation compilation,
             ModuleMetadata module,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
             Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider,
             bool hasPortableDebugInformation)
         {
+            if (compilation == null)
+            {
+                throw new ArgumentNullException(nameof(compilation));
+            }
+
             if (module == null)
             {
                 throw new ArgumentNullException(nameof(module));
@@ -190,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return new EmitBaseline(
                 null,
                 module,
-                compilation: null,
+                compilation,
                 moduleBuilder: null,
                 moduleVersionId: module.GetModuleVersionId(),
                 ordinal: 0,
@@ -213,8 +190,8 @@ namespace Microsoft.CodeAnalysis.Emit
                 userStringStreamLengthAdded: 0,
                 guidStreamLengthAdded: 0,
                 synthesizedTypes: SynthesizedTypeMaps.Empty,
-                synthesizedMembers: ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>.Empty,
-                deletedMembers: ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>.Empty,
+                synthesizedMembers: ImmutableSegmentedDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>.Empty,
+                deletedMembers: ImmutableSegmentedDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>.Empty,
                 methodsAddedOrChanged: new Dictionary<int, AddedOrChangedMethodInfo>(),
                 debugInformationProvider: debugInformationProvider,
                 localSignatureProvider: localSignatureProvider,
@@ -233,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Emit
         // Symbols hydrated from the original metadata. Lazy since we don't know the language at the time the baseline is constructed.
         internal MetadataSymbols? LazyMetadataSymbols;
 
-        internal readonly Compilation? Compilation;
+        internal readonly Compilation Compilation;
         internal readonly CommonPEModuleBuilder? PEModuleBuilder;
         internal readonly Guid ModuleVersionId;
         internal readonly bool HasPortablePdb;
@@ -264,6 +241,10 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly IReadOnlyDictionary<int, int> EventMapAdded;
         internal readonly IReadOnlyDictionary<int, int> PropertyMapAdded;
         internal readonly IReadOnlyDictionary<MethodImplKey, int> MethodImplsAdded;
+
+        /// <summary>
+        /// Maps a parent handle to a non-empty ordered array of row ids of custom attributes added since the initial baseline.
+        /// </summary>
         internal readonly IReadOnlyDictionary<EntityHandle, ImmutableArray<int>> CustomAttributesAdded;
 
         internal readonly ImmutableArray<int> TableEntriesAdded;
@@ -301,13 +282,13 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly IReadOnlyDictionary<int, int> TypeToPropertyMap;
         internal readonly IReadOnlyDictionary<MethodImplKey, int> MethodImpls;
         private readonly SynthesizedTypeMaps _synthesizedTypes;
-        internal readonly ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> SynthesizedMembers;
-        internal readonly ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> DeletedMembers;
+        internal readonly IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> SynthesizedMembers;
+        internal readonly IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> DeletedMembers;
 
         private EmitBaseline(
             EmitBaseline? initialBaseline,
             ModuleMetadata module,
-            Compilation? compilation,
+            Compilation compilation,
             CommonPEModuleBuilder? moduleBuilder,
             Guid moduleVersionId,
             int ordinal,
@@ -330,8 +311,8 @@ namespace Microsoft.CodeAnalysis.Emit
             int userStringStreamLengthAdded,
             int guidStreamLengthAdded,
             SynthesizedTypeMaps synthesizedTypes,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> synthesizedMembers,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> deletedMembers,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> synthesizedMembers,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> deletedMembers,
             IReadOnlyDictionary<int, AddedOrChangedMethodInfo> methodsAddedOrChanged,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
             Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider,
@@ -429,8 +410,8 @@ namespace Microsoft.CodeAnalysis.Emit
             int userStringStreamLengthAdded,
             int guidStreamLengthAdded,
             SynthesizedTypeMaps synthesizedTypes,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> synthesizedMembers,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> deletedMembers,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> synthesizedMembers,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> deletedMembers,
             IReadOnlyDictionary<int, AddedOrChangedMethodInfo> addedOrChangedMethods,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
             Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider)
@@ -438,6 +419,7 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(synthesizedTypes.AnonymousTypes.Count >= _synthesizedTypes.AnonymousTypes.Count);
             Debug.Assert(synthesizedTypes.AnonymousDelegates.Count >= _synthesizedTypes.AnonymousDelegates.Count);
             Debug.Assert(synthesizedTypes.AnonymousDelegatesWithIndexedNames.Count >= _synthesizedTypes.AnonymousDelegatesWithIndexedNames.Count);
+            Debug.Assert(customAttributesAdded.All(entry => !entry.Value.IsDefaultOrEmpty && entry.Value.IsSorted()));
 
             return new EmitBaseline(
                 InitialBaseline,
@@ -587,6 +569,24 @@ namespace Microsoft.CodeAnalysis.Emit
                 if (index >= nextIndex)
                 {
                     nextIndex = index + 1;
+                }
+            }
+
+            return nextIndex;
+        }
+
+        internal int GetNextAnonymousDelegateIndex()
+        {
+            int nextIndex = 0;
+            foreach (var (typeKey, typeValues) in SynthesizedTypes.AnonymousDelegatesWithIndexedNames)
+            {
+                foreach (var typeValue in typeValues)
+                {
+                    int index = typeValue.UniqueIndex;
+                    if (index >= nextIndex)
+                    {
+                        nextIndex = index + 1;
+                    }
                 }
             }
 

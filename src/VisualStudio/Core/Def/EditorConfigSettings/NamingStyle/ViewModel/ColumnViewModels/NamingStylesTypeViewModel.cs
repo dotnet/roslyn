@@ -5,37 +5,36 @@
 using System.ComponentModel;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
+
+internal class NamingStylesTypeViewModel : NotifyPropertyChangedBase
 {
-    internal class NamingStylesTypeViewModel : NotifyPropertyChangedBase
+    private readonly NamingStyleSetting _setting;
+    private string _typeValue;
+
+    public NamingStylesTypeViewModel(NamingStyleSetting setting)
     {
-        private readonly NamingStyleSetting _setting;
-        private string _typeValue;
+        _setting = setting;
+        _setting.SettingChanged += OnSettingChanged;
+        _typeValue = _setting.TypeName;
+    }
 
-        public NamingStylesTypeViewModel(NamingStyleSetting setting)
+    public string TypeValue
+    {
+        get => _typeValue;
+        set
         {
-            _setting = setting;
-            _setting.SettingChanged += OnSettingChanged;
-            _typeValue = _setting.TypeName;
-        }
-
-        public string TypeValue
-        {
-            get => _typeValue;
-            set
+            if (value is not null && _typeValue != value)
             {
-                if (value is not null && _typeValue != value)
-                {
-                    _typeValue = value;
-                    OnPropertyChanged(new PropertyChangedEventArgs(nameof(TypeValue)));
-                }
+                _typeValue = value;
+                OnPropertyChanged(new PropertyChangedEventArgs(nameof(TypeValue)));
             }
         }
-
-        public static string TypeToolTip { get; } = ServicesVSResources.Type;
-        public static string TypeAutomationName { get; } = ServicesVSResources.Type;
-
-        private void OnSettingChanged(object sender, System.EventArgs e)
-            => TypeValue = _setting.TypeName;
     }
+
+    public static string TypeToolTip { get; } = ServicesVSResources.Type;
+    public static string TypeAutomationName { get; } = ServicesVSResources.Type;
+
+    private void OnSettingChanged(object sender, System.EventArgs e)
+        => TypeValue = _setting.TypeName;
 }

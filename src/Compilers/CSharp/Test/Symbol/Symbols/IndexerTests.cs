@@ -2127,7 +2127,7 @@ class Program
             var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Program").Indexers.Single();
             Assert.True(indexer.IsIndexer);
             Assert.Equal("A", indexer.MetadataName);
-            Assert.True(indexer.GetAttributes().Single().IsTargetAttribute(indexer, AttributeDescription.IndexerNameAttribute));
+            Assert.True(indexer.GetAttributes().Single().IsTargetAttribute(AttributeDescription.IndexerNameAttribute));
 
             CompileAndVerify(compilation, symbolValidator: module =>
             {
@@ -2163,7 +2163,7 @@ class B
             var compilation = CreateCompilation(source);
 
             var loopResult = Parallel.ForEach(compilation.GlobalNamespace.GetTypeMembers(), type =>
-                type.ForceComplete(null, default(CancellationToken)));
+                type.ForceComplete(null, filter: null, default(CancellationToken)));
 
             Assert.True(loopResult.IsCompleted);
 
@@ -2194,7 +2194,7 @@ class B
             var compilation = CreateCompilation(source);
 
             var loopResult = Parallel.ForEach(compilation.GlobalNamespace.GetTypeMembers(), type =>
-                type.ForceComplete(null, default(CancellationToken)));
+                type.ForceComplete(null, filter: null, default(CancellationToken)));
 
             Assert.True(loopResult.IsCompleted);
 
@@ -2929,6 +2929,42 @@ class C
                 // (5,18): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [IndexerName(F)]
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "F").WithLocation(5, 18));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68110")]
+        public void DefaultSyntaxValueReentrancy_01()
+        {
+            var source =
+                """
+                #nullable enable
+
+                [A(3, X = 6)]
+                public struct A
+                {
+                    public int X;
+
+                    public A(int x, A a = new A()[1]) { }
+
+                    public int this[int i] { get => 0; set { } }
+                }
+                """;
+            var compilation = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp);
+
+            var a = compilation.GlobalNamespace.GetTypeMember("A").InstanceConstructors.Where(c => !c.IsDefaultValueTypeConstructor()).Single();
+
+            Assert.Null(a.Parameters[1].ExplicitDefaultValue);
+            Assert.True(a.Parameters[1].HasExplicitDefaultValue);
+
+            compilation.VerifyDiagnostics(
+                // (3,2): error CS0616: 'A' is not an attribute class
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_NotAnAttributeClass, "A").WithArguments("A").WithLocation(3, 2),
+                // (3,2): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [A(3, X = 6)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "A(3, X = 6)").WithLocation(3, 2),
+                // (8,27): error CS1736: Default parameter value for 'a' must be a compile-time constant
+                //     public A(int x, A a = new A()[1]) { }
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new A()[1]").WithArguments("a").WithLocation(8, 27));
         }
     }
 }

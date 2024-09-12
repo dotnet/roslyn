@@ -227,21 +227,6 @@
         <target state="translated">引入一个不引发异常的类型转换运算。如果尝试执行的转换失败，TryCast 会返回空值，程序可对此进行测试。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Node_does_not_descend_from_root">
-        <source>Node does not descend from root.</source>
-        <target state="translated">节点并非源自根。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_not_in_parent_s_child_list">
-        <source>Node not in parent's child list</source>
-        <target state="translated">不在父级的子列表中的节点</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Trivia_is_not_associated_with_token">
-        <source>Trivia is not associated with token</source>
-        <target state="translated">琐事与标记不相关联</target>
-        <note />
-      </trans-unit>
       <trans-unit id="typeOrMember">
         <source>&lt;typeOrMember&gt;</source>
         <target state="translated">&lt;typeOrMember&gt;</target>

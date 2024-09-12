@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable RSEXPERIMENTAL001 // Internal usage of experimental API
 #nullable disable
 
 using System;
@@ -5159,6 +5160,80 @@ class C
             var model = comp.GetSemanticModel(tree);
             var binaryRightArgument = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single().Right.DescendantNodes().OfType<ArgumentSyntax>().Single().Expression;
             Assert.Equal("System.Object?", model.GetTypeInfo(binaryRightArgument).Type.ToTestDisplayString(includeNonNullable: true));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableDisableSemanticModel_01(bool runNullableAnalysisAlways)
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    void M(string x)
+                    {
+                        if (x == null)
+                        {
+                            x.ToString();
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: runNullableAnalysisAlways ? TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "always") : TestOptions.RegularPreview);
+            comp.VerifyDiagnostics(
+                // (8,13): warning CS8602: Dereference of a possibly null reference.
+                //             x.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(8, 13));
+
+            test(SemanticModelOptions.None, expectedAnnotation: PublicNullableAnnotation.Annotated);
+            test(SemanticModelOptions.DisableNullableAnalysis, expectedAnnotation: PublicNullableAnnotation.None);
+
+            void test(SemanticModelOptions options, PublicNullableAnnotation expectedAnnotation)
+            {
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree, options);
+                var xUsage = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single().Expression;
+                var typeInfo = model.GetTypeInfo(xUsage);
+                Assert.NotNull(typeInfo.Type);
+                Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
+                Assert.Equal(expectedAnnotation, typeInfo.Type.NullableAnnotation);
+            }
+        }
+
+        [Fact]
+        public void NullableDisableSemanticModel_02()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    void M(string x)
+                    {
+                        if (x == null)
+                        {
+                            x.ToString();
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never"));
+            comp.VerifyDiagnostics();
+
+            test(SemanticModelOptions.None);
+            test(SemanticModelOptions.DisableNullableAnalysis);
+
+            void test(SemanticModelOptions options)
+            {
+                var tree = comp.SyntaxTrees.Single();
+                var model = comp.GetSemanticModel(tree, options);
+                var xUsage = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single().Expression;
+                var typeInfo = model.GetTypeInfo(xUsage);
+                Assert.NotNull(typeInfo.Type);
+                Assert.Equal(SpecialType.System_String, typeInfo.Type.SpecialType);
+                Assert.Equal(PublicNullableAnnotation.None, typeInfo.Type.NullableAnnotation);
+            }
         }
     }
 }

@@ -22,6 +22,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Implements IGenericMethodParameter
         Implements IGenericTypeParameter
 
+        Private ReadOnly Property IDefinition_IsEncDeleted As Boolean Implements Cci.IDefinition.IsEncDeleted
+            Get
+                Return False
+            End Get
+        End Property
+
         Private ReadOnly Property ITypeReferenceIsEnum As Boolean Implements ITypeReference.IsEnum
             Get
                 Return False

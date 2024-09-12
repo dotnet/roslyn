@@ -2491,16 +2491,40 @@ namespace Microsoft.CodeAnalysis
         public sealed class NamedTypeAnalyzerWithConfigurableEnabledByDefault : DiagnosticAnalyzer
         {
             private readonly bool _throwOnAllNamedTypes;
+            private readonly DiagnosticSeverity _reportedSeverity;
+
             public NamedTypeAnalyzerWithConfigurableEnabledByDefault(bool isEnabledByDefault, DiagnosticSeverity defaultSeverity, bool throwOnAllNamedTypes = false)
+                : this(isEnabledByDefault, defaultSeverity, customConfigurable: false, throwOnAllNamedTypes)
             {
+            }
+
+            public NamedTypeAnalyzerWithConfigurableEnabledByDefault(bool isEnabledByDefault, DiagnosticSeverity defaultSeverity, bool customConfigurable, bool throwOnAllNamedTypes)
+                : this(isEnabledByDefault, defaultSeverity, defaultSeverity, customConfigurable, throwOnAllNamedTypes)
+            {
+            }
+
+            public NamedTypeAnalyzerWithConfigurableEnabledByDefault(
+                bool isEnabledByDefault,
+                DiagnosticSeverity defaultSeverity,
+                DiagnosticSeverity reportedSeverity,
+                bool customConfigurable,
+                bool throwOnAllNamedTypes)
+            {
+                var customTags = Array.Empty<string>();
+                if (customConfigurable)
+                    customTags = [WellKnownDiagnosticTags.CustomSeverityConfigurable];
+
                 Descriptor = new DiagnosticDescriptor(
                     "ID0001",
                     "Title1",
                     "Message1",
                     "Category1",
                     defaultSeverity,
-                    isEnabledByDefault);
+                    isEnabledByDefault,
+                    customTags: customTags);
+
                 _throwOnAllNamedTypes = throwOnAllNamedTypes;
+                _reportedSeverity = reportedSeverity;
             }
 
             public DiagnosticDescriptor Descriptor { get; }
@@ -2509,15 +2533,16 @@ namespace Microsoft.CodeAnalysis
             public override void Initialize(AnalysisContext context)
             {
                 context.RegisterSymbolAction(context =>
+                {
+                    if (_throwOnAllNamedTypes)
                     {
-                        if (_throwOnAllNamedTypes)
-                        {
-                            throw new NotImplementedException();
-                        }
+                        throw new NotImplementedException();
+                    }
 
-                        context.ReportDiagnostic(Diagnostic.Create(Descriptor, context.Symbol.Locations[0]));
-                    },
-                    SymbolKind.NamedType);
+                    var diagnostic = Diagnostic.Create(Descriptor, context.Symbol.Locations[0], _reportedSeverity, additionalLocations: null, properties: null, messageArgs: null);
+                    context.ReportDiagnostic(diagnostic);
+                },
+                SymbolKind.NamedType);
             }
         }
 
@@ -3192,6 +3217,28 @@ namespace Microsoft.CodeAnalysis
                     default:
                         throw ExceptionUtilities.UnexpectedValue(_analysisKind);
                 }
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class MinimumReportedSeverityAnalyzer : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor _descriptor = new DiagnosticDescriptor(
+                "ID1",
+                "Title1",
+                "Message1",
+                "Category1",
+                defaultSeverity: DiagnosticSeverity.Warning,
+                isEnabledByDefault: true);
+
+            public DiagnosticSeverity MinimumReportedSeverity { get; private set; }
+            public bool AnalyzerInvoked { get; private set; }
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(_descriptor);
+            public override void Initialize(AnalysisContext context)
+            {
+                MinimumReportedSeverity = context.MinimumReportedSeverity;
+                AnalyzerInvoked = true;
             }
         }
     }

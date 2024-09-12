@@ -5,25 +5,24 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
+
+internal class OperatorKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
-    internal class OperatorKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    public OperatorKeywordRecommender()
+        : base(SyntaxKind.OperatorKeyword)
     {
-        public OperatorKeywordRecommender()
-            : base(SyntaxKind.OperatorKeyword)
-        {
-        }
+    }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        {
-            // cases:
-            //   public static implicit |
-            //   public static explicit |
-            var token = context.TargetToken;
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+    {
+        // cases:
+        //   public static implicit |
+        //   public static explicit |
+        var token = context.TargetToken;
 
-            return
-                token.Kind() is SyntaxKind.ImplicitKeyword or
-                SyntaxKind.ExplicitKeyword;
-        }
+        return
+            token.Kind() is SyntaxKind.ImplicitKeyword or
+            SyntaxKind.ExplicitKeyword;
     }
 }

@@ -66,9 +66,68 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the token for this symbol as it appears in metadata. Most of the time this Is 0,
         ''' as it Is when the symbol Is Not loaded from metadata.
         ''' </summary>
-        Public Overridable ReadOnly Property MetadataToken As Integer Implements ISymbol.MetadataToken
+        Public Overridable ReadOnly Property MetadataToken As Integer Implements ISymbol.MetadataToken, ISymbolInternal.MetadataToken
             Get
                 Return 0
+            End Get
+        End Property
+
+        Public ReadOnly Property MetadataVisibility As Microsoft.Cci.TypeMemberVisibility Implements ISymbolInternal.MetadataVisibility
+            Get
+                '
+                ' We need to relax visibility of members in interactive submissions since they might be emitted into multiple assemblies.
+                '
+                ' Top-level:
+                '   private                       -> public
+                '   family                        -> public (compiles with a warning)
+                '   public
+                '   friend                        -> public
+                '
+                ' In a nested class:
+                '
+                '   private
+                '   family
+                '   public
+                '   friend                        -> public
+                '
+                Select Case DeclaredAccessibility
+                    Case Accessibility.Public
+                        Return Microsoft.Cci.TypeMemberVisibility.Public
+
+                    Case Accessibility.Private
+                        If ContainingType.TypeKind = TypeKind.Submission Then
+                            Return Microsoft.Cci.TypeMemberVisibility.Public
+                        Else
+                            Return Microsoft.Cci.TypeMemberVisibility.Private
+                        End If
+
+                    Case Accessibility.Friend
+                        If ContainingAssembly.IsInteractive Then
+                            Return Microsoft.Cci.TypeMemberVisibility.Public
+                        Else
+                            Return Microsoft.Cci.TypeMemberVisibility.Assembly
+                        End If
+
+                    Case Accessibility.Protected
+                        If ContainingType.TypeKind = TypeKind.Submission Then
+                            Return Microsoft.Cci.TypeMemberVisibility.Public
+                        Else
+                            Return Microsoft.Cci.TypeMemberVisibility.Family
+                        End If
+
+                    Case Accessibility.ProtectedAndFriend
+                        Debug.Assert(ContainingType.TypeKind <> TypeKind.Submission)
+                        Return Microsoft.Cci.TypeMemberVisibility.FamilyAndAssembly
+
+                    Case Accessibility.ProtectedOrFriend
+                        If ContainingAssembly.IsInteractive Then
+                            Return Microsoft.Cci.TypeMemberVisibility.Public
+                        Else
+                            Return Microsoft.Cci.TypeMemberVisibility.FamilyOrAssembly
+                        End If
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(DeclaredAccessibility)
+                End Select
             End Get
         End Property
 
@@ -530,8 +589,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public ReadOnly Property CanBeReferencedByName As Boolean
             Get
                 Select Case Me.Kind
-                    Case SymbolKind.Local,
-                         SymbolKind.Label,
+                    Case SymbolKind.Local
+                        Return If(Me.Name?.Length, 0) > 0
+
+                    Case SymbolKind.Label,
                          SymbolKind.Alias
                         ' Can't be imported, but might have syntax errors in which case we use an empty name:
                         Return Me.Name.Length > 0
@@ -708,24 +769,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return False
             End Get
         End Property
-
-        ''' <summary>
-        ''' Returns true and a <see cref="String"/> from the first <see cref="GuidAttribute"/> on the symbol, 
-        ''' the string might be null or an invalid guid representation. False, 
-        ''' if there is no <see cref="GuidAttribute"/> with string argument.
-        ''' </summary>
-        Friend Function GetGuidStringDefaultImplementation(<Out> ByRef guidString As String) As Boolean
-            For Each attrData In GetAttributes()
-                If attrData.IsTargetAttribute(Me, AttributeDescription.GuidAttribute) Then
-                    If attrData.TryGetGuidAttributeValue(guidString) Then
-                        Return True
-                    End If
-                End If
-            Next
-
-            guidString = Nothing
-            Return False
-        End Function
 
         ''' <summary>
         ''' Returns the Documentation Comment ID for the symbol, or Nothing if the symbol
@@ -1294,7 +1337,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Display.ToMinimalDisplayParts(Me, semanticModel, position, format)
         End Function
 
-        Private ReadOnly Property ISymbol_IsExtern As Boolean Implements ISymbol.IsExtern
+        Private ReadOnly Property ISymbol_IsExtern As Boolean Implements ISymbol.IsExtern, ISymbolInternal.IsExtern
             Get
                 Return False
             End Get

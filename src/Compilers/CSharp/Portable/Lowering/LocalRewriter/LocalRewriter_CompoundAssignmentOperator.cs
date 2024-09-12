@@ -113,6 +113,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             temps.Free();
             stores.Free();
+
+            result = ConvertResultOfAssignmentToDynamicIfNecessary(node, node.Left, result, used);
+
+            Debug.Assert(used || node.Left is not (BoundIndexerAccess { Indexer.RefKind: RefKind.None } or BoundPropertyAccess { PropertySymbol.RefKind: RefKind.None }) || result.Type?.IsVoidType() == true);
             return result;
 
             BoundExpression rewriteAssignment(BoundExpression leftRead)
@@ -153,7 +157,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     RemovePlaceholderReplacement(node.FinalPlaceholder);
                 }
 
-                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, node.Left.Type, used: used, isChecked: isChecked, isCompoundAssignment: true);
+                Debug.Assert(TypeSymbol.Equals(transformedLHS.Type, node.Left.Type, TypeCompareKind.AllIgnoreOptions));
+                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, used: used, isChecked: isChecked, isCompoundAssignment: true);
             }
         }
 
@@ -332,7 +337,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Step one: Store everything that is non-trivial into a temporary; record the
             // stores in storesToTemps and make the actual argument a reference to the temp.
-            // Do not yet attempt to deal with params arrays or optional arguments.
             BuildStoresToTemps(
                 expanded,
                 argsToParamsOpt,
@@ -344,10 +348,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKinds,
                 storesToTemps);
 
-            // Step two: If we have a params array, build the array and fill in the argument.
-            if (expanded)
+            if (expanded && actualArguments[actualArguments.Length - 1] is { IsParamsArrayOrCollection: true } array)
             {
-                BoundExpression array = BuildParamsArray(syntax, argsToParamsOpt, rewrittenArguments, parameters, actualArguments[actualArguments.Length - 1]);
+                Debug.Assert(array is BoundArrayCreation);
+
+                if (TryOptimizeParamsArray(array, out BoundExpression? optimized))
+                {
+                    array = optimized;
+                }
+
                 BoundAssignmentOperator storeToTemp;
                 var boundTemp = _factory.StoreToTemp(array, out storeToTemp);
                 stores.Add(storeToTemp);
@@ -388,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                 indexer,
                 rewrittenArguments,
-                argumentNamesOpt: default(ImmutableArray<string>),
+                argumentNamesOpt: default(ImmutableArray<string?>),
                 argumentRefKinds,
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),
@@ -421,6 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 implicitIndexerAccess,
                 isLeftOfAssignment: true,
                 isRegularAssignmentOrRegularCompoundAssignment: isRegularCompoundAssignment,
+                cacheAllArgumentsOnly: false,
                 stores, temps);
 
             if (access is BoundIndexerAccess indexerAccess)
@@ -827,6 +837,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return !ConstantValueIsTrivial(type);
             }
 
+            // Note, we can get here with a node that hasn't been lowered yet.
+            // For example, from TransformCompoundAssignmentFieldOrEventAccessReceiver.
+
             switch (expression.Kind)
             {
                 case BoundKind.ThisReference:
@@ -840,8 +853,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return !ConstantValueIsTrivial(type);
 
                 case BoundKind.Parameter:
-                    Debug.Assert(!IsCapturedPrimaryConstructorParameter(expression));
-                    return localsMayBeAssignedOrCaptured || ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.None;
+                    return localsMayBeAssignedOrCaptured ||
+                           ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.None ||
+                           IsCapturedPrimaryConstructorParameter(expression); // captured primary constructor parameters should be treated as a field
 
                 case BoundKind.Local:
                     return localsMayBeAssignedOrCaptured || ((BoundLocal)expression).LocalSymbol.RefKind != RefKind.None;

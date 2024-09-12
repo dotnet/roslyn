@@ -77,8 +77,8 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
             var inAttributeContext = syntaxFacts.IsAttributeName(simpleName);
 
             var matchingTypes = await FindAsync(name, ignoreCase, SymbolFilter.Type).ConfigureAwait(false);
-            var matchingAttributeTypes = inAttributeContext ? await FindAsync(name + nameof(Attribute), ignoreCase, SymbolFilter.Type).ConfigureAwait(false) : ImmutableArray<ISymbol>.Empty;
-            var matchingNamespaces = inAttributeContext ? ImmutableArray<ISymbol>.Empty : await FindAsync(name, ignoreCase, SymbolFilter.Namespace).ConfigureAwait(false);
+            var matchingAttributeTypes = inAttributeContext ? await FindAsync(name + nameof(Attribute), ignoreCase, SymbolFilter.Type).ConfigureAwait(false) : [];
+            var matchingNamespaces = inAttributeContext ? [] : await FindAsync(name, ignoreCase, SymbolFilter.Namespace).ConfigureAwait(false);
 
             if (matchingTypes.IsEmpty && matchingAttributeTypes.IsEmpty && matchingNamespaces.IsEmpty)
                 return null;

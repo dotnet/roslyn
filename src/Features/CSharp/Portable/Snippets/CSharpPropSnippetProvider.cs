@@ -11,32 +11,31 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
-namespace Microsoft.CodeAnalysis.CSharp.Snippets
+namespace Microsoft.CodeAnalysis.CSharp.Snippets;
+
+[ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
+internal sealed class CSharpPropSnippetProvider : AbstractCSharpAutoPropertySnippetProvider
 {
-    [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpPropSnippetProvider : AbstractCSharpAutoPropertySnippetProvider
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpPropSnippetProvider()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpPropSnippetProvider()
+    }
+
+    public override string Identifier => "prop";
+
+    public override string Description => FeaturesResources.property_;
+
+    protected override AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator)
+    {
+        // Having a property with `set` accessor in a readonly struct leads to a compiler error.
+        // So if user executes snippet inside a readonly struct the right thing to do is to not generate `set` accessor at all
+        if (syntaxContext.ContainingTypeDeclaration is StructDeclarationSyntax structDeclaration &&
+            structDeclaration.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))
         {
+            return null;
         }
 
-        public override string Identifier => "prop";
-
-        public override string Description => FeaturesResources.property_;
-
-        protected override AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator)
-        {
-            // Having a property with `set` accessor in a readonly struct leads to a compiler error.
-            // So if user executes snippet inside a readonly struct the right thing to do is to not generate `set` accessor at all
-            if (syntaxContext.ContainingTypeDeclaration is StructDeclarationSyntax structDeclaration &&
-                structDeclaration.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))
-            {
-                return null;
-            }
-
-            return base.GenerateSetAccessorDeclaration(syntaxContext, generator);
-        }
+        return base.GenerateSetAccessorDeclaration(syntaxContext, generator);
     }
 }

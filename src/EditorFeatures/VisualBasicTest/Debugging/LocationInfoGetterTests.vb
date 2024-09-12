@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Debugging
             Dim position As Integer
             MarkupTestFile.GetPosition(text, text, position)
             Dim compilationOptions = If(rootNamespace IsNot Nothing, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, rootNamespace:=rootNamespace), Nothing)
-            Using workspace = TestWorkspace.Create(LanguageNames.VisualBasic, compilationOptions, parseOptions, text)
+            Using workspace = EditorTestWorkspace.Create(LanguageNames.VisualBasic, compilationOptions, parseOptions, text)
                 Dim locationInfo = Await LocationInfoGetter.GetInfoAsync(
                     workspace.CurrentSolution.Projects.Single().Documents.Single(),
                     position,

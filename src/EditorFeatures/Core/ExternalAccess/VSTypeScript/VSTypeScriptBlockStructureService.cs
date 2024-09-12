@@ -10,23 +10,22 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
+
+[ExportLanguageService(typeof(BlockStructureService), InternalLanguageNames.TypeScript), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VSTypeScriptBlockStructureService(IVSTypeScriptBlockStructureServiceImplementation impl) : BlockStructureService
 {
-    [ExportLanguageService(typeof(BlockStructureService), InternalLanguageNames.TypeScript), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class VSTypeScriptBlockStructureService(IVSTypeScriptBlockStructureServiceImplementation impl) : BlockStructureService
+    private readonly IVSTypeScriptBlockStructureServiceImplementation _impl = impl;
+
+    public override string Language => InternalLanguageNames.TypeScript;
+
+    public override async Task<BlockStructure> GetBlockStructureAsync(Document document, BlockStructureOptions options, CancellationToken cancellationToken)
     {
-        private readonly IVSTypeScriptBlockStructureServiceImplementation _impl = impl;
+        var blockStructure = await _impl.GetBlockStructureAsync(document, cancellationToken).ConfigureAwait(false);
 
-        public override string Language => InternalLanguageNames.TypeScript;
-
-        public override async Task<BlockStructure> GetBlockStructureAsync(Document document, BlockStructureOptions options, CancellationToken cancellationToken)
-        {
-            var blockStructure = await _impl.GetBlockStructureAsync(document, cancellationToken).ConfigureAwait(false);
-
-            return new BlockStructure(blockStructure.Spans.SelectAsArray(
-                x => new BlockSpan(x.Type!, x.IsCollapsible, x.TextSpan, x.HintSpan, primarySpans: null, x.BannerText, x.AutoCollapse, x.IsDefaultCollapsed)));
-        }
+        return new BlockStructure(blockStructure.Spans.SelectAsArray(
+            x => new BlockSpan(x.Type!, x.IsCollapsible, x.TextSpan, x.HintSpan, subHeadings: default, x.BannerText, x.AutoCollapse, x.IsDefaultCollapsed)));
     }
 }

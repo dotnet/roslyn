@@ -72,18 +72,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddInheritd
         public async Task DoNotOfferOnNotOverridenMethod(string methodDefintion)
         {
             await TestMissingAsync(
-            $@"
-/// Some doc.
-public class BaseClass
-{{
-    /// Some doc.
-    public virtual void M() {{ }}
-}}
-/// Some doc.
-public class Derived: BaseClass
-{{
-    {methodDefintion}
-}}");
+            $$"""
+            /// Some doc.
+            public class BaseClass
+            {
+                /// Some doc.
+                public virtual void M() { }
+            }
+            /// Some doc.
+            public class Derived: BaseClass
+            {
+                {{methodDefintion}}
+            }
+            """);
         }
 
         [Fact]

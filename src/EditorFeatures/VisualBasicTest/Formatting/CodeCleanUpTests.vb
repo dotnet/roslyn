@@ -528,10 +528,6 @@ End Class
                 project = project.AddAnalyzerConfigDocument(".editorconfig", SourceText.From(editorconfigText), filePath:="z:\\.editorconfig").Project
                 workspace.TryApplyChanges(project.Solution)
 
-                ' register this workspace to solution crawler so that analyzer service associate itself with given workspace
-                Dim incrementalAnalyzerProvider = TryCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticAnalyzerService)(), IIncrementalAnalyzerProvider)
-                incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace)
-
                 Dim hostdoc = workspace.Documents.[Single]()
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
 
@@ -542,7 +538,7 @@ End Class
                 Dim newDoc = Await codeCleanupService.CleanupAsync(
                     document,
                     enabledDiagnostics,
-                    New ProgressTracker,
+                    CodeAnalysisProgress.None,
                     options,
                     CancellationToken.None)
 
@@ -580,10 +576,6 @@ End Class
 
                 workspace.TryApplyChanges(solution)
 
-                ' register this workspace to solution crawler so that analyzer service associate itself with given workspace
-                Dim incrementalAnalyzerProvider = TryCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticAnalyzerService)(), IIncrementalAnalyzerProvider)
-                incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace)
-
                 Dim hostdoc = workspace.Documents.[Single]()
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
 
@@ -594,7 +586,7 @@ End Class
                 Dim newDoc = Await codeCleanupService.CleanupAsync(
                     document,
                     enabledDiagnostics,
-                    New ProgressTracker,
+                    CodeAnalysisProgress.None,
                     globalOptions.CreateProvider(),
                     CancellationToken.None)
 

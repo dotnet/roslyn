@@ -4,9 +4,6 @@
 
 #nullable disable
 
-using System;
-using Roslyn.Utilities;
-
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial class SyntaxToken
@@ -56,35 +53,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.AdjustFlagsAndWidth(trailing);
                     _trailing = trailing;
                 }
-            }
-
-            internal SyntaxIdentifierWithTrivia(ObjectReader reader)
-                : base(reader)
-            {
-                var leading = (GreenNode)reader.ReadValue();
-                if (leading != null)
-                {
-                    this.AdjustFlagsAndWidth(leading);
-                    _leading = leading;
-                }
-                var trailing = (GreenNode)reader.ReadValue();
-                if (trailing != null)
-                {
-                    _trailing = trailing;
-                    this.AdjustFlagsAndWidth(trailing);
-                }
-            }
-
-            static SyntaxIdentifierWithTrivia()
-            {
-                ObjectBinder.RegisterTypeReader(typeof(SyntaxIdentifierWithTrivia), r => new SyntaxIdentifierWithTrivia(r));
-            }
-
-            internal override void WriteTo(ObjectWriter writer)
-            {
-                base.WriteTo(writer);
-                writer.WriteValue(_leading);
-                writer.WriteValue(_trailing);
             }
 
             public override GreenNode GetLeadingTrivia()

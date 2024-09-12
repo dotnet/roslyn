@@ -14,65 +14,64 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.BraceMatching
+namespace Microsoft.CodeAnalysis.CSharp.BraceMatching;
+
+[ExportBraceMatcher(LanguageNames.CSharp), Shared]
+internal class StringLiteralBraceMatcher : IBraceMatcher
 {
-    [ExportBraceMatcher(LanguageNames.CSharp), Shared]
-    internal class StringLiteralBraceMatcher : IBraceMatcher
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public StringLiteralBraceMatcher()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public StringLiteralBraceMatcher()
+    }
+
+    public async Task<BraceMatchingResult?> FindBracesAsync(Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
+    {
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var token = root.FindToken(position);
+
+        if (!token.ContainsDiagnostics)
         {
+            if (token.IsKind(SyntaxKind.StringLiteralToken))
+            {
+                return GetSimpleStringBraceMatchingResult(token, endTokenLength: 1);
+            }
+            else if (token.IsKind(SyntaxKind.Utf8StringLiteralToken))
+            {
+                return GetSimpleStringBraceMatchingResult(token, endTokenLength: 3);
+            }
+            else if (token.Kind() is SyntaxKind.InterpolatedStringStartToken or SyntaxKind.InterpolatedVerbatimStringStartToken)
+            {
+                if (token.Parent is InterpolatedStringExpressionSyntax interpolatedString)
+                {
+                    return new BraceMatchingResult(token.Span, interpolatedString.StringEndToken.Span);
+                }
+            }
+            else if (token.IsKind(SyntaxKind.InterpolatedStringEndToken))
+            {
+                if (token.Parent is InterpolatedStringExpressionSyntax interpolatedString)
+                {
+                    return new BraceMatchingResult(interpolatedString.StringStartToken.Span, token.Span);
+                }
+            }
         }
 
-        public async Task<BraceMatchingResult?> FindBracesAsync(Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
+        return null;
+    }
+
+    private static BraceMatchingResult GetSimpleStringBraceMatchingResult(SyntaxToken token, int endTokenLength)
+    {
+        if (token.IsVerbatimStringLiteral())
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position);
-
-            if (!token.ContainsDiagnostics)
-            {
-                if (token.IsKind(SyntaxKind.StringLiteralToken))
-                {
-                    return GetSimpleStringBraceMatchingResult(token, endTokenLength: 1);
-                }
-                else if (token.IsKind(SyntaxKind.Utf8StringLiteralToken))
-                {
-                    return GetSimpleStringBraceMatchingResult(token, endTokenLength: 3);
-                }
-                else if (token.Kind() is SyntaxKind.InterpolatedStringStartToken or SyntaxKind.InterpolatedVerbatimStringStartToken)
-                {
-                    if (token.Parent is InterpolatedStringExpressionSyntax interpolatedString)
-                    {
-                        return new BraceMatchingResult(token.Span, interpolatedString.StringEndToken.Span);
-                    }
-                }
-                else if (token.IsKind(SyntaxKind.InterpolatedStringEndToken))
-                {
-                    if (token.Parent is InterpolatedStringExpressionSyntax interpolatedString)
-                    {
-                        return new BraceMatchingResult(interpolatedString.StringStartToken.Span, token.Span);
-                    }
-                }
-            }
-
-            return null;
+            return new BraceMatchingResult(
+                new TextSpan(token.SpanStart, 2),
+                new TextSpan(token.Span.End - endTokenLength, endTokenLength));
         }
-
-        private static BraceMatchingResult GetSimpleStringBraceMatchingResult(SyntaxToken token, int endTokenLength)
+        else
         {
-            if (token.IsVerbatimStringLiteral())
-            {
-                return new BraceMatchingResult(
-                    new TextSpan(token.SpanStart, 2),
-                    new TextSpan(token.Span.End - endTokenLength, endTokenLength));
-            }
-            else
-            {
-                return new BraceMatchingResult(
-                    new TextSpan(token.SpanStart, 1),
-                    new TextSpan(token.Span.End - endTokenLength, endTokenLength));
-            }
+            return new BraceMatchingResult(
+                new TextSpan(token.SpanStart, 1),
+                new TextSpan(token.Span.End - endTokenLength, endTokenLength));
         }
     }
 }

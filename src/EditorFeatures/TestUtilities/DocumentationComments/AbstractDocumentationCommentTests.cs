@@ -9,7 +9,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -28,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
     {
         protected abstract char DocumentationCommentCharacter { get; }
 
-        internal abstract ICommandHandler CreateCommandHandler(TestWorkspace workspace);
+        internal abstract ICommandHandler CreateCommandHandler(EditorTestWorkspace workspace);
 
-        protected abstract TestWorkspace CreateTestWorkspace(string code);
+        protected abstract EditorTestWorkspace CreateTestWorkspace(string code);
 
         internal void VerifyTypingCharacter(string initialMarkup, string expectedMarkup, bool useTabs = false, string newLine = "\r\n", bool trimTrailingWhiteSpace = false, OptionsCollection globalOptions = null)
         {
@@ -127,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
         private void Verify(
             string initialMarkup,
             string expectedMarkup,
-            Action<TestWorkspace, IWpfTextView, IEditorOperationsFactoryService> execute,
+            Action<EditorTestWorkspace, IWpfTextView, IEditorOperationsFactoryService> execute,
             bool useTabs,
             string newLine,
             bool trimTrailingWhiteSpace,

@@ -184,7 +184,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadArgExtraRefLangVersion">
         <source>Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.</source>
-        <target state="translated">言語バージョン {1} では、引数 {0} を 'ref' キーワード (keyword)と共に渡すことはできません。'ref' 引数を 'in' パラメーターに渡すには、{2} 以上の言語バージョンにアップグレードしてください。</target>
+        <target state="translated">言語バージョン {1} では、引数 {0} を 'ref' キーワードと共に渡すことはできません。'ref' 引数を 'in' パラメーターに渡すには、言語バージョン {2} 以上にアップグレードしてください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
@@ -265,6 +265,11 @@
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
         <source>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</source>
         <target state="translated">レコード メンバー '{0}' は、位置指定パラメーター '{2}' に一致させるための型 '{1}' の読み取り可能なインスタンス プロパティまたはフィールドである必要があります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadSpecialByRefLock">
+        <source>A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</source>
+        <target state="translated">型 'System.Threading.Lock' の値に対する lock ステートメントは、非同期メソッドまたは非同期ラムダ式では使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefUsing">
@@ -372,6 +377,11 @@
         <target state="translated">戻り値の型がデリゲート戻り値の型と一致しないため、{0} を型 '{1}' に変換できません</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections">
+        <source>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</source>
+        <target state="translated">メソッド '{0}' の型引数を使用法から推論できません。これは動的型のある引数が使用され、メソッドに配列以外の params コレクション パラメーターがあるためです。型引数を明示的に指定してみてください。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">__arglist では、'in' や 'out' で引数を渡すことができません</target>
@@ -414,17 +424,17 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
         <source>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
-        <target state="translated">必要なシグネチャを持つアクセス可能な '{0}' メソッドが見つかりませんでした:'ReadOnlySpan&lt;{1}&gt;' 型の単一パラメーターを持つ静的メソッドと戻り値の型 '{2}'。</target>
+        <target state="translated">必要なシグネチャを持つアクセス可能な '{0}' メソッドが見つかりませんでした: 'ReadOnlySpan&lt;{1}&gt;' 型の単一のパラメーターと戻り値の型 '{2}' を持つ静的メソッド。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderNoElementType">
         <source>'{0}' has a CollectionBuilderAttribute but no element type.</source>
-        <target state="translated">'{0}' に CollectionBuilderAttribute がありますが、要素型がありません。</target>
+        <target state="translated">'{0}' は CollectionBuilderAttribute を持っていますが、要素型を持っていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionEscape">
         <source>A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</source>
-        <target state="new">A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</target>
+        <target state="translated">型 '{0}' のコレクション式は、現在のスコープ外に公開される可能性があるため、このコンテキストでは使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionImmutableArray">
@@ -432,14 +442,29 @@
         <target state="translated">このバージョンの '{0}' は、コレクション式では使用できません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionMissingAdd">
+        <source>Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</source>
+        <target state="translated">コレクション式の型 '{0}' には、1 つの引数で呼び出すことができるインスタンスメソッドまたは拡張メソッド 'Add' が必要です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionMissingConstructor">
+        <source>Collection expression type must have an applicable constructor that can be called with no arguments.</source>
+        <target state="translated">コレクション式の型には、引数なしで呼び出すことができる適用可能なコンストラクターが必要です。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
         <source>There is no target type for the collection expression.</source>
-        <target state="new">There is no target type for the collection expression.</target>
+        <target state="translated">コレクション式のターゲット型がありません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionTargetNoElementType">
+        <source>Collection expression target '{0}' has no element type.</source>
+        <target state="translated">コレクション式のターゲット '{0}' に要素型がありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
-        <target state="new">Cannot initialize type '{0}' with a collection expression because the type is not constructible.</target>
+        <target state="translated">型が構築可能でないため、コレクション式で型 '{0}' を初期化できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -562,11 +587,6 @@
         <target state="translated">'else' でステートメントを開始することはできません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
-        <source>Cannot update because an inferred delegate type has changed.</source>
-        <target state="translated">推定デリゲート型が変更されたため、更新できません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">アプリケーションのエントリ ポイントに 'UnmanagedCallersOnly' 属性を設定することはできません。</target>
@@ -595,6 +615,11 @@
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
         <target state="translated">'System.Runtime.CompilerServices.NullableAttribute' の明示的な適用は許可されていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitParamArrayOrCollection">
+        <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
+        <target state="translated">'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute' は使用しないでください。代わりに 'params' キーワードを使用してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
@@ -634,7 +659,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsCollectionExpression">
         <source>An expression tree may not contain a collection expression.</source>
-        <target state="new">An expression tree may not contain a collection expression.</target>
+        <target state="translated">式ツリーにコレクション式を含めることはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -709,7 +734,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion12">
         <source>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</target>
+        <target state="translated">機能 '{0}' は C# 12.0 では使用できません。{1} 以上の言語バージョンを使用してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -929,7 +954,7 @@
       </trans-unit>
       <trans-unit id="ERR_InlineArrayForEachNotSupported">
         <source>foreach statement on an inline array of type '{0}' is not supported</source>
-        <target state="translated">型 '{0}' のインライン配列の foreach ステートメントはサポートされていません</target>
+        <target state="translated">型 '{0}' のインライン配列に対する foreach ステートメントはサポートされていません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayIndexOutOfRange">
@@ -939,7 +964,7 @@
       </trans-unit>
       <trans-unit id="ERR_InlineArrayUnsupportedElementFieldModifier">
         <source>Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.</source>
-        <target state="translated">インライン配列要素フィールドは、必須、読み取り専用、揮発性、または固定サイズ バッファーとして宣言できません。</target>
+        <target state="translated">インライン配列要素フィールドは、必須バッファー、読み取り専用バッファー、揮発性バッファー、または固定サイズ バッファーとして宣言できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -954,12 +979,12 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorArityNotCompatible">
         <source>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</source>
-        <target state="translated">メソッド '{0}' は非ジェネリックであるか、'{2}' と一致するアリティ {1} を持っている必要があります。</target>
+        <target state="translated">メソッド '{0}' は非ジェネリックであるか、'{2}' と一致するアリティ {1} を持つ必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
         <source>Method '{0}' must be non-generic to match '{1}'.</source>
-        <target state="translated">'{1}' に一致するには、メソッド '{0}' は非ジェネリックである必要があります。</target>
+        <target state="translated">'{0}' に一致するには、メソッド '{1}' は非ジェネリックである必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotInterceptNameof">
@@ -979,7 +1004,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorContainingTypeCannotBeGeneric">
         <source>Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</source>
-        <target state="new">Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</target>
+        <target state="translated">メソッド '{0}' は、含んでいる型に型パラメーターがあるため、インターセプターとして使用できません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorFilePathCannotBeNull">
@@ -1120,6 +1145,11 @@
       <trans-unit id="ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers">
         <source>Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</source>
         <target state="translated">インデックス付けされているインスタンスを参照する補間された文字列ハンドラーの変換は、インデクサー メンバー初期化子では使用できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="translated">'Experimental' 属性への diagnosticId 引数は有効な識別子である必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
@@ -1387,6 +1417,11 @@
         <target state="translated">'{1}' と '{2}' の間に共通の型が見つからないため、言語バージョン {0} で条件式が無効です。ターゲットにより型指定された変換を使用するには、言語バージョン {3} 以上にアップグレードしてください。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoModifiersOnUsing">
+        <source>Modifiers cannot be placed on using declarations</source>
+        <target state="translated">宣言を使用して修飾子を配置することはできません</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">出力ディレクトリを特定できませんでした</target>
@@ -1469,7 +1504,7 @@
       </trans-unit>
       <trans-unit id="ERR_OutAttrOnRefReadonlyParam">
         <source>A ref readonly parameter cannot have the Out attribute.</source>
-        <target state="translated">ref 読み取り専用パラメーターに Out 属性を指定することはできません。</target>
+        <target state="translated">ref readonly パラメーターに Out 属性を指定することはできません。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OutVariableCannotBeByRef">
@@ -1500,6 +1535,46 @@
       <trans-unit id="ERR_ParameterNullCheckingNotSupported">
         <source>The 'parameter null-checking' feature is not supported.</source>
         <target state="translated">'parameter null-checking' 機能はサポートされていません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
+        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
+        <target state="translated">'{0}' の非配列 params コレクション パラメーターの展開形式と通常の形式の間のあいまいさです。対応する引数の型は 'dynamic' のみです。動的引数のキャストを検討してください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
+        <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
+        <target state="translated">コンストラクター '{0}' は、必要なメンバー '{1}' を初期化しないままにします。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionExpressionTree">
+        <source>An expression tree may not contain an expanded form of non-array params collection parameter.</source>
+        <target state="translated">式ツリーに、配列以外の params コレクション パラメーターの展開形式を含めないようにしてください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionExtensionAddMethod">
+        <source>'{0}' does not contain a definition for a suitable instance 'Add' method</source>
+        <target state="translated">'{0}' には、適切なインスタンス 'Add' メソッドの定義が含まれていません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionInfiniteChainOfConstructorCalls">
+        <source>Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</source>
+        <target state="translated">パラメーター コレクション '{0}' を作成すると、コンストラクター '{1}' の呼び出しのチェーンが無限になります。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionMissingConstructor">
+        <source>Non-array params collection type must have an applicable constructor that can be called with no arguments.</source>
+        <target state="translated">配列 params コレクション以外の種類には、引数なしで呼び出すことができる適用可能なコンストラクターが必要です。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember">
+        <source>Method '{0}' cannot be less visible than the member with params collection '{1}'.</source>
+        <target state="translated">メソッド '{0}' は params コレクション '{1}' を持つメンバーより低く表示できません。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsMustBeCollection">
+        <source>The params parameter must have a valid collection type</source>
+        <target state="translated">params パラメーターには有効なコレクションの種類が必要です</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
@@ -1857,6 +1932,11 @@
         <target state="translated">単一要素の分解パターンには、あいまいさを排除するための他の構文が必要です。破棄指定子 '_' を閉じかっこ ')' の後に追加することをお勧めします。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_SpreadMissingMember">
+        <source>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
+        <target state="translated">'{0}' が '{1}' のパブリック インスタンス定義または拡張機能定義を含んでいないため、スプレッド演算子 '..' は型 '{0}' の変数に対して使用できません。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">
         <source>Record member '{0}' may not be static.</source>
         <target state="translated">レコード メンバー '{0}' を static にすることはできません。</target>
@@ -2119,7 +2199,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
         <source>collection expressions</source>
-        <target state="new">collection expressions</target>
+        <target state="translated">コレクション式</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
@@ -2160,6 +2240,11 @@
       <trans-unit id="IDS_FeatureGlobalUsing">
         <source>global using directive</source>
         <target state="translated">グローバル using ディレクティブ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureImplicitIndexerInitializer">
+        <source>implicit indexer initializer</source>
+        <target state="translated">暗黙的なインデクサー初期化子</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
@@ -2212,6 +2297,11 @@
         <target state="translated">リスト パターン</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLockObject">
+        <source>Lock object</source>
+        <target state="translated">オブジェクトをロックする</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
         <source>newlines in interpolations</source>
         <target state="translated">補間における改行</target>
@@ -2220,6 +2310,11 @@
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
         <source>parameterless struct constructors</source>
         <target state="translated">パラメーターのない構造体コンストラクター</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureParamsCollections">
+        <source>params collections</source>
+        <target state="translated">params コレクション</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -2249,7 +2344,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRefReadonlyParameters">
         <source>ref readonly parameters</source>
-        <target state="translated">ref 読み取り専用パラメーター</target>
+        <target state="translated">ref readonly パラメーター</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -2265,6 +2360,11 @@
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
         <target state="translated">レコードでシールされた ToString</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStringEscapeCharacter">
+        <source>string escape character</source>
+        <target state="translated">文字列エスケープ文字</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStructFieldInitializers">
@@ -2337,6 +2437,11 @@
         <target state="translated">ポインター</target>
         <note />
       </trans-unit>
+      <trans-unit id="ISpreadOperationIsNotCSharpSpread">
+        <source>{0} is not a valid C# spread operation</source>
+        <target state="translated">{0} は有効な C# 分散演算ではありません</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
         <target state="translated">'&amp;' 演算子は、非同期メソッドのパラメーターまたはローカル変数では使用できません。</target>
@@ -2369,22 +2474,22 @@
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn">
         <source>Argument {0} should be passed with the 'in' keyword</source>
-        <target state="new">Argument {0} should be passed with the 'in' keyword</target>
+        <target state="translated">引数 {0} は 'in' キーワードと共に渡す必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn_Title">
         <source>Argument should be passed with the 'in' keyword</source>
-        <target state="new">Argument should be passed with the 'in' keyword</target>
+        <target state="translated">引数は 'in' キーワードと共に渡す必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedRefOrIn">
         <source>Argument {0} should be passed with 'ref' or 'in' keyword</source>
-        <target state="translated">引数 {0} は 'ref' または 'in' キーワード (keyword)と共に渡す必要があります</target>
+        <target state="translated">引数 {0} は 'ref' キーワードまたは 'in' キーワードと共に渡す必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedRefOrIn_Title">
         <source>Argument should be passed with 'ref' or 'in' keyword</source>
-        <target state="translated">引数は 'ref' または 'in' キーワード (keyword)で渡す必要があります</target>
+        <target state="translated">引数は 'ref' キーワードまたは 'in' キーワードと共に渡す必要があります</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttrDependentTypeNotAllowed">
@@ -2399,7 +2504,7 @@
       </trans-unit>
       <trans-unit id="WRN_BadArgRef">
         <source>The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
-        <target state="translated">'in' パラメーターに対応する引数 {0} の 'ref' 修飾子が 'in' と同じです。代わりに 'in' を使用することを検討してください。</target>
+        <target state="translated">'in' パラメーターに対応する引数 {0} の 'ref' 修飾子は 'in' と同じです。代わりに 'in' を使用することを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadArgRef_Title">
@@ -2409,12 +2514,12 @@
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired">
         <source>Attribute parameter 'SizeConst' must be specified.</source>
-        <target state="new">Attribute parameter 'SizeConst' must be specified.</target>
+        <target state="translated">属性パラメーター 'SizeConst' を指定する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired_Title">
         <source>Attribute parameter 'SizeConst' must be specified.</source>
-        <target state="new">Attribute parameter 'SizeConst' must be specified.</target>
+        <target state="translated">属性パラメーター 'SizeConst' を指定する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallArgMixing">
@@ -2507,6 +2612,26 @@
         <target state="translated">パラメーターは外側の型の状態にキャプチャされ、その値も基底コンストラクターに渡されます。この値は、基底クラスでもキャプチャされる可能性があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate">
+        <source>Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
+        <target state="translated">型 '{0}' のコレクション式では、予期しないヒープ割り当てが発生する可能性があります。配列を明示的に作成してから、'{0}' に変換して割り当てを明示的に行うことを検討してください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate_Title">
+        <source>Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
+        <target state="translated">コレクション式では、予期しないヒープ割り当てが発生する可能性があります。配列を明示的に作成してから、最終的な型に変換して割り当てを明示的に行うことを検討してください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate">
+        <source>Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
+        <target state="translated">型 '{0}' のコレクション式では、'..' スプレッドの使用により、予期しないヒープ割り当てが発生する可能性があります。配列を明示的に作成してから、'{0}' に変換して割り当てを明示的に行うことを検討してください。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate_Title">
+        <source>Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
+        <target state="translated">コレクション式では、'..' スプレッドの使用により、予期しないヒープ割り当てが発生する可能性があります。配列を明示的に作成してから、最終的な型に変換して割り当てを明示的に行うことを検討してください。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
         <source>The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</source>
         <target state="translated">実行時に操作がオーバーフロー '{0}' する可能性があります (オーバーライドするには 'unchecked' 構文を使用してください)</target>
@@ -2515,6 +2640,16 @@
       <trans-unit id="WRN_CompileTimeCheckedOverflow_Title">
         <source>The operation may overflow at runtime (use 'unchecked' syntax to override)</source>
         <target state="translated">実行時に操作がオーバーフローする可能性があります (オーバーライドするには 'unchecked' 構文を使用してください)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
+        <target state="translated">型 'System.Threading.Lock' の値が別の型に変換されると、'lock' ステートメントで意図しない可能性の高いモニターベースのロックが使用されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock_Title">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
+        <target state="translated">型 'System.Threading.Lock' の値が別の型に変換されると、'lock' ステートメントで意図しない可能性の高いモニターベースのロックが使用されます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -2535,6 +2670,36 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">複数回指定されたアナライザー参照</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor">
+        <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="translated">配列 params 以外のコレクション パラメーターを持つ 1 つ以上のコンストラクター オーバーロードは、動的ディスパッチ中にサポートされない拡張形式でのみ適用できます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor_Title">
+        <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="translated">配列 params 以外のコレクション パラメーターを持つ 1 つ以上のコンストラクター オーバーロードは、動的ディスパッチ中にサポートされない拡張形式でのみ適用できます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer">
+        <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="translated">配列パラメーター以外のコレクション パラメーターを持つ 1 つ以上のインデクサー オーバーロードは、動的ディスパッチ中にサポートされない拡張形式でのみ適用できます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer_Title">
+        <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="translated">配列パラメーター以外のコレクション パラメーターを持つ 1 つ以上のインデクサー オーバーロードは、動的ディスパッチ中にサポートされない拡張形式でのみ適用できます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod">
+        <source>One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="translated">配列 params 以外のコレクション パラメーターを持つメソッド '{0}' の 1 つ以上のオーバーロードは、動的ディスパッチ中にサポートされない拡張形式でのみ適用できます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod_Title">
+        <source>One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="translated">配列パラメーター以外のコレクション パラメーターを持つメソッドの 1 つ以上のオーバーロードは、動的ディスパッチ中にサポートされない拡張形式でのみ適用できます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall">
@@ -2579,12 +2744,12 @@
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
         <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
-        <target state="translated">インライン配列変換演算子は、宣言する型の式からの変換には使用されません。</target>
+        <target state="translated">インライン配列変換演算子は、宣言型の式からの変換には使用されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed_Title">
         <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
-        <target state="translated">インライン配列変換演算子は、宣言する型の式からの変換には使用されません。</target>
+        <target state="translated">インライン配列変換演算子は、宣言型の式からの変換には使用されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayIndexerNotUsed">
@@ -2598,13 +2763,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">'Inline arrays' 言語機能は、要素フィールドが 'ref' フィールドであるか、型引数として無効な型を持つインライン配列型ではサポートされていません。</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="translated">「インライン配列」言語機能は、型引数として無効なインライン配列型、または型引数として無効な要素型を持つインライン配列型ではサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">'Inline arrays' 言語機能は、要素フィールドが 'ref' フィールドであるか、型引数として無効な型を持つインライン配列型ではサポートされていません。</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="translated">「インライン配列」言語機能は、型引数として無効なインライン配列型、または型引数として無効な要素型を持つインライン配列型ではサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">
@@ -2619,12 +2784,12 @@
       </trans-unit>
       <trans-unit id="WRN_HidingDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</source>
-        <target state="translated">パラメーター '{0}' の参照の種類修飾子が、非表示のメンバーの対応するパラメーター '{1}' と一致しません。</target>
+        <target state="translated">パラメーター '{0}' の参照種類修飾子が、非表示メンバーの対応するパラメーター '{1}' と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_HidingDifferentRefness_Title">
         <source>Reference kind modifier of parameter doesn't match the corresponding parameter in hidden member.</source>
-        <target state="translated">パラメーターの参照の種類の修飾子が、非表示のメンバーの対応するパラメーターと一致しません。</target>
+        <target state="translated">パラメーターの参照種類修飾子が、非表示メンバーの対応するパラメーターと一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterceptorSignatureMismatch">
@@ -2729,12 +2894,12 @@
       </trans-unit>
       <trans-unit id="WRN_OverridingDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</source>
-        <target state="translated">パラメーター '{0}' の参照の種類修飾子が、オーバーライドされたメンバーまたは実装されるメンバーの対応するパラメーター '{1}' と一致しません。</target>
+        <target state="translated">パラメーター '{0}' の参照種類修飾子が、オーバーライドされたメンバーまたは実装されたメンバーの対応するパラメーター '{1}' と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_OverridingDifferentRefness_Title">
         <source>Reference kind modifier of parameter doesn't match the corresponding parameter in overridden or implemented member.</source>
-        <target state="translated">パラメーターの参照の種類修飾子が、オーバーライドされたメンバーまたは実装されたメンバーの対応するパラメーターと一致しません。</target>
+        <target state="translated">パラメーターの参照種類修飾子が、オーバーライドされたメンバーまたは実装されたメンバーの対応するパラメーターと一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -2769,12 +2934,12 @@
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
         <source>Primary constructor parameter '{0}' is shadowed by a member from base.</source>
-        <target state="translated">プライマリ コンストラクター パラメーター '{0}' は、ベースのメンバーによってシャドウされています。</target>
+        <target state="translated">プライマリ コンストラクター パラメーター '{0}' は基底のメンバーによってシャドウされます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase_Title">
         <source>Primary constructor parameter is shadowed by a member from base</source>
-        <target state="translated">プライマリ コンストラクター パラメーターがベースのメンバーによってシャドウされています</target>
+        <target state="translated">プライマリ コンストラクター パラメーターは基底のメンバーによってシャドウされます。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2854,12 +3019,12 @@
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyParameterDefaultValue">
         <source>A default value is specified for 'ref readonly' parameter '{0}', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</source>
-        <target state="translated">'ref readonly' パラメーター '{0}' に既定値が指定されていますが、'ref readonly' は参照にのみ使用する必要があります。パラメーターを 'in' として宣言することを検討してください。</target>
+        <target state="translated">'ref readonly' パラメーター '{0}' に既定値が指定されていますが、'ref readonly' は参照のみに使用してください。パラメーターを 'in' として宣言することを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyParameterDefaultValue_Title">
         <source>A default value is specified for 'ref readonly' parameter, but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</source>
-        <target state="translated">'ref readonly' パラメーターに既定値が指定されていますが、'ref readonly' は参照にのみ使用する必要があります。パラメーターを 'in' として宣言することを検討してください。</target>
+        <target state="translated">'ref readonly' パラメーターには既定値が指定されていますが、'ref readonly' は参照のみに使用してください。パラメーターを 'in' として宣言することを検討してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
@@ -4745,12 +4910,12 @@
       </trans-unit>
       <trans-unit id="WRN_TargetDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in target.</source>
-        <target state="translated">パラメーター '{0}' の参照の種類修飾子が、ターゲット内の対応するパラメーター '{1}' と一致しません。</target>
+        <target state="translated">パラメーター '{0}' の参照種類修飾子が、ターゲット内の対応するパラメーター '{1}' と一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TargetDifferentRefness_Title">
         <source>Reference kind modifier of parameter doesn't match the corresponding parameter in target.</source>
-        <target state="translated">パラメーターの参照の種類修飾子が、ターゲット内の対応するパラメーターと一致しません。</target>
+        <target state="translated">パラメーターの参照種類修飾子が、ターゲット内の対応するパラメーターと一致しません。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
@@ -5020,12 +5185,12 @@
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationRefField">
         <source>Ref field '{0}' should be ref-assigned before use.</source>
-        <target state="translated">参照フィールド '{0}' は、使用する前に参照を割り当てる必要があります。</target>
+        <target state="translated">ref フィールド '{0}' は、使用する前に参照を割り当てる必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationRefField_Title">
         <source>Ref field should be ref-assigned before use.</source>
-        <target state="translated">参照フィールドは、使用する前に参照を割り当てる必要があります。</target>
+        <target state="translated">ref フィールドは、使用する前に参照を割り当てる必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationThisSupportedVersion">
@@ -6066,11 +6231,6 @@
       <trans-unit id="ERR_BadVarargs">
         <source>A method with vararg cannot be generic, be in a generic type, or have a params parameter</source>
         <target state="translated">vararg を使用するメソッドは、ジェネリックにしたり、ジェネリック型に含めたりできません。また、params パラメーターを持つこともできません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ParamsMustBeArray">
-        <source>The params parameter must be a single dimensional array</source>
-        <target state="translated">params パラメーターは 1 次元配列でなければなりません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalArglist">
@@ -7545,11 +7705,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_SystemVoid">
         <source>System.Void cannot be used from C# -- use typeof(void) to get the void type object</source>
         <target state="translated">System.Void は C# から使用できません。void 型オブジェクトを取得するには typeof(void) を使用してください</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ExplicitParamArray">
-        <source>Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.</source>
-        <target state="translated">System.ParamArrayAttribute' を使用しないでください。代わりに 'params' キーワードを使用してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BitwiseOrSignExtend">
@@ -10802,8 +10957,8 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
-        <source>Cannot specify a default value for a parameter array</source>
-        <target state="translated">パラメーター配列には既定値を指定できません</target>
+        <source>Cannot specify a default value for a parameter collection</source>
+        <target state="translated">パラメーター コレクションには、既定値を指定できません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">

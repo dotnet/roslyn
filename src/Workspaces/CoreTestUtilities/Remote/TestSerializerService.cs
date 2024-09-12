@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
                 {
                     lock (_gate)
                     {
-                        _sharedTestGeneratorReferences ??= new ConcurrentDictionary<Guid, TestGeneratorReference>();
+                        _sharedTestGeneratorReferences ??= [];
 
                         return _sharedTestGeneratorReferences;
                     }

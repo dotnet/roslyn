@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk;
 
@@ -14,14 +15,14 @@ internal abstract class AbstractCompilerDeveloperSdkLspServiceDocumentRequestHan
 {
     public abstract bool RequiresLSPSolution { get; }
     public abstract Task<TResponse> HandleRequestAsync(TRequest request, RequestContext context, CancellationToken cancellationToken);
-    public abstract TextDocumentIdentifier GetTextDocumentIdentifier(TRequest request);
+    public abstract Uri GetTextDocumentIdentifier(TRequest request);
     public abstract bool MutatesSolutionState { get; }
 
     bool IMethodHandler.MutatesSolutionState => MutatesSolutionState;
     bool ISolutionRequiredHandler.RequiresLSPSolution => RequiresLSPSolution;
 
     TextDocumentIdentifier ITextDocumentIdentifierHandler<TRequest, TextDocumentIdentifier>.GetTextDocumentIdentifier(TRequest request)
-        => GetTextDocumentIdentifier(request);
+        => new() { Uri = GetTextDocumentIdentifier(request) };
     Task<TResponse> IRequestHandler<TRequest, TResponse, LspRequestContext>.HandleRequestAsync(TRequest request, LspRequestContext context, CancellationToken cancellationToken)
         => HandleRequestAsync(request, new RequestContext(context), cancellationToken);
 }

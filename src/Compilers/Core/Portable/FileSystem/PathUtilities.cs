@@ -562,7 +562,8 @@ namespace Roslyn.Utilities
             int index = 0;
 
             // find index where full path diverges from base path
-            for (; index < directoryPathParts.Length; index++)
+            var maxSearchIndex = Math.Min(directoryPathParts.Length, fullPathParts.Length);
+            for (; index < maxSearchIndex; index++)
             {
                 if (!PathsEqual(directoryPathParts[index], fullPathParts[index]))
                 {
@@ -592,6 +593,8 @@ namespace Roslyn.Utilities
             {
                 relativePath = CombinePathsUnchecked(relativePath, fullPathParts[i]);
             }
+
+            relativePath = TrimTrailingSeparators(relativePath);
 
             return relativePath;
         }

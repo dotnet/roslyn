@@ -29,14 +29,19 @@ End Module
 
         <Fact>
         Public Async Function TestSimpleCaseForEqualsFalse_NoDiagnostics() As Task
-            Dim code = "
+            Await VerifyVB.VerifyCodeFixAsync("
 Public Module Module1
     Public Function M1(x As Boolean) As Boolean
-        Return x = False
+        Return x [|=|] False
     End Function
 End Module
-"
-            Await VerifyVB.VerifyAnalyzerAsync(code)
+", "
+Public Module Module1
+    Public Function M1(x As Boolean) As Boolean
+        Return Not x
+    End Function
+End Module
+")
         End Function
 
         <Fact>
@@ -60,14 +65,19 @@ End Module
 
         <Fact>
         Public Async Function TestSimpleCaseForNotEqualsTrue_NoDiagnostics() As Task
-            Dim code = "
+            Await VerifyVB.VerifyCodeFixAsync("
 Public Module Module1
     Public Function M1(x As Boolean) As Boolean
-        Return x <> True
+        Return x [|<>|] True
     End Function
 End Module
-"
-            Await VerifyVB.VerifyAnalyzerAsync(code)
+", "
+Public Module Module1
+    Public Function M1(x As Boolean) As Boolean
+        Return Not x
+    End Function
+End Module
+")
         End Function
 
         <Fact>

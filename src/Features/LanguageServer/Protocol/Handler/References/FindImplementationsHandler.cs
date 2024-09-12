@@ -5,13 +5,14 @@
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -43,8 +44,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var findUsagesService = document.GetRequiredLanguageService<IFindUsagesLSPService>();
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
 
-            var findUsagesContext = new SimpleFindUsagesContext(_globalOptions);
-            await findUsagesService.FindImplementationsAsync(findUsagesContext, document, position, cancellationToken).ConfigureAwait(false);
+            var findUsagesContext = new SimpleFindUsagesContext();
+            var classificationOptions = _globalOptions.GetClassificationOptionsProvider();
+            await findUsagesService.FindImplementationsAsync(findUsagesContext, document, position, classificationOptions, cancellationToken).ConfigureAwait(false);
 
             foreach (var definition in findUsagesContext.GetDefinitions())
             {

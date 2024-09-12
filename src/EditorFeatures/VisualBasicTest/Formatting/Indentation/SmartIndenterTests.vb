@@ -2981,7 +2981,7 @@ end class"
         Private Shared Sub AssertSmartIndentIndentationInProjection(
                 markup As String,
                 expectedIndentation As Integer)
-            Using workspace = TestWorkspace.CreateVisualBasic(markup, composition:=s_compositionWithTestFormattingRules)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(markup, composition:=s_compositionWithTestFormattingRules)
                 Dim subjectDocument = workspace.Documents.Single()
                 Dim projectedDocument = workspace.CreateProjectionBufferDocument(s_htmlMarkup, workspace.Documents)
 
@@ -3022,7 +3022,7 @@ end class"
                 expectedIndentation As Integer?,
                 useTabs As Boolean,
                 indentStyle As FormattingOptions2.IndentStyle)
-            Using workspace = TestWorkspace.CreateVisualBasic(code)
+            Using workspace = EditorTestWorkspace.CreateVisualBasic(code)
                 TestIndentation(workspace, indentationLine, expectedIndentation, indentStyle, useTabs)
             End Using
         End Sub

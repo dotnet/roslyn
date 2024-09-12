@@ -32,8 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
                 { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement }
             };
 
-        [WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
-        [WpfFact]
+        [WpfFact, WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
         public async Task CommitProducesExpressionBodyProperties()
         {
             var markupBeforeCommit = """
@@ -61,8 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "A", expectedCodeAfterCommit);
         }
 
-        [WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
-        [WpfFact]
+        [WpfFact, WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
         public async Task CommitProducesExpressionBodyGetterOnlyProperty()
         {
             var markupBeforeCommit = """
@@ -90,8 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "A", expectedCodeAfterCommit);
         }
 
-        [WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
-        [WpfFact]
+        [WpfFact, WorkItem(16331, "https://github.com/dotnet/roslyn/issues/16334")]
         public async Task CommitProducesExpressionBodyMethod()
         {
             var markupBeforeCommit = """

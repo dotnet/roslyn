@@ -7,32 +7,31 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.PullMemberUp;
 
-namespace Microsoft.CodeAnalysis.ExtractClass
+namespace Microsoft.CodeAnalysis.ExtractClass;
+
+internal class ExtractClassOptions(
+    string fileName,
+    string typeName,
+    bool sameFile,
+    ImmutableArray<ExtractClassMemberAnalysisResult> memberAnalysisResults)
 {
-    internal class ExtractClassOptions(
-        string fileName,
-        string typeName,
-        bool sameFile,
-        ImmutableArray<ExtractClassMemberAnalysisResult> memberAnalysisResults)
-    {
-        public string FileName { get; } = fileName;
-        public string TypeName { get; } = typeName;
-        public bool SameFile { get; } = sameFile;
-        public ImmutableArray<ExtractClassMemberAnalysisResult> MemberAnalysisResults { get; } = memberAnalysisResults;
-    }
+    public string FileName { get; } = fileName;
+    public string TypeName { get; } = typeName;
+    public bool SameFile { get; } = sameFile;
+    public ImmutableArray<ExtractClassMemberAnalysisResult> MemberAnalysisResults { get; } = memberAnalysisResults;
+}
 
-    internal class ExtractClassMemberAnalysisResult(
-        ISymbol member,
-        bool makeAbstract)
-    {
-        /// <summary>
-        /// The member needs to be pulled up.
-        /// </summary>
-        public ISymbol Member { get; } = member;
+internal class ExtractClassMemberAnalysisResult(
+    ISymbol member,
+    bool makeAbstract)
+{
+    /// <summary>
+    /// The member needs to be pulled up.
+    /// </summary>
+    public ISymbol Member { get; } = member;
 
-        /// <summary>
-        /// Whether to make the member abstract when added to the new class
-        /// </summary>
-        public bool MakeAbstract { get; } = makeAbstract;
-    }
+    /// <summary>
+    /// Whether to make the member abstract when added to the new class
+    /// </summary>
+    public bool MakeAbstract { get; } = makeAbstract;
 }

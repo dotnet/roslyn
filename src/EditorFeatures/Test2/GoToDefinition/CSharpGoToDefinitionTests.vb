@@ -1224,6 +1224,36 @@ namespace System
 
             Await TestAsync(workspace, expectedResult:=False)
         End Function
+
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/71680")>
+        <InlineData("ValueTuple<int> valueTuple1;")>
+        <InlineData("ValueTuple<int, int> valueTuple2;")>
+        <InlineData("ValueTuple<int, int, int> valueTuple3;")>
+        <InlineData("ValueTuple<int, int, int, int> valueTuple4;")>
+        <InlineData("ValueTuple<int, int, int, int, int> valueTuple5;")>
+        <InlineData("ValueTuple<int, int, int, int, int, int> valueTuple6;")>
+        <InlineData("ValueTuple<int, int, int, int, int, int, int> valueTuple7;")>
+        <InlineData("ValueTuple<int, int, int, int, int, int, int, int> valueTuple8;")>
+        Public Async Function TestCSharpGotoDefinitionWithValueTuple(expression As String) As Task
+            Dim workspace =
+                <Workspace>
+                    <Project Language="C#" CommonReferences="true" AssemblyName="CSProj">
+                        <Document FilePath="C.cs">
+                            using System;
+
+                            class C
+                            {
+                                void M()
+                                {
+                                    $$<%= expression %>
+                                }
+                            }
+                        </Document>
+                    </Project>
+                </Workspace>
+
+            Await TestAsync(workspace)
+        End Function
 #End Region
 
 #Region "CSharp Venus Tests"
@@ -1576,6 +1606,40 @@ class D
         End Function
 
 #End Region
+
+        <WpfFact>
+        Public Async Function TestCallingConv() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+unsafe
+{
+    delegate* unmanaged[$$Cdecl]&lt;void&gt; f1;
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
+
+        <WpfFact>
+        Public Async Function TestCallingConvWithAtSign() As Task
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+unsafe
+{
+    delegate* unmanaged[$$@Cdecl]&lt;void&gt; f1;
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(workspace)
+        End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542220")>
         <WpfFact>

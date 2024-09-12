@@ -37,11 +37,9 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         Private Const s_mappedFileAttributeName As String = "MappedFile"
 
         Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeatures _
-            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
             .AddParts(
                 GetType(NoCompilationContentTypeLanguageService),
-                GetType(NoCompilationContentTypeDefinitions),
-                GetType(MockDiagnosticUpdateSourceRegistrationService))
+                GetType(NoCompilationContentTypeDefinitions))
 
         <Fact>
         Public Sub TestNoErrors()
@@ -258,22 +256,22 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         End Sub
 
         Private Shared Sub VerifyAllAvailableDiagnostics(test As XElement, diagnostics As XElement, Optional ordered As Boolean = True)
-            Using workspace = TestWorkspace.CreateWorkspace(test, composition:=s_composition)
+            Using workspace = EditorTestWorkspace.CreateWorkspace(test, composition:=s_composition)
+
+                Assert.True(workspace.TryApplyChanges(workspace.CurrentSolution.WithOptions(
+                    workspace.CurrentSolution.Options.WithChangedOption(New OptionKey(DiagnosticOptionsStorage.PullDiagnosticsFeatureFlag), False))))
+
                 ' Ensure that diagnostic service computes diagnostics for all open files, not just the active file (default mode)
                 For Each language In workspace.Projects.Select(Function(p) p.Language).Distinct()
                     workspace.GlobalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, language, BackgroundAnalysisScope.OpenFiles)
                 Next
 
-                Dim registrationService = workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)()
-                registrationService.Register(workspace)
-
                 Dim diagnosticProvider = GetDiagnosticProvider(workspace)
-                Dim actualDiagnostics = diagnosticProvider.GetCachedDiagnosticsAsync(workspace, projectId:=Nothing, documentId:=Nothing,
-                                                                                     includeSuppressedDiagnostics:=False,
-                                                                                     includeNonLocalDocumentDiagnostics:=True,
-                                                                                     CancellationToken.None).Result
-
-                registrationService.Unregister(workspace)
+                Dim actualDiagnostics = diagnosticProvider.GetDiagnosticsAsync(
+                    workspace.CurrentSolution, projectId:=Nothing, documentId:=Nothing,
+                    includeSuppressedDiagnostics:=False,
+                    includeNonLocalDocumentDiagnostics:=True,
+                    CancellationToken.None).Result
 
                 If diagnostics Is Nothing Then
                     Assert.Equal(0, actualDiagnostics.Length)
@@ -289,24 +287,19 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             End Using
         End Sub
 
-        Private Shared Function GetDiagnosticProvider(workspace As TestWorkspace) As DiagnosticAnalyzerService
+        Private Shared Function GetDiagnosticProvider(workspace As EditorTestWorkspace) As DiagnosticAnalyzerService
             Dim compilerAnalyzersMap = DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap().Add(
                 NoCompilationConstants.LanguageName, ImmutableArray.Create(Of DiagnosticAnalyzer)(New NoCompilationDocumentDiagnosticAnalyzer()))
 
             Dim analyzerReference = New TestAnalyzerReferenceByLanguage(compilerAnalyzersMap)
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences({analyzerReference}))
 
-            Assert.IsType(Of MockDiagnosticUpdateSourceRegistrationService)(workspace.GetService(Of IDiagnosticUpdateSourceRegistrationService)())
             Dim analyzerService = Assert.IsType(Of DiagnosticAnalyzerService)(workspace.GetService(Of IDiagnosticAnalyzerService)())
-
-            ' CollectErrors generates interleaved background and foreground tasks.
-            Dim service = DirectCast(workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)(), SolutionCrawlerRegistrationService)
-            service.GetTestAccessor().WaitUntilCompletion(workspace, SpecializedCollections.SingletonEnumerable(analyzerService.CreateIncrementalAnalyzer(workspace)).WhereNotNull().ToImmutableArray())
 
             Return analyzerService
         End Function
 
-        Private Shared Function GetExpectedDiagnostics(workspace As TestWorkspace, diagnostics As XElement) As List(Of DiagnosticData)
+        Friend Shared Function GetExpectedDiagnostics(workspace As EditorTestWorkspace, diagnostics As XElement) As List(Of DiagnosticData)
             Dim result As New List(Of DiagnosticData)
             Dim mappedLine As Integer, mappedColumn As Integer, originalLine As Integer, originalColumn As Integer
             Dim Id As String, message As String, originalFile As String, mappedFile As String
@@ -334,13 +327,13 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Return result
         End Function
 
-        Private Shared Function GetProjectId(workspace As TestWorkspace, projectName As String) As ProjectId
+        Private Shared Function GetProjectId(workspace As EditorTestWorkspace, projectName As String) As ProjectId
             Return (From doc In workspace.Documents
                     Where doc.Project.AssemblyName.Equals(projectName)
                     Select doc.Project.Id).Single()
         End Function
 
-        Private Shared Function GetDocumentId(workspace As TestWorkspace, document As String) As DocumentId
+        Private Shared Function GetDocumentId(workspace As EditorTestWorkspace, document As String) As DocumentId
             Return (From doc In workspace.Documents
                     Where doc.FilePath.Equals(document)
                     Select doc.Id).Single()

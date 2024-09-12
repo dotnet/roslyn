@@ -11,14 +11,13 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.ChangeSignature
+namespace Microsoft.CodeAnalysis.Editor.CSharp.ChangeSignature;
+
+[Export(typeof(ICommandHandler))]
+[ContentType(ContentTypeNames.CSharpContentType)]
+[Name(PredefinedCommandHandlerNames.ChangeSignature)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpChangeSignatureCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions) : AbstractChangeSignatureCommandHandler(threadingContext, globalOptions)
 {
-    [Export(typeof(ICommandHandler))]
-    [ContentType(ContentTypeNames.CSharpContentType)]
-    [Name(PredefinedCommandHandlerNames.ChangeSignature)]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class CSharpChangeSignatureCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions) : AbstractChangeSignatureCommandHandler(threadingContext, globalOptions)
-    {
-    }
 }

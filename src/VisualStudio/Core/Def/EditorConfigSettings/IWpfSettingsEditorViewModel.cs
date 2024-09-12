@@ -5,11 +5,10 @@
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.VisualStudio.Shell.TableControl;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
+
+internal interface IWpfSettingsEditorViewModel : ISettingsEditorViewModel
 {
-    internal interface IWpfSettingsEditorViewModel : ISettingsEditorViewModel
-    {
-        IWpfTableControl4 GetTableControl();
-        void ShutDown();
-    }
+    IWpfTableControl4 GetTableControl();
+    void ShutDown();
 }

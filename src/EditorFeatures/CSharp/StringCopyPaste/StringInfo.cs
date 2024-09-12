@@ -146,7 +146,7 @@ internal readonly struct StringInfo(
                 TextSpan.FromBounds(literal.SpanStart, rawStart),
                 TextSpan.FromBounds(rawEnd, literal.Span.End),
                 TextSpan.FromBounds(rawEnd, endBeforeU8Suffix),
-                contentSpans: ImmutableArray.Create(TextSpan.FromBounds(start, end)));
+                contentSpans: [TextSpan.FromBounds(start, end)]);
         }
         else
         {
@@ -176,7 +176,7 @@ internal readonly struct StringInfo(
             startDelimiterSpan: TextSpan.FromBounds(literal.SpanStart, start),
             endDelimiterSpan: TextSpan.FromBounds(end, literal.Span.End),
             endDelimiterSpanWithoutSuffix: TextSpan.FromBounds(end, endBeforeU8Suffix),
-            ImmutableArray.Create(TextSpan.FromBounds(start, end)));
+            [TextSpan.FromBounds(start, end)]);
     }
 
     private static StringInfo GetInterpolatedStringInfo(

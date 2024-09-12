@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.StringCopyPaste
             }
 
             private static void SetSelection(
-                TestHostDocument document,
+                EditorTestHostDocument document,
                 ImmutableArray<TextSpan> copySpans, out IWpfTextView textView, out ITextBuffer2 textBuffer2)
             {
                 textView = document.GetTextView();

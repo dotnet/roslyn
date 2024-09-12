@@ -12,9 +12,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -22,11 +20,10 @@ using Microsoft.CodeAnalysis.ReferenceHighlighting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Core.Imaging;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
-using Microsoft.VisualStudio.Text.Adornments;
+using Roslyn.LanguageServer.Protocol;
+using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -46,13 +43,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// </summary>
         private readonly SemaphoreSlim _semaphore = new(1);
 
-        private readonly Dictionary<DefinitionItem, int> _definitionToId = new();
+        private readonly Dictionary<DefinitionItem, int> _definitionToId = [];
 
         /// <summary>
         /// Keeps track of definitions that cannot be reported without references and which we have
         /// not yet found a reference for.
         /// </summary>
-        private readonly Dictionary<int, SumType<VSInternalReferenceItem, LSP.Location>> _definitionsWithoutReference = new();
+        private readonly Dictionary<int, SumType<VSInternalReferenceItem, LSP.Location>> _definitionsWithoutReference = [];
 
         /// <summary>
         /// Set of the locations we've found references at.  We may end up with multiple references
@@ -64,7 +61,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         /// to override an already reported VSReferenceItem, we could also reissue the item with the
         /// additional information about all the projects it is found in.
         /// </summary>
-        private readonly HashSet<(string? filePath, TextSpan span)> _referenceLocations = new();
+        private readonly HashSet<(string? filePath, TextSpan span)> _referenceLocations = [];
 
         /// <summary>
         /// We report the results in chunks. A batch, if it contains results, is reported every 0.5s.
@@ -93,9 +90,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _workQueue = new AsyncBatchingWorkQueue<SumType<VSInternalReferenceItem, LSP.Location>>(
                 DelayTimeSpan.Medium, ReportReferencesAsync, asyncListener, cancellationToken);
         }
-
-        public override ValueTask<FindUsagesOptions> GetOptionsAsync(string language, CancellationToken cancellationToken)
-            => ValueTaskFactory.FromResult(_globalOptions.GetFindUsagesOptions(language));
 
         // After all definitions/references have been found, wait here until all results have been reported.
         public override async ValueTask OnCompletedAsync(CancellationToken cancellationToken)
@@ -256,10 +250,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (documentSpan != null)
             {
                 var document = documentSpan.Value.Document;
-                var options = await GetOptionsAsync(document.Project.Language, cancellationToken).ConfigureAwait(false);
+                var options = _globalOptions.GetClassificationOptions(document.Project.Language);
 
                 var classifiedSpansAndHighlightSpan = await ClassifiedSpansAndHighlightSpanFactory.ClassifyAsync(
-                    documentSpan.Value, options.ClassificationOptions, cancellationToken).ConfigureAwait(false);
+                    documentSpan.Value, classifiedSpans: null, options, cancellationToken).ConfigureAwait(false);
 
                 var classifiedSpans = classifiedSpansAndHighlightSpan.ClassifiedSpans;
                 var docText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);

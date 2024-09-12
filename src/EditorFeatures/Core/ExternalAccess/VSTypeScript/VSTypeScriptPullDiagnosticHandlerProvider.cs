@@ -26,8 +26,9 @@ internal class VSTypeScriptDocumentPullDiagnosticHandlerFactory(
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class VSTypeScriptWorkspacePullDiagnosticHandler(
+    LspWorkspaceRegistrationService registrationService,
     IDiagnosticAnalyzerService analyzerService,
     IDiagnosticsRefresher diagnosticsRefresher,
-    IGlobalOptionService globalOptions) : WorkspacePullDiagnosticHandlerFactory(analyzerService, diagnosticsRefresher, globalOptions)
+    IGlobalOptionService globalOptions) : WorkspacePullDiagnosticHandlerFactory(registrationService, analyzerService, diagnosticsRefresher, globalOptions)
 {
 }

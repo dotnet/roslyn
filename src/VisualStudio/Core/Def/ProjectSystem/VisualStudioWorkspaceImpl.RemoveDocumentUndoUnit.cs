@@ -6,24 +6,23 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+
+internal partial class VisualStudioWorkspaceImpl
 {
-    internal partial class VisualStudioWorkspaceImpl
+    private class RemoveDocumentUndoUnit : AbstractRemoveDocumentUndoUnit
     {
-        private class RemoveDocumentUndoUnit : AbstractRemoveDocumentUndoUnit
+        public RemoveDocumentUndoUnit(
+            VisualStudioWorkspaceImpl workspace,
+            DocumentId documentId)
+            : base(workspace, documentId)
         {
-            public RemoveDocumentUndoUnit(
-                VisualStudioWorkspaceImpl workspace,
-                DocumentId documentId)
-                : base(workspace, documentId)
-            {
-            }
-
-            protected override IReadOnlyList<DocumentId> GetDocumentIds(Project fromProject)
-                => fromProject.DocumentIds;
-
-            protected override TextDocument? GetDocument(Solution currentSolution)
-                => currentSolution.GetDocument(this.DocumentId);
         }
+
+        protected override IReadOnlyList<DocumentId> GetDocumentIds(Project fromProject)
+            => fromProject.DocumentIds;
+
+        protected override TextDocument? GetDocument(Solution currentSolution)
+            => currentSolution.GetDocument(this.DocumentId);
     }
 }

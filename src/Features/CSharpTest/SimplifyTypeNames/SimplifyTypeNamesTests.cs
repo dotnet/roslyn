@@ -22,7 +22,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-    public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public SimplifyTypeNamesTests(ITestOutputHelper logger)
             : base(logger)
@@ -528,8 +528,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames
                 """);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/21449")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21449")]
         [WorkItem("https://github.com/dotnet/roslyn/issues/40972")]
         public async Task DoChangeToAliasInNameOfIfItDoesNotAffectName1()
         {
@@ -4118,9 +4117,11 @@ index: 1);
 
                     S(dynamic y)
                     {
-                        [|object.Equals|](y, 0);
+                        [|S.Equals|](y, 0);
                         x = y;
                     }
+
+                    static bool Equals(S s, object y) => false;
                 }
                 """);
         }
@@ -4191,10 +4192,10 @@ index: 1);
 
                 class B
                 {
-                    public static void Goo(int x, object y)
-                    {
-                    }
+                    public static void Goo(int x, object y) {}
 
+                    public static void Goo(long x, object y) {}
+                
                     static void Main()
                     {
                         C<string>.D.Goo(0);
@@ -4273,10 +4274,10 @@ index: 1);
 
                 class B
                 {
-                    static void Goo(int x, object y)
-                    {
-                    }
-
+                    static void Goo(int x, object y) {}
+                    
+                    static void Goo(long x, object y) {}
+                
                     static void Goo<T>(dynamic x)
                     {
                         Console.WriteLine([|C<T>.Goo|](x, "));
@@ -6183,6 +6184,206 @@ namespace N
                 }
 
                 [Goo()]
+                class Bar
+                {
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task SimplifyGenericAttributeReference1()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                using System;
+
+                class GooAttribute<T> : Attribute
+                {
+                }
+
+                [Goo[|Attribute|]<string>]
+                class Bar
+                {
+                }
+                """,
+                """
+                using System;
+                
+                class GooAttribute<T> : Attribute
+                {
+                }
+                
+                [Goo<string>]
+                class Bar
+                {
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task SimplifyGenericAttributeReference2()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                using System;
+
+                class GooAttribute<T> : Attribute
+                {
+                }
+
+                [Goo[|Attribute|]<string>()]
+                class Bar
+                {
+                }
+                """,
+                """
+                using System;
+                
+                class GooAttribute<T> : Attribute
+                {
+                }
+                
+                [Goo<string>()]
+                class Bar
+                {
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task SimplifyGenericAttributeReference3()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                using System;
+
+                class GooAttribute<T> : Attribute
+                {
+                    public class AnotherAttribute<U> : Attribute;
+                }
+
+                [GooAttribute<string>.Another[|Attribute|]<string>()]
+                class Bar
+                {
+                }
+                """,
+                """
+                using System;
+                
+                class GooAttribute<T> : Attribute
+                {
+                    public class AnotherAttribute<U> : Attribute;
+                }
+                
+                [GooAttribute<string>.Another<string>()]
+                class Bar
+                {
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task SimplifyGenericAttributeReference4()
+        {
+            await TestInRegularAndScript1Async(
+                """
+                using System;
+
+                class GooAttribute<T> : Attribute
+                {
+                    public class AnotherAttribute<U> : Attribute;
+                }
+
+                [GooAttribute<string>.Another[|Attribute|]<string>]
+                class Bar
+                {
+                }
+                """,
+                """
+                using System;
+                
+                class GooAttribute<T> : Attribute
+                {
+                    public class AnotherAttribute<U> : Attribute;
+                }
+                
+                [GooAttribute<string>.Another<string>]
+                class Bar
+                {
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task DoNotSimplifyNestedInsideGenericAttributeReference1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                using System;
+
+                class GooAttribute<T> : Attribute
+                {
+                    public class AnotherAttribute : Attribute;
+                }
+
+                [Goo[|Attribute|]<string>.Another()]
+                class Bar
+                {
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task DoNotSimplifyNestedInsideGenericAttributeReference2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                using System;
+
+                class GooAttribute<T> : Attribute
+                {
+                    public class AnotherAttribute : Attribute;
+                }
+
+                [Goo[|Attribute|]<string>.Another]
+                class Bar
+                {
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task DoNotSimplifyNestedInsideGenericAttributeReference3()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                using System;
+
+                class GooAttribute<T> : Attribute
+                {
+                    public class AnotherAttribute : Attribute;
+                }
+
+                [Goo[|Attribute|]<string>.AnotherAttribute]
+                class Bar
+                {
+                }
+                """);
+        }
+
+        [Fact]
+        public async Task DoNotSimplifyNestedInsideGenericAttributeReference4()
+        {
+            await TestMissingInRegularAndScriptAsync(
+                """
+                using System;
+
+                class GooAttribute<T> : Attribute
+                {
+                    public class AnotherAttribute : Attribute;
+                }
+
+                [Goo[|Attribute|]<string>.AnotherAttribute()]
                 class Bar
                 {
                 }

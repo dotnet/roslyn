@@ -10,11 +10,13 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -31,11 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
         // TODO: Requires WPF due to IInlineRenameService dependency (https://github.com/dotnet/roslyn/issues/46153)
         protected override TestComposition GetComposition()
-            => EditorTestCompositions.EditorFeaturesWpf
-                .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
-                .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
+            => EditorTestCompositions.EditorFeaturesWpf;
 
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
             => new MoveTypeCodeRefactoringProvider();
 
         protected async Task TestRenameTypeToMatchFileAsync(
@@ -128,14 +128,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
         private async Task<Tuple<Solution, Solution>> TestOperationAsync(
             TestParameters parameters,
-            Workspaces.TestWorkspace workspace,
+            EditorTestWorkspace workspace,
             string expectedCode,
             string operation)
         {
             var (actions, _) = await GetCodeActionsAsync(workspace, parameters);
             var action = actions.Single(a => a.Title.Equals(operation, StringComparison.CurrentCulture));
             var operations = await action.GetOperationsAsync(
-                workspace.CurrentSolution, new ProgressTracker(), CancellationToken.None);
+                workspace.CurrentSolution, CodeAnalysisProgress.None, CancellationToken.None);
 
             return await TestOperationsAsync(workspace,
                 expectedText: expectedCode,

@@ -13,12 +13,12 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
     [Export(typeof(ExperimentalCapabilitiesProvider)), Shared]
-    internal class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
+    internal sealed class ExperimentalCapabilitiesProvider : ICapabilitiesProvider
     {
         private readonly ImmutableArray<Lazy<CompletionProvider, CompletionProviderMetadata>> _completionProviders;
 
@@ -54,29 +54,32 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             capabilities.DefinitionProvider = true;
             capabilities.DocumentHighlightProvider = true;
-            capabilities.RenameProvider = true;
+            capabilities.RenameProvider = new RenameOptions
+            {
+                PrepareProvider = true,
+            };
             capabilities.ImplementationProvider = true;
-            capabilities.CodeActionProvider = new CodeActionOptions { CodeActionKinds = new[] { CodeActionKind.QuickFix, CodeActionKind.Refactor }, ResolveProvider = true };
-            capabilities.CompletionProvider = new VisualStudio.LanguageServer.Protocol.CompletionOptions
+            capabilities.CodeActionProvider = new CodeActionOptions { CodeActionKinds = [CodeActionKind.QuickFix, CodeActionKind.Refactor], ResolveProvider = true };
+            capabilities.CompletionProvider = new Roslyn.LanguageServer.Protocol.CompletionOptions
             {
                 ResolveProvider = true,
                 AllCommitCharacters = commitCharacters,
                 TriggerCharacters = triggerCharacters,
             };
 
-            capabilities.SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = new[] { "(", "," } };
+            capabilities.SignatureHelpProvider = new SignatureHelpOptions { TriggerCharacters = ["(", ","] };
             capabilities.DocumentSymbolProvider = true;
             capabilities.WorkspaceSymbolProvider = true;
             capabilities.DocumentFormattingProvider = true;
             capabilities.DocumentRangeFormattingProvider = true;
-            capabilities.DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = new[] { ";", "\n" } };
+            capabilities.DocumentOnTypeFormattingProvider = new DocumentOnTypeFormattingOptions { FirstTriggerCharacter = "}", MoreTriggerCharacter = [";", "\n"] };
             capabilities.ReferencesProvider = new ReferenceOptions
             {
                 WorkDoneProgress = true,
             };
 
             capabilities.FoldingRangeProvider = true;
-            capabilities.ExecuteCommandProvider = new ExecuteCommandOptions() { Commands = Array.Empty<string>() };
+            capabilities.ExecuteCommandProvider = new ExecuteCommandOptions() { Commands = [] };
             capabilities.TextDocumentSync = new TextDocumentSyncOptions
             {
                 Change = TextDocumentSyncKind.Incremental,
@@ -115,7 +118,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             };
 
             // Using VS server capabilities because we have our own custom client.
-            capabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = new[] { "'", "/", "\n" } };
+            capabilities.OnAutoInsertProvider = new VSInternalDocumentOnAutoInsertOptions { TriggerCharacters = ["'", "/", "\n"] };
 
             if (!supportsVsExtensions)
             {

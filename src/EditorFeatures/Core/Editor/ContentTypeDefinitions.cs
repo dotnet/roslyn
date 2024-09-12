@@ -7,16 +7,15 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.ContentTypes
+namespace Microsoft.CodeAnalysis.Editor.Implementation.ContentTypes;
+
+internal static class ContentTypeDefinitions
 {
-    internal static class ContentTypeDefinitions
-    {
-        /// <summary>
-        /// Definition of a content type that is a base definition for all content types supported by Roslyn.
-        /// </summary>
-        [Export]
-        [Name(ContentTypeNames.RoslynContentType)]
-        [BaseDefinition("code")]
-        public static readonly ContentTypeDefinition RoslynContentTypeDefinition;
-    }
+    /// <summary>
+    /// Definition of a content type that is a base definition for all content types supported by Roslyn.
+    /// </summary>
+    [Export]
+    [Name(ContentTypeNames.RoslynContentType)]
+    [BaseDefinition("code")]
+    public static readonly ContentTypeDefinition RoslynContentTypeDefinition;
 }

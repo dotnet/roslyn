@@ -16,48 +16,47 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
+namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices;
+
+[ExportLanguageService(typeof(IStructuralTypeDisplayService), LanguageNames.CSharp), Shared]
+internal class CSharpStructuralTypeDisplayService : AbstractStructuralTypeDisplayService
 {
-    [ExportLanguageService(typeof(IStructuralTypeDisplayService), LanguageNames.CSharp), Shared]
-    internal class CSharpStructuralTypeDisplayService : AbstractStructuralTypeDisplayService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpStructuralTypeDisplayService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpStructuralTypeDisplayService()
+    }
+
+    protected override ISyntaxFacts SyntaxFactsService => CSharpSyntaxFacts.Instance;
+
+    protected override ImmutableArray<SymbolDisplayPart> GetNormalAnonymousTypeParts(
+        INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position)
+    {
+        using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var members);
+
+        members.Add(Keyword(SyntaxFacts.GetText(SyntaxKind.NewKeyword)));
+        members.AddRange(Space());
+        members.Add(Punctuation(SyntaxFacts.GetText(SyntaxKind.OpenBraceToken)));
+        members.AddRange(Space());
+
+        var first = true;
+        foreach (var property in anonymousType.GetValidAnonymousTypeProperties())
         {
-        }
-
-        protected override ISyntaxFacts SyntaxFactsService => CSharpSyntaxFacts.Instance;
-
-        protected override ImmutableArray<SymbolDisplayPart> GetNormalAnonymousTypeParts(
-            INamedTypeSymbol anonymousType, SemanticModel semanticModel, int position)
-        {
-            using var _ = ArrayBuilder<SymbolDisplayPart>.GetInstance(out var members);
-
-            members.Add(Keyword(SyntaxFacts.GetText(SyntaxKind.NewKeyword)));
-            members.AddRange(Space());
-            members.Add(Punctuation(SyntaxFacts.GetText(SyntaxKind.OpenBraceToken)));
-            members.AddRange(Space());
-
-            var first = true;
-            foreach (var property in anonymousType.GetValidAnonymousTypeProperties())
+            if (!first)
             {
-                if (!first)
-                {
-                    members.Add(Punctuation(SyntaxFacts.GetText(SyntaxKind.CommaToken)));
-                    members.AddRange(Space());
-                }
-
-                first = false;
-                members.AddRange(property.Type.ToMinimalDisplayParts(semanticModel, position, s_minimalWithoutExpandedTuples).Select(p => p.MassageErrorTypeNames("?")));
+                members.Add(Punctuation(SyntaxFacts.GetText(SyntaxKind.CommaToken)));
                 members.AddRange(Space());
-                members.Add(new SymbolDisplayPart(SymbolDisplayPartKind.PropertyName, property, property.Name));
             }
 
+            first = false;
+            members.AddRange(property.Type.ToMinimalDisplayParts(semanticModel, position, s_minimalWithoutExpandedTuples).Select(p => p.MassageErrorTypeNames("?")));
             members.AddRange(Space());
-            members.Add(Punctuation(SyntaxFacts.GetText(SyntaxKind.CloseBraceToken)));
-
-            return members.ToImmutable();
+            members.Add(new SymbolDisplayPart(SymbolDisplayPartKind.PropertyName, property, CSharpSyntaxFacts.Instance.EscapeIdentifier(property.Name)));
         }
+
+        members.AddRange(Space());
+        members.Add(Punctuation(SyntaxFacts.GetText(SyntaxKind.CloseBraceToken)));
+
+        return members.ToImmutable();
     }
 }

@@ -7,20 +7,19 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
-namespace Microsoft.CodeAnalysis.Snippets
+namespace Microsoft.CodeAnalysis.Snippets;
+
+internal abstract class AbstractForEachLoopSnippetProvider : AbstractInlineStatementSnippetProvider
 {
-    internal abstract class AbstractForEachLoopSnippetProvider : AbstractInlineStatementSnippetProvider
+    public override string Identifier => "foreach";
+
+    public override string Description => FeaturesResources.foreach_loop;
+
+    protected override bool IsValidAccessingType(ITypeSymbol type, Compilation compilation)
+        => type.CanBeEnumerated() || type.CanBeAsynchronouslyEnumerated(compilation);
+
+    protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
     {
-        public override string Identifier => "foreach";
-
-        public override string Description => FeaturesResources.foreach_loop;
-
-        protected override bool IsValidAccessingType(ITypeSymbol type, Compilation compilation)
-            => type.CanBeEnumerated() || type.CanBeAsynchronouslyEnumerated(compilation);
-
-        protected override Func<SyntaxNode?, bool> GetSnippetContainerFunction(ISyntaxFacts syntaxFacts)
-        {
-            return syntaxFacts.IsForEachStatement;
-        }
+        return syntaxFacts.IsForEachStatement;
     }
 }

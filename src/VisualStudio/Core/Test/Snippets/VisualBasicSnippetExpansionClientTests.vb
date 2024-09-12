@@ -2,20 +2,15 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.AddImport
-Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
-Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Microsoft.VisualStudio.Text.Projection
 Imports Roslyn.Test.Utilities
@@ -352,7 +347,7 @@ End Class</Document>
 	End Sub
 End Class</Test>
 
-            Using workspace = TestWorkspace.Create(workspaceXml, openDocuments:=False)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml, openDocuments:=False, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim document = workspace.Documents.Single()
                 Dim optionsService = workspace.GetService(Of EditorOptionsService)()
                 Dim textBuffer = document.GetTextBuffer()
@@ -362,16 +357,8 @@ End Class</Test>
                 editorOptions.SetOptionValue(DefaultOptions.TabSizeOptionId, tabSize)
                 editorOptions.SetOptionValue(DefaultOptions.IndentSizeOptionId, tabSize)
 
-                Dim snippetExpansionClient = New SnippetExpansionClient(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
-                    Guids.CSharpLanguageServiceId,
-                    document.GetTextView(),
-                    textBuffer,
-                    signatureHelpControllerProvider:=Nothing,
-                    editorCommandHandlerServiceFactory:=Nothing,
-                    Nothing,
-                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
-                    optionsService)
+                Dim expansionClientFactory = workspace.Services.GetRequiredService(Of ISnippetExpansionClientFactory)()
+                Dim snippetExpansionClient = expansionClientFactory.GetOrCreateSnippetExpansionClient(textBuffer.AsTextContainer().GetOpenDocumentInCurrentContext(), document.GetTextView(), textBuffer)
 
                 SnippetExpansionClientTestsHelper.TestFormattingAndCaretPosition(snippetExpansionClient, document, expectedResult, tabSize * 3)
             End Using
@@ -405,17 +392,12 @@ End Class</Test>
                                                    </Import>)
             Next
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
-                Dim expansionClient = New SnippetExpansionClient(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
-                    Guids.VisualBasicDebuggerLanguageId,
+            Using workspace = EditorTestWorkspace.Create(workspaceXml, composition:=VisualStudioTestCompositions.LanguageServices)
+                Dim expansionClientFactory = workspace.Services.GetRequiredService(Of ISnippetExpansionClientFactory)()
+                Dim expansionClient = expansionClientFactory.GetOrCreateSnippetExpansionClient(
+                    workspace.Documents.Single().GetTextBuffer().AsTextContainer().GetOpenDocumentInCurrentContext(),
                     workspace.Documents.Single().GetTextView(),
-                    workspace.Documents.Single().GetTextBuffer(),
-                    signatureHelpControllerProvider:=Nothing,
-                    editorCommandHandlerServiceFactory:=Nothing,
-                    Nothing,
-                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
-                    workspace.GetService(Of EditorOptionsService)())
+                    workspace.Documents.Single().GetTextBuffer())
 
                 Dim document = workspace.CurrentSolution.Projects.Single().Documents.Single()
 
@@ -426,7 +408,7 @@ End Class</Test>
 
                 Dim formattingOptions = VisualBasicSyntaxFormattingOptions.Default
 
-                Dim updatedDocument = expansionClient.AddImports(
+                Dim updatedDocument = expansionClient.GetTestAccessor().LanguageHelper.AddImports(
                     document,
                     addImportOptions,
                     formattingOptions,
@@ -440,7 +422,7 @@ End Class</Test>
         End Function
 
         Public Sub TestFormatting(workspaceXmlWithSubjectBufferDocument As XElement, surfaceBufferDocumentXml As XElement, expectedSurfaceBuffer As XElement)
-            Using workspace = TestWorkspace.Create(workspaceXmlWithSubjectBufferDocument)
+            Using workspace = EditorTestWorkspace.Create(workspaceXmlWithSubjectBufferDocument, composition:=VisualStudioTestCompositions.LanguageServices)
                 Dim subjectBufferDocument = workspace.Documents.Single()
 
                 Dim surfaceBufferDocument = workspace.CreateProjectionBufferDocument(
@@ -448,16 +430,11 @@ End Class</Test>
                     {subjectBufferDocument},
                     options:=ProjectionBufferOptions.WritableLiteralSpans)
 
-                Dim snippetExpansionClient = New SnippetExpansionClient(
-                    workspace.ExportProvider.GetExportedValue(Of IThreadingContext),
-                    Guids.CSharpLanguageServiceId,
+                Dim expansionClientFactory = workspace.Services.GetRequiredService(Of ISnippetExpansionClientFactory)()
+                Dim snippetExpansionClient = expansionClientFactory.GetOrCreateSnippetExpansionClient(
+                    subjectBufferDocument.GetTextBuffer().AsTextContainer().GetOpenDocumentInCurrentContext(),
                     surfaceBufferDocument.GetTextView(),
-                    subjectBufferDocument.GetTextBuffer(),
-                    signatureHelpControllerProvider:=Nothing,
-                    editorCommandHandlerServiceFactory:=Nothing,
-                    Nothing,
-                    workspace.ExportProvider.GetExports(Of ArgumentProvider, OrderableLanguageMetadata)().ToImmutableArray(),
-                    workspace.GetService(Of EditorOptionsService)())
+                    subjectBufferDocument.GetTextBuffer())
 
                 SnippetExpansionClientTestsHelper.TestProjectionBuffer(snippetExpansionClient, surfaceBufferDocument, expectedSurfaceBuffer)
             End Using

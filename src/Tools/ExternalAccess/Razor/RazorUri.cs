@@ -15,9 +15,6 @@ internal static class RazorUri
 
     public static Uri CreateUri(this TextDocument document)
     {
-        Contract.ThrowIfNull(document.FilePath);
-        return document is SourceGeneratedDocument
-            ? ProtocolConversions.CreateUriFromSourceGeneratedFilePath(document.FilePath)
-            : ProtocolConversions.CreateAbsoluteUri(document.FilePath);
+        return document.GetURI();
     }
 }

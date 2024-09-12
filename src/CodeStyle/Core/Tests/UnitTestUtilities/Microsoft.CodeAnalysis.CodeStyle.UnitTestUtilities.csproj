@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Licensed to the .NET Foundation under one or more agreements. The .NET Foundation licenses this file to you under the MIT license. See the LICENSE file in the project root for more information. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
+    <TargetFramework>net472</TargetFramework>
+    <DefineConstants>$(DefineConstants),CODE_STYLE</DefineConstants>
+    <IsShipping>false</IsShipping>
+    <IsTestUtilityProject>true</IsTestUtilityProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\..\Features\DiagnosticsTestUtilities\CodeActions\AnalyzerProperty.cs" Link="AnalyzerProperty.cs" />
+    <Compile Include="..\..\..\..\Features\DiagnosticsTestUtilities\CodeActions\CodeFixVerifierHelper.cs" Link="CodeFixVerifierHelper.cs" />
+    <Compile Include="..\..\..\..\Features\DiagnosticsTestUtilities\CodeActions\CSharpCodeFixVerifier`2+Test.cs" Link="CSharpCodeFixVerifier`2+Test.cs" />
+    <Compile Include="..\..\..\..\Features\DiagnosticsTestUtilities\CodeActions\CSharpCodeFixVerifier`2.cs" Link="CSharpCodeFixVerifier`2.cs" />
+    <Compile Include="..\..\..\..\Features\DiagnosticsTestUtilities\CodeActions\CSharpCodeRefactoringVerifier`1+Test.cs" Link="CSharpCodeRefactoringVerifier`1+Test.cs" />
+    <Compile Include="..\..\..\..\Features\DiagnosticsTestUtilities\CodeActions\CSharpCodeRefactoringVerifier`1.cs" Link="CSharpCodeRefactoringVerifier`1.cs" />
+    <Compile Include="..\..\..\..\Features\DiagnosticsTestUtilities\CodeActions\CSharpVerifierHelper.cs" Link="CSharpVerifierHelper.cs" />
+    <Compile Include="..\..\..\..\Features\DiagnosticsTestUtilities\CodeActions\SharedVerifierState.cs" Link="SharedVerifierState.cs" />
+    <Compile Include="..\..\..\..\Features\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeFixVerifier`2+Test.cs" Link="VisualBasicCodeFixVerifier`2+Test.cs" />
+    <Compile Include="..\..\..\..\Features\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeFixVerifier`2.cs" Link="VisualBasicCodeFixVerifier`2.cs" />
+    <Compile Include="..\..\..\..\Features\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeRefactoringVerifier`1+Test.cs" Link="VisualBasicCodeRefactoringVerifier`1+Test.cs" />
+    <Compile Include="..\..\..\..\Features\DiagnosticsTestUtilities\CodeActions\VisualBasicCodeRefactoringVerifier`1.cs" Link="VisualBasicCodeRefactoringVerifier`1.cs" />
+    <Compile Include="..\..\..\..\Features\DiagnosticsTestUtilities\Diagnostics\ParenthesesOptionsProvider.cs" Link="ParenthesesOptionsProvider.cs" />
+    <Compile Include="..\..\..\..\Features\DiagnosticsTestUtilities\NamingStyles\NamingStylesTestOptionSets.cs" Link="NamingStyles\NamingStylesTestOptionSets.cs" />
+    <Compile Include="..\..\..\..\Workspaces\CoreTestUtilities\OptionsCollection.cs" Link="OptionsCollection.cs" />
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
+    <ProjectReference Include="..\..\CodeFixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.csproj" />
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <!-- Directly reference the Workspaces project so we always test against the latest Roslyn bits -->
+    <ProjectReference Include="..\..\..\..\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\..\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
+    <ProjectReference Include="..\..\..\..\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeRefactoring.Testing.XUnit" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeFix.Testing.XUnit" />
+    <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing.XUnit" />
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <!-- TODO: Remove the below project references to test utility projects once all analyzer/code fix tests are switched to Microsoft.CodeAnalysis.Testing -->
+    <ProjectReference Include="..\..\..\..\Compilers\Test\Core\Microsoft.CodeAnalysis.Test.Utilities.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeStyle.LegacyTestFramework.UnitTestUtilities" />
+  </ItemGroup>
+</Project>

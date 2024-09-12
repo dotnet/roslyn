@@ -130,16 +130,6 @@ Usar colores mejorados;Combinación de colores del editor;Margen de herencia;Dir
         <target state="translated">Herramientas de Visual Basic</target>
         <note>Help &gt; About</note>
       </trans-unit>
-      <trans-unit id="An_empty_Visual_Basic_script_file">
-        <source>An empty Visual Basic script file.</source>
-        <target state="translated">Un archivo de script de Visual Basic vacío.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Visual_Basic_Script">
-        <source>Visual Basic Script</source>
-        <target state="translated">Script de Visual Basic</target>
-        <note />
-      </trans-unit>
     </body>
   </file>
 </xliff>

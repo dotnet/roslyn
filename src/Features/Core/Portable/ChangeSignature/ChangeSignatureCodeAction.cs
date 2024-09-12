@@ -12,37 +12,37 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ChangeSignature
+namespace Microsoft.CodeAnalysis.ChangeSignature;
+
+internal class ChangeSignatureCodeAction(AbstractChangeSignatureService changeSignatureService, ChangeSignatureAnalysisSucceededContext context) : CodeActionWithOptions
 {
-    internal class ChangeSignatureCodeAction(AbstractChangeSignatureService changeSignatureService, ChangeSignatureAnalysisSucceededContext context) : CodeActionWithOptions
+    private readonly AbstractChangeSignatureService _changeSignatureService = changeSignatureService;
+    private readonly ChangeSignatureAnalysisSucceededContext _context = context;
+
+    /// <summary>
+    /// This code action currently pops up a confirmation dialog to the user.  As such, it does more than make
+    /// document changes (and is thus restricted in which hosts it can run).
+    /// </summary>
+    public override ImmutableArray<string> Tags => RequiresNonDocumentChangeTags;
+
+    public override string Title => FeaturesResources.Change_signature;
+
+    public override object? GetOptions(CancellationToken cancellationToken)
+        => AbstractChangeSignatureService.GetChangeSignatureOptions(_context);
+
+    protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+        object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
     {
-        private readonly AbstractChangeSignatureService _changeSignatureService = changeSignatureService;
-        private readonly ChangeSignatureAnalysisSucceededContext _context = context;
-
-        /// <summary>
-        /// This code action currently pops up a confirmation dialog to the user.  As such, it does more than make
-        /// document changes (and is thus restricted in which hosts it can run).
-        /// </summary>
-        public override ImmutableArray<string> Tags => RequiresNonDocumentChangeTags;
-
-        public override string Title => FeaturesResources.Change_signature;
-
-        public override object? GetOptions(CancellationToken cancellationToken)
-            => AbstractChangeSignatureService.GetChangeSignatureOptions(_context);
-
-        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken)
+        if (options is ChangeSignatureOptionsResult changeSignatureOptions && changeSignatureOptions != null)
         {
-            if (options is ChangeSignatureOptionsResult changeSignatureOptions && changeSignatureOptions != null)
+            var changeSignatureResult = await _changeSignatureService.ChangeSignatureWithContextAsync(_context, changeSignatureOptions, cancellationToken).ConfigureAwait(false);
+
+            if (changeSignatureResult.Succeeded)
             {
-                var changeSignatureResult = await _changeSignatureService.ChangeSignatureWithContextAsync(_context, changeSignatureOptions, cancellationToken).ConfigureAwait(false);
-
-                if (changeSignatureResult.Succeeded)
-                {
-                    return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ChangeSignatureCodeActionOperation(changeSignatureResult.UpdatedSolution, changeSignatureResult.ConfirmationMessage));
-                }
+                return SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ChangeSignatureCodeActionOperation(changeSignatureResult.UpdatedSolution, changeSignatureResult.ConfirmationMessage));
             }
-
-            return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
         }
+
+        return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
     }
 }

@@ -55,7 +55,7 @@ internal sealed class BuildOnlyDiagnosticIdsHandler(
 
         foreach (var project in context.Solution.Projects)
         {
-            var analyzersPerReferenceMap = context.Solution.State.Analyzers.CreateDiagnosticAnalyzersPerReference(project);
+            var analyzersPerReferenceMap = context.Solution.SolutionState.Analyzers.CreateDiagnosticAnalyzersPerReference(project);
             foreach (var (analyzerReference, analyzers) in analyzersPerReferenceMap)
             {
                 if (!seenAnalyzerReferencesByLanguage.Add((analyzerReference, project.Language)))

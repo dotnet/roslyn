@@ -311,12 +311,8 @@
     <value>Add missing imports on paste</value>
     <comment>'import' is a Visual Basic keyword and should not be localized</comment>
   </data>
-  <data name="Remove_unnecessary_Imports" xml:space="preserve">
-    <value>Remove unnecessary Imports</value>
-    <comment>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</comment>
-  </data>
-  <data name="Sort_imports" xml:space="preserve">
-    <value>Sort imports</value>
+  <data name="Remove_unnecessary_imports" xml:space="preserve">
+    <value>Remove unnecessary imports</value>
     <comment>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</comment>
   </data>
   <data name="Prefer_simplified_object_creation" xml:space="preserve">

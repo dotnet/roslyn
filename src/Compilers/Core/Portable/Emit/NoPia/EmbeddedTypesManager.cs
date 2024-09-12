@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         where TModuleCompilationState : CommonModuleCompilationState
         where TEmbeddedTypesManager : EmbeddedTypesManager<TPEModuleBuilder, TModuleCompilationState, TEmbeddedTypesManager, TSyntaxNode, TAttributeData, TSymbol, TAssemblySymbol, TNamedTypeSymbol, TFieldSymbol, TMethodSymbol, TEventSymbol, TPropertySymbol, TParameterSymbol, TTypeParameterSymbol, TEmbeddedType, TEmbeddedField, TEmbeddedMethod, TEmbeddedEvent, TEmbeddedProperty, TEmbeddedParameter, TEmbeddedTypeParameter>
         where TSyntaxNode : SyntaxNode
-        where TAttributeData : AttributeData, Cci.ICustomAttribute
+        where TAttributeData : class, Cci.ICustomAttribute
         where TAssemblySymbol : class
         where TNamedTypeSymbol : class, TSymbol, Cci.INamespaceTypeReference
         where TFieldSymbol : class, TSymbol, Cci.IFieldReference
@@ -148,14 +148,16 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             return false;
         }
 
-        internal abstract int GetTargetAttributeSignatureIndex(TSymbol underlyingSymbol, TAttributeData attrData, AttributeDescription description);
+        internal abstract int GetTargetAttributeSignatureIndex(TAttributeData attrData, AttributeDescription description);
 
-        internal bool IsTargetAttribute(TSymbol underlyingSymbol, TAttributeData attrData, AttributeDescription description)
+        internal bool IsTargetAttribute(TAttributeData attrData, AttributeDescription description, out int signatureIndex)
         {
-            return GetTargetAttributeSignatureIndex(underlyingSymbol, attrData, description) != -1;
+            signatureIndex = GetTargetAttributeSignatureIndex(attrData, description);
+            return signatureIndex != -1;
         }
 
-        internal abstract TAttributeData CreateSynthesizedAttribute(WellKnownMember constructor, TAttributeData attrData, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
+        internal abstract TAttributeData CreateSynthesizedAttribute(WellKnownMember constructor, ImmutableArray<TypedConstant> constructorArguments, ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
+        internal abstract bool TryGetAttributeArguments(TAttributeData attrData, out ImmutableArray<TypedConstant> constructorArguments, out ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
         internal abstract void ReportIndirectReferencesToLinkedAssemblies(TAssemblySymbol assembly, DiagnosticBag diagnostics);
 
         protected abstract void OnGetTypesCompleted(ImmutableArray<TEmbeddedType> types, DiagnosticBag diagnostics);

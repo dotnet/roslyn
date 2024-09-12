@@ -5,40 +5,39 @@
 using System;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal class LiveDiagnosticUpdateArgsId : AnalyzerUpdateArgsId
 {
-    internal class LiveDiagnosticUpdateArgsId : AnalyzerUpdateArgsId
+    private string? _buildTool;
+
+    public readonly object ProjectOrDocumentId;
+    public readonly AnalysisKind Kind;
+
+    public LiveDiagnosticUpdateArgsId(DiagnosticAnalyzer analyzer, object projectOrDocumentId, AnalysisKind kind)
+        : base(analyzer)
     {
-        private string? _buildTool;
+        Contract.ThrowIfNull(projectOrDocumentId);
 
-        public readonly object ProjectOrDocumentId;
-        public readonly AnalysisKind Kind;
-
-        public LiveDiagnosticUpdateArgsId(DiagnosticAnalyzer analyzer, object projectOrDocumentId, AnalysisKind kind)
-            : base(analyzer)
-        {
-            Contract.ThrowIfNull(projectOrDocumentId);
-
-            ProjectOrDocumentId = projectOrDocumentId;
-            Kind = kind;
-        }
-
-        public override string BuildTool => _buildTool ??= ComputeBuildTool();
-
-        private string ComputeBuildTool()
-            => Analyzer.IsBuiltInAnalyzer() ? PredefinedBuildTools.Live : Analyzer.GetAnalyzerAssemblyName();
-
-        public override bool Equals(object? obj)
-        {
-            if (obj is not LiveDiagnosticUpdateArgsId other)
-            {
-                return false;
-            }
-
-            return Kind == other.Kind && Equals(ProjectOrDocumentId, other.ProjectOrDocumentId) && base.Equals(obj);
-        }
-
-        public override int GetHashCode()
-            => Hash.Combine(ProjectOrDocumentId, Hash.Combine((int)Kind, base.GetHashCode()));
+        ProjectOrDocumentId = projectOrDocumentId;
+        Kind = kind;
     }
+
+    public override string BuildTool => _buildTool ??= ComputeBuildTool();
+
+    private string ComputeBuildTool()
+        => Analyzer.IsBuiltInAnalyzer() ? PredefinedBuildTools.Live : Analyzer.GetAnalyzerAssemblyName();
+
+    public override bool Equals(object? obj)
+    {
+        if (obj is not LiveDiagnosticUpdateArgsId other)
+        {
+            return false;
+        }
+
+        return Kind == other.Kind && Equals(ProjectOrDocumentId, other.ProjectOrDocumentId) && base.Equals(obj);
+    }
+
+    public override int GetHashCode()
+        => Hash.Combine(ProjectOrDocumentId, Hash.Combine((int)Kind, base.GetHashCode()));
 }

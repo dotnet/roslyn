@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImports
 {
-    public class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class RemoveUnnecessaryImportsTests_FixAllTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public RemoveUnnecessaryImportsTests_FixAllTests(ITestOutputHelper logger)
           : base(logger)
@@ -32,74 +32,76 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryImport
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInDocument()
         {
-            var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-{|FixAllInDocument:using System;
-using System.Collections.Generic;|}
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                {|FixAllInDocument:using System;
+                using System.Collections.Generic;|}
 
-class Program
-{
-    public Int32 x;
-}
-        </Document>
-        <Document>
-using System;
-using System.Collections.Generic;
+                class Program
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                        <Document>
+                using System;
+                using System.Collections.Generic;
 
-class Program2
-{
-    public Int32 x;
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-using System;
-using System.Collections.Generic;
+                class Program2
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                        <Document>
+                using System;
+                using System.Collections.Generic;
 
-class Program3
-{
-    public Int32 x;
-}
-        </Document>
-    </Project>
-</Workspace>";
+                class Program3
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                using System;
 
-class Program
-{
-    public Int32 x;
-}
-        </Document>
-        <Document>
-using System;
-using System.Collections.Generic;
+                class Program
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                        <Document>
+                using System;
+                using System.Collections.Generic;
 
-class Program2
-{
-    public Int32 x;
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-using System;
-using System.Collections.Generic;
+                class Program2
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                        <Document>
+                using System;
+                using System.Collections.Generic;
 
-class Program3
-{
-    public Int32 x;
-}
-        </Document>
-    </Project>
-</Workspace>";
+                class Program3
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             await TestInRegularAndScriptAsync(input, expected);
         }
@@ -109,73 +111,75 @@ class Program3
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProject()
         {
-            var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-{|FixAllInProject:using System;
-using System.Collections.Generic;|}
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                {|FixAllInProject:using System;
+                using System.Collections.Generic;|}
 
-class Program
-{
-    public Int32 x;
-}
-        </Document>
-        <Document>
-using System;
-using System.Collections.Generic;
+                class Program
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                        <Document>
+                using System;
+                using System.Collections.Generic;
 
-class Program2
-{
-    public Int32 x;
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-using System;
-using System.Collections.Generic;
+                class Program2
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                        <Document>
+                using System;
+                using System.Collections.Generic;
 
-class Program3
-{
-    public Int32 x;
-}
-        </Document>
-    </Project>
-</Workspace>";
+                class Program3
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                using System;
 
-class Program
-{
-    public Int32 x;
-}
-        </Document>
-        <Document>
-using System;
+                class Program
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                        <Document>
+                using System;
 
-class Program2
-{
-    public Int32 x;
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-using System;
-using System.Collections.Generic;
+                class Program2
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                        <Document>
+                using System;
+                using System.Collections.Generic;
 
-class Program3
-{
-    public Int32 x;
-}
-        </Document>
-    </Project>
-</Workspace>";
+                class Program3
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             await TestInRegularAndScriptAsync(input, expected);
         }
@@ -185,74 +189,76 @@ class Program3
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInProjectSkipsGeneratedCode()
         {
-            var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-{|FixAllInProject:using System;
-using System.Collections.Generic;|}
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                {|FixAllInProject:using System;
+                using System.Collections.Generic;|}
 
-class Program
-{
-    public Int32 x;
-}
-        </Document>
-        <Document FilePath=""Document.g.cs"">
-using System;
-using System.Collections.Generic;
+                class Program
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                        <Document FilePath="Document.g.cs">
+                using System;
+                using System.Collections.Generic;
 
-class Program2
-{
-    public Int32 x;
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-using System;
-using System.Collections.Generic;
+                class Program2
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                        <Document>
+                using System;
+                using System.Collections.Generic;
 
-class Program3
-{
-    public Int32 x;
-}
-        </Document>
-    </Project>
-</Workspace>";
+                class Program3
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                using System;
 
-class Program
-{
-    public Int32 x;
-}
-        </Document>
-        <Document FilePath=""Document.g.cs"">
-using System;
-using System.Collections.Generic;
+                class Program
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                        <Document FilePath="Document.g.cs">
+                using System;
+                using System.Collections.Generic;
 
-class Program2
-{
-    public Int32 x;
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-using System;
-using System.Collections.Generic;
+                class Program2
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                        <Document>
+                using System;
+                using System.Collections.Generic;
 
-class Program3
-{
-    public Int32 x;
-}
-        </Document>
-    </Project>
-</Workspace>";
+                class Program3
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             await TestInRegularAndScriptAsync(input, expected);
         }
@@ -262,72 +268,74 @@ class Program3
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInSolution()
         {
-            var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-{|FixAllInSolution:using System;
-using System.Collections.Generic;|}
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                {|FixAllInSolution:using System;
+                using System.Collections.Generic;|}
 
-class Program
-{
-    public Int32 x;
-}
-        </Document>
-        <Document>
-using System;
-using System.Collections.Generic;
+                class Program
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                        <Document>
+                using System;
+                using System.Collections.Generic;
 
-class Program2
-{
-    public Int32 x;
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-using System;
-using System.Collections.Generic;
+                class Program2
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                        <Document>
+                using System;
+                using System.Collections.Generic;
 
-class Program3
-{
-    public Int32 x;
-}
-        </Document>
-    </Project>
-</Workspace>";
+                class Program3
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
-            var expected = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-using System;
+            var expected = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                using System;
 
-class Program
-{
-    public Int32 x;
-}
-        </Document>
-        <Document>
-using System;
+                class Program
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                        <Document>
+                using System;
 
-class Program2
-{
-    public Int32 x;
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-using System;
+                class Program2
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                        <Document>
+                using System;
 
-class Program3
-{
-    public Int32 x;
-}
-        </Document>
-    </Project>
-</Workspace>";
+                class Program3
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             await TestInRegularAndScriptAsync(input, expected);
         }
@@ -337,40 +345,41 @@ class Program3
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInContainingMember_NotApplicable()
         {
-            var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-{|FixAllInContainingMember:using System;
-using System.Collections.Generic;|}
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                {|FixAllInContainingMember:using System;
+                using System.Collections.Generic;|}
 
-class Program
-{
-    public Int32 x;
-}
-        </Document>
-        <Document>
-using System;
-using System.Collections.Generic;
+                class Program
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                        <Document>
+                using System;
+                using System.Collections.Generic;
 
-class Program2
-{
-    public Int32 x;
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-using System;
-using System.Collections.Generic;
+                class Program2
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                        <Document>
+                using System;
+                using System.Collections.Generic;
 
-class Program3
-{
-    public Int32 x;
-}
-        </Document>
-    </Project>
-</Workspace>";
+                class Program3
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             await TestMissingInRegularAndScriptAsync(input);
         }
@@ -380,40 +389,41 @@ class Program3
         [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
         public async Task TestFixAllInContainingType_NotApplicable()
         {
-            var input = @"
-<Workspace>
-    <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
-        <Document>
-{|FixAllInContainingType:using System;
-using System.Collections.Generic;|}
+            var input = """
+                <Workspace>
+                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                        <Document>
+                {|FixAllInContainingType:using System;
+                using System.Collections.Generic;|}
 
-class Program
-{
-    public Int32 x;
-}
-        </Document>
-        <Document>
-using System;
-using System.Collections.Generic;
+                class Program
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                        <Document>
+                using System;
+                using System.Collections.Generic;
 
-class Program2
-{
-    public Int32 x;
-}
-        </Document>
-    </Project>
-    <Project Language=""C#"" AssemblyName=""Assembly2"" CommonReferences=""true"">
-        <Document>
-using System;
-using System.Collections.Generic;
+                class Program2
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                    </Project>
+                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                        <Document>
+                using System;
+                using System.Collections.Generic;
 
-class Program3
-{
-    public Int32 x;
-}
-        </Document>
-    </Project>
-</Workspace>";
+                class Program3
+                {
+                    public Int32 x;
+                }
+                        </Document>
+                    </Project>
+                </Workspace>
+                """;
 
             await TestMissingInRegularAndScriptAsync(input);
         }

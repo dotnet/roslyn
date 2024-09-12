@@ -54,6 +54,12 @@ namespace Microsoft.CodeAnalysis
             _compilerLoadContext = compilerLoadContext ?? AssemblyLoadContext.GetLoadContext(typeof(AnalyzerAssemblyLoader).GetTypeInfo().Assembly)!;
         }
 
+        public bool IsHostAssembly(Assembly assembly)
+        {
+            var alc = AssemblyLoadContext.GetLoadContext(assembly);
+            return alc == _compilerLoadContext || alc == AssemblyLoadContext.Default;
+        }
+
         private partial Assembly Load(AssemblyName assemblyName, string assemblyOriginalPath)
         {
             DirectoryLoadContext? loadContext;
@@ -135,11 +141,33 @@ namespace Microsoft.CodeAnalysis
                     return loadCore(loadPath);
                 }
 
+                // Next if this is a resource assembly for a known assembly then load it from the 
+                // appropriate sub directory if it exists
+                //
+                // Note: when loading from disk the .NET runtime has a fallback step that will handle
+                // satellite assembly loading if the call to Load(satelliteAssemblyName) fails. This
+                // loader has a mode where it loads from Stream though and the runtime will not handle
+                // that automatically. Rather than bifurate our loading behavior between Disk and
+                // Stream both modes just handle satellite loading directly
+                if (assemblyName.CultureInfo is not null && simpleName.EndsWith(".resources", StringComparison.Ordinal))
+                {
+                    var analyzerFileName = Path.ChangeExtension(simpleName, ".dll");
+                    var analyzerFilePath = Path.Combine(Directory, analyzerFileName);
+                    var satelliteLoadPath = _loader.GetRealSatelliteLoadPath(analyzerFilePath, assemblyName.CultureInfo);
+                    if (satelliteLoadPath is not null)
+                    {
+                        return loadCore(satelliteLoadPath);
+                    }
+
+                    return null;
+                }
+
                 // Next prefer registered dependencies from other directories. Ideally this would not
                 // be necessary but msbuild target defaults have caused a number of customers to 
                 // fall into this path. See discussion here for where it comes up
                 // https://github.com/dotnet/roslyn/issues/56442
-                if (_loader.GetBestPath(assemblyName) is string bestRealPath)
+                var (_, bestRealPath) = _loader.GetBestPath(assemblyName);
+                if (bestRealPath is not null)
                 {
                     return loadCore(bestRealPath);
                 }

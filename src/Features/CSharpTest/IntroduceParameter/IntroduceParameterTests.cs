@@ -17,9 +17,9 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntroduceParameter
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceParameter)]
-    public class IntroduceParameterTests : AbstractCSharpCodeActionTest
+    public class IntroduceParameterTests : AbstractCSharpCodeActionTest_NoEditor
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
             => new CSharpIntroduceParameterCodeRefactoringProvider();
 
         protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)

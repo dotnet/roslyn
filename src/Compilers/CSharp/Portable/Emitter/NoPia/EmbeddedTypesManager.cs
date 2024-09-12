@@ -116,12 +116,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             return lazyMethod;
         }
 
-        internal override int GetTargetAttributeSignatureIndex(SymbolAdapter underlyingSymbol, CSharpAttributeData attrData, AttributeDescription description)
+        internal override int GetTargetAttributeSignatureIndex(CSharpAttributeData attrData, AttributeDescription description)
         {
-            return attrData.GetTargetAttributeSignatureIndex(underlyingSymbol.AdaptedSymbol, description);
+            return attrData.GetTargetAttributeSignatureIndex(description);
         }
 
-        internal override CSharpAttributeData CreateSynthesizedAttribute(WellKnownMember constructor, CSharpAttributeData attrData, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        internal override CSharpAttributeData CreateSynthesizedAttribute(WellKnownMember constructor, ImmutableArray<TypedConstant> constructorArguments, ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
             var ctor = GetWellKnownMethod(constructor, syntaxNodeOpt, diagnostics);
             if ((object)ctor == null)
@@ -135,8 +135,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                     // When emitting a com event interface, we have to tweak the parameters: the spec requires that we use
                     // the original source interface as both source interface and event provider. Otherwise, we'd have to embed
                     // the event provider class too.
-                    return new SynthesizedAttributeData(ctor,
-                        ImmutableArray.Create<TypedConstant>(attrData.CommonConstructorArguments[0], attrData.CommonConstructorArguments[0]),
+                    return SynthesizedAttributeData.Create(ModuleBeingBuilt.Compilation, ctor,
+                        ImmutableArray.Create<TypedConstant>(constructorArguments[0], constructorArguments[0]),
                         ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
 
                 case WellKnownMember.System_Runtime_InteropServices_CoClassAttribute__ctor:
@@ -144,13 +144,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                     // instantiatable. The attribute cannot refer directly to the coclass, however, because we can't embed
                     // classes, and we can't emit a reference to the PIA. We don't actually need
                     // the class name at runtime: we will instead emit a reference to System.Object, as a placeholder.
-                    return new SynthesizedAttributeData(ctor,
+                    return SynthesizedAttributeData.Create(ModuleBeingBuilt.Compilation, ctor,
                         ImmutableArray.Create(new TypedConstant(ctor.Parameters[0].Type, TypedConstantKind.Type, ctor.ContainingAssembly.GetSpecialType(SpecialType.System_Object))),
                         ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty);
 
                 default:
-                    return new SynthesizedAttributeData(ctor, attrData.CommonConstructorArguments, attrData.CommonNamedArguments);
+                    return SynthesizedAttributeData.Create(ModuleBeingBuilt.Compilation, ctor, constructorArguments, namedArguments);
             }
+        }
+
+        internal override bool TryGetAttributeArguments(CSharpAttributeData attrData, out ImmutableArray<TypedConstant> constructorArguments, out ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        {
+            bool result = !attrData.HasErrors;
+
+            constructorArguments = attrData.CommonConstructorArguments;
+            namedArguments = attrData.CommonNamedArguments;
+
+            DiagnosticInfo errorInfo = attrData.ErrorInfo;
+            if (errorInfo is not null)
+            {
+                diagnostics.Add(errorInfo, syntaxNodeOpt?.Location ?? NoLocation.Singleton);
+            }
+
+            return result;
         }
 
         internal string GetAssemblyGuidString(AssemblySymbol assembly)
@@ -481,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                     break;
 
                 default:
-                    if (Cci.Extensions.HasBody(embedded))
+                    if (embedded.HasBody)
                     {
                         // ERRID.ERR_InteropMethodWithBody1/ERR_InteropMethodWithBody
                         Error(diagnostics, ErrorCode.ERR_InteropMethodWithBody, syntaxNodeOpt, method.AdaptedMethodSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));

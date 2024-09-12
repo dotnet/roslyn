@@ -1165,7 +1165,7 @@ $@"{typeKind} Program
         [Trait(Traits.Feature, Traits.Features.Interactive)]
         public void OrganizingCommandsDisabledInSubmission()
         {
-            using var workspace = TestWorkspace.Create(XElement.Parse("""
+            using var workspace = EditorTestWorkspace.Create(XElement.Parse("""
                 <Workspace>
                     <Submission Language="C#" CommonReferences="true">
                         class C

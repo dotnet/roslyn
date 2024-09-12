@@ -124,7 +124,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Returns true if this parameter was declared as a ParamArray. 
         ''' </summary>
-        Public MustOverride ReadOnly Property IsParamArray As Boolean Implements IParameterSymbol.IsParams
+        Public MustOverride ReadOnly Property IsParamArray As Boolean Implements IParameterSymbol.IsParams, IParameterSymbol.IsParamsArray
+
+        Private ReadOnly Property IsParamsCollection As Boolean Implements IParameterSymbol.IsParamsCollection
+            Get
+                Return False
+            End Get
+        End Property
 
         ''' <summary>
         ''' Returns true if this parameter was declared as Optional. 
@@ -295,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Private ReadOnly Property IParameterSymbol_RefKind As RefKind Implements IParameterSymbol.RefKind
+        Private ReadOnly Property IParameterSymbol_RefKind As RefKind Implements IParameterSymbol.RefKind, IParameterSymbolInternal.RefKind
             Get
                 ' TODO: Should we check if it has the <Out> attribute and return 'RefKind.Out' in
                 ' that case?
@@ -310,6 +316,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private ReadOnly Property IParameterSymbol_Type As ITypeSymbol Implements IParameterSymbol.Type
+            Get
+                Return Me.Type
+            End Get
+        End Property
+
+        Private ReadOnly Property IParameterSymbolInternal_Type As ITypeSymbolInternal Implements IParameterSymbolInternal.Type
             Get
                 Return Me.Type
             End Get

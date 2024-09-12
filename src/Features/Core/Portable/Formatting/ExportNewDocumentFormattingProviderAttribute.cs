@@ -5,12 +5,11 @@
 using System;
 using System.Composition;
 
-namespace Microsoft.CodeAnalysis.Formatting
+namespace Microsoft.CodeAnalysis.Formatting;
+
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class)]
+internal class ExportNewDocumentFormattingProviderAttribute(string languageName) : ExportAttribute(typeof(INewDocumentFormattingProvider))
 {
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportNewDocumentFormattingProviderAttribute(string languageName) : ExportAttribute(typeof(INewDocumentFormattingProvider))
-    {
-        public string Language { get; } = languageName;
-    }
+    public string Language { get; } = languageName;
 }

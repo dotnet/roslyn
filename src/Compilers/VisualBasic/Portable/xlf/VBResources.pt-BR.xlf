@@ -42,6 +42,16 @@
         <target state="translated">'System.Runtime.CompilerServices.RequiredMemberAttribute' está reservado somente para uso do compilador.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="translated">O argumento diagnosticId para o atributo 'Experimental' deve ser um identificador válido</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LockTypeUnsupported">
+        <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
+        <target state="translated">Um valor do tipo "System.Threading.Lock" não tem suporte no SyncLock. Em vez disso, pense em chamar manualmente os métodos "Enter" e "Exit" em um bloco Try/Finally.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">Não é possível que haja vários arquivos de configuração do analisador no mesmo diretório ('{0}').</target>
@@ -601,6 +611,16 @@
       <trans-unit id="WRN_CallerArgumentExpressionAttributeSelfReferential_Title">
         <source>The CallerArgumentExpressionAttribute applied to parameter will have no effect because it's self-referential.</source>
         <target state="translated">O CallerArgumentExpressionAttribute aplicado ao parâmetro não terá efeito porque é de autorreferência.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">Um valor do tipo "System.Threading.Lock" convertido em um tipo diferente usará um bloqueio baseado em monitor provavelmente não intencional na instrução SyncLock.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock_Title">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">Um valor do tipo "System.Threading.Lock" convertido em um tipo diferente usará um bloqueio baseado em monitor provavelmente não intencional na instrução SyncLock.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">

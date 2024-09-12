@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
     <Trait(Traits.Feature, Traits.Features.ValidateRegexString)>
     Public Class ValidateRegexStringTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicRegexDiagnosticAnalyzer(), Nothing)

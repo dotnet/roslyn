@@ -124,6 +124,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.UseRec
 
         [Theory]
         [InlineData("this.P1 == 1 && 2 == this.P2", "this is { P1: 1, P2: 2 }")]
+        [InlineData("this.cf != null && this.cf.C != 0", "this.cf is { C: not 0 }")]
+        [InlineData("cf != null && cf.C != 0", "cf is { C: not 0 }")]
         [InlineData("this.P1 != 1 && 2 != this.P2", "this is { P1: not 1, P2: not 2 }")]
         [InlineData("this.CP1.P1 == 1 && 2 == this.CP2.P2", "this is { CP1: { P1: 1 }, CP2: { P2: 2 } }")]
         [InlineData("this.CP1.P1 != 1 && 2 != this.CP2.P2", "this is { CP1: { P1: not 1 }, CP2: { P2: not 2 } }")]
@@ -242,6 +244,12 @@ namespace NS
         public static C SCP1, SCP2;
         public static int SP1, SP2;
         public C m() { return null; }
+        public D cf = null;
+    }
+
+    class D
+    {
+        public int C = 0;
     }
 }";
             return entry is null ? markup : markup.Replace(entry, "[||]" + entry);

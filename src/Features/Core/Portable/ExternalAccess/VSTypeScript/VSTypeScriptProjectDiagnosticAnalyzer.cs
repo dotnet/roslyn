@@ -8,22 +8,21 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
+
+[DiagnosticAnalyzer(InternalLanguageNames.TypeScript)]
+internal sealed class VSTypeScriptProjectDiagnosticAnalyzer : ProjectDiagnosticAnalyzer
 {
-    [DiagnosticAnalyzer(InternalLanguageNames.TypeScript)]
-    internal sealed class VSTypeScriptProjectDiagnosticAnalyzer : ProjectDiagnosticAnalyzer
+    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => [];
+
+    public override Task<ImmutableArray<Diagnostic>> AnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray<DiagnosticDescriptor>.Empty;
-
-        public override Task<ImmutableArray<Diagnostic>> AnalyzeProjectAsync(Project project, CancellationToken cancellationToken)
+        var analyzer = project.Services.GetRequiredService<VSTypeScriptDiagnosticAnalyzerLanguageService>().Implementation;
+        if (analyzer == null)
         {
-            var analyzer = project.Services.GetRequiredService<VSTypeScriptDiagnosticAnalyzerLanguageService>().Implementation;
-            if (analyzer == null)
-            {
-                return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
-            }
-
-            return analyzer.AnalyzeProjectAsync(project, cancellationToken);
+            return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
         }
+
+        return analyzer.AnalyzeProjectAsync(project, cancellationToken);
     }
 }

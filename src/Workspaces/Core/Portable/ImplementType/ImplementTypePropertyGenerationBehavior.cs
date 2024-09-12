@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.ImplementType
+namespace Microsoft.CodeAnalysis.ImplementType;
+
+internal enum ImplementTypePropertyGenerationBehavior
 {
-    internal enum ImplementTypePropertyGenerationBehavior
-    {
-        PreferThrowingProperties = 0,
-        PreferAutoProperties = 1,
-    }
+    PreferThrowingProperties = 0,
+    PreferAutoProperties = 1,
 }

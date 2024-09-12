@@ -299,63 +299,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return fieldSymbol.GetCciAdapter()
         End Function
 
-        Public Shared Function MemberVisibility(symbol As Symbol) As Microsoft.Cci.TypeMemberVisibility
-            '
-            ' We need to relax visibility of members in interactive submissions since they might be emitted into multiple assemblies.
-            '
-            ' Top-level:
-            '   private                       -> public
-            '   family                        -> public (compiles with a warning)
-            '   public
-            '   friend                        -> public
-            '
-            ' In a nested class:
-            '
-            '   private
-            '   family
-            '   public
-            '   friend                        -> public
-            '
-            Select Case symbol.DeclaredAccessibility
-                Case Accessibility.Public
-                    Return Microsoft.Cci.TypeMemberVisibility.Public
-
-                Case Accessibility.Private
-                    If symbol.ContainingType.TypeKind = TypeKind.Submission Then
-                        Return Microsoft.Cci.TypeMemberVisibility.Public
-                    Else
-                        Return Microsoft.Cci.TypeMemberVisibility.Private
-                    End If
-
-                Case Accessibility.Friend
-                    If symbol.ContainingAssembly.IsInteractive Then
-                        Return Microsoft.Cci.TypeMemberVisibility.Public
-                    Else
-                        Return Microsoft.Cci.TypeMemberVisibility.Assembly
-                    End If
-
-                Case Accessibility.Protected
-                    If symbol.ContainingType.TypeKind = TypeKind.Submission Then
-                        Return Microsoft.Cci.TypeMemberVisibility.Public
-                    Else
-                        Return Microsoft.Cci.TypeMemberVisibility.Family
-                    End If
-
-                Case Accessibility.ProtectedAndFriend
-                    Debug.Assert(symbol.ContainingType.TypeKind <> TypeKind.Submission)
-                    Return Microsoft.Cci.TypeMemberVisibility.FamilyAndAssembly
-
-                Case Accessibility.ProtectedOrFriend
-                    If symbol.ContainingAssembly.IsInteractive Then
-                        Return Microsoft.Cci.TypeMemberVisibility.Public
-                    Else
-                        Return Microsoft.Cci.TypeMemberVisibility.FamilyOrAssembly
-                    End If
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(symbol.DeclaredAccessibility)
-            End Select
-        End Function
-
         Friend Overloads Overrides Function Translate(symbol As MethodSymbol, diagnostics As DiagnosticBag, needDeclaration As Boolean) As IMethodReference
             Return Translate(symbol, Nothing, diagnostics, needDeclaration)
         End Function

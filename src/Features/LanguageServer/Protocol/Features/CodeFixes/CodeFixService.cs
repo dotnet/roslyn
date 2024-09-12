@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorLogger;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -97,23 +98,22 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             };
         }
 
-        public async Task<FirstFixResult> GetMostSevereFixAsync(
+        public async Task<CodeFixCollection?> GetMostSevereFixAsync(
             TextDocument document, TextSpan range, ICodeActionRequestPriorityProvider priorityProvider, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
         {
             using var _ = TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}");
 
             ImmutableArray<DiagnosticData> allDiagnostics;
-            bool upToDate;
 
             using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeFix_Summary, $"Pri{priorityProvider.Priority.GetPriorityInt()}.{nameof(GetMostSevereFixAsync)}.{nameof(_diagnosticService.GetDiagnosticsForSpanAsync)}"))
             {
-                (allDiagnostics, upToDate) = await _diagnosticService.TryGetDiagnosticsForSpanAsync(
+                allDiagnostics = await _diagnosticService.GetDiagnosticsForSpanAsync(
                     document, range, GetShouldIncludeDiagnosticPredicate(document, priorityProvider),
-                    includeSuppressedDiagnostics: false, priorityProvider, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
+                    includeCompilerDiagnostics: true, includeSuppressedDiagnostics: false, priorityProvider, addOperationScope: null, DiagnosticKind.All, isExplicit: false, cancellationToken).ConfigureAwait(false);
             }
 
-            var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
-            allDiagnostics = allDiagnostics.AddRange(buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id));
+            var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priorityProvider.Priority, cancellationToken).ConfigureAwait(false);
+            allDiagnostics = allDiagnostics.AddRange(copilotDiagnostics);
 
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var spanToDiagnostics = ConvertToMap(text, allDiagnostics);
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                              await otherFixTask.ConfigureAwait(false);
             linkedTokenSource.Cancel();
 
-            return new FirstFixResult(upToDate, collection);
+            return collection;
 
             async Task<CodeFixCollection?> GetFirstFixAsync(
                 SortedDictionary<TextSpan, List<DiagnosticData>> spanToDiagnostics,
@@ -197,10 +197,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     addOperationScope, DiagnosticKind.All, isExplicit: true, cancellationToken).ConfigureAwait(false);
             }
 
-            var buildOnlyDiagnosticsService = document.Project.Solution.Services.GetRequiredService<IBuildOnlyDiagnosticsService>();
-            var buildOnlyDiagnostics = buildOnlyDiagnosticsService.GetBuildOnlyDiagnostics(document.Id);
+            var copilotDiagnostics = await GetCopilotDiagnosticsAsync(document, range, priorityProvider.Priority, cancellationToken).ConfigureAwait(false);
+            diagnostics = diagnostics.AddRange(copilotDiagnostics);
 
-            if (diagnostics.IsEmpty && buildOnlyDiagnostics.IsEmpty)
+            if (diagnostics.IsEmpty)
                 yield break;
 
             if (!diagnostics.IsEmpty)
@@ -224,7 +224,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             if (document.Project.Solution.WorkspaceKind != WorkspaceKind.Interactive && includeSuppressionFixes)
             {
                 // For build-only diagnostics, we support configuration/suppression fixes.
-                diagnostics = diagnostics.AddRange(buildOnlyDiagnostics);
                 var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                 var spanToDiagnostics = ConvertToMap(text, diagnostics);
 
@@ -239,6 +238,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     }
                 }
             }
+        }
+
+        private static async Task<ImmutableArray<DiagnosticData>> GetCopilotDiagnosticsAsync(
+            TextDocument document,
+            TextSpan range,
+            CodeActionRequestPriority? priority,
+            CancellationToken cancellationToken)
+        {
+            if (priority is null or CodeActionRequestPriority.Low)
+                return await document.GetCachedCopilotDiagnosticsAsync(range, cancellationToken).ConfigureAwait(false);
+
+            return [];
         }
 
         private static SortedDictionary<TextSpan, List<DiagnosticData>> ConvertToMap(
@@ -309,14 +320,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             return null;
         }
 
-        public Task<TDocument> ApplyCodeFixesForSpecificDiagnosticIdAsync<TDocument>(TDocument document, string diagnosticId, IProgressTracker progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken) where TDocument : TextDocument
+        public Task<TDocument> ApplyCodeFixesForSpecificDiagnosticIdAsync<TDocument>(TDocument document, string diagnosticId, IProgress<CodeAnalysisProgress> progressTracker, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken) where TDocument : TextDocument
             => ApplyCodeFixesForSpecificDiagnosticIdAsync(document, diagnosticId, DiagnosticSeverity.Hidden, progressTracker, fallbackOptions, cancellationToken);
 
         public async Task<TDocument> ApplyCodeFixesForSpecificDiagnosticIdAsync<TDocument>(
             TDocument document,
             string diagnosticId,
             DiagnosticSeverity severity,
-            IProgressTracker progressTracker,
+            IProgress<CodeAnalysisProgress> progressTracker,
             CodeActionOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
             where TDocument : TextDocument
@@ -534,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                     {
                                         var primaryDiagnostic = dxs.First();
                                         return GetCodeFixesAsync(document, primaryDiagnostic.Location.SourceSpan, fixer, fixerMetadata, fallbackOptions,
-                                            ImmutableArray.Create(primaryDiagnostic), uniqueDiagosticToEquivalenceKeysMap,
+                                            [primaryDiagnostic], uniqueDiagosticToEquivalenceKeysMap,
                                             diagnosticAndEquivalenceKeyToFixersMap, cancellationToken);
                                     }
                                     else
@@ -746,8 +757,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             var extensionManager = textDocument.Project.Solution.Services.GetRequiredService<IExtensionManager>();
             var fixes = await extensionManager.PerformFunctionAsync(fixer,
-                 () => getFixes(diagnostics),
-                defaultValue: ImmutableArray<CodeFix>.Empty).ConfigureAwait(false);
+                _ => getFixes(diagnostics),
+                defaultValue: [], cancellationToken).ConfigureAwait(false);
 
             if (fixes.IsDefaultOrEmpty)
                 return null;
@@ -825,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return extensionManager.PerformFunction(
                     fixer,
                     () => ImmutableInterlocked.GetOrAdd(ref _fixerToFixableIdsMap, fixer, f => GetAndTestFixableDiagnosticIds(f)),
-                    defaultValue: ImmutableArray<DiagnosticId>.Empty);
+                    defaultValue: []);
             }
 
             try
@@ -839,7 +850,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     logger.Value.LogException(fixer, e);
                 }
 
-                return ImmutableArray<DiagnosticId>.Empty;
+                return [];
             }
         }
 

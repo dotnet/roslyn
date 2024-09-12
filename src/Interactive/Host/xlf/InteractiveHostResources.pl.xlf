@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="pl" original="../InteractiveHostResources.resx">
     <body>
-      <trans-unit id="Attempt_to_connect_to_process_Sharp_0_failed_retrying">
-        <source>Attempt to connect to process #{0} failed, retrying ...</source>
-        <target state="translated">Próba połączenia z procesem #{0} nie powiodła się. Ponawianie próby...</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cannot_resolve_reference_0">
         <source>Cannot resolve reference '{0}'.</source>
         <target state="translated">Nie można rozpoznać odwołania „{0}”.</target>
@@ -17,11 +12,6 @@
         <target state="translated">Nie można utworzyć procesu zdalnego dla wykonania kodu interaktywnego: „{0}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Failed_to_initialize_remote_interactive_process">
-        <source>Failed to initialize remote interactive process.</source>
-        <target state="translated">Zainicjowanie zdalnego procesu interaktywnego nie powiodło się.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Failed_to_launch_0_process_exit_code_colon_1_with_output_colon">
         <source>Failed to launch '{0}' process (exit code: {1}) with output: </source>
         <target state="translated">Uruchomienie procesu „{0}” nie powiodło się (kod zakończenia: {1}) z wynikiem: </target>
@@ -30,11 +20,6 @@
       <trans-unit id="Hosting_process_exited_with_exit_code_0">
         <source>Hosting process exited with exit code {0}.</source>
         <target state="translated">Proces hostujący zakończył się z kodem zakończenia {0}.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interactive_Host_not_initialized">
-        <source>Interactive Host not initialized.</source>
-        <target state="translated">Host interaktywny nie został zainicjowany.</target>
         <note />
       </trans-unit>
       <trans-unit id="Loading_context_from_0">

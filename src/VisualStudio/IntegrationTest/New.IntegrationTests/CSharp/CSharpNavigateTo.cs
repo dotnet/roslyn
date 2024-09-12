@@ -39,7 +39,7 @@ class FirstClass
 ", cancellationToken: HangMitigatingCancellationToken);
 
             await TestServices.Shell.ShowNavigateToDialogAsync(HangMitigatingCancellationToken);
-            await TestServices.Input.SendToNavigateToAsync(new InputKey[] { "FirstMethod", VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendToNavigateToAsync(["FirstMethod", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
             Assert.Equal($"test1.cs", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             Assert.Equal("FirstMethod", await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));
@@ -50,18 +50,18 @@ class FirstClass
             await TestServices.SolutionExplorer.AddFileAsync(vbProject, "vbfile.vb", open: true, cancellationToken: HangMitigatingCancellationToken);
 
             var isAllInOneSearch = await TestServices.Shell.ShowNavigateToDialogAsync(HangMitigatingCancellationToken);
-            await TestServices.Input.SendToNavigateToAsync(new InputKey[] { "FirstClass", VirtualKeyCode.RETURN }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendToNavigateToAsync(["FirstClass", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
             await TestServices.Workarounds.WaitForNavigationAsync(HangMitigatingCancellationToken);
             Assert.Equal($"test1.cs", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
             Assert.Equal("FirstClass", await TestServices.Editor.GetSelectedTextAsync(HangMitigatingCancellationToken));
 
             if (isAllInOneSearch)
             {
-                await telemetry.VerifyFiredAsync(new[] { "vs/ide/vbcs/navigateto/search", "vs/ide/search/completed" }, HangMitigatingCancellationToken);
+                await telemetry.VerifyFiredAsync(["vs/ide/vbcs/navigateto/search", "vs/ide/search/completed"], HangMitigatingCancellationToken);
             }
             else
             {
-                await telemetry.VerifyFiredAsync(new[] { "vs/ide/vbcs/navigateto/search", "vs/platform/goto/launch" }, HangMitigatingCancellationToken);
+                await telemetry.VerifyFiredAsync(["vs/ide/vbcs/navigateto/search", "vs/platform/goto/launch"], HangMitigatingCancellationToken);
             }
         }
     }

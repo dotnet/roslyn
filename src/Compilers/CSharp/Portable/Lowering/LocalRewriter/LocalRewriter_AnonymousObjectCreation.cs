@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 syntax: node.Syntax,
                 constructor: node.Constructor,
                 arguments: rewrittenArguments,
-                argumentNamesOpt: default(ImmutableArray<string>),
+                argumentNamesOpt: default(ImmutableArray<string?>),
                 argumentRefKindsOpt: default(ImmutableArray<RefKind>),
                 expanded: false,
                 argsToParamsOpt: default(ImmutableArray<int>),

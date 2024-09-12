@@ -5,36 +5,35 @@
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression
+namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
+
+internal static class ConvertSwitchStatementToExpressionHelpers
 {
-    internal static class ConvertSwitchStatementToExpressionHelpers
+    public static bool IsDefaultSwitchLabel(SwitchLabelSyntax node)
     {
-        public static bool IsDefaultSwitchLabel(SwitchLabelSyntax node)
+        // default:
+        if (node.IsKind(SyntaxKind.DefaultSwitchLabel))
         {
-            // default:
-            if (node.IsKind(SyntaxKind.DefaultSwitchLabel))
-            {
-                return true;
-            }
-
-            if (node is CasePatternSwitchLabelSyntax @case)
-            {
-                // case _:
-                if (@case.Pattern.IsKind(SyntaxKind.DiscardPattern))
-                {
-                    return @case.WhenClause == null;
-                }
-
-                // case var _:
-                // case var x:
-                if (@case.Pattern is VarPatternSyntax varPattern &&
-                    varPattern.Designation.Kind() is SyntaxKind.DiscardDesignation or SyntaxKind.SingleVariableDesignation)
-                {
-                    return @case.WhenClause == null;
-                }
-            }
-
-            return false;
+            return true;
         }
+
+        if (node is CasePatternSwitchLabelSyntax @case)
+        {
+            // case _:
+            if (@case.Pattern.IsKind(SyntaxKind.DiscardPattern))
+            {
+                return @case.WhenClause == null;
+            }
+
+            // case var _:
+            // case var x:
+            if (@case.Pattern is VarPatternSyntax varPattern &&
+                varPattern.Designation.Kind() is SyntaxKind.DiscardDesignation or SyntaxKind.SingleVariableDesignation)
+            {
+                return @case.WhenClause == null;
+            }
+        }
+
+        return false;
     }
 }

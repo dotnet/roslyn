@@ -9,36 +9,35 @@ using System.Windows.Documents;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Shell.TableControl;
 
-namespace Microsoft.VisualStudio.LanguageServices.FindUsages
+namespace Microsoft.VisualStudio.LanguageServices.FindUsages;
+
+internal partial class StreamingFindUsagesPresenter
 {
-    internal partial class StreamingFindUsagesPresenter
+    private abstract class AbstractItemEntry : Entry
     {
-        private abstract class AbstractItemEntry : Entry
+        protected readonly StreamingFindUsagesPresenter Presenter;
+
+        public AbstractItemEntry(RoslynDefinitionBucket definitionBucket, StreamingFindUsagesPresenter presenter)
+            : base(definitionBucket)
         {
-            protected readonly StreamingFindUsagesPresenter Presenter;
-
-            public AbstractItemEntry(RoslynDefinitionBucket definitionBucket, StreamingFindUsagesPresenter presenter)
-                : base(definitionBucket)
-            {
-                Presenter = presenter;
-            }
-
-            public override bool TryCreateColumnContent(string columnName, [NotNullWhen(true)] out FrameworkElement? content)
-            {
-                if (columnName == StandardTableColumnDefinitions2.LineText)
-                {
-                    var inlines = CreateLineTextInlines();
-                    var textBlock = inlines.ToTextBlock(Presenter.ClassificationFormatMap, wrap: false);
-
-                    content = textBlock;
-                    return true;
-                }
-
-                content = null;
-                return false;
-            }
-
-            protected abstract IList<Inline> CreateLineTextInlines();
+            Presenter = presenter;
         }
+
+        public override bool TryCreateColumnContent(string columnName, [NotNullWhen(true)] out FrameworkElement? content)
+        {
+            if (columnName == StandardTableColumnDefinitions2.LineText)
+            {
+                var inlines = CreateLineTextInlines();
+                var textBlock = inlines.ToTextBlock(Presenter.ClassificationFormatMap, wrap: false);
+
+                content = textBlock;
+                return true;
+            }
+
+            content = null;
+            return false;
+        }
+
+        protected abstract IList<Inline> CreateLineTextInlines();
     }
 }

@@ -19,7 +19,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-    public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHelper logger)
           : base(logger)
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 class [|Derived|] : Base
                 {
                 }
-                """, new[] { FeaturesResources.Implement_abstract_class });
+                """, [FeaturesResources.Implement_abstract_class]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 class [|Derived|] : Base
                 {
                 }
-                """, new[] { FeaturesResources.Implement_abstract_class });
+                """, [FeaturesResources.Implement_abstract_class]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -345,12 +345,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
 
                     Base IInterface.Inner { get; }
                 }
-                """, new[]
-{
+                """,
+[
     FeaturesResources.Implement_abstract_class,
     string.Format(FeaturesResources.Implement_through_0, "Inner"),
     string.Format(FeaturesResources.Implement_through_0, "IInterface.Inner"),
-});
+]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 {
                     dynamic inner;
                 }
-                """, new[] { FeaturesResources.Implement_abstract_class });
+                """, [FeaturesResources.Implement_abstract_class]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -650,7 +650,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 {
                     Base inner;
                 }
-                """, new[] { FeaturesResources.Implement_abstract_class });
+                """, [FeaturesResources.Implement_abstract_class]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -766,7 +766,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 {
                     Base inner;
                 }
-                """, new[] { FeaturesResources.Implement_abstract_class });
+                """, [FeaturesResources.Implement_abstract_class]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -935,7 +935,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 {
                     private Base _base = base1;
                 }
-                """, new[] { FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "_base") });
+                """, [FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "_base")]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
@@ -953,7 +953,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 {
                     private Base _base = (base1);
                 }
-                """, new[] { FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "_base") });
+                """, [FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "_base")]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
@@ -971,7 +971,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 {
                     private Base B { get; } = base1;
                 }
-                """, new[] { FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "B") });
+                """, [FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "B")]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
@@ -989,7 +989,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
                 {
                     private Base B { get; } = (base1);
                 }
-                """, new[] { FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "B") });
+                """, [FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "B")]);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]

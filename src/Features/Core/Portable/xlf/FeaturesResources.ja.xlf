@@ -40,11 +40,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">減算は、文字クラスの最後の要素でなければなりません</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
       </trans-unit>
-      <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_requires_restarting_the_application">
-        <source>Accessing captured variable '{0}' that hasn't been accessed before in {1} requires restarting the application.</source>
-        <target state="translated">{1} でアクセスしたことがないキャプチャされた変数 '{0}' にアクセスするには、アプリケーションを再起動する必要があります。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
         <target state="translated">'DebuggerDisplay' 属性の追加</target>
@@ -113,11 +108,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Adding_0_requires_restarting_the_application">
         <source>Adding {0} requires restarting the application.</source>
         <target state="translated">{0} を追加するには、アプリケーションを再起動する必要があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
-        <source>Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
-        <target state="translated">異なるスコープで宣言された、キャプチャした変数 '{0}' と '{1}' にアクセスする {2} を追加するには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_with_the_Handles_clause_requires_restarting_the_application">
@@ -316,8 +306,8 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
-        <source>Awaited task returns '{0}'</source>
-        <target state="translated">待機中のタスクから '{0}' が返されました</target>
+        <source>Awaited task returns {0}</source>
+        <target state="translated">待機中のタスクから {0} が返されました</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_no_value">
@@ -328,6 +318,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
         <source>Base classes contain inaccessible unimplemented members</source>
         <target state="translated">アクセス不可能な未実装のメンバーが基底クラスに含まれています</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Built_in_Copilot_analysis">
+        <source>Built-in Copilot analysis</source>
+        <target state="translated">組み込みの Copilot の分析</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
@@ -362,27 +357,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
         <source>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</source>
-        <target state="new">Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
-        <source>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</source>
-        <target state="translated">以前にキャプチャされていない変数 '{0}' をキャプチャするには、アプリケーションを再起動する必要があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application">
-        <source>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</source>
-        <target state="translated">{1} にあるキャプチャした変数 '{0}' へのアクセスを中止するには、アプリケーションを再起動する必要があります。</target>
+        <target state="translated">これまでにキャプチャされていないプライマリ コンストラクター パラメーター '{0}' をキャプチャするには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application">
         <source>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</source>
-        <target state="translated">'{1}' のプライマリ コンストラクター パラメーター '{0}' をキャプチャするには、アプリケーションを再起動する必要があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_capture_variable_0_requires_restarting_the_application">
-        <source>Ceasing to capture variable '{0}' requires restarting the application.</source>
-        <target state="translated">変数 '{0}' のキャプチャを中止するには、アプリケーションを再起動する必要があります。</target>
+        <target state="translated">'{1}' のプライマリ コンストラクター パラメーター '{0}' のキャプチャを中止するには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
@@ -437,7 +417,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Changing_attribute_0_requires_restarting_the_application">
         <source>Changing attribute '{0}' requires restarting the application.</source>
-        <target state="new">Changing attribute '{0}' requires restarting the application.</target>
+        <target state="translated">属性 '{0}' を変更するには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_constraints_of_0_requires_restarting_the_application">
@@ -632,12 +612,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Debug_All_Tests">
         <source>Debug All Tests</source>
-        <target state="new">Debug All Tests</target>
+        <target state="translated">すべてのテストをデバッグする</target>
         <note />
       </trans-unit>
       <trans-unit id="Debug_Test">
         <source>Debug Test</source>
-        <target state="new">Debug Test</target>
+        <target state="translated">テストのデバッグ</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompilation_log">
@@ -670,14 +650,14 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">ランタイムでサポートされていないため、{0} を削除するには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
-        <source>Deleting captured variable '{0}' requires restarting the application.</source>
-        <target state="translated">キャプチャした変数 '{0}' を削除するには、アプリケーションを再起動する必要があります。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Directives_from_0">
         <source>Directives from '{0}'</source>
         <target state="translated">'{0}' からのディレクティブ</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Dismiss">
+        <source>Dismiss</source>
+        <target state="translated">無視</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -783,6 +763,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Find_All_References_not_invoked_on_applicable_symbol">
         <source>'Find All References' not invoked on applicable symbol</source>
         <target state="translated">該当するシンボルに対して 'Find All References' が呼び出されていません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Fix_All_0">
+        <source>Fix All: {0}</source>
+        <target state="translated">すべて修正: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_typo_0">
@@ -2535,14 +2520,14 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">ドキュメントの削除はサポートされていません</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_Imports_or_usings">
-        <source>Remove unnecessary Imports or usings</source>
-        <target state="translated">不要な Import または using の削除</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
         <target state="translated">不要なキャストを削除する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_imports_or_usings">
+        <source>Remove unnecessary imports or usings</source>
+        <target state="translated">不要なインポートまたは using の削除</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameters">
@@ -2558,11 +2543,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Remove_unused_variables">
         <source>Remove unused variables</source>
         <target state="translated">未使用の変数を削除する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
-        <source>Removing {0} that accessed captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
-        <target state="translated">異なるスコープで宣言された、キャプチャされた変数 '{1}' と '{2}' にアクセスした {0} を削除するには、アプリケーションを再起動する必要があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_requires_restarting_the_application">
@@ -2610,11 +2590,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">解決: "{0}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Resolve_conflict_markers">
-        <source>Resolve conflict markers</source>
-        <target state="translated">競合マーカーの解決</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Resolve_module_0_of_1">
         <source>Resolve module: '{0}' of '{1}'</source>
         <target state="translated">モジュールの解決: '{1}' の '{0}'</target>
@@ -2627,12 +2602,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Run_All_Tests">
         <source>Run All Tests</source>
-        <target state="new">Run All Tests</target>
+        <target state="translated">すべてのテストを実行する</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_Test">
         <source>Run Test</source>
-        <target state="new">Run Test</target>
+        <target state="translated">テストの実行</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
@@ -2870,6 +2845,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">呼び出しチェーンの折り返し解除</target>
         <note />
       </trans-unit>
+      <trans-unit id="Unwrap_collection">
+        <source>Unwrap collection</source>
+        <target state="translated">コレクションの折り返し解除</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unwrap_expression">
         <source>Unwrap expression</source>
         <target state="translated">式の折り返しを解除</target>
@@ -3040,6 +3020,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">呼び出しチェーンの折り返し</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_collection">
+        <source>Wrap collection</source>
+        <target state="translated">コレクションの折り返し</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_every_argument">
         <source>Wrap every argument</source>
         <target state="translated">すべての引数を折り返します</target>
@@ -3068,6 +3053,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">長い呼び出しチェーンの折り返し</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_collection">
+        <source>Wrap long collection</source>
+        <target state="translated">長いコレクションの折り返し</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_initializer">
@@ -3473,7 +3463,7 @@ If the "H" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="class_with_explicit_or_sequential_layout">
         <source>class with explicit or sequential layout</source>
-        <target state="new">class with explicit or sequential layout</target>
+        <target state="translated">明示的なレイアウトまたはシーケンシャル レイアウトを持つクラス</target>
         <note />
       </trans-unit>
       <trans-unit id="code">
@@ -3813,11 +3803,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface">
         <source>Could not extract interface: The type does not contain any member that can be extracted to an interface.</source>
         <target state="translated">インターフェイスを抽出できませんでした。インターフェイスに抽出できるメンバーが型に含まれていません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="can_t_not_construct_final_tree">
-        <source>can't not construct final tree</source>
-        <target state="translated">最終的なツリーを作成できません</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket">

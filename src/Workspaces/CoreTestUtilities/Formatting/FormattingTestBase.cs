@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Formatting
             OptionsCollection? changedOptionSet = null,
             bool testWithTransformation = true)
         {
-            return AssertFormatAsync(expected, code, new[] { new TextSpan(0, code.Length) }, language, debugMode, changedOptionSet, testWithTransformation);
+            return AssertFormatAsync(expected, code, [new TextSpan(0, code.Length)], language, debugMode, changedOptionSet, testWithTransformation);
         }
 
         private protected async Task AssertFormatAsync(

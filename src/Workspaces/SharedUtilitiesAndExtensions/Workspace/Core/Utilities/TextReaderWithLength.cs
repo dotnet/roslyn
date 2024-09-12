@@ -4,23 +4,22 @@
 
 using System.IO;
 
-namespace Microsoft.CodeAnalysis.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
+
+internal abstract class TextReaderWithLength(int length) : TextReader
 {
-    internal abstract class TextReaderWithLength(int length) : TextReader
+    public int Length { get; } = length;
+
+    public override string ReadToEnd()
     {
-        public int Length { get; } = length;
-
-        public override string ReadToEnd()
-        {
 #if NETCOREAPP
-            return string.Create(Length, this, static (chars, state) => state.Read(chars));
+        return string.Create(Length, this, static (chars, state) => state.Read(chars));
 #else
-            var chars = new char[Length];
+        var chars = new char[Length];
 
-            var read = base.Read(chars, 0, Length);
+        var read = base.Read(chars, 0, Length);
 
-            return new string(chars, 0, read);
+        return new string(chars, 0, read);
 #endif                
-        }
     }
 }

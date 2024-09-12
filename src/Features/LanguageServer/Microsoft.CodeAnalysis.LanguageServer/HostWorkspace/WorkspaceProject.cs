@@ -24,49 +24,65 @@ internal class WorkspaceProject : IWorkspaceProject
         _targetFrameworkManager = targetFrameworkManager;
     }
 
-    public async Task AddAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken _)
+    [Obsolete($"Call the {nameof(AddAdditionalFilesAsync)} overload that takes {nameof(SourceFileInfo)}.")]
+    public async Task AddAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken cancellationToken)
     {
-        await using var batchScope = _project.CreateBatchScope();
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var additionalFilePath in additionalFilePaths)
             _project.AddAdditionalFile(additionalFilePath);
     }
 
-    public async Task AddAnalyzerConfigFilesAsync(IReadOnlyList<string> analyzerConfigPaths, CancellationToken _)
+    public async Task AddAdditionalFilesAsync(IReadOnlyList<SourceFileInfo> additionalFiles, CancellationToken cancellationToken)
     {
-        await using var batchScope = _project.CreateBatchScope();
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
+
+        foreach (var additionalFile in additionalFiles)
+            _project.AddAdditionalFile(additionalFile.FilePath, folders: additionalFile.FolderNames.ToImmutableArray());
+    }
+
+    public async Task AddAnalyzerConfigFilesAsync(IReadOnlyList<string> analyzerConfigPaths, CancellationToken cancellationToken)
+    {
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var analyzerConfigPath in analyzerConfigPaths)
             _project.AddAnalyzerConfigFile(analyzerConfigPath);
     }
 
-    public async Task AddAnalyzerReferencesAsync(IReadOnlyList<string> analyzerPaths, CancellationToken _)
+    public async Task AddAnalyzerReferencesAsync(IReadOnlyList<string> analyzerPaths, CancellationToken cancellationToken)
     {
-        await using var batchScope = _project.CreateBatchScope();
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var analyzerPath in analyzerPaths)
             _project.AddAnalyzerReference(analyzerPath);
     }
 
-    public async Task AddDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken _)
+    public async Task AddDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken cancellationToken)
     {
-        await using var batchScope = _project.CreateBatchScope();
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var dynamicFilePath in dynamicFilePaths)
             _project.AddDynamicSourceFile(dynamicFilePath, folders: ImmutableArray<string>.Empty);
     }
 
-    public async Task AddMetadataReferencesAsync(IReadOnlyList<MetadataReferenceInfo> metadataReferences, CancellationToken _)
+    public async Task AddMetadataReferencesAsync(IReadOnlyList<MetadataReferenceInfo> metadataReferences, CancellationToken cancellationToken)
     {
-        await using var batchScope = _project.CreateBatchScope();
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var metadataReference in metadataReferences)
             _project.AddMetadataReference(metadataReference.FilePath, metadataReference.CreateProperties());
     }
 
-    public async Task AddSourceFilesAsync(IReadOnlyList<SourceFileInfo> sourceFiles, CancellationToken _)
+    public async Task AddSourceFilesAsync(IReadOnlyList<SourceFileInfo> sourceFiles, CancellationToken cancellationToken)
     {
-        await using var batchScope = _project.CreateBatchScope();
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var sourceFile in sourceFiles)
             _project.AddSourceFile(sourceFile.FilePath, folders: sourceFile.FolderNames.ToImmutableArray());
@@ -77,58 +93,65 @@ internal class WorkspaceProject : IWorkspaceProject
         _project.RemoveFromWorkspace();
     }
 
-    public async Task RemoveAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken _)
+    public async Task RemoveAdditionalFilesAsync(IReadOnlyList<string> additionalFilePaths, CancellationToken cancellationToken)
     {
-        await using var batchScope = _project.CreateBatchScope();
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var additionalFilePath in additionalFilePaths)
             _project.RemoveAdditionalFile(additionalFilePath);
     }
 
-    public async Task RemoveAnalyzerConfigFilesAsync(IReadOnlyList<string> analyzerConfigPaths, CancellationToken _)
+    public async Task RemoveAnalyzerConfigFilesAsync(IReadOnlyList<string> analyzerConfigPaths, CancellationToken cancellationToken)
     {
-        await using var batchScope = _project.CreateBatchScope();
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var analyzerConfigPath in analyzerConfigPaths)
             _project.RemoveAnalyzerConfigFile(analyzerConfigPath);
     }
 
-    public async Task RemoveAnalyzerReferencesAsync(IReadOnlyList<string> analyzerPaths, CancellationToken _)
+    public async Task RemoveAnalyzerReferencesAsync(IReadOnlyList<string> analyzerPaths, CancellationToken cancellationToken)
     {
-        await using var batchScope = _project.CreateBatchScope();
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var analyzerPath in analyzerPaths)
             _project.RemoveAnalyzerReference(analyzerPath);
     }
 
-    public async Task RemoveDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken _)
+    public async Task RemoveDynamicFilesAsync(IReadOnlyList<string> dynamicFilePaths, CancellationToken cancellationToken)
     {
-        await using var batchScope = _project.CreateBatchScope();
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var dynamicFilePath in dynamicFilePaths)
             _project.RemoveDynamicSourceFile(dynamicFilePath);
     }
 
-    public async Task RemoveMetadataReferencesAsync(IReadOnlyList<MetadataReferenceInfo> metadataReferences, CancellationToken _)
+    public async Task RemoveMetadataReferencesAsync(IReadOnlyList<MetadataReferenceInfo> metadataReferences, CancellationToken cancellationToken)
     {
-        await using var batchScope = _project.CreateBatchScope();
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var metadataReference in metadataReferences)
             _project.RemoveMetadataReference(metadataReference.FilePath, metadataReference.CreateProperties());
     }
 
-    public async Task RemoveSourceFilesAsync(IReadOnlyList<string> sourceFiles, CancellationToken _)
+    public async Task RemoveSourceFilesAsync(IReadOnlyList<string> sourceFiles, CancellationToken cancellationToken)
     {
-        await using var batchScope = _project.CreateBatchScope();
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var sourceFile in sourceFiles)
             _project.RemoveSourceFile(sourceFile);
     }
 
-    public async Task SetBuildSystemPropertiesAsync(IReadOnlyDictionary<string, string> properties, CancellationToken _)
+    public async Task SetBuildSystemPropertiesAsync(IReadOnlyDictionary<string, string> properties, CancellationToken cancellationToken)
     {
         // Create a batch scope, just so we have asynchronous closing and application of the batch.
-        await using var batchScope = _project.CreateBatchScope();
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
 
         foreach (var (name, value) in properties)
         {
@@ -161,30 +184,39 @@ internal class WorkspaceProject : IWorkspaceProject
         }
     }
 
-    public async Task SetCommandLineArgumentsAsync(IReadOnlyList<string> arguments, CancellationToken _)
+    public async Task SetCommandLineArgumentsAsync(IReadOnlyList<string> arguments, CancellationToken cancellationToken)
     {
         // Create a batch scope, just so we have asynchronous closing and application of the batch.
-        await using var batchScope = _project.CreateBatchScope();
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
+
         _optionsProcessor.SetCommandLine(arguments.ToImmutableArray());
     }
 
-    public async Task SetDisplayNameAsync(string displayName, CancellationToken _)
+    public async Task SetDisplayNameAsync(string displayName, CancellationToken cancellationToken)
     {
         // Create a batch scope, just so we have asynchronous closing and application of the batch.
-        await using var batchScope = _project.CreateBatchScope();
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
+
         _project.DisplayName = displayName;
     }
 
-    public async Task SetProjectHasAllInformationAsync(bool hasAllInformation, CancellationToken _)
+    public async Task SetProjectHasAllInformationAsync(bool hasAllInformation, CancellationToken cancellationToken)
     {
         // Create a batch scope, just so we have asynchronous closing and application of the batch.
-        await using var batchScope = _project.CreateBatchScope();
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
+
         _project.HasAllInformation = hasAllInformation;
     }
 
-    public Task<IWorkspaceProjectBatch> StartBatchAsync(CancellationToken cancellationToken)
+    public async Task<IWorkspaceProjectBatch> StartBatchAsync(CancellationToken cancellationToken)
     {
-        return Task.FromResult<IWorkspaceProjectBatch>(new WorkspaceProjectBatch(_project.CreateBatchScope()));
+        var disposableBatchScope = await _project.CreateBatchScopeAsync(cancellationToken).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
+
+        return new WorkspaceProjectBatch(_project.CreateBatchScope());
     }
 
     private class WorkspaceProjectBatch : IWorkspaceProjectBatch

@@ -14,7 +14,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddAnonymousTypeMemberName
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsAddAnonymousTypeMemberName)]
-    public class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class AddAnonymousTypeMemberNameTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public AddAnonymousTypeMemberNameTests(ITestOutputHelper logger)
            : base(logger)

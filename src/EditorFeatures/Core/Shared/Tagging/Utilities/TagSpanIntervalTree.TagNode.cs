@@ -6,46 +6,45 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+
+internal partial class TagSpanIntervalTree<TTag>
 {
-    internal partial class TagSpanIntervalTree<TTag>
+    private class TagNode(ITagSpan<TTag> ts, SpanTrackingMode trackingMode)
     {
-        private class TagNode(ITagSpan<TTag> ts, SpanTrackingMode trackingMode)
+        public readonly TTag Tag = ts.Tag;
+        public readonly ITrackingSpan Span = ts.Span.CreateTrackingSpan(trackingMode);
+        private SnapshotSpan _snapshotSpan = ts.Span;
+
+        private SnapshotSpan GetSnapshotSpan(ITextSnapshot textSnapshot)
         {
-            public readonly TTag Tag = ts.Tag;
-            public readonly ITrackingSpan Span = ts.Span.CreateTrackingSpan(trackingMode);
-            private SnapshotSpan _snapshotSpan = ts.Span;
-
-            private SnapshotSpan GetSnapshotSpan(ITextSnapshot textSnapshot)
+            var localSpan = _snapshotSpan;
+            if (localSpan.Snapshot == textSnapshot)
             {
-                var localSpan = _snapshotSpan;
-                if (localSpan.Snapshot == textSnapshot)
-                {
-                    return localSpan;
-                }
-                else if (localSpan.Snapshot != null)
-                {
-                    _snapshotSpan = default;
-                }
-
-                return default;
+                return localSpan;
+            }
+            else if (localSpan.Snapshot != null)
+            {
+                _snapshotSpan = default;
             }
 
-            internal int GetStart(ITextSnapshot textSnapshot)
-            {
-                var localSpan = this.GetSnapshotSpan(textSnapshot);
-                return localSpan.Snapshot == textSnapshot
-                    ? localSpan.Start
-                    : this.Span.GetStartPoint(textSnapshot);
-            }
+            return default;
+        }
 
-            internal int GetLength(ITextSnapshot textSnapshot)
-            {
-                var localSpan = this.GetSnapshotSpan(textSnapshot);
-                return localSpan.Snapshot == textSnapshot
-                    ? localSpan.Length
-                    : this.Span.GetSpan(textSnapshot).Length;
-            }
+        internal int GetStart(ITextSnapshot textSnapshot)
+        {
+            var localSpan = this.GetSnapshotSpan(textSnapshot);
+            return localSpan.Snapshot == textSnapshot
+                ? localSpan.Start
+                : this.Span.GetStartPoint(textSnapshot);
+        }
+
+        internal int GetLength(ITextSnapshot textSnapshot)
+        {
+            var localSpan = this.GetSnapshotSpan(textSnapshot);
+            return localSpan.Snapshot == textSnapshot
+                ? localSpan.Length
+                : this.Span.GetSpan(textSnapshot).Length;
         }
     }
 }

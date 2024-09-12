@@ -124,7 +124,7 @@ internal partial class XmlSnippetParser
         private const string Selected = "selected";
         private const string End = "end";
 
-        private readonly List<ExpansionField> _tokens = new();
+        private readonly List<ExpansionField> _tokens = [];
 
         private readonly string? _code;
         private readonly string _delimiter = "$";

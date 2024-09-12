@@ -40,15 +40,17 @@ namespace Microsoft.CodeAnalysis.Editor.LineSeparators
                 var tagSpans = TagAggregator.GetTags(changedSpan);
                 foreach (var tagMappingSpan in tagSpans)
                 {
-                    if (!ShouldDrawTag(changedSpan, tagMappingSpan, out _))
-                    {
+                    if (!TryGetMappedPoint(changedSpan, tagMappingSpan, out var mappedPoint))
                         continue;
-                    }
+
+                    if (!TryGetViewLine(mappedPoint, out _))
+                        continue;
+
+                    if (!ShouldDrawTag(tagMappingSpan))
+                        continue;
 
                     if (!TryMapToSingleSnapshotSpan(tagMappingSpan.Span, TextView.TextSnapshot, out var span))
-                    {
                         continue;
-                    }
 
                     // add the visual to the adornment layer.
                     var geometry = viewLines.GetMarkerGeometry(span);

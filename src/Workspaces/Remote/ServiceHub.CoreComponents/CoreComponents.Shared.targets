@@ -9,7 +9,6 @@
     <IsShipping>false</IsShipping>
 
     <GenerateReadyToRun Condition="'$(GenerateReadyToRun)' == '' and '$(Configuration)' == 'Release' and '$(OfficialBuild)' == 'true'">true</GenerateReadyToRun>
-    <MicrosoftNETCoreAppcrossgen2winx64Version>$(MicrosoftNetCoreAppRuntimePackagesVersion)</MicrosoftNETCoreAppcrossgen2winx64Version>
   </PropertyGroup>  
 
   <ItemGroup>
@@ -24,8 +23,8 @@
 
   <ItemGroup>
     <!-- These references need to be deployed to the vsix subfolder containing servicehub bits for .Net Core -->
-    <PackageReference Include="Microsoft.VisualStudio.Telemetry" Version="$(MicrosoftVisualStudioTelemetryVersion)" />
-    <PackageReference Include="SQLitePCLRaw.bundle_green" Version="$(SQLitePCLRawbundle_greenVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Telemetry" />
+    <PackageReference Include="SQLitePCLRaw.bundle_green" />
     <!--
       Following packages are being referenced to: 
         - exclude BCL library from the dependencies we need to deploy as part of Roslyn vsix.
@@ -34,7 +33,7 @@
       "Microsoft.NETCore.App.Runtime.win-{arch}"
       "Microsoft.WindowsDesktop.App.Runtime.win-{arch}"
     -->    
-    <PackageReference Include="Microsoft.NETCore.App.crossgen2.win-x64" Version="$(MicrosoftNETCoreAppcrossgen2winx64Version)" Condition="'$(GenerateReadyToRun)' == 'true'" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />    
+    <PackageReference Include="Microsoft.NETCore.App.crossgen2.win-x64" Condition="'$(GenerateReadyToRun)' == 'true'" ExcludeAssets="all" PrivateAssets="all" GeneratePathProperty="true" />    
   </ItemGroup>
 
   <Target Name="LocateCrossgenTargets" DependsOnTargets="Publish">

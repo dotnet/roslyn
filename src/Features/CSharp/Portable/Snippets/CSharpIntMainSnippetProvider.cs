@@ -19,60 +19,59 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.Snippets
+namespace Microsoft.CodeAnalysis.CSharp.Snippets;
+
+[ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
+internal sealed class CSharpIntMainSnippetProvider : AbstractCSharpMainMethodSnippetProvider
 {
-    [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpIntMainSnippetProvider : AbstractCSharpMainMethodSnippetProvider
+    public override string Identifier => "sim";
+
+    public override string Description => CSharpFeaturesResources.static_int_Main;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpIntMainSnippetProvider()
     {
-        public override string Identifier => "sim";
+    }
 
-        public override string Description => CSharpFeaturesResources.static_int_Main;
+    protected override SyntaxNode GenerateReturnType(SyntaxGenerator generator)
+        => generator.TypeExpression(SpecialType.System_Int32);
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpIntMainSnippetProvider()
-        {
-        }
+    protected override IEnumerable<SyntaxNode> GenerateInnerStatements(SyntaxGenerator generator)
+    {
+        var returnStatement = generator.ReturnStatement(generator.LiteralExpression(0));
+        return SpecializedCollections.SingletonEnumerable(returnStatement);
+    }
 
-        protected override SyntaxNode GenerateReturnType(SyntaxGenerator generator)
-            => generator.TypeExpression(SpecialType.System_Int32);
+    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
+    {
+        var methodDeclaration = (MethodDeclarationSyntax)caretTarget;
+        var body = methodDeclaration.Body!;
+        var returnStatement = body.Statements.First();
 
-        protected override IEnumerable<SyntaxNode> GenerateInnerStatements(SyntaxGenerator generator)
-        {
-            var returnStatement = generator.ReturnStatement(generator.LiteralExpression(0));
-            return SpecializedCollections.SingletonEnumerable(returnStatement);
-        }
+        var triviaSpan = returnStatement.GetLeadingTrivia().Span;
+        var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
+        // Getting the location at the end of the line before the newline.
+        return line.Span.End;
+    }
 
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-        {
-            var methodDeclaration = (MethodDeclarationSyntax)caretTarget;
-            var body = methodDeclaration.Body!;
-            var returnStatement = body.Statements.First();
+    protected override async Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
+    {
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var snippetNode = root.GetAnnotatedNodes(FindSnippetAnnotation).FirstOrDefault();
 
-            var triviaSpan = returnStatement.GetLeadingTrivia().Span;
-            var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
-            // Getting the location at the end of the line before the newline.
-            return line.Span.End;
-        }
+        if (snippetNode is not MethodDeclarationSyntax methodDeclaration)
+            return document;
 
-        protected override async Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var snippetNode = root.GetAnnotatedNodes(FindSnippetAnnotation).FirstOrDefault();
+        var body = methodDeclaration.Body!;
+        var returnStatement = body.Statements.First();
 
-            if (snippetNode is not MethodDeclarationSyntax methodDeclaration)
-                return document;
+        var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+        var indentationString = CSharpSnippetHelpers.GetBlockLikeIndentationString(document, body.OpenBraceToken.SpanStart, syntaxFormattingOptions, cancellationToken);
 
-            var body = methodDeclaration.Body!;
-            var returnStatement = body.Statements.First();
+        var updatedReturnStatement = returnStatement.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString));
+        var updatedRoot = root.ReplaceNode(returnStatement, updatedReturnStatement);
 
-            var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-            var indentationString = CSharpSnippetHelpers.GetBlockLikeIndentationString(document, body.OpenBraceToken.SpanStart, syntaxFormattingOptions, cancellationToken);
-
-            var updatedReturnStatement = returnStatement.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString));
-            var updatedRoot = root.ReplaceNode(returnStatement, updatedReturnStatement);
-
-            return document.WithSyntaxRoot(updatedRoot);
-        }
+        return document.WithSyntaxRoot(updatedRoot);
     }
 }

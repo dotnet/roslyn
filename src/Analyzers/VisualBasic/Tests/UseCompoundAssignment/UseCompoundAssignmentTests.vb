@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UseCompoundAssignment
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.UseCompoundAssignment
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseCompoundAssignment)>
     Public Class UseCompoundAssignmentTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(Workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicUseCompoundAssignmentDiagnosticAnalyzer(), New VisualBasicUseCompoundAssignmentCodeFixProvider())

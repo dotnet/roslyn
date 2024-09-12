@@ -2,22 +2,21 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.ComponentModel.Composition;
+using System.Composition;
+using Microsoft.CodeAnalysis.BrokeredServices;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services;
 using Microsoft.CodeAnalysis.LanguageServer.BrokeredServices.Services.Definitions;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.Extensions.Logging;
 using Microsoft.ServiceHub.Framework;
-using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-#pragma warning disable RS0030 // This is intentionally using System.ComponentModel.Composition for compatibility with MEF service broker.
-[Export]
-internal class ProjectInitializationHandler : IDisposable
+[Export, Shared]
+internal sealed class ProjectInitializationHandler : IDisposable
 {
     private const string ProjectInitializationCompleteName = "workspace/projectInitializationComplete";
 
@@ -32,11 +31,11 @@ internal class ProjectInitializationHandler : IDisposable
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ProjectInitializationHandler([Import(typeof(SVsFullAccessServiceBroker))] IServiceBroker serviceBroker, ILoggerFactory loggerFactory)
+    public ProjectInitializationHandler(IServiceBrokerProvider serviceBrokerProvider, ILoggerFactory loggerFactory)
     {
-        _serviceBroker = serviceBroker;
+        _serviceBroker = serviceBrokerProvider.ServiceBroker;
         _serviceBroker.AvailabilityChanged += AvailabilityChanged;
-        _serviceBrokerClient = new ServiceBrokerClient(serviceBroker, joinableTaskFactory: null);
+        _serviceBrokerClient = new ServiceBrokerClient(_serviceBroker, joinableTaskFactory: null);
 
         _logger = loggerFactory.CreateLogger<ProjectInitializationHandler>();
         _projectInitializationCompleteObserver = new ProjectInitializationCompleteObserver(_logger);

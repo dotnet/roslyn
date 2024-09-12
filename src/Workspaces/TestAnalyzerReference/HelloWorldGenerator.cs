@@ -22,26 +22,26 @@ namespace Microsoft.CodeAnalysis.TestSourceGenerator
 
         public void Execute(GeneratorExecutionContext context)
         {
-            context.AddSource(GeneratedEnglishClassName, SourceText.From(@"
-/// <summary><see cref=""" + GeneratedEnglishClassName + @""" /> is a simple class to fetch the classic message.</summary>
-internal class " + GeneratedEnglishClassName + @"
-{
-    public static string GetMessage()
-    {
-        return ""Hello, World!"";
-    }
-}
-", encoding: Encoding.UTF8));
+            context.AddSource(GeneratedEnglishClassName, SourceText.From($$"""
+                /// <summary><see cref="{{GeneratedEnglishClassName}}" /> is a simple class to fetch the classic message.</summary>
+                internal class {{GeneratedEnglishClassName}}
+                {
+                    public static string GetMessage()
+                    {
+                        return "Hello, World!";
+                    }
+                }
+                """, encoding: Encoding.UTF8));
 
-            context.AddSource(GeneratedSpanishClassName, SourceText.From(@"
-internal class " + GeneratedSpanishClassName + @"
-{
-    public static string GetMessage()
-    {
-        return ""Hola, Mundo!"";
-    }
-}
-", encoding: Encoding.UTF8));
+            context.AddSource(GeneratedSpanishClassName, SourceText.From($$"""
+                internal class {{GeneratedSpanishClassName}}
+                {
+                    public static string GetMessage()
+                    {
+                        return "Hola, Mundo!";
+                    }
+                }
+                """, encoding: Encoding.UTF8));
 
             context.AddSource($"{GeneratedFolderName}/{GeneratedFolderClassName}", $$"""
                 class {{GeneratedFolderClassName}} { }

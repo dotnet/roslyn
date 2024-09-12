@@ -13,19 +13,18 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField
+namespace Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
+
+[Export(typeof(ICommandHandler))]
+[ContentType(ContentTypeNames.CSharpContentType)]
+[Name(PredefinedCommandHandlerNames.EncapsulateField)]
+[Order(After = PredefinedCommandHandlerNames.DocumentationComments)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class EncapsulateFieldCommandHandler(
+    IThreadingContext threadingContext,
+    ITextBufferUndoManagerProvider undoManager,
+    IGlobalOptionService globalOptions,
+    IAsynchronousOperationListenerProvider listenerProvider) : AbstractEncapsulateFieldCommandHandler(threadingContext, undoManager, globalOptions, listenerProvider)
 {
-    [Export(typeof(ICommandHandler))]
-    [ContentType(ContentTypeNames.CSharpContentType)]
-    [Name(PredefinedCommandHandlerNames.EncapsulateField)]
-    [Order(After = PredefinedCommandHandlerNames.DocumentationComments)]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal class EncapsulateFieldCommandHandler(
-        IThreadingContext threadingContext,
-        ITextBufferUndoManagerProvider undoManager,
-        IGlobalOptionService globalOptions,
-        IAsynchronousOperationListenerProvider listenerProvider) : AbstractEncapsulateFieldCommandHandler(threadingContext, undoManager, globalOptions, listenerProvider)
-    {
-    }
 }

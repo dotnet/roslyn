@@ -7,6 +7,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -19,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' </summary>
     Friend NotInheritable Class LambdaCapturedVariable
         Inherits SynthesizedFieldSymbol
+        Implements ISynthesizedMethodBodyImplementationSymbol
 
         Private ReadOnly _isMe As Boolean
 
@@ -27,6 +29,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Me._isMe = isMeParameter
         End Sub
+
+        Public ReadOnly Property Frame As LambdaFrame
+            Get
+                Return DirectCast(_containingType, LambdaFrame)
+            End Get
+        End Property
 
         Public Shared Function Create(frame As LambdaFrame, captured As Symbol, ByRef uniqueId As Integer) As LambdaCapturedVariable
             Debug.Assert(TypeOf captured Is LocalSymbol OrElse TypeOf captured Is ParameterSymbol)
@@ -120,6 +128,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides ReadOnly Property IsCapturedFrame As Boolean
             Get
                 Return Me._isMe
+            End Get
+        End Property
+
+        Public ReadOnly Property ISynthesizedMethodBodyImplementationSymbol_Method As IMethodSymbolInternal Implements ISynthesizedMethodBodyImplementationSymbol.Method
+            Get
+                Return Frame.TopLevelMethod
+            End Get
+        End Property
+
+        Public ReadOnly Property ISynthesizedMethodBodyImplementationSymbol_HasMethodBodyDependency As Boolean Implements ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency
+            Get
+                Return False
             End Get
         End Property
     End Class

@@ -24,13 +24,13 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
                 x2 = new TestNode(1, 2));
 
             var m = TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot,
-                new[] { KeyValuePairUtil.Create(x1, x2), KeyValuePairUtil.Create(x1, x2) });
+                [KeyValuePairUtil.Create(x1, x2), KeyValuePairUtil.Create(x1, x2)]);
             Assert.True(m.TryGetNewNode(x1, out var n));
             Assert.Equal(n, x2);
 
-            Assert.Throws<ArgumentException>(() => TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot, new[] { KeyValuePairUtil.Create(x1, x1) }));
+            Assert.Throws<ArgumentException>(() => TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot, [KeyValuePairUtil.Create(x1, x1)]));
 
-            Assert.Throws<ArgumentException>(() => TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot, new[] { KeyValuePairUtil.Create(x1, x2), KeyValuePairUtil.Create(x1, new TestNode(0, 0)) }));
+            Assert.Throws<ArgumentException>(() => TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot, [KeyValuePairUtil.Create(x1, x2), KeyValuePairUtil.Create(x1, new TestNode(0, 0))]));
         }
 
         [Fact]
@@ -46,11 +46,11 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
                 x2 = new TestNode(1, 2),
                 y2 = new TestNode(1, 3));
 
-            var m = TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot, new[]
-            {
+            var m = TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot,
+            [
                 KeyValuePairUtil.Create(x1, x2),
                 KeyValuePairUtil.Create(y1, x2),
-            });
+            ]);
 
             // the first one wins:
             Assert.True(m.TryGetNewNode(x1, out var n));
@@ -72,10 +72,10 @@ namespace Microsoft.CodeAnalysis.Differencing.UnitTests
             var newRoot = new TestNode(0, 1,
                 x2 = new TestNode(0, 2));
 
-            var m = TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot, new[]
-            {
+            var m = TestTreeComparer.Instance.ComputeMatch(oldRoot, newRoot,
+            [
                 KeyValuePairUtil.Create(x1, newRoot),
-            });
+            ]);
 
             // the root wins:
             Assert.True(m.TryGetNewNode(x1, out var n)); // matched

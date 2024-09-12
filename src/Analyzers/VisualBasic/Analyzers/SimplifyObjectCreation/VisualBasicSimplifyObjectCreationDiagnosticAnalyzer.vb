@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
             ' Dim x As New SomeType()
 
             Dim styleOption = context.GetVisualBasicAnalyzerOptions().PreferSimplifiedObjectCreation
-            If Not styleOption.Value Then
+            If Not styleOption.Value OrElse ShouldSkipAnalysis(context, styleOption.Notification) Then
                 Return
             End If
 
@@ -54,8 +54,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SimplifyObjectCreation
             Dim cancellationToken = context.CancellationToken
             Dim symbolInfo = context.SemanticModel.GetTypeInfo(objectCreation, cancellationToken)
             If symbolInfo.Type IsNot Nothing AndAlso symbolInfo.Type.Equals(symbolInfo.ConvertedType, SymbolEqualityComparer.Default) Then
-                context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor, variableDeclarator.GetLocation(), styleOption.Notification.Severity,
-                    additionalLocations:=Nothing,
+                context.ReportDiagnostic(DiagnosticHelper.Create(Descriptor, variableDeclarator.GetLocation(), styleOption.Notification,
+                    context.Options, additionalLocations:=Nothing,
                     properties:=Nothing))
             End If
         End Sub

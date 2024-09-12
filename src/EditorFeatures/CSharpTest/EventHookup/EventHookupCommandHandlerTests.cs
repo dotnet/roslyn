@@ -40,8 +40,7 @@ class C
             testState.AssertShowing("C_MyEvent");
         }
 
-        [WorkItem("https://github.com/dotnet/roslyn/issues/20999")]
-        [WpfFact]
+        [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/20999")]
         public async Task HandlerName_EventInThisClass_CamelCaseRule()
         {
             var markup = @"

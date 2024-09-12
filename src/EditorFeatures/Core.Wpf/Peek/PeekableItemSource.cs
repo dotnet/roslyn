@@ -79,13 +79,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Peek
             {
                 // For documents without semantic models, just try to use the goto-def service
                 // as a reasonable place to peek at.
-                var goToDefinitionService = document.GetLanguageService<IGoToDefinitionService>();
-                if (goToDefinitionService == null)
-                {
+                var service = document.GetLanguageService<INavigableItemsService>();
+                if (service == null)
                     return;
-                }
 
-                var navigableItems = await goToDefinitionService.FindDefinitionsAsync(document, triggerPoint.Position, cancellationToken).ConfigureAwait(false);
+                var navigableItems = await service.GetNavigableItemsAsync(document, triggerPoint.Position, cancellationToken).ConfigureAwait(false);
                 await foreach (var item in GetPeekableItemsForNavigableItemsAsync(
                     navigableItems, document.Project, _peekResultFactory, cancellationToken).ConfigureAwait(false))
                 {

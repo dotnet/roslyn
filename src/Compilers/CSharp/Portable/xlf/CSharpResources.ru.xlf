@@ -184,7 +184,7 @@
       </trans-unit>
       <trans-unit id="ERR_BadArgExtraRefLangVersion">
         <source>Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.</source>
-        <target state="translated">Аргумент {0} не может передаваться с параметром "ref" ключевое слово в версии {1}. Чтобы передать аргументы "ref" в параметры "in", обновите его до версии {2} или более поздней.</target>
+        <target state="translated">Аргумент {0} не может передаваться с ключевым словом "ref" в языке версии {1}. Чтобы передать аргументы "ref" в параметры "in", повысьте статус до языка версии {2} или более поздней.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadBinaryReadOnlySpanConcatenation">
@@ -265,6 +265,11 @@
       <trans-unit id="ERR_BadRecordMemberForPositionalParameter">
         <source>Record member '{0}' must be a readable instance property or field of type '{1}' to match positional parameter '{2}'.</source>
         <target state="translated">Элемент записи "{0}" должен быть доступным для чтения свойством экземпляра или полем типа "{1}", чтобы соответствовать позиционному параметру "{2}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_BadSpecialByRefLock">
+        <source>A lock statement on a value of type 'System.Threading.Lock' cannot be used in async methods or async lambda expressions.</source>
+        <target state="translated">Оператор блокировки над значением типа "System.Threading.Lock" нельзя использовать в асинхронных методах и в асинхронных лямбда-выражениях.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefUsing">
@@ -372,6 +377,11 @@
         <target state="translated">Невозможно преобразовать {0} в тип "{1}", поскольку возвращаемый тип не совпадает с возвращаемым типом делегата</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections">
+        <source>The type arguments for method '{0}' cannot be inferred from the usage because an argument with dynamic type is used and the method has a non-array params collection parameter. Try specifying the type arguments explicitly.</source>
+        <target state="translated">Аргументы типа для метода "{0}" не могут быть выведены из использования, поскольку используется аргумент с динамическим типом и метод имеет параметр коллекции params, не являющийся массивом. Попробуйте явно указать аргументы типа.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CantUseInOrOutInArglist">
         <source>__arglist cannot have an argument passed by 'in' or 'out'</source>
         <target state="translated">В __arglist невозможно передать аргумент с помощью in или out</target>
@@ -409,22 +419,22 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeInvalidType">
         <source>The CollectionBuilderAttribute builder type must be a non-generic class or struct.</source>
-        <target state="translated">Тип построителя CollectionBuilderAttribute должен быть неуниверсатным классом или структурой.</target>
+        <target state="translated">Тип построителя CollectionBuilderAttribute должен быть неуниверсальным классом или структурой.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderAttributeMethodNotFound">
         <source>Could not find an accessible '{0}' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan&lt;{1}&gt;' and return type '{2}'.</source>
-        <target state="translated">Не удалось найти доступный '{0}' с ожидаемой сигнатурой: статический метод с одним параметром типа "ReadOnlySpan&lt;{1}&gt;" и типом возвращаемого '{2}'.</target>
+        <target state="translated">Не удалось найти доступный метод "{0}" с ожидаемой подписью: статический метод с одним параметром типа "ReadOnlySpan&lt;{1}&gt;" и типом возвращаемого значения "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionBuilderNoElementType">
         <source>'{0}' has a CollectionBuilderAttribute but no element type.</source>
-        <target state="translated">'{0}' имеет атрибут CollectionBuilderAttribute, но не имеет типа элемента.</target>
+        <target state="translated">"{0}" содержит CollectionBuilderAttribute, но не имеет типа элемента.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionEscape">
         <source>A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</source>
-        <target state="new">A collection expression of type '{0}' cannot be used in this context because it may be exposed outside of the current scope.</target>
+        <target state="translated">Выражение коллекции типа "{0}" нельзя использовать в этом контексте, так как он может быть доступен вне текущей области.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionImmutableArray">
@@ -432,14 +442,29 @@
         <target state="translated">Невозможно использовать эту версию "{0}" с выражениями коллекций.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionMissingAdd">
+        <source>Collection expression type '{0}' must have an instance or extension method 'Add' that can be called with a single argument.</source>
+        <target state="translated">Тип выражения коллекции "{0}" должен иметь экземпляр или метод расширения "Add", который можно вызвать с помощью одного аргумента.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionMissingConstructor">
+        <source>Collection expression type must have an applicable constructor that can be called with no arguments.</source>
+        <target state="translated">Тип выражения коллекции должен иметь применимый конструктор, который может быть вызван без аргументов.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CollectionExpressionNoTargetType">
         <source>There is no target type for the collection expression.</source>
-        <target state="translated">Отсутствует целевой тип для выражения коллекции.</target>
+        <target state="translated">Отсутствует тип целевого объекта для выражения коллекции.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionExpressionTargetNoElementType">
+        <source>Collection expression target '{0}' has no element type.</source>
+        <target state="translated">У целевого объекта выражения "{0}" нет типа элемента.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
-        <target state="translated">Не удается инициализировать '{0}' с выражением коллекции, так как тип не является конструкторируемым.</target>
+        <target state="translated">Не удается инициализировать тип "{0}" с выражением коллекции, так как тип не является конструируемым.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -562,11 +587,6 @@
         <target state="translated">"else" не может запускать оператор.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedDelegateTypeChanged">
-        <source>Cannot update because an inferred delegate type has changed.</source>
-        <target state="translated">Не удается выполнить обновление, так как изменен выводимый тип делегата.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">Точки входа приложения не могут иметь атрибут "UnmanagedCallersOnly".</target>
@@ -595,6 +615,11 @@
       <trans-unit id="ERR_ExplicitNullableAttribute">
         <source>Explicit application of 'System.Runtime.CompilerServices.NullableAttribute' is not allowed.</source>
         <target state="translated">Явное применение атрибута "System.Runtime.CompilerServices.NullableAttribute" не допускается.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ExplicitParamArrayOrCollection">
+        <source>Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.</source>
+        <target state="translated">Не используйте System.ParamArrayAttribute/System.Runtime.CompilerServices.ParamCollectionAttribute. Используйте ключевое слово "params".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExplicitPropertyMismatchInitOnly">
@@ -634,7 +659,7 @@
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsCollectionExpression">
         <source>An expression tree may not contain a collection expression.</source>
-        <target state="new">An expression tree may not contain a collection expression.</target>
+        <target state="translated">Дерево выражения не может содержать выражение коллекции.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsFromEndIndexExpression">
@@ -709,7 +734,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion12">
         <source>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</target>
+        <target state="translated">Функция "{0}" недоступна в C# 12.0. Используйте язык версии {1} или более поздней.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -929,7 +954,7 @@
       </trans-unit>
       <trans-unit id="ERR_InlineArrayForEachNotSupported">
         <source>foreach statement on an inline array of type '{0}' is not supported</source>
-        <target state="translated">оператор foreach для встроенного массива типа '{0}' не поддерживается</target>
+        <target state="translated">Оператор foreach во встроенном массиве типа "{0}" не поддерживается</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayIndexOutOfRange">
@@ -939,7 +964,7 @@
       </trans-unit>
       <trans-unit id="ERR_InlineArrayUnsupportedElementFieldModifier">
         <source>Inline array element field cannot be declared as required, readonly, volatile, or as a fixed size buffer.</source>
-        <target state="translated">Поле элемента встроенного массива не может быть объявлено как обязательное, доступное только для чтения, переменное или как буфер фиксированного размера.</target>
+        <target state="translated">Поле элемента встроенного массива нельзя объявить как обязательное, доступное только для чтения, переменное или как буфер фиксированного размера.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InstancePropertyInitializerInInterface">
@@ -954,7 +979,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorArityNotCompatible">
         <source>Method '{0}' must be non-generic or have arity {1} to match '{2}'.</source>
-        <target state="translated">Метод '{0}' должен быть неуниверсалом или иметь арность {1} для соответствия '{2}'.</target>
+        <target state="translated">Метод "{0}" должен быть неуниверсальным или иметь арность {1} для соответствия "{2}".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorCannotBeGeneric">
@@ -979,7 +1004,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorContainingTypeCannotBeGeneric">
         <source>Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</source>
-        <target state="new">Method '{0}' cannot be used as an interceptor because its containing type has type parameters.</target>
+        <target state="translated">Метод "{0}" нельзя использовать в качестве перехватчика, так как его содержащий тип имеет параметры типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorFilePathCannotBeNull">
@@ -1120,6 +1145,11 @@
       <trans-unit id="ERR_InterpolatedStringsReferencingInstanceCannotBeInObjectInitializers">
         <source>Interpolated string handler conversions that reference the instance being indexed cannot be used in indexer member initializers.</source>
         <target state="translated">Преобразования обработчика интерполированной строки, ссылающиеся на индексируемый экземпляр, нельзя использовать в инициализаторах элементов индексатора.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="translated">Аргумент diagnosticId атрибута "Experimental" должен быть допустимым идентификатором</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidFuncPointerReturnTypeModifier">
@@ -1387,6 +1417,11 @@
         <target state="translated">Условное выражение недопустимо в версии языка {0}, поскольку между "{1}" и "{2}" не найден общий тип. Для использования преобразования с целевым типом обновите язык до версии {3} или более поздней.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NoModifiersOnUsing">
+        <source>Modifiers cannot be placed on using declarations</source>
+        <target state="translated">Модификаторы нельзя разместить при использовании объявлений.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NoOutputDirectory">
         <source>Output directory could not be determined</source>
         <target state="translated">Не удалось определить выходной каталог</target>
@@ -1500,6 +1535,46 @@
       <trans-unit id="ERR_ParameterNullCheckingNotSupported">
         <source>The 'parameter null-checking' feature is not supported.</source>
         <target state="translated">Функция "проверка значений NULL параметров" не поддерживается.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
+        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
+        <target state="translated">Неоднозначность между расширенной и нормальной формами параметра коллекции params, отличных от массива, "{0}", единственный соответствующий аргумент имеет тип "dynamic". Рассмотрите возможность использования динамического аргумента.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
+        <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
+        <target state="translated">Конструктор "{0}" оставляет необходимый элемент "{1}" не инициализированным.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionExpressionTree">
+        <source>An expression tree may not contain an expanded form of non-array params collection parameter.</source>
+        <target state="translated">Дерево выражений не может содержать расширенную форму параметра коллекции params, не являющегося массивом.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionExtensionAddMethod">
+        <source>'{0}' does not contain a definition for a suitable instance 'Add' method</source>
+        <target state="translated">"{0}" не содержит определения для подходящего экземпляра метода "Add"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionInfiniteChainOfConstructorCalls">
+        <source>Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</source>
+        <target state="translated">Создание коллекции params "{0}" приводит к бесконечной цепочке вызовов конструктора "{1}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsCollectionMissingConstructor">
+        <source>Non-array params collection type must have an applicable constructor that can be called with no arguments.</source>
+        <target state="translated">Тип коллекции params, не являющийся массивом, должен иметь применимый конструктор, который можно вызывать без аргументов.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember">
+        <source>Method '{0}' cannot be less visible than the member with params collection '{1}'.</source>
+        <target state="translated">Метод "{0}" не может быть менее видимым, чем элемент с коллекцией параметров "{1}".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ParamsMustBeCollection">
+        <source>The params parameter must have a valid collection type</source>
+        <target state="translated">Параметр params должен иметь допустимый тип коллекции.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodAccessibilityDifference">
@@ -1644,7 +1719,7 @@
       </trans-unit>
       <trans-unit id="ERR_RefReadOnlyWrongOrdering">
         <source>'readonly' modifier must be specified after 'ref'.</source>
-        <target state="translated">Модификатор "readonly" должен быть указан после "ref".</target>
+        <target state="translated">Модификатор "readonly" должен указываться после "ref".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefReadonlyPrimaryConstructorParameter">
@@ -1855,6 +1930,11 @@
       <trans-unit id="ERR_SingleElementPositionalPatternRequiresDisambiguation">
         <source>A single-element deconstruct pattern requires some other syntax for disambiguation. It is recommended to add a discard designator '_' after the close paren ')'.</source>
         <target state="translated">Для шаблона деконструкции с одним элементом требуется другой синтаксис для устранения неоднозначности. Рекомендуется добавить указатель отмены "_" после закрывающей скобки ")".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_SpreadMissingMember">
+        <source>Spread operator '..' cannot operate on variables of type '{0}' because '{0}' does not contain a public instance or extension definition for '{1}'</source>
+        <target state="translated">Оператор расширения ".." не работает с переменными типа "{0}", так как "{0}" не содержит открытое определение экземпляра или расширения для "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_StaticAPIInRecord">
@@ -2119,7 +2199,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureCollectionExpressions">
         <source>collection expressions</source>
-        <target state="new">collection expressions</target>
+        <target state="translated">выражения коллекции</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureCovariantReturnsForOverrides">
@@ -2160,6 +2240,11 @@
       <trans-unit id="IDS_FeatureGlobalUsing">
         <source>global using directive</source>
         <target state="translated">глобальная директива using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureImplicitIndexerInitializer">
+        <source>implicit indexer initializer</source>
+        <target state="translated">неявный инициализатор индексатора</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureImplicitObjectCreation">
@@ -2212,6 +2297,11 @@
         <target state="translated">шаблон списка</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureLockObject">
+        <source>Lock object</source>
+        <target state="translated">Блокировать объект</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureNewLinesInInterpolations">
         <source>newlines in interpolations</source>
         <target state="translated">новые линии в интерполяции</target>
@@ -2220,6 +2310,11 @@
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
         <source>parameterless struct constructors</source>
         <target state="translated">конструкторы структуры без параметров</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureParamsCollections">
+        <source>params collections</source>
+        <target state="translated">коллекции params</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeaturePositionalFieldsInRecords">
@@ -2249,7 +2344,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureRefReadonlyParameters">
         <source>ref readonly parameters</source>
-        <target state="translated">параметры ref, доступные только для чтения</target>
+        <target state="translated">Параметры ref, доступные только для чтения</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRelaxedShiftOperator">
@@ -2265,6 +2360,11 @@
       <trans-unit id="IDS_FeatureSealedToStringInRecord">
         <source>sealed ToString in record</source>
         <target state="translated">запечатанный ToString в записи</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStringEscapeCharacter">
+        <source>string escape character</source>
+        <target state="translated">escape-символ строки</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStructFieldInitializers">
@@ -2337,6 +2437,11 @@
         <target state="translated">указатель</target>
         <note />
       </trans-unit>
+      <trans-unit id="ISpreadOperationIsNotCSharpSpread">
+        <source>{0} is not a valid C# spread operation</source>
+        <target state="translated">{0} не является допустимой операцией расширения C#</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
         <target state="translated">Оператор "&amp;" не следует использовать для параметров или локальных переменных в асинхронных методах.</target>
@@ -2369,22 +2474,22 @@
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn">
         <source>Argument {0} should be passed with the 'in' keyword</source>
-        <target state="new">Argument {0} should be passed with the 'in' keyword</target>
+        <target state="translated">Аргумент {0} должен передаваться с использованием ключевого слова "in"</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedIn_Title">
         <source>Argument should be passed with the 'in' keyword</source>
-        <target state="new">Argument should be passed with the 'in' keyword</target>
+        <target state="translated">Аргумент должен передаваться с использованием ключевого слова "in"</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedRefOrIn">
         <source>Argument {0} should be passed with 'ref' or 'in' keyword</source>
-        <target state="translated">Аргумент {0} передаваться с помощью "ref" или "in" ключевое слово</target>
+        <target state="translated">Аргумент {0} должен передаваться с использованием ключевого слова "ref" или "in"</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ArgExpectedRefOrIn_Title">
         <source>Argument should be passed with 'ref' or 'in' keyword</source>
-        <target state="translated">Аргумент должен передаваться с помощью команды "ref" или "in" ключевое слово</target>
+        <target state="translated">Аргумент должен передаваться с использованием ключевого слова "ref" или "in"</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_AttrDependentTypeNotAllowed">
@@ -2399,22 +2504,22 @@
       </trans-unit>
       <trans-unit id="WRN_BadArgRef">
         <source>The 'ref' modifier for argument {0} corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
-        <target state="translated">Модификатор "ref" для аргумента{0} соответствующего параметру "in", эквивалентен in. Попробуйте использовать "in".</target>
+        <target state="translated">Модификатор "ref" для аргумента {0}, соответствующего параметру "in", эквивалентен "in". Попробуйте вместо этого использовать "in".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadArgRef_Title">
         <source>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
-        <target state="translated">Модификатор "ref" для аргумента, соответствующего параметру "in", эквивалентен in. Попробуйте использовать "in".</target>
+        <target state="translated">Модификатор "ref" для аргумента, соответствующего параметру "in", эквивалентен "in". Попробуйте вместо этого использовать "in".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired">
         <source>Attribute parameter 'SizeConst' must be specified.</source>
-        <target state="new">Attribute parameter 'SizeConst' must be specified.</target>
+        <target state="translated">Должен быть указан параметр атрибута "SizeConst".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired_Title">
         <source>Attribute parameter 'SizeConst' must be specified.</source>
-        <target state="new">Attribute parameter 'SizeConst' must be specified.</target>
+        <target state="translated">Должен быть указан параметр атрибута "SizeConst".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CallArgMixing">
@@ -2507,6 +2612,26 @@
         <target state="translated">Параметр записан в состоянии включающего типа, а его значение также передается базовому конструктору. Значение также может быть записано базовым классом.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate">
+        <source>Collection expression of type '{0}' may incur unexpected heap allocations. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
+        <target state="translated">Выражение коллекции типа "{0}" может привести к непредвиденным выделениям кучи. Рассмотрите возможность явного создания массива, а затем преобразования в "{0}", чтобы сделать выделение явным.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CollectionExpressionRefStructMayAllocate_Title">
+        <source>Collection expression may incur unexpected heap allocations. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
+        <target state="translated">Выражение коллекции может привести к непредвиденным выделениям кучи. Рассмотрите возможность явного создания массива, а затем преобразования в конечный тип, чтобы сделать выделение явным.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate">
+        <source>Collection expression of type '{0}' may incur unexpected heap allocations due to the use of '..' spreads. Consider explicitly creating an array, then converting to '{0}' to make the allocation explicit.</source>
+        <target state="translated">Выражение коллекции типа "{0}" может привести к непредвиденным выделениям кучи из-за использования расширений "..". Рассмотрите возможность явного создания массива, а затем преобразования в "{0}", чтобы сделать выделение явным.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_CollectionExpressionRefStructSpreadMayAllocate_Title">
+        <source>Collection expression may incur unexpected heap allocations due to use of '..' spreads. Consider explicitly creating an array, then converting to the final type to make the allocation explicit.</source>
+        <target state="translated">Выражение коллекции может привести к непредвиденным выделениям кучи из-за использования расширений "..". Рассмотрите возможность явного создания массива, а затем преобразования в конечный тип, чтобы сделать выделение явным.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_CompileTimeCheckedOverflow">
         <source>The operation may overflow '{0}' at runtime (use 'unchecked' syntax to override)</source>
         <target state="translated">Операция может привести к переполнению "{0}" в среде выполнения (для переопределения используйте синтаксис "unchecked")</target>
@@ -2515,6 +2640,16 @@
       <trans-unit id="WRN_CompileTimeCheckedOverflow_Title">
         <source>The operation may overflow at runtime (use 'unchecked' syntax to override)</source>
         <target state="translated">Операция может привести к переполнению в среде выполнения (для переопределения используйте синтаксис "unchecked")</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
+        <target state="translated">Значение типа "System.Threading.Lock", преобразованное в другой тип, будет использовать (скорее всего, непреднамеренную) блокировку на основе монитора в инструкции "lock".</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock_Title">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in 'lock' statement.</source>
+        <target state="translated">Значение типа "System.Threading.Lock", преобразованное в другой тип, будет использовать (скорее всего, непреднамеренную) блокировку на основе монитора в инструкции "lock".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_DoNotCompareFunctionPointers">
@@ -2535,6 +2670,36 @@
       <trans-unit id="WRN_DuplicateAnalyzerReference_Title">
         <source>Analyzer reference specified multiple times</source>
         <target state="translated">Ссылка на анализатор указана несколько раз</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor">
+        <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="translated">Одна или несколько перегрузок конструктора, содержащих параметр коллекции params, отличный от массива, могут быть применимы только в расширенной форме, не поддерживаемой во время динамической отправки.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionConstructor_Title">
+        <source>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="translated">Одна или несколько перегрузок конструктора, содержащих параметр коллекции params, отличный от массива, могут быть применимы только в расширенной форме, не поддерживаемой во время динамической отправки.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer">
+        <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="translated">Одна или несколько перегрузок индексатора, содержащих параметр коллекции params, отличный от массива, могут быть применимы только в расширенной форме, не поддерживаемой во время динамической отправки.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionIndexer_Title">
+        <source>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="translated">Одна или несколько перегрузок индексатора, содержащих параметр коллекции params, отличный от массива, могут быть применимы только в расширенной форме, не поддерживаемой во время динамической отправки.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod">
+        <source>One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="translated">Одна или несколько перегрузок метода "{0}", имеющих параметр коллекции params, отличный от массива, могут быть применимы только в расширенной форме, которая не поддерживается во время динамической отправки.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_DynamicDispatchToParamsCollectionMethod_Title">
+        <source>One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</source>
+        <target state="translated">Одна или несколько перегрузок метода, имеющих параметр коллекции params, отличный от массива, могут быть применимы только в расширенной форме, которая не поддерживается во время динамической отправки.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_EscapeCall">
@@ -2589,22 +2754,22 @@
       </trans-unit>
       <trans-unit id="WRN_InlineArrayIndexerNotUsed">
         <source>Inline array indexer will not be used for element access expression.</source>
-        <target state="translated">Встроенный индексатор массива не будет использоваться для выражения доступа к элементу.</target>
+        <target state="translated">Индексатор встроенного массива не будет использоваться для выражения доступа к элементу.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayIndexerNotUsed_Title">
         <source>Inline array indexer will not be used for element access expression.</source>
-        <target state="translated">Встроенный индексатор массива не будет использоваться для выражения доступа к элементу.</target>
+        <target state="translated">Индексатор встроенного массива не будет использоваться для выражения доступа к элементу.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">Функция языка "Встроенные массивы" не поддерживается для встроенных типов массивов с полем элемента, которое является полем "ref" или имеет недопустимый тип в качестве аргумента типа.</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="translated">Функция языка "Встроенные массивы" не поддерживается для встроенного типа массива, который недопустим в качестве аргумента типа или использует тип элемента, недопустимый в качестве аргумента типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayNotSupportedByLanguage_Title">
-        <source>'Inline arrays' language feature is not supported for inline array types with element field which is either a 'ref' field, or has type that is not valid as a type argument.</source>
-        <target state="translated">Функция языка "Встроенные массивы" не поддерживается для встроенных типов массивов с полем элемента, которое является полем "ref" или имеет недопустимый тип в качестве аргумента типа.</target>
+        <source>'Inline arrays' language feature is not supported for an inline array type that is not valid as a type argument, or has element type that is not valid as a type argument.</source>
+        <target state="translated">Функция языка "Встроенные массивы" не поддерживается для встроенного типа массива, который недопустим в качестве аргумента типа или использует тип элемента, недопустимый в качестве аргумента типа.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArraySliceNotUsed">
@@ -2619,12 +2784,12 @@
       </trans-unit>
       <trans-unit id="WRN_HidingDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in hidden member.</source>
-        <target state="translated">Модификатор вида ссылки параметра '{0}' не соответствует соответствующему параметру '{1}' скрытом элементе.</target>
+        <target state="translated">Модификатор типа ссылки параметра "{0}" не совпадает с соответствующим параметром "{1}" в скрытом элементе.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_HidingDifferentRefness_Title">
         <source>Reference kind modifier of parameter doesn't match the corresponding parameter in hidden member.</source>
-        <target state="translated">Модификатор вида ссылки параметра не соответствует соответствующему параметру в скрытом члене.</target>
+        <target state="translated">Модификатор типа ссылки параметра не совпадает с соответствующим параметром в скрытом элементе.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InterceptorSignatureMismatch">
@@ -2729,12 +2894,12 @@
       </trans-unit>
       <trans-unit id="WRN_OverridingDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.</source>
-        <target state="translated">Модификатор типа ссылки параметра '{0}' не соответствует соответствующему параметру '{1}' переопределеемом или реализованным элементом.</target>
+        <target state="translated">Модификатор типа ссылки параметра "{0}" не совпадает с соответствующим параметром "{1}" в переопределенном или реализованном элементе.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_OverridingDifferentRefness_Title">
         <source>Reference kind modifier of parameter doesn't match the corresponding parameter in overridden or implemented member.</source>
-        <target state="translated">Модификатор типа ссылки параметра не соответствует соответствующему параметру в переопределеемом или реализованный элементе.</target>
+        <target state="translated">Модификатор типа ссылки параметра не совпадает с соответствующим параметром в переопределенном или реализованном элементе.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ParameterNotNullIfNotNull">
@@ -2769,12 +2934,12 @@
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
         <source>Primary constructor parameter '{0}' is shadowed by a member from base.</source>
-        <target state="translated">Параметр первичного конструктора '{0}' затеняется элементом из базы.</target>
+        <target state="translated">Параметр "{0}" первичной конструкции затемнен элементом из базы.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase_Title">
         <source>Primary constructor parameter is shadowed by a member from base</source>
-        <target state="translated">Параметр первичного конструктора затеняется элементом из базы</target>
+        <target state="translated">Параметр первичной конструкции затемнен элементом из базы.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RecordEqualsWithoutGetHashCode">
@@ -2844,7 +3009,7 @@
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyNotVariable">
         <source>Argument {0} should be a variable because it is passed to a 'ref readonly' parameter</source>
-        <target state="translated">Аргумент {0} быть переменной, так как он передается параметру "ref readonly"</target>
+        <target state="translated">Аргумент {0} должен быть переменной, так как он передается параметру "ref readonly"</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyNotVariable_Title">
@@ -2854,12 +3019,12 @@
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyParameterDefaultValue">
         <source>A default value is specified for 'ref readonly' parameter '{0}', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</source>
-        <target state="translated">Значение по умолчанию указано для параметра "ref readonly" '{0}', но "ref readonly" следует использовать только для ссылок. Рассмотрите возможность объявления параметра как in.</target>
+        <target state="translated">Значение по умолчанию указано для параметра "ref readonly" "{0}", но "ref readonly" следует использовать только для ссылок. Рассмотрите возможность объявления параметра как "in".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReadonlyParameterDefaultValue_Title">
         <source>A default value is specified for 'ref readonly' parameter, but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.</source>
-        <target state="translated">Для параметра "ref readonly" указано значение по умолчанию, но "ref readonly" следует использовать только для ссылок. Рассмотрите возможность объявления параметра как in.</target>
+        <target state="translated">Значение по умолчанию указано для параметра "ref readonly", но "ref readonly" следует использовать только для ссылок. Рассмотрите возможность объявления параметра как "in".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_RefReturnLocal">
@@ -4746,12 +4911,12 @@
       </trans-unit>
       <trans-unit id="WRN_TargetDifferentRefness">
         <source>Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in target.</source>
-        <target state="translated">Модификатор типа ссылки параметра '{0}' не соответствует соответствующему параметру '{1}' целевом объекте.</target>
+        <target state="translated">Модификатор типа ссылки параметра "{0}" не совпадает с соответствующим параметром "{1}" в целевом объекте.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_TargetDifferentRefness_Title">
         <source>Reference kind modifier of parameter doesn't match the corresponding parameter in target.</source>
-        <target state="translated">Модификатор типа ссылки параметра не соответствует соответствующему параметру в целевом объекте.</target>
+        <target state="translated">Модификатор типа ссылки параметра не совпадает с соответствующим параметром в целевом объекте.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ThrowPossibleNull">
@@ -5021,12 +5186,12 @@
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationRefField">
         <source>Ref field '{0}' should be ref-assigned before use.</source>
-        <target state="translated">Поле ссылки '{0}' должно быть назначено ref перед использованием.</target>
+        <target state="translated">Поле ссылки "{0}" должно быть назначено при помощи ref перед использованием.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationRefField_Title">
         <source>Ref field should be ref-assigned before use.</source>
-        <target state="translated">Поле ссылки должно быть назначено ref перед использованием.</target>
+        <target state="translated">Поле ссылки должно быть назначено при помощи ref перед использованием.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UseDefViolationThisSupportedVersion">
@@ -6067,11 +6232,6 @@
       <trans-unit id="ERR_BadVarargs">
         <source>A method with vararg cannot be generic, be in a generic type, or have a params parameter</source>
         <target state="translated">Метод с vararg не может быть универсальным, иметь универсальный тип или параметр params</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ParamsMustBeArray">
-        <source>The params parameter must be a single dimensional array</source>
-        <target state="translated">Параметр params должен быть одномерным массивом.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalArglist">
@@ -7546,11 +7706,6 @@ If such a class is used as a base class and if the deriving class defines a dest
       <trans-unit id="ERR_SystemVoid">
         <source>System.Void cannot be used from C# -- use typeof(void) to get the void type object</source>
         <target state="translated">System.Void из C# использоваться не может -- для получения объекта типа void используйте typeof(void).</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ExplicitParamArray">
-        <source>Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.</source>
-        <target state="translated">Не используйте "System.ParamArrayAttribute". Используйте ключевое слово "params".</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BitwiseOrSignExtend">
@@ -10803,8 +10958,8 @@ You should consider suppressing the warning only if you're sure that you don't w
         <note />
       </trans-unit>
       <trans-unit id="ERR_DefaultValueForParamsParameter">
-        <source>Cannot specify a default value for a parameter array</source>
-        <target state="translated">Не удалось указать значение по умолчанию для массива параметров.</target>
+        <source>Cannot specify a default value for a parameter collection</source>
+        <target state="translated">Не удается указать значение по умолчанию для коллекции параметров.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForDefaultParam">

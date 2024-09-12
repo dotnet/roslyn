@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class SourceSimpleParameterSymbol : SourceParameterSymbol
     {
+        private readonly TypeWithAnnotations _parameterType;
+
         public SourceSimpleParameterSymbol(
             Symbol owner,
             TypeWithAnnotations parameterType,
@@ -36,9 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ScopedKind scope,
             string name,
             Location? location)
-            : base(owner, parameterType, ordinal, refKind, scope, name, location)
+            : base(owner, ordinal, refKind, scope, name, location)
         {
+            _parameterType = parameterType;
         }
+
+        public override TypeWithAnnotations TypeWithAnnotations => _parameterType;
 
         public override bool IsDiscard => false;
 
@@ -52,7 +57,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        public override bool IsParams
+        protected override bool HasParamsModifier
+        {
+            get { return false; }
+        }
+
+        public override bool IsParamsArray
+        {
+            get { return false; }
+        }
+
+        public override bool IsParamsCollection
         {
             get { return false; }
         }

@@ -7,24 +7,23 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Structure
+namespace Microsoft.CodeAnalysis.CSharp.Structure;
+
+internal class MultilineCommentBlockStructureProvider : AbstractSyntaxTriviaStructureProvider
 {
-    internal class MultilineCommentBlockStructureProvider : AbstractSyntaxTriviaStructureProvider
+    public override void CollectBlockSpans(
+        SyntaxTrivia trivia,
+        ref TemporaryArray<BlockSpan> spans,
+        BlockStructureOptions options,
+        CancellationToken cancellationToken)
     {
-        public override void CollectBlockSpans(
-            SyntaxTrivia trivia,
-            ref TemporaryArray<BlockSpan> spans,
-            BlockStructureOptions options,
-            CancellationToken cancellationToken)
-        {
-            var span = new BlockSpan(
-                isCollapsible: true,
-                textSpan: trivia.Span,
-                hintSpan: trivia.Span,
-                type: BlockTypes.Comment,
-                bannerText: CSharpStructureHelpers.GetCommentBannerText(trivia),
-                autoCollapse: true);
-            spans.Add(span);
-        }
+        var span = new BlockSpan(
+            isCollapsible: true,
+            textSpan: trivia.Span,
+            hintSpan: trivia.Span,
+            type: BlockTypes.Comment,
+            bannerText: CSharpStructureHelpers.GetCommentBannerText(trivia),
+            autoCollapse: true);
+        spans.Add(span);
     }
 }

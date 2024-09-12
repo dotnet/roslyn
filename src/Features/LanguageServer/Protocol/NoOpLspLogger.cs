@@ -3,38 +3,41 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Threading;
-using System.Threading.Tasks;
+using Microsoft.CommonLanguageServerProtocol.Framework;
 
 namespace Microsoft.CodeAnalysis.LanguageServer
 {
-    internal class NoOpLspLogger : ILspServiceLogger
+    internal sealed class NoOpLspLogger : AbstractLspLogger, ILspService
     {
-        public static readonly ILspServiceLogger Instance = new NoOpLspLogger();
+        public static readonly NoOpLspLogger Instance = new NoOpLspLogger();
 
         private NoOpLspLogger() { }
 
-        public void LogException(Exception exception, string? message = null, params object[] @params)
+        public override void LogDebug(string message, params object[] @params)
         {
         }
 
-        public void LogInformation(string message, params object[] @params)
+        public override void LogException(Exception exception, string? message = null, params object[] @params)
         {
         }
 
-        public void LogWarning(string message, params object[] @params)
+        public override void LogInformation(string message, params object[] @params)
         {
         }
 
-        public void LogError(string message, params object[] @params)
+        public override void LogWarning(string message, params object[] @params)
         {
         }
 
-        public void LogStartContext(string message, params object[] @params)
+        public override void LogError(string message, params object[] @params)
         {
         }
 
-        public void LogEndContext(string message, params object[] @params)
+        public override void LogStartContext(string message, params object[] @params)
+        {
+        }
+
+        public override void LogEndContext(string message, params object[] @params)
         {
         }
     }

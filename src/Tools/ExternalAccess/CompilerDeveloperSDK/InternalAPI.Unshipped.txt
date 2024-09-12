@@ -1,5 +1,5 @@
 #nullable enable
-abstract Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.AbstractCompilerDeveloperSdkLspServiceDocumentRequestHandler<TRequest, TResponse>.GetTextDocumentIdentifier(TRequest request) -> Microsoft.VisualStudio.LanguageServer.Protocol.TextDocumentIdentifier!
+abstract Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.AbstractCompilerDeveloperSdkLspServiceDocumentRequestHandler<TRequest, TResponse>.GetTextDocumentIdentifier(TRequest request) -> System.Uri!
 abstract Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.AbstractCompilerDeveloperSdkLspServiceDocumentRequestHandler<TRequest, TResponse>.HandleRequestAsync(TRequest request, Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResponse>!
 abstract Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.AbstractCompilerDeveloperSdkLspServiceDocumentRequestHandler<TRequest, TResponse>.MutatesSolutionState.get -> bool
 abstract Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.AbstractCompilerDeveloperSdkLspServiceDocumentRequestHandler<TRequest, TResponse>.RequiresLSPSolution.get -> bool
@@ -35,9 +35,3 @@ Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext.Reques
 Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext.RequestContext(Microsoft.CodeAnalysis.LanguageServer.Handler.RequestContext context) -> void
 Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext.Solution.get -> Microsoft.CodeAnalysis.Solution?
 Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.RequestContext.Workspace.get -> Microsoft.CodeAnalysis.Workspace?
-static Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.ProtocolConversions.LinePositionToPosition(Microsoft.CodeAnalysis.Text.LinePosition linePosition) -> Microsoft.VisualStudio.LanguageServer.Protocol.Position!
-static Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.ProtocolConversions.LinePositionToRange(Microsoft.CodeAnalysis.Text.LinePositionSpan linePositionSpan) -> Microsoft.VisualStudio.LanguageServer.Protocol.Range!
-static Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.ProtocolConversions.PositionToLinePosition(Microsoft.VisualStudio.LanguageServer.Protocol.Position! position) -> Microsoft.CodeAnalysis.Text.LinePosition
-static Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.ProtocolConversions.RangeToLinePositionSpan(Microsoft.VisualStudio.LanguageServer.Protocol.Range! range) -> Microsoft.CodeAnalysis.Text.LinePositionSpan
-static Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.ProtocolConversions.RangeToTextSpan(Microsoft.VisualStudio.LanguageServer.Protocol.Range! range, Microsoft.CodeAnalysis.Text.SourceText! text) -> Microsoft.CodeAnalysis.Text.TextSpan
-static Microsoft.CodeAnalysis.ExternalAccess.CompilerDeveloperSdk.ProtocolConversions.TextSpanToRange(Microsoft.CodeAnalysis.Text.TextSpan textSpan, Microsoft.CodeAnalysis.Text.SourceText! text) -> Microsoft.VisualStudio.LanguageServer.Protocol.Range!

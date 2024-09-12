@@ -11,23 +11,21 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.GenerateEqualsAndGetHashCodeFromMembers
-{
-    [ExportLanguageService(typeof(IGenerateEqualsAndGetHashCodeService), LanguageNames.CSharp), Shared]
-    internal class CSharpGenerateEqualsAndGetHashCodeService : AbstractGenerateEqualsAndGetHashCodeService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpGenerateEqualsAndGetHashCodeService()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.GenerateEqualsAndGetHashCodeFromMembers;
 
-        protected override bool TryWrapWithUnchecked(ImmutableArray<SyntaxNode> statements, out ImmutableArray<SyntaxNode> wrappedStatements)
-        {
-            wrappedStatements = ImmutableArray.Create<SyntaxNode>(
-                SyntaxFactory.CheckedStatement(SyntaxKind.UncheckedStatement,
-                    SyntaxFactory.Block(statements.OfType<StatementSyntax>())));
-            return true;
-        }
+[ExportLanguageService(typeof(IGenerateEqualsAndGetHashCodeService), LanguageNames.CSharp), Shared]
+internal class CSharpGenerateEqualsAndGetHashCodeService : AbstractGenerateEqualsAndGetHashCodeService
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpGenerateEqualsAndGetHashCodeService()
+    {
+    }
+
+    protected override bool TryWrapWithUnchecked(ImmutableArray<SyntaxNode> statements, out ImmutableArray<SyntaxNode> wrappedStatements)
+    {
+        wrappedStatements = [SyntaxFactory.CheckedStatement(SyntaxKind.UncheckedStatement,
+                SyntaxFactory.Block(statements.OfType<StatementSyntax>()))];
+        return true;
     }
 }

@@ -2,6 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+' TODO https : //github.com/dotnet/roslyn/issues/71625 
+#If NET472 Then
+
 Imports VerifyCodeFix = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
         Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
         Microsoft.CodeAnalysis.VisualBasic.GenerateDefaultConstructors.VisualBasicGenerateDefaultConstructorsCodeFixProvider)
@@ -891,3 +894,4 @@ End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
     End Class
 End Namespace
+#End If

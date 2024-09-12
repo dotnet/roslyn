@@ -322,6 +322,7 @@ class X
                         case ErrorCode.WRN_TargetDifferentRefness:
                         case ErrorCode.WRN_RefReadonlyParameterDefaultValue:
                         case ErrorCode.WRN_Experimental:
+                        case ErrorCode.WRN_ConvertingLock:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_MainIgnored:
@@ -427,6 +428,11 @@ class X
                         case ErrorCode.WRN_RefReturnOnlyParameter2:
                         case ErrorCode.WRN_RefAssignValEscapeWider:
                         case ErrorCode.WRN_UseDefViolationRefField:
+                        case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
+                        case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
+                        case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
+                        case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
+                        case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -2954,7 +2960,6 @@ class Program
                     case ErrorCode.ERR_RefReturningCallAndAwait:
                     case ErrorCode.ERR_SpecialByRefInLambda:
                     case ErrorCode.ERR_DynamicRequiredTypesMissing:
-                    case ErrorCode.ERR_EncUpdateFailedDelegateTypeChanged:
                     case ErrorCode.ERR_CannotBeConvertedToUtf8:
                     case ErrorCode.ERR_FileTypeNonUniquePath:
                     case ErrorCode.ERR_InterceptorSignatureMismatch:
@@ -2971,6 +2976,8 @@ class Program
                     case ErrorCode.ERR_InterceptorArityNotCompatible:
                     case ErrorCode.ERR_InterceptorCannotBeGeneric:
                     case ErrorCode.ERR_InterceptableMethodMustBeOrdinary:
+                    case ErrorCode.ERR_PossibleAsyncIteratorWithoutYield:
+                    case ErrorCode.ERR_PossibleAsyncIteratorWithoutYieldOrAwait:
                         Assert.True(isBuildOnly, $"Check failed for ErrorCode.{errorCode}");
                         break;
 

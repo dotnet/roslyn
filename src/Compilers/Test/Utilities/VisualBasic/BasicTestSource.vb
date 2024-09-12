@@ -23,22 +23,8 @@ Public Structure BasicTestSource
 
         Dim sourceTest = SourceText.From(text, If(encoding, Encoding.UTF8), checksumAlgorithm)
         Dim tree = SyntaxFactory.ParseSyntaxTree(sourceTest, If(options, TestOptions.RegularLatest), path)
-        CheckSerializable(tree)
         Return tree
     End Function
-
-    Private Shared Sub CheckSerializable(tree As SyntaxTree)
-#Disable Warning BC40000 ' Type or member is obsolete
-        Using stream = New MemoryStream()
-            Dim root = tree.GetRoot()
-            root.SerializeTo(stream)
-            stream.Position = 0
-
-            ' verify absence of exception
-            VisualBasicSyntaxNode.DeserializeFrom(stream)
-#Enable Warning BC40000 ' Type or member is obsolete
-        End Using
-    End Sub
 
     Public Function GetSyntaxTrees(
         Optional parseOptions As VisualBasicParseOptions = Nothing,

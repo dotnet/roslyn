@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Roslyn.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
-using Roslyn.VisualStudio.IntegrationTests.InProcess;
 using WindowsInput.Native;
 using Xunit;
 
@@ -17,7 +16,7 @@ namespace Roslyn.VisualStudio.NewIntegrationTests
     public class InfrastructureTests : AbstractEditorTest
     {
         public InfrastructureTests()
-            : base(nameof(InfrastructureTests))
+            : base(nameof(InfrastructureTests), WellKnownProjectTemplates.CSharpNetCoreClassLibrary)
         {
         }
 
@@ -35,7 +34,7 @@ $$
                 HangMitigatingCancellationToken);
 
             // Trigger a call to File.Close to ensure we can recover from it
-            await TestServices.Input.SendAsync(new InputKey[] { (VirtualKeyCode.VK_F, VirtualKeyCode.MENU), VirtualKeyCode.VK_C }, HangMitigatingCancellationToken);
+            await TestServices.Input.SendAsync([(VirtualKeyCode.VK_F, VirtualKeyCode.MENU), VirtualKeyCode.VK_C], HangMitigatingCancellationToken);
 
             var modalWindow = IntegrationHelper.GetModalWindowFromParentWindow(await TestServices.Shell.GetMainWindowAsync(HangMitigatingCancellationToken));
             Assert.NotEqual(IntPtr.Zero, modalWindow);

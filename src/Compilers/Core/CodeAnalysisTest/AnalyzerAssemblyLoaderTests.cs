@@ -5,23 +5,21 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 using Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
+
 #if NETCOREAPP
 using Roslyn.Test.Utilities.CoreClr;
 using System.Runtime.Loader;
@@ -365,9 +363,34 @@ Delta: Gamma: Beta: Test B
                 }
 #endif
 
-                return loader.GetRealLoadPath(path ?? "");
+                if (path.EndsWith(".resources.dll", StringComparison.Ordinal))
+                {
+                    return getRealSatelliteLoadPath(path) ?? "";
+                }
+                return loader.GetRealAnalyzerLoadPath(path ?? "");
             }
 
+            // When PreparePathToLoad is overridden this returns the most recent
+            // real path for the given analyzer satellite assembly path
+            string? getRealSatelliteLoadPath(string originalSatelliteFullPath)
+            {
+                // This is a satellite assembly, need to find the mapped path of the real assembly, then 
+                // adjust that mapped path for the suffix of the satellite assembly
+                //
+                // Example of dll and it's corresponding satellite assembly
+                //
+                //  c:\some\path\en-GB\util.resources.dll
+                //  c:\some\path\util.dll
+                var assemblyFileName = Path.ChangeExtension(Path.GetFileNameWithoutExtension(originalSatelliteFullPath), ".dll");
+
+                var assemblyDir = Path.GetDirectoryName(originalSatelliteFullPath)!;
+                var cultureInfo = CultureInfo.GetCultureInfo(Path.GetFileName(assemblyDir));
+                assemblyDir = Path.GetDirectoryName(assemblyDir)!;
+
+                // Real assembly is located in the directory above this one
+                var assemblyPath = Path.Combine(assemblyDir, assemblyFileName);
+                return loader.GetRealSatelliteLoadPath(assemblyPath, cultureInfo);
+            }
         }
 
         private static void VerifyAssemblies(AnalyzerAssemblyLoader loader, IEnumerable<Assembly> assemblies, int? copyCount, params string[] assemblyPaths)
@@ -496,6 +519,7 @@ Delta: Gamma: Beta: Test B
             });
         }
 
+#if NET472
         /// <summary>
         /// Verify that MS.CA.EA.RazorCompiler will be loaded from the compiler directory not the 
         /// analyzer directory.
@@ -566,6 +590,8 @@ Delta: Gamma: Beta: Test B
                     deltaFile);
             });
         }
+
+#endif
 
         /// <summary>
         /// Similar to <see cref="AssemblyLoading_DependencyInDifferentDirectory"/> except want to validate
@@ -788,7 +814,7 @@ Delta: Epsilon: Test E
                 {
                     // See limitation 1
                     // The Epsilon.dll has Delta.dll (v2) next to it in the directory. 
-                    Assert.Throws<InvalidOperationException>(() => loader.GetRealLoadPath(testFixture.Delta2));
+                    Assert.Throws<InvalidOperationException>(() => loader.GetRealAnalyzerLoadPath(testFixture.Delta2));
 
                     // Fake the dependency so we can verify the rest of the load
                     loader.AddDependencyLocation(testFixture.Delta2);
@@ -877,8 +903,8 @@ Delta: Epsilon: Test E
                 if (loader.AnalyzerLoadOption == AnalyzerLoadOption.LoadFromDisk)
                 {
                     Assert.NotEqual(delta2B.Location, delta2.Location);
-                    Assert.Equal(loader.GetRealLoadPath(testFixture.Delta2), delta2.Location);
-                    Assert.Equal(loader.GetRealLoadPath(testFixture.Delta2B), delta2B.Location);
+                    Assert.Equal(loader.GetRealAnalyzerLoadPath(testFixture.Delta2), delta2.Location);
+                    Assert.Equal(loader.GetRealAnalyzerLoadPath(testFixture.Delta2B), delta2B.Location);
                 }
 
 #else
@@ -927,7 +953,7 @@ Delta: Epsilon: Test E
                 else
                 {
                     // See limitation 2
-                    Assert.Throws<InvalidOperationException>(() => loader.GetRealLoadPath(testFixture.Delta2));
+                    Assert.Throws<InvalidOperationException>(() => loader.GetRealAnalyzerLoadPath(testFixture.Delta2));
 
                     // Fake the dependency so we can verify the rest of the load
                     loader.AddDependencyLocation(testFixture.Delta2);
@@ -1390,6 +1416,52 @@ Delta.2: Test D2
                 }
 
                 VerifyDependencyAssemblies(loader, path);
+            });
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_Resources(AnalyzerTestKind kind)
+        {
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                using var temp = new TempRoot();
+                var tempDir = temp.CreateDirectory();
+                var analyzerPath = tempDir.CreateFile("AnalyzerWithLoc.dll").CopyContentFrom(testFixture.AnalyzerWithLoc).Path;
+                var analyzerResourcesPath = tempDir.CreateDirectory("en-GB").CreateFile("AnalyzerWithLoc.resources.dll").CopyContentFrom(testFixture.AnalyzerWithLocResourceEnGB).Path;
+                loader.AddDependencyLocation(analyzerPath);
+                var assembly = loader.LoadFromPath(analyzerPath);
+                var methodInfo = assembly
+                    .GetType("AnalyzerWithLoc.Util")!
+                    .GetMethod("Exec", BindingFlags.Static | BindingFlags.Public)!;
+                methodInfo.Invoke(null, ["en-GB"]);
+
+                // The copy count is 1 here as only one real assembly was copied, the resource 
+                // dlls don't apply for this count.
+                VerifyDependencyAssemblies(loader, copyCount: 1, analyzerPath, analyzerResourcesPath);
+            });
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_ResourcesInParent(AnalyzerTestKind kind)
+        {
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                using var temp = new TempRoot();
+                var tempDir = temp.CreateDirectory();
+                var analyzerPath = tempDir.CreateFile("AnalyzerWithLoc.dll").CopyContentFrom(testFixture.AnalyzerWithLoc).Path;
+                var analyzerResourcesPath = tempDir.CreateDirectory("es").CreateFile("AnalyzerWithLoc.resources.dll").CopyContentFrom(testFixture.AnalyzerWithLocResourceEnGB).Path;
+                loader.AddDependencyLocation(analyzerPath);
+                var assembly = loader.LoadFromPath(analyzerPath);
+                var methodInfo = assembly
+                    .GetType("AnalyzerWithLoc.Util")!
+                    .GetMethod("Exec", BindingFlags.Static | BindingFlags.Public)!;
+                methodInfo.Invoke(null, ["es-ES"]);
+
+                // The copy count is 1 here as only one real assembly was copied, the resource 
+                // dlls don't apply for this count.
+                VerifyDependencyAssemblies(loader, copyCount: 1, analyzerPath, analyzerResourcesPath);
             });
         }
 

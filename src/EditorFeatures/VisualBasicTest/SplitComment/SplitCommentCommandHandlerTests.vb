@@ -11,8 +11,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SplitComment
     Public Class SplitCommentCommandHandlerTests
         Inherits AbstractSplitCommentCommandHandlerTests
 
-        Protected Overrides Function CreateWorkspace(markup As String) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(markup)
+        Protected Overrides Function CreateWorkspace(markup As String) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(markup)
         End Function
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/38516")>

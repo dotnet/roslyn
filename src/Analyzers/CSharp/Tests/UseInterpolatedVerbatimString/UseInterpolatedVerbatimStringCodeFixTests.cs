@@ -15,7 +15,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseInterpolatedVerbatimString
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsUseInterpolatedVerbatimString)]
-    public class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class CSharpUseInterpolatedVerbatimStringCodeFixTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
         public CSharpUseInterpolatedVerbatimStringCodeFixTests(ITestOutputHelper logger)
           : base(logger)

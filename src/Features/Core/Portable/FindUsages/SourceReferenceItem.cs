@@ -5,72 +5,79 @@
 #nullable disable
 
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Classification;
 
-namespace Microsoft.CodeAnalysis.FindUsages
+namespace Microsoft.CodeAnalysis.FindUsages;
+
+/// <summary>
+/// Information about a symbol's reference that can be used for display and 
+/// navigation in an editor.
+/// </summary>
+internal sealed class SourceReferenceItem
 {
     /// <summary>
-    /// Information about a symbol's reference that can be used for display and 
-    /// navigation in an editor.
+    /// The definition this reference corresponds to.
     /// </summary>
-    internal sealed class SourceReferenceItem
+    public DefinitionItem Definition { get; }
+
+    /// <summary>
+    /// The location of the source item.
+    /// </summary>
+    public DocumentSpan SourceSpan { get; }
+
+    /// <summary>
+    /// Precomputed classified spans for the corresponding <see cref="SourceSpan"/>.
+    /// </summary>
+    public ClassifiedSpansAndHighlightSpan? ClassifiedSpans { get; }
+
+    /// <summary>
+    /// If this reference is a location where the definition is written to.
+    /// </summary>
+    public bool IsWrittenTo { get; }
+
+    /// <summary>
+    /// Symbol usage info associated with the reference.
+    /// This entry indicates that the reference has additional usage information, such as
+    /// it is a read/write reference for 'a++'.
+    /// </summary>
+    public SymbolUsageInfo SymbolUsageInfo { get; }
+
+    /// <summary>
+    /// Additional properties for the reference.
+    /// For example, { "ContainingTypeInfo" } = { "MyClass" }
+    /// </summary>
+    public ImmutableDictionary<string, string> AdditionalProperties { get; }
+
+    private SourceReferenceItem(
+        DefinitionItem definition,
+        DocumentSpan sourceSpan,
+        ClassifiedSpansAndHighlightSpan? classifiedSpans,
+        SymbolUsageInfo symbolUsageInfo,
+        ImmutableDictionary<string, string> additionalProperties,
+        bool isWrittenTo)
     {
-        /// <summary>
-        /// The definition this reference corresponds to.
-        /// </summary>
-        public DefinitionItem Definition { get; }
+        Definition = definition;
+        SourceSpan = sourceSpan;
+        ClassifiedSpans = classifiedSpans;
+        SymbolUsageInfo = symbolUsageInfo;
+        IsWrittenTo = isWrittenTo;
+        AdditionalProperties = additionalProperties ?? ImmutableDictionary<string, string>.Empty;
+    }
 
-        /// <summary>
-        /// The location of the source item.
-        /// </summary>
-        public DocumentSpan SourceSpan { get; }
+    // Used by F#
+    internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, ClassifiedSpansAndHighlightSpan? classifiedSpans)
+        : this(definition, sourceSpan, classifiedSpans, SymbolUsageInfo.None)
+    {
+    }
 
-        /// <summary>
-        /// If this reference is a location where the definition is written to.
-        /// </summary>
-        public bool IsWrittenTo { get; }
+    // Used by TypeScript
+    internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, ClassifiedSpansAndHighlightSpan? classifiedSpans, SymbolUsageInfo symbolUsageInfo)
+        : this(definition, sourceSpan, classifiedSpans, symbolUsageInfo, additionalProperties: ImmutableDictionary<string, string>.Empty)
+    {
+    }
 
-        /// <summary>
-        /// Symbol usage info associated with the reference.
-        /// This entry indicates that the reference has additional usage information, such as
-        /// it is a read/write reference for 'a++'.
-        /// </summary>
-        public SymbolUsageInfo SymbolUsageInfo { get; }
-
-        /// <summary>
-        /// Additional properties for the reference.
-        /// For example, { "ContainingTypeInfo" } = { "MyClass" }
-        /// </summary>
-        public ImmutableDictionary<string, string> AdditionalProperties { get; }
-
-        private SourceReferenceItem(
-            DefinitionItem definition,
-            DocumentSpan sourceSpan,
-            SymbolUsageInfo symbolUsageInfo,
-            ImmutableDictionary<string, string> additionalProperties,
-            bool isWrittenTo)
-        {
-            Definition = definition;
-            SourceSpan = sourceSpan;
-            SymbolUsageInfo = symbolUsageInfo;
-            IsWrittenTo = isWrittenTo;
-            AdditionalProperties = additionalProperties ?? ImmutableDictionary<string, string>.Empty;
-        }
-
-        // Used by F#
-        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan)
-            : this(definition, sourceSpan, SymbolUsageInfo.None)
-        {
-        }
-
-        // Used by TypeScript
-        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo)
-            : this(definition, sourceSpan, symbolUsageInfo, additionalProperties: ImmutableDictionary<string, string>.Empty)
-        {
-        }
-
-        internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, SymbolUsageInfo symbolUsageInfo, ImmutableDictionary<string, string> additionalProperties)
-            : this(definition, sourceSpan, symbolUsageInfo, additionalProperties, isWrittenTo: symbolUsageInfo.IsWrittenTo())
-        {
-        }
+    internal SourceReferenceItem(DefinitionItem definition, DocumentSpan sourceSpan, ClassifiedSpansAndHighlightSpan? classifiedSpans, SymbolUsageInfo symbolUsageInfo, ImmutableDictionary<string, string> additionalProperties)
+        : this(definition, sourceSpan, classifiedSpans, symbolUsageInfo, additionalProperties, isWrittenTo: symbolUsageInfo.IsWrittenTo())
+    {
     }
 }

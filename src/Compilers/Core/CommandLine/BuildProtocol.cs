@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </remarks>
         private const int MaximumRequestSize = 0x500000;
 
-        public readonly Guid RequestId;
+        public readonly string RequestId;
         public readonly RequestLanguage Language;
         public readonly ReadOnlyCollection<Argument> Arguments;
         public readonly string CompilerHash;
@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
         public BuildRequest(RequestLanguage language,
                             string compilerHash,
                             IEnumerable<Argument> arguments,
-                            Guid? requestId = null)
+                            string? requestId = null)
         {
-            RequestId = requestId ?? Guid.Empty;
+            RequestId = requestId ?? "";
             Language = language;
             Arguments = new ReadOnlyCollection<Argument>(arguments.ToList());
             CompilerHash = compilerHash;
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                                           string workingDirectory,
                                           string? tempDirectory,
                                           string compilerHash,
-                                          Guid? requestId = null,
+                                          string? requestId = null,
                                           string? keepAlive = null,
                                           string? libDirectory = null)
         {
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             // Parse the request into the Request data structure.
             using var reader = new BinaryReader(new MemoryStream(requestBuffer), Encoding.Unicode);
-            var requestId = readGuid(reader);
+            var requestId = reader.ReadString();
             var language = (RequestLanguage)reader.ReadUInt32();
             var compilerHash = reader.ReadString();
             uint argumentCount = reader.ReadUInt32();
@@ -158,18 +158,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
                                     compilerHash,
                                     argumentsBuilder,
                                     requestId);
-
-            static Guid readGuid(BinaryReader reader)
-            {
-                const int size = 16;
-                var bytes = new byte[size];
-                if (size != reader.Read(bytes, 0, size))
-                {
-                    throw new InvalidOperationException();
-                }
-
-                return new Guid(bytes);
-            }
         }
 
         /// <summary>
@@ -179,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             using var memoryStream = new MemoryStream();
             using var writer = new BinaryWriter(memoryStream, Encoding.Unicode);
-            writer.Write(RequestId.ToByteArray());
+            writer.Write(RequestId);
             writer.Write((uint)Language);
             writer.Write(CompilerHash);
             writer.Write(Arguments.Count);
@@ -446,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         }
     }
 
-    internal sealed class MismatchedVersionBuildResponse : BuildResponse
+    file sealed class MismatchedVersionBuildResponse : BuildResponse
     {
         public override ResponseType Type => ResponseType.MismatchedVersion;
 

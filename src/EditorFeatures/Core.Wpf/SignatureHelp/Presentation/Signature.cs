@@ -216,8 +216,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         {
             if (isOptional)
             {
-                var result = new List<TaggedText>();
-                result.Add(new TaggedText(TextTags.Punctuation, "["));
+                var result = new List<TaggedText>
+                {
+                    new TaggedText(TextTags.Punctuation, "[")
+                };
                 result.AddRange(list);
                 result.Add(new TaggedText(TextTags.Punctuation, "]"));
                 return result;

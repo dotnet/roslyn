@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     if (hKeyCurrentUserField != null && hKeyCurrentUserField.IsStatic)
                     {
                         using var currentUserKey = (IDisposable)hKeyCurrentUserField.GetValue(null);
-                        var openSubKeyMethod = currentUserKey.GetType().GetTypeInfo().GetDeclaredMethod("OpenSubKey", new Type[] { typeof(string), typeof(bool) });
+                        var openSubKeyMethod = currentUserKey.GetType().GetTypeInfo().GetDeclaredMethod("OpenSubKey", [typeof(string), typeof(bool)]);
 
                         using var eeKey = (IDisposable?)openSubKeyMethod?.Invoke(currentUserKey, new object[] { RegistryKey, /*writable*/ false });
                         if (eeKey != null)
                         {
-                            var getValueMethod = eeKey.GetType().GetTypeInfo().GetDeclaredMethod("GetValue", new Type[] { typeof(string) });
+                            var getValueMethod = eeKey.GetType().GetTypeInfo().GetDeclaredMethod("GetValue", [typeof(string)]);
                             return getValueMethod?.Invoke(eeKey, new object[] { name });
                         }
                     }

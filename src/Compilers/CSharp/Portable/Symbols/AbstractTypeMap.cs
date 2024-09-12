@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -313,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return result != null ? result.AsImmutableOrNull() : original;
+            return result != null ? ImmutableCollectionsMarshal.AsImmutableArray(result) : original;
         }
 
         internal ImmutableArray<TypeWithAnnotations> SubstituteTypes(ImmutableArray<TypeWithAnnotations> original)
@@ -430,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return result != null ? result.AsImmutableOrNull() : original;
+            return result != null ? ImmutableCollectionsMarshal.AsImmutableArray(result) : original;
         }
     }
 }

@@ -4,25 +4,24 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Navigation;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+[Obsolete]
+internal abstract class VSTypeScriptDefinitionItemBase : DefinitionItem
 {
-    [Obsolete]
-    internal abstract class VSTypeScriptDefinitionItemBase : DefinitionItem
+    protected VSTypeScriptDefinitionItemBase(ImmutableArray<string> tags, ImmutableArray<TaggedText> displayParts)
+        : base(
+            tags,
+            displayParts,
+            [],
+            sourceSpans: default,
+            metadataLocations: ImmutableArray<AssemblyLocation>.Empty,
+            classifiedSpans: default,
+            properties: null,
+            displayableProperties: ImmutableDictionary<string, string>.Empty,
+            displayIfNoReferences: true)
     {
-        protected VSTypeScriptDefinitionItemBase(ImmutableArray<string> tags, ImmutableArray<TaggedText> displayParts)
-            : base(tags,
-                  displayParts,
-                  ImmutableArray<TaggedText>.Empty,
-                  originationParts: default,
-                  sourceSpans: default,
-                  properties: null,
-                  displayIfNoReferences: true)
-        {
-        }
     }
 }

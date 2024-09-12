@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SimplifyInterpolation
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SimplifyInterpolation
     <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyInterpolation)>
     Public Class SimplifyInterpolationTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicSimplifyInterpolationDiagnosticAnalyzer(),

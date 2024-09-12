@@ -5,7 +5,7 @@
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
 

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
     {
         private static async Task TestAsync(string text, string searchText, params string[] expectedNames)
         {
-            using var workspace = TestWorkspace.CreateCSharp(text);
+            using var workspace = EditorTestWorkspace.CreateCSharp(text);
 
             var nameResolver = new BreakpointResolver(workspace.CurrentSolution, searchText);
             var results = await nameResolver.DoAsync(CancellationToken.None);
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         [Fact]
         public async Task TestCSharpLanguageDebugInfoCreateNameResolver()
         {
-            using var workspace = TestWorkspace.CreateCSharp(" ");
+            using var workspace = EditorTestWorkspace.CreateCSharp(" ");
 
             var debugInfo = new CSharpBreakpointResolutionService();
             var results = await debugInfo.ResolveBreakpointsAsync(workspace.CurrentSolution, "goo", CancellationToken.None);

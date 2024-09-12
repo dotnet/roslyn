@@ -3,15 +3,16 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.InvertIf
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.InvertIf
     <Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)>
     Public Class InvertSingleLineIfTests
-        Inherits AbstractVisualBasicCodeActionTest
+        Inherits AbstractVisualBasicCodeActionTest_NoEditor
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As TestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New VisualBasicInvertSingleLineIfCodeRefactoringProvider()
         End Function
 
@@ -314,7 +315,7 @@ End Module
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545411")>
-        <WpfFact(Skip:="545411")>
+        <Fact(Skip:="545411")>
         Public Async Function TestXor2() As Task
             Await TestFixOneAsync(
 "
@@ -493,7 +494,7 @@ End Module")
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529749")>
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530593")>
-        <WpfFact(Skip:="Bug 530593")>
+        <Fact(Skip:="Bug 530593")>
         Public Async Function TestNestedSingleLineIfs() As Task
             Await TestInRegularAndScriptAsync(
 "Module Program
@@ -537,7 +538,7 @@ End Module")
         End Function
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531101")>
-        <WpfFact(Skip:="531101")>
+        <Fact(Skip:="531101")>
         Public Async Function TestImplicitLineContinuationBeforeClosingParenIsRemoved() As Task
             Dim markup =
 <MethodBody>

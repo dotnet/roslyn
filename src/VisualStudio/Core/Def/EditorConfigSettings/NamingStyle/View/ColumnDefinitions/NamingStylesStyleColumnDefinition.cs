@@ -13,50 +13,49 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.View.ColumnDefinitions
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.View.ColumnDefinitions;
+
+using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common.ColumnDefinitions.NamingStyle;
+
+[Export(typeof(ITableColumnDefinition))]
+[Name(Style)]
+internal class NamingStylesStyleColumnDefinition : TableColumnDefinitionBase
 {
-    using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common.ColumnDefinitions.NamingStyle;
-
-    [Export(typeof(ITableColumnDefinition))]
-    [Name(Style)]
-    internal class NamingStylesStyleColumnDefinition : TableColumnDefinitionBase
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public NamingStylesStyleColumnDefinition()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public NamingStylesStyleColumnDefinition()
+    }
+
+    public override string Name => Style;
+    public override string DisplayName => ServicesVSResources.Naming_Style;
+    public override bool IsFilterable => true;
+    public override bool IsSortable => true;
+    public override double MinWidth => 350;
+
+    public override bool TryCreateStringContent(ITableEntryHandle entry, bool truncatedText, bool singleColumnView, out string? content)
+    {
+        if (!entry.TryGetValue(Type, out NamingStyleSetting setting))
         {
+            content = null;
+            return false;
         }
 
-        public override string Name => Style;
-        public override string DisplayName => ServicesVSResources.Naming_Style;
-        public override bool IsFilterable => true;
-        public override bool IsSortable => true;
-        public override double MinWidth => 350;
+        content = setting.StyleName;
+        return true;
+    }
 
-        public override bool TryCreateStringContent(ITableEntryHandle entry, bool truncatedText, bool singleColumnView, out string? content)
+    public override bool TryCreateColumnContent(ITableEntryHandle entry, bool singleColumnView, out FrameworkElement? content)
+    {
+        if (!entry.TryGetValue(Style, out NamingStyleSetting setting))
         {
-            if (!entry.TryGetValue(Type, out NamingStyleSetting setting))
-            {
-                content = null;
-                return false;
-            }
-
-            content = setting.StyleName;
-            return true;
+            content = null;
+            return false;
         }
 
-        public override bool TryCreateColumnContent(ITableEntryHandle entry, bool singleColumnView, out FrameworkElement? content)
-        {
-            if (!entry.TryGetValue(Style, out NamingStyleSetting setting))
-            {
-                content = null;
-                return false;
-            }
-
-            var viewModel = new NamingStylesStyleViewModel(setting);
-            var control = new NamingStylesStyleControl(viewModel);
-            content = control;
-            return true;
-        }
+        var viewModel = new NamingStylesStyleViewModel(setting);
+        var control = new NamingStylesStyleControl(viewModel);
+        content = control;
+        return true;
     }
 }

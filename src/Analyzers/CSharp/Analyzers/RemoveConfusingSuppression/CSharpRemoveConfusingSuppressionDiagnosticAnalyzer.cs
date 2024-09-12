@@ -8,44 +8,44 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression
+namespace Microsoft.CodeAnalysis.CSharp.RemoveConfusingSuppression;
+
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal sealed class CSharpRemoveConfusingSuppressionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpRemoveConfusingSuppressionDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+    public CSharpRemoveConfusingSuppressionDiagnosticAnalyzer()
+        : base(IDEDiagnosticIds.RemoveConfusingSuppressionForIsExpressionDiagnosticId,
+               EnforceOnBuildValues.RemoveConfusingSuppressionForIsExpression,
+               option: null,
+               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnecessary_suppression_operator), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
+               new LocalizableResourceString(nameof(CSharpAnalyzersResources.Suppression_operator_has_no_effect_and_can_be_misinterpreted), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
     {
-        public CSharpRemoveConfusingSuppressionDiagnosticAnalyzer()
-            : base(IDEDiagnosticIds.RemoveConfusingSuppressionForIsExpressionDiagnosticId,
-                   EnforceOnBuildValues.RemoveConfusingSuppressionForIsExpression,
-                   option: null,
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Remove_unnecessary_suppression_operator), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)),
-                   new LocalizableResourceString(nameof(CSharpAnalyzersResources.Suppression_operator_has_no_effect_and_can_be_misinterpreted), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
+    }
+
+    public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+
+    protected override void InitializeWorker(AnalysisContext context)
+        => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.IsExpression, SyntaxKind.IsPatternExpression);
+
+    private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
+    {
+        var node = context.Node;
+        var left = node switch
         {
-        }
+            BinaryExpressionSyntax binary => binary.Left,
+            IsPatternExpressionSyntax isPattern => isPattern.Expression,
+            _ => throw ExceptionUtilities.UnexpectedValue(node),
+        };
 
-        public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+        if (left.Kind() != SyntaxKind.SuppressNullableWarningExpression)
+            return;
 
-        protected override void InitializeWorker(AnalysisContext context)
-            => context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.IsExpression, SyntaxKind.IsPatternExpression);
-
-        private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
-        {
-            var node = context.Node;
-            var left = node switch
-            {
-                BinaryExpressionSyntax binary => binary.Left,
-                IsPatternExpressionSyntax isPattern => isPattern.Expression,
-                _ => throw ExceptionUtilities.UnexpectedValue(node),
-            };
-
-            if (left.Kind() != SyntaxKind.SuppressNullableWarningExpression)
-                return;
-
-            context.ReportDiagnostic(DiagnosticHelper.Create(
-                Descriptor,
-                ((PostfixUnaryExpressionSyntax)left).OperatorToken.GetLocation(),
-                ReportDiagnostic.Warn,
-                ImmutableArray.Create(node.GetLocation()),
-                properties: null));
-        }
+        context.ReportDiagnostic(DiagnosticHelper.Create(
+            Descriptor,
+            ((PostfixUnaryExpressionSyntax)left).OperatorToken.GetLocation(),
+            NotificationOption2.Warning,
+            context.Options,
+            ImmutableArray.Create(node.GetLocation()),
+            properties: null));
     }
 }

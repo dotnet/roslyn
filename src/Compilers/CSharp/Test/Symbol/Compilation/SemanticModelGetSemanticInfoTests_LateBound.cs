@@ -85,9 +85,40 @@ class C
             Assert.Equal("C", semanticInfo.Type.Name);
             Assert.Equal("C..ctor(out dynamic x, dynamic y)", semanticInfo.Symbol.ToTestDisplayString());
 
-            Assert.Equal(CandidateReason.LateBound, semanticInfo.CandidateReason);
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        public void ObjectCreation_ByRefDynamicArgument3()
+        {
+            string sourceCode = @"
+class C
+{
+    public C(out dynamic x, int y) {}
+    public C(out dynamic x, long y) {}
+    
+    public void M(dynamic d)
+    {
+        /*<bind>*/new C(out d, d);/*</bind>*/;
+    }
+}
+";
+            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+
+            Assert.Equal("C", semanticInfo.Type.Name);
+            Assert.Null(semanticInfo.Symbol);
+
+            Assert.Equal(CandidateReason.LateBound, semanticInfo.CandidateReason);
+            Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal("C..ctor(out dynamic x, System.Int32 y)", semanticInfo.CandidateSymbols[0].ToTestDisplayString());
+            Assert.Equal("C..ctor(out dynamic x, System.Int64 y)", semanticInfo.CandidateSymbols[1].ToTestDisplayString());
+
+            Assert.Equal(2, semanticInfo.MethodGroup.Length);
+            Assert.Equal("C..ctor(out dynamic x, System.Int32 y)", semanticInfo.MethodGroup[0].ToTestDisplayString());
+            Assert.Equal("C..ctor(out dynamic x, System.Int64 y)", semanticInfo.MethodGroup[1].ToTestDisplayString());
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
@@ -159,6 +190,9 @@ class C
     public void bar(int a) 
     {
     }
+    public void bar(long a) 
+    {
+    }
 }
 ";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
@@ -168,17 +202,17 @@ class C
             Assert.True(semanticInfo.ConvertedType.IsDynamic());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal("void C.bar(System.Int32 a)", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Null(semanticInfo.Symbol);
 
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
-            Assert.Equal(1, semanticInfo.MethodGroup.Length);
+            Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal(2, semanticInfo.MethodGroup.Length);
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
         [Fact]
-        public void MethodInvocation_TypeReceiver()
+        public void MethodInvocation_TypeReceiver_01()
         {
-            string sourceCode = @"
+            string sourceCode1 = @"
 class C
 {
     public static C Create(int arg) { return null; }
@@ -189,13 +223,53 @@ class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode1);
 
             Assert.True(semanticInfo.Type.IsDynamic());
             Assert.Equal("C C.Create(System.Int32 arg)", semanticInfo.Symbol.ToTestDisplayString());
-            Assert.Equal(CandidateReason.LateBound, semanticInfo.CandidateReason);
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+
+            string sourceCode2 = @"
+class C
+{
+    public static C Create(int arg) { return null; }
+
+    public void M(dynamic d)
+    {
+        /*<bind>*/C.Create/*</bind>*/(d);
+    }
+}
+";
+            semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode2);
+
             Assert.Equal(1, semanticInfo.MethodGroup.Length);
+        }
+
+        [Fact]
+        public void MethodInvocation_TypeReceiver_02()
+        {
+            string sourceCode = @"
+class C
+{
+    public static C Create(int arg) { return null; }
+    public static C Create(long arg) { return null; }
+
+    public void M(dynamic d)
+    {
+        /*<bind>*/C.Create(d);/*</bind>*/;
+    }
+}
+";
+            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+
+            Assert.True(semanticInfo.Type.IsDynamic());
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.LateBound, semanticInfo.CandidateReason);
+            Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal(2, semanticInfo.MethodGroup.Length);
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
@@ -234,17 +308,20 @@ class List : List<int>
     {
         /*<bind>*/Add/*</bind>*/(x);
     }
+
+    public void Add(long y)
+    {
+    }
 }";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(source);
 
             Assert.Null(semanticInfo.Type);
 
-            // there is only one applicable candidate:
-            Assert.Equal("void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Null(semanticInfo.Symbol);
 
             Assert.Equal(CandidateReason.LateBound, semanticInfo.CandidateReason);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
-            Assert.Equal(2, semanticInfo.MethodGroup.Length);
+            Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal(3, semanticInfo.MethodGroup.Length);
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
@@ -260,17 +337,20 @@ class List : List<int>
     {
         /*<bind>*/Add(x)/*</bind>*/;
     }
+
+    public void Add(long y)
+    {
+    }
 }";
             var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(source);
 
             Assert.True(semanticInfo.Type.IsDynamic());
 
-            // there is only one applicable candidate:
-            Assert.Equal("void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Null(semanticInfo.Symbol);
 
             Assert.Equal(CandidateReason.LateBound, semanticInfo.CandidateReason);
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
-            Assert.Equal(1, semanticInfo.MethodGroup.Length);
+            Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal(2, semanticInfo.MethodGroup.Length);
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
@@ -312,11 +392,15 @@ namespace Dynamic
 {
     class FunctionTestingWithOverloading
     {
-        public dynamic OverloadedFunction(dynamic d)
+        public dynamic OverloadedFunction(int d)
         {
             return d;
         }
 
+        public dynamic OverloadedFunction(long d)
+        {
+            return d;
+        }
     }
     class Program
     {
@@ -337,11 +421,15 @@ namespace Dynamic
 
             Assert.Equal(CandidateReason.LateBound, semanticInfo.CandidateReason);
 
-            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
-            Assert.Equal("dynamic Dynamic.FunctionTestingWithOverloading.OverloadedFunction(dynamic d)", semanticInfo.Symbol.ToTestDisplayString());
+            Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal("dynamic Dynamic.FunctionTestingWithOverloading.OverloadedFunction(System.Int32 d)", semanticInfo.CandidateSymbols[0].ToTestDisplayString());
+            Assert.Equal("dynamic Dynamic.FunctionTestingWithOverloading.OverloadedFunction(System.Int64 d)", semanticInfo.CandidateSymbols[1].ToTestDisplayString());
 
-            Assert.Equal(1, semanticInfo.MethodGroup.Length);
-            Assert.Equal("dynamic Dynamic.FunctionTestingWithOverloading.OverloadedFunction(dynamic d)", semanticInfo.MethodGroup.First().ToTestDisplayString());
+            Assert.Null(semanticInfo.Symbol);
+
+            Assert.Equal(2, semanticInfo.MethodGroup.Length);
+            Assert.Equal("dynamic Dynamic.FunctionTestingWithOverloading.OverloadedFunction(System.Int32 d)", semanticInfo.MethodGroup[0].ToTestDisplayString());
+            Assert.Equal("dynamic Dynamic.FunctionTestingWithOverloading.OverloadedFunction(System.Int64 d)", semanticInfo.MethodGroup[1].ToTestDisplayString());
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
@@ -395,7 +483,50 @@ class C
         }
 
         [Fact]
-        public void Indexer_StaticReceiver()
+        public void Indexer_StaticReceiver_01()
+        {
+            string sourceCode = @"
+class C
+{
+    public void TestMeth()
+    {
+        dynamic d = null;
+        C c = null;
+
+        var x = /*<bind>*/c[d]/*</bind>*/;
+    }
+
+    public int this[int a]
+    {
+        get { return 0; }
+        set { }
+    }
+
+    public int this[long a]
+    {
+        get { return 0; }
+        set { }
+    }
+}
+";
+            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+
+            Assert.True(semanticInfo.Type.IsDynamic());
+            Assert.True(semanticInfo.ConvertedType.IsDynamic());
+            Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Equal(CandidateReason.LateBound, semanticInfo.CandidateReason);
+            Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal("System.Int32 C.this[System.Int32 a] { get; set; }", semanticInfo.CandidateSymbols[0].ToTestDisplayString());
+            Assert.Equal("System.Int32 C.this[System.Int64 a] { get; set; }", semanticInfo.CandidateSymbols[1].ToTestDisplayString());
+            Assert.Null(semanticInfo.Symbol);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        public void Indexer_StaticReceiver_02()
         {
             string sourceCode = @"
 class C
@@ -421,7 +552,7 @@ class C
             Assert.True(semanticInfo.ConvertedType.IsDynamic());
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
-            Assert.Equal(CandidateReason.LateBound, semanticInfo.CandidateReason);
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
             Assert.Equal("System.Int32 C.this[System.Int32 a] { get; set; }", semanticInfo.Symbol.ToTestDisplayString());
 

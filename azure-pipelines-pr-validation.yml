@@ -42,6 +42,11 @@ variables:
   - name: _DevDivDropAccessToken
     value: $(System.AccessToken)
 
+  - name: Codeql.Enabled
+    value: false
+  - name: Codeql.SkipTaskAutoInjection
+    value: true
+
 stages:
 - stage: build
   displayName: Build and Test
@@ -89,7 +94,7 @@ stages:
         versionSpec: '4.9.2'
 
     # Authenticate with service connections to be able to publish packages to external nuget feeds.
-    - task: NuGetAuthenticate@0
+    - task: NuGetAuthenticate@1
       inputs:
         nuGetServiceConnections: azure-public/vs-impl, azure-public/vssdk
 
@@ -111,7 +116,7 @@ stages:
         nugetConfigPath: 'NuGet.config'
         restoreDirectory: '$(Build.SourcesDirectory)\.packages'
 
-    - task: MicroBuildSigningPlugin@2
+    - task: MicroBuildSigningPlugin@4
       inputs:
         signType: $(SignType)
         zipSources: false
@@ -122,6 +127,7 @@ stages:
       inputs:
         filePath: eng/build.ps1
         arguments: -ci
+                   -prepareMachine
                    -restore
                    -build
                    -pack

@@ -10,19 +10,18 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
+namespace Microsoft.CodeAnalysis.CodeCleanup.Providers;
+
+internal class SimplificationCodeCleanupProvider : ICodeCleanupProvider
 {
-    internal class SimplificationCodeCleanupProvider : ICodeCleanupProvider
+    public string Name => PredefinedCodeCleanupProviderNames.Simplification;
+
+    public Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CodeCleanupOptions options, CancellationToken cancellationToken)
+        => Simplifier.ReduceAsync(document, spans, options.SimplifierOptions, cancellationToken);
+
+    public Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SolutionServices services, CancellationToken cancellationToken)
     {
-        public string Name => PredefinedCodeCleanupProviderNames.Simplification;
-
-        public Task<Document> CleanupAsync(Document document, ImmutableArray<TextSpan> spans, CodeCleanupOptions options, CancellationToken cancellationToken)
-            => Simplifier.ReduceAsync(document, spans, options.SimplifierOptions, cancellationToken);
-
-        public Task<SyntaxNode> CleanupAsync(SyntaxNode root, ImmutableArray<TextSpan> spans, SyntaxFormattingOptions options, SolutionServices services, CancellationToken cancellationToken)
-        {
-            // Simplifier doesn't work without semantic information
-            return Task.FromResult(root);
-        }
+        // Simplifier doesn't work without semantic information
+        return Task.FromResult(root);
     }
 }

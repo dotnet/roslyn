@@ -12,13 +12,10 @@ using Microsoft.ServiceHub.Framework;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
-internal sealed class ManagedHotReloadServiceProxy : BrokeredServiceProxy<IManagedHotReloadService>, IManagedHotReloadService
+internal sealed class ManagedHotReloadServiceProxy(IServiceBroker serviceBroker) :
+    BrokeredServiceProxy<IManagedHotReloadService>(serviceBroker, BrokeredServiceDescriptors.DebuggerManagedHotReloadService),
+    IManagedHotReloadService
 {
-    public ManagedHotReloadServiceProxy(IServiceBroker serviceBroker)
-        : base(serviceBroker, BrokeredServiceDescriptors.DebuggerManagedHotReloadService)
-    {
-    }
-
     public ValueTask<ImmutableArray<ManagedActiveStatementDebugInfo>> GetActiveStatementsAsync(CancellationToken cancellationToken)
         => InvokeAsync((service, cancellationToken) => service.GetActiveStatementsAsync(cancellationToken), cancellationToken);
 

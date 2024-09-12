@@ -4741,9 +4741,7 @@ public class C
             var enumDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<EnumDeclarationSyntax>().Single();
             var eventDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<EventDeclarationSyntax>().Single();
 
-            // To repro DevDiv #563572, we need to go through the interface (which, at the time, followed
-            // a different code path).
-            var model = (SemanticModel)compilation.GetSemanticModel(tree);
+            var model = compilation.GetSemanticModel(tree);
 
             var enumSymbol = model.GetDeclaredSymbol(enumDecl); //Used to assert.
             Assert.Equal(SymbolKind.NamedType, enumSymbol.Kind);
@@ -4769,7 +4767,7 @@ public class S
             var structDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<StructDeclarationSyntax>().First();
             var interfaceDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InterfaceDeclarationSyntax>().Last();
 
-            var model = (SemanticModel)compilation.GetSemanticModel(tree);
+            var model = compilation.GetSemanticModel(tree);
 
             var structSymbol = model.GetDeclaredSymbol(structDecl);
             var interfaceSymbol = model.GetDeclaredSymbol(interfaceDecl);

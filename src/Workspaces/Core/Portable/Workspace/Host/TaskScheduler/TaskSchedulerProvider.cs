@@ -8,19 +8,18 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Host
-{
-    [ExportWorkspaceService(typeof(ITaskSchedulerProvider), ServiceLayer.Default)]
-    [Shared]
-    internal sealed class TaskSchedulerProvider : ITaskSchedulerProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public TaskSchedulerProvider()
-        {
-        }
+namespace Microsoft.CodeAnalysis.Host;
 
-        public TaskScheduler CurrentContextScheduler
-            => (SynchronizationContext.Current != null) ? TaskScheduler.FromCurrentSynchronizationContext() : TaskScheduler.Default;
+[ExportWorkspaceService(typeof(ITaskSchedulerProvider), ServiceLayer.Default)]
+[Shared]
+internal sealed class TaskSchedulerProvider : ITaskSchedulerProvider
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public TaskSchedulerProvider()
+    {
     }
+
+    public TaskScheduler CurrentContextScheduler
+        => (SynchronizationContext.Current != null) ? TaskScheduler.FromCurrentSynchronizationContext() : TaskScheduler.Default;
 }

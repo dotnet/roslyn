@@ -111,6 +111,9 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        public bool ContainsAsset(Checksum checksum)
+            => _assets.ContainsKey(checksum);
+
         public void UpdateLastActivityTime()
             => _lastActivityTime = DateTime.UtcNow;
 
@@ -217,23 +220,8 @@ namespace Microsoft.CodeAnalysis.Remote
             if (_remoteWorkspace is null)
                 return;
 
-            var checksums = await _remoteWorkspace.CurrentSolution.State.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
-
-            Recurse(checksums);
-
-            return;
-
-            void Recurse(ChecksumWithChildren checksums)
-            {
-                pinnedChecksums.Add(checksums.Checksum);
-                foreach (var child in checksums.Children)
-                {
-                    if (child is ChecksumWithChildren childChecksums)
-                        Recurse(childChecksums);
-                    else if (child is Checksum childChecksum)
-                        pinnedChecksums.Add(childChecksum);
-                }
-            }
+            var checksums = await _remoteWorkspace.CurrentSolution.CompilationState.GetStateChecksumsAsync(cancellationToken).ConfigureAwait(false);
+            checksums.AddAllTo(pinnedChecksums);
         }
 
         private sealed class Entry

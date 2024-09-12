@@ -117,6 +117,11 @@
         <target state="translated">アセンブリ</target>
         <note />
       </trans-unit>
+      <trans-unit id="AssemblyNameAndVersionDisplay">
+        <source>{0} ({1})</source>
+        <target state="translated">{0} ({1})</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Automatically_open_stack_trace_explorer_on_focus">
         <source>Automatically open Stack Trace Explorer on focus</source>
         <target state="translated">フォーカス時に スタック トレース エクスプローラーを自動的に開く</target>
@@ -155,16 +160,6 @@
       <trans-unit id="Bitness64">
         <source>64-bit</source>
         <target state="translated">64 ビット</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Build_plus_live_analysis_NuGet_package">
-        <source>Build + live analysis (NuGet package)</source>
-        <target state="translated">ビルド + ライブ分析 (NuGet パッケージ)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CSharp_Visual_Basic_Diagnostics_Language_Client">
-        <source>C#/Visual Basic Diagnostics Language Client</source>
-        <target state="translated">C#/Visual Basic 診断言語クライアント</target>
         <note />
       </trans-unit>
       <trans-unit id="Calculating">
@@ -249,7 +244,7 @@
       </trans-unit>
       <trans-unit id="Collapse_local_functions_when_collapsing_to_definitions">
         <source>Collapse local functions when collapsing to definitions</source>
-        <target state="new">Collapse local functions when collapsing to definitions</target>
+        <target state="translated">定義に折りたたむときにローカル関数を折りたたむ</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_metadata_signature_files_on_open">
@@ -377,11 +372,6 @@
         <target state="translated">編集(_E)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Edit_0">
-        <source>Edit {0}</source>
-        <target state="translated">{0} の編集</target>
-        <note>{0} is a parameter description</note>
-      </trans-unit>
       <trans-unit id="Editor_Color_Scheme">
         <source>Editor Color Scheme</source>
         <target state="translated">エディターの配色</target>
@@ -395,11 +385,6 @@
       <trans-unit id="Element_is_not_valid">
         <source>Element is not valid.</source>
         <target state="translated">要素が有効ではありません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_Razor_pull_diagnostics_experimental_requires_restart">
-        <source>Enable Razor 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="translated">Razor 'pull' 診断を有効にする (試験段階、再起動が必要)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_all_features_in_opened_files_from_source_generators_experimental">
@@ -420,11 +405,6 @@
       <trans-unit id="Enable_navigation_to_sourcelink_and_embedded_sources">
         <source>Enable navigation to Source Link and Embedded sources</source>
         <target state="translated">Source Link および埋め込みソースに移動できるようにする</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enable_pull_diagnostics_experimental_requires_restart">
-        <source>Enable 'pull' diagnostics (experimental, requires restart)</source>
-        <target state="translated">'pull' 診断を有効にする (試験段階、再起動が必要)</target>
         <note />
       </trans-unit>
       <trans-unit id="Enabled">
@@ -465,11 +445,6 @@
       <trans-unit id="Error_updating_suppressions_0">
         <source>Error updating suppressions: {0}</source>
         <target state="translated">抑制の更新でエラーが発生しました: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Evaluating_0_tasks_in_queue">
-        <source>Evaluating ({0} tasks in queue)</source>
-        <target state="translated">評価中 ({0} 個のタスクがキューにあります)</target>
         <note />
       </trans-unit>
       <trans-unit id="External_sources">
@@ -582,16 +557,6 @@
         <target state="translated">コンテキストから推論する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Indexed_in_organization">
-        <source>Indexed in organization</source>
-        <target state="translated">組織内でインデックス付け</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indexed_in_repo">
-        <source>Indexed in repo</source>
-        <target state="translated">リポジトリ内でインデックス付け</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inheritance_Margin">
         <source>Inheritance Margin</source>
         <target state="translated">継承の余白</target>
@@ -602,11 +567,6 @@
         <target state="translated">継承されたインターフェイス</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Diagnostics_experimental">
-        <source>Inline Diagnostics (experimental)</source>
-        <target state="translated">インライン診断 (試験的)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inline_Hints">
         <source>Inline Hints</source>
         <target state="translated">インラインのヒント</target>
@@ -615,11 +575,6 @@
       <trans-unit id="Inserting_call_site_value_0">
         <source>Inserting call site value '{0}'</source>
         <target state="translated">呼び出しサイトの値 "{0}" を挿入しています</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues">
-        <source>Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</source>
-        <target state="translated">Microsoft で推奨されている Roslyn アナライザーをインストールします。これにより、一般的な API の設計、セキュリティ、パフォーマンス、信頼性の問題に対する追加の診断と修正が提供されます</target>
         <note />
       </trans-unit>
       <trans-unit id="Interface_cannot_have_field">
@@ -635,11 +590,6 @@
       <trans-unit id="Invalid_type_name">
         <source>Invalid type name</source>
         <target state="translated">型名が無効です</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Item_origin">
-        <source>Item origin</source>
-        <target state="translated">項目の送信元</target>
         <note />
       </trans-unit>
       <trans-unit id="JSON_strings">
@@ -662,11 +612,6 @@
         <target state="translated">種類</target>
         <note />
       </trans-unit>
-      <trans-unit id="Live_analysis_VSIX_extension">
-        <source>Live analysis (VSIX extension)</source>
-        <target state="translated">ライブ分析 (VSIX 拡張機能)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Loaded_items">
         <source>Loaded items</source>
         <target state="translated">読み込まれた項目</target>
@@ -680,11 +625,6 @@
       <trans-unit id="Local">
         <source>Local</source>
         <target state="translated">ローカル</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Local_metadata">
-        <source>Local metadata</source>
-        <target state="translated">ローカル メタデータ</target>
         <note />
       </trans-unit>
       <trans-unit id="Location">
@@ -1032,11 +972,6 @@
         <target state="translated">パッケージ</target>
         <note />
       </trans-unit>
-      <trans-unit id="Parameter_Details">
-        <source>Parameter Details</source>
-        <target state="translated">パラメーターの詳細</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Parameter_Name">
         <source>Parameter name:</source>
         <target state="translated">パラメーター名:</target>
@@ -1081,11 +1016,6 @@
         <source>Paste a stack trace to view and navigate it's values.</source>
         <target state="translated">有効なスタック トレースを貼り付けて、値を表示して移動します。</target>
         <note>"Stack Trace" is a language term and should be kept the same. </note>
-      </trans-unit>
-      <trans-unit id="Paused_0_tasks_in_queue">
-        <source>Paused ({0} tasks in queue)</source>
-        <target state="translated">一時停止中 ({0} 個のタスクがキューにあります)</target>
-        <note />
       </trans-unit>
       <trans-unit id="Please_enter_a_type_name">
         <source>Please enter a type name</source>
@@ -1212,11 +1142,6 @@
         <target state="translated">正規表現</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_All">
-        <source>Remove All</source>
-        <target state="translated">すべて削除</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_Unused_References">
         <source>Remove Unused References</source>
         <target state="translated">未使用の参照を削除する</target>
@@ -1315,11 +1240,6 @@
       <trans-unit id="Running_code_analysis_for_Solution">
         <source>Running code analysis for Solution...</source>
         <target state="translated">ソリューションのコード分析を実行しています...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Running_low_priority_background_processes">
-        <source>Running low priority background processes</source>
-        <target state="translated">優先度の低いバックグラウンド プロセスを実行しています</target>
         <note />
       </trans-unit>
       <trans-unit id="Save_dot_editorconfig_file">
@@ -1442,11 +1362,6 @@
         <target state="translated">一部の配色パターンの色は、[環境] &gt; [フォントおよび色] オプション ページで行われた変更によって上書きされます。[フォントおよび色] オプション ページで [既定値を使用] を選択すると、すべてのカスタマイズが元に戻ります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sort_usings">
-        <source>Sort usings</source>
-        <target state="translated">using を並べ替える</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Stack_Trace">
         <source>Stack Trace</source>
         <target state="translated">スタック トレース</target>
@@ -1499,7 +1414,7 @@
       </trans-unit>
       <trans-unit id="SystemVoid_is_not_a_valid_type_for_a_parameter">
         <source>'System.Void' is not a valid type for a parameter</source>
-        <target state="translated">'System.Void' はパラメーターの有効な型ではありません</target>
+        <target state="translated">'System.Void' はパラメーターとして有効な型ではありません</target>
         <note>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</note>
       </trans-unit>
       <trans-unit id="Tab_twice_to_insert_arguments">
@@ -1682,6 +1597,16 @@
         <target state="translated">このワークスペースでは、Visual Basic コンパイル オプションの更新がサポートされていません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="When_types_exactly_match">
+        <source>When types exactly match</source>
+        <target state="translated">型が完全に一致する場合</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_types_loosely_match">
+        <source>When types loosely match</source>
+        <target state="translated">型が緩やかに一致する場合</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Where_should_the_rename_UI_be_shown">
         <source>Where should the rename UI be shown?</source>
         <target state="translated">名前変更 UI はどこに表示されますか?</target>
@@ -1762,11 +1687,6 @@
         <target state="translated">継承</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inherited_By">
-        <source>Inherited By</source>
-        <target state="translated">継承先</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implements_">
         <source>Implements</source>
         <target state="translated">実装</target>
@@ -1775,16 +1695,6 @@
       <trans-unit id="Implemented_By">
         <source>Implemented By</source>
         <target state="translated">実装先</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Maximum_number_of_documents_are_open">
-        <source>Maximum number of documents are open.</source>
-        <target state="translated">最大数のドキュメントが開いています。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Failed_to_create_document_in_miscellaneous_files_project">
-        <source>Failed to create document in miscellaneous files project.</source>
-        <target state="translated">その他のファイル プロジェクトにドキュメントを作成できませんでした。</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_access">
@@ -2019,16 +1929,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">アナライザー アセンブリ '{0}' が変更されました。Visual Studio を再起動するまで正しい診断ができない可能性があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_VB_Diagnostics_Table_Data_Source">
-        <source>C#/VB Diagnostics Table Data Source</source>
-        <target state="translated">C#/VB 診断テーブル データ ソース</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="CSharp_VB_Todo_List_Table_Data_Source">
-        <source>C#/VB Todo List Table Data Source</source>
-        <target state="translated">C#/VB Todo リスト テーブル データ ソース</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cancel">
         <source>Cancel</source>
         <target state="translated">キャンセル</target>
@@ -2179,11 +2079,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">{0} の詳細</target>
         <note />
       </trans-unit>
-      <trans-unit id="Navigation_must_be_performed_on_the_foreground_thread">
-        <source>Navigation must be performed on the foreground thread.</source>
-        <target state="translated">ナビゲーションは、フォアグラウンドのスレッドで行う必要があります。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="bracket_plus_bracket">
         <source>[+] </source>
         <target state="translated">[+] </target>
@@ -2217,11 +2112,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       <trans-unit id="AnalyzerDependencyConflict">
         <source>AnalyzerDependencyConflict</source>
         <target state="translated">AnalyzerDependencyConflict</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Analyzer_assemblies_0_and_1_both_have_identity_2_but_different_contents_Only_one_will_be_loaded_and_analyzers_using_these_assemblies_may_not_run_correctly">
-        <source>Analyzer assemblies '{0}' and '{1}' both have identity '{2}' but different contents. Only one will be loaded and analyzers using these assemblies may not run correctly.</source>
-        <target state="translated">アナライザー アセンブリ '{0}' と '{1}' は両方とも ID が '{2}' ですが、内容が異なります。読み込まれるのは 1 つだけです。これらのアセンブリを使用するアナライザーは正常に実行されない可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_references">
@@ -2269,19 +2159,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="CSharp_VB_Build_Table_Data_Source">
-        <source>C#/VB Build Table Data Source</source>
-        <target state="translated">C#/VB ビルド テーブル データ ソース</target>
-        <note />
-      </trans-unit>
       <trans-unit id="MissingAnalyzerReference">
         <source>MissingAnalyzerReference</source>
         <target state="translated">MissingAnalyzerReference</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Analyzer_assembly_0_depends_on_1_but_it_was_not_found_Analyzers_may_not_run_correctly_unless_the_missing_assembly_is_added_as_an_analyzer_reference_as_well">
-        <source>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well.</source>
-        <target state="translated">アナライザー アセンブリ '{0}' は '{1}' に依存しますが、見つかりませんでした。欠落しているアセンブリがアナライザー参照として追加されない限り、アナライザーを正常に実行できない可能性があります。</target>
         <note />
       </trans-unit>
       <trans-unit id="Suppress_diagnostics">
@@ -2324,11 +2204,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">このワークスペースでは、Visual Basic の解析オプションの更新はサポートされていません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Synchronize_0">
-        <source>Synchronize {0}</source>
-        <target state="translated">{0} を同期する</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Synchronizing_with_0">
         <source>Synchronizing with {0}...</source>
         <target state="translated">{0} と同期しています...</target>
@@ -2369,24 +2244,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">はい</target>
         <note />
       </trans-unit>
-      <trans-unit id="Choose_a_Symbol_Specification_and_a_Naming_Style">
-        <source>Choose a Symbol Specification and a Naming Style.</source>
-        <target state="translated">シンボル仕様と名前付けスタイルを選択します。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_a_title_for_this_Naming_Rule">
-        <source>Enter a title for this Naming Rule.</source>
-        <target state="translated">この名前付けルールのタイトルを入力してください。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enter_a_title_for_this_Naming_Style">
         <source>Enter a title for this Naming Style.</source>
         <target state="translated">この名前付けスタイルのタイトルを入力してください。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Enter_a_title_for_this_Symbol_Specification">
-        <source>Enter a title for this Symbol Specification.</source>
-        <target state="translated">このシンボル仕様のタイトルを入力してください。</target>
         <note />
       </trans-unit>
       <trans-unit id="Accessibilities_can_match_any">
@@ -2424,19 +2284,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">パスカル ケース名</target>
         <note />
       </trans-unit>
-      <trans-unit id="Severity_colon">
-        <source>Severity:</source>
-        <target state="translated">重要度:</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Modifiers_must_match_all">
         <source>Modifiers (must match all)</source>
         <target state="translated">修飾子 (すべてと一致する必要があります)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Name_colon2">
-        <source>Name:</source>
-        <target state="translated">名前:</target>
         <note />
       </trans-unit>
       <trans-unit id="Naming_Rule">
@@ -2449,29 +2299,9 @@ Use the dropdown to view and switch to other projects this file may belong to.</
         <target state="translated">名前付けスタイル</target>
         <note />
       </trans-unit>
-      <trans-unit id="Naming_Style_colon">
-        <source>Naming Style:</source>
-        <target state="translated">名前付けスタイル:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Naming_Rules_allow_you_to_define_how_particular_sets_of_symbols_should_be_named_and_how_incorrectly_named_symbols_should_be_handled">
-        <source>Naming Rules allow you to define how particular sets of symbols should be named and how incorrectly-named symbols should be handled.</source>
-        <target state="translated">名前付けルールを使用すると、特定のシンボル セットの名前付け方法と、正しく名前付けされていないシンボルの処理方法を定義できます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_first_matching_top_level_Naming_Rule_is_used_by_default_when_naming_a_symbol_while_any_special_cases_are_handled_by_a_matching_child_rule">
-        <source>The first matching top-level Naming Rule is used by default when naming a symbol, while any special cases are handled by a matching child rule.</source>
-        <target state="translated">シンボルに名前を付けるときには、最初に一致するトップレベルの名前付けルールが既定で使用されますが、特殊なケースの場合は一致する子ルールによって処理されます。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Naming_Style_Title_colon">
         <source>Naming Style Title:</source>
         <target state="translated">名前付けスタイルのタイトル:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Parent_Rule_colon">
-        <source>Parent Rule:</source>
-        <target state="translated">親規則:</target>
         <note />
       </trans-unit>
       <trans-unit id="Required_Prefix_colon">
@@ -2497,11 +2327,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       <trans-unit id="Symbol_Specification">
         <source>Symbol Specification</source>
         <target state="translated">シンボル仕様</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Symbol_Specification_colon">
-        <source>Symbol Specification:</source>
-        <target state="translated">シンボル仕様:</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbol_Specification_Title_colon">
@@ -2547,37 +2372,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
       <trans-unit id="Package_uninstall_failed_colon_0">
         <source>Package uninstall failed: {0}</source>
         <target state="translated">パッケージをアンインストールできませんでした: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Error_encountered_while_loading_the_project_Some_project_features_such_as_full_solution_analysis_for_the_failed_project_and_projects_that_depend_on_it_have_been_disabled">
-        <source>Error encountered while loading the project. Some project features, such as full solution analysis for the failed project and projects that depend on it, have been disabled.</source>
-        <target state="translated">プロジェクトの読み込み中にエラーが発生しました。失敗したプロジェクトとそれに依存するプロジェクトの完全なソリューション解析など、一部のプロジェクト機能が使用できなくなりました。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Project_loading_failed">
-        <source>Project loading failed.</source>
-        <target state="translated">プロジェクトの読み込みに失敗しました。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_long_paragraph_follows">
-        <source>To see what caused the issue, please try below.
-
-1. Close Visual Studio
-2. Open a Visual Studio Developer Command Prompt
-3. Set environment variable “TraceDesignTime” to true (set TraceDesignTime=true)
-4. Delete .vs directory/.suo file
-5. Restart VS from the command prompt you set the environment variable (devenv)
-6. Open the solution
-7. Check '{0}' and look for the failed tasks (FAILED)</source>
-        <target state="translated">この問題の原因を確認するには、次をお試しください。
-
-1. Visual Studio を閉じる
-2. Visual Studio 開発者コマンド プロンプトを開く
-3. 環境変数 "TraceDesignTime" を true に設定する (set TraceDesignTime=true)
-4. .vs directory/.suo ファイルを削除する
-5. 環境変数 (devenv) を設定したコマンド プロンプトから VS を再起動する
-6. ソリューションを開く
-7. '{0}' を確認し、失敗したタスク (FAILED) を探す</target>
         <note />
       </trans-unit>
       <trans-unit id="Additional_information_colon">
@@ -2696,11 +2490,6 @@ Additional information: {1}</source>
       <trans-unit id="Show_guides_for_code_level_constructs">
         <source>Show guides for code level constructs</source>
         <target state="translated">コード レベルのコンストラクトのガイドを表示する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
-        <source>Show guides for comments and preprocessor regions</source>
-        <target state="translated">コメントとプリプロセッサ領域のガイドを表示する</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_guides_for_declaration_level_constructs">
@@ -2923,16 +2712,6 @@ Additional information: {1}</source>
         <target state="translated">メンバーの選択</target>
         <note />
       </trans-unit>
-      <trans-unit id="Add_a_symbol_specification">
-        <source>Add a symbol specification</source>
-        <target state="translated">シンボル仕様の追加</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Remove_symbol_specification">
-        <source>Remove symbol specification</source>
-        <target state="translated">シンボル仕様の削除</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_item">
         <source>Add item</source>
         <target state="translated">項目の追加</target>
@@ -3053,11 +2832,6 @@ Additional information: {1}</source>
         <target state="translated">自動プロパティを優先する</target>
         <note />
       </trans-unit>
-      <trans-unit id="ModuleHasBeenUnloaded">
-        <source>Module has been unloaded.</source>
-        <target state="translated">モジュールがアンロードされました。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources</source>
         <target state="translated">逆コンパイルされたソースへのナビゲーションを有効にする</target>
@@ -3071,11 +2845,6 @@ Additional information: {1}</source>
       <trans-unit id="Sync_Class_View">
         <source>Sync Class View</source>
         <target state="translated">クラス ビューの同期</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Analyzing_0">
-        <source>Analyzing '{0}'</source>
-        <target state="translated">'{0}' の分析</target>
         <note />
       </trans-unit>
       <trans-unit id="Manage_naming_styles">

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Private ReadOnly _emittedNamespaceName As String
 
-        Private ReadOnly _corTypeId As SpecialType
+        Private ReadOnly _corTypeId As ExtendedSpecialType
 
         Friend Sub New(
             moduleSymbol As PEModuleSymbol,
@@ -37,11 +37,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Debug.Assert(emittedNamespaceName.Length > 0)
                 _corTypeId = SpecialTypes.GetTypeFromMetadataName(MetadataHelpers.BuildQualifiedName(emittedNamespaceName, MetadataName))
             Else
-                _corTypeId = SpecialType.None
+                _corTypeId = Nothing
             End If
         End Sub
 
-        Public Overrides ReadOnly Property SpecialType As SpecialType
+        Public Overrides ReadOnly Property ExtendedSpecialType As ExtendedSpecialType
             Get
                 Return _corTypeId
             End Get

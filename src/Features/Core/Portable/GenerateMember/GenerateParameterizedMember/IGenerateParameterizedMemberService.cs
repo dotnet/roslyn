@@ -9,10 +9,9 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
+namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
+
+internal interface IGenerateParameterizedMemberService : ILanguageService
 {
-    internal interface IGenerateParameterizedMemberService : ILanguageService
-    {
-        Task<ImmutableArray<CodeAction>> GenerateMethodAsync(Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
-    }
+    Task<ImmutableArray<CodeAction>> GenerateMethodAsync(Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
 }

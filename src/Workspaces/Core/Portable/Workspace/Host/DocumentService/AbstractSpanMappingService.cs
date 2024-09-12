@@ -12,41 +12,40 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+internal abstract class AbstractSpanMappingService : ISpanMappingService
 {
-    internal abstract class AbstractSpanMappingService : ISpanMappingService
+    public abstract bool SupportsMappingImportDirectives { get; }
+
+    public abstract Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetMappedTextChangesAsync(
+        Document oldDocument,
+        Document newDocument,
+        CancellationToken cancellationToken);
+
+    public abstract Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(
+        Document document,
+        IEnumerable<TextSpan> spans,
+        CancellationToken cancellationToken);
+
+    protected static ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)> MatchMappedSpansToTextChanges(
+        ImmutableArray<TextChange> textChanges,
+        ImmutableArray<MappedSpanResult> mappedSpanResults)
     {
-        public abstract bool SupportsMappingImportDirectives { get; }
+        Contract.ThrowIfFalse(mappedSpanResults.Length == textChanges.Length);
 
-        public abstract Task<ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)>> GetMappedTextChangesAsync(
-            Document oldDocument,
-            Document newDocument,
-            CancellationToken cancellationToken);
-
-        public abstract Task<ImmutableArray<MappedSpanResult>> MapSpansAsync(
-            Document document,
-            IEnumerable<TextSpan> spans,
-            CancellationToken cancellationToken);
-
-        protected static ImmutableArray<(string mappedFilePath, TextChange mappedTextChange)> MatchMappedSpansToTextChanges(
-            ImmutableArray<TextChange> textChanges,
-            ImmutableArray<MappedSpanResult> mappedSpanResults)
+        using var _ = ArrayBuilder<(string, TextChange)>.GetInstance(out var mappedFilePathAndTextChange);
+        for (var i = 0; i < mappedSpanResults.Length; i++)
         {
-            Contract.ThrowIfFalse(mappedSpanResults.Length == textChanges.Length);
-
-            using var _ = ArrayBuilder<(string, TextChange)>.GetInstance(out var mappedFilePathAndTextChange);
-            for (var i = 0; i < mappedSpanResults.Length; i++)
+            // Only include changes that could be mapped.
+            var newText = textChanges[i].NewText;
+            if (!mappedSpanResults[i].IsDefault && newText != null)
             {
-                // Only include changes that could be mapped.
-                var newText = textChanges[i].NewText;
-                if (!mappedSpanResults[i].IsDefault && newText != null)
-                {
-                    var newTextChange = new TextChange(mappedSpanResults[i].Span, newText);
-                    mappedFilePathAndTextChange.Add((mappedSpanResults[i].FilePath, newTextChange));
-                }
+                var newTextChange = new TextChange(mappedSpanResults[i].Span, newText);
+                mappedFilePathAndTextChange.Add((mappedSpanResults[i].FilePath, newTextChange));
             }
-
-            return mappedFilePathAndTextChange.ToImmutable();
         }
+
+        return mappedFilePathAndTextChange.ToImmutable();
     }
 }

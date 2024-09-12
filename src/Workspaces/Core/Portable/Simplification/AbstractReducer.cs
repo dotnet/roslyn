@@ -6,18 +6,17 @@
 
 using Microsoft.CodeAnalysis.PooledObjects;
 
-namespace Microsoft.CodeAnalysis.Simplification
+namespace Microsoft.CodeAnalysis.Simplification;
+
+internal abstract partial class AbstractReducer
 {
-    internal abstract partial class AbstractReducer
-    {
-        private readonly ObjectPool<IReductionRewriter> _pool;
+    private readonly ObjectPool<IReductionRewriter> _pool;
 
-        protected AbstractReducer(ObjectPool<IReductionRewriter> pool)
-            => _pool = pool;
+    protected AbstractReducer(ObjectPool<IReductionRewriter> pool)
+        => _pool = pool;
 
-        public IReductionRewriter GetOrCreateRewriter()
-            => _pool.Allocate();
+    public IReductionRewriter GetOrCreateRewriter()
+        => _pool.Allocate();
 
-        public abstract bool IsApplicable(SimplifierOptions options);
-    }
+    public abstract bool IsApplicable(SimplifierOptions options);
 }

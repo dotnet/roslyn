@@ -14,122 +14,121 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.Simplification
+namespace Microsoft.CodeAnalysis.CSharp.Simplification;
+
+internal partial class CSharpExtensionMethodReducer : AbstractCSharpReducer
 {
-    internal partial class CSharpExtensionMethodReducer : AbstractCSharpReducer
+    private static readonly ObjectPool<IReductionRewriter> s_pool = new(
+        () => new Rewriter(s_pool));
+
+    private static readonly Func<InvocationExpressionSyntax, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxNode> s_simplifyExtensionMethod = SimplifyExtensionMethod;
+
+    public CSharpExtensionMethodReducer() : base(s_pool)
     {
-        private static readonly ObjectPool<IReductionRewriter> s_pool = new(
-            () => new Rewriter(s_pool));
+    }
 
-        private static readonly Func<InvocationExpressionSyntax, SemanticModel, CSharpSimplifierOptions, CancellationToken, SyntaxNode> s_simplifyExtensionMethod = SimplifyExtensionMethod;
+    protected override bool IsApplicable(CSharpSimplifierOptions options)
+       => true;
 
-        public CSharpExtensionMethodReducer() : base(s_pool)
+    private static SyntaxNode SimplifyExtensionMethod(
+        InvocationExpressionSyntax node,
+        SemanticModel semanticModel,
+        CSharpSimplifierOptions options,
+        CancellationToken cancellationToken)
+    {
+        var rewrittenNode = node;
+
+        if (node.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
         {
+            var memberAccessName = (MemberAccessExpressionSyntax)node.Expression;
+            rewrittenNode = TryReduceExtensionMethod(node, semanticModel, rewrittenNode, memberAccessName.Name);
+        }
+        else if (node.Expression is SimpleNameSyntax)
+        {
+            rewrittenNode = TryReduceExtensionMethod(node, semanticModel, rewrittenNode, (SimpleNameSyntax)node.Expression);
         }
 
-        protected override bool IsApplicable(CSharpSimplifierOptions options)
-           => true;
+        return rewrittenNode;
+    }
 
-        private static SyntaxNode SimplifyExtensionMethod(
-            InvocationExpressionSyntax node,
-            SemanticModel semanticModel,
-            CSharpSimplifierOptions options,
-            CancellationToken cancellationToken)
+    private static InvocationExpressionSyntax TryReduceExtensionMethod(InvocationExpressionSyntax node, SemanticModel semanticModel, InvocationExpressionSyntax rewrittenNode, SimpleNameSyntax expressionName)
+    {
+        var targetSymbol = semanticModel.GetSymbolInfo(expressionName);
+
+        if (targetSymbol.Symbol != null && targetSymbol.Symbol.Kind == SymbolKind.Method)
         {
-            var rewrittenNode = node;
-
-            if (node.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+            var targetMethodSymbol = (IMethodSymbol)targetSymbol.Symbol;
+            if (!targetMethodSymbol.IsReducedExtension())
             {
-                var memberAccessName = (MemberAccessExpressionSyntax)node.Expression;
-                rewrittenNode = TryReduceExtensionMethod(node, semanticModel, rewrittenNode, memberAccessName.Name);
-            }
-            else if (node.Expression is SimpleNameSyntax)
-            {
-                rewrittenNode = TryReduceExtensionMethod(node, semanticModel, rewrittenNode, (SimpleNameSyntax)node.Expression);
-            }
+                var argumentList = node.ArgumentList;
+                var noOfArguments = argumentList.Arguments.Count;
 
-            return rewrittenNode;
-        }
-
-        private static InvocationExpressionSyntax TryReduceExtensionMethod(InvocationExpressionSyntax node, SemanticModel semanticModel, InvocationExpressionSyntax rewrittenNode, SimpleNameSyntax expressionName)
-        {
-            var targetSymbol = semanticModel.GetSymbolInfo(expressionName);
-
-            if (targetSymbol.Symbol != null && targetSymbol.Symbol.Kind == SymbolKind.Method)
-            {
-                var targetMethodSymbol = (IMethodSymbol)targetSymbol.Symbol;
-                if (!targetMethodSymbol.IsReducedExtension())
+                if (noOfArguments > 0)
                 {
-                    var argumentList = node.ArgumentList;
-                    var noOfArguments = argumentList.Arguments.Count;
+                    MemberAccessExpressionSyntax newMemberAccess = null;
+                    var invocationExpressionNodeExpression = node.Expression;
 
-                    if (noOfArguments > 0)
+                    // Ensure the first expression is parenthesized so that we don't cause any
+                    // precedence issues when we take the extension method and tack it on the 
+                    // end of it.
+                    var expression = argumentList.Arguments[0].Expression.Parenthesize();
+
+                    if (node.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
                     {
-                        MemberAccessExpressionSyntax newMemberAccess = null;
-                        var invocationExpressionNodeExpression = node.Expression;
+                        newMemberAccess = SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression, expression,
+                            ((MemberAccessExpressionSyntax)invocationExpressionNodeExpression).OperatorToken,
+                            ((MemberAccessExpressionSyntax)invocationExpressionNodeExpression).Name);
+                    }
+                    else if (node.Expression.Kind() == SyntaxKind.IdentifierName)
+                    {
+                        newMemberAccess = SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression, expression,
+                            (IdentifierNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
+                    }
+                    else if (node.Expression.Kind() == SyntaxKind.GenericName)
+                    {
+                        newMemberAccess = SyntaxFactory.MemberAccessExpression(
+                            SyntaxKind.SimpleMemberAccessExpression, expression,
+                            (GenericNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
+                    }
+                    else
+                    {
+                        Debug.Assert(false, "The expression kind is not MemberAccessExpression or IdentifierName or GenericName to be converted to Member Access Expression for Ext Method Reduction");
+                    }
 
-                        // Ensure the first expression is parenthesized so that we don't cause any
-                        // precedence issues when we take the extension method and tack it on the 
-                        // end of it.
-                        var expression = argumentList.Arguments[0].Expression.Parenthesize();
+                    if (newMemberAccess == null)
+                    {
+                        return node;
+                    }
 
-                        if (node.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+                    // Preserve Trivia
+                    newMemberAccess = newMemberAccess.WithLeadingTrivia(node.GetLeadingTrivia());
+
+                    // Below removes the first argument
+                    // we need to reuse the separators to maintain existing formatting & comments in the arguments itself
+                    var newArguments = SyntaxFactory.SeparatedList<ArgumentSyntax>(argumentList.Arguments.GetWithSeparators().AsEnumerable().Skip(2));
+
+                    var rewrittenArgumentList = argumentList.WithArguments(newArguments);
+                    var candidateRewrittenNode = SyntaxFactory.InvocationExpression(newMemberAccess, rewrittenArgumentList);
+
+                    var oldSymbol = semanticModel.GetSymbolInfo(node).Symbol;
+                    var newSymbol = semanticModel.GetSpeculativeSymbolInfo(
+                        node.SpanStart,
+                        candidateRewrittenNode,
+                        SpeculativeBindingOption.BindAsExpression).Symbol;
+
+                    if (oldSymbol != null && newSymbol != null)
+                    {
+                        if (newSymbol.Kind == SymbolKind.Method && oldSymbol.Equals(((IMethodSymbol)newSymbol).GetConstructedReducedFrom()))
                         {
-                            newMemberAccess = SyntaxFactory.MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression, expression,
-                                ((MemberAccessExpressionSyntax)invocationExpressionNodeExpression).OperatorToken,
-                                ((MemberAccessExpressionSyntax)invocationExpressionNodeExpression).Name);
-                        }
-                        else if (node.Expression.Kind() == SyntaxKind.IdentifierName)
-                        {
-                            newMemberAccess = SyntaxFactory.MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression, expression,
-                                (IdentifierNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
-                        }
-                        else if (node.Expression.Kind() == SyntaxKind.GenericName)
-                        {
-                            newMemberAccess = SyntaxFactory.MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression, expression,
-                                (GenericNameSyntax)invocationExpressionNodeExpression.WithoutLeadingTrivia());
-                        }
-                        else
-                        {
-                            Debug.Assert(false, "The expression kind is not MemberAccessExpression or IdentifierName or GenericName to be converted to Member Access Expression for Ext Method Reduction");
-                        }
-
-                        if (newMemberAccess == null)
-                        {
-                            return node;
-                        }
-
-                        // Preserve Trivia
-                        newMemberAccess = newMemberAccess.WithLeadingTrivia(node.GetLeadingTrivia());
-
-                        // Below removes the first argument
-                        // we need to reuse the separators to maintain existing formatting & comments in the arguments itself
-                        var newArguments = SyntaxFactory.SeparatedList<ArgumentSyntax>(argumentList.Arguments.GetWithSeparators().AsEnumerable().Skip(2));
-
-                        var rewrittenArgumentList = argumentList.WithArguments(newArguments);
-                        var candidateRewrittenNode = SyntaxFactory.InvocationExpression(newMemberAccess, rewrittenArgumentList);
-
-                        var oldSymbol = semanticModel.GetSymbolInfo(node).Symbol;
-                        var newSymbol = semanticModel.GetSpeculativeSymbolInfo(
-                            node.SpanStart,
-                            candidateRewrittenNode,
-                            SpeculativeBindingOption.BindAsExpression).Symbol;
-
-                        if (oldSymbol != null && newSymbol != null)
-                        {
-                            if (newSymbol.Kind == SymbolKind.Method && oldSymbol.Equals(((IMethodSymbol)newSymbol).GetConstructedReducedFrom()))
-                            {
-                                rewrittenNode = candidateRewrittenNode;
-                            }
+                            rewrittenNode = candidateRewrittenNode;
                         }
                     }
                 }
             }
-
-            return rewrittenNode;
         }
+
+        return rewrittenNode;
     }
 }

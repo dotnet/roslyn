@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
@@ -15,8 +16,10 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments
 {
     [Trait(Traits.Feature, Traits.Features.CodeActionsRemoveDocCommentNode)]
-    public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public class RemoveDocCommentNodeCodeFixProviderTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
     {
+        private static readonly CSharpParseOptions Regular = new(kind: SourceCodeKind.Regular);
+
         public RemoveDocCommentNodeCodeFixProviderTests(ITestOutputHelper logger)
            : base(logger)
         {
@@ -27,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments
 
         private async Task TestAsync(string initial, string expected)
         {
-            var parseOptions = Options.Regular.WithDocumentationMode(DocumentationMode.Diagnose);
+            var parseOptions = Regular.WithDocumentationMode(DocumentationMode.Diagnose);
             await TestAsync(initial, expected, parseOptions: parseOptions);
         }
 

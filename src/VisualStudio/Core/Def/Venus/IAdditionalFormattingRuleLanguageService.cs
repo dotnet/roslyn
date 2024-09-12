@@ -14,10 +14,9 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
+
+internal interface IAdditionalFormattingRuleLanguageService : ILanguageService
 {
-    internal interface IAdditionalFormattingRuleLanguageService : ILanguageService
-    {
-        AbstractFormattingRule GetAdditionalCodeGenerationRule();
-    }
+    AbstractFormattingRule GetAdditionalCodeGenerationRule();
 }

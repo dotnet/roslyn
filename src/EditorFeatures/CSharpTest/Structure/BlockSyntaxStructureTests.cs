@@ -306,9 +306,9 @@ public class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructureTests<
                 {
                     void M()
                     {
-                        {|primaryhint:if (true){|primarytextspan:
+                        if (true)
                         {
-                        }|}|}
+                        }
                         {|hint:else{|textspan:
                         {$$
                         }|}|}
@@ -317,7 +317,7 @@ public class BlockSyntaxStructureTests : AbstractCSharpSyntaxNodeStructureTests<
                 """;
 
         await VerifyBlockSpansAsync(code,
-            Region("textspan", "hint", "primaryhint", "primarytextspan", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
+            Region("textspan", "hint", CSharpStructureHelpers.Ellipsis, autoCollapse: false));
     }
 
     [Fact]

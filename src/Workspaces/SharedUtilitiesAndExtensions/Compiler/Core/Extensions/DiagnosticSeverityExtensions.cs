@@ -2,43 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
-{
-    internal static partial class DiagnosticSeverityExtensions
-    {
-        /// <summary>
-        /// Returns the equivalent <see cref="ReportDiagnostic"/> for a <see cref="DiagnosticSeverity"/> value.
-        /// </summary>
-        /// <param name="diagnosticSeverity">The <see cref="DiagnosticSeverity"/> value.</param>
-        /// <returns>
-        /// The equivalent <see cref="ReportDiagnostic"/> for the <see cref="DiagnosticSeverity"/> value.
-        /// </returns>
-        /// <exception cref="InvalidOperationException">
-        /// If <paramref name="diagnosticSeverity"/> is not one of the expected values.
-        /// </exception>
-        public static ReportDiagnostic ToReportDiagnostic(this DiagnosticSeverity diagnosticSeverity)
-            => diagnosticSeverity switch
-            {
-                DiagnosticSeverity.Hidden => ReportDiagnostic.Hidden,
-                DiagnosticSeverity.Info => ReportDiagnostic.Info,
-                DiagnosticSeverity.Warning => ReportDiagnostic.Warn,
-                DiagnosticSeverity.Error => ReportDiagnostic.Error,
-                _ => throw ExceptionUtilities.UnexpectedValue(diagnosticSeverity),
-            };
+namespace Microsoft.CodeAnalysis.Diagnostics;
 
-        public static string ToEditorConfigString(this DiagnosticSeverity diagnosticSeverity)
+internal static partial class DiagnosticSeverityExtensions
+{
+    public static NotificationOption2 ToNotificationOption(this DiagnosticSeverity severity, bool isOverridenSeverity)
+    {
+        var notificationOption = severity switch
         {
-            return diagnosticSeverity switch
-            {
-                DiagnosticSeverity.Hidden => EditorConfigSeverityStrings.Silent,
-                DiagnosticSeverity.Info => EditorConfigSeverityStrings.Suggestion,
-                DiagnosticSeverity.Warning => EditorConfigSeverityStrings.Warning,
-                DiagnosticSeverity.Error => EditorConfigSeverityStrings.Error,
-                _ => throw ExceptionUtilities.UnexpectedValue(diagnosticSeverity)
-            };
-        }
+            DiagnosticSeverity.Error => NotificationOption2.Error,
+            DiagnosticSeverity.Warning => NotificationOption2.Warning,
+            DiagnosticSeverity.Info => NotificationOption2.Suggestion,
+            DiagnosticSeverity.Hidden => NotificationOption2.Silent,
+            _ => throw ExceptionUtilities.UnexpectedValue(severity),
+        };
+
+        return notificationOption.WithIsExplicitlySpecified(isOverridenSeverity);
     }
 }

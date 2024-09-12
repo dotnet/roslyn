@@ -2366,5 +2366,64 @@ public class Tree2 : Tree1
 
             compilation.VerifyDiagnostics();
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71039")]
+        public void ConstInAttributes_NoCycle_01()
+        {
+            var source = """
+                using ILGPU;
+                using System.Runtime.CompilerServices;
+
+                [assembly: InternalsVisibleTo(Context.RuntimeAssemblyName)]
+
+                namespace ILGPU
+                {
+                    public class Context
+                    {
+                        public const string RuntimeAssemblyName = RuntimeSystem.AssemblyName;
+                        public RuntimeSystem RuntimeSystem { get; }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (4,31): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [assembly: InternalsVisibleTo(Context.RuntimeAssemblyName)]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "Context.RuntimeAssemblyName").WithLocation(4, 31),
+                // (10,65): error CS1061: 'RuntimeSystem' does not contain a definition for 'AssemblyName' and no accessible extension method 'AssemblyName' accepting a first argument of type 'RuntimeSystem' could be found (are you missing a using directive or an assembly reference?)
+                //         public const string RuntimeAssemblyName = RuntimeSystem.AssemblyName;
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "AssemblyName").WithArguments("RuntimeSystem", "AssemblyName").WithLocation(10, 65),
+                // (11,16): error CS0246: The type or namespace name 'RuntimeSystem' could not be found (are you missing a using directive or an assembly reference?)
+                //         public RuntimeSystem RuntimeSystem { get; }
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "RuntimeSystem").WithArguments("RuntimeSystem").WithLocation(11, 16)
+            );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71039")]
+        public void ConstInAttributes_NoCycle_02()
+        {
+            var source = """
+                using ILGPU;
+                using System.Runtime.CompilerServices;
+
+                [assembly: InternalsVisibleTo(Context.RuntimeAssemblyName)]
+
+                namespace ILGPU
+                {
+                    public class Context
+                    {
+                        public const string RuntimeAssemblyName = RuntimeSystem.AssemblyName;
+                        public RuntimeSystem RuntimeSystem { get; }
+                    }
+
+                    public class RuntimeSystem
+                    {
+                        public const string AssemblyName = "RuntimeSystem";
+                    }
+                }
+                """;
+
+            CompileAndVerify(source).VerifyDiagnostics();
+        }
     }
 }

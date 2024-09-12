@@ -10,11 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed class XmlSyntaxDiagnosticInfo : SyntaxDiagnosticInfo
     {
-        static XmlSyntaxDiagnosticInfo()
-        {
-            ObjectBinder.RegisterTypeReader(typeof(XmlSyntaxDiagnosticInfo), r => new XmlSyntaxDiagnosticInfo(r));
-        }
-
         private readonly XmlParseErrorCode _xmlErrorCode;
 
         internal XmlSyntaxDiagnosticInfo(XmlParseErrorCode code, params object[] args)
@@ -37,22 +32,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new XmlSyntaxDiagnosticInfo(this, severity);
         }
-
-        #region Serialization
-
-        protected override void WriteTo(ObjectWriter writer)
-        {
-            base.WriteTo(writer);
-            writer.WriteUInt32((uint)_xmlErrorCode);
-        }
-
-        private XmlSyntaxDiagnosticInfo(ObjectReader reader)
-            : base(reader)
-        {
-            _xmlErrorCode = (XmlParseErrorCode)reader.ReadUInt32();
-        }
-
-        #endregion
 
         public override string GetMessage(IFormatProvider? formatProvider = null)
         {

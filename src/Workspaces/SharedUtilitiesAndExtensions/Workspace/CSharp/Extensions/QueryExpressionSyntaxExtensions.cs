@@ -6,42 +6,43 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
+
+internal static class QueryExpressionSyntaxExtensions
 {
-    internal static class QueryExpressionSyntaxExtensions
+    public static IList<SyntaxNode> GetAllClauses(this QueryExpressionSyntax query)
     {
-        public static IList<SyntaxNode> GetAllClauses(this QueryExpressionSyntax query)
+        var result = new List<SyntaxNode>
         {
-            var result = new List<SyntaxNode>();
-            result.Add(query.FromClause);
-            result.AddRange(query.Body.Clauses);
-            result.Add(query.Body.SelectOrGroup);
-            return result;
-        }
+            query.FromClause
+        };
+        result.AddRange(query.Body.Clauses);
+        result.Add(query.Body.SelectOrGroup);
+        return result;
+    }
 
-        public static IList<SyntaxNode> GetAllClauses(this QueryBodySyntax body)
-        {
-            var result = new List<SyntaxNode>();
-            result.AddRange(body.Clauses);
-            result.Add(body.SelectOrGroup);
-            return result;
-        }
+    public static IList<SyntaxNode> GetAllClauses(this QueryBodySyntax body)
+    {
+        var result = new List<SyntaxNode>();
+        result.AddRange(body.Clauses);
+        result.Add(body.SelectOrGroup);
+        return result;
+    }
 
-        public static QueryExpressionSyntax WithAllClauses(
-            this QueryExpressionSyntax query,
-            IList<SyntaxNode> allClauses)
-        {
-            var fromClause = (FromClauseSyntax)allClauses.First();
-            return query.WithFromClause(fromClause).WithBody(query.Body.WithAllClauses(allClauses.Skip(1)));
-        }
+    public static QueryExpressionSyntax WithAllClauses(
+        this QueryExpressionSyntax query,
+        IList<SyntaxNode> allClauses)
+    {
+        var fromClause = (FromClauseSyntax)allClauses.First();
+        return query.WithFromClause(fromClause).WithBody(query.Body.WithAllClauses(allClauses.Skip(1)));
+    }
 
-        public static QueryBodySyntax WithAllClauses(
-            this QueryBodySyntax body,
-            IEnumerable<SyntaxNode> allClauses)
-        {
-            var clauses = SyntaxFactory.List(allClauses.Take(allClauses.Count() - 1).Cast<QueryClauseSyntax>());
-            var selectOrGroup = (SelectOrGroupClauseSyntax)allClauses.Last();
-            return body.WithClauses(clauses).WithSelectOrGroup(selectOrGroup);
-        }
+    public static QueryBodySyntax WithAllClauses(
+        this QueryBodySyntax body,
+        IEnumerable<SyntaxNode> allClauses)
+    {
+        var clauses = SyntaxFactory.List(allClauses.Take(allClauses.Count() - 1).Cast<QueryClauseSyntax>());
+        var selectOrGroup = (SelectOrGroupClauseSyntax)allClauses.Last();
+        return body.WithClauses(clauses).WithSelectOrGroup(selectOrGroup);
     }
 }

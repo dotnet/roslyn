@@ -6,25 +6,24 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery
+namespace Microsoft.CodeAnalysis.ConvertLinq.ConvertForEachToLinqQuery;
+
+internal readonly struct ExtendedSyntaxNode(
+    SyntaxNode node,
+    IEnumerable<SyntaxTrivia> extraLeadingComments,
+    IEnumerable<SyntaxTrivia> extraTrailingComments)
 {
-    internal readonly struct ExtendedSyntaxNode(
+    public SyntaxNode Node { get; } = node;
+
+    public ImmutableArray<SyntaxTrivia> ExtraLeadingComments { get; } = extraLeadingComments.ToImmutableArray();
+
+    public ImmutableArray<SyntaxTrivia> ExtraTrailingComments { get; } = extraTrailingComments.ToImmutableArray();
+
+    public ExtendedSyntaxNode(
         SyntaxNode node,
-        IEnumerable<SyntaxTrivia> extraLeadingComments,
-        IEnumerable<SyntaxTrivia> extraTrailingComments)
+        IEnumerable<SyntaxToken> extraLeadingTokens,
+        IEnumerable<SyntaxToken> extraTrailingTokens)
+        : this(node, extraLeadingTokens.GetTrivia(), extraTrailingTokens.GetTrivia())
     {
-        public SyntaxNode Node { get; } = node;
-
-        public ImmutableArray<SyntaxTrivia> ExtraLeadingComments { get; } = extraLeadingComments.ToImmutableArray();
-
-        public ImmutableArray<SyntaxTrivia> ExtraTrailingComments { get; } = extraTrailingComments.ToImmutableArray();
-
-        public ExtendedSyntaxNode(
-            SyntaxNode node,
-            IEnumerable<SyntaxToken> extraLeadingTokens,
-            IEnumerable<SyntaxToken> extraTrailingTokens)
-            : this(node, extraLeadingTokens.GetTrivia(), extraTrailingTokens.GetTrivia())
-        {
-        }
     }
 }

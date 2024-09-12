@@ -227,21 +227,6 @@
         <target state="translated">Introduce una operación de conversión de tipos que no produce una excepción. Si no se puede realizar la conversión, TryCast devuelve Nothing, que el programa puede probar.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Node_does_not_descend_from_root">
-        <source>Node does not descend from root.</source>
-        <target state="translated">El nodo no desciende de la raíz.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_not_in_parent_s_child_list">
-        <source>Node not in parent's child list</source>
-        <target state="translated">El nodo no está en la lista secundaria de la primaria</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Trivia_is_not_associated_with_token">
-        <source>Trivia is not associated with token</source>
-        <target state="translated">Trivialidad no asociada con token</target>
-        <note />
-      </trans-unit>
       <trans-unit id="typeOrMember">
         <source>&lt;typeOrMember&gt;</source>
         <target state="translated">&lt;typeOrMember&gt;</target>

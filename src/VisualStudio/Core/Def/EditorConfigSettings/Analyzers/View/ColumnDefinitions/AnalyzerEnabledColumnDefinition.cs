@@ -12,34 +12,33 @@ using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Utilities;
 using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common.ColumnDefinitions.Analyzer;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.View.ColumnDefinitions
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.View.ColumnDefinitions;
+
+[Export(typeof(ITableColumnDefinition))]
+[Name(Enabled)]
+internal class AnalyzerEnabledColumnDefinition : TableColumnDefinitionBase
 {
-    [Export(typeof(ITableColumnDefinition))]
-    [Name(Enabled)]
-    internal class AnalyzerEnabledColumnDefinition : TableColumnDefinitionBase
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public AnalyzerEnabledColumnDefinition()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AnalyzerEnabledColumnDefinition()
+    }
+
+    public override string Name => Enabled;
+    public override string DisplayName => ServicesVSResources.Enabled;
+    public override bool IsFilterable => true;
+    public override bool IsSortable => true;
+    public override double MinWidth => 50;
+
+    public override bool TryCreateColumnContent(ITableEntryHandle entry, bool singleColumnView, out FrameworkElement content)
+    {
+        var checkBox = new CheckBox();
+        if (entry.TryGetValue(Name, out bool enabled))
         {
+            checkBox.IsChecked = enabled;
         }
 
-        public override string Name => Enabled;
-        public override string DisplayName => ServicesVSResources.Enabled;
-        public override bool IsFilterable => true;
-        public override bool IsSortable => true;
-        public override double MinWidth => 50;
-
-        public override bool TryCreateColumnContent(ITableEntryHandle entry, bool singleColumnView, out FrameworkElement content)
-        {
-            var checkBox = new CheckBox();
-            if (entry.TryGetValue(Name, out bool enabled))
-            {
-                checkBox.IsChecked = enabled;
-            }
-
-            content = checkBox;
-            return true;
-        }
+        content = checkBox;
+        return true;
     }
 }

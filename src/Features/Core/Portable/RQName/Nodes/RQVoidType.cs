@@ -4,14 +4,13 @@
 
 using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
-namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
-{
-    internal class RQVoidType : RQType
-    {
-        public static readonly RQVoidType Singleton = new();
-        private RQVoidType() { }
+namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
 
-        public override SimpleTreeNode ToSimpleTree()
-            => new SimpleLeafNode(RQNameStrings.Void);
-    }
+internal class RQVoidType : RQType
+{
+    public static readonly RQVoidType Singleton = new();
+    private RQVoidType() { }
+
+    public override SimpleTreeNode ToSimpleTree()
+        => new SimpleLeafNode(RQNameStrings.Void);
 }

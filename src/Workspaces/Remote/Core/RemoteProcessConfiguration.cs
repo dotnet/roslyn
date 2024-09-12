@@ -18,10 +18,5 @@ namespace Microsoft.CodeAnalysis.Remote
         /// Remote host uses server GC.
         /// </summary>
         ServerGC = 1 << 1,
-
-        /// <summary>
-        /// Enable solution crawler in remote workspace.
-        /// </summary>
-        EnableSolutionCrawler = 1 << 2
     }
 }

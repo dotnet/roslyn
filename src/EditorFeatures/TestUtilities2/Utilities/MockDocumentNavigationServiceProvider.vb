@@ -33,25 +33,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
 
             Public ProvidedDocumentId As DocumentId
             Public ProvidedTextSpan As TextSpan
-            Public ProvidedLineNumber As Integer
-            Public ProvidedOffset As Integer
             Public ProvidedPosition As Integer
             Public ProvidedVirtualSpace As Integer
 
-            Public CanNavigateToLineAndOffsetReturnValue As Boolean = True
             Public CanNavigateToPositionReturnValue As Boolean = True
             Public CanNavigateToSpanReturnValue As Boolean = True
 
-            Public TryNavigateToLineAndOffsetReturnValue As Boolean = True
             Public TryNavigateToPositionReturnValue As Boolean = True
             Public TryNavigateToSpanReturnValue As Boolean = True
-
-            Public Function CanNavigateToLineAndOffsetAsync(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.CanNavigateToLineAndOffsetAsync
-                Me.ProvidedDocumentId = documentId
-                Me.ProvidedLineNumber = lineNumber
-
-                Return If(CanNavigateToLineAndOffsetReturnValue, SpecializedTasks.True, SpecializedTasks.False)
-            End Function
 
             Public Function CanNavigateToPosition(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IDocumentNavigationService.CanNavigateToPositionAsync
                 Me.ProvidedDocumentId = documentId
@@ -66,14 +55,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
                 Me.ProvidedTextSpan = textSpan
 
                 Return If(CanNavigateToSpanReturnValue, SpecializedTasks.True, SpecializedTasks.False)
-            End Function
-
-            Public Function GetLocationForLineAndOffsetAsync(workspace As Workspace, documentId As DocumentId, lineNumber As Integer, offset As Integer, cancellationToken As CancellationToken) As Task(Of INavigableLocation) Implements IDocumentNavigationService.GetLocationForLineAndOffsetAsync
-                Me.ProvidedDocumentId = documentId
-                Me.ProvidedLineNumber = lineNumber
-                Me.ProvidedOffset = offset
-
-                Return NavigableLocation.TestAccessor.Create(TryNavigateToLineAndOffsetReturnValue)
             End Function
 
             Public Function GetLocationForPositionAsync(workspace As Workspace, documentId As DocumentId, position As Integer, virtualSpace As Integer, cancellationToken As CancellationToken) As Task(Of INavigableLocation) Implements IDocumentNavigationService.GetLocationForPositionAsync

@@ -9,38 +9,37 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+
+internal partial class TaggerEventSources
 {
-    internal partial class TaggerEventSources
+    private class ParseOptionChangedEventSource(ITextBuffer subjectBuffer) : AbstractWorkspaceTrackingTaggerEventSource(subjectBuffer)
     {
-        private class ParseOptionChangedEventSource(ITextBuffer subjectBuffer) : AbstractWorkspaceTrackingTaggerEventSource(subjectBuffer)
+        protected override void ConnectToWorkspace(Workspace workspace)
+            => workspace.WorkspaceChanged += OnWorkspaceChanged;
+
+        protected override void DisconnectFromWorkspace(Workspace workspace)
+            => workspace.WorkspaceChanged -= OnWorkspaceChanged;
+
+        private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
         {
-            protected override void ConnectToWorkspace(Workspace workspace)
-                => workspace.WorkspaceChanged += OnWorkspaceChanged;
-
-            protected override void DisconnectFromWorkspace(Workspace workspace)
-                => workspace.WorkspaceChanged -= OnWorkspaceChanged;
-
-            private void OnWorkspaceChanged(object? sender, WorkspaceChangeEventArgs e)
+            if (e.Kind == WorkspaceChangeKind.ProjectChanged)
             {
-                if (e.Kind == WorkspaceChangeKind.ProjectChanged)
+                RoslynDebug.AssertNotNull(e.ProjectId);
+                var oldProject = e.OldSolution.GetRequiredProject(e.ProjectId);
+                var newProject = e.NewSolution.GetRequiredProject(e.ProjectId);
+
+                if (!object.Equals(oldProject.ParseOptions, newProject.ParseOptions))
                 {
-                    RoslynDebug.AssertNotNull(e.ProjectId);
-                    var oldProject = e.OldSolution.GetRequiredProject(e.ProjectId);
-                    var newProject = e.NewSolution.GetRequiredProject(e.ProjectId);
-
-                    if (!object.Equals(oldProject.ParseOptions, newProject.ParseOptions))
+                    var workspace = e.NewSolution.Workspace;
+                    var documentId = workspace.GetDocumentIdInCurrentContext(SubjectBuffer.AsTextContainer());
+                    if (documentId != null)
                     {
-                        var workspace = e.NewSolution.Workspace;
-                        var documentId = workspace.GetDocumentIdInCurrentContext(SubjectBuffer.AsTextContainer());
-                        if (documentId != null)
-                        {
-                            var relatedDocumentIds = e.NewSolution.GetRelatedDocumentIds(documentId);
+                        var relatedDocumentIds = e.NewSolution.GetRelatedDocumentIds(documentId);
 
-                            if (relatedDocumentIds.Any(static (d, e) => d.ProjectId == e.ProjectId, e))
-                            {
-                                RaiseChanged();
-                            }
+                        if (relatedDocumentIds.Any(static (d, e) => d.ProjectId == e.ProjectId, e))
+                        {
+                            RaiseChanged();
                         }
                     }
                 }

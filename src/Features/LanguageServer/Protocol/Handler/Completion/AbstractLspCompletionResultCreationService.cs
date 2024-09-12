@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 {
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             {
                 return new LSP.VSInternalCompletionList
                 {
-                    Items = Array.Empty<LSP.CompletionItem>(),
+                    Items = [],
                     // If we have a suggestion mode item, we just need to keep the list in suggestion mode.
                     // We don't need to return the fake suggestion mode item.
                     SuggestionMode = isSuggestionMode,
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Set resolve data on list if the client supports it, otherwise set it on each item.
-            var resolveData = new CompletionResolveData() { ResultId = resultId };
+            var resolveData = new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document));
             var completionItemResolveData = capabilityHelper.SupportCompletionListData || capabilityHelper.SupportVSInternalCompletionListData
                 ? null : resolveData;
 
@@ -65,17 +65,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
             var creationService = document.Project.Solution.Services.GetRequiredService<ILspCompletionResultCreationService>();
             var completionService = document.GetRequiredLanguageService<CompletionService>();
 
-            // By default, Roslyn would treat continuous alphabetical text as a single word for completion purpose.
-            // e.g. when user triggers completion at the location of {$} in "pub{$}class", the span would cover "pubclass",
-            // which is used for subsequent matching and commit.
-            // This works fine for VS async-completion, where we have full control of entire completion process.
-            // However, the insert mode in VSCode (i.e. the mode our LSP server supports) expects us to return TextEdit that only
-            // covers the span ends at the cursor location, e.g. "pub" in the example above. Here we detect when that occurs and
-            // adjust the span accordingly.
-            var defaultSpan = !capabilityHelper.SupportVSInternalClientCapabilities && position < list.Span.End
-                ? new(list.Span.Start, length: position - list.Span.Start)
-                : list.Span;
-
+            var defaultSpan = list.Span;
             var typedText = documentText.GetSubText(defaultSpan).ToString();
             foreach (var item in list.ItemsList)
             {
@@ -145,14 +135,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
                 // This means only tab / enter will commit. VS supports soft selection, so we only do this for non-VS clients.
                 if (isSuggestionMode)
                 {
-                    lspItem.CommitCharacters = Array.Empty<string>();
+                    lspItem.CommitCharacters = [];
                 }
                 else if (typedText.Length == 0 && item.Rules.SelectionBehavior != CompletionItemSelectionBehavior.HardSelection)
                 {
                     // Note this also applies when user hasn't actually typed anything and completion provider does not request the item
                     // to be hard-selected. Otherwise, we set its commit characters as normal. This means we'd need to set IsIncomplete to true
                     // to make sure the client will ask us again when user starts typing so we can provide items with proper commit characters.
-                    lspItem.CommitCharacters = Array.Empty<string>();
+                    lspItem.CommitCharacters = [];
                     isIncomplete = true;
                 }
                 else
