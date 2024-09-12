@@ -176,7 +176,6 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-
         public static void Equal<T>(IEnumerable<T> expected, ImmutableArray<T> actual)
             => Equal(expected, actual, comparer: null, message: null, itemInspector: null);
 
