@@ -21,11 +21,6 @@ namespace Microsoft.CodeAnalysis
             return (flags & TypeAttributes.WindowsRuntime) != 0;
         }
 
-        public static bool IsPublic(this TypeAttributes flags)
-        {
-            return (flags & TypeAttributes.VisibilityMask) == TypeAttributes.Public;
-        }
-
         public static bool IsSpecialName(this TypeAttributes flags)
         {
             return (flags & TypeAttributes.SpecialName) != 0;
