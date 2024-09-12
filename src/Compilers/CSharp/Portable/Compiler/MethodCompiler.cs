@@ -2028,6 +2028,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case GotoStatementSyntax { RawKind: (int)SyntaxKind.GotoStatement }:
                             case TypeParameterConstraintClauseSyntax:
                             case AliasQualifiedNameSyntax:
+                            case AttributeListSyntax:
                                 // These nodes do not have anything interesting for us
                                 return false;
 

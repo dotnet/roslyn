@@ -1651,6 +1651,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Binder current = this;
                     while (current is not (null or InMethodBinder { IdentifierMap: not null }))
                     {
+                        if (current is ContextualAttributeBinder)
+                        {
+                            return;
+                        }
+
                         current = current.Next;
                     }
 
