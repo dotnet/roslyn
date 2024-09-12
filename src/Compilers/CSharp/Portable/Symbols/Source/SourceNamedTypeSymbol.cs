@@ -1713,7 +1713,7 @@ next:;
 
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor,
-                    ImmutableArray.Create(defaultMemberNameConstant)));
+                    ImmutableArray.Create(defaultMemberNameConstant), isOptionalUse: true));
             }
 
             if (this.declaration.Declarations.All(d => d.IsSimpleProgram))

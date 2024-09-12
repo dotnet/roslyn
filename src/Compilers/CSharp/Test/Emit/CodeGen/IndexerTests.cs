@@ -1185,5 +1185,21 @@ Override.set y: 1
         }
 
         #endregion Lowering
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75032")]
+        public void MissingDefaultMemberAttribute()
+        {
+            var text = @"
+interface I1
+{
+    I1 this[I1 args] { get; }
+}
+";
+            var comp = CreateCompilation(text);
+            comp.MakeMemberMissing(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor);
+
+            CompileAndVerify(comp).VerifyDiagnostics();
+        }
     }
 }
