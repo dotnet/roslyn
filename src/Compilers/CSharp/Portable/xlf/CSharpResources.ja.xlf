@@ -1464,12 +1464,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="needs-review-translation">'{0}': 非同期 using ステートメントで使用される型は、暗黙的に 'System.IAsyncDisposable' に変換可能であるか、適切な 'DisposeAsync' メソッドを実装する必要があります。'await using' ではなく 'using' ですか?</target>
+        <target state="new">'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
-        <target state="needs-review-translation">'{0}': using ステートメントで使用される型は、暗黙的に 'System.IDisposable' への変換が可能でなければなりません。'using' ではなく 'await using' ですか?</target>
+        <target state="new">'{0}': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForCallerArgumentExpressionParam">
@@ -9578,7 +9578,7 @@ AssemblyInfo.cs ファイルで RuntimeCompatibilityAttribute が false に設�
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
         <source>'{0}': type used in a using statement must implement 'System.IDisposable'.</source>
-        <target state="needs-review-translation">'{0}': using ステートメントで使用される型は、暗黙的に 'System.IDisposable' への変換が可能でなければなりません。</target>
+        <target state="new">'{0}': type used in a using statement must implement 'System.IDisposable'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -13106,7 +13106,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="needs-review-translation">'{0}': 非同期 using ステートメントで使用される型は、暗黙的に 'System.IAsyncDisposable' に変換可能であるか、適切な 'DisposeAsync' メソッドを実装する必要があります。</target>
+        <target state="new">'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

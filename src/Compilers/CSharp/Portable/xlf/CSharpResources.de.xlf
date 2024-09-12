@@ -1464,12 +1464,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="needs-review-translation">"{0}": Der in einer asynchronen using-Anweisung verwendete Typ muss implizit in "System.IAsyncDisposable" konvertiert werden können oder eine geeignete DisposeAsync-Methode implementieren. Meinten Sie "using" anstelle von "await using"?</target>
+        <target state="new">'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
-        <target state="needs-review-translation">"{0}": Der in einer using-Anweisung verwendete Typ muss implizit in "System.IDisposable" konvertierbar sein. Meinten Sie "await using" anstelle von "using"?</target>
+        <target state="new">'{0}': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForCallerArgumentExpressionParam">
@@ -9578,7 +9578,7 @@ Ein catch()-Block nach einem catch (System.Exception e)-Block kann nicht-CLS-Aus
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
         <source>'{0}': type used in a using statement must implement 'System.IDisposable'.</source>
-        <target state="needs-review-translation">"{0}": Der in einer using-Anweisung verwendete Typ muss implizit in "System.IDisposable" konvertierbar sein.</target>
+        <target state="new">'{0}': type used in a using statement must implement 'System.IDisposable'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -13106,7 +13106,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="needs-review-translation">"{0}": Der in einer asynchronen using-Anweisung verwendete Typ muss implizit in "System.IAsyncDisposable" konvertiert werden können oder eine geeignete DisposeAsync-Methode implementieren.</target>
+        <target state="new">'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

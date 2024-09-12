@@ -1464,12 +1464,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="needs-review-translation">{0}: typ použitý v asynchronním příkazu using musí být implicitně převoditelný na System.IAsyncDisposable nebo musí implementovat odpovídající metodu DisposeAsync. Měli jste v úmyslu použít using nebo await using?</target>
+        <target state="new">'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
-        <target state="needs-review-translation">{0}: Typ použitý v příkazu using musí být implicitně převoditelný na System.IDisposable. Neměli jste v úmyslu použít await using místo using?</target>
+        <target state="new">'{0}': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForCallerArgumentExpressionParam">
@@ -9578,7 +9578,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
         <source>'{0}': type used in a using statement must implement 'System.IDisposable'.</source>
-        <target state="needs-review-translation">{0}: Typ použitý v příkazu using musí být implicitně převeditelný na System.IDisposable.</target>
+        <target state="new">'{0}': type used in a using statement must implement 'System.IDisposable'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -13106,7 +13106,7 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="needs-review-translation">{0}: typ použitý v asynchronním příkazu using musí být implicitně převoditelný na System.IAsyncDisposable nebo musí implementovat odpovídající metodu DisposeAsync.</target>
+        <target state="new">'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">
