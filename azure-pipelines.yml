@@ -62,7 +62,7 @@ stages:
       jobName: Build_Unix_Debug
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
-      queueName: Build.Ubuntu.1804.Amd64.Open
+      queueName: Build.Ubuntu.2004.Amd64.Open
 
 - stage: Source_Build
   dependsOn: []
@@ -74,7 +74,7 @@ stages:
     pool:
       ${{ if eq(variables['System.TeamProject'], 'public') }}:
         name: $[replace(replace(eq(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'true'), True, 'NetCore-Svc-Public' ), False, 'NetCore-Public')]
-        demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
+        demands: ImageOverride -equals Build.Ubuntu.2004.Amd64.Open
 
       ${{ if eq(variables['System.TeamProject'], 'internal') }}:
         name: $[replace(replace(eq(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'true'), True, 'NetCore1ESPool-Svc-Internal'), False, 'NetCore1ESPool-Internal')]
@@ -194,7 +194,7 @@ stages:
       jobName: Test_Linux_Debug
       testArtifactName: Transport_Artifacts_Unix_Debug
       configuration: Debug
-      testArguments: --testCoreClr --helixQueueName Ubuntu.1804.Amd64.Open
+      testArguments: --testCoreClr --helixQueueName Ubuntu.2004.Amd64.Open
 
   - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
     - template: eng/pipelines/test-unix-job-single-machine.yml
@@ -204,7 +204,7 @@ stages:
         testArtifactName: Transport_Artifacts_Unix_Debug
         configuration: Debug
         testArguments: --testCoreClr
-        queueName: Build.Ubuntu.1804.Amd64.Open
+        queueName: Build.Ubuntu.2004.Amd64.Open
 
   - template: eng/pipelines/test-unix-job.yml
     parameters:
@@ -377,7 +377,7 @@ stages:
   - job: Correctness_Analyzers
     pool:
       name: NetCore-Public
-      demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
+      demands: ImageOverride -equals Build.Ubuntu.2004.Amd64.Open
     timeoutInMinutes: 35
     variables:
       - template: eng/pipelines/variables-build.yml
