@@ -30086,7 +30086,7 @@ Block[B2] - Exit
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75035")]
-        public void RefField_AsRefArgument()
+        public void RefField_AsRefArgument_01()
         {
             var verifier = CompileAndVerify("""
                 ref struct S
@@ -30119,6 +30119,379 @@ Block[B2] - Exit
   IL_0006:  ldloca.s   V_0
   IL_0008:  ldfld      ""ref int S.F1""
   IL_000d:  call       ""void S.M(ref int)""
+  IL_0012:  ret
+}
+");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75035")]
+        public void RefField_AsRefArgument_02()
+        {
+            var comp = CreateCompilation("""
+                ref struct S
+                {
+                    public ref readonly int F1;
+
+                    public static S GetS() => default;
+
+                    static void M(ref readonly int x){}
+
+                    static void Test1()
+                    {
+                        M(ref GetS().F1);
+                    }
+                }
+                """,
+                targetFramework: TargetFramework.NetCoreApp);
+
+            comp.VerifyDiagnostics(
+                // (11,15): error CS8329: Cannot use field 'F1' as a ref or out value because it is a readonly variable
+                //         M(ref GetS().F1);
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "GetS().F1").WithArguments("field", "F1").WithLocation(11, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75035")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75082")]
+        public void RefField_AsRefArgument_03()
+        {
+            var comp = CreateCompilation("""
+                ref struct S
+                {
+                    public ref readonly int F1;
+
+                    public static S GetS() => default;
+
+                    static void M(ref readonly int x){}
+
+                    static void Test1()
+                    {
+                        M(in GetS().F1);
+                    }
+                }
+                """,
+                targetFramework: TargetFramework.NetCoreApp);
+
+            comp.VerifyDiagnostics(
+                // (11,14): error CS1612: Cannot modify the return value of 'S.GetS()' because it is not a variable
+                //         M(in GetS().F1);
+                Diagnostic(ErrorCode.ERR_ReturnNotLValue, "GetS()").WithArguments("S.GetS()").WithLocation(11, 14)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75035")]
+        public void RefField_AsRefArgument_04()
+        {
+            var comp = CreateCompilation("""
+                ref struct S
+                {
+                    public ref readonly int F1;
+
+                    public static S GetS() => default;
+
+                    static void M(in int x){}
+
+                    static void Test1()
+                    {
+                        M(ref GetS().F1);
+                    }
+                }
+                """,
+                targetFramework: TargetFramework.NetCoreApp);
+
+            comp.VerifyDiagnostics(
+                // (11,15): error CS8329: Cannot use field 'F1' as a ref or out value because it is a readonly variable
+                //         M(ref GetS().F1);
+                Diagnostic(ErrorCode.ERR_RefReadonlyNotField, "GetS().F1").WithArguments("field", "F1").WithLocation(11, 15)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75035")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75082")]
+        public void RefField_AsRefArgument_05()
+        {
+            var comp = CreateCompilation("""
+                ref struct S
+                {
+                    public ref readonly int F1;
+
+                    public static S GetS() => default;
+
+                    static void M(in int x){}
+
+                    static void Test1()
+                    {
+                        M(in GetS().F1);
+                    }
+                }
+                """,
+                targetFramework: TargetFramework.NetCoreApp);
+
+            comp.VerifyDiagnostics(
+                // (11,14): error CS1612: Cannot modify the return value of 'S.GetS()' because it is not a variable
+                //         M(in GetS().F1);
+                Diagnostic(ErrorCode.ERR_ReturnNotLValue, "GetS()").WithArguments("S.GetS()").WithLocation(11, 14)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75035")]
+        public void RefField_AsRefArgument_06()
+        {
+            var verifier = CompileAndVerify("""
+                #pragma warning disable CS0649 // Field 'S.F1' is never assigned to, and will always have its default value 0
+
+                ref struct S
+                {
+                    public ref readonly int F1;
+
+                    public static S GetS() => default;
+
+                    static void M(in int x){}
+
+                    static void Test1()
+                    {
+                        M(GetS().F1);
+                    }
+                }
+                """,
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.NetCoreApp);
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("S.Test1",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  call       ""S S.GetS()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldfld      ""ref readonly int S.F1""
+  IL_000d:  call       ""void S.M(in int)""
+  IL_0012:  ret
+}
+");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75035")]
+        public void RefField_AsRefArgument_07()
+        {
+            var verifier = CompileAndVerify("""
+                ref struct S
+                {
+                    public readonly ref int F1;
+
+                    public static S GetS() => default;
+
+                    static void M(ref int x){}
+
+                    static void Test1()
+                    {
+                        M(ref GetS().F1);
+                    }
+                }
+                """,
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.NetCoreApp);
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("S.Test1",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  call       ""S S.GetS()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldfld      ""ref int S.F1""
+  IL_000d:  call       ""void S.M(ref int)""
+  IL_0012:  ret
+}
+");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75035")]
+        public void RefField_AsRefArgument_08()
+        {
+            var verifier = CompileAndVerify("""
+                ref struct S
+                {
+                    public readonly ref int F1;
+
+                    public static S GetS() => default;
+
+                    static void M(ref readonly int x){}
+
+                    static void Test1()
+                    {
+                        M(ref GetS().F1);
+                    }
+                }
+                """,
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.NetCoreApp);
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("S.Test1",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  call       ""S S.GetS()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldfld      ""ref int S.F1""
+  IL_000d:  call       ""void S.M(ref readonly int)""
+  IL_0012:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75035")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75082")]
+        public void RefField_AsRefArgument_09()
+        {
+            var comp = CreateCompilation("""
+                ref struct S
+                {
+                    public readonly ref int F1;
+
+                    public static S GetS() => default;
+
+                    static void M(ref readonly int x){}
+
+                    static void Test1()
+                    {
+                        M(in GetS().F1);
+                    }
+                }
+                """,
+                targetFramework: TargetFramework.NetCoreApp);
+
+            comp.VerifyDiagnostics(
+                // (11,14): error CS1612: Cannot modify the return value of 'S.GetS()' because it is not a variable
+                //         M(in GetS().F1);
+                Diagnostic(ErrorCode.ERR_ReturnNotLValue, "GetS()").WithArguments("S.GetS()").WithLocation(11, 14)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75035")]
+        public void RefField_AsRefArgument_10()
+        {
+            var verifier = CompileAndVerify("""
+                ref struct S
+                {
+                    public readonly ref int F1;
+
+                    public static S GetS() => default;
+
+                    static void M(in int x){}
+
+                    static void Test1()
+                    {
+                        M(ref GetS().F1);
+                    }
+                }
+                """,
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.NetCoreApp);
+
+            verifier.VerifyDiagnostics(
+                // (11,15): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         M(ref GetS().F1);
+                Diagnostic(ErrorCode.WRN_BadArgRef, "GetS().F1").WithArguments("1").WithLocation(11, 15)
+                );
+
+            verifier.VerifyIL("S.Test1",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  call       ""S S.GetS()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldfld      ""ref int S.F1""
+  IL_000d:  call       ""void S.M(in int)""
+  IL_0012:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75035")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75082")]
+        public void RefField_AsRefArgument_11()
+        {
+            var comp = CreateCompilation("""
+                ref struct S
+                {
+                    public readonly ref int F1;
+
+                    public static S GetS() => default;
+
+                    static void M(in int x){}
+
+                    static void Test1()
+                    {
+                        M(in GetS().F1);
+                    }
+                }
+                """,
+                targetFramework: TargetFramework.NetCoreApp);
+
+            comp.VerifyDiagnostics(
+                // (11,14): error CS1612: Cannot modify the return value of 'S.GetS()' because it is not a variable
+                //         M(in GetS().F1);
+                Diagnostic(ErrorCode.ERR_ReturnNotLValue, "GetS()").WithArguments("S.GetS()").WithLocation(11, 14)
+                );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75035")]
+        public void RefField_AsRefArgument_12()
+        {
+            var verifier = CompileAndVerify("""
+                #pragma warning disable CS0649 // Field 'S.F1' is never assigned to, and will always have its default value 0
+
+                ref struct S
+                {
+                    public readonly ref int F1;
+
+                    public static S GetS() => default;
+
+                    static void M(in int x){}
+
+                    static void Test1()
+                    {
+                        M(GetS().F1);
+                    }
+                }
+                """,
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.NetCoreApp);
+
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("S.Test1",
+@"
+{
+  // Code size       19 (0x13)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  call       ""S S.GetS()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_0
+  IL_0008:  ldfld      ""ref int S.F1""
+  IL_000d:  call       ""void S.M(in int)""
   IL_0012:  ret
 }
 ");
