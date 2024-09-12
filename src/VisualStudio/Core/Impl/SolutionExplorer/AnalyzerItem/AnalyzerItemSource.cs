@@ -2,237 +2,179 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell;
+using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
+
+internal sealed class AnalyzerItemSource : IAttachedCollectionSource
 {
-    internal class AnalyzerItemSource : IAttachedCollectionSource, INotifyPropertyChanged
+    private readonly AnalyzersFolderItem _analyzersFolder;
+    private readonly IAnalyzersCommandHandler _commandHandler;
+
+    private readonly BulkObservableCollection<AnalyzerItem> _items = [];
+
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly AsyncBatchingWorkQueue _workQueue;
+
+    private IReadOnlyCollection<AnalyzerReference>? _analyzerReferences;
+
+    private Workspace Workspace => _analyzersFolder.Workspace;
+    private ProjectId ProjectId => _analyzersFolder.ProjectId;
+
+    public AnalyzerItemSource(
+        AnalyzersFolderItem analyzersFolder,
+        IAnalyzersCommandHandler commandHandler,
+        IAsynchronousOperationListenerProvider listenerProvider)
     {
-        private readonly AnalyzersFolderItem _analyzersFolder;
-        private readonly IAnalyzersCommandHandler _commandHandler;
-        private IReadOnlyCollection<AnalyzerReference> _analyzerReferences;
-        private BulkObservableCollection<AnalyzerItem> _analyzerItems;
+        _analyzersFolder = analyzersFolder;
+        _commandHandler = commandHandler;
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        _workQueue = new AsyncBatchingWorkQueue(
+            DelayTimeSpan.Idle,
+            ProcessQueueAsync,
+            listenerProvider.GetListener(FeatureAttribute.SourceGenerators),
+            _cancellationTokenSource.Token);
 
-        public AnalyzerItemSource(AnalyzersFolderItem analyzersFolder, IAnalyzersCommandHandler commandHandler)
+        this.Workspace.WorkspaceChanged += OnWorkspaceChanged;
+
+        // Kick off the initial work to determine the starting set of items.
+        _workQueue.AddWork();
+    }
+
+    public object SourceItem => _analyzersFolder;
+
+    // Defer actual determination and computation of the items until later.
+    public bool HasItems => !_cancellationTokenSource.IsCancellationRequested;
+
+    public IEnumerable Items => _items;
+
+    private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    {
+        switch (e.Kind)
         {
-            _analyzersFolder = analyzersFolder;
-            _commandHandler = commandHandler;
+            case WorkspaceChangeKind.SolutionAdded:
+            case WorkspaceChangeKind.SolutionChanged:
+            case WorkspaceChangeKind.SolutionReloaded:
+            case WorkspaceChangeKind.SolutionRemoved:
+            case WorkspaceChangeKind.SolutionCleared:
+                _workQueue.AddWork();
+                break;
 
-            _analyzersFolder.Workspace.WorkspaceChanged += Workspace_WorkspaceChanged;
+            case WorkspaceChangeKind.ProjectAdded:
+            case WorkspaceChangeKind.ProjectReloaded:
+            case WorkspaceChangeKind.ProjectChanged:
+            case WorkspaceChangeKind.ProjectRemoved:
+                if (e.ProjectId == this.ProjectId)
+                    _workQueue.AddWork();
+
+                break;
         }
+    }
 
-        private void Workspace_WorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    private async ValueTask ProcessQueueAsync(CancellationToken cancellationToken)
+    {
+        // If the project went away, then shut ourselves down.
+        var project = this.Workspace.CurrentSolution.GetProject(this.ProjectId);
+        if (project is null)
         {
-            switch (e.Kind)
+            this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
+
+            _cancellationTokenSource.Cancel();
+
+            // Note: mutating _items will be picked up automatically by clients who are bound to the collection.  We do
+            // not need to notify them through some other mechanism.
+
+            if (_items.Count > 0)
             {
-                case WorkspaceChangeKind.SolutionAdded:
-                case WorkspaceChangeKind.SolutionChanged:
-                case WorkspaceChangeKind.SolutionReloaded:
-                    UpdateAnalyzers();
-                    break;
-
-                case WorkspaceChangeKind.SolutionRemoved:
-                case WorkspaceChangeKind.SolutionCleared:
-                    _analyzersFolder.Workspace.WorkspaceChanged -= Workspace_WorkspaceChanged;
-                    break;
-
-                case WorkspaceChangeKind.ProjectAdded:
-                case WorkspaceChangeKind.ProjectReloaded:
-                case WorkspaceChangeKind.ProjectChanged:
-                    if (e.ProjectId == _analyzersFolder.ProjectId)
-                    {
-                        UpdateAnalyzers();
-                    }
-
-                    break;
-
-                case WorkspaceChangeKind.ProjectRemoved:
-                    if (e.ProjectId == _analyzersFolder.ProjectId)
-                    {
-                        _analyzersFolder.Workspace.WorkspaceChanged -= Workspace_WorkspaceChanged;
-                    }
-
-                    break;
-            }
-        }
-
-        private void UpdateAnalyzers()
-        {
-            if (_analyzerItems == null)
-            {
-                // The set of AnalyzerItems hasn't been realized yet. Just signal that HasItems
-                // may have changed.
-
-                NotifyPropertyChanged(nameof(HasItems));
-                return;
-            }
-
-            var project = _analyzersFolder.Workspace
-                            .CurrentSolution
-                            .GetProject(_analyzersFolder.ProjectId);
-
-            if (project != null &&
-                project.AnalyzerReferences != _analyzerReferences)
-            {
-                _analyzerReferences = project.AnalyzerReferences;
-
-                _analyzerItems.BeginBulkOperation();
-
-                var itemsToRemove = _analyzerItems
-                                        .Where(item => !_analyzerReferences.Contains(item.AnalyzerReference))
-                                        .ToArray();
-
-                var referencesToAdd = GetFilteredAnalyzers(_analyzerReferences, project)
-                                        .Where(r => !_analyzerItems.Any(item => item.AnalyzerReference == r))
-                                        .ToArray();
-
-                foreach (var item in itemsToRemove)
-                {
-                    _analyzerItems.Remove(item);
-                }
-
-                foreach (var reference in referencesToAdd)
-                {
-                    _analyzerItems.Add(new AnalyzerItem(_analyzersFolder, reference, _commandHandler.AnalyzerContextMenuController));
-                }
-
-                var sorted = _analyzerItems.OrderBy(item => item.AnalyzerReference.Display).ToArray();
-                for (var i = 0; i < sorted.Length; i++)
-                {
-                    _analyzerItems.Move(_analyzerItems.IndexOf(sorted[i]), i);
-                }
-
-                _analyzerItems.EndBulkOperation();
-
-                NotifyPropertyChanged(nameof(HasItems));
-            }
-        }
-
-        private void NotifyPropertyChanged(string propertyName)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        public bool HasItems
-        {
-            get
-            {
-                if (_analyzerItems != null)
-                {
-                    return _analyzerItems.Count > 0;
-                }
-
-                var project = _analyzersFolder.Workspace
-                                                .CurrentSolution
-                                                .GetProject(_analyzersFolder.ProjectId);
-
-                if (project != null)
-                {
-                    return project.AnalyzerReferences.Count > 0;
-                }
-
-                return false;
-            }
-        }
-
-        public IEnumerable Items
-        {
-            get
-            {
-                if (_analyzerItems == null)
-                {
-                    _analyzerItems = [];
-
-                    var project = _analyzersFolder.Workspace
-                                                .CurrentSolution
-                                                .GetProject(_analyzersFolder.ProjectId);
-
-                    if (project != null)
-                    {
-                        _analyzerReferences = project.AnalyzerReferences;
-                        var initialSet = GetFilteredAnalyzers(_analyzerReferences, project)
-                                            .OrderBy(ar => ar.Display)
-                                            .Select(ar => new AnalyzerItem(_analyzersFolder, ar, _commandHandler.AnalyzerContextMenuController));
-                        _analyzerItems.AddRange(initialSet);
-                    }
-                }
-
-                Logger.Log(
-                    FunctionId.SolutionExplorer_AnalyzerItemSource_GetItems,
-                    KeyValueLogMessage.Create(m => m["Count"] = _analyzerItems.Count));
-
-                return _analyzerItems;
-            }
-        }
-
-        public object SourceItem
-        {
-            get
-            {
-                return _analyzersFolder;
-            }
-        }
-
-        private ImmutableHashSet<string> GetAnalyzersWithLoadErrors()
-        {
-            if (_analyzersFolder.Workspace is VisualStudioWorkspaceImpl)
-            {
-                /*
-                var vsProject = vsWorkspace.DeferredState?.ProjectTracker.GetProject(_analyzersFolder.ProjectId);
-                var vsAnalyzersMap = vsProject?.GetProjectAnalyzersMap();
-
-                if (vsAnalyzersMap != null)
-                {
-                    return vsAnalyzersMap.Where(kvp => kvp.Value.HasLoadErrors).Select(kvp => kvp.Key).ToImmutableHashSet();
-                }
-                */
+                // Go back to UI thread to update the observable collection.  Otherwise, it enqueue its own UI work that we cannot track.
+                await _analyzersFolder.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                _items.Clear();
             }
 
-            return ImmutableHashSet<string>.Empty;
+            return;
         }
 
-        private ImmutableArray<AnalyzerReference> GetFilteredAnalyzers(IEnumerable<AnalyzerReference> analyzerReferences, Project project)
+        // If nothing changed wrt analyzer references, then there's nothing we need to do.
+        if (project.AnalyzerReferences == _analyzerReferences)
+            return;
+
+        // Set the new set of analyzer references we're going to have AnalyzerItems for.
+        _analyzerReferences = project.AnalyzerReferences;
+
+        var references = await GetAnalyzerReferencesWithAnalyzersOrGeneratorsAsync(
+            project, cancellationToken).ConfigureAwait(false);
+
+        // Go back to UI thread to update the observable collection.  Otherwise, it enqueue its own UI work that we cannot track.
+        await _analyzersFolder.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        try
         {
-            var analyzersWithLoadErrors = GetAnalyzersWithLoadErrors();
+            _items.BeginBulkOperation();
 
-            // Filter out analyzer dependencies which have no diagnostic analyzers, but still retain the unresolved analyzers and analyzers with load errors.
-            var builder = ArrayBuilder<AnalyzerReference>.GetInstance();
-            foreach (var analyzerReference in analyzerReferences)
+            _items.Clear();
+            foreach (var analyzerReference in references.OrderBy(static r => r.Display))
+                _items.Add(new AnalyzerItem(_analyzersFolder, analyzerReference, _commandHandler.AnalyzerContextMenuController));
+
+            return;
+        }
+        finally
+        {
+            _items.EndBulkOperation();
+        }
+
+        async Task<ImmutableArray<AnalyzerReference>> GetAnalyzerReferencesWithAnalyzersOrGeneratorsAsync(
+            Project project,
+            CancellationToken cancellationToken)
+        {
+            var client = await RemoteHostClient.TryGetClientAsync(this.Workspace, cancellationToken).ConfigureAwait(false);
+
+            // If we can't make a remote call.  Fall back to processing in the VS host.
+            if (client is null)
+                return project.AnalyzerReferences.Where(r => r is not AnalyzerFileReference || r.HasAnalyzersOrSourceGenerators(project.Language)).ToImmutableArray();
+
+            using var connection = client.CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
+
+            using var _ = ArrayBuilder<AnalyzerReference>.GetInstance(out var builder);
+            foreach (var reference in project.AnalyzerReferences)
             {
-                // Analyzer dependency:
-                // 1. Must be an Analyzer file reference (we don't understand other analyzer dependencies).
-                // 2. Mush have no diagnostic analyzers.
-                // 3. Must have no source generators.
-                // 4. Must have non-null full path.
-                // 5. Must not have any assembly or analyzer load failures.
-                if (analyzerReference is AnalyzerFileReference &&
-                    analyzerReference.GetAnalyzers(project.Language).IsDefaultOrEmpty &&
-                    analyzerReference.GetGenerators(project.Language).IsDefaultOrEmpty &&
-                    analyzerReference.FullPath != null &&
-                    !analyzersWithLoadErrors.Contains(analyzerReference.FullPath))
+                // Can only remote AnalyzerFileReferences over to the oop side.
+                if (reference is AnalyzerFileReference analyzerFileReference)
                 {
-                    continue;
-                }
+                    var result = await connection.TryInvokeAsync<bool>(
+                        project,
+                        (service, solutionChecksum, cancellationToken) => service.HasAnalyzersOrSourceGeneratorsAsync(
+                            solutionChecksum, project.Id, analyzerFileReference.FullPath, cancellationToken),
+                        cancellationToken).ConfigureAwait(false);
 
-                builder.Add(analyzerReference);
+                    // If the call fails, the OOP substrate will have already reported an error
+                    if (!result.HasValue)
+                        return [];
+
+                    if (result.Value)
+                        builder.Add(analyzerFileReference);
+                }
+                else if (reference.HasAnalyzersOrSourceGenerators(project.Language))
+                {
+                    builder.Add(reference);
+                }
             }
 
-            return builder.ToImmutableAndFree();
+            return builder.ToImmutableAndClear();
         }
     }
 }

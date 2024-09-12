@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             var options = new AnalyzerOptions(new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>());
-            CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { analyzer }, options);
+            CreateCompilationWithMscorlib461(source).VerifyAnalyzerDiagnostics(new[] { analyzer }, options);
             analyzer.VerifyAllAnalyzerMembersWereCalled();
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
             analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(missingSyntaxKinds);
@@ -60,7 +60,7 @@ public class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { new CSharpTrackingDiagnosticAnalyzer() });
+            CreateCompilationWithMscorlib461(source).VerifyAnalyzerDiagnostics(new[] { new CSharpTrackingDiagnosticAnalyzer() });
         }
 
         // AllInOne does not include experimental features.
@@ -79,13 +79,13 @@ public class C
     }
 }
 ";
-            CreateCompilationWithMscorlib45(source).VerifyAnalyzerDiagnostics(new[] { new CSharpTrackingDiagnosticAnalyzer() });
+            CreateCompilationWithMscorlib461(source).VerifyAnalyzerDiagnostics(new[] { new CSharpTrackingDiagnosticAnalyzer() });
         }
 
         [Fact]
         public void DiagnosticAnalyzerExpressionBodiedProperty()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            var comp = CreateCompilationWithMscorlib461(@"
 public class C
 {
     public int P => 10;
@@ -98,7 +98,7 @@ public class C
         [WorkItem(759, "https://github.com/dotnet/roslyn/issues/759")]
         public void AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
         {
-            var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode);
+            var compilation = CreateCompilationWithMscorlib461(TestResource.AllInOneCSharpCode);
             var options = new AnalyzerOptions(new[] { new TestAdditionalText() }.ToImmutableArray<AdditionalText>());
 
             ThrowingDiagnosticAnalyzer<SyntaxKind>.VerifyAnalyzerEngineIsSafeAgainstExceptions(analyzer =>
@@ -114,7 +114,7 @@ public class C
                 new[] { new TestAdditionalText("myfilepath", text) }.ToImmutableArray<AdditionalText>()
             );
 
-            var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode);
+            var compilation = CreateCompilationWithMscorlib461(TestResource.AllInOneCSharpCode);
             var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(options);
             compilation.GetAnalyzerDiagnostics(new[] { analyzer }, options);
             analyzer.VerifyAnalyzerOptions();

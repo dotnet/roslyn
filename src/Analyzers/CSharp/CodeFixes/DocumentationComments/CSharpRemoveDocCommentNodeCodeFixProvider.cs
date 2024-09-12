@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 
@@ -14,7 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentationComments;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveDocCommentNode), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
-internal class CSharpRemoveDocCommentNodeCodeFixProvider :
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpRemoveDocCommentNodeCodeFixProvider() :
     AbstractRemoveDocCommentNodeCodeFixProvider<XmlElementSyntax, XmlTextSyntax>
 {
     /// <summary>
@@ -31,12 +32,6 @@ internal class CSharpRemoveDocCommentNodeCodeFixProvider :
     /// Duplicate typeparam tag
     /// </summary>
     private const string CS1710 = nameof(CS1710);
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpRemoveDocCommentNodeCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS1571, CS1572, CS1710];
 

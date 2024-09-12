@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             // We should use the options passed in by LSP instead of the document's options.
-            var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, document, _globalOptions, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, document, cancellationToken).ConfigureAwait(false);
             var indentationOptions = new IndentationOptions(formattingOptions)
             {
                 AutoFormattingOptions = _globalOptions.GetAutoFormattingOptions(document.Project.Language)
@@ -72,9 +72,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return [];
             }
 
-            var edits = new ArrayBuilder<TextEdit>();
+            using var _ = ArrayBuilder<TextEdit>.GetInstance(out var edits);
             edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, documentSyntax.Text)));
-            return edits.ToArrayAndFree();
+            return edits.ToArray();
         }
     }
 }

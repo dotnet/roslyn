@@ -29,7 +29,7 @@ internal class MoveTypeCodeRefactoringProvider : CodeRefactoringProvider
             return;
 
         var service = document.GetRequiredLanguageService<IMoveTypeService>();
-        var actions = await service.GetRefactoringAsync(document, textSpan, context.Options, cancellationToken).ConfigureAwait(false);
+        var actions = await service.GetRefactoringAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
         context.RegisterRefactorings(actions);
     }
 }

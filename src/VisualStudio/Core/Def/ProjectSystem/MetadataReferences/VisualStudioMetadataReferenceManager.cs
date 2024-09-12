@@ -233,11 +233,14 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
                 // location, so we can create a metadata value wrapping that.  This will also let us share the memory
                 // for that metadata value with our OOP process.
                 copyStream.Position = 0;
-                storageHandle = temporaryStorageService.WriteToTemporaryStorage(copyStream, CancellationToken.None);
+                storageHandle = temporaryStorageService.WriteToTemporaryStorage(copyStream);
             }
 
             // Now, read the data from the memory-mapped-file back into a stream that we load into the metadata value.
-            stream = storageHandle.ReadFromTemporaryStorage(CancellationToken.None);
+            // The ITemporaryStorageStreamHandle should have given us an UnmanagedMemoryStream
+            // since this only runs on Windows for VS.
+            stream = (UnmanagedMemoryStream)storageHandle.ReadFromTemporaryStorage();
+
             // stream size must be same as what metadata reader said the size should be.
             Contract.ThrowIfFalse(stream.Length == size);
         }

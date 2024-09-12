@@ -69,7 +69,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // x => ...
                     hasSignature = true;
                     var simple = (SimpleLambdaExpressionSyntax)syntax;
-                    ReportFieldOrValueContextualKeywordConflictIfAny(simple.Parameter, simple.Parameter.Identifier, diagnostics);
                     namesBuilder.Add(simple.Parameter.Identifier.ValueText);
                     break;
                 case SyntaxKind.ParenthesizedLambdaExpression:
@@ -192,8 +191,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 paramsKeyword.GetLocation());
                         }
                     }
-
-                    ReportFieldOrValueContextualKeywordConflictIfAny(p, p.Identifier, diagnostics);
 
                     namesBuilder.Add(p.Identifier.ValueText);
                     typesBuilder.Add(type);

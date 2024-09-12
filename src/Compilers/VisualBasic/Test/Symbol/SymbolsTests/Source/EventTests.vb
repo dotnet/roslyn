@@ -144,7 +144,7 @@ Public Class E
     End Sub
 End Class
 ")
-            Dim vbCompilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(
+            Dim vbCompilation = CompilationUtils.CreateCompilationWithMscorlib461AndVBRuntime(
                 source:={source},
                 references:={csharpCompilation.EmitToImageReference()},
                 options:=TestOptions.DebugDll.WithOptionStrict(OptionStrict.On))

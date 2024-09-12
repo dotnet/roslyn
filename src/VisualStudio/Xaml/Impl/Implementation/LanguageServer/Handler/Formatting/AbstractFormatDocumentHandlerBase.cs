@@ -39,7 +39,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                     textSpan = ProtocolConversions.RangeToTextSpan(range, text);
                 }
 
-                var options = new XamlFormattingOptions { InsertSpaces = formattingOptions.InsertSpaces, TabSize = formattingOptions.TabSize, OtherOptions = formattingOptions.OtherOptions };
+                var options = new XamlFormattingOptions
+                {
+                    InsertSpaces = formattingOptions.InsertSpaces,
+                    TabSize = formattingOptions.TabSize,
+                    OtherOptions = formattingOptions.OtherOptions?.AsUntyped()
+                };
                 var textChanges = await formattingService.GetFormattingChangesAsync(document, options, textSpan, cancellationToken).ConfigureAwait(false);
                 edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text)));
             }

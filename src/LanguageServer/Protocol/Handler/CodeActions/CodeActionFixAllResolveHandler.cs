@@ -44,11 +44,9 @@ internal sealed class CodeActionFixAllResolveHandler(
         var data = GetCodeActionResolveData(request);
         Assumes.Present(data);
 
-        var options = _globalOptions.GetCodeActionOptionsProvider();
         var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
             document,
             data.Range,
-            options,
             _codeFixService,
             _codeRefactoringService,
             request.Scope,

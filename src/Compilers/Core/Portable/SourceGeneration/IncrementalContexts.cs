@@ -176,6 +176,28 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
+    /// <summary>
+    /// Context passed to a filter to determine if a generator should be executed or not.
+    /// </summary>
+    public readonly struct GeneratorFilterContext
+    {
+        internal GeneratorFilterContext(ISourceGenerator generator, CancellationToken cancellationToken)
+        {
+            Generator = generator;
+            CancellationToken = cancellationToken;
+        }
+
+        /// <summary>
+        /// The generator instance that is being filtered
+        /// </summary>
+        public ISourceGenerator Generator { get; }
+
+        /// <summary>
+        /// A <see cref="System.Threading.CancellationToken"/> that can be checked to see if the filtering should be cancelled.
+        /// </summary>
+        public CancellationToken CancellationToken { get; }
+    }
+
     // https://github.com/dotnet/roslyn/issues/53608 right now we only support generating source + diagnostics, but actively want to support generation of other things
     internal readonly struct IncrementalExecutionContext
     {

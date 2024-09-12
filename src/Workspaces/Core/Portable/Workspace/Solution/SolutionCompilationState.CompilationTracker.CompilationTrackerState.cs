@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis;
 
 internal partial class SolutionCompilationState
 {
-    private partial class CompilationTracker
+    private partial class RegularCompilationTracker
     {
         /// <summary>
-        /// The base type of all <see cref="CompilationTracker"/> states. The state of a <see
-        /// cref="CompilationTracker" /> starts at null, and then will progress through the other states until it
+        /// The base type of all <see cref="RegularCompilationTracker"/> states. The state of a <see
+        /// cref="RegularCompilationTracker" /> starts at null, and then will progress through the other states until it
         /// finally reaches <see cref="FinalCompilationTrackerState" />.
         /// </summary>
         private abstract class CompilationTrackerState
@@ -72,7 +72,7 @@ internal partial class SolutionCompilationState
             /// correct snapshot in that the generators have not been rerun, but may be reusable if the generators
             /// are later found to give the same output.
             /// </summary>
-            public readonly CancellableLazy<Compilation?> LazyStaleCompilationWithGeneratedDocuments;
+            public readonly Lazy<Compilation?> LazyStaleCompilationWithGeneratedDocuments;
 
             /// <summary>
             /// The list of changes that have happened since we last computed a compilation. The oldState corresponds to
@@ -86,7 +86,7 @@ internal partial class SolutionCompilationState
                 CreationPolicy creationPolicy,
                 Lazy<Compilation> compilationWithoutGeneratedDocuments,
                 CompilationTrackerGeneratorInfo generatorInfo,
-                CancellableLazy<Compilation?> staleCompilationWithGeneratedDocuments,
+                Lazy<Compilation?> staleCompilationWithGeneratedDocuments,
                 ImmutableList<TranslationAction> pendingTranslationActions)
                 : base(creationPolicy, generatorInfo)
             {
@@ -123,8 +123,8 @@ internal partial class SolutionCompilationState
             {
             }
 
-            private static CancellableLazy<Compilation?> CreateLazyCompilation(Compilation? staleCompilationWithGeneratedDocuments)
-                => new(staleCompilationWithGeneratedDocuments);
+            private static Lazy<Compilation?> CreateLazyCompilation(Compilation? staleCompilationWithGeneratedDocuments)
+                => new(() => staleCompilationWithGeneratedDocuments);
         }
 
         /// <summary>

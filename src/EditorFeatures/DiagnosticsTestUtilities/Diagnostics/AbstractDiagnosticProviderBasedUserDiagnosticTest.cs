@@ -191,11 +191,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             string diagnosticId,
             DiagnosticSeverity diagnosticSeverity,
             OptionsCollectionAlias options = null,
-            OptionsCollectionAlias globalOptions = null,
             LocalizableString diagnosticMessage = null)
         {
-            await TestDiagnosticInfoAsync(initialMarkup, parseOptions: null, compilationOptions: null, options, globalOptions, diagnosticId, diagnosticSeverity, diagnosticMessage);
-            await TestDiagnosticInfoAsync(initialMarkup, GetScriptOptions(), compilationOptions: null, options, globalOptions, diagnosticId, diagnosticSeverity, diagnosticMessage);
+            await TestDiagnosticInfoAsync(initialMarkup, parseOptions: null, compilationOptions: null, options, diagnosticId, diagnosticSeverity, diagnosticMessage);
+            await TestDiagnosticInfoAsync(initialMarkup, GetScriptOptions(), compilationOptions: null, options, diagnosticId, diagnosticSeverity, diagnosticMessage);
         }
 
         private protected async Task TestDiagnosticInfoAsync(
@@ -203,12 +202,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             ParseOptions parseOptions,
             CompilationOptions compilationOptions,
             OptionsCollectionAlias options,
-            OptionsCollectionAlias globalOptions,
             string diagnosticId,
             DiagnosticSeverity diagnosticSeverity,
             LocalizableString diagnosticMessage = null)
         {
-            var testOptions = new TestParameters(parseOptions, compilationOptions, options: options, globalOptions: globalOptions);
+            var testOptions = new TestParameters(parseOptions, compilationOptions, options: options);
             using var workspace = CreateWorkspaceFromOptions(initialMarkup, testOptions);
             var diagnostics = (await GetDiagnosticsAsync(workspace, testOptions)).ToImmutableArray();
             diagnostics = diagnostics.WhereAsArray(d => d.Id == diagnosticId);

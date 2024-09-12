@@ -81,16 +81,6 @@ internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnu
         out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
         CancellationToken cancellationToken);
 
-    public override bool OpenFileOnly(SimplifierOptions? options)
-    {
-        // analyzer is only active in C# and VB projects
-        Contract.ThrowIfNull(options);
-
-        return
-            !(options.PreferPredefinedTypeKeywordInDeclaration.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
-              options.PreferPredefinedTypeKeywordInMemberAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
-    }
-
     protected static ImmutableArray<NotificationOption2> GetAllNotifications(SimplifierOptions options)
         => [
             options.PreferPredefinedTypeKeywordInDeclaration.Notification,

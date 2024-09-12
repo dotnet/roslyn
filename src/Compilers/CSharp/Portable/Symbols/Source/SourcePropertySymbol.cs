@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // This is an error scenario (requires using a property initializer and field-targeted attributes on partial property implementation part).
                 || this.BackingField is not null);
 
-            if (PartialImplementationPart is { } implementationPart)
+            if (SourcePartialImplementationPart is { } implementationPart)
             {
                 return OneOrMany.Create(
                     ((BasePropertyDeclarationSyntax)CSharpSyntaxNode).AttributeLists,
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        protected override SourcePropertySymbolBase? BoundAttributesSource => PartialDefinitionPart;
+        protected override SourcePropertySymbolBase? BoundAttributesSource => SourcePartialDefinitionPart;
 
         public override IAttributeTargetSymbol AttributesOwner => this;
 
@@ -727,9 +727,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsPartialImplementation => IsPartial && (AccessorsHaveImplementation || HasExternModifier);
 
-        internal SourcePropertySymbol? PartialDefinitionPart => IsPartialImplementation ? OtherPartOfPartial : null;
+        internal SourcePropertySymbol? SourcePartialDefinitionPart => IsPartialImplementation ? OtherPartOfPartial : null;
+        internal SourcePropertySymbol? SourcePartialImplementationPart => IsPartialDefinition ? OtherPartOfPartial : null;
 
-        internal SourcePropertySymbol? PartialImplementationPart => IsPartialDefinition ? OtherPartOfPartial : null;
+        internal override PropertySymbol? PartialDefinitionPart => SourcePartialDefinitionPart;
+        internal override PropertySymbol? PartialImplementationPart => SourcePartialImplementationPart;
 
         internal static void InitializePartialPropertyParts(SourcePropertySymbol definition, SourcePropertySymbol implementation)
         {

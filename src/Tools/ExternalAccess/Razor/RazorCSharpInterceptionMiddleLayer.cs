@@ -7,7 +7,7 @@ using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Editor.Implementation.LanguageClient;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
@@ -27,10 +27,17 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
         public override bool CanHandle(string methodName)
             => _razorCSharpInterceptionMiddleLayer.CanHandle(methodName);
 
-        public override Task HandleNotificationAsync(string methodName, JToken methodParam, Func<JToken, Task> sendNotification)
-            => _razorCSharpInterceptionMiddleLayer.HandleNotificationAsync(methodName, methodParam, sendNotification);
+        public override Task HandleNotificationAsync(string methodName, JsonElement methodParam, Func<JsonElement, Task> sendNotification)
+        {
+            // Razor only ever looks at the method name, so it is safe to pass null for all the Newtonsoft JToken params.
+            return _razorCSharpInterceptionMiddleLayer.HandleNotificationAsync(methodName, null!, null!);
+        }
 
-        public override Task<JToken?> HandleRequestAsync(string methodName, JToken methodParam, Func<JToken, Task<JToken?>> sendRequest)
-            => _razorCSharpInterceptionMiddleLayer.HandleRequestAsync(methodName, methodParam, sendRequest);
+        public override Task<JsonElement> HandleRequestAsync(string methodName, JsonElement methodParam, Func<JsonElement, Task<JsonElement>> sendRequest)
+        {
+            // Razor only implements a middlelayer for semantic tokens refresh, which is a notification.
+            // Cohosting makes all this unnecessary, so keeping this as minimal as possible until then.
+            throw new NotImplementedException();
+        }
     }
 }

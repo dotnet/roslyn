@@ -1415,7 +1415,7 @@ IInvocationOperation (void System.Console.Write(System.String format, System.Obj
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, TargetFramework.Mscorlib45, expectedDiagnostics);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, TargetFramework.Mscorlib461, expectedDiagnostics);
         }
 
         /// <summary>

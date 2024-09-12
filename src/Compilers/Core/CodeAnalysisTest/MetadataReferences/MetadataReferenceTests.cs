@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 using CS = Microsoft.CodeAnalysis.CSharp;
 using static Roslyn.Test.Utilities.TestMetadata;
 
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Theory, CombinatorialData]
         public void CreateFromImage_Assembly(bool module, bool immutableArray, bool explicitProperties)
         {
-            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : ResourcesNet451.mscorlib;
+            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : Net461.Resources.mscorlib;
             var properties = explicitProperties ? MetadataReferenceProperties.Assembly : default;
             var r = immutableArray
                 ? MetadataReference.CreateFromImage(peImage.AsImmutable(), properties)
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Theory, CombinatorialData]
         public void CreateFromImage_Module(bool module, bool immutableArray)
         {
-            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : ResourcesNet451.mscorlib;
+            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : Net461.Resources.mscorlib;
             var r = immutableArray
                 ? MetadataReference.CreateFromImage(peImage.AsImmutable(), MetadataReferenceProperties.Module)
                 : MetadataReference.CreateFromImage(peImage.AsEnumerable(), MetadataReferenceProperties.Module);
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void CreateFromStream_FileStream()
         {
-            var file = Temp.CreateFile().WriteAllBytes(ResourcesNet451.mscorlib);
+            var file = Temp.CreateFile().WriteAllBytes(Net461.Resources.mscorlib);
             var stream = File.OpenRead(file.Path);
 
             var r = MetadataReference.CreateFromStream(stream);
@@ -125,7 +126,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Theory, CombinatorialData]
         public void CreateFromStream_Assembly(bool module, bool explicitProperties)
         {
-            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : ResourcesNet451.mscorlib;
+            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : Net461.Resources.mscorlib;
             var r = MetadataReference.CreateFromStream(
                 new MemoryStream(peImage, writable: false),
                 explicitProperties ? MetadataReferenceProperties.Assembly : default);
@@ -141,7 +142,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Theory, CombinatorialData]
         public void CreateFromStream_Module(bool module)
         {
-            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : ResourcesNet451.mscorlib;
+            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : Net461.Resources.mscorlib;
             var r = MetadataReference.CreateFromStream(
                 new MemoryStream(peImage, writable: false),
                 MetadataReferenceProperties.Module);
@@ -157,7 +158,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Theory, CombinatorialData]
         public void CreateFromFile_Assembly(bool module, bool explicitProperties)
         {
-            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : ResourcesNet451.mscorlib;
+            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : Net461.Resources.mscorlib;
             var file = Temp.CreateFile().WriteAllBytes(peImage);
 
             var r = MetadataReference.CreateFromFile(file.Path,
@@ -181,7 +182,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Theory, CombinatorialData]
         public void CreateFromFile_Module(bool module)
         {
-            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : ResourcesNet451.mscorlib;
+            var peImage = module ? TestResources.MetadataTests.NetModule01.ModuleCS00 : Net461.Resources.mscorlib;
             var file = Temp.CreateFile().WriteAllBytes(peImage);
 
             var r = MetadataReference.CreateFromFile(file.Path, MetadataReferenceProperties.Module);
@@ -526,8 +527,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var f1 = MscorlibRef;
             var f2 = SystemCoreRef;
 
-            var i1 = AssemblyMetadata.CreateFromImage(ResourcesNet451.mscorlib).GetReference(display: "i1");
-            var i2 = AssemblyMetadata.CreateFromImage(ResourcesNet451.mscorlib).GetReference(display: "i2");
+            var i1 = AssemblyMetadata.CreateFromImage(Net461.Resources.mscorlib).GetReference(display: "i1");
+            var i2 = AssemblyMetadata.CreateFromImage(Net461.Resources.mscorlib).GetReference(display: "i2");
 
             var m1a = new MyReference(@"c:\a\goo.dll", display: "m1a");
             Assert.Equal("m1a", m1a.Display);
@@ -565,7 +566,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void DocCommentProvider()
         {
             var docProvider = new TestDocumentationProvider();
-            var corlib = AssemblyMetadata.CreateFromImage(ResourcesNet451.mscorlib).
+            var corlib = AssemblyMetadata.CreateFromImage(Net461.Resources.mscorlib).
                 GetReference(display: "corlib", documentation: docProvider);
 
             var comp = (Compilation)CS.CSharpCompilation.Create("goo",
