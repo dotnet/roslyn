@@ -7698,7 +7698,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
         <source>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</source>
-        <target state="needs-review-translation">指定版本字符串不符合建议格式 - major.minor.build.revision</target>
+        <target state="new">The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyCultureForExe">
