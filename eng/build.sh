@@ -281,8 +281,8 @@ function BuildSolution {
 
   local source_build_args=""
   if [[ "$source_build" == true ]]; then
-    source_build_args="/p:DotNetBuildSourceOnly=$source_build \
-                       /p:DotNetBuildRepo=$source_build"
+    source_build_args="/p:DotNetBuildSourceOnly=true \
+                       /p:DotNetBuildRepo=true"
   fi
 
   # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
