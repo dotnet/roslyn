@@ -112,7 +112,7 @@ public class DefinitionItemFactoryTests
             {
                 assert();
             }
-            catch (AssertActualExpectedException e)
+            catch (Exception e) when (e is IAssertionException)
             {
                 failures.Add(e);
             }
