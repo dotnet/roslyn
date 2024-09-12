@@ -169,8 +169,7 @@ while [[ $# > 0 ]]; do
     --warnaserror)
       warn_as_error=true
       ;;
-    --sourcebuild|/p:dotnetbuildsourceonly=true)
-      # Arcade passes /p:DotNetBuildSourceOnly=true and /p:DotNetBuildRepo=true when --sourcebuild or -sb is passed. Include this switch in our build scripts.
+    --sourcebuild)
       source_build=true
       # RestoreUseStaticGraphEvaluation will cause prebuilts
       restoreUseStaticGraphEvaluation=false
