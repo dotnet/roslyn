@@ -19,8 +19,8 @@
     <!--
       Do not error on NuGet audit warnings. These are warnings that are introduced asynchronously as
       new vulnerabilities are discovered. Having these as errors means that CI would pass on on job,
-      and then potentially fail on the next. This is meant to be an early warning system, not a 
-      random CI failure generator.
+      and then potentially fail on the next. This is meant to be an early warning system and not
+      a way to cause friction in PRs.
     -->
     <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1901;NU1902;NU1903;NU1904</WarningsNotAsErrors>
 
