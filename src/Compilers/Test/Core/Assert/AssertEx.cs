@@ -161,6 +161,9 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+        public static void Equal<T>(ImmutableArray<T> expected, IEnumerable<T> actual)
+            => Equal(expected, actual, comparer: null, message: null);
+
         public static void Equal<T>(ImmutableArray<T> expected, IEnumerable<T> actual, IEqualityComparer<T> comparer = null, string message = null)
         {
             if (actual == null || expected.IsDefault)
@@ -173,6 +176,10 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+
+        public static void Equal<T>(IEnumerable<T> expected, ImmutableArray<T> actual)
+            => Equal(expected, actual, comparer: null, message: null, itemInspector: null);
+
         public static void Equal<T>(IEnumerable<T> expected, ImmutableArray<T> actual, IEqualityComparer<T> comparer = null, string message = null, string itemSeparator = null)
         {
             if (expected == null || actual.IsDefault)
@@ -184,6 +191,9 @@ namespace Roslyn.Test.Utilities
                 Equal(expected, (IEnumerable<T>)actual, comparer, message, itemSeparator);
             }
         }
+
+        public static void Equal<T>(ImmutableArray<T> expected, ImmutableArray<T> actual)
+            => Equal(expected, actual, comparer: null, message: null, itemInspector: null);
 
         public static void Equal<T>(ImmutableArray<T> expected, ImmutableArray<T> actual, IEqualityComparer<T> comparer = null, string message = null, string itemSeparator = null)
         {
@@ -864,7 +874,6 @@ namespace Roslyn.Test.Utilities
                 Fail($"Expected 0 items but found {list.Count}: {message}\r\nItems:\r\n    {string.Join("\r\n    ", list)}");
             }
         }
-
 
         private sealed class LineComparer : IEqualityComparer<string>
         {

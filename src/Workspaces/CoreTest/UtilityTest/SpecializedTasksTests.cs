@@ -49,12 +49,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void WhenAll_CompletedButCanceled()
+        public async Task WhenAll_CompletedButCanceled()
         {
             var whenAll = SpecializedTasks.WhenAll([new ValueTask<int>(Task.FromCanceled<int>(new CancellationToken(true)))]);
             Assert.True(whenAll.IsCompleted);
             Assert.False(whenAll.IsCompletedSuccessfully);
-            Assert.ThrowsAsync<OperationCanceledException>(async () => await whenAll);
+            await Assert.ThrowsAsync<OperationCanceledException>(async () => await whenAll);
         }
 
         [Fact]
