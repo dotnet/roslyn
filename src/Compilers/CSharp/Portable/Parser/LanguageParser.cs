@@ -7434,7 +7434,13 @@ done:;
                             if (this.CurrentToken.ContextualKind is SyntaxKind.AsyncKeyword or SyntaxKind.AwaitKeyword)
                                 return false;
 
-                            var nextTokenKind = PeekToken(1).Kind;
+                            var nextToken = PeekToken(1);
+
+                            // Cases like `x is Y ? someRecord with { } : ...`
+                            if (nextToken.ContextualKind == SyntaxKind.WithKeyword)
+                                return false;
+
+                            var nextTokenKind = nextToken.Kind;
 
                             // These token either 100% end a pattern or start a new one:
 
