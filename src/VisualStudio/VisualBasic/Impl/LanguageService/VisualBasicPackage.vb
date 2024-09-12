@@ -68,7 +68,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Protected Overrides Async Function InitializeAsync(cancellationToken As CancellationToken, progress As IProgress(Of ServiceProgressData)) As Task
             Try
                 Await MyBase.InitializeAsync(cancellationToken, progress).ConfigureAwait(True)
-                Await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken)
 
                 RegisterLanguageService(GetType(IVbCompilerService), Function() Task.FromResult(_comAggregate))
 
