@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     {
         public static bool IsInterface(this TypeAttributes flags)
         {
-            return (flags & TypeAttributes.Interface) != 0;
+            return (flags & TypeAttributes.ClassSemanticsMask) == TypeAttributes.Interface;
         }
 
         public static bool IsWindowsRuntime(this TypeAttributes flags)
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
 
         public static bool IsPublic(this TypeAttributes flags)
         {
-            return (flags & TypeAttributes.Public) != 0;
+            return (flags & TypeAttributes.VisibilityMask) == TypeAttributes.Public;
         }
 
         public static bool IsSpecialName(this TypeAttributes flags)

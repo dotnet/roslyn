@@ -383,7 +383,7 @@ namespace Roslyn.Test.Utilities
                     throw new InvalidOperationException();
             }
 
-            if ((attributes & TypeAttributes.Interface) != 0)
+            if ((attributes & TypeAttributes.ClassSemanticsMask) == TypeAttributes.Interface)
                 sb.Append("interface ");
 
             sb.Append(visibility);
