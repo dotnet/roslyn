@@ -44,3 +44,47 @@ unsafe class C // unsafe context
 ```
 
 You can work around the break simply by adding the `unsafe` modifier to the local function.
+
+## Collection expression breaking changes in C# 13 and newer
+
+***Introduced in Visual Studio 2022 Version 17.12 and newer when using C# 13+***
+
+There are a few changes in collection expression binding in C# 13. Most of these are turning ambiguities into successful compilations,
+but a couple are breaking changes that either result in a new compilation error, or are a behavior breaking change. They are detailed
+below.
+
+### Empty collection expressions no longer use whether an API is a `Span` to tiebreak on overloads
+
+When an empty collection expression is provided to an overloaded method, and there isn't a clear element type, we no longer use whether
+an API takes a `ReadOnlySpan` or a `Span` to decide whether to prefer that API. For example:
+
+```cs
+class C
+{
+    static void M(ReadOnlySpan<int> ros) {}
+    static void M(Span<object> s) {}
+
+    static void Main()
+    {
+        M([]); // C.M(ReadOnlySpan<int>) in C# 12, error in C# 13.
+    }
+}
+```
+
+### Exact element type is preferred over all else
+
+In C# 13, we prefer an exact element type match, looking at conversions from expressions. This can result in a behavior change when involving
+numeric constants:
+
+```cs
+class C
+{
+    static void M(ReadOnlySpan<byte> ros) {}
+    static void M(Span<int> s) {}
+
+    static void Main()
+    {
+        M([1]); // C.M(ReadOnlySpan<byte>) in C# 12, C.M(Span<int>) in C# 13
+    }
+}
+```
