@@ -2416,7 +2416,7 @@ outerDefault:
 
                     if (!Conversions.HasIdentityConversion(t1, t2))
                     {
-                        var betterResult = IsBetterParamsCollectionType(t1, t2, ref useSiteInfo);
+                        var betterResult = BetterParamsCollectionType(t1, t2, ref useSiteInfo);
                         if (betterResult != BetterResult.Neither)
                         {
                             return betterResult;
@@ -2926,7 +2926,8 @@ outerDefault:
             // - `E₁` has an identity conversion to `E₂`, and one of the following holds:
 
             // `E₁` is compared to `E₂` as follows:
-            // If there is an identity conversion from `E₁` to `E₂`, then the element conversions are as good as each other. Otherwise, the element conversions to `E₁` are better than the element conversions to `E₂` if:
+            // If there is an identity conversion from `E₁` to `E₂`, then the element conversions are as good as each other. Otherwise, the element conversions
+            // to `E₁` are better than the element conversions to `E₂` if:
             // - For every `ELᵢ`, `CE₁ᵢ` is at least as good as `CE₂ᵢ`, and
             // - There is at least one i where `CE₁ᵢ` is better than `CE₂ᵢ`
             // Otherwise, neither set of element conversions is better than the other, and they are also not as good as each other.  
@@ -2939,21 +2940,15 @@ outerDefault:
 
                 for (int i = 0; i < underlyingElementConversions1.Length; i++)
                 {
-                    // Conversion comparisons are made using better conversion from expression if `ELᵢ` is not a spread element. If `ELᵢ` is a spread element, we use better conversion from the element type of the spread collection to `E₁` or `E₂`, respectively.
+                    // Conversion comparisons are made using better conversion from expression if `ELᵢ` is not a spread element. If `ELᵢ` is a spread element,
+                    // we use better conversion from the element type of the spread collection to `E₁` or `E₂`, respectively.
                     var element = collectionExpressionElements[i];
 
                     BetterResult elementBetterResult;
                     if (element is BoundCollectionExpressionSpreadElement { Conversion: var spreadConversion } spread)
                     {
-                        if (spreadConversion is null)
-                        {
-                            // There were errors, don't attempt to compare for better error recovery
-                            Debug.Assert(element.HasErrors);
-                            continue;
-                        }
-
-                        var conversionToE1 = Conversions.GetCollectionExpressionSpreadElementConversion(spread, elementType1, ref useSiteInfo);
-                        var conversionToE2 = Conversions.GetCollectionExpressionSpreadElementConversion(spread, elementType2, ref useSiteInfo);
+                        var conversionToE1 = underlyingElementConversions1[i];
+                        var conversionToE2 = underlyingElementConversions2[i];
 
                         elementBetterResult = BetterConversionTarget(spread, elementType1, conversionToE1, elementType2, conversionToE2, ref useSiteInfo, out _);
                     }
@@ -3039,7 +3034,7 @@ outerDefault:
                 Conversions.ClassifyImplicitConversionFromType(source, destination, ref useSiteInfo).IsImplicit;
         }
 
-        private BetterResult IsBetterParamsCollectionType(TypeSymbol t1, TypeSymbol t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private BetterResult BetterParamsCollectionType(TypeSymbol t1, TypeSymbol t2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             CollectionExpressionTypeKind kind1 = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, t1, out TypeWithAnnotations elementType1);
             CollectionExpressionTypeKind kind2 = ConversionsBase.GetCollectionExpressionTypeKind(Compilation, t2, out TypeWithAnnotations elementType2);

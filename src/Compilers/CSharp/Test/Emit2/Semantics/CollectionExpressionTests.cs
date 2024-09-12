@@ -1028,17 +1028,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         int?[] y = [null, 2];
                         var z = F([..y]);
                         z.Report(includeType: true);
+                        F([3, ..y]).Report(includeType: true);
+                        F([..y, 4]).Report(includeType: true);
+                        int[] w = [5, 6, 7];
+                        F([..y, ..w]).Report(includeType: true);
+                        F([..w, ..y]).Report(includeType: true);
                     }
                 }
                 """;
-            CompileAndVerify([source, s_collectionExtensions], parseOptions: TestOptions.Regular13, expectedOutput: "(System.Nullable<System.Int32>[]) [1, null], (System.Nullable<System.Int32>[]) [null, 2], ");
+            CompileAndVerify([source, s_collectionExtensions], parseOptions: TestOptions.Regular13,
+                expectedOutput: "(System.Nullable<System.Int32>[]) [1, null], (System.Nullable<System.Int32>[]) [null, 2], (System.Nullable<System.Int32>[]) [3, null, 2], " +
+                                "(System.Nullable<System.Int32>[]) [null, 2, 4], (System.Nullable<System.Int32>[]) [null, 2, 5, 6, 7], (System.Nullable<System.Int32>[]) [5, 6, 7, null, 2], ");
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics(
                 // (15,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(MyCollection)' and 'Program.F(int?[])'
                 //         var x = F([1, null]);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(MyCollection)", "Program.F(int?[])").WithLocation(15, 17),
                 // (18,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(MyCollection)' and 'Program.F(int?[])'
                 //         var z = F([..y]);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(MyCollection)", "Program.F(int?[])").WithLocation(18, 17)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(MyCollection)", "Program.F(int?[])").WithLocation(18, 17),
+                // (20,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(MyCollection)' and 'Program.F(int?[])'
+                //         F([3, ..y]).Report(includeType: true);  
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(MyCollection)", "Program.F(int?[])").WithLocation(20, 9),
+                // (21,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(MyCollection)' and 'Program.F(int?[])'
+                //         F([..y, 4]).Report(includeType: true);  
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(MyCollection)", "Program.F(int?[])").WithLocation(21, 9),
+                // (23,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(MyCollection)' and 'Program.F(int?[])'
+                //         F([..y, ..w]).Report(includeType: true);  
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(MyCollection)", "Program.F(int?[])").WithLocation(23, 9),
+                // (24,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(MyCollection)' and 'Program.F(int?[])'
+                //         F([..w, ..y]).Report(includeType: true); 
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("Program.F(MyCollection)", "Program.F(int?[])").WithLocation(24, 9)
                 );
         }
 
@@ -1923,7 +1942,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             comp = CreateCompilation(
                 new[] { sourceA, sourceB2 },
-                parseOptions: TestOptions.Regular13,
+                parseOptions: TestOptions.Regular12,
                 targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // 1.cs(5,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.SpanDerived(Span<string>)' and 'Program.SpanDerived(object[])'
