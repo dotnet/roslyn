@@ -843,6 +843,116 @@ class B
 ");
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74872")]
+        [Fact]
+        public void ExternAliases6()
+        {
+            string sourceA =
+@"
+namespace N
+{
+    public class A { }
+}
+";
+            var comp = CreateCompilation(sourceA, assemblyName: "A1");
+            var refA = comp.EmitToImageReference(aliases: ImmutableArray.Create("A2"));
+
+            string sourceB =
+@"
+class B
+{
+    static void F(A x) { }
+}
+";
+            string sourceC =
+@"
+extern alias A2;
+global using A2::N;
+";
+            comp = CreateCompilation([sourceB, sourceC], references: new[] { refA }, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics();
+            comp.VerifyPdb(
+@"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""B"" name=""F"" parameterNames=""x"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""24"" endLine=""4"" endColumn=""25"" document=""1"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""26"" endLine=""4"" endColumn=""27"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <namespace qualifier=""A2"" name=""N"" />
+        <externinfo alias=""A2"" assembly=""A1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74872")]
+        [Fact]
+        public void ExternAliases7()
+        {
+            string sourceA =
+@"
+namespace N
+{
+    public class A { }
+}
+";
+            var comp = CreateCompilation(sourceA, assemblyName: "A1");
+            var refA = comp.EmitToImageReference(aliases: ImmutableArray.Create("A2"));
+
+            string sourceB =
+@"
+class B
+{
+    static void F(N2.A x) { }
+}
+";
+            string sourceC =
+@"
+extern alias A2;
+global using N2 = A2::N;
+";
+            comp = CreateCompilation([sourceB, sourceC], references: new[] { refA }, options: TestOptions.DebugDll);
+            comp.VerifyDiagnostics();
+            comp.VerifyPdb(
+@"
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""B"" name=""F"" parameterNames=""x"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""27"" endLine=""4"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""29"" endLine=""4"" endColumn=""30"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x2"">
+        <alias name=""N2"" qualifier=""A2"" target=""N"" kind=""namespace"" />
+        <externinfo alias=""A2"" assembly=""A1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>
+");
+        }
+
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/25737")]
         public void TestExternAliases_ExplicitAndGlobal()
         {

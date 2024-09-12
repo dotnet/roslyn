@@ -15845,5 +15845,32 @@ namespace OverloadResolutionRepro
                 Assert.Empty(module.GlobalNamespace.GetMembers("System"));
             }
         }
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
+        public void Cycle_16()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class Base : IEnumerable<object>
+                {
+                    public IEnumerator<object> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+
+                public class MyCollection1 : Base
+                {
+                    public void Add(params MyCollection1 c) {}
+                }
+
+                public class C
+                {
+                    /*<bind>*/
+                    MyCollection1 M() => [1];
+                    /*</bind>*/
+                }
+                """;
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
+        }
     }
 }

@@ -414,33 +414,43 @@ namespace Microsoft.Cci
             return result.ToStringAndFree();
         }
 
-        private string GetAssemblyReferenceAlias(IAssemblyReference assembly, HashSet<string> declaredExternAliases)
+        private string GetAssemblyReferenceAlias(IAssemblyReference assembly, HashSet<string> declaredExternAliasesOpt)
         {
-            // no extern alias defined in scope at all -> error in compiler
-            Debug.Assert(declaredExternAliases != null);
-
             var allAliases = _metadataWriter.Context.Module.GetAssemblyReferenceAliases(_metadataWriter.Context);
+
+            if (declaredExternAliasesOpt is not null)
+            {
+                foreach (AssemblyReferenceAlias alias in allAliases)
+                {
+                    // Multiple aliases may be given to an assembly reference.
+                    // We find one that is in scope (was imported via extern alias directive).
+                    // If multiple are in scope then use the first one.
+
+                    // NOTE: Dev12 uses the one that appeared in source, whereas we use
+                    // the first one that COULD have appeared in source.  (DevDiv #913022)
+                    // The reason we're not just using the alias from the syntax is that
+                    // it is non-trivial to locate.  In particular, since "." may be used in
+                    // place of "::", determining whether the first identifier in the name is
+                    // the alias requires binding.  For example, "using A.B;" could refer to
+                    // either "A::B" or "global::A.B".
+
+                    if (assembly == alias.Assembly && declaredExternAliasesOpt.Contains(alias.Name))
+                    {
+                        return alias.Name;
+                    }
+                }
+            }
+
+            // no alias defined in scope for given assembly -> must be a 'global' using, use the first defined alias
             foreach (AssemblyReferenceAlias alias in allAliases)
             {
-                // Multiple aliases may be given to an assembly reference.
-                // We find one that is in scope (was imported via extern alias directive).
-                // If multiple are in scope then use the first one.
-
-                // NOTE: Dev12 uses the one that appeared in source, whereas we use
-                // the first one that COULD have appeared in source.  (DevDiv #913022)
-                // The reason we're not just using the alias from the syntax is that
-                // it is non-trivial to locate.  In particular, since "." may be used in
-                // place of "::", determining whether the first identifier in the name is
-                // the alias requires binding.  For example, "using A.B;" could refer to
-                // either "A::B" or "global::A.B".
-
-                if (assembly == alias.Assembly && declaredExternAliases.Contains(alias.Name))
+                if (assembly == alias.Assembly)
                 {
                     return alias.Name;
                 }
             }
 
-            // no alias defined in scope for given assembly -> error in compiler
+            // no alias defined for given assembly -> error in compiler
             throw ExceptionUtilities.Unreachable();
         }
 
