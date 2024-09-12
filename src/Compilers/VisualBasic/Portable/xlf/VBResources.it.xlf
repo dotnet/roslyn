@@ -7699,7 +7699,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
         <source>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</source>
-        <target state="needs-review-translation">La stringa di versione specificata non è conforme al formato consigliato: principale.secondaria.build.revisione</target>
+        <target state="new">The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyCultureForExe">
