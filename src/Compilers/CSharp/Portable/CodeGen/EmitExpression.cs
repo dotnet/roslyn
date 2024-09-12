@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         // interestingly enough "ref dynamic" sometimes is passed via a clone
                         // receiver of a ref field can be cloned too
-                        Debug.Assert(argument.Type.IsDynamic() || argument is BoundFieldAccess { FieldSymbol.RefKind: RefKind.Ref }, "passing args byref should not clone them into temps");
+                        Debug.Assert(argument.Type.IsDynamic() || argument is BoundFieldAccess { FieldSymbol.RefKind: not RefKind.None }, "passing args byref should not clone them into temps");
                         AddExpressionTemp(unexpectedTemp);
                     }
 
