@@ -1822,10 +1822,15 @@ outerDefault:
             return currentBestIndex;
         }
 
-        private static void RemoveLowerPriorityMembers<TMemberResolution, TMember>(ArrayBuilder<TMemberResolution> results)
+        private void RemoveLowerPriorityMembers<TMemberResolution, TMember>(ArrayBuilder<TMemberResolution> results)
             where TMemberResolution : IMemberResolutionResultWithPriority<TMember>
             where TMember : Symbol
         {
+            if (!Compilation.IsFeatureEnabled(MessageID.IDS_OverloadResolutionPriority))
+            {
+                return;
+            }
+
             // - Then, the reduced set of candidate members is grouped by declaring type. Within each group:
             //     - Candidate function members are ordered by *overload_resolution_priority*.
             //     - All members that have a lower *overload_resolution_priority* than the highest found within its declaring type group are removed.
@@ -3231,17 +3236,6 @@ outerDefault:
 
         private const int BetterConversionTargetRecursionLimit = 100;
 
-#if DEBUG
-        private BetterResult BetterConversionTarget(
-            TypeSymbol type1,
-            TypeSymbol type2,
-            ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
-        {
-            bool okToDowngradeToNeither;
-            return BetterConversionTargetCore(null, type1, default(Conversion), type2, default(Conversion), ref useSiteInfo, out okToDowngradeToNeither, BetterConversionTargetRecursionLimit);
-        }
-#endif
-
         private BetterResult BetterConversionTargetCore(
             TypeSymbol type1,
             TypeSymbol type2,
@@ -3520,7 +3514,7 @@ outerDefault:
                             Debug.Assert(
                                 r1.IsErrorType() ||
                                 r2.IsErrorType() ||
-                                currentResult == BetterConversionTarget(r1, r2, ref useSiteInfo));
+                                currentResult == BetterConversionTargetCore(null, type1, default(Conversion), type2, default(Conversion), ref useSiteInfo, out _, BetterConversionTargetRecursionLimit));
                         }
 #endif
                     }

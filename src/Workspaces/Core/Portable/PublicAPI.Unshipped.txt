@@ -1,1 +1,3 @@
-
+Microsoft.CodeAnalysis.ProjectInfo.WithId(Microsoft.CodeAnalysis.ProjectId id) -> Microsoft.CodeAnalysis.ProjectInfo
+virtual Microsoft.CodeAnalysis.Host.HostLanguageServices.Dispose() -> void
+virtual Microsoft.CodeAnalysis.Host.HostWorkspaceServices.Dispose() -> void

@@ -1615,8 +1615,8 @@ class C
     {
         using var workspace = EditorTestWorkspace.CreateCSharp(
             files: [],
-            sourceGeneratedFiles: new[]
-            {
+            sourceGeneratedFiles:
+            [
                 """
                 public partial class C
                 {
@@ -1627,7 +1627,7 @@ class C
                 {
                 }
                 """,
-            },
+            ],
             composition: DefaultComposition);
 
         _provider = CreateProvider(workspace);

@@ -598,7 +598,7 @@ public class ConstructorInitializerSignatureHelpProviderTests : AbstractCSharpSi
             </Workspace>
             """;
         var expectedDescription = new SignatureHelpTestItem($"Secret(int secret)\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj2", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0);
-        await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
+        await VerifyItemWithReferenceWorkerAsync(markup, [expectedDescription], false);
     }
 
     [Fact]
@@ -639,7 +639,7 @@ public class ConstructorInitializerSignatureHelpProviderTests : AbstractCSharpSi
             """;
 
         var expectedDescription = new SignatureHelpTestItem($"Secret(int secret)\r\n\r\n{string.Format(FeaturesResources._0_1, "Proj1", FeaturesResources.Available)}\r\n{string.Format(FeaturesResources._0_1, "Proj3", FeaturesResources.Not_Available)}\r\n\r\n{FeaturesResources.You_can_use_the_navigation_bar_to_switch_contexts}", currentParameterIndex: 0);
-        await VerifyItemWithReferenceWorkerAsync(markup, new[] { expectedDescription }, false);
+        await VerifyItemWithReferenceWorkerAsync(markup, [expectedDescription], false);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067933")]

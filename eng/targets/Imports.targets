@@ -4,6 +4,7 @@
   <Import Project="VisualStudio.targets" Condition="'$(UsingToolVSSDK)' == 'true'"/>
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
   <Import Project="WpfTempProjectWorkarounds.targets" Condition="'$(IsWpfTempProject)' == 'true'" />
+  <Import Project="WpfWorkarounds.targets" Condition="'$(UseWpf)' == 'true'" />
 
   <!--
     Work around .editorconfig evaluation bugs in command line builds.
@@ -391,6 +392,12 @@
       <Analyzer Remove="@(Analyzer)" Condition="'%(FileName)' == 'Microsoft.Interop.JavaScript.JSImportGenerator' AND '%(Analyzer.NuGetPackageId)' == 'Microsoft.NETCore.App.Ref'" />
     </ItemGroup>
   </Target>
+
+  <!-- Workaround for an issue where nested targets (e.g. GetCopyToPublishDirectoryItems in the SDK) call _SplitProjectReferencesByFileExistence without calling implict prerequisite AssignProjectConfiguration -->
+  <Target Name="Workaround_SplitProjectReferencesByFileExistence" BeforeTargets="_SplitProjectReferencesByFileExistence" DependsOnTargets="AssignProjectConfiguration" />
+
+  <!-- Workaround for an issue where nested targets (e.g. CopyFilesToPublishDirectory in the SDK) call _CopyResolvedFilesToPublishPreserveNewest without calling implict prerequisite GenerateManifests -->
+  <Target Name="Workaround_CopyResolvedFilesToPublishPreserveNewest" BeforeTargets="_CopyResolvedFilesToPublishPreserveNewest" DependsOnTargets="GenerateManifests" />
 
   <Import Project="DoNotGenerateSatelliteAssemblies_Workaround.targets" Condition="'$(GenerateSatelliteAssemblies)' == 'false'" />
 </Project>

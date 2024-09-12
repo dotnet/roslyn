@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -44,7 +45,7 @@ internal sealed partial class CSharpInlineDeclarationCodeFixProvider() : SyntaxE
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         // Gather all statements to be removed
         // We need this to find the statements we can safely attach trivia to
@@ -92,7 +93,7 @@ internal sealed partial class CSharpInlineDeclarationCodeFixProvider() : SyntaxE
 
     private static SyntaxNode ReplaceIdentifierWithInlineDeclaration(
         Document document,
-        CSharpCodeFixOptionsProvider options, SemanticModel semanticModel,
+        CSharpSimplifierOptions options, SemanticModel semanticModel,
         SyntaxNode currentRoot, VariableDeclaratorSyntax declarator,
         IdentifierNameSyntax identifier, SyntaxNode currentNode,
         HashSet<StatementSyntax> declarationsToRemove,
@@ -238,7 +239,7 @@ internal sealed partial class CSharpInlineDeclarationCodeFixProvider() : SyntaxE
     }
 
     public static TypeSyntax GenerateTypeSyntaxOrVar(
-       ITypeSymbol symbol, CSharpCodeFixOptionsProvider options)
+       ITypeSymbol symbol, CSharpSimplifierOptions options)
     {
         var useVar = IsVarDesired(symbol, options);
 
@@ -251,7 +252,7 @@ internal sealed partial class CSharpInlineDeclarationCodeFixProvider() : SyntaxE
             : symbol.GenerateTypeSyntax();
     }
 
-    private static bool IsVarDesired(ITypeSymbol type, CSharpCodeFixOptionsProvider options)
+    private static bool IsVarDesired(ITypeSymbol type, CSharpSimplifierOptions options)
     {
         // If they want it for intrinsics, and this is an intrinsic, then use var.
         if (type.IsSpecialType() == true)

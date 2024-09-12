@@ -2113,7 +2113,7 @@ public class OperationExecutor
     }
 }
 ";
-            CreateCompilationWithMscorlib45(program).VerifyEmitDiagnostics();
+            CreateCompilationWithMscorlib461(program).VerifyEmitDiagnostics();
         }
 
         #endregion

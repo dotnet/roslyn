@@ -44,24 +44,23 @@ internal sealed class KeyValueLogMessage : LogMessage
         return logMessage;
     }
 
-    private LogType _kind;
     private Dictionary<string, object?>? _lazyMap;
     private Action<Dictionary<string, object?>>? _propertySetter;
 
     private KeyValueLogMessage()
     {
         // prevent it from being created directly
-        _kind = LogType.Trace;
+        Kind = LogType.Trace;
     }
 
     private void Initialize(LogType kind, Action<Dictionary<string, object?>>? propertySetter, LogLevel logLevel)
     {
-        _kind = kind;
+        Kind = kind;
         _propertySetter = propertySetter;
         LogLevel = logLevel;
     }
 
-    public LogType Kind => _kind;
+    public LogType Kind { get; private set; }
 
     public bool ContainsProperty
     {

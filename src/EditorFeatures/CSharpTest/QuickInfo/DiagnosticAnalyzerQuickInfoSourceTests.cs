@@ -210,7 +210,7 @@ namespace T
         var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(
             new CSharpCompilerDiagnosticAnalyzer(),
             new CSharpRemoveUnusedMembersDiagnosticAnalyzer()));
-        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
         var testDocument = workspace.Documents.Single();
         var position = testDocument.CursorPosition.Value;

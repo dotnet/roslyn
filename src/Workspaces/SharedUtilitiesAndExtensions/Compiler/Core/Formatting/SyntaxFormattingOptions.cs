@@ -7,12 +7,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Options;
 
-#if !CODE_STYLE
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
-#endif
-
 namespace Microsoft.CodeAnalysis.Formatting;
 
 internal record class SyntaxFormattingOptions
@@ -34,7 +28,7 @@ internal record class SyntaxFormattingOptions
 
     private protected SyntaxFormattingOptions(IOptionsReader options, string language)
     {
-        LineFormatting = options.GetLineFormattingOptions(language);
+        LineFormatting = new LineFormattingOptions(options, language);
         SeparateImportDirectiveGroups = options.GetOption(GenerationOptions.SeparateImportDirectiveGroups, language);
         AccessibilityModifiersRequired = options.GetOptionValue(CodeStyleOptions2.AccessibilityModifiersRequired, language);
         WrappingColumn = options.GetOption(FormattingOptions2.WrappingColumn, language);
@@ -45,23 +39,4 @@ internal record class SyntaxFormattingOptions
     public int TabSize => LineFormatting.TabSize;
     public int IndentationSize => LineFormatting.IndentationSize;
     public string NewLine => LineFormatting.NewLine;
-
-#if !CODE_STYLE
-    public static SyntaxFormattingOptions GetDefault(LanguageServices languageServices)
-        => languageServices.GetRequiredService<ISyntaxFormattingService>().DefaultOptions;
-#endif
-}
-
-internal static partial class SyntaxFormattingOptionsProviders
-{
-#if !CODE_STYLE
-    public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this IOptionsReader options, LanguageServices languageServices)
-        => languageServices.GetRequiredService<ISyntaxFormattingService>().GetFormattingOptions(options);
-
-    public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, CancellationToken cancellationToken)
-    {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetSyntaxFormattingOptions(document.Project.Services);
-    }
-#endif
 }

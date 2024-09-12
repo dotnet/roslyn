@@ -5111,7 +5111,7 @@ Namespace a
     End Class
 End Namespace
 "
-            CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(code).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_BadAttributeConstructor1, "Command").WithArguments("a.Class1.CommandAttribute.FxCommand").WithLocation(20, 10),
                 Diagnostic(ERRID.ERR_RequiredConstExpr, "AddressOf UserInfo").WithLocation(20, 18))
         End Sub

@@ -795,8 +795,6 @@ public partial class CodeCleanupTests
 
         using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf.AddParts(typeof(TCodefix)));
 
-        var options = CodeActionOptions.DefaultProvider;
-
         var project = workspace.CurrentSolution.Projects.Single();
         var analyzer = (DiagnosticAnalyzer)new TAnalyzer();
         var diagnosticIds = analyzer.SupportedDiagnostics.SelectAsArray(d => d.Id);
@@ -824,7 +822,7 @@ public partial class CodeCleanupTests
         var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
         var newDoc = await codeCleanupService.CleanupAsync(
-            document, enabledDiagnostics, CodeAnalysisProgress.None, options, CancellationToken.None);
+            document, enabledDiagnostics, CodeAnalysisProgress.None, CancellationToken.None);
 
         var actual = await newDoc.GetTextAsync();
         Assert.Equal(expected, actual.ToString());
@@ -894,11 +892,11 @@ public partial class CodeCleanupTests
             { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredImportPlacement },
         });
 
-        var solution = workspace.CurrentSolution.WithAnalyzerReferences(new[]
-        {
+        var solution = workspace.CurrentSolution.WithAnalyzerReferences(
+        [
             new AnalyzerFileReference(typeof(CSharpCompilerDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
             new AnalyzerFileReference(typeof(UseExpressionBodyDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
-        });
+        ]);
 
         if (diagnosticIdsWithSeverity != null)
         {
@@ -926,7 +924,7 @@ public partial class CodeCleanupTests
             enabledDiagnostics = VisualStudio.LanguageServices.Implementation.CodeCleanup.AbstractCodeCleanUpFixer.AdjustDiagnosticOptions(enabledDiagnostics, enabledFixIdsFilter);
 
         var newDoc = await codeCleanupService.CleanupAsync(
-            document, enabledDiagnostics, CodeAnalysisProgress.None, workspace.GlobalOptions.CreateProvider(), CancellationToken.None);
+            document, enabledDiagnostics, CodeAnalysisProgress.None, CancellationToken.None);
 
         var actual = await newDoc.GetTextAsync();
 

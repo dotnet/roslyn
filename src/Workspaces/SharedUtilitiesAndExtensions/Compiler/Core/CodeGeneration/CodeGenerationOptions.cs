@@ -3,18 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.CodeCleanup;
-
-#if !CODE_STYLE
-using Microsoft.CodeAnalysis.Host;
-#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
@@ -38,65 +30,4 @@ internal record CodeGenerationOptions
     {
         NamingStyle = options.GetOption(NamingStyleOptions.NamingPreferences, language);
     }
-
-#if !CODE_STYLE
-    public static CodeGenerationOptions GetDefault(LanguageServices languageServices)
-        => languageServices.GetRequiredService<ICodeGenerationService>().DefaultOptions;
-#endif
-}
-
-[DataContract]
-internal readonly record struct CodeAndImportGenerationOptions
-{
-    [DataMember]
-    public required CodeGenerationOptions GenerationOptions { get; init; }
-
-    [DataMember]
-    public required AddImportPlacementOptions AddImportOptions { get; init; }
-
-#if !CODE_STYLE
-    internal static CodeAndImportGenerationOptions GetDefault(LanguageServices languageServices)
-        => new()
-        {
-            GenerationOptions = CodeGenerationOptions.GetDefault(languageServices),
-            AddImportOptions = AddImportPlacementOptions.Default
-        };
-#endif
-}
-
-internal static class CodeGenerationOptionsProviders
-{
-#if !CODE_STYLE
-    public static CodeGenerationOptions GetCodeGenerationOptions(this IOptionsReader options, LanguageServices languageServices)
-        => languageServices.GetRequiredService<ICodeGenerationService>().GetCodeGenerationOptions(options);
-
-    public static CodeAndImportGenerationOptions GetCodeAndImportGenerationOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowImportsInHiddenRegions = null)
-        => new()
-        {
-            GenerationOptions = options.GetCodeGenerationOptions(languageServices),
-            AddImportOptions = options.GetAddImportPlacementOptions(languageServices, allowImportsInHiddenRegions)
-        };
-
-    public static CleanCodeGenerationOptions GetCleanCodeGenerationOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowImportsInHiddenRegions = null)
-        => new()
-        {
-            GenerationOptions = options.GetCodeGenerationOptions(languageServices),
-            CleanupOptions = options.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions)
-        };
-
-    public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CancellationToken cancellationToken)
-    {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetCodeGenerationOptions(document.Project.Services);
-    }
-
-    public static async ValueTask<CodeGenerationContextInfo> GetCodeGenerationInfoAsync(this Document document, CodeGenerationContext context, CancellationToken cancellationToken)
-    {
-        Contract.ThrowIfNull(document.Project.ParseOptions);
-
-        var options = await GetCodeGenerationOptionsAsync(document, cancellationToken).ConfigureAwait(false);
-        var service = document.Project.Services.GetRequiredService<ICodeGenerationService>();
-        return service.GetInfo(context, options, document.Project.ParseOptions);
-    }
-#endif
 }

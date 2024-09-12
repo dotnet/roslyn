@@ -12,9 +12,6 @@ internal abstract partial class AbstractTriviaDataFactory
 {
     protected abstract class AbstractComplexTrivia : TriviaDataWithList
     {
-        private readonly SyntaxToken _token1;
-        private readonly SyntaxToken _token2;
-
         public TreeData TreeInfo { get; }
         public string OriginalString { get; }
 
@@ -25,8 +22,8 @@ internal abstract partial class AbstractTriviaDataFactory
         {
             Contract.ThrowIfNull(treeInfo);
 
-            _token1 = token1;
-            _token2 = token2;
+            Token1 = token1;
+            Token2 = token2;
 
             _treatAsElastic = CommonFormattingHelpers.HasAnyWhitespaceElasticTrivia(token1, token2);
 
@@ -44,9 +41,9 @@ internal abstract partial class AbstractTriviaDataFactory
         protected abstract TriviaDataWithList Format(FormattingContext context, ChainedFormattingRules formattingRules, int lines, int spaces, CancellationToken cancellationToken);
         protected abstract bool ContainsSkippedTokensOrText(TriviaList list);
 
-        public SyntaxToken Token1 => _token1;
+        public SyntaxToken Token1 { get; }
 
-        public SyntaxToken Token2 => _token2;
+        public SyntaxToken Token2 { get; }
 
         public override bool TreatAsElastic => _treatAsElastic;
 
@@ -132,7 +129,7 @@ internal abstract partial class AbstractTriviaDataFactory
 
             // do expansive check
             // we need to actually format here to find out indentation
-            var list = new TriviaList(_token1.TrailingTrivia, _token2.LeadingTrivia);
+            var list = new TriviaList(Token1.TrailingTrivia, Token2.LeadingTrivia);
             Contract.ThrowIfFalse(list.Count > 0);
 
             if (ContainsSkippedTokensOrText(list))

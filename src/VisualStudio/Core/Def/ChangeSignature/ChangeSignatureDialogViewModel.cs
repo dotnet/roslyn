@@ -39,7 +39,6 @@ internal partial class ChangeSignatureDialogViewModel : AbstractNotifyPropertyCh
     private readonly HashSet<ParameterViewModel> _disabledParameters = [];
 
     private readonly ImmutableArray<SymbolDisplayPart> _declarationParts;
-    private bool _previewChanges;
 
     /// <summary>
     /// The document where the symbol we are changing signature is defined.
@@ -172,18 +171,7 @@ internal partial class ChangeSignatureDialogViewModel : AbstractNotifyPropertyCh
         return -1;
     }
 
-    public bool PreviewChanges
-    {
-        get
-        {
-            return _previewChanges;
-        }
-
-        set
-        {
-            _previewChanges = value;
-        }
-    }
+    public bool PreviewChanges { get; set; }
 
     public bool CanRemove
     {

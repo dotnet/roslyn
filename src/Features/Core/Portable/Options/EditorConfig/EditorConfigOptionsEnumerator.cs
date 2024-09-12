@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.Langu
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ImplementType;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.ValidateFormatString;
 
 namespace Microsoft.CodeAnalysis.Options;
@@ -40,12 +41,14 @@ internal sealed class EditorConfigOptionsEnumerator(
             yield return ("unsupported", JsonDetectionOptionsStorage.UnsupportedOptions);
             yield return ("unsupported", FormatStringValidationOptionStorage.UnsupportedOptions);
             yield return ("unsupported", RegexOptionsStorage.UnsupportedOptions);
+            yield return ("unsupported", SymbolSearchOptionsStorage.UnsupportedOptions);
         }
 
         yield return (FeaturesResources.NET_Code_Actions,
         [
             .. ImplementTypeOptionsStorage.EditorConfigOptions,
-            .. MemberDisplayOptionsStorage.EditorConfigOptions
+            .. MemberDisplayOptionsStorage.EditorConfigOptions,
+            .. SymbolSearchOptionsStorage.EditorConfigOptions,
         ]);
 
         yield return (WorkspacesResources.dot_NET_Coding_Conventions,

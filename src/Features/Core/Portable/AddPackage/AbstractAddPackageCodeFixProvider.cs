@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -18,25 +16,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddPackage;
 
+/// <summary>
+/// Values for parameters can be provided (during testing) for mocking purposes.
+/// </summary> 
 internal abstract partial class AbstractAddPackageCodeFixProvider : CodeFixProvider
 {
-    private readonly IPackageInstallerService _packageInstallerService;
-    private readonly ISymbolSearchService _symbolSearchService;
-
-    /// <summary>
-    /// Values for these parameters can be provided (during testing) for mocking purposes.
-    /// </summary> 
-    protected AbstractAddPackageCodeFixProvider(
-        IPackageInstallerService packageInstallerService,
-        ISymbolSearchService symbolSearchService)
-    {
-        _packageInstallerService = packageInstallerService;
-        _symbolSearchService = symbolSearchService;
-    }
-
     protected abstract bool IncludePrerelease { get; }
 
-    public abstract override FixAllProvider GetFixAllProvider();
+    public abstract override FixAllProvider? GetFixAllProvider();
 
     protected async Task<ImmutableArray<CodeAction>> GetAddPackagesCodeActionsAsync(
         CodeFixContext context, ISet<string> assemblyNames)
@@ -46,31 +33,35 @@ internal abstract partial class AbstractAddPackageCodeFixProvider : CodeFixProvi
 
         var workspaceServices = document.Project.Solution.Services;
 
-        var symbolSearchService = _symbolSearchService ?? workspaceServices.GetService<ISymbolSearchService>();
-        var installerService = _packageInstallerService ?? workspaceServices.GetService<IPackageInstallerService>();
+        if (workspaceServices.GetService<ISymbolSearchService>() is not { } symbolSearchService ||
+            workspaceServices.GetService<IPackageInstallerService>() is not { } installerService ||
+            !installerService.IsEnabled(document.Project.Id))
+        {
+            return [];
+        }
+
+        var options = await document.GetSymbolSearchOptionsAsync(cancellationToken).ConfigureAwait(false);
+        if (!options.SearchNuGetPackages)
+        {
+            return [];
+        }
 
         var codeActions = ArrayBuilder<CodeAction>.GetInstance();
-        if (symbolSearchService != null &&
-            installerService != null &&
-            context.Options.GetOptions(document.Project.Services).SearchOptions.SearchNuGetPackages &&
-            installerService.IsEnabled(document.Project.Id))
+        var packageSources = PackageSourceHelper.GetPackageSources(installerService.TryGetPackageSources());
+
+        foreach (var (name, source) in packageSources)
         {
-            var packageSources = PackageSourceHelper.GetPackageSources(installerService.TryGetPackageSources());
+            cancellationToken.ThrowIfCancellationRequested();
 
-            foreach (var (name, source) in packageSources)
+            var sortedPackages = await FindMatchingPackagesAsync(
+                name, symbolSearchService,
+                assemblyNames, cancellationToken).ConfigureAwait(false);
+
+            foreach (var package in sortedPackages)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var sortedPackages = await FindMatchingPackagesAsync(
-                    name, symbolSearchService,
-                    assemblyNames, cancellationToken).ConfigureAwait(false);
-
-                foreach (var package in sortedPackages)
-                {
-                    codeActions.Add(new InstallPackageParentCodeAction(
-                        installerService, source,
-                        package.PackageName, IncludePrerelease, document));
-                }
+                codeActions.Add(new InstallPackageParentCodeAction(
+                    installerService, source,
+                    package.PackageName, IncludePrerelease, document));
             }
         }
 

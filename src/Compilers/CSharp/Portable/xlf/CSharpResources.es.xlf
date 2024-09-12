@@ -292,11 +292,6 @@
         <target state="translated">El miembro de registro '{0}' debe ser una propiedad de instancia legible o un campo de tipo '{1}' para coincidir con el parámetro posicional '{2}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
-        <target state="translated">La instrucción foreach no puede funcionar en enumeradores de tipo "{0}" en métodos asincrónicos o iteradores porque "{0}" es un valor ref struct o un parámetro de tipo que permite ref struct.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
         <target state="translated">Los parámetros de tipo "{0}" no pueden declararse en expresiones lambda o métodos asincrónicos.</target>
@@ -520,6 +515,11 @@
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
         <target state="translated">No se puede inicializar el tipo "{0}" con una expresión de colección porque el tipo no se puede construir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
+        <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
+        <target state="new">Collection initializer results in an infinite chain of instantiations of collection '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -1198,8 +1198,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="translated">La característica experimental "interceptores" no está habilitada en este espacio de nombres. Agregue '{0}' al proyecto.</target>
+        <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="needs-review-translation">La característica experimental "interceptores" no está habilitada en este espacio de nombres. Agregue '{0}' al proyecto.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
@@ -2492,6 +2492,7 @@
         <target state="translated">patrones de propiedad extendidos</target>
         <note />
       </trans-unit>
+<<<<<<< HEAD
       <trans-unit id="IDS_FeatureExtensions">
         <source>extension types</source>
         <target state="new">extension types</target>
@@ -2500,6 +2501,11 @@
       <trans-unit id="IDS_FeatureFieldAndValueKeywords">
         <source>field and value keywords</source>
         <target state="new">field and value keywords</target>
+=======
+      <trans-unit id="IDS_FeatureFieldKeyword">
+        <source>field keyword</source>
+        <target state="new">field keyword</target>
+>>>>>>> origin/main
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFileScopedNamespace">

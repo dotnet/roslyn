@@ -13,7 +13,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
-Imports Roslyn.Test.Utilities.TestMetadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     <CompilerTrait(CompilerFeature.Tuples)>
@@ -6331,7 +6330,7 @@ Module Extensions
 End Module
     </file>
 </compilation>,
-                references:={ValueTupleRef, Net451.SystemRuntime, Net451.SystemCore},
+                references:={ValueTupleRef, NetFramework.SystemRuntime, NetFramework.SystemCore},
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
 
             comp.AssertTheseDiagnostics(<errors>
@@ -6449,7 +6448,7 @@ End Module
             ' When VB 15 shipped, no tuple element would be found/inferred, so the extension method was called.
             ' The VB 15.3 compiler disallows that, even when LanguageVersion is 15.
             Dim comp15 = CreateCompilationWithMscorlib45AndVBRuntime(source,
-                references:={ValueTupleRef, Net451.SystemRuntime, Net451.SystemCore},
+                references:={ValueTupleRef, NetFramework.SystemRuntime, NetFramework.SystemCore},
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
             comp15.AssertTheseDiagnostics(<errors>
 BC37289: Tuple element name 'M' is inferred. Please use language version 15.3 or greater to access an element by its inferred name.
@@ -6458,7 +6457,7 @@ BC37289: Tuple element name 'M' is inferred. Please use language version 15.3 or
                                           </errors>)
 
             Dim verifier15_3 = CompileAndVerify(source,
-                allReferences:={ValueTupleRef, Net451.mscorlib, Net451.SystemCore, Net451.SystemRuntime, Net451.MicrosoftVisualBasic},
+                allReferences:={ValueTupleRef, NetFramework.mscorlib, NetFramework.SystemCore, NetFramework.SystemRuntime, NetFramework.MicrosoftVisualBasic},
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3),
                 expectedOutput:="lambda")
             verifier15_3.VerifyDiagnostics()
@@ -9091,7 +9090,7 @@ End Class
 
             comp.AssertTheseDiagnostics(
 <errors>
-BC30652: Reference required to assembly 'System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51' containing the type 'ValueTuple(Of ,)'. Add one to your project.
+BC30652: Reference required to assembly 'System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51' containing the type 'ValueTuple(Of ,)'. Add one to your project.
         A.M()
         ~~~~~
 </errors>)
@@ -19360,7 +19359,7 @@ Interface I
 End Interface
     </file>
 </compilation>,
-                references:={ValueTupleRef})
+                references:={ValueTupleLegacyRef})
             comp.AssertTheseEmitDiagnostics(
 <errors>
 BC30652: Reference required to assembly 'System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' containing the type 'ValueType'. Add one to your project.
@@ -20067,7 +20066,7 @@ Module C
 End Module
 
 ]]></file>
-</compilation>, additionalRefs:={ValueTupleRef})
+</compilation>, additionalRefs:={ValueTupleLegacyRef})
 
             Assert.Equal(TypeKind.Class, comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).TypeKind)
 
@@ -20114,7 +20113,6 @@ options:=TestOptions.ReleaseExe, additionalRefs:=s_valueTupleRefs)
             Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb">
-Imports System
 Imports System.Collections.Generic
 
 Public Class C
@@ -20123,7 +20121,7 @@ Public Class C
     End Function
 End Class
     </file>
-</compilation>, additionalRefs:={ValueTupleRef})
+</compilation>, additionalRefs:={ValueTupleLegacyRef})
 
             comp.AssertTheseEmitDiagnostics(
 <errors>

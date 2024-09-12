@@ -205,7 +205,7 @@ internal sealed class VisualStudioDocumentNavigationService(
         }
 
         // Before attempting to open the document, check if the location maps to a different file that should be opened instead.
-        var spanMappingService = document.Services.GetService<ISpanMappingService>();
+        var spanMappingService = document.DocumentServiceProvider.GetService<ISpanMappingService>();
         if (spanMappingService != null)
         {
             var mappedSpan = await GetMappedSpanAsync(

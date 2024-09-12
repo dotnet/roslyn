@@ -32,7 +32,6 @@ using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -887,7 +886,7 @@ namespace System.Diagnostics.CodeAnalysis
             Verification verify = default)
         {
             options = options ?? TestOptions.ReleaseDll.WithOutputKind((expectedOutput != null) ? OutputKind.ConsoleApplication : OutputKind.DynamicallyLinkedLibrary);
-            var compilation = CreateExperimentalCompilationWithMscorlib45(source, feature, references, options, parseOptions, assemblyName: GetUniqueName());
+            var compilation = CreateExperimentalCompilationWithMscorlib461(source, feature, references, options, parseOptions, assemblyName: GetUniqueName());
 
             return CompileAndVerify(
                 source,
@@ -1146,23 +1145,23 @@ namespace System.Diagnostics.CodeAnalysis
             string assemblyName = "",
             string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib40, assemblyName, sourceFileName);
 
-        public static CSharpCompilation CreateCompilationWithMscorlib45(
+        public static CSharpCompilation CreateCompilationWithMscorlib461(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             string assemblyName = "",
             string sourceFileName = "",
-            bool skipUsesIsNullable = false) => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib45, assemblyName, sourceFileName, skipUsesIsNullable);
+            bool skipUsesIsNullable = false) => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib461, assemblyName, sourceFileName, skipUsesIsNullable);
 
-        public static CSharpCompilation CreateCompilationWithMscorlib45(
+        public static CSharpCompilation CreateCompilationWithMscorlib461(
             string[] source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             string assemblyName = "",
             string sourceFileName = "",
-            bool skipUsesIsNullable = false) => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib45, assemblyName, sourceFileName, skipUsesIsNullable);
+            bool skipUsesIsNullable = false) => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib461, assemblyName, sourceFileName, skipUsesIsNullable);
 
         public static CSharpCompilation CreateCompilationWithMscorlib46(
             CSharpTestSource source,
@@ -1172,7 +1171,7 @@ namespace System.Diagnostics.CodeAnalysis
             string assemblyName = "",
             string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib46, assemblyName, sourceFileName);
 
-        internal static CSharpCompilation CreateExperimentalCompilationWithMscorlib45(
+        internal static CSharpCompilation CreateExperimentalCompilationWithMscorlib461(
             CSharpTestSource source,
             MessageID feature,
             IEnumerable<MetadataReference> references = null,
@@ -1180,7 +1179,7 @@ namespace System.Diagnostics.CodeAnalysis
             CSharpParseOptions parseOptions = null,
             string assemblyName = "",
             string sourceFileName = "",
-            bool skipUsesIsNullable = false) => CreateCompilationCore(source, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib45, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: feature);
+            bool skipUsesIsNullable = false) => CreateCompilationCore(source, TargetFrameworkUtil.GetReferences(TargetFramework.Mscorlib461, references), options, parseOptions, assemblyName, sourceFileName, skipUsesIsNullable, experimentalFeature: feature);
 
         public static CSharpCompilation CreateCompilationWithWinRT(
             CSharpTestSource source,
@@ -1190,13 +1189,13 @@ namespace System.Diagnostics.CodeAnalysis
             string assemblyName = "",
             string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.WinRT, assemblyName, sourceFileName);
 
-        public static CSharpCompilation CreateCompilationWithMscorlib45AndCSharp(
+        public static CSharpCompilation CreateCompilationWithMscorlib461AndCSharp(
             CSharpTestSource source,
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             CSharpParseOptions parseOptions = null,
             string assemblyName = "",
-            string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib45AndCSharp, assemblyName, sourceFileName);
+            string sourceFileName = "") => CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib461AndCSharp, assemblyName, sourceFileName);
 
         public static CSharpCompilation CreateCompilationWithMscorlib40AndSystemCore(
             CSharpTestSource source,
@@ -1247,13 +1246,11 @@ namespace System.Diagnostics.CodeAnalysis
 
             if (RuntimeUtilities.IsCoreClrRuntime)
             {
-                allReferences = TargetFrameworkUtil.NetStandard20References;
-                allReferences = allReferences.Concat(new[] { SystemThreadingTasksExtensions.NetStandard20Lib });
+                allReferences = [.. NetStandard20.References.All, NetStandard20.ExtraReferences.SystemThreadingTasksExtensions];
             }
             else
             {
-                allReferences = TargetFrameworkUtil.Mscorlib461ExtendedReferences;
-                allReferences = allReferences.Concat(new[] { Net461.References.SystemThreadingTasks, SystemThreadingTasksExtensions.PortableLib });
+                allReferences = [.. TargetFrameworkUtil.Mscorlib461ExtendedReferences, Net461.ExtraReferences.SystemThreadingTasksExtensions];
             }
 
             if (references != null)
@@ -2278,14 +2275,14 @@ namespace System.Diagnostics.CodeAnalysis
         {
             var reference = CreateEmptyCompilation(
                 TestSources.Span,
-                references: new List<MetadataReference>() { Net451.mscorlib, Net451.SystemCore, Net451.MicrosoftCSharp },
+                references: new List<MetadataReference>() { NetFramework.mscorlib, NetFramework.SystemCore, NetFramework.MicrosoftCSharp },
                 options: TestOptions.UnsafeReleaseDll);
 
             reference.VerifyDiagnostics();
 
             var comp = CreateEmptyCompilation(
                 text,
-                references: new List<MetadataReference>() { Net451.mscorlib, Net451.SystemCore, Net451.MicrosoftCSharp, reference.EmitToImageReference() },
+                references: new List<MetadataReference>() { NetFramework.mscorlib, NetFramework.SystemCore, NetFramework.MicrosoftCSharp, reference.EmitToImageReference() },
                 options: options,
                 parseOptions: parseOptions);
 

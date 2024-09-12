@@ -6,8 +6,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.OrderModifiers;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.OrderModifiers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -28,9 +30,9 @@ internal partial class HideBaseCodeFixProvider
         protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
         {
             var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var options = await _document.GetCSharpCodeFixOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
+            var configOptions = await _document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var newNode = GetNewNode(_node, options.PreferredModifierOrder.Value);
+            var newNode = GetNewNode(_node, configOptions.GetOption(CSharpCodeStyleOptions.PreferredModifierOrder).Value);
             var newRoot = root.ReplaceNode(_node, newNode);
 
             return _document.WithSyntaxRoot(newRoot);

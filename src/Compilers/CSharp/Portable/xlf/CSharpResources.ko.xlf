@@ -292,11 +292,6 @@
         <target state="translated">위치 매개 변수 '{0}'과(와) 일치하려면 레코드 멤버 '{1}'이(가) 유형 '{2}'의 읽을 수 있는 인스턴스 속성 또는 필드여야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
-        <target state="translated">foreach 문은 '{0}'이(가) ref struct 또는 ref struct를 허용하는 형식 매개 변수이므로 비동기 또는 반복기 메서드에서 '{0}' 형식의 열거자에 대해 작동할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
         <target state="translated">'{0}' 형식의 매개 변수는 비동기 메서드나 비동기 람다 식에서 선언할 수 없습니다.</target>
@@ -520,6 +515,11 @@
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
         <target state="translated">형식을 생성할 수 없으므로 컬렉션 식을 사용하여 '{0}' 형식을 초기화할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
+        <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
+        <target state="new">Collection initializer results in an infinite chain of instantiations of collection '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -1198,8 +1198,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="translated">이 네임스페이스에서는 '인터셉터' 실험적 기능을 사용할 수 없습니다. 프로젝트에 '{0}'을(를) 추가하세요.</target>
+        <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="needs-review-translation">이 네임스페이스에서는 '인터셉터' 실험적 기능을 사용할 수 없습니다. 프로젝트에 '{0}'을(를) 추가하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
@@ -2492,6 +2492,7 @@
         <target state="translated">확장 속성 패턴</target>
         <note />
       </trans-unit>
+<<<<<<< HEAD
       <trans-unit id="IDS_FeatureExtensions">
         <source>extension types</source>
         <target state="new">extension types</target>
@@ -2500,6 +2501,11 @@
       <trans-unit id="IDS_FeatureFieldAndValueKeywords">
         <source>field and value keywords</source>
         <target state="new">field and value keywords</target>
+=======
+      <trans-unit id="IDS_FeatureFieldKeyword">
+        <source>field keyword</source>
+        <target state="new">field keyword</target>
+>>>>>>> origin/main
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFileScopedNamespace">

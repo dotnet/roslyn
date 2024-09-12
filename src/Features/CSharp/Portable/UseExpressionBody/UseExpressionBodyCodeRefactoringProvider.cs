@@ -192,7 +192,6 @@ internal class UseExpressionBodyCodeRefactoringProvider : SyntaxEditorBasedCodeR
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,
-        CodeActionOptionsProvider optionsProvider,
         string? equivalenceKey,
         CancellationToken cancellationToken)
     {

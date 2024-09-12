@@ -3012,7 +3012,7 @@ public class B
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
-assertTypeKindAbsent: new[] { TypeKindOptions.Enum });
+assertTypeKindAbsent: [TypeKindOptions.Enum]);
     }
 
     [Fact]
@@ -3049,7 +3049,7 @@ namespace A
 accessibility: Accessibility.Public,
 typeKind: TypeKind.Class,
 isNewFile: false,
-assertTypeKindAbsent: new[] { TypeKindOptions.Enum });
+assertTypeKindAbsent: [TypeKindOptions.Enum]);
     }
 
     [Fact]

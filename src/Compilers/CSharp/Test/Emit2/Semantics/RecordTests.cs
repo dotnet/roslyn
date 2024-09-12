@@ -30441,7 +30441,7 @@ public record ClassWithManyConstructorParameters(int P0";
             var comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.NetCoreApp);
             CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics();
 
-            comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.DesktopLatestExtended);
+            comp = CreateCompilation(new[] { src, IsExternalInitTypeDefinition }, targetFramework: TargetFramework.Mscorlib461Extended);
             CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics();
         }
 

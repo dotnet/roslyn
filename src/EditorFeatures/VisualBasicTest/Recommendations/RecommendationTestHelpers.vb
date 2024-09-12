@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Recommendations
 
                 Dim parseOptions = New VisualBasicParseOptions().WithKind(kind)
                 Dim tree = DirectCast(SyntaxFactory.ParseSyntaxTree(SourceText.From(source), parseOptions), VisualBasicSyntaxTree)
-                Dim comp = VisualBasicCompilation.Create("test", syntaxTrees:={tree}, references:={TestMetadata.Net451.mscorlib})
+                Dim comp = VisualBasicCompilation.Create("test", syntaxTrees:={tree}, references:={NetFramework.mscorlib})
                 Dim semanticModel = comp.GetSemanticModel(tree)
 
                 Dim context = VisualBasicSyntaxContext.CreateContext(document, semanticModel, position, CancellationToken.None)
