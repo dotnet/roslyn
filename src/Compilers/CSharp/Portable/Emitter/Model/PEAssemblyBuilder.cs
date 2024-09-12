@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     {
                         builder.Add(new Cci.ManagedResource(
                             resource.Name,
-                            (resource.Attributes & ManifestResourceAttributes.VisibilityMask) == ManifestResourceAttributes.Public,
+                            (resource.Attributes & ManifestResourceAttributes.Public) != 0,
                             null,
                             file,
                             resource.Offset));

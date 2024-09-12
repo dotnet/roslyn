@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     {
         public static bool IsInterface(this TypeAttributes flags)
         {
-            return (flags & TypeAttributes.ClassSemanticsMask) == TypeAttributes.Interface;
+            return (flags & TypeAttributes.Interface) != 0;
         }
 
         public static bool IsWindowsRuntime(this TypeAttributes flags)

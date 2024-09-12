@@ -323,7 +323,7 @@ namespace Roslyn.Test.Utilities
 
             sb.Append(codeType);
             sb.Append(' ');
-            sb.Append((attributes & MethodImplAttributes.ManagedMask) == MethodImplAttributes.Unmanaged ? "unmanaged" : "managed");
+            sb.Append((attributes & MethodImplAttributes.Unmanaged) == MethodImplAttributes.Unmanaged ? "unmanaged" : "managed");
 
             if ((attributes & MethodImplAttributes.PreserveSig) != 0)
                 sb.Append(" preservesig");
@@ -383,7 +383,7 @@ namespace Roslyn.Test.Utilities
                     throw new InvalidOperationException();
             }
 
-            if ((attributes & TypeAttributes.ClassSemanticsMask) == TypeAttributes.Interface)
+            if ((attributes & TypeAttributes.Interface) != 0)
                 sb.Append("interface ");
 
             sb.Append(visibility);
