@@ -13669,7 +13669,7 @@ namespace System
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // https://github.com/dotnet/roslyn/issues/73563
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/73563")]
         public void AwaitUsing_LanguageVersion_01()
         {
@@ -16106,7 +16106,7 @@ Block[B7] - Exit
             AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // https://github.com/dotnet/roslyn/issues/73563
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/73563")]
         public void AwaitForeach_IAsyncEnumerableT_LanguageVersion_01()
         {

@@ -658,7 +658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// signature).
         /// WARN WARN WARN: We won't have a final value for this until declaration
         /// diagnostics have been computed for all <see cref="SourceMemberContainerTypeSymbol"/>s, so pass
-        /// option: <see cref="IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges"/> true if you need a value sooner
+        /// option: <see cref="IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges"/> if you need a value sooner
         /// and aren't concerned about tweaks made to satisfy interface implementation 
         /// requirements.
         /// NOTE: Not ignoring changes can only result in a value that is more true.
