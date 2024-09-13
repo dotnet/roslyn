@@ -66,8 +66,7 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
         TelemetryLogging.LogAggregated(FunctionId.LSP_TimeInQueue, KeyValueLogMessage.Create(m =>
         {
             m[TelemetryLogging.KeyName] = _serverTypeName;
-            m[TelemetryLogging.KeyValue] = queuedDuration.Milliseconds;
-            // m[TelemetryLogging.KeyValue] = queuedDuration.TotalMilliseconds;
+            m[TelemetryLogging.KeyValue] = (int)queuedDuration.TotalMilliseconds;
             m[TelemetryLogging.KeyMetricName] = "TimeInQueue";
             m["server"] = _serverTypeName;
             m["method"] = methodName;
@@ -77,8 +76,7 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
         TelemetryLogging.LogAggregated(FunctionId.LSP_RequestDuration, KeyValueLogMessage.Create(m =>
         {
             m[TelemetryLogging.KeyName] = _serverTypeName + "." + methodName;
-            m[TelemetryLogging.KeyValue] = requestDuration.Milliseconds;
-            // m[TelemetryLogging.KeyValue] = requestDuration.TotalMilliseconds;
+            m[TelemetryLogging.KeyValue] = (int)requestDuration.TotalMilliseconds;
             m[TelemetryLogging.KeyMetricName] = "RequestDuration";
             m["server"] = _serverTypeName;
             m["method"] = methodName;
