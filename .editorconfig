@@ -153,6 +153,7 @@ dotnet_diagnostic.IDE0055.severity = warning
 
 # Enable the xUnit analyzer rules
 # https://github.com/dotnet/roslyn/issues/75093
+dotnet_diagnostic.xUnit1012.severity = none
 dotnet_diagnostic.xUnit1030.severity = none
 dotnet_diagnostic.xUnit1031.severity = none
 dotnet_diagnostic.xUnit2005.severity = none
