@@ -10414,7 +10414,7 @@ class C
     }
 }
 """;
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
                 // (15,14): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
                 //             [param: A(nameof(p))] void F(int p) { }
@@ -10422,6 +10422,12 @@ class C
                 // (15,40): warning CS8321: The local function 'F' is declared but never used
                 //             [param: A(nameof(p))] void F(int p) { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "F").WithArguments("F").WithLocation(15, 40));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var nameof = GetSyntax<InvocationExpressionSyntax>(tree, "nameof(p)");
+            var p = nameof.ArgumentList.Arguments[0].Expression;
+            Assert.Equal("System.Int32", model.GetTypeInfo(p).Type.ToTestDisplayString());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73905")]
@@ -10444,7 +10450,7 @@ class C
     }
 }
 """;
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
                 // (13,10): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
                 //         [param: A(nameof(p))] void F(int p) { }
@@ -10474,7 +10480,7 @@ class C
     }
 }
 """;
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
                 // (13,10): warning CS0657: 'param' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
                 //         [param: A(nameof(p))] void F(int p2) { }
@@ -10504,7 +10510,7 @@ class C(int p)
     }
 }
 """;
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
                 // (9,13): warning CS9113: Parameter 'p' is unread.
                 // class C(int p)
@@ -10537,7 +10543,7 @@ class C(int p)
     }
 }
 """;
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
                 // (9,13): warning CS9113: Parameter 'p' is unread.
                 // class C(int p)
@@ -10567,7 +10573,7 @@ class C(string p)
     }
 }
 """;
-            var comp = CreateCompilation(src, parseOptions: TestOptions.RegularPreview);
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(
                 // (9,16): warning CS9113: Parameter 'p' is unread.
                 // class C(string p)

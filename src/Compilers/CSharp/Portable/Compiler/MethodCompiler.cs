@@ -2010,6 +2010,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // Logic in this lambda is based on Binder.IdentifierUsedAsValueFinder.CheckIdentifiersInNode.childrenNeedChecking.
+            // It can be more permissive (i.e. allow us to dive into more nodes), but should not be more restrictive
             static void addIdentifiers(CSharpSyntaxNode? node, ConcurrentDictionary<IdentifierNameSyntax, int> identifierMap)
             {
                 if (node is null)
@@ -2028,7 +2030,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case GotoStatementSyntax { RawKind: (int)SyntaxKind.GotoStatement }:
                             case TypeParameterConstraintClauseSyntax:
                             case AliasQualifiedNameSyntax:
-                            case AttributeListSyntax:
                                 // These nodes do not have anything interesting for us
                                 return false;
 
@@ -2098,6 +2099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     inMethodBinder.IdentifierMap = null;
 
+                    // In presence of errors, we're not guaranteed to have bound all identifiers, so we don't care about correctness of our prediction
                     if (!diagnostics.HasAnyResolvedErrors())
                     {
                         foreach (var (id, flags) in identifierMap)
@@ -2131,6 +2133,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     }
 
                                     if (UnboundLambdaFinder.FoundInUnboundLambda(methodBody, id))
+                                    {
+                                        continue;
+                                    }
+
+                                    // If an attribute is misplaced (invalid target), it is expected that identifiers within were not bound.
+                                    // In that case, we emit a warning and skip binding the attribute.
+                                    if (id.Ancestors(ascendOutOfTrivia: false).OfType<AttributeListSyntax>().Any() &&
+                                        diagnostics.DiagnosticBag!.AsEnumerable().Any(d => d.Code == (int)ErrorCode.WRN_AttributeLocationOnBadDeclaration))
                                     {
                                         continue;
                                     }
