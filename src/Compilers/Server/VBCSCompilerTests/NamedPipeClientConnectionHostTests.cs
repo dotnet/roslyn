@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             var task = _host.GetNextClientConnectionAsync();
             _host.EndListening();
 
-            await Assert.ThrowsAsync<OperationCanceledException>(() => task);
+            await Assert.ThrowsAsync<TaskCanceledException>(async () => await task);
         }
 
         /// <summary>
