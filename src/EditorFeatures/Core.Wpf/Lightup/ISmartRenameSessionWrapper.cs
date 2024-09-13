@@ -20,7 +20,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
     internal const string WrappedTypeName = "Microsoft.VisualStudio.Text.Editor.SmartRename.ISmartRenameSession";
     internal const string WrappedRenameContextTypeName = "Microsoft.VisualStudio.Text.Editor.SmartRename.RenameContext";
     private static readonly Type s_wrappedType;
-    private static readonly Type s_wrappedRenameContextType;
+    private static readonly Type? s_wrappedRenameContextType;
 
     private static readonly Func<object, TimeSpan> s_automaticFetchDelayAccessor;
     private static readonly Func<object, bool> s_isAvailableAccessor;
@@ -29,12 +29,12 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
     private static readonly Func<object, string> s_statusMessageAccessor;
     private static readonly Func<object, bool> s_statusMessageVisibilityAccessor;
     private static readonly Func<object, IReadOnlyList<string>> s_suggestedNamesAccessor;
-    private static readonly Func<object?, object?> s_renameContextImmutableListCreateBuilderAccessor;
-    private static readonly Action<object, object> s_renameContextImmutableListBuilderAddAccessor;
-    private static readonly Func<object, object> s_renameContextImmutableListBuilderToArrayAccessor;
+    private static readonly Func<object?, object?>? s_renameContextImmutableListCreateBuilderAccessor;
+    private static readonly Action<object, object>? s_renameContextImmutableListBuilderAddAccessor;
+    private static readonly Func<object, object>? s_renameContextImmutableListBuilderToArrayAccessor;
 
     private static readonly Func<object, CancellationToken, Task<IReadOnlyList<string>>> s_getSuggestionsAsync;
-    private static readonly Func<object, object, CancellationToken, Task<IReadOnlyList<string>>> s_getSuggestionsAsync_WithContext;
+    private static readonly Func<object, object, CancellationToken, Task<IReadOnlyList<string>>>? s_getSuggestionsAsync_WithContext;
     private static readonly Action<object> s_onCancel;
     private static readonly Action<object, string> s_onSuccess;
 
@@ -53,25 +53,30 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
         s_statusMessageVisibilityAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(StatusMessageVisibility), false);
         s_suggestedNamesAccessor = LightupHelpers.CreatePropertyAccessor<object, IReadOnlyList<string>>(s_wrappedType, nameof(SuggestedNames), []);
 
-        s_renameContextImmutableListCreateBuilderAccessor = LightupHelpers.CreateGenericFunctionAccessor<object?, object?>(typeof(ImmutableArray),
-                                                                                                                           nameof(ImmutableArray.CreateBuilder),
-                                                                                                                           s_wrappedRenameContextType,
-                                                                                                                           defaultValue: SpecializedTasks.Null<object>());
+        if (s_wrappedRenameContextType is not null)
+        {
+            s_renameContextImmutableListCreateBuilderAccessor = LightupHelpers.CreateGenericFunctionAccessor<object?, object?>(typeof(ImmutableArray),
+                                                                                                                               nameof(ImmutableArray.CreateBuilder),
+                                                                                                                               s_wrappedRenameContextType,
+                                                                                                                               defaultValue: SpecializedTasks.Null<object>());
 
-        s_renameContextImmutableListBuilderAddAccessor = LightupHelpers.CreateActionAccessor<object, object>(typeof(ImmutableArray<>.Builder).MakeGenericType(s_wrappedRenameContextType),
-                                                                                                             nameof(ImmutableArray<object>.Builder.Add),
-                                                                                                             s_wrappedRenameContextType);
-        s_renameContextImmutableListBuilderToArrayAccessor = LightupHelpers.CreateFunctionAccessor<object, object>(typeof(ImmutableArray<>.Builder).MakeGenericType(s_wrappedRenameContextType),
-                                                                                                                   nameof(ImmutableArray<object>.Builder.ToImmutable),
-                                                                                                                   typeof(ImmutableArray<>).MakeGenericType(s_wrappedRenameContextType));
+            s_renameContextImmutableListBuilderAddAccessor = LightupHelpers.CreateActionAccessor<object, object>(typeof(ImmutableArray<>.Builder).MakeGenericType(s_wrappedRenameContextType),
+                                                                                                                 nameof(ImmutableArray<object>.Builder.Add),
+                                                                                                                 s_wrappedRenameContextType);
+            s_renameContextImmutableListBuilderToArrayAccessor = LightupHelpers.CreateFunctionAccessor<object, object>(typeof(ImmutableArray<>.Builder).MakeGenericType(s_wrappedRenameContextType),
+                                                                                                                       nameof(ImmutableArray<object>.Builder.ToImmutable),
+                                                                                                                       typeof(ImmutableArray<>).MakeGenericType(s_wrappedRenameContextType));
 
-        var immutableArrayOfRenameContextType = typeof(ImmutableArray<>).MakeGenericType(s_wrappedRenameContextType);
+            var immutableArrayOfRenameContextType = typeof(ImmutableArray<>).MakeGenericType(s_wrappedRenameContextType);
+
+            s_getSuggestionsAsync_WithContext = LightupHelpers.CreateFunctionAccessor<object, object, CancellationToken, Task<IReadOnlyList<string>>>(s_wrappedType,
+                                                                                                                                                      nameof(GetSuggestionsAsync),
+                                                                                                                                                      immutableArrayOfRenameContextType,
+                                                                                                                                                      typeof(CancellationToken),
+                                                                                                                                                      SpecializedTasks.EmptyReadOnlyList<string>());
+        }
+
         s_getSuggestionsAsync = LightupHelpers.CreateFunctionAccessor<object, CancellationToken, Task<IReadOnlyList<string>>>(s_wrappedType, nameof(GetSuggestionsAsync), typeof(CancellationToken), SpecializedTasks.EmptyReadOnlyList<string>());
-        s_getSuggestionsAsync_WithContext = LightupHelpers.CreateFunctionAccessor<object, object, CancellationToken, Task<IReadOnlyList<string>>>(s_wrappedType,
-                                                                                                                                                  nameof(GetSuggestionsAsync),
-                                                                                                                                                  immutableArrayOfRenameContextType,
-                                                                                                                                                  typeof(CancellationToken),
-                                                                                                                                                  SpecializedTasks.EmptyReadOnlyList<string>());
         s_onCancel = LightupHelpers.CreateActionAccessor<object>(s_wrappedType, nameof(OnCancel));
         s_onSuccess = LightupHelpers.CreateActionAccessor<object, string>(s_wrappedType, nameof(OnSuccess), typeof(string));
     }
@@ -120,24 +125,30 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
 
     public Task<IReadOnlyList<string>> GetSuggestionsAsync(ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>> context, CancellationToken cancellationToken)
     {
-        // ImmutableArray<RenameContext>.CreateBuilder()
-        var renameContextArrayBuilder = s_renameContextImmutableListCreateBuilderAccessor(arg: null);
-
-        if (renameContextArrayBuilder is not null)
+        if (s_renameContextImmutableListCreateBuilderAccessor is not null &&
+            s_renameContextImmutableListBuilderAddAccessor is not null &&
+            s_renameContextImmutableListBuilderToArrayAccessor is not null &&
+            s_getSuggestionsAsync_WithContext is not null)
         {
-            foreach (var (key, value) in context)
+            // ImmutableArray<RenameContext>.CreateBuilder()
+            var renameContextArrayBuilder = s_renameContextImmutableListCreateBuilderAccessor(arg: null);
+
+            if (renameContextArrayBuilder is not null)
             {
-                foreach (var (filePath, content) in value)
+                foreach (var (key, value) in context)
                 {
-                    // ImmutableArray<RenameContext>.Builder.Add(renameContext)
-                    s_renameContextImmutableListBuilderAddAccessor(renameContextArrayBuilder, Activator.CreateInstance(s_wrappedRenameContextType, key, content, filePath));
+                    foreach (var (filePath, content) in value)
+                    {
+                        // ImmutableArray<RenameContext>.Builder.Add(renameContext)
+                        s_renameContextImmutableListBuilderAddAccessor(renameContextArrayBuilder, Activator.CreateInstance(s_wrappedRenameContextType, key, content, filePath));
+                    }
                 }
+
+                // ImmutableArray<RenameContext>.Builder.ToImmutable()
+                var renameContextArray = s_renameContextImmutableListBuilderToArrayAccessor(renameContextArrayBuilder);
+
+                return s_getSuggestionsAsync_WithContext(_instance, renameContextArray, cancellationToken);
             }
-
-            // ImmutableArray<RenameContext>.Builder.ToImmutable()
-            var renameContextArray = s_renameContextImmutableListBuilderToArrayAccessor(renameContextArrayBuilder);
-
-            return s_getSuggestionsAsync_WithContext(_instance, renameContextArray, cancellationToken);
         }
 
         // Fallback to no context version
