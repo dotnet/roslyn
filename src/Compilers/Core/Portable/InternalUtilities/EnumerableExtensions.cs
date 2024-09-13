@@ -879,6 +879,9 @@ namespace System.Linq
             }
         }
 
+        // https://github.com/dotnet/runtime/issues/107723
+        public static IEnumerable<T> Reverse<T>(this T[] source) => Enumerable.Reverse(source);
+
 #if NETSTANDARD
 
         // Copied from https://github.com/dotnet/runtime/blob/main/src/libraries/System.Linq/src/System/Linq/Chunk.cs
