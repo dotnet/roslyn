@@ -104,6 +104,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (symbol.Kind == SymbolKind.RangeVariable) return -1;
 
+            // If the symbol is a backing field, we should use the associated property instead,
+            // at least until we support distinct analysis of backing field and property.
+            if (symbol is FieldSymbol { AssociatedSymbol: SourcePropertySymbolBase { } associatedProperty })
+            {
+                // PROTOTYPE: If the field is from a base type, perhaps even a generic base type
+                // constructed with a specific type argument for the derived type (say B : A<int>),
+                // are we getting here with a backing field that matches the associated property?
+                // Moreover, should we even get here with the backing field when the auto-property
+                // is not defined in the derived type?
+                Debug.Assert((object)associatedProperty.BackingField == symbol);
+                symbol = associatedProperty;
+            }
+
             containingSlot = DescendThroughTupleRestFields(ref symbol, containingSlot, forceContainingSlotsToExist: true);
 
             if (containingSlot < 0)

@@ -1737,54 +1737,63 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 verifier.VerifyIL("C..ctor", $$"""
                     {
-                      // Code size      107 (0x6b)
+                      // Code size      128 (0x80)
                       .maxstack  2
                       IL_0000:  ldarg.0
                       IL_0001:  ldc.i4.0
-                      IL_0002:  stfld      "int C.<P4>k__BackingField"
+                      IL_0002:  stfld      "int C.<P1>k__BackingField"
                       IL_0007:  ldarg.0
                       IL_0008:  ldc.i4.0
-                      IL_0009:  stfld      "int C.<P5>k__BackingField"
+                      IL_0009:  stfld      "int C.<P2>k__BackingField"
                       IL_000e:  ldarg.0
                       IL_000f:  ldc.i4.0
-                      IL_0010:  stfld      "int C.<P6>k__BackingField"
+                      IL_0010:  stfld      "int C.<P3>k__BackingField"
                       IL_0015:  ldarg.0
                       IL_0016:  ldc.i4.0
-                      IL_0017:  stfld      "int C.<P7>k__BackingField"
+                      IL_0017:  stfld      "int C.<P4>k__BackingField"
                       IL_001c:  ldarg.0
                       IL_001d:  ldc.i4.0
-                      IL_001e:  stfld      "int C.<P8>k__BackingField"
+                      IL_001e:  stfld      "int C.<P5>k__BackingField"
                       IL_0023:  ldarg.0
                       IL_0024:  ldc.i4.0
-                      IL_0025:  stfld      "int C.<P9>k__BackingField"
+                      IL_0025:  stfld      "int C.<P6>k__BackingField"
                       IL_002a:  ldarg.0
-                      IL_002b:  ldc.i4.1
-                      IL_002c:  stfld      "int C.<P1>k__BackingField"
+                      IL_002b:  ldc.i4.0
+                      IL_002c:  stfld      "int C.<P7>k__BackingField"
                       IL_0031:  ldarg.0
-                      IL_0032:  ldc.i4.2
-                      IL_0033:  stfld      "int C.<P2>k__BackingField"
+                      IL_0032:  ldc.i4.0
+                      IL_0033:  stfld      "int C.<P8>k__BackingField"
                       IL_0038:  ldarg.0
-                      IL_0039:  ldc.i4.3
-                      IL_003a:  call       "void C.P3.{{setter}}"
+                      IL_0039:  ldc.i4.0
+                      IL_003a:  stfld      "int C.<P9>k__BackingField"
                       IL_003f:  ldarg.0
-                      IL_0040:  ldc.i4.4
-                      IL_0041:  call       "void C.P4.{{setter}}"
+                      IL_0040:  ldc.i4.1
+                      IL_0041:  stfld      "int C.<P1>k__BackingField"
                       IL_0046:  ldarg.0
-                      IL_0047:  ldc.i4.5
-                      IL_0048:  call       "void C.P5.{{setter}}"
+                      IL_0047:  ldc.i4.2
+                      IL_0048:  stfld      "int C.<P2>k__BackingField"
                       IL_004d:  ldarg.0
-                      IL_004e:  ldc.i4.6
-                      IL_004f:  call       "void C.P6.{{setter}}"
+                      IL_004e:  ldc.i4.3
+                      IL_004f:  call       "void C.P3.{{setter}}"
                       IL_0054:  ldarg.0
-                      IL_0055:  ldc.i4.7
-                      IL_0056:  call       "void C.P7.{{setter}}"
+                      IL_0055:  ldc.i4.4
+                      IL_0056:  call       "void C.P4.{{setter}}"
                       IL_005b:  ldarg.0
-                      IL_005c:  ldc.i4.8
-                      IL_005d:  call       "void C.P8.{{setter}}"
+                      IL_005c:  ldc.i4.5
+                      IL_005d:  call       "void C.P5.{{setter}}"
                       IL_0062:  ldarg.0
-                      IL_0063:  ldc.i4.s   9
-                      IL_0065:  call       "void C.P9.{{setter}}"
-                      IL_006a:  ret
+                      IL_0063:  ldc.i4.6
+                      IL_0064:  call       "void C.P6.{{setter}}"
+                      IL_0069:  ldarg.0
+                      IL_006a:  ldc.i4.7
+                      IL_006b:  call       "void C.P7.{{setter}}"
+                      IL_0070:  ldarg.0
+                      IL_0071:  ldc.i4.8
+                      IL_0072:  call       "void C.P8.{{setter}}"
+                      IL_0077:  ldarg.0
+                      IL_0078:  ldc.i4.s   9
+                      IL_007a:  call       "void C.P9.{{setter}}"
+                      IL_007f:  ret
                     }
                     """);
             }
@@ -3347,6 +3356,322 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (12,32): error CS8146: Properties which return by reference must have a get accessor
                 //     static ref          object PI { set { _ = field; } }
                 Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PI").WithLocation(12, 32));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Nullability_01(bool useNullableAnnotation)
+        {
+            string annotation = useNullableAnnotation ? "?" : " ";
+            string source = $$"""
+                #nullable enable
+                class C
+                {
+                    object{{annotation}} P1 => field;
+                    object{{annotation}} P2 { get => field; }
+                    object{{annotation}} P3 { set { field = value; } }
+                    object{{annotation}} P4 { get => field; set { field = value; } }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            if (useNullableAnnotation)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,13): warning CS8618: Non-nullable property 'P1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    //     object  P1 => field;
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(4, 13),
+                    // (5,13): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    //     object  P2 { get => field; }
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P2").WithArguments("property", "P2").WithLocation(5, 13),
+                    // (6,13): warning CS8618: Non-nullable property 'P3' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    //     object  P3 { set { field = value; } }
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P3").WithArguments("property", "P3").WithLocation(6, 13),
+                    // (7,13): warning CS8618: Non-nullable property 'P4' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    //     object  P4 { get => field; set { field = value; } }
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P4").WithArguments("property", "P4").WithLocation(7, 13));
+            }
+        }
+
+        [Fact]
+        public void Nullability_02()
+        {
+            string source = """
+                #nullable enable
+                class C
+                {
+                    string? P1 => field.ToString(); // 1
+                    string P2 => field.ToString();
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,19): warning CS8602: Dereference of a possibly null reference.
+                //     string? P1 => field.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(4, 19),
+                // (5,12): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                //     string P2 => field.ToString();
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P2").WithArguments("property", "P2").WithLocation(5, 12));
+        }
+
+        [Fact]
+        public void Nullability_03()
+        {
+            string source = """
+                #nullable enable
+                class C
+                {
+                    string P
+                    {
+                        get
+                        {
+                            if (field.Length == 0) return field;
+                            if (field is null) return field; // 1
+                            return field;
+                        }
+                    }
+                    C() { P = ""; }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,39): warning CS8603: Possible null reference return.
+                //             if (field is null) return field; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "field").WithLocation(9, 39));
+        }
+
+        [Fact]
+        public void Nullability_04()
+        {
+            string source = """
+                #nullable enable
+                class C
+                {
+                    string? P
+                    {
+                        set
+                        {
+                            if (value is null)
+                            {
+                                field = value;
+                                field.ToString(); // 1
+                                return;
+                            }
+                            field = value;
+                            field.ToString();
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,17): warning CS8602: Dereference of a possibly null reference.
+                //                 field.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(11, 17));
+        }
+
+        // NullableWalker assumes the backing field is used exactly as in an auto-property,
+        // (e.g. { get { return field; } set { field = value; } }), and therefore the inferred nullability
+        // of the initializer value can be used directly for the inferred nullability of the property.
+        [Theory]
+        [CombinatorialData]
+        public void Nullability_05(bool useNullableAnnotation, bool initializeNotNull)
+        {
+            string annotation = useNullableAnnotation ? "?" : " ";
+            string initializerValue = initializeNotNull ? "NotNull()" : "MaybeNull()";
+            // PROTOTYPE: Test with setters as well, even though the initializer writes to the field directly.
+            string source = $$"""
+                #nullable enable
+                class C
+                {
+                    object{{annotation}} P1 { get; } = {{initializerValue}};
+                    object{{annotation}} P2 { get => field; } = {{initializerValue}};
+                    object{{annotation}} P3 { get => field ?? ""; } = {{initializerValue}};
+                    static object NotNull() => new object();
+                    static object? MaybeNull() => new object();
+                    C()
+                    {
+                        P1.ToString();
+                        P2.ToString();
+                        P3.ToString();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            if (!initializeNotNull)
+            {
+                if (useNullableAnnotation)
+                {
+                    comp.VerifyEmitDiagnostics(
+                        // (11,9): warning CS8602: Dereference of a possibly null reference.
+                        //         P1.ToString();
+                        Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P1").WithLocation(11, 9),
+                        // (12,9): warning CS8602: Dereference of a possibly null reference.
+                        //         P2.ToString();
+                        Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P2").WithLocation(12, 9),
+                        // (13,9): warning CS8602: Dereference of a possibly null reference.
+                        //         P3.ToString();
+                        Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P3").WithLocation(13, 9));
+                }
+                else
+                {
+                    comp.VerifyEmitDiagnostics(
+                        // (4,27): warning CS8601: Possible null reference assignment.
+                        //     object  P1 { get; } = MaybeNull();
+                        Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "MaybeNull()").WithLocation(4, 27),
+                        // (5,36): warning CS8601: Possible null reference assignment.
+                        //     object  P2 { get => field; } = MaybeNull();
+                        Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "MaybeNull()").WithLocation(5, 36),
+                        // (6,42): warning CS8601: Possible null reference assignment.
+                        //     object  P3 { get => field ?? ""; } = MaybeNull();
+                        Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "MaybeNull()").WithLocation(6, 42),
+                        // (11,9): warning CS8602: Dereference of a possibly null reference.
+                        //         P1.ToString();
+                        Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P1").WithLocation(11, 9),
+                        // (12,9): warning CS8602: Dereference of a possibly null reference.
+                        //         P2.ToString();
+                        Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P2").WithLocation(12, 9),
+                        // (13,9): warning CS8602: Dereference of a possibly null reference.
+                        //         P3.ToString();
+                        Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P3").WithLocation(13, 9));
+                }
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        // Based on RequiredMembersTests.RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_01.
+        [Theory]
+        [CombinatorialData]
+        public void RequiredMemberNullability_01(bool includeRequired)
+        {
+            string modifier = includeRequired ? "required" : "";
+            string source = $$"""
+                #nullable enable
+                class C
+                {
+                    public {{modifier}} object P1 { get; }
+                    public {{modifier}} object P2 { get => field; }
+                    public {{modifier}} object P3 { get => ""; }
+
+                    C(bool unused) { }
+
+                    C() : this(true)
+                    {
+                        P1.ToString();
+                        P2.ToString();
+                        P3.ToString();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            if (includeRequired)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,28): error CS9034: Required member 'C.P1' must be settable.
+                    //     public required object P1 { get; }
+                    Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "P1").WithArguments("C.P1").WithLocation(4, 28),
+                    // (5,28): error CS9034: Required member 'C.P2' must be settable.
+                    //     public required object P2 { get => field; }
+                    Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "P2").WithArguments("C.P2").WithLocation(5, 28),
+                    // (6,28): error CS9034: Required member 'C.P3' must be settable.
+                    //     public required object P3 { get => ""; }
+                    Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "P3").WithArguments("C.P3").WithLocation(6, 28),
+                    // (12,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P1.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P1").WithLocation(12, 9),
+                    // (13,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P2.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P2").WithLocation(13, 9),
+                    // (14,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P3.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P3").WithLocation(14, 9));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (8,5): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    //     C(bool unused) { }
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P2").WithLocation(8, 5),
+                    // (8,5): warning CS8618: Non-nullable property 'P1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    //     C(bool unused) { }
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P1").WithLocation(8, 5));
+            }
+        }
+
+        // PROTOTYPE: Test other forms of auto- and manually-implemented accessors. For instance:
+        /*
+        [InlineData("get; set;", true)]
+        [InlineData("get { return field; } set;", true)]
+        [InlineData("get; set { field = value; }", true)]
+        [InlineData("get { return field; } set { field = value; }", true)]
+        [InlineData("get { return string.Empty; } set { field = value; }", true)]
+        [InlineData("get { return field; } set { }", true)]
+        [InlineData("get { return string.Empty; } set { }", false)]
+        [InlineData("set { field = value; }", false)]
+        [InlineData("set { }", false)]
+         */
+        // Based on RequiredMembersTests.RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_01.
+        [Theory]
+        [CombinatorialData]
+        public void RequiredMemberNullability_02(bool includeRequired)
+        {
+            string modifier = includeRequired ? "required" : "";
+            string source = $$"""
+                #nullable enable
+                class C
+                {
+                    public {{modifier}} object P4 { get; set; }
+                    public {{modifier}} object P5 { get => field; set; }
+                    public {{modifier}} object P6 { get => field; set { field = value; } }
+                    public {{modifier}} object P7 { get => ""; set { } }
+
+                    C(bool unused) { }
+
+                    C() : this(true)
+                    {
+                        P4.ToString();
+                        P5.ToString();
+                        P6.ToString();
+                        P7.ToString();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            if (includeRequired)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (13,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P4.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P4").WithLocation(13, 9),
+                    // (14,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P5.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P5").WithLocation(14, 9),
+                    // (15,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P6.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P6").WithLocation(15, 9),
+                    // (16,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P7.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P7").WithLocation(16, 9));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (9,5): warning CS8618: Non-nullable property 'P5' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    //     C(bool unused) { }
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P5").WithLocation(9, 5),
+                    // (9,5): warning CS8618: Non-nullable property 'P6' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    //     C(bool unused) { }
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P6").WithLocation(9, 5),
+                    // (9,5): warning CS8618: Non-nullable property 'P4' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    //     C(bool unused) { }
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P4").WithLocation(9, 5));
+            }
         }
 
         [Theory]

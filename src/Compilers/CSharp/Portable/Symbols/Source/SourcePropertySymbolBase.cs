@@ -656,6 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected bool HasExplicitAccessModifier
             => (_propertyFlags & Flags.HasExplicitAccessModifier) != 0;
 
+        // PROTOTYPE: Remove if not used.
         internal bool IsAutoProperty
             => IsSetOnEitherPart(Flags.HasAutoPropertyGet | Flags.HasAutoPropertySet);
 
@@ -877,7 +878,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             diagnostics.Add(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, Location);
                         }
                     }
-                    else if (!hasGetAccessor && IsAutoProperty)
+                    else if (!hasGetAccessor && HasAutoPropertySet)
                     {
                         // The only forms of auto-property that are disallowed are { set; } and { init; }.
                         // Other forms of auto- or manually-implemented accessors are allowed

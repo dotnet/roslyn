@@ -479,8 +479,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (HasInitializer(field)) continue;
 
-                            int fieldSlot = VariableSlot(field, thisSlot);
-                            if (fieldSlot == -1 || !this.State.IsAssigned(fieldSlot))
+                            if (!isAssigned(thisSlot, field) &&
+                                !(field.AssociatedSymbol is { } associatedProperty && isAssigned(thisSlot, associatedProperty)))
                             {
                                 Symbol associatedPropertyOrEvent = field.AssociatedSymbol;
                                 bool hasAssociatedProperty = associatedPropertyOrEvent?.Kind == SymbolKind.Property;
@@ -532,6 +532,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!parameter.IsThis);
                     Diagnostics.Add(ErrorCode.ERR_ParamUnassigned, location, parameter.Name);
                 }
+            }
+
+            bool isAssigned(int thisSlot, Symbol symbol)
+            {
+                int slot = VariableSlot(symbol, thisSlot);
+                return slot != -1 && this.State.IsAssigned(slot);
             }
         }
 
@@ -1321,7 +1327,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (containingSlot == thisSlot)
                     {
                         // should we handle nested fields here? https://github.com/dotnet/roslyn/issues/59890
-                        AddImplicitlyInitializedField((FieldSymbol)fieldIdentifier.Symbol);
+                        var implicitlyInitializedField = fieldIdentifier.Symbol switch
+                        {
+                            FieldSymbol f => f,
+                            SourcePropertySymbolBase { BackingField: { } backingField } => backingField, // PROTOTYPE: Temporary work around.
+                            var s => throw ExceptionUtilities.UnexpectedValue(s),
+                        };
+                        AddImplicitlyInitializedField(implicitlyInitializedField);
 
                         if (fieldSymbol.RefKind != RefKind.None)
                         {
