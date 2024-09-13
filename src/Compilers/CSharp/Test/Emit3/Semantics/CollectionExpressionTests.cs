@@ -2329,6 +2329,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 );
         }
 
+        [Fact]
+        public void BetterConversionFromExpression_12()
+        {
+            string source = """
+                using System;
+
+                M1([$"{1}"]);
+
+                partial class Program
+                {
+                    static void M1(System.ReadOnlySpan<string> x) => Console.WriteLine("ReadOnlySpan<string>");
+                    static void M1(System.Span<CustomHandler> x) => Console.WriteLine("Span<CustomHandler>");
+                }
+
+                partial class CustomHandler
+                {
+                    public static implicit operator CustomHandler(string s) => new CustomHandler(0, 0);
+                }
+                """;
+
+            var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial class", useBoolReturns: false, includeOneTimeHelpers: false);
+
+            CompileAndVerify(
+                new[] { source, handler },
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.Regular13,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("Span<CustomHandler>"));
+
+            CompileAndVerify(
+                new[] { source, handler },
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.Regular12,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("ReadOnlySpan<string>"));
+        }
+
         [Theory]
         [InlineData("System.ReadOnlySpan<char>")]
         [InlineData("System.Span<char>")]
