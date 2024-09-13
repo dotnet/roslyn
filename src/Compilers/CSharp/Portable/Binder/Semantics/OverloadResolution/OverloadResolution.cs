@@ -2943,18 +2943,17 @@ outerDefault:
                     // Conversion comparisons are made using better conversion from expression if `ELᵢ` is not a spread element. If `ELᵢ` is a spread element,
                     // we use better conversion from the element type of the spread collection to `E₁` or `E₂`, respectively.
                     var element = collectionExpressionElements[i];
+                    var conversionToE1 = underlyingElementConversions1[i];
+                    var conversionToE2 = underlyingElementConversions2[i];
 
                     BetterResult elementBetterResult;
-                    if (element is BoundCollectionExpressionSpreadElement { Conversion: var spreadConversion } spread)
+                    if (element is BoundCollectionExpressionSpreadElement spread)
                     {
-                        var conversionToE1 = underlyingElementConversions1[i];
-                        var conversionToE2 = underlyingElementConversions2[i];
-
-                        elementBetterResult = BetterConversionTarget(spread, elementType1, conversionToE1, elementType2, conversionToE2, ref useSiteInfo, out _);
+                        elementBetterResult = BetterConversionTarget(spread, elementType1, conversionToE1, elementType2, conversionToE2, ref useSiteInfo, okToDowngradeToNeither: out _);
                     }
                     else
                     {
-                        elementBetterResult = BetterConversionFromExpression((BoundExpression)element, elementType1, underlyingElementConversions1[i], elementType2, underlyingElementConversions2[i], ref useSiteInfo, out _);
+                        elementBetterResult = BetterConversionFromExpression((BoundExpression)element, elementType1, conversionToE1, elementType2, conversionToE2, ref useSiteInfo, okToDowngradeToNeither: out _);
                     }
 
                     if (elementBetterResult == BetterResult.Neither)
