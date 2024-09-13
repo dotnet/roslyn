@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Remote.Testing;
@@ -57,7 +58,7 @@ namespace N
 {
     public abstract class BaseClass { }
 }
-", MscorlibRefPortable);
+", Net40.References.mscorlib);
 
         var portableProject = GetPortableProject(solution);
 
@@ -68,7 +69,7 @@ namespace M
 {
     public class DerivedClass : BaseClass { }
 }
-", MscorlibRef, portableProject.Id);
+", Net461.References.mscorlib, portableProject.Id);
 
         // get symbols for types
         var portableCompilation = await GetPortableProject(solution).GetCompilationAsync();
@@ -98,7 +99,7 @@ namespace N
 {
     public interface BaseInterface { }
 }
-", MscorlibRefPortable);
+", Net40.References.mscorlib);
 
         var portableProject = GetPortableProject(solution);
 
@@ -109,7 +110,7 @@ namespace M
 {
     public interface DerivedInterface : BaseInterface { }
 }
-", MscorlibRef, portableProject.Id);
+", Net461.References.mscorlib, portableProject.Id);
 
         // get symbols for types
         var portableCompilation = await GetPortableProject(solution).GetCompilationAsync();
@@ -145,7 +146,7 @@ namespace N
 {
     public abstract class BaseClass { }
 }
-", MscorlibRefPortable);
+", Net40.References.mscorlib);
 
         var portableProject = GetPortableProject(solution);
 
@@ -160,7 +161,7 @@ namespace M
 
     public class DerivedClass : Alias2 { }
 }
-", MscorlibRef, portableProject.Id);
+", Net461.References.mscorlib, portableProject.Id);
 
         // get symbols for types
         var portableCompilation = await GetPortableProject(solution).GetCompilationAsync();
@@ -190,7 +191,7 @@ namespace N
 {
     public abstract class BaseClass { }
 }
-", MscorlibRefPortable);
+", Net40.References.mscorlib);
 
         var portableProject = GetPortableProject(solution);
 
@@ -231,7 +232,7 @@ Namespace N
     Public MustInherit Class BaseClass
     End Class
 End Namespace
-", MscorlibRefPortable);
+", Net40.References.mscorlib);
 
         var portableProject = GetPortableProject(solution);
 
@@ -243,7 +244,7 @@ Namespace M
         Inherits BaseClass
     End Class
 End Namespace
-", MscorlibRef, portableProject.Id);
+", Net461.References.mscorlib, portableProject.Id);
 
         // get symbols for types
         var portableCompilation = await GetPortableProject(solution).GetCompilationAsync();
@@ -273,7 +274,7 @@ namespace N
 {
     public abstract class BaseClass { }
 }
-", MscorlibRefPortable);
+", Net40.References.mscorlib);
 
         var portableProject = GetPortableProject(solution);
 
@@ -285,7 +286,7 @@ Namespace M
         Inherits BaseClass
     End Class
 End Namespace
-", MscorlibRef, portableProject.Id);
+", Net40.References.mscorlib, portableProject.Id);
 
         // get symbols for types
         var portableCompilation = await GetPortableProject(solution).GetCompilationAsync();
@@ -315,7 +316,7 @@ namespace N
 {
     public interface IBaseInterface { }
 }
-", MscorlibRefPortable);
+", Net40.References.mscorlib);
 
         var portableProject = GetPortableProject(solution);
 
@@ -326,7 +327,7 @@ namespace M
 {
     public class ImplementingClass : IBaseInterface { }
 }
-", MscorlibRef, portableProject.Id);
+", Net461.References.mscorlib, portableProject.Id);
 
         // get symbols for types
         var portableCompilation = await GetPortableProject(solution).GetCompilationAsync();
@@ -355,7 +356,7 @@ Namespace N
     Public Interface IBaseInterface
     End Interface
 End Namespace
-", MscorlibRefPortable);
+", Net40.References.mscorlib);
 
         var portableProject = GetPortableProject(solution);
 
@@ -367,7 +368,7 @@ Namespace M
         Implements IBaseInterface
     End Class
 End Namespace
-", MscorlibRef, portableProject.Id);
+", Net461.References.mscorlib, portableProject.Id);
 
         // get symbols for types
         var portableCompilation = await GetPortableProject(solution).GetCompilationAsync();
@@ -396,7 +397,7 @@ Namespace N
     Public Interface IBaseInterface
     End Interface
 End Namespace
-", MscorlibRefPortable);
+", Net40.References.mscorlib);
 
         var portableProject = GetPortableProject(solution);
 
@@ -407,7 +408,7 @@ namespace M
 {
     public class ImplementingClass : IBaseInterface { }
 }
-", MscorlibRef, portableProject.Id);
+", Net40.References.mscorlib, portableProject.Id);
 
         // get symbols for types
         var portableCompilation = await GetPortableProject(solution).GetCompilationAsync();
@@ -431,7 +432,7 @@ namespace M
         var solution = workspace.CurrentSolution;
 
         // create a normal assembly with a type derived from the portable abstract base
-        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"", MscorlibRef);
+        solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"", Net40.References.mscorlib);
 
         // get symbols for types
         var compilation = await GetNormalProject(solution).GetCompilationAsync();
@@ -476,7 +477,7 @@ interface IC3 : IB3 { }
 interface ID1 : IC1 { }
 
 interface IOther { }
-", MscorlibRef);
+", Net40.References.mscorlib);
 
         // get symbols for types
         var compilation = await GetNormalProject(solution).GetCompilationAsync();
@@ -528,7 +529,7 @@ class D1 : C1 { }
 
 class OtherClass { }
 struct OtherStruct { }
-", MscorlibRef);
+", Net40.References.mscorlib);
 
         // get symbols for types
         var compilation = await GetNormalProject(solution).GetCompilationAsync();
@@ -565,7 +566,7 @@ struct OtherStruct { }
         // create a normal assembly with a type derived from the portable abstract base
         solution = AddProjectWithMetadataReferences(solution, "NormalProject", LanguageNames.CSharp, @"
 delegate void D();
-", MscorlibRef);
+", Net40.References.mscorlib);
 
         // get symbols for types
         var compilation = await GetNormalProject(solution).GetCompilationAsync();
@@ -595,7 +596,7 @@ enum E
 {
     A, B, C,
 }
-", MscorlibRef);
+", Net40.References.mscorlib);
 
         // get symbols for types
         var compilation = await GetNormalProject(solution).GetCompilationAsync();
@@ -679,7 +680,7 @@ namespace N_Main
     {
     }
 }
-", MscorlibRef);
+", Net40.References.mscorlib);
 
         var normalProject1 = solution.Projects.Single();
 
@@ -691,7 +692,7 @@ namespace N_Main
     {
     }
 }
-", MscorlibRef, normalProject1.Id);
+", Net40.References.mscorlib, normalProject1.Id);
 
         normalProject1 = solution.GetProject(normalProject1.Id);
         var normalProject2 = solution.Projects.Single(p => p != normalProject1);
@@ -734,7 +735,7 @@ namespace N
         void M();
     }
 }
-", MscorlibRefPortable);
+", Net40.References.mscorlib);
 
         var portableProject1 = solution.Projects.Single(p => p.Name == "PortableProject1");
 
@@ -747,7 +748,7 @@ namespace M
         public void M() { }
     }
 }
-", MscorlibRefPortable, portableProject1.Id);
+", Net40.References.mscorlib, portableProject1.Id);
 
         // get symbols for types
         var compilation1 = await solution.Projects.Single(p => p.Name == "PortableProject1").GetCompilationAsync();
@@ -778,7 +779,7 @@ namespace N
         void M();
     }
 }
-", MscorlibRefPortable);
+", Net40.References.mscorlib);
 
         var portableProject1 = GetPortableProject(solution);
 

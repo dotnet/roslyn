@@ -1482,6 +1482,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             fileD.WriteAllBytes(bytes);
 
             var sha256 = SHA256.Create();
+            // CodeQL [SM02196] This is not enabled by default but exists as a compat option for existing builds.
             var sha1 = SHA1.Create();
             var checksumSHA1 = sha1.ComputeHash(bytes);
             var checksumSHA256 = sha256.ComputeHash(bytes);

@@ -94,6 +94,15 @@
   },
   "comment-about-servicing-branches": "For a list of VS versions under servicing, see https://docs.microsoft.com/en-us/visualstudio/releases/2019/servicing#support-options-for-enterprise-and-professional-customers",
   "branches": {
+    "release/vscode": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[Validation]"
+    },
     "dev15.9.x-vs-deps": {
       "nugetKind": "PerBuildPreRelease",
       "vsBranch": "rel/d15.9",

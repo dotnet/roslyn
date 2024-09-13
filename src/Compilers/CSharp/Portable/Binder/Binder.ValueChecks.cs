@@ -898,6 +898,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.ConditionalOperator:
+                    if (RequiresRefAssignableVariable(valueKind))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                        return false;
+                    }
+
                     var conditional = (BoundConditionalOperator)expr;
 
                     // byref conditional defers to its operands
@@ -918,6 +924,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.AssignmentOperator:
+                    // Cannot ref-assign to a ref assignment.
+                    if (RequiresRefAssignableVariable(valueKind))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                        return false;
+                    }
+
                     var assignment = (BoundAssignmentOperator)expr;
                     return CheckSimpleAssignmentValueKind(node, assignment, valueKind, diagnostics);
 
