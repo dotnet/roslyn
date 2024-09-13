@@ -1,6 +1,6 @@
-# This document lists known breaking changes in Roslyn after .NET 8 all the way to .NET 9.
+# This document lists known breaking changes in Roslyn after .NET 9 all the way to .NET 10.
 
-## `Span` and `ReadOnlySpan` overloads are applicable in more scenarios in C# 14 and newer
+## `Span<T>` and `ReadOnlySpan<T>` overloads are applicable in more scenarios in C# 14 and newer
 
 ***Introduced in Visual Studio 2022 version 17.13***
 
@@ -9,7 +9,7 @@ This means that different overloads might be chosen compared to C# 13, and somet
 might be raised because a new overload is applicable but there is no single best overload.
 
 The following example shows some ambiguities and possible workarounds.
-Note that another workaround is for API authors to use `OverloadResolutionPriorityAttribute`.
+Note that another workaround is for API authors to use the `OverloadResolutionPriorityAttribute`.
 
 ```cs
 var x = new long[] { 1 };
@@ -22,8 +22,8 @@ Assert.Equal(y, s); // previously Assert.Equal<T>(T, T), now ambiguous with Asse
 Assert.Equal(y.AsSpan(), s); // workaround
 ```
 
-A `Span` overload might be chosen in C# 14 where an `IEnumerable` overload was chosen in C# 13,
-and that can lead to `ArrayTypeMismatchException`s at runtime if you are using covariant arrays:
+A `Span<T>` overload might be chosen in C# 14 where an overload taking an interface implemented by `T[]` (such as `IEnumerable<T>`) was chosen in C# 13,
+and that can lead to an `ArrayTypeMismatchException` at runtime if used with a covariant array:
 
 ```cs
 string[] s = new[] { "a" };
