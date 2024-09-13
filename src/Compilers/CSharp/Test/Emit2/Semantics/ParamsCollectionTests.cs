@@ -58,6 +58,11 @@ namespace System.Runtime.CompilerServices
             VerifyParams(parameter.GetSymbol<ParameterSymbol>(), isParamArray: isParamArray, isParamCollection: isParamCollection);
         }
 
+        private static string ExpectedOutput(string output)
+        {
+            return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
+        }
+
         [Fact]
         public void Span()
         {

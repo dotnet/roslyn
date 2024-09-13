@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.AsyncStreams)]
     public class CodeGenAsyncIteratorTests : EmitMetadataTestBase
     {
+        internal static string ExpectedOutput(string output)
+        {
+            return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
+        }
+
         /// <summary>
         /// Enumerates `C.M()` a given number of iterations.
         /// </summary>

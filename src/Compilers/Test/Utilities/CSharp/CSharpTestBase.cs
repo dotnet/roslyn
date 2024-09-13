@@ -2625,10 +2625,5 @@ namespace System
     }
 }
 ";
-
-        internal static string ExpectedOutput(string output)
-        {
-            return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
-        }
     }
 }
