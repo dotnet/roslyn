@@ -1444,86 +1444,6 @@ namespace Microsoft.CodeAnalysis
                     GetCompilerAnalyzerConfigOptionsProvider(analyzerConfigSet, additionalTextFiles, diagnostics, compilation, sourceFileAnalyzerConfigOptions);
 
                 // <Metalama>
-                string? generatorsBaseDirectory = null;
-                // </Metalama>
-
-                if (!generators.IsEmpty)
-                {
-                    // At this point we have a compilation with nothing yet computed.
-                    // We pass it to the generators, which will realize any symbols they require.
-                    var explicitGeneratedOutDir = Arguments.GeneratedFilesOutputDirectory;
-                    var hasExplicitGeneratedOutDir = !string.IsNullOrWhiteSpace(explicitGeneratedOutDir);
-                    var baseDirectory = hasExplicitGeneratedOutDir ? explicitGeneratedOutDir! : Arguments.OutputDirectory;
-                    // <Metalama>
-                    generatorsBaseDirectory = baseDirectory;
-                    // </Metalama>
-                    (compilation, generatorTimingInfo) = RunGenerators(compilation, baseDirectory, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, diagnostics);
-
-                    bool hasAnalyzerConfigs = !Arguments.AnalyzerConfigPaths.IsEmpty;
-                    var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(Arguments.SourceFiles.Length).ToList();
-                    var analyzerOptionsBuilder = hasAnalyzerConfigs ? ArrayBuilder<AnalyzerConfigOptionsResult>.GetInstance(generatedSyntaxTrees.Count) : null;
-                    var embeddedTextBuilder = ArrayBuilder<EmbeddedText>.GetInstance(generatedSyntaxTrees.Count);
-                    try
-                    {
-                        foreach (var tree in generatedSyntaxTrees)
-                        {
-                            Debug.Assert(!string.IsNullOrWhiteSpace(tree.FilePath));
-                            cancellationToken.ThrowIfCancellationRequested();
-
-                            var sourceText = tree.GetText(cancellationToken);
-
-                            // embed the generated text and get analyzer options for it if needed
-                            embeddedTextBuilder.Add(EmbeddedText.FromSource(tree.FilePath, sourceText));
-                            if (analyzerOptionsBuilder is object)
-                            {
-                                analyzerOptionsBuilder.Add(analyzerConfigSet!.GetOptionsForSourcePath(tree.FilePath));
-                            }
-
-                            // write out the file if an output path was explicitly provided
-                            if (hasExplicitGeneratedOutDir)
-                            {
-                                var path = tree.FilePath;
-                                Debug.Assert(path.StartsWith(explicitGeneratedOutDir!));
-                                if (Directory.Exists(explicitGeneratedOutDir))
-                                {
-                                    Directory.CreateDirectory(Path.GetDirectoryName(path)!);
-                                }
-
-                                var fileStream = OpenFile(path, diagnostics, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
-                                if (fileStream is object)
-                                {
-                                    Debug.Assert(tree.Encoding is object);
-
-                                    using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
-                                    using var writer = new StreamWriter(fileStream, tree.Encoding);
-
-                                    sourceText.Write(writer, cancellationToken);
-                                    touchedFilesLogger?.AddWritten(path);
-                                }
-                            }
-                        }
-
-                        embeddedTexts = embeddedTexts.AddRange(embeddedTextBuilder);
-                        if (analyzerOptionsBuilder is object)
-                        {
-                            analyzerConfigProvider = UpdateAnalyzerConfigOptionsProvider(
-                               analyzerConfigProvider,
-                               generatedSyntaxTrees,
-                               analyzerOptionsBuilder.ToImmutable());
-                        }
-                    }
-                    finally
-                    {
-                        analyzerOptionsBuilder?.Free();
-                        embeddedTextBuilder.Free();
-                    }
-                }
-
-                AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
-                    additionalTextFiles, analyzerConfigProvider);
-
-                // <Metalama>
-
                 // Attach the debugger if asked.
                 bool shouldAttachDebugger = ShouldAttachDebugger(analyzerConfigProvider);
                 if (shouldAttachDebugger)
@@ -1547,6 +1467,9 @@ namespace Microsoft.CodeAnalysis
                 {
                     return;
                 }
+
+                AnalyzerOptions analyzerOptions = CreateAnalyzerOptions(
+                    additionalTextFiles, analyzerConfigProvider);
 
                 logger = serviceProvider?.GetService<ILogger>() ?? NullLogger.Instance;
 
@@ -1630,7 +1553,7 @@ namespace Microsoft.CodeAnalysis
                         var projectFullPath = GetMsBuildProjectFullPath(analyzerConfigProvider);
                         var projectDirectory = Path.GetDirectoryName(projectFullPath);
 
-                        var pathGenerator = new TransformedPathGenerator(projectDirectory, transformedOutputPath, _workingDirectory, generatorsBaseDirectory);
+                        var pathGenerator = new TransformedPathGenerator(projectDirectory, transformedOutputPath, _workingDirectory);
 
                         foreach (var transformedTree in transformersResult.TransformedTrees)
                         {
@@ -1721,6 +1644,80 @@ namespace Microsoft.CodeAnalysis
                 }
                 // </Metalama>
 
+                if (!generators.IsEmpty)
+                {
+                    // <Metalama>
+                    var oldCompilationTreeCount = compilation.SyntaxTrees.Count();
+                    // </Metalama>
+
+                    // At this point we have a compilation with nothing yet computed.
+                    // We pass it to the generators, which will realize any symbols they require.
+                    var explicitGeneratedOutDir = Arguments.GeneratedFilesOutputDirectory;
+                    var hasExplicitGeneratedOutDir = !string.IsNullOrWhiteSpace(explicitGeneratedOutDir);
+                    var baseDirectory = hasExplicitGeneratedOutDir ? explicitGeneratedOutDir! : Arguments.OutputDirectory;
+                    (compilation, generatorTimingInfo) = RunGenerators(compilation, baseDirectory, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, diagnostics);
+
+                    bool hasAnalyzerConfigs = !Arguments.AnalyzerConfigPaths.IsEmpty;
+                    // <Metalama>
+                    var generatedSyntaxTrees = compilation.SyntaxTrees.Skip(oldCompilationTreeCount).ToList();
+                    // </Metalama>
+                    var analyzerOptionsBuilder = hasAnalyzerConfigs ? ArrayBuilder<AnalyzerConfigOptionsResult>.GetInstance(generatedSyntaxTrees.Count) : null;
+                    var embeddedTextBuilder = ArrayBuilder<EmbeddedText>.GetInstance(generatedSyntaxTrees.Count);
+                    try
+                    {
+                        foreach (var tree in generatedSyntaxTrees)
+                        {
+                            Debug.Assert(!string.IsNullOrWhiteSpace(tree.FilePath));
+                            cancellationToken.ThrowIfCancellationRequested();
+
+                            var sourceText = tree.GetText(cancellationToken);
+
+                            // embed the generated text and get analyzer options for it if needed
+                            embeddedTextBuilder.Add(EmbeddedText.FromSource(tree.FilePath, sourceText));
+                            if (analyzerOptionsBuilder is object)
+                            {
+                                analyzerOptionsBuilder.Add(analyzerConfigSet!.GetOptionsForSourcePath(tree.FilePath));
+                            }
+
+                            // write out the file if an output path was explicitly provided
+                            if (hasExplicitGeneratedOutDir)
+                            {
+                                var path = tree.FilePath;
+                                Debug.Assert(path.StartsWith(explicitGeneratedOutDir!));
+                                if (Directory.Exists(explicitGeneratedOutDir))
+                                {
+                                    Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+                                }
+
+                                var fileStream = OpenFile(path, diagnostics, FileMode.Create, FileAccess.Write, FileShare.ReadWrite | FileShare.Delete);
+                                if (fileStream is object)
+                                {
+                                    Debug.Assert(tree.Encoding is object);
+
+                                    using var disposer = new NoThrowStreamDisposer(fileStream, path, diagnostics, MessageProvider);
+                                    using var writer = new StreamWriter(fileStream, tree.Encoding);
+
+                                    sourceText.Write(writer, cancellationToken);
+                                    touchedFilesLogger?.AddWritten(path);
+                                }
+                            }
+                        }
+
+                        embeddedTexts = embeddedTexts.AddRange(embeddedTextBuilder);
+                        if (analyzerOptionsBuilder is object)
+                        {
+                            analyzerConfigProvider = UpdateAnalyzerConfigOptionsProvider(
+                               analyzerConfigProvider,
+                               generatedSyntaxTrees,
+                               analyzerOptionsBuilder.ToImmutable());
+                        }
+                    }
+                    finally
+                    {
+                        analyzerOptionsBuilder?.Free();
+                        embeddedTextBuilder.Free();
+                    }
+                }
 
                 if (!analyzers.IsEmpty)
                 {

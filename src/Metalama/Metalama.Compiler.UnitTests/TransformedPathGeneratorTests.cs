@@ -6,7 +6,6 @@ public class TransformedPathGeneratorTests
 {
     const string projectDirectory = "c:\\MySolution\\MyProject";
     const string outputDirectory = "c:\\MySolution\\MyProject\\obj\\Debug\\metalama";
-    const string sourceGeneratorDirectory = "c:\\MySolution\\MyProject\\obj\\Debug";
 
     [Theory]
     [InlineData("MyFile.cs", $"{outputDirectory}\\MyFile.cs")]
@@ -15,7 +14,7 @@ public class TransformedPathGeneratorTests
     [InlineData("c:\\MyFile.cs", $"{outputDirectory}\\links\\MyFile.cs")]
     public void TestOne(string inputPath, string expectedOutput)
     {
-        var generator = new TransformedPathGenerator(projectDirectory, outputDirectory, projectDirectory, sourceGeneratorDirectory);
+        var generator = new TransformedPathGenerator(projectDirectory, outputDirectory, projectDirectory);
 
         Assert.Equal(expectedOutput, generator.GetOutputPath(inputPath));
     }
@@ -23,7 +22,7 @@ public class TransformedPathGeneratorTests
     [Fact]
     public void Duplicate()
     {
-        var generator = new TransformedPathGenerator(projectDirectory, outputDirectory, projectDirectory, sourceGeneratorDirectory);
+        var generator = new TransformedPathGenerator(projectDirectory, outputDirectory, projectDirectory);
 
         Assert.Equal($"{outputDirectory}\\links\\MyFile.cs", generator.GetOutputPath("c:\\MyFile.cs"));
 
@@ -32,15 +31,5 @@ public class TransformedPathGeneratorTests
 
         // Case difference.
         Assert.Equal($"{outputDirectory}\\links\\myfile_3.cs", generator.GetOutputPath("c:\\myfile.cs"));
-    }
-
-    [Fact]
-    public void SourceGeneratorDirectory()
-    {
-        var generator = new TransformedPathGenerator(projectDirectory, outputDirectory, projectDirectory, sourceGeneratorDirectory);
-
-        Assert.Equal(
-            $"{outputDirectory}\\generated\\GeneratorAssembly\\GeneratorClass\\GeneratedFile.cs",
-            generator.GetOutputPath($"{sourceGeneratorDirectory}\\GeneratorAssembly\\GeneratorClass\\GeneratedFile.cs"));
     }
 }

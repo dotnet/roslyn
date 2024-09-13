@@ -128,6 +128,10 @@
       "sdk-zip-url": "https://download.visualstudio.microsoft.com/download/pr/b298579b-5779-4a53-bd04-19749f22eb28/5e0f54a5a0de540dba50e8379a4e3ff7/dotnet-sdk-6.0.424-win-x64.zip",
       "roslyn-version": "4.3.1-3.22526.13"
     },
+    "6.0.425": {
+      "sdk-zip-url": "https://download.visualstudio.microsoft.com/download/pr/2cd43980-3abc-47ea-898d-b10116d27890/be9d8a7809b43ce82cf441b6761836a3/dotnet-sdk-6.0.425-win-x64.zip",
+      "roslyn-version": "4.3.1-3.22526.13"
+    },
     "7.0.100": {
       "sdk-zip-url": "https://download.visualstudio.microsoft.com/download/pr/1fb808dc-d017-4460-94f8-bf1ac83e6cd8/756b301e714755e411b84684b885a516/dotnet-sdk-7.0.100-win-x64.zip",
       "roslyn-version": "4.4.0-4.22520.11"
@@ -275,6 +279,10 @@
     "9.0.100-preview.7": {
       "sdk-zip-url": "https://download.visualstudio.microsoft.com/download/pr/dee149e6-a8bd-4290-ac01-ca2740fde18a/bffedcce6bab8b98bdbc75201cfbc9ad/dotnet-sdk-9.0.100-preview.7.24407.12-win-x64.zip",
       "roslyn-version": "4.12.0-1.24379.1"
+    },
+    "9.0.100-rc.1": {
+      "sdk-zip-url": "https://download.visualstudio.microsoft.com/download/pr/0439a9c2-0190-4595-92b3-9e14822f4a84/5c83aaa1c16ed9f464a56fee5320e358/dotnet-sdk-9.0.100-rc.1.24452.12-win-x64.zip",
+      "roslyn-version": "4.12.0-2.24422.8"
     }
   }
 }
