@@ -6694,6 +6694,107 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(7, 16));
     }
 
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_Coalesce(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M1(int[] a)
+                {
+                    M2(a ?? Span<int>.Empty);
+                }
+                void M2(Span<int> s) => throw null;
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source,
+            parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var verifier = CompileAndVerify(comp);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M1", """
+            {
+              // Code size       25 (0x19)
+              .maxstack  2
+              .locals init (int[] V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  ldarg.1
+              IL_0002:  stloc.0
+              IL_0003:  ldloc.0
+              IL_0004:  brtrue.s   IL_000d
+              IL_0006:  call       "System.Span<int> System.Span<int>.Empty.get"
+              IL_000b:  br.s       IL_0013
+              IL_000d:  ldloc.0
+              IL_000e:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+              IL_0013:  call       "void C.M2(System.Span<int>)"
+              IL_0018:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void Conversion_string_ReadOnlySpan_Coalesce()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M1(string s)
+                {
+                    M2(s ?? ReadOnlySpan<char>.Empty);
+                }
+                void M2(ReadOnlySpan<char> s) => throw null;
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
+        var verifier = CompileAndVerify(comp);
+        verifier.VerifyDiagnostics();
+        var owner = ExecutionConditionUtil.IsCoreClr ? "string" : "System.ReadOnlySpan<char>";
+        verifier.VerifyIL("C.M1", $$"""
+            {
+                // Code size       25 (0x19)
+                .maxstack  2
+                .locals init (string V_0)
+                IL_0000:  ldarg.0
+                IL_0001:  ldarg.1
+                IL_0002:  stloc.0
+                IL_0003:  ldloc.0
+                IL_0004:  brtrue.s   IL_000d
+                IL_0006:  call       "System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Empty.get"
+                IL_000b:  br.s       IL_0013
+                IL_000d:  ldloc.0
+                IL_000e:  call       "System.ReadOnlySpan<char> {{owner}}.op_Implicit(string)"
+                IL_0013:  call       "void C.M2(System.ReadOnlySpan<char>)"
+                IL_0018:  ret
+            }
+            """);
+
+        var expectedIl = """
+            {
+              // Code size       25 (0x19)
+              .maxstack  2
+              .locals init (string V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  ldarg.1
+              IL_0002:  stloc.0
+              IL_0003:  ldloc.0
+              IL_0004:  brtrue.s   IL_000d
+              IL_0006:  call       "System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Empty.get"
+              IL_000b:  br.s       IL_0013
+              IL_000d:  ldloc.0
+              IL_000e:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_0013:  call       "void C.M2(System.ReadOnlySpan<char>)"
+              IL_0018:  ret
+            }
+            """;
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp).VerifyDiagnostics().VerifyIL("C.M1", expectedIl);
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        CompileAndVerify(comp).VerifyDiagnostics().VerifyIL("C.M1", expectedIl);
+    }
+
     [Fact]
     public void OverloadResolution_SpanVsIEnumerable()
     {
