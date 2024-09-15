@@ -666,6 +666,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool HasAutoPropertySet
             => IsSetOnEitherPart(Flags.HasAutoPropertySet);
 
+        /// <summary>
+        /// True if the property has a synthesized backing field, and
+        /// either no setter or the setter is auto-implemented.
+        /// </summary>
+        internal bool CanAssignBackingFieldDirectlyInConstructor
+            => BackingField is { } && (SetMethod is null || HasAutoPropertySet);
+
         private bool IsSetOnEitherPart(Flags flags)
         {
             return (_propertyFlags & flags) != 0 ||

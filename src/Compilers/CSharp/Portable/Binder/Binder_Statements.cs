@@ -1754,6 +1754,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AccessingAutoPropertyFromConstructor(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember);
         }
 
+        // PROTOTYPE: Is this method used only when writing to the backing field, or also when reading?
+        // If it's used for reading as well, then we need to check that the getter is auto-implemented in
+        // that case, rather than checking CanAssignBackingFieldDirectlyInConstructor.
         private static bool AccessingAutoPropertyFromConstructor(BoundExpression receiver, PropertySymbol propertySymbol, Symbol fromMember)
         {
             if (!propertySymbol.IsDefinition && propertySymbol.ContainingType.Equals(propertySymbol.ContainingType.OriginalDefinition, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
@@ -1765,25 +1768,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var propertyIsStatic = propertySymbol.IsStatic;
 
             return (object)sourceProperty != null &&
-                    isExpectedAutoProperty(sourceProperty) &&
+                    sourceProperty.CanAssignBackingFieldDirectlyInConstructor &&
                     TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.AllIgnoreOptions) &&
                     IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
                     (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);
-
-            static bool isExpectedAutoProperty(SourcePropertySymbolBase sourceProperty)
-            {
-                // The property must have a synthesized backing field.
-                if (sourceProperty.BackingField is null)
-                {
-                    return false;
-                }
-                // The property has no setter or has an auto-implemented setter.
-                if (sourceProperty.SetMethod is { } && !sourceProperty.HasAutoPropertySet)
-                {
-                    return false;
-                }
-                return true;
-            }
         }
 
         private static bool IsConstructorOrField(Symbol member, bool isStatic)
