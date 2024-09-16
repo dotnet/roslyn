@@ -48,7 +48,13 @@ internal abstract class AbstractOrderModifiersDiagnosticAnalyzer : AbstractBuilt
             return;
         }
 
-        Recurse(context, preferredOrder, option.Notification, context.GetAnalysisRoot(findInTrivia: false));
+        var analysisRoot = context.GetAnalysisRoot(findInTrivia: false);
+
+        // Check the root node first to see if it has any modifiers that need reordering.
+        CheckModifiers(context, preferredOrder, option.Notification, analysisRoot);
+
+        // Recurse to check the child nodes.
+        Recurse(context, preferredOrder, option.Notification, analysisRoot);
     }
 
     protected abstract void Recurse(
