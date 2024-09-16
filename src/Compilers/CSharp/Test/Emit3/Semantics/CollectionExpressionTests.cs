@@ -833,7 +833,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify([source, s_collectionExtensions], parseOptions: TestOptions.Regular13, expectedOutput: "(System.Collections.Generic.List<System.Int32>) [1], (System.Collections.Generic.List<System.Int32>) [2], ");
+            var expectedOutput = "(System.Collections.Generic.List<System.Int32>) [1], (System.Collections.Generic.List<System.Int32>) [2], ";
+            CompileAndVerify([source, s_collectionExtensions], parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput);
+            CompileAndVerify([source, s_collectionExtensions], parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput);
 
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics(
                 // (10,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(List<int>)' and 'Program.F1(List<long?>)'
@@ -1036,9 +1038,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
+            var expectedOutput = "(System.Nullable<System.Int32>[]) [1, null], (System.Nullable<System.Int32>[]) [null, 2], (System.Nullable<System.Int32>[]) [3, null, 2], " +
+                                "(System.Nullable<System.Int32>[]) [null, 2, 4], (System.Nullable<System.Int32>[]) [null, 2, 5, 6, 7], (System.Nullable<System.Int32>[]) [5, 6, 7, null, 2], ";
+
             CompileAndVerify([source, s_collectionExtensions], parseOptions: TestOptions.Regular13,
-                expectedOutput: "(System.Nullable<System.Int32>[]) [1, null], (System.Nullable<System.Int32>[]) [null, 2], (System.Nullable<System.Int32>[]) [3, null, 2], " +
-                                "(System.Nullable<System.Int32>[]) [null, 2, 4], (System.Nullable<System.Int32>[]) [null, 2, 5, 6, 7], (System.Nullable<System.Int32>[]) [5, 6, 7, null, 2], ");
+                expectedOutput: expectedOutput);
+            CompileAndVerify([source, s_collectionExtensions], parseOptions: TestOptions.RegularPreview,
+                expectedOutput: expectedOutput);
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics(
                 // (15,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F(MyCollection)' and 'Program.F(int?[])'
                 //         var x = F([1, null]);
@@ -1402,6 +1408,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             verify(TestOptions.Regular12, expectedType12);
             verify(TestOptions.Regular13, expectedType13);
+            verify(TestOptions.RegularPreview, expectedType13);
 
             static string getTypeParameters(string type) =>
                 type.Contains("T[]") || type.Contains("<T>") ? "<T>" : "";
@@ -1897,12 +1904,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(
-                new[] { sourceA, sourceB1 },
-                targetFramework: TargetFramework.Net80,
-                parseOptions: TestOptions.Regular13,
-                options: TestOptions.ReleaseExe);
-            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("""
+
+            string expectedOutput = IncludeExpectedOutput("""
                 T[]
                 string[]
                 string[]
@@ -1910,7 +1913,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Span<string>
                 Span<string>
                 string[]
-                """));
+                """);
+
+            var comp = CreateCompilation(
+                new[] { sourceA, sourceB1 },
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.Regular13,
+                options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: expectedOutput);
+
+            comp = CreateCompilation(
+                new[] { sourceA, sourceB1 },
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.RegularPreview,
+                options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: expectedOutput);
 
             comp = CreateCompilation(
                 new[] { sourceA, sourceB1 },
@@ -1934,23 +1951,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
+            // 1.cs(5,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.SpanDerived(Span<string>)' and 'Program.SpanDerived(object[])'
+            //         SpanDerived(new[] { string.Empty }); // ambiguous
+            var expectedDiagnostic = Diagnostic(ErrorCode.ERR_AmbigCall, "SpanDerived").WithArguments("Program.SpanDerived(System.Span<string>)", "Program.SpanDerived(object[])").WithLocation(5, 9);
+
             comp = CreateCompilation(
                 new[] { sourceA, sourceB2 },
                 parseOptions: TestOptions.Regular13,
                 targetFramework: TargetFramework.Net80);
-            comp.VerifyEmitDiagnostics(
-                // 1.cs(5,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.SpanDerived(Span<string>)' and 'Program.SpanDerived(object[])'
-                //         SpanDerived(new[] { string.Empty }); // ambiguous
-                Diagnostic(ErrorCode.ERR_AmbigCall, "SpanDerived").WithArguments("Program.SpanDerived(System.Span<string>)", "Program.SpanDerived(object[])").WithLocation(5, 9));
+            comp.VerifyEmitDiagnostics(expectedDiagnostic);
+
+            comp = CreateCompilation(
+                new[] { sourceA, sourceB2 },
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(expectedDiagnostic);
 
             comp = CreateCompilation(
                 new[] { sourceA, sourceB2 },
                 parseOptions: TestOptions.Regular12,
                 targetFramework: TargetFramework.Net80);
-            comp.VerifyEmitDiagnostics(
-                // 1.cs(5,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.SpanDerived(Span<string>)' and 'Program.SpanDerived(object[])'
-                //         SpanDerived(new[] { string.Empty }); // ambiguous
-                Diagnostic(ErrorCode.ERR_AmbigCall, "SpanDerived").WithArguments("Program.SpanDerived(System.Span<string>)", "Program.SpanDerived(object[])").WithLocation(5, 9));
+            comp.VerifyEmitDiagnostics(expectedDiagnostic);
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/69634")]
@@ -2035,8 +2056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(new[] { source, s_collectionExtensionsWithSpan }, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net80);
-            comp.VerifyDiagnostics(
+            var expectedDiagnostics = new[] {
                 // 'params' works in this case.
                 // For 'Inline collection expression' case it fails because:
                 //    - For the first argument, 'int[]' and 'Span<object>' -> `int[]` is better vs. `Span<object>` for 'params'
@@ -2049,7 +2069,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // 0.cs(11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(object, string[])' and 'Program.F2(string, Span<object>)'
                 //         F2("3", ["4"]);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(object, string[])", "Program.F2(string, System.Span<object>)").WithLocation(11, 9)
-            );
+            };
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensionsWithSpan }, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(new[] { source, s_collectionExtensionsWithSpan }, parseOptions: TestOptions.RegularPreview, targetFramework: TargetFramework.Net80);
+            comp.VerifyDiagnostics(expectedDiagnostics);
 
             CompileAndVerify(
                 new[] { source, s_collectionExtensionsWithSpan },
@@ -2168,15 +2194,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
+            var expectedOutput = IncludeExpectedOutput("""
+                    ReadOnlySpan<int>
+                    Span<string>
+                    """);
             CompileAndVerify(
                 source,
                 targetFramework: TargetFramework.Net80,
                 parseOptions: TestOptions.Regular13,
                 verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput("""
-                    ReadOnlySpan<int>
-                    Span<string>
-                    """));
+                expectedOutput: expectedOutput);
+
+            CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.RegularPreview,
+                verify: Verification.Skipped,
+                expectedOutput: expectedOutput);
 
             CreateCompilation(source, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
                 // (10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(ReadOnlySpan<int>)' and 'Program.F1(ReadOnlySpan<object>)'
@@ -2202,7 +2236,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: "int[]").VerifyDiagnostics();
+            var expectedOutput = "int[]";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics(
                 // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(int[])' and 'Program.F1(object[])'
@@ -2249,8 +2285,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 expectedOutput: IncludeExpectedOutput("ReadOnlySpan<string>"));
         }
 
-        [Fact]
-        public void BetterConversionFromExpression_09()
+        [Theory]
+        [InlineData(LanguageVersion.Preview)]
+        [InlineData(LanguageVersion.CSharp13)]
+        [InlineData(LanguageVersion.CSharp12)]
+        public void BetterConversionFromExpression_09(LanguageVersion version)
         {
             string source = """
                 using System;
@@ -2266,11 +2305,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(List<int>)' and 'Program.F2(List<byte>)'
-            //         F2([1, (byte)2]);
-            var expected = Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(System.Collections.Generic.List<int>)", "Program.F2(System.Collections.Generic.List<byte>)").WithLocation(9, 9);
-            CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expected);
-            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expected);
+            CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(version)).VerifyDiagnostics(
+                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(List<int>)' and 'Program.F2(List<byte>)'
+                //         F2([1, (byte)2]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(System.Collections.Generic.List<int>)", "Program.F2(System.Collections.Generic.List<byte>)").WithLocation(9, 9));
         }
 
         [Fact]
@@ -2290,7 +2328,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
-            CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: "List<byte>");
+            var expectedOutput = "List<byte>";
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput);
+            CompileAndVerify(source, parseOptions: TestOptions.RegularPreview, expectedOutput: expectedOutput);
 
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(List<int>)' and 'Program.F2(List<byte>)'
@@ -2316,11 +2356,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
 
+            string expectedOutput = IncludeExpectedOutput("ReadOnlySpan<string>");
+
             CompileAndVerify(source,
                 parseOptions: TestOptions.Regular13,
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput("ReadOnlySpan<string>"));
+                expectedOutput: expectedOutput);
+
+            CompileAndVerify(source,
+                parseOptions: TestOptions.RegularPreview,
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: expectedOutput);
 
             CreateCompilation(source, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net80).VerifyDiagnostics(
                 // (8,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(ReadOnlySpan<string>)' and 'Program.F2(ReadOnlySpan<IFormattable>)'
@@ -2351,12 +2399,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial class", useBoolReturns: false, includeOneTimeHelpers: false);
 
+            string expectedOutput13 = IncludeExpectedOutput("Span<CustomHandler>");
+
             CompileAndVerify(
                 new[] { source, handler },
                 targetFramework: TargetFramework.Net80,
                 parseOptions: TestOptions.Regular13,
                 verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput("Span<CustomHandler>"));
+                expectedOutput: expectedOutput13);
+
+            CompileAndVerify(
+                new[] { source, handler },
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.RegularPreview,
+                verify: Verification.Skipped,
+                expectedOutput: expectedOutput13);
 
             CompileAndVerify(
                 new[] { source, handler },

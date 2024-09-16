@@ -2907,7 +2907,7 @@ outerDefault:
             var t2IsSpanType = kind2 is CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span;
 
             // `C₁` is a ***better collection conversion from expression*** than `C₂` if:
-            // - `T₁` or `T₂` is not a *span type*, and `T₁` is implicitly convertible to `T₂`, and `T₂` is not implicitly convertible to `T₁`, or
+            // - Both T₁ and T₂ are not *span types*, and `T₁` is implicitly convertible to `T₂`, and `T₂` is not implicitly convertible to `T₁`, or
             if (!t1IsSpanType && !t2IsSpanType)
             {
                 var t1IsConvertibleToT2 = Conversions.ClassifyImplicitConversionFromType(t1, t2, ref useSiteInfo).IsImplicit;
