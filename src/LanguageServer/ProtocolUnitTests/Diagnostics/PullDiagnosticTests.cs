@@ -1166,6 +1166,32 @@ class A {
     }
 
     [Theory, CombinatorialData]
+    public async Task EditAndContinue_NonHostWorkspace(bool mutatingLspWorkspace)
+    {
+        var xmlWorkspace = """
+            <Workspace>
+                <Project Language='C#' CommonReferences='true' AssemblyName='Submission' Name='Submission1'>
+                    <Document FilePath='C:\Submission#1.cs'>1+1</Document>
+                </Project>
+            </Workspace>
+            """;
+
+        var options = GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, compilerDiagnosticsScope: null, useVSDiagnostics: false);
+        await using var testLspServer = await CreateXmlTestLspServerAsync(xmlWorkspace, mutatingLspWorkspace, WorkspaceKind.Interactive, options);
+
+        var document = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single();
+        await OpenDocumentAsync(testLspServer, document);
+
+        var encSessionState = testLspServer.TestWorkspace.GetService<EditAndContinueSessionState>();
+
+        // active session, but should get no EnC diagnostics for Interactive workspace
+        encSessionState.IsSessionActive = true;
+
+        var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics: false, category: PullDiagnosticCategories.EditAndContinue);
+        Assert.Empty(results);
+    }
+
+    [Theory, CombinatorialData]
     public async Task EditAndContinue_NoActiveSession(bool mutatingLspWorkspace)
     {
         var markup1 = "class C {}";
@@ -1173,8 +1199,6 @@ class A {
         var options = GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, compilerDiagnosticsScope: null, useVSDiagnostics: false);
 
         await using var testLspServer = await CreateTestLspServerAsync([markup1], LanguageNames.CSharp, mutatingLspWorkspace, options);
-
-        var encSessionState = testLspServer.TestWorkspace.GetService<EditAndContinueSessionState>();
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: false, includeTaskListItems: false, category: PullDiagnosticCategories.EditAndContinue);
         Assert.Empty(results);
