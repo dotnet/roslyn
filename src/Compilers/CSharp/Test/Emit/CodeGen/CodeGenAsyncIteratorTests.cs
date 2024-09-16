@@ -12,7 +12,6 @@ using System.Text;
 using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -32,6 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.AsyncStreams)]
     public class CodeGenAsyncIteratorTests : EmitMetadataTestBase
     {
+        internal static string ExpectedOutput(string output)
+        {
+            return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
+        }
+
         /// <summary>
         /// Enumerates `C.M()` a given number of iterations.
         /// </summary>
@@ -8458,6 +8462,128 @@ class AsyncReader<T> : IAsyncEnumerable<T>
 ";
             var comp = CreateCompilationWithAsyncIterator(source);
             CompileAndVerify(comp, expectedOutput: "RAN RAN RAN CLEARED");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74362")]
+        public void AwaitForeachInLocalFunctionInAccessor()
+        {
+            var src = """
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+foreach (var x in X.ValuesViaLocalFunction)
+{
+    Console.WriteLine(x);
+}
+
+public class X
+{
+    public static async IAsyncEnumerable<int> GetValues()
+    {
+        await Task.Yield();
+        yield return 42;
+    }
+
+    public static IEnumerable<int> ValuesViaLocalFunction
+    {
+        get
+        {
+            foreach (var b in Do().ToBlockingEnumerable())
+            {
+                yield return b;
+            }
+
+            async IAsyncEnumerable<int> Do()
+            {
+                await foreach (var v in GetValues())
+                {
+                    yield return v;
+                }
+            }
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.FailsPEVerify);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74362")]
+        public void AwaitForeachInMethod()
+        {
+            var src = """
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+await foreach (var x in X.Do())
+{
+    Console.WriteLine(x);
+}
+
+public class X
+{
+    public static async IAsyncEnumerable<int> GetValues()
+    {
+        await Task.Yield();
+        yield return 42;
+    }
+
+    public static async IAsyncEnumerable<int> Do()
+    {
+        await foreach (var v in GetValues())
+        {
+            yield return v;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.FailsPEVerify);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74362")]
+        public void AwaitInForeachInLocalFunctionInAccessor()
+        {
+            var src = """
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+public class C
+{
+    public static void Main()
+    {
+        Console.Write(Property);
+    }
+
+    public static int Property
+    {
+        get
+        {
+            return Do().GetAwaiter().GetResult();
+
+            async Task<int> Do()
+            {
+                IEnumerable<int> a = [42];
+                foreach (var v in a)
+                {
+                    await Task.Yield();
+                    return v;
+                }
+
+                return 0;
+            }
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.FailsPEVerify);
         }
     }
 }

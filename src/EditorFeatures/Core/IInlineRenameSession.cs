@@ -44,7 +44,8 @@ internal sealed class InlineRenameSessionInfo
 internal interface IInlineRenameSession
 {
     /// <summary>
-    /// Cancels the rename session, and undoes any edits that had been performed by the session.
+    /// Cancels the rename session, and undoes any edits that had been performed by the session.  Must be called on the
+    /// UI thread.
     /// </summary>
     void Cancel();
 

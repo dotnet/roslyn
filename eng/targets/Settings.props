@@ -31,7 +31,7 @@
     <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <GenerateFullPaths>true</GenerateFullPaths>
-    <EnableWindowsTargeting Condition="'$(DotNetBuildFromSource)' != 'true'">true</EnableWindowsTargeting>
+    <EnableWindowsTargeting Condition="'$(DotNetBuildSourceOnly)' != 'true'">true</EnableWindowsTargeting>
 
     <!-- Set to non-existent file to prevent common targets from importing Microsoft.CodeAnalysis.targets -->
     <CodeAnalysisTargets>NON_EXISTENT_FILE</CodeAnalysisTargets>
@@ -61,12 +61,6 @@
 
     <!-- TODO --> 
     <_SkipUpgradeNetAnalyzersNuGetWarning>true</_SkipUpgradeNetAnalyzersNuGetWarning>
-
-    <!--
-      Needed to avoid error NU1010: The PackageReference items Microsoft.Net.Compilers.Toolset.Framework do not have corresponding PackageVersion.
-      Related to https://github.com/dotnet/sdk/issues/41791.
-    -->
-    <BuildWithNetFrameworkHostedCompiler>false</BuildWithNetFrameworkHostedCompiler>
 
     <!-- https://github.com/dotnet/msbuild/issues/10306 -->
     <CoreCompileDependsOn>$(CoreCompileDependsOn);ResolveKeySource</CoreCompileDependsOn> 
@@ -161,7 +155,7 @@
   <!--
     Analyzers
   -->
-  <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
     <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" PrivateAssets="all" />
     <PackageReference Include="Roslyn.Diagnostics.Analyzers" PrivateAssets="all" />
     <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" PrivateAssets="all" />
@@ -176,7 +170,7 @@
   <!--
      Code indexing targets to help generating LSIF from indexing builds.
   -->
-  <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
+  <ItemGroup Condition="'$(DotNetBuildSourceOnly)' != 'true'">
     <PackageReference Include="RichCodeNav.EnvVarDump" PrivateAssets="all" />
   </ItemGroup>
 
@@ -256,7 +250,7 @@
     </When>
   </Choose>
 
-  <PropertyGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
+  <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
     <!-- https://github.com/dotnet/roslyn/issues/38433 Vbc does not like the extra semicolon -->
     <DefineConstants Condition="'$(DefineConstants)' != ''">DOTNET_BUILD_FROM_SOURCE;$(DefineConstants)</DefineConstants>
     <DefineConstants Condition="'$(DefineConstants)' == ''">DOTNET_BUILD_FROM_SOURCE</DefineConstants>
