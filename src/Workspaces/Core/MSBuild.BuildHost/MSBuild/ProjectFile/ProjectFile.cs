@@ -9,6 +9,9 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Build.Evaluation;
+using Microsoft.Build.Globbing;
+using Microsoft.Build.Globbing.Extensions;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
@@ -171,6 +174,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var projectCapabilities = project.GetItems(ItemNames.ProjectCapability).SelectAsArray(item => item.ToString());
             var contentFileInfo = GetContentFiles(project);
 
+            var fileGlobs = _loadedProject?.GetAllGlobs().Select(GetFileGlobs).ToImmutableArray() ?? [];
+
             return ProjectFileInfo.Create(
                 Language,
                 project.FullPath,
@@ -189,7 +194,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 project.GetProjectReferences().ToImmutableArray(),
                 packageReferences,
                 projectCapabilities,
-                contentFileInfo);
+                contentFileInfo,
+                fileGlobs);
+
+            static FileGlobs GetFileGlobs(GlobResult g)
+            {
+                var includes = g.IncludeGlobs.ToImmutableArray();
+                var excludes = g.Excludes.ToImmutableArray();
+                var removes = g.Removes.ToImmutableArray();
+
+                return new FileGlobs(g.IncludeGlobs.ToImmutableArray(), g.Excludes.ToImmutableArray(), g.Removes.ToImmutableArray());
+            }
         }
 
         private static ImmutableArray<string> GetContentFiles(MSB.Execution.ProjectInstance project)
