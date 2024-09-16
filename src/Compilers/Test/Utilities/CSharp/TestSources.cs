@@ -548,6 +548,8 @@ namespace System
         }
 
         public static ReadOnlySpan<char> AsSpan(this string text) => string.IsNullOrEmpty(text) ? default : new ReadOnlySpan<char>(text.ToCharArray());
+
+        public static Span<T> AsSpan<T>(this T[] array) => new Span<T>(array);
     }
 }";
     }
