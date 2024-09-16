@@ -92,7 +92,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         }
     }
 
-    public bool IsSuggestionsPanelExpanded => HasSuggestions;
+    public bool IsSuggestionsPanelExpanded => HasSuggestions && (!SupportsAutomaticSuggestions || IsAutomaticSuggestionsEnabled);
 
     public string GetSuggestionsTooltip
         => SupportsAutomaticSuggestions
@@ -286,7 +286,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             {
                 this.FetchSuggestions(isAutomaticOnInitialization: false);
             }
-
+            NotifyPropertyChanged(nameof(IsSuggestionsPanelExpanded));
             NotifyPropertyChanged(nameof(IsAutomaticSuggestionsEnabled));
             // Use existing "CollapseSuggestionsPanel" option (true if user does not wish to get suggestions automatically) to honor user's choice.
             _globalOptionService.SetGlobalOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel, !IsAutomaticSuggestionsEnabled);
