@@ -22,7 +22,6 @@ public class RoslynSelfBuildTests(ITestOutputHelper output) : AbstractIdeIntegra
     public async Task SelfBuildAndDeploy()
     {
         // https://github.com/microsoft/vs-extension-testing/issues/172
-        Environment.SetEnvironmentVariable("runExperimentTest", "true");
         Environment.SetEnvironmentVariable("MSBUILDTERMINALLOGGER ", "auto");
         // Will cause msbuild lock dlls...
         // Environment.SetEnvironmentVariable("MSBuildDebugEngine", "1");
