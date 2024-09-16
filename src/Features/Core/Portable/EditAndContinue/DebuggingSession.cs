@@ -111,6 +111,8 @@ internal sealed class DebuggingSession : IDisposable
         IEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>> initialDocumentStates,
         bool reportDiagnostics)
     {
+        EditAndContinueService.Log.Write($"Debugging session started: #{id}");
+
         _compilationOutputsProvider = compilationOutputsProvider;
         SourceTextProvider = sourceTextProvider;
         _reportTelemetry = ReportTelemetry;
@@ -198,6 +200,8 @@ internal sealed class DebuggingSession : IDisposable
         _reportTelemetry(telemetryData);
 
         Dispose();
+
+        EditAndContinueService.Log.Write($"Debugging session ended: #{Id}");
     }
 
     public void BreakStateOrCapabilitiesChanged(bool? inBreakState)
@@ -205,6 +209,8 @@ internal sealed class DebuggingSession : IDisposable
 
     internal void RestartEditSession(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>? nonRemappableRegions, bool? inBreakState)
     {
+        EditAndContinueService.Log.Write($"Edit session restarted (break state: {inBreakState?.ToString() ?? "null"})");
+
         ThrowIfDisposed();
 
         EndEditSession();
@@ -550,6 +556,7 @@ internal sealed class DebuggingSession : IDisposable
         // The debugger will still call commit or discard on the update batch.
         return new EmitSolutionUpdateResults()
         {
+            Solution = solution,
             ModuleUpdates = solutionUpdate.ModuleUpdates,
             Diagnostics = solutionUpdate.Diagnostics,
             RudeEdits = rudeEditDiagnostics.ToImmutable(),

@@ -2292,7 +2292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // available 9219,
         // available 9220,
         // available 9221,
-        // available 9222,
+        ERR_CollectionInitializerInfiniteChainOfAddCalls = 9222,
         ERR_ParamsCollectionInfiniteChainOfConstructorCalls = 9223,
         ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember = 9224,
         ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember = 9225,
