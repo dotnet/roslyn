@@ -92,6 +92,12 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         }
     }
 
+    /// <summary>
+    /// IsSuggestionsPanelExpanded is used to control the visibility of the suggestions panel.
+    /// SupportsAutomaticSuggestions the flag to determine whether the SmartRename will generate suggestion automatically.
+    /// When SupportsAutomaticSuggestions disenabled, the suggestions panel is supposed to always expanded once it's shown, thus users can see the suggestions.
+    /// When SupportsAutomaticSuggestions enabled, the suggestions panel is supposed to react to the smart rename button click. If the button is clicked, IsAutomaticSuggestionsEnabled will be true, the panel will be expanded, Otherwise, it will be collapsed.
+    /// </summary>
     public bool IsSuggestionsPanelExpanded => HasSuggestions && (!SupportsAutomaticSuggestions || IsAutomaticSuggestionsEnabled);
 
     public string GetSuggestionsTooltip
