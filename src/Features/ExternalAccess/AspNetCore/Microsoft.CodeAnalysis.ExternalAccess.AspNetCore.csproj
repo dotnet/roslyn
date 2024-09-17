@@ -13,7 +13,7 @@
       https://github.com/dotnet/aspnetcore
     </PackageDescription>
     <!-- Referenced by dotnet/aspnetcore and included in SDK. Required for source build/vertical build. -->
-    <ExcludeFromSourceBuild>false</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>false</ExcludeFromSourceOnlyBuild>
   </PropertyGroup>
 
   <ItemGroup>
