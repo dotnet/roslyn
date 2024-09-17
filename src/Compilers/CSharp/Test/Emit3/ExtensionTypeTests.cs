@@ -3114,7 +3114,7 @@ explicit extension R3 for System.IntPtr : R { }
 public class C<T> { }
 public explicit extension R for C<nint> { }
 """;
-        var comp = CreateCompilation(new[] { src, CompilerFeatureRequiredAttribute }, targetFramework: TargetFramework.Mscorlib45);
+        var comp = CreateCompilation(new[] { src, CompilerFeatureRequiredAttribute }, targetFramework: TargetFramework.Mscorlib461);
         Assert.False(comp.Assembly.RuntimeSupportsNumericIntPtr);
         Assert.False(comp.SupportsRuntimeCapability(RuntimeCapability.NumericIntPtr));
         comp.VerifyDiagnostics();
@@ -3126,13 +3126,13 @@ public explicit extension R for C<nint> { }
         var src2 = """
 explicit extension R2 for C<nint> : R { }
 """;
-        var comp2 = CreateCompilation(src2, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Mscorlib45);
+        var comp2 = CreateCompilation(src2, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Mscorlib461);
         comp2.VerifyDiagnostics();
 
         var src3 = """
 explicit extension R3 for C<System.IntPtr> : R { }
 """;
-        var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Mscorlib45);
+        var comp3 = CreateCompilation(src3, references: new[] { comp.EmitToImageReference() }, targetFramework: TargetFramework.Mscorlib461);
         comp3.VerifyDiagnostics(
             // (1,20): error CS9316: Extension 'R3' extends 'C<IntPtr>' but base extension 'R' extends 'C<nint>'.
             // explicit extension R3 for C<System.IntPtr> : R { }
@@ -6437,6 +6437,9 @@ fixed explicit extension R for UnderlyingClass { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
+            // (1,25): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+            // class UnderlyingClass { }
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(1, 25),
             // (2,7): error CS1031: Type expected
             // fixed explicit extension R for UnderlyingClass { }
             Diagnostic(ErrorCode.ERR_TypeExpected, "explicit").WithLocation(2, 7),
@@ -6455,6 +6458,9 @@ fixed explicit extension R for UnderlyingClass { }
             // (2,7): error CS1002: ; expected
             // fixed explicit extension R for UnderlyingClass { }
             Diagnostic(ErrorCode.ERR_SemicolonExpected, "explicit").WithLocation(2, 7),
+            // (2,7): error CS1513: } expected
+            // fixed explicit extension R for UnderlyingClass { }
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 7),
             // (2,7): error CS1642: Fixed size buffer fields may only be members of structs
             // fixed explicit extension R for UnderlyingClass { }
             Diagnostic(ErrorCode.ERR_FixedNotInStruct, "").WithLocation(2, 7),
@@ -6569,6 +6575,9 @@ scoped explicit extension R for UnderlyingClass { }
 """;
         var comp = CreateCompilation(src);
         comp.VerifyDiagnostics(
+            // (1,25): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+            // class UnderlyingClass { }
+            Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(1, 25),
             // (2,1): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
             // scoped explicit extension R for UnderlyingClass { }
             Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "scoped").WithArguments("+").WithLocation(2, 1),
@@ -6581,15 +6590,12 @@ scoped explicit extension R for UnderlyingClass { }
             // (2,8): error CS1020: Overloadable binary operator expected
             // scoped explicit extension R for UnderlyingClass { }
             Diagnostic(ErrorCode.ERR_OvlBinaryOperatorExpected, "explicit").WithLocation(2, 8),
-            // (2,8): error CS0558: User-defined operator '<invalid-global-code>.operator +(extension, UnderlyingClass)' must be declared static and public
+            // (2,8): error CS0558: User-defined operator 'UnderlyingClass.operator +(extension, UnderlyingClass)' must be declared static and public
             // scoped explicit extension R for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "").WithArguments("<invalid-global-code>.operator +(extension, UnderlyingClass)").WithLocation(2, 8),
-            // (2,8): error CS0501: '<invalid-global-code>.operator +(extension, UnderlyingClass)' must declare a body because it is not marked abstract, extern, or partial
+            Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "").WithArguments("UnderlyingClass.operator +(extension, UnderlyingClass)").WithLocation(2, 8),
+            // (2,8): error CS0501: 'UnderlyingClass.operator +(extension, UnderlyingClass)' must declare a body because it is not marked abstract, extern, or partial
             // scoped explicit extension R for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "").WithArguments("<invalid-global-code>.operator +(extension, UnderlyingClass)").WithLocation(2, 8),
-            // (2,8): error CS0563: One of the parameters of a binary operator must be the containing type
-            // scoped explicit extension R for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_BadBinaryOperatorSignature, "").WithLocation(2, 8),
+            Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "").WithArguments("UnderlyingClass.operator +(extension, UnderlyingClass)").WithLocation(2, 8),
             // (2,17): error CS1003: Syntax error, '(' expected
             // scoped explicit extension R for UnderlyingClass { }
             Diagnostic(ErrorCode.ERR_SyntaxError, "extension").WithArguments("(").WithLocation(2, 17),
@@ -6616,7 +6622,10 @@ scoped explicit extension R for UnderlyingClass { }
             Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(2, 51),
             // (2,51): error CS1022: Type or namespace definition, or end-of-file expected
             // scoped explicit extension R for UnderlyingClass { }
-            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(2, 51)
+            Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(2, 51),
+            // (2,52): error CS1513: } expected
+            // scoped explicit extension R for UnderlyingClass { }
+            Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(2, 52)
             );
     }
 
@@ -38997,7 +39006,7 @@ internal class AnyClass : AnyBaseClass
 """;
         // In `GetInterfaceInfo` we call `SourceNamedTypeSymbol.BaseTypeNoUseSiteDiagnostics` which forces resolution on `ContainingType.BaseTypeNoUseSiteDiagnostics`
         // This means that any lookup on `AnyEnum` causes the `using` directives to be resolved
-        var comp = CreateCompilationWithMscorlib45(source);
+        var comp = CreateCompilationWithMscorlib461(source);
         comp.VerifyDiagnostics(
             // (1,1): hidden CS8019: Unnecessary using directive.
             // using static MyNamespace.AnyClass.AnyEnum.Val;
@@ -39368,7 +39377,7 @@ namespace N
     }
 }
 """;
-        var comp = CreateCompilationWithMscorlib45(source);
+        var comp = CreateCompilationWithMscorlib461(source);
 
         comp.VerifyDiagnostics(
             // (8,5): hidden CS8019: Unnecessary using directive.

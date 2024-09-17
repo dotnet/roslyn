@@ -10,7 +10,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     <[UseExportProvider]>
     <Trait(Traits.Feature, Traits.Features.SignatureHelp)>
     Public Class CSharpSignatureHelpCommandHandlerTests
-
         <WpfTheory, CombinatorialData>
         Public Async Function TestCreateAndDismiss(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
@@ -928,6 +927,31 @@ class C
 
                 state.SendInvokeSignatureHelp()
                 Await state.AssertSelectedSignatureHelpItem(displayText:="(int a, string b)", selectedParameter:="int a")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/72012")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/74383")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/74500")>
+        Public Async Function TestParameterIndexBeyondSyntacticIndex(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                              <Document>
+class C
+{
+    void Main()
+    {
+        M(0, d$$)
+    }
+
+    void M(int a, int b = 0, int c = 0, int d = 0) { }
+}
+                              </Document>, showCompletionInArgumentLists:=showCompletionInArgumentLists)
+
+                state.SendInvokeSignatureHelp()
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.M(int a, int b = 0, int c = 0, int d = 0)", selectedParameter:="int b = 0")
+                state.SendTypeChars(":")
+                Await state.AssertSelectedSignatureHelpItem(displayText:="void C.M(int a, int b = 0, int c = 0, int d = 0)", selectedParameter:="int d = 0")
             End Using
         End Function
 

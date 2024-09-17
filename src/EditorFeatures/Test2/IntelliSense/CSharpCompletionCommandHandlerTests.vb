@@ -12598,6 +12598,30 @@ $$
         End Function
 
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/74484")>
+        Public Async Function ReferenceToMethodThatFollow(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                class C
+                {
+                    void M()
+                    {
+                        if (true)
+                        {
+                            this.Sw$$
+
+                    private void SwitchColor() { }
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("SwitchColor", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
         Public Async Function TestCompletionInExtensionForType1(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>

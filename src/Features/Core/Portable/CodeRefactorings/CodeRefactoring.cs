@@ -28,18 +28,14 @@ internal class CodeRefactoring
 
     public FixAllProviderInfo? FixAllProviderInfo { get; }
 
-    public CodeActionOptionsProvider CodeActionOptionsProvider { get; }
-
     public CodeRefactoring(
         CodeRefactoringProvider provider,
         ImmutableArray<(CodeAction, TextSpan?)> actions,
-        FixAllProviderInfo? fixAllProviderInfo,
-        CodeActionOptionsProvider codeActionOptionsProvider)
+        FixAllProviderInfo? fixAllProviderInfo)
     {
         Provider = provider;
         CodeActions = actions.NullToEmpty();
         FixAllProviderInfo = fixAllProviderInfo;
-        CodeActionOptionsProvider = codeActionOptionsProvider;
 
         if (CodeActions.IsEmpty)
         {

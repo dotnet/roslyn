@@ -9,13 +9,6 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseObjectInitializer
     <Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
     Public Class UseObjectInitializerTests
-        Private Shared Async Function TestInRegularAndScriptAsync(testCode As String, fixedCode As String) As Task
-            Await New VerifyVB.Test With {
-                .TestCode = testCode,
-                .FixedCode = fixedCode
-            }.RunAsync()
-        End Function
-
         Private Shared Async Function TestMissingInRegularAndScriptAsync(testCode As String) As Task
             Await New VerifyVB.Test With {
                 .TestCode = testCode,
@@ -25,16 +18,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.UseObj
 
         <Fact>
         Public Async Function TestOnVariableDeclarator() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Dim i As Integer
     Sub M()
-        Dim c = [|New|] C()
-        [|c|].i = 1
+        Dim c = {|#1:{|#0:New|} C()|}
+        {|#2:c|}.i = 1
     End Sub
-End Class",
-"
+End Class"
+            Dim fixedCode = "
 Class C
     Dim i As Integer
     Sub M()
@@ -42,21 +34,30 @@ Class C
             .i = 1
         }
     End Sub
-End Class")
+End Class"
+            Dim test = New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }
+
+            test.ExpectedDiagnostics.Add(
+                                         _ ' /0/Test0.vb(5,17): info IDE0017: Object initialization can be simplified
+                VerifyVB.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2))
+
+            Await test.RunAsync()
         End Function
 
         <Fact>
         Public Async Function TestOnVariableDeclarator2() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Dim i As Integer
     Sub M()
-        Dim c As [|New|] C()
-        [|c|].i = 1
+        Dim c As {|#1:{|#0:New|} C()|}
+        {|#2:c|}.i = 1
     End Sub
-End Class",
-"
+End Class"
+            Dim fixedCode = "
 Class C
     Dim i As Integer
     Sub M()
@@ -64,22 +65,31 @@ Class C
             .i = 1
         }
     End Sub
-End Class")
+End Class"
+            Dim test = New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }
+
+            test.ExpectedDiagnostics.Add(
+                                         _ ' /0/Test0.vb(5,18): info IDE0017: Object initialization can be simplified
+                VerifyVB.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2))
+
+            Await test.RunAsync()
         End Function
 
         <Fact>
         Public Async Function TestOnAssignmentExpression() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Dim i As Integer
     Sub M()
         Dim c as C = Nothing
-        c = [|New|] C()
-        [|c|].i = 1
+        c = {|#1:{|#0:New|} C()|}
+        {|#2:c|}.i = 1
     End Sub
-End Class",
-"
+End Class"
+            Dim fixedCode = "
 Class C
     Dim i As Integer
     Sub M()
@@ -88,22 +98,31 @@ Class C
             .i = 1
         }
     End Sub
-End Class")
+End Class"
+            Dim test = New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }
+
+            test.ExpectedDiagnostics.Add(
+                                         _ ' /0/Test0.vb(6,13): info IDE0017: Object initialization can be simplified
+                VerifyVB.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2))
+
+            Await test.RunAsync()
         End Function
 
         <Fact>
         Public Async Function TestStopOnDuplicateMember() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Dim i As Integer
     Sub M()
-        Dim c = [|New|] C()
-        [|c|].i = 1
+        Dim c = {|#1:{|#0:New|} C()|}
+        {|#2:c|}.i = 1
         c.i = 2
     End Sub
-End Class",
-"
+End Class"
+            Dim fixedCode = "
 Class C
     Dim i As Integer
     Sub M()
@@ -112,25 +131,34 @@ Class C
         }
         c.i = 2
     End Sub
-End Class")
+End Class"
+            Dim test = New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }
+
+            test.ExpectedDiagnostics.Add(
+                                         _ ' /0/Test0.vb(5,17): info IDE0017: Object initialization can be simplified
+                VerifyVB.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2))
+
+            Await test.RunAsync()
         End Function
 
         <Fact>
         Public Async Function TestComplexInitializer() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
     Sub M()
         Dim array As C()
 
-        array(0) = [|New|] C()
-        [|array(0)|].i = 1
-        [|array(0)|].j = 2
+        array(0) = {|#1:{|#0:New|} C()|}
+        {|#2:array(0)|}.i = 1
+        {|#3:array(0)|}.j = 2
     End Sub
-End Class",
-"
+End Class"
+            Dim fixedCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
@@ -142,23 +170,32 @@ Class C
             .j = 2
         }
     End Sub
-End Class")
+End Class"
+            Dim test = New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }
+
+            test.ExpectedDiagnostics.Add(
+                                         _ ' /0/Test0.vb(8,20): info IDE0017: Object initialization can be simplified
+                VerifyVB.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3))
+
+            Await test.RunAsync()
         End Function
 
         <Fact>
         Public Async Function TestNotOnCompoundAssignment() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
     Sub M()
-        Dim c = [|New|] C()
-        [|c|].i = 1
+        Dim c = {|#1:{|#0:New|} C()|}
+        {|#2:c|}.i = 1
         c.j += 1
     End Sub
-End Class",
-"
+End Class"
+            Dim fixedCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
@@ -168,63 +205,91 @@ Class C
         }
         c.j += 1
     End Sub
-End Class")
+End Class"
+            Dim test = New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }
+
+            test.ExpectedDiagnostics.Add(
+                                         _ ' /0/Test0.vb(6,17): info IDE0017: Object initialization can be simplified
+                VerifyVB.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2))
+
+            Await test.RunAsync()
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")>
         Public Async Function TestWithExistingInitializer() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
     Sub M()
-        Dim c = [|New|] C() With {
+        Dim c = {|#1:{|#0:New|} C() With {
             .i = 1
-        }
-        [|c|].j = 1
+        }|}
+        {|#2:c|}.j = 1
     End Sub
-End Class",
-"
+End Class"
+            Dim fixedCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
     Sub M()
-        Dim c = [|New|] C With {
+        Dim c = New C With {
             .i = 1,
             .j = 1
         }
     End Sub
-End Class")
+End Class"
+            Dim test = New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }
+
+            test.ExpectedDiagnostics.Add(
+                                         _ ' /0/Test0.vb(6,17): info IDE0017: Object initialization can be simplified
+                VerifyVB.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2))
+
+            Await test.RunAsync()
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/39146")>
         Public Async Function TestWithExistingInitializerNotIfAlreadyInitialized() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
     Sub M()
-        Dim c = [|New|] C() With {
+        Dim c = {|#1:{|#0:New|} C() With {
             .i = 1
-        }
-        [|c|].j = 1
+        }|}
+        {|#2:c|}.j = 1
         c.i = 2
     End Sub
-End Class",
-"
+End Class"
+            Dim fixedCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
     Sub M()
-        Dim c = [|New|] C With {
+        Dim c = New C With {
             .i = 1,
             .j = 1
         }
         c.i = 2
     End Sub
-End Class")
+End Class"
+            Dim test = New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }
+
+            test.ExpectedDiagnostics.Add(
+                                         _ ' /0/Test0.vb(6,17): info IDE0017: Object initialization can be simplified
+                VerifyVB.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2))
+
+            Await test.RunAsync()
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15012")>
@@ -245,21 +310,20 @@ End Class")
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15012")>
         Public Async Function TestIfImplicitMemberAccessWouldNotChange() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 imports system.diagnostics
 
 Class C
     Sub M()
-        Dim x As ProcessStartInfo = [|New|] ProcessStartInfo()
-        [|x|].Arguments = {|BC30491:Sub()
+        Dim x As ProcessStartInfo = {|#1:{|#0:New|} ProcessStartInfo()|}
+        {|#2:x|}.Arguments = {|BC30491:Sub()
                          With New String(Nothing)
                             Dim a = .Length.ToString()
                          End With
                       End Sub()|}
     End Sub
-End Class",
-"
+End Class"
+            Dim fixedCode = "
 imports system.diagnostics
 
 Class C
@@ -272,29 +336,38 @@ Class C
                          End Sub()|}
         }
     End Sub
-End Class")
+End Class"
+            Dim test = New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }
+
+            test.ExpectedDiagnostics.Add(
+                                         _ ' /0/Test0.vb(6,37): info IDE0017: Object initialization can be simplified
+                VerifyVB.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2))
+
+            Await test.RunAsync()
         End Function
 
         <Fact>
         Public Async Function TestFixAllInDocument() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
     Sub M()
         Dim array As C()
 
-        array(0) = [|New|] C()
-        [|array(0)|].i = 1
-        [|array(0)|].j = 2
+        array(0) = {|#1:{|#0:New|} C()|}
+        {|#2:array(0)|}.i = 1
+        {|#3:array(0)|}.j = 2
 
-        array(1) = [|New|] C()
-        [|array(1)|].i = 3
-        [|array(1)|].j = 4
+        array(1) = {|#5:{|#4:New|} C()|}
+        {|#6:array(1)|}.i = 3
+        {|#7:array(1)|}.j = 4
     End Sub
-End Class",
-"
+End Class"
+            Dim fixedCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
@@ -311,23 +384,36 @@ Class C
             .j = 4
         }
     End Sub
-End Class")
+End Class"
+            Dim test = New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }
+
+            test.ExpectedDiagnostics.Add(
+                                         _ ' /0/Test0.vb(8,20): info IDE0017: Object initialization can be simplified
+                VerifyVB.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3))
+
+            test.ExpectedDiagnostics.Add(
+                                         _ ' /0/Test0.vb(12,20): info IDE0017: Object initialization can be simplified
+                VerifyVB.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(4).WithLocation(5).WithLocation(6).WithLocation(7))
+
+            Await test.RunAsync()
         End Function
 
         <Fact>
         Public Async Function TestTrivia1() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
     Sub M()
-        Dim c = [|New|] C()
-        [|c|].i = 1 ' Goo
-        [|c|].j = 2 ' Bar
+        Dim c = {|#1:{|#0:New|} C()|}
+        {|#2:c|}.i = 1 ' Goo
+        {|#3:c|}.j = 2 ' Bar
     End Sub
-End Class",
-"
+End Class"
+            Dim fixedCode = "
 Class C
     Dim i As Integer
     Dim j As Integer
@@ -337,20 +423,29 @@ Class C
             .j = 2 ' Bar
             }
     End Sub
-End Class")
+End Class"
+            Dim test = New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }
+
+            test.ExpectedDiagnostics.Add(
+                                         _ ' /0/Test0.vb(6,17): info IDE0017: Object initialization can be simplified
+                VerifyVB.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3))
+
+            Await test.RunAsync()
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15525")>
         Public Async Function TestTrivia2() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Sub M(Reader as String)
-        Dim XmlAppConfigReader As [|New|] XmlTextReader(Reader)
+        Dim XmlAppConfigReader As {|#1:{|#0:New|} XmlTextReader(Reader)|}
 
         ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
-        [|XmlAppConfigReader|].x = 0
-        [|XmlAppConfigReader|].y = 1
+        {|#2:XmlAppConfigReader|}.x = 0
+        {|#3:XmlAppConfigReader|}.y = 1
     End Sub
 End Class
 
@@ -361,8 +456,8 @@ class XmlTextReader
     public x as integer
     public y as integer
 end class
-",
 "
+            Dim fixedCode = "
 Class C
     Sub M(Reader as String)
         ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
@@ -380,22 +475,31 @@ class XmlTextReader
     public x as integer
     public y as integer
 end class
-")
+"
+            Dim test = New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }
+
+            test.ExpectedDiagnostics.Add(
+                                         _ ' /0/Test0.vb(4,35): info IDE0017: Object initialization can be simplified
+                VerifyVB.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3))
+
+            Await test.RunAsync()
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/15525")>
         Public Async Function TestTrivia3() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Sub M(Reader as String)
-        Dim XmlAppConfigReader As [|New|] XmlTextReader(Reader)
+        Dim XmlAppConfigReader As {|#1:{|#0:New|} XmlTextReader(Reader)|}
 
         ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
-        [|XmlAppConfigReader|].x = 0
+        {|#2:XmlAppConfigReader|}.x = 0
 
         ' Bar
-        [|XmlAppConfigReader|].y = 1
+        {|#3:XmlAppConfigReader|}.y = 1
     End Sub
 End Class
 
@@ -406,8 +510,8 @@ class XmlTextReader
     public x as integer
     public y as integer
 end class
-",
 "
+            Dim fixedCode = "
 Class C
     Sub M(Reader as String)
         ' Required by Fxcop rule CA3054 - DoNotAllowDTDXmlTextReader
@@ -426,25 +530,34 @@ class XmlTextReader
     public x as integer
     public y as integer
 end class
-")
+"
+            Dim test = New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }
+
+            test.ExpectedDiagnostics.Add(
+                                         _ ' /0/Test0.vb(4,35): info IDE0017: Object initialization can be simplified
+                VerifyVB.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2).WithLocation(3))
+
+            Await test.RunAsync()
         End Function
 
         <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems?id=401322")>
         Public Async Function TestSharedMember() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 Class C
     Dim x As Integer
     Shared y As Integer
 
     Sub M()
-        Dim z = [|New|] C()
-        [|z|].x = 1
+        Dim z = {|#1:{|#0:New|} C()|}
+        {|#2:z|}.x = 1
         z.y = 2
     End Sub
 End Class
-",
 "
+            Dim fixedCode = "
 Class C
     Dim x As Integer
     Shared y As Integer
@@ -456,7 +569,17 @@ Class C
         z.y = 2
     End Sub
 End Class
-")
+"
+            Dim test = New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }
+
+            test.ExpectedDiagnostics.Add(
+                                         _ ' /0/Test0.vb(7,17): info IDE0017: Object initialization can be simplified
+                VerifyVB.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2))
+
+            Await test.RunAsync()
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23368")>
@@ -512,12 +635,11 @@ End Class
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23368")>
         Public Async Function TestWithExplicitImplementedInterfaceMembers3() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 class C
     Sub Bar()
-        Dim c As IExample = [|New|] Goo
-        [|c|].LastName = String.Empty
+        Dim c As IExample = {|#1:{|#0:New|} Goo|}
+        {|#2:c|}.LastName = String.Empty
         c.Name = String.Empty
     End Sub
 End Class
@@ -533,8 +655,8 @@ Class Goo
     Private Property Name As String Implements IExample.Name
     Public Property LastName As String Implements IExample.LastName
 End Class
-",
 "
+            Dim fixedCode = "
 class C
     Sub Bar()
         Dim c As IExample = New Goo With {
@@ -555,17 +677,26 @@ Class Goo
     Private Property Name As String Implements IExample.Name
     Public Property LastName As String Implements IExample.LastName
 End Class
-")
+"
+            Dim test = New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }
+
+            test.ExpectedDiagnostics.Add(
+                                         _ ' /0/Test0.vb(4,29): info IDE0017: Object initialization can be simplified
+                VerifyVB.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2))
+
+            Await test.RunAsync()
         End Function
 
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/23368")>
         Public Async Function TestWithExplicitImplementedInterfaceMembers4() As Task
-            Await TestInRegularAndScriptAsync(
-"
+            Dim testCode = "
 class C
     Sub Bar()
-        Dim c As IExample = [|New|] Goo
-        [|c|].LastName = String.Empty
+        Dim c As IExample = {|#1:{|#0:New|} Goo|}
+        {|#2:c|}.LastName = String.Empty
         c.Name = String.Empty
     End Sub
 End Class
@@ -581,8 +712,8 @@ Class Goo
     Private Property Name As String Implements IExample.Name
     Public Property MyLastName As String Implements IExample.LastName
 End Class
-",
 "
+            Dim fixedCode = "
 class C
     Sub Bar()
         Dim c As IExample = New Goo With {
@@ -603,7 +734,17 @@ Class Goo
     Private Property Name As String Implements IExample.Name
     Public Property MyLastName As String Implements IExample.LastName
 End Class
-")
+"
+            Dim test = New VerifyVB.Test With {
+                .TestCode = testCode,
+                .FixedCode = fixedCode
+            }
+
+            test.ExpectedDiagnostics.Add(
+                                         _ ' /0/Test0.vb(4,29): info IDE0017: Object initialization can be simplified
+                VerifyVB.Diagnostic().WithSeverity(DiagnosticSeverity.Info).WithLocation(0).WithLocation(1).WithLocation(2))
+
+            Await test.RunAsync()
         End Function
     End Class
 End Namespace

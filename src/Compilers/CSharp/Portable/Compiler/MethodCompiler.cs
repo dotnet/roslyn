@@ -1788,12 +1788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             initializersBody ??= GetSynthesizedEmptyBody(method);
 
-            if (method is SynthesizedPrimaryConstructor primaryCtor && method.ContainingType.IsStructType())
-            {
-                body = BoundBlock.SynthesizedNoLocals(primaryCtor.GetSyntax());
-                nullableInitialState = getInitializerState(body);
-            }
-            else if (method is SourceMemberMethodSymbol sourceMethod)
+            if (method is SourceMemberMethodSymbol sourceMethod)
             {
                 CSharpSyntaxNode syntaxNode = sourceMethod.SyntaxNode;
 

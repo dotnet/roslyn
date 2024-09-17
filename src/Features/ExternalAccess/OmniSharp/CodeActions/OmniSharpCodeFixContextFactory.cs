@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
             OmniSharpCodeActionOptions options,
 #pragma warning restore IDE0060 // Remove unused parameter
             CancellationToken cancellationToken)
-            => new(document, span, diagnostics, registerCodeFix, CodeActionOptions.DefaultProvider, cancellationToken);
+            => new(document, span, diagnostics, registerCodeFix, cancellationToken);
 
         public static CodeAnalysis.CodeRefactorings.CodeRefactoringContext CreateCodeRefactoringContext(
             Document document,
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
             OmniSharpCodeActionOptions options,
 #pragma warning restore IDE0060 // Remove unused parameter
             CancellationToken cancellationToken)
-            => new(document, span, registerRefactoring, CodeActionOptions.DefaultProvider, cancellationToken);
+            => new(document, span, registerRefactoring, cancellationToken);
 
         public static FixAllContext CreateFixAllContext(
             Document? document,
@@ -57,8 +57,7 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions
                     scope,
                     codeActionEquivalenceKey,
                     diagnosticIds,
-                    fixAllDiagnosticProvider,
-                    CodeActionOptions.DefaultProvider),
+                    fixAllDiagnosticProvider),
                   CodeAnalysisProgress.None, cancellationToken);
     }
 }

@@ -80,7 +80,7 @@ public sealed class CSharpSemanticSearchServiceTests
         var result = await service.ExecuteQueryAsync(solution, query, s_referenceAssembliesDir, observer, options, traceSource, CancellationToken.None);
 
         Assert.Null(result.ErrorMessage);
-        AssertEx.Equal(new[] { "namespace N" }, results.Select(Inspect));
+        AssertEx.Equal(["namespace N"], results.Select(Inspect));
     }
 
     [ConditionalFact(typeof(CoreClrOnly))]

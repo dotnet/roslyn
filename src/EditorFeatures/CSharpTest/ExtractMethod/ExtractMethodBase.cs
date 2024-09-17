@@ -120,8 +120,8 @@ public class ExtractMethodBase
 
         var options = new ExtractMethodGenerationOptions()
         {
-            CodeGenerationOptions = CodeGenerationOptions.GetDefault(document.Project.Services),
-            CodeCleanupOptions = CodeCleanupOptions.GetDefault(document.Project.Services),
+            CodeGenerationOptions = CodeGenerationOptionsProviders.GetDefault(document.Project.Services),
+            CodeCleanupOptions = await document.GetCodeCleanupOptionsAsync(CancellationToken.None),
         };
 
         var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);

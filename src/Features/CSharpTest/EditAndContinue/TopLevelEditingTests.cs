@@ -8485,7 +8485,7 @@ class C
     }
 
     [Fact]
-    public void Method_Update_Parameter_Partial()
+    public void Method_Update_Parameter_Insert_Partial()
     {
         var src1 = @"
 class C
@@ -10046,7 +10046,7 @@ public class SubClass : BaseClass, IConflict
                 DocumentResults(),
                 DocumentResults(),
                 DocumentResults(
-                    semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("F").PartialImplementationPart, partialType: "C")]),
+                    semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")]),
             ]);
     }
 
@@ -10063,9 +10063,9 @@ public class SubClass : BaseClass, IConflict
             [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
             [
                 DocumentResults(
-                    semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("F").PartialImplementationPart, partialType: "C")]),
+                    semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")]),
                 DocumentResults(
-                    semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<INamedTypeSymbol>("C").GetMember<IMethodSymbol>("F").PartialImplementationPart, partialType: "C")]),
+                    semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.F").PartialImplementationPart, partialType: "C")]),
             ]);
     }
 
@@ -18783,6 +18783,316 @@ class C(int A, int B)
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
     }
 
+    [Fact]
+    public void Property_Partial_DeleteInsert_DefinitionPart()
+    {
+        var srcA1 = "partial class C { partial int P { get; } }";
+        var srcB1 = "partial class C { partial int P => 1; }";
+        var srcC1 = "partial class C { }";
+
+        var srcA2 = "partial class C { }";
+        var srcB2 = "partial class C { partial int P => 1; }";
+        var srcC2 = "partial class C { partial int P { get; } }";
+
+        EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)],
+            [
+                DocumentResults(),
+                DocumentResults(),
+                DocumentResults(
+                    semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, partialType: "C")]),
+            ]);
+    }
+
+    [Fact]
+    public void Property_Partial_DeleteInsert_ImplementationPart()
+    {
+        var srcA1 = "partial class C { partial int P { get; } }";
+        var srcB1 = "partial class C { partial int P => 1; }";
+        var srcC1 = "partial class C { }";
+
+        var srcA2 = "partial class C { partial int P { get; } }";
+        var srcB2 = "partial class C { }";
+        var srcC2 = "partial class C { partial int P => 1; }";
+
+        EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2)],
+            [
+                DocumentResults(),
+                DocumentResults(),
+                DocumentResults(
+                    semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, partialType: "C")]),
+            ]);
+    }
+
+    [Fact]
+    public void Property_Partial_Swap_ImplementationAndDefinitionParts()
+    {
+        var srcA1 = "partial class C { partial int P { get; } }";
+        var srcB1 = "partial class C { partial int P => 1; }";
+
+        var srcA2 = "partial class C { partial int P => 1; }";
+        var srcB2 = "partial class C { partial int P { get; } }";
+
+        EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [
+                DocumentResults(
+                    semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, partialType: "C")]),
+                DocumentResults(),
+            ]);
+    }
+
+    [Fact]
+    public void Property_Partial_DeleteBoth()
+    {
+        var srcA1 = "partial class C { partial int P { get; } }";
+        var srcB1 = "partial class C { partial int P => 1; }";
+
+        var srcA2 = "partial class C { }";
+        var srcB2 = "partial class C { }";
+
+        EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [
+                DocumentResults(
+                    semanticEdits:
+                    [
+                        SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IPropertySymbol>("C.P").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C"),
+                        SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C")
+                    ]),
+                DocumentResults(
+                    semanticEdits:
+                    [
+                        SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IPropertySymbol>("C.P").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C"),
+                        SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C")
+                    ]),
+            ]);
+    }
+
+    [Fact]
+    public void Property_Partial_DeleteInsertBoth()
+    {
+        var srcA1 = "partial class C { partial int P { get; } }";
+        var srcB1 = "partial class C { partial int P => 1; }";
+        var srcC1 = "partial class C { }";
+        var srcD1 = "partial class C { }";
+
+        var srcA2 = "partial class C { }";
+        var srcB2 = "partial class C { }";
+        var srcC2 = "partial class C { partial int P { get; } }";
+        var srcD2 = "partial class C { partial int P => 1; }";
+
+        EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2), GetTopEdits(srcC1, srcC2), GetTopEdits(srcD1, srcD2)],
+            [
+                DocumentResults(),
+                DocumentResults(),
+                DocumentResults(
+                    semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, partialType: "C")]),
+                DocumentResults(
+                    semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, partialType: "C")])
+            ]);
+    }
+
+    [Fact]
+    public void Property_Partial_Insert()
+    {
+        var srcA1 = "partial class C { }";
+        var srcB1 = "partial class C { }";
+
+        var srcA2 = "partial class C { partial int P { get; } }";
+        var srcB2 = "partial class C { partial int P => 1; }";
+
+        EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [
+                DocumentResults(),
+                DocumentResults(
+                    semanticEdits: [SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IPropertySymbol>("C.P").PartialImplementationPart)]),
+            ],
+            capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+    }
+
+    [Fact]
+    public void Property_Partial_Insert_Reloadable()
+    {
+        var srcA1 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C { }";
+        var srcB1 = "partial class C { }";
+
+        var srcA2 = ReloadableAttributeSrc + "[CreateNewOnMetadataUpdate]partial class C { partial int P { get; } }";
+        var srcB2 = "partial class C { partial int P { get => 1; } }";
+
+        EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [
+                DocumentResults(
+                    semanticEdits: [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")]),
+                DocumentResults(
+                    semanticEdits: [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"), partialType: "C")]),
+            ],
+            capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+    }
+
+    [Fact]
+    public void Property_Partial_Update_Attribute_Definition()
+    {
+        var attribute = """
+            public class A : System.Attribute { public A(int x) {} }
+            """;
+
+        var srcA1 = attribute +
+                    "partial class C { [A(1)]partial int P { get; } }";
+        var srcB1 = "partial class C { partial int P => 1; }";
+
+        var srcA2 = attribute +
+                    "partial class C { [A(2)]partial int P { get; } }";
+        var srcB2 = "partial class C { partial int P => 1; }";
+
+        EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [
+                DocumentResults(
+                    semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").PartialImplementationPart, partialType: "C")]),
+                DocumentResults(),
+            ],
+            capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
+    }
+
+    [Fact]
+    public void Property_Partial_Update_Attribute_Implementation()
+    {
+        var attribute = """
+            public class A : System.Attribute { public A(int x) {} }
+            """;
+
+        var srcA1 = attribute +
+                    "partial class C { partial int P { get; } }";
+        var srcB1 = "partial class C { [A(1)]partial int P => 1; }";
+
+        var srcA2 = attribute +
+                    "partial class C { partial int P { get; } }";
+        var srcB2 = "partial class C { [A(2)]partial int P => 1; }";
+
+        EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [
+                DocumentResults(),
+                DocumentResults(
+                    semanticEdits:
+                    [
+                        SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").PartialImplementationPart, partialType: "C"),
+
+                        // Updating the accessor is superfluous.
+                        // It is added since we see an update to an expression bodied property. We don't distinguish between update to the body and update to an attribute.
+                        SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, partialType: "C")
+                    ]),
+            ],
+            capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
+    }
+
+    [Fact]
+    public void Property_Partial_Update_Attribute_DefinitionAndImplementation()
+    {
+        var attribute = """
+            public class A : System.Attribute { public A(int x) {} }
+            """;
+
+        var srcA1 = attribute +
+                    "partial class C { [A(1)]partial int P { get; } }";
+        var srcB1 = "partial class C { [A(1)]partial int P => 1; }";
+
+        var srcA2 = attribute +
+                    "partial class C { [A(2)]partial int P { get; } }";
+        var srcB2 = "partial class C { [A(2)]partial int P => 1; }";
+
+        EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [
+                DocumentResults(
+                    semanticEdits: [SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").PartialImplementationPart, partialType: "C")]),
+                DocumentResults(
+                    semanticEdits:
+                    [
+                        SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, partialType: "C"),
+                        SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").PartialImplementationPart, partialType: "C")
+                    ]),
+            ],
+            capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
+    }
+
+    [Fact]
+    public void Property_Partial_DeleteInsert_DefinitionWithAttributeChange()
+    {
+        var attribute = """
+            public class A : System.Attribute {}
+            """;
+
+        var srcA1 = attribute +
+                    "partial class C { [A]partial int P { get; } }";
+        var srcB1 = "partial class C { partial int P => 1; }";
+
+        var srcA2 = attribute +
+                    "partial class C { }";
+        var srcB2 = "partial class C { partial int P => 1; partial int P { get; } }";
+
+        EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [
+                DocumentResults(),
+
+                DocumentResults(
+                    semanticEdits:
+                    [
+                        SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, partialType: "C"),
+                        SemanticEdit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").PartialImplementationPart, partialType: "C")
+                    ]),
+            ],
+            capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
+    }
+
+    [Fact]
+    public void Property_Partial_Parameter_TypeChange()
+    {
+        var srcA1 = "partial class C { partial int P { get; } }";
+        var srcB1 = "partial class C { partial int P => 1; }";
+
+        var srcA2 = "partial class C { partial long P { get; } }";
+        var srcB2 = "partial class C { partial long P => 1; }";
+
+        EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [
+                DocumentResults(
+                    semanticEdits:
+                    [
+                        SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C"),
+                        SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IPropertySymbol>("C.P").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C"),
+                        SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, partialType: "C"),
+                        SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IPropertySymbol>("C.P").PartialImplementationPart, partialType: "C"),
+                    ]),
+                DocumentResults(
+                    semanticEdits:
+                    [
+                        SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C"),
+                        SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IPropertySymbol>("C.P").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C"),
+                        SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart, partialType: "C"),
+                        SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IPropertySymbol>("C.P").PartialImplementationPart, partialType: "C"),
+                    ]),
+            ],
+            capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+
+        EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [
+                DocumentResults(
+                    diagnostics: [Diagnostic(RudeEditKind.ChangingSignatureNotSupportedByRuntime, "partial long P", GetResource("property"))]),
+                DocumentResults(
+                    diagnostics: [Diagnostic(RudeEditKind.ChangingSignatureNotSupportedByRuntime, "partial long P", GetResource("property"))]),
+            ],
+            capabilities: EditAndContinueCapabilities.Baseline);
+    }
+
     #endregion
 
     #region Indexers
@@ -19337,7 +19647,7 @@ class C(int A, int B)
     }
 
     [Fact]
-    public void Indexer_Parameter_Update_Type()
+    public void Indexer_Parameter_TypeChange()
     {
         var src1 = "class C { int this[byte a] { get => 1; set { } } }";
         var src2 = "class C { int this[long a] { get => 1; set { } } }";
@@ -19354,6 +19664,52 @@ class C(int A, int B)
                 SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_Item")),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+    }
+
+    [Fact]
+    public void Indexer_Partial_Parameter_TypeChange()
+    {
+        var srcA1 = "partial class C { partial int this[long x] { get; set; } }";
+        var srcB1 = "partial class C { partial int this[long x] { get => 1; set { } } }";
+
+        var srcA2 = "partial class C { partial int this[byte x] { get; set; } }";
+        var srcB2 = "partial class C { partial int this[byte x] { get => 1; set { } } }";
+
+        EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [
+                DocumentResults(
+                    semanticEdits:
+                    [
+                        SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IPropertySymbol>("C.this[]").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C"),
+                        SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.get_Item").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C"),
+                        SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.set_Item").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C"),
+                        SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IPropertySymbol>("C.this[]").PartialImplementationPart, partialType: "C"),
+                        SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IMethodSymbol>("C.get_Item").PartialImplementationPart, partialType: "C"),
+                        SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IMethodSymbol>("C.set_Item").PartialImplementationPart, partialType: "C"),
+                    ]),
+                DocumentResults(
+                    semanticEdits:
+                    [
+                        SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IPropertySymbol>("C.this[]").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C"),
+                        SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.get_Item").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C"),
+                        SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.set_Item").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C"),
+                        SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IPropertySymbol>("C.this[]").PartialImplementationPart, partialType: "C"),
+                        SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IMethodSymbol>("C.get_Item").PartialImplementationPart, partialType: "C"),
+                        SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IMethodSymbol>("C.set_Item").PartialImplementationPart, partialType: "C"),
+                    ]),
+            ],
+            capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+
+        EditAndContinueValidation.VerifySemantics(
+            [GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)],
+            [
+                DocumentResults(
+                    diagnostics: [Diagnostic(RudeEditKind.ChangingSignatureNotSupportedByRuntime, "byte x", GetResource("indexer"))]),
+                DocumentResults(
+                    diagnostics: [Diagnostic(RudeEditKind.ChangingSignatureNotSupportedByRuntime, "byte x", GetResource("indexer"))]),
+            ],
+            capabilities: EditAndContinueCapabilities.Baseline);
     }
 
     [Fact]
@@ -19418,6 +19774,46 @@ class C(int A, int B)
                 SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.set_Item")),
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+    }
+
+    [Fact]
+    public void Indexer_Parameter_Insert_Partial()
+    {
+        var src1 = """
+            class C
+            {
+                partial int this[int a] { get; set; }
+                partial int this[int a] { get => 1; set { } }
+            }
+            """;
+
+        var src2 = """
+            class C
+            {
+                partial int this[int a, int/*1*/b, int c] { get; set; }
+                partial int this[int a, int/*2*/b, int c] { get => 1; set { } }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IPropertySymbol>("C.this[]").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C"),
+                SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.get_Item").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C"),
+                SemanticEdit(SemanticEditKind.Delete, c => c.GetMember<IMethodSymbol>("C.set_Item").PartialImplementationPart, deletedSymbolContainerProvider: c => c.GetMember("C"), partialType: "C"),
+                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IPropertySymbol>("C.this[]").PartialImplementationPart, partialType: "C"),
+                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IMethodSymbol>("C.get_Item").PartialImplementationPart, partialType: "C"),
+                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<IMethodSymbol>("C.set_Item").PartialImplementationPart, partialType: "C"),
+            ],
+            capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
+
+        edits.VerifySemanticDiagnostics(
+            [
+                Diagnostic(RudeEditKind.ChangingSignatureNotSupportedByRuntime, "int/*1*/b", GetResource("indexer")),
+                Diagnostic(RudeEditKind.ChangingSignatureNotSupportedByRuntime, "int/*2*/b", GetResource("indexer"))
+            ],
+            capabilities: EditAndContinueCapabilities.Baseline);
     }
 
     [Fact]

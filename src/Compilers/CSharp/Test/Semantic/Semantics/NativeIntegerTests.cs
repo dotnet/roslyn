@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         System.Console.WriteLine(""{0}, {1}, {2}, {3}"", F1, F2, F3, F4);
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Mscorlib45);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Mscorlib461);
             CompileAndVerify(comp, expectedOutput: $"{int.MinValue}, {int.MaxValue}, -1, 1");
 
             var corLibB = comp.Assembly.CorLibrary;

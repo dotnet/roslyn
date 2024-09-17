@@ -338,29 +338,34 @@ public partial struct SyntaxValueProvider
                 return false;
 
             seenNames.Push(currentAttributeName);
-
-            foreach (var (aliasName, symbolName) in localAliases)
+            try
             {
-                // see if user wrote `[SomeAlias]`.  If so, if we find a `using SomeAlias = ...` recurse using the
-                // ... name portion to see if it might bind to the attr name the caller is searching for.
-                if (matchesName(currentAttributeName, aliasName, withAttributeSuffix) &&
-                    matchesAttributeName(symbolName, withAttributeSuffix: false))
+                foreach (var (aliasName, symbolName) in localAliases)
                 {
-                    return true;
+                    // see if user wrote `[SomeAlias]`.  If so, if we find a `using SomeAlias = ...` recurse using the
+                    // ... name portion to see if it might bind to the attr name the caller is searching for.
+                    if (matchesName(currentAttributeName, aliasName, withAttributeSuffix) &&
+                        matchesAttributeName(symbolName, withAttributeSuffix: false))
+                    {
+                        return true;
+                    }
                 }
-            }
 
-            foreach (var (aliasName, symbolName) in globalAliases.AliasAndSymbolNames)
+                foreach (var (aliasName, symbolName) in globalAliases.AliasAndSymbolNames)
+                {
+                    if (matchesName(currentAttributeName, aliasName, withAttributeSuffix) &&
+                        matchesAttributeName(symbolName, withAttributeSuffix: false))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            finally
             {
-                if (matchesName(currentAttributeName, aliasName, withAttributeSuffix) &&
-                    matchesAttributeName(symbolName, withAttributeSuffix: false))
-                {
-                    return true;
-                }
+                seenNames.Pop();
             }
-
-            seenNames.Pop();
-            return false;
         }
     }
 }

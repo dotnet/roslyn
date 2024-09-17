@@ -947,13 +947,14 @@ namespace System
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123" : null,
+            var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "123" : null;
+            var verifier = CompileAndVerify(source, expectedOutput: expectedOutput,
                 verify: Verification.Fails, targetFramework: TargetFramework.Net70);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
                   // Code size       44 (0x2c)
-                  .maxstack  5
+                  .maxstack  4
                   .locals init (System.ReadOnlySpan<int> V_0)
                   IL_0000:  ldc.i4.s   12
                   IL_0002:  conv.u
@@ -974,6 +975,10 @@ namespace System
                   IL_002b:  ret
                 }
                 """);
+
+            CompileAndVerify(source, expectedOutput: expectedOutput,
+                verify: Verification.Fails, targetFramework: TargetFramework.Net70,
+                options: TestOptions.DebugExe).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
@@ -1098,13 +1103,14 @@ namespace System
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123" : null,
+            var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "123" : null;
+            var verifier = CompileAndVerify(source, expectedOutput: expectedOutput,
                 verify: Verification.Fails, targetFramework: TargetFramework.Net70);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
                   // Code size       49 (0x31)
-                  .maxstack  5
+                  .maxstack  4
                   .locals init (System.ReadOnlySpan<int> V_0)
                   IL_0000:  ldc.i4.s   12
                   IL_0002:  conv.u
@@ -1126,6 +1132,10 @@ namespace System
                   IL_0030:  ret
                 }
                 """);
+
+            CompileAndVerify(source, expectedOutput: expectedOutput,
+                verify: Verification.Fails, targetFramework: TargetFramework.Net70,
+                options: TestOptions.DebugExe).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
@@ -1192,13 +1202,14 @@ namespace System
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123" : null,
+            var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "123" : null;
+            var verifier = CompileAndVerify(source, expectedOutput: expectedOutput,
                 verify: Verification.Fails, targetFramework: TargetFramework.Net70);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
                   // Code size       47 (0x2f)
-                  .maxstack  5
+                  .maxstack  4
                   .locals init (System.ReadOnlySpan<short> V_0)
                   IL_0000:  ldc.i4.6
                   IL_0001:  conv.u
@@ -1220,6 +1231,10 @@ namespace System
                   IL_002e:  ret
                 }
                 """);
+
+            CompileAndVerify(source, expectedOutput: expectedOutput,
+                verify: Verification.Fails, targetFramework: TargetFramework.Net70,
+                options: TestOptions.DebugExe).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
@@ -1244,13 +1259,14 @@ namespace System
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "1 2.9 3.8" : null,
+            var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "1 2.9 3.8" : null;
+            var verifier = CompileAndVerify(source, expectedOutput: expectedOutput,
                 verify: Verification.Fails, targetFramework: TargetFramework.Net70);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
                   // Code size       46 (0x2e)
-                  .maxstack  5
+                  .maxstack  4
                   .locals init (System.ReadOnlySpan<double> V_0)
                   IL_0000:  ldc.i4.s   24
                   IL_0002:  conv.u
@@ -1271,6 +1287,10 @@ namespace System
                   IL_002d:  ret
                 }
                 """);
+
+            CompileAndVerify(source, expectedOutput: expectedOutput,
+                verify: Verification.Fails, targetFramework: TargetFramework.Net70,
+                options: TestOptions.DebugExe).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
@@ -1294,13 +1314,14 @@ namespace System
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "XYZ" : null,
+            var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "XYZ" : null;
+            var verifier = CompileAndVerify(source, expectedOutput: expectedOutput,
                 verify: Verification.Fails, targetFramework: TargetFramework.Net70);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
                   // Code size       46 (0x2e)
-                  .maxstack  5
+                  .maxstack  4
                   .locals init (System.ReadOnlySpan<E> V_0)
                   IL_0000:  ldc.i4.s   24
                   IL_0002:  conv.u
@@ -1321,6 +1342,10 @@ namespace System
                   IL_002d:  ret
                 }
                 """);
+
+            CompileAndVerify(source, expectedOutput: expectedOutput,
+                verify: Verification.Fails, targetFramework: TargetFramework.Net70,
+                options: TestOptions.DebugExe).VerifyDiagnostics();
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69325")]
@@ -1475,7 +1500,7 @@ namespace System
             verifier.VerifyIL("C.Main", """
                 {
                   // Code size       38 (0x26)
-                  .maxstack  5
+                  .maxstack  4
                   .locals init (System.ReadOnlySpan<int> V_0)
                   IL_0000:  ldc.i4.s   12
                   IL_0002:  conv.u
@@ -1494,6 +1519,9 @@ namespace System
                   IL_0025:  ret
                 }
                 """);
+
+            CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? output : null,
+                verify: Verification.Fails, options: TestOptions.UnsafeDebugExe, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
 
             var comp = CreateCompilation(source, options: TestOptions.UnsafeReleaseExe, targetFramework: TargetFramework.Net70);
             comp.MakeMemberMissing((WellKnownMember)missingMember);
@@ -1604,13 +1632,14 @@ namespace System
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, expectedOutput: ExecutionConditionUtil.IsCoreClr ? "1234" : null,
+            var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "1234" : null;
+            var verifier = CompileAndVerify(source, expectedOutput: expectedOutput,
                 verify: Verification.Fails, targetFramework: TargetFramework.Net70);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.M", """
                 {
                   // Code size       57 (0x39)
-                  .maxstack  5
+                  .maxstack  4
                   .locals init (System.ReadOnlySpan<int> V_0)
                   IL_0000:  ldc.i4.s   16
                   IL_0002:  conv.u
@@ -1640,6 +1669,10 @@ namespace System
                   IL_0038:  ret
                 }
                 """);
+
+            CompileAndVerify(source, expectedOutput: expectedOutput,
+                verify: Verification.Fails, targetFramework: TargetFramework.Net70,
+                options: TestOptions.DebugExe).VerifyDiagnostics();
         }
 
         private static string GetSource(string pointerType) => $@"

@@ -27,7 +27,9 @@ internal abstract class AbstractCSharpTypeSnippetProvider<TTypeDeclarationSyntax
 {
     protected abstract ISet<SyntaxKind> ValidModifiers { get; }
 
-    protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
+    protected virtual bool CanBePartial => true;
+
+    protected override bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken)
     {
         var syntaxContext = (CSharpSyntaxContext)context.SyntaxContext;
 
@@ -36,7 +38,7 @@ internal abstract class AbstractCSharpTypeSnippetProvider<TTypeDeclarationSyntax
             syntaxContext.IsTypeDeclarationContext(
                 validModifiers: ValidModifiers,
                 validTypeDeclarations: SyntaxKindSet.NonEnumTypeDeclarations,
-                canBePartial: true,
+                canBePartial: CanBePartial,
                 cancellationToken: cancellationToken);
     }
 

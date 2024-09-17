@@ -2032,7 +2032,7 @@ class D : B {
   extern D(int x) : base(y) {}
   static int y;
 }";
-            var comp = CreateCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib461(text);
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var baseY = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "y").OfType<ExpressionSyntax>().First();

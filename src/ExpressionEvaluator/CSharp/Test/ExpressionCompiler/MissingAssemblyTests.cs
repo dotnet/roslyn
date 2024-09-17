@@ -21,6 +21,7 @@ using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
@@ -739,7 +740,7 @@ class UseLinq
                 var context = CreateMethodContext(runtime, "C.M");
 
                 var systemCore = SystemCoreRef.ToModuleInstance();
-                var fakeSystemLinq = CreateCompilationWithMscorlib45("", assemblyName: "System.Linq").
+                var fakeSystemLinq = CreateCompilationWithMscorlib461("", assemblyName: "System.Linq").
                     EmitToImageReference().ToModuleInstance();
 
                 string errorMessage;
@@ -894,11 +895,11 @@ LanguageVersion.CSharp7_1);
         private static void TupleContextNoSystemRuntime(string source, string methodName, string expression, string expectedIL,
             LanguageVersion languageVersion = LanguageVersion.CSharp7)
         {
-            var comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
-                references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.DebugDll);
+            var comp = CreateEmptyCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                references: [Net461.References.mscorlib, Net461.References.SystemRuntime, ValueTupleLegacyRef], options: TestOptions.DebugDll);
             using (var systemRuntime = SystemRuntimeFacadeRef.ToModuleInstance())
             {
-                WithRuntimeInstance(comp, new[] { MscorlibRef, ValueTupleRef }, runtime =>
+                WithRuntimeInstance(comp, [Net461.References.mscorlib, ValueTupleLegacyRef], runtime =>
                 {
                     ImmutableArray<MetadataBlock> blocks;
                     Guid moduleVersionId;

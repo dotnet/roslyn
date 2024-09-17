@@ -12,7 +12,6 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     internal readonly struct RudeEditDiagnosticDescription : IEquatable<RudeEditDiagnosticDescription>
     {
         public readonly RudeEditKind RudeEditKind;
-        private readonly string? _firstLine;
         private readonly string? _squiggle;
         private readonly string[] _arguments;
 
@@ -20,11 +19,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             RudeEditKind = rudeEditKind;
             _squiggle = squiggle;
-            _firstLine = firstLine;
+            FirstLine = firstLine;
             _arguments = arguments ?? [];
         }
 
-        public string? FirstLine => _firstLine;
+        public string? FirstLine { get; }
 
         public RudeEditDiagnosticDescription WithFirstLine(string value)
             => new(RudeEditKind, _squiggle, _arguments, value.Trim());
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             return RudeEditKind == other.RudeEditKind
                 && _squiggle == other._squiggle
-                && (_firstLine == other._firstLine || _firstLine == null || other._firstLine == null)
+                && (FirstLine == other.FirstLine || FirstLine == null || other.FirstLine == null)
                 && _arguments.SequenceEqual(other._arguments, object.Equals);
         }
 
@@ -59,7 +58,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 : $"\"{_squiggle}\"";
 
             string[] arguments = [formattedSquiggle, .. _arguments.Select(a => tryGetResource?.Invoke(a) is { } ? $"GetResource(\"{a}\")" : $"\"{a}\"")];
-            var withLine = (_firstLine != null) ? $".WithFirstLine(\"{_firstLine}\")" : null;
+            var withLine = (FirstLine != null) ? $".WithFirstLine(\"{FirstLine}\")" : null;
 
             return $"Diagnostic(RudeEditKind.{RudeEditKind}, {string.Join(", ", arguments)}){withLine}";
         }

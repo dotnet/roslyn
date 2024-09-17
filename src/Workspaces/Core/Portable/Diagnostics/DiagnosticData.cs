@@ -199,7 +199,7 @@ internal sealed class DiagnosticData(
         var additionalLocations = GetAdditionalLocations(document, diagnostic);
         var additionalProperties = GetAdditionalProperties(document, diagnostic);
 
-        var documentPropertiesService = document.Services.GetService<DocumentPropertiesService>();
+        var documentPropertiesService = document.DocumentServiceProvider.GetService<DocumentPropertiesService>();
         var diagnosticsLspClientName = documentPropertiesService?.DiagnosticsLspClientName;
 
         if (diagnosticsLspClientName != null)

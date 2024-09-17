@@ -3084,6 +3084,48 @@ format:
 ");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74733")]
+        public void InterpolatedString()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                C.M("xyz");
+
+                [InterpolatedStringHandler]
+                public class C
+                {
+                    public C(int literalLength, int formattedCount)
+                    {
+                        Console.WriteLine($"literal:{literalLength}, formatted:{formattedCount}");
+                    }
+
+                    public void AppendLiteral(params List<string> s)
+                    {
+                        Console.WriteLine($"append:'{(string.Join(",", s))}'");
+                    }
+
+                    public void AppendFormatted(string s)
+                    {
+                        Console.WriteLine($"formatted:'{s}'");
+                    }
+
+                    public static void M(string s)
+                    {
+                        C c = $"abc {s} def";
+                    }
+                }
+                """;
+            CompileAndVerify([source, InterpolatedStringHandlerAttribute], expectedOutput: """
+                literal:8, formatted:1
+                append:'abc '
+                formatted:'xyz'
+                append:' def'
+                """).VerifyDiagnostics();
+        }
+
         [Fact]
         public void OrderOfEvaluation_01_NamedArguments()
         {
@@ -14317,6 +14359,520 @@ namespace System.Runtime.CompilerServices
                 //         static void Test(params CollectionBuilderAttribute a)
                 Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(30, 26)
                 );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
+        public void Cycle_16()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class Base : IEnumerable<object>
+                {
+                    public IEnumerator<object> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+
+                public class MyCollection1 : Base
+                {
+                    public void Add(params MyCollection1 c) {}
+                }
+
+                public class C
+                {
+                    /*<bind>*/
+                    MyCollection1 M() => [1];
+                    /*</bind>*/
+                }
+                """;
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+                // (18,27): error CS9222: Collection initializer results in an infinite chain of instantiations of collection 'MyCollection1'.
+                //     MyCollection1 M() => [1];
+                Diagnostic(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, "1").WithArguments("MyCollection1").WithLocation(18, 27));
+
+            VerifyFlowGraphForTest<MethodDeclarationSyntax>(comp, """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection1, IsInvalid, IsImplicit) (Syntax: '[1]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionExpression)
+                          Operand:
+                            ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection1..ctor()) (OperationKind.CollectionExpression, Type: MyCollection1, IsInvalid) (Syntax: '[1]')
+                              Elements(1):
+                                  IInvocationOperation ( void MyCollection1.Add(params MyCollection1 c)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '1')
+                                    Instance Receiver:
+                                      IInvalidOperation (OperationKind.Invalid, Type: MyCollection1, IsInvalid, IsImplicit) (Syntax: '1')
+                                        Children(0)
+                                    Arguments(1):
+                                        IArgumentOperation (ArgumentKind.ParamCollection, Matching Parameter: c) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
+                                          ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: MyCollection1, IsInvalid, IsImplicit) (Syntax: '1')
+                                            Elements(1):
+                                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
+
+            VerifyOperationTreeForTest<MethodDeclarationSyntax>(comp, """
+                IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'MyCollectio ... M() => [1];')
+                BlockBody:
+                  null
+                ExpressionBody:
+                  IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> [1]')
+                    IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '[1]')
+                      ReturnedValue:
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection1, IsInvalid, IsImplicit) (Syntax: '[1]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          Operand:
+                            ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection1..ctor()) (OperationKind.CollectionExpression, Type: MyCollection1, IsInvalid) (Syntax: '[1]')
+                              Elements(1):
+                                  IInvocationOperation ( void MyCollection1.Add(params MyCollection1 c)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '1')
+                                    Instance Receiver:
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: MyCollection1, IsInvalid, IsImplicit) (Syntax: '1')
+                                    Arguments(1):
+                                        IArgumentOperation (ArgumentKind.ParamCollection, Matching Parameter: c) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
+                                          ICollectionExpressionOperation (1 elements, ConstructMethod: null) (OperationKind.CollectionExpression, Type: MyCollection1, IsInvalid, IsImplicit) (Syntax: '1')
+                                            Elements(1):
+                                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
+        public void Cycle_17()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class Base : IEnumerable<object>
+                {
+                    public IEnumerator<object> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+
+                public class MyCollection1 : Base
+                {
+                    public void Add(params MyCollection2 c) {}
+                }
+
+                public class MyCollection2 : Base
+                {
+                    public void Add(params MyCollection1 c) { }
+                }
+
+                public class C
+                {
+                    /*<bind>*/
+                    MyCollection1 M() => [1];
+                    /*</bind>*/
+                }
+                """;
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics(
+                // (23,27): error CS9222: Collection initializer results in an infinite chain of instantiations of collection 'MyCollection2'.
+                //     MyCollection1 M() => [1];
+                Diagnostic(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, "1").WithArguments("MyCollection2").WithLocation(23, 27));
+
+            VerifyFlowGraphForTest<MethodDeclarationSyntax>(comp, """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                Block[B1] - Block
+                    Predecessors: [B0]
+                    Statements (0)
+                    Next (Return) Block[B2]
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection1, IsInvalid, IsImplicit) (Syntax: '[1]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                            (CollectionExpression)
+                          Operand:
+                            ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection1..ctor()) (OperationKind.CollectionExpression, Type: MyCollection1, IsInvalid) (Syntax: '[1]')
+                              Elements(1):
+                                  IInvocationOperation ( void MyCollection2.Add(params MyCollection1 c)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '1')
+                                    Instance Receiver:
+                                      IInvalidOperation (OperationKind.Invalid, Type: MyCollection2, IsInvalid, IsImplicit) (Syntax: '1')
+                                        Children(0)
+                                    Arguments(1):
+                                        IArgumentOperation (ArgumentKind.ParamCollection, Matching Parameter: c) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
+                                          ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection1..ctor()) (OperationKind.CollectionExpression, Type: MyCollection1, IsInvalid, IsImplicit) (Syntax: '1')
+                                            Elements(1):
+                                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
+
+            VerifyOperationTreeForTest<MethodDeclarationSyntax>(comp, """
+                IMethodBodyOperation (OperationKind.MethodBody, Type: null, IsInvalid) (Syntax: 'MyCollectio ... M() => [1];')
+                BlockBody:
+                  null
+                ExpressionBody:
+                  IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid) (Syntax: '=> [1]')
+                    IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: '[1]')
+                      ReturnedValue:
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection1, IsInvalid, IsImplicit) (Syntax: '[1]')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          Operand:
+                            ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection1..ctor()) (OperationKind.CollectionExpression, Type: MyCollection1, IsInvalid) (Syntax: '[1]')
+                              Elements(1):
+                                  IInvocationOperation ( void MyCollection2.Add(params MyCollection1 c)) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: '1')
+                                    Instance Receiver:
+                                      IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: MyCollection2, IsInvalid, IsImplicit) (Syntax: '1')
+                                    Arguments(1):
+                                        IArgumentOperation (ArgumentKind.ParamCollection, Matching Parameter: c) (OperationKind.Argument, Type: null, IsInvalid, IsImplicit) (Syntax: '1')
+                                          ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection1..ctor()) (OperationKind.CollectionExpression, Type: MyCollection1, IsInvalid, IsImplicit) (Syntax: '1')
+                                            Elements(1):
+                                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid) (Syntax: '1')
+                                          InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                          OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
+        public void Cycle_18()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class Base : IEnumerable<object>
+                {
+                    public IEnumerator<object> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+
+                public class MyCollection1 : Base
+                {
+                    public void Add(params MyCollection1 c) {}
+                }
+
+                public class C
+                {
+                    MyCollection1 M() => new() { 1 };
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (17,34): error CS9222: Collection initializer results in an infinite chain of instantiations of collection 'MyCollection1'.
+                //     MyCollection1 M() => new() { 1 };
+                Diagnostic(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, "1").WithArguments("MyCollection1").WithLocation(17, 34));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
+        public void Cycle_19()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class Base : IEnumerable<object>
+                {
+                    public IEnumerator<object> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                }
+
+                public class MyCollection1 : Base
+                {
+                    public void Add(params MyCollection2 c) {}
+                }
+
+                public class MyCollection2 : Base
+                {
+                    public void Add(params int[] c) { }
+                }
+
+                public class C
+                {
+                    /*<bind>*/
+                    MyCollection1 M() => new() { 1 };
+                    /*</bind>*/
+                }
+                """;
+            var comp = CreateCompilation(source).VerifyEmitDiagnostics();
+
+            VerifyFlowGraphForTest<MethodDeclarationSyntax>(comp, """
+                Block[B0] - Entry
+                    Statements (0)
+                    Next (Regular) Block[B1]
+                        Entering: {R1}
+                .locals {R1}
+                {
+                    CaptureIds: [0]
+                    Block[B1] - Block
+                        Predecessors: [B0]
+                        Statements (2)
+                            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new() { 1 }')
+                              Value:
+                                IObjectCreationOperation (Constructor: MyCollection1..ctor()) (OperationKind.ObjectCreation, Type: MyCollection1) (Syntax: 'new() { 1 }')
+                                  Arguments(0)
+                                  Initializer:
+                                    null
+                            IInvocationOperation ( void MyCollection1.Add(params MyCollection2 c)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '1')
+                              Instance Receiver:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyCollection1, IsImplicit) (Syntax: 'new() { 1 }')
+                              Arguments(1):
+                                  IArgumentOperation (ArgumentKind.ParamCollection, Matching Parameter: c) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '1')
+                                    ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection2..ctor()) (OperationKind.CollectionExpression, Type: MyCollection2, IsImplicit) (Syntax: '1')
+                                      Elements(1):
+                                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        Next (Return) Block[B2]
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection1, IsImplicit) (Syntax: 'new() { 1 }')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                (ObjectCreation)
+                              Operand:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyCollection1, IsImplicit) (Syntax: 'new() { 1 }')
+                            Leaving: {R1}
+                }
+                Block[B2] - Exit
+                    Predecessors: [B1]
+                    Statements (0)
+                """);
+
+            VerifyOperationTreeForTest<MethodDeclarationSyntax>(comp, """
+                IMethodBodyOperation (OperationKind.MethodBody, Type: null) (Syntax: 'MyCollectio ... ew() { 1 };')
+                BlockBody:
+                  null
+                ExpressionBody:
+                  IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '=> new() { 1 }')
+                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'new() { 1 }')
+                      ReturnedValue:
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: MyCollection1, IsImplicit) (Syntax: 'new() { 1 }')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                          Operand:
+                            IObjectCreationOperation (Constructor: MyCollection1..ctor()) (OperationKind.ObjectCreation, Type: MyCollection1) (Syntax: 'new() { 1 }')
+                              Arguments(0)
+                              Initializer:
+                                IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: MyCollection1) (Syntax: '{ 1 }')
+                                  Initializers(1):
+                                      IInvocationOperation ( void MyCollection1.Add(params MyCollection2 c)) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: '1')
+                                        Instance Receiver:
+                                          IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: MyCollection1, IsImplicit) (Syntax: 'new() { 1 }')
+                                        Arguments(1):
+                                            IArgumentOperation (ArgumentKind.ParamCollection, Matching Parameter: c) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: '1')
+                                              ICollectionExpressionOperation (1 elements, ConstructMethod: MyCollection2..ctor()) (OperationKind.CollectionExpression, Type: MyCollection2, IsImplicit) (Syntax: '1')
+                                                Elements(1):
+                                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                                              InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                                              OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
+        public void Cycle_20()
+        {
+            var source = """
+                using System.Collections.Generic;
+                List<List<int>> l;
+                l = [[], [2, 3]];
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
+        public void Cycle_21()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class MyCollection1<T> : IEnumerable<T>
+                {
+                    public IEnumerator<T> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add(params MyCollection1<T> c) {}
+                }
+
+                public class C
+                {
+                    MyCollection1<object> M() => [1];
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (13,35): error CS9222: Collection initializer results in an infinite chain of instantiations of collection 'MyCollection1<object>'.
+                //     MyCollection1<object> M() => [1];
+                Diagnostic(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, "1").WithArguments("MyCollection1<object>").WithLocation(13, 35));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
+        public void Cycle_22()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class MyCollection1<T> : IEnumerable<T>
+                {
+                    public IEnumerator<T> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add(params MyCollection1<object> c) {}
+                }
+
+                public class C
+                {
+                    MyCollection1<object> M() => [1];
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (13,35): error CS9222: Collection initializer results in an infinite chain of instantiations of collection 'MyCollection1<object>'.
+                //     MyCollection1<object> M() => [1];
+                Diagnostic(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, "1").WithArguments("MyCollection1<object>").WithLocation(13, 35));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
+        public void Cycle_23()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class MyCollection1<T> : IEnumerable<T>
+                {
+                    public IEnumerator<T> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add(T x) {}
+                    public void Add(params MyCollection1<T> c) {}
+                }
+
+                public class C
+                {
+                    MyCollection1<object> M() => [1];
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
+        public void Cycle_24()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class MyCollection1<T> : IEnumerable<T>
+                {
+                    public IEnumerator<T> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add(params MyCollection1<int> c) {}
+                }
+
+                public class C
+                {
+                    MyCollection1<object> M() => [1];
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (13,35): error CS9222: Collection initializer results in an infinite chain of instantiations of collection 'MyCollection1<int>'.
+                //     MyCollection1<object> M() => [1];
+                Diagnostic(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, "1").WithArguments("MyCollection1<int>").WithLocation(13, 35));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
+        public void Cycle_25()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class MyCollection1<T> : IEnumerable<T>
+                {
+                    public IEnumerator<T> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add(params MyCollection1<object> c) {}
+                }
+
+                public class C
+                {
+                    public void M() 
+                    {
+                        MyCollection1<int> c = new() { 1 };
+                        c.Add(2);
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (15,40): error CS9222: Collection initializer results in an infinite chain of instantiations of collection 'MyCollection1<object>'.
+                //         MyCollection1<int> c = new() { 1 };
+                Diagnostic(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, "1").WithArguments("MyCollection1<object>").WithLocation(15, 40),
+                // (16,15): error CS9222: Collection initializer results in an infinite chain of instantiations of collection 'MyCollection1<object>'.
+                //         c.Add(2);
+                Diagnostic(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, "2").WithArguments("MyCollection1<object>").WithLocation(16, 15));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
+        public void Cycle_26()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class MyCollection1 : IEnumerable<object>
+                {
+                    public MyCollection1(params MyCollection2 c) {}
+                    public IEnumerator<object> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add(params MyCollection2 c) {}
+                }
+
+                public class MyCollection2 : IEnumerable<object>
+                {
+                    public IEnumerator<object> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add(params MyCollection1 c) {}
+                }
+
+                public class C
+                {
+                    MyCollection1 M() => new() { 1 };
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (21,34): error CS9222: Collection initializer results in an infinite chain of instantiations of collection 'MyCollection2'.
+                //     MyCollection1 M() => new() { 1 };
+                Diagnostic(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, "1").WithArguments("MyCollection2").WithLocation(21, 34));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74734")]
+        public void Cycle_27()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                public class MyCollection1 : IEnumerable<object>
+                {
+                    public MyCollection1(params MyCollection2 c) {}
+                    public IEnumerator<object> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add(params MyCollection2 c) {}
+                }
+
+                public class MyCollection2 : IEnumerable<object>
+                {
+                    public IEnumerator<object> GetEnumerator() => throw null;
+                    IEnumerator IEnumerable.GetEnumerator() => throw null;
+                    public void Add(params MyCollection1 c) {}
+                }
+
+                public class C
+                {
+                    MyCollection1 M() => [1];
+                }
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (21,27): error CS9222: Collection initializer results in an infinite chain of instantiations of collection 'MyCollection2'.
+                //     MyCollection1 M() => [1];
+                Diagnostic(ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls, "1").WithArguments("MyCollection2").WithLocation(21, 27));
         }
 
         [Fact]

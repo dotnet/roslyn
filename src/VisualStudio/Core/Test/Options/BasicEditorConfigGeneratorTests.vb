@@ -43,6 +43,9 @@ dotnet_hide_advanced_members = false
 dotnet_member_insertion_location = with_other_members_of_the_same_kind
 dotnet_property_generation_behavior = prefer_throwing_properties
 
+# Symbol search
+dotnet_search_reference_assemblies = true
+
 #### .NET Coding Conventions ####
 
 # Organize usings
@@ -192,6 +195,9 @@ insert_final_newline = false
 dotnet_hide_advanced_members = false
 dotnet_member_insertion_location = with_other_members_of_the_same_kind
 dotnet_property_generation_behavior = prefer_throwing_properties
+
+# Symbol search
+dotnet_search_reference_assemblies = true
 
 #### .NET Coding Conventions ####
 

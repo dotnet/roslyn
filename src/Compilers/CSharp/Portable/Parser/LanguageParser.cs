@@ -415,6 +415,159 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             ref SyntaxListBuilder? initialBadNodes,
             SyntaxKind parentKind)
         {
+            ParseNamespaceBodyWorker(
+                ref openBraceOrSemicolon, ref body, ref initialBadNodes, parentKind, out var sawMemberDeclarationOnlyValidWithinTypeDeclaration);
+
+            // In the common case, we will not see errant type-only member declarations in the namespace itself.  In
+            // that case, we have no extra work to do and can return immediately.
+            //
+            // If we do see errant type-only members (like a method/property/constructor/etc.), then see if they follow
+            // some normal type declaration.  If so, it's likely there was a misplaced close curly that preemptively
+            // ended the type declaration, and the member declaration was supposed to go in it instead.
+            if (!sawMemberDeclarationOnlyValidWithinTypeDeclaration)
+                return;
+
+            // In a script file, it can be ok to have these members at the top level.  For example, a field is actually
+            // ok to parse out at the top level as it will become a field on the script global object.
+            if (IsScript && parentKind == SyntaxKind.CompilationUnit)
+                return;
+
+            var finalMembers = _pool.Allocate<MemberDeclarationSyntax>();
+
+            // Do a single linear sweep, examining each type declaration we run into within the namespace.
+            for (var currentBodyMemberIndex = 0; currentBodyMemberIndex < body.Members.Count;)
+            {
+                var currentMember = body.Members[currentBodyMemberIndex];
+
+                // If we have a suitable type declaration that ended without problem (has a real close curly and no
+                // trailing semicolon),  then see if there are any type-only members following it that should be moved
+                // into it.
+                if (currentMember is TypeDeclarationSyntax
+                    {
+                        SemicolonToken: null,
+                        CloseBraceToken: { IsMissing: false, ContainsDiagnostics: false }
+                    } currentTypeDeclaration)
+                {
+                    var siblingsToMoveIntoType = determineSiblingsToMoveIntoType(typeDeclarationIndex: currentBodyMemberIndex, body);
+                    if (siblingsToMoveIntoType is (var firstSiblingToMoveInclusive, var lastSiblingToMoveExclusive))
+                    {
+                        // We found sibling type-only members.  Move them into the preceding type declaration.
+                        var finalTypeDeclaration = moveSiblingMembersIntoPrecedingType(
+                            currentTypeDeclaration, body, firstSiblingToMoveInclusive, lastSiblingToMoveExclusive);
+                        finalMembers.Add(finalTypeDeclaration);
+
+                        // We moved a sequence of type-only-members into the preceding type declaration.  We need to
+                        // continue processing from the end of that sequence.
+                        currentBodyMemberIndex = lastSiblingToMoveExclusive;
+                        continue;
+                    }
+                }
+
+                // Simple case.  A normal namespace member we don't need to do anything with.
+                finalMembers.Add(currentMember);
+                currentBodyMemberIndex++;
+            }
+
+            _pool.Free(body.Members);
+            body.Members = finalMembers;
+
+            return;
+
+            (int firstSiblingToMoveInclusive, int lastSiblingToMoveExclusive)? determineSiblingsToMoveIntoType(
+                int typeDeclarationIndex,
+                in NamespaceBodyBuilder body)
+            {
+                var startInclusive = typeDeclarationIndex + 1;
+                if (startInclusive < body.Members.Count &&
+                    IsMemberDeclarationOnlyValidWithinTypeDeclaration(body.Members[startInclusive]))
+                {
+                    var endExclusive = startInclusive + 1;
+
+                    while (endExclusive < body.Members.Count &&
+                           IsMemberDeclarationOnlyValidWithinTypeDeclaration(body.Members[endExclusive]))
+                    {
+                        endExclusive++;
+                    }
+
+                    return (startInclusive, endExclusive);
+                }
+
+                return null;
+            }
+
+            TypeDeclarationSyntax moveSiblingMembersIntoPrecedingType(
+                TypeDeclarationSyntax typeDeclaration,
+                in NamespaceBodyBuilder body,
+                int firstSiblingToMoveInclusive,
+                int lastSiblingToMoveExclusive)
+            {
+                var finalTypeDeclarationMembers = _pool.Allocate<MemberDeclarationSyntax>();
+                finalTypeDeclarationMembers.AddRange(typeDeclaration.Members);
+
+                for (var memberToMoveIndex = firstSiblingToMoveInclusive; memberToMoveIndex < lastSiblingToMoveExclusive; memberToMoveIndex++)
+                {
+                    var currentSibling = body.Members[memberToMoveIndex];
+                    if (memberToMoveIndex == firstSiblingToMoveInclusive)
+                    {
+                        // Move the existing close brace token to the first member as a skipped token, with a
+                        // diagnostic saying that it was unexpected.
+                        currentSibling = AddLeadingSkippedSyntax(
+                            currentSibling,
+                            AddError(typeDeclaration.CloseBraceToken, ErrorCode.ERR_InvalidMemberDecl, "}"));
+                    }
+
+                    finalTypeDeclarationMembers.Add(currentSibling);
+                }
+
+                var isLast = lastSiblingToMoveExclusive == body.Members.Count;
+
+                // The existing close brace token is moved to the first member as a skipped token, with a diagnostic saying
+                // it was unexpected.  The type decl will then get a missing close brace token if there are still members
+                // following.  If not, we'll try to eat an actual close brace token.
+                var finalCloseBraceToken = isLast
+                    ? EatToken(SyntaxKind.CloseBraceToken)
+                    : AddError(
+                        SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken), ErrorCode.ERR_RbraceExpected);
+                var newMembers = _pool.ToListAndFree(finalTypeDeclarationMembers);
+
+                return typeDeclaration.UpdateCore(
+                    typeDeclaration.AttributeLists,
+                    typeDeclaration.Modifiers,
+                    typeDeclaration.Keyword,
+                    typeDeclaration.Identifier,
+                    typeDeclaration.TypeParameterList,
+                    typeDeclaration.ParameterList,
+                    typeDeclaration.BaseList,
+                    typeDeclaration.ConstraintClauses,
+                    typeDeclaration.OpenBraceToken,
+                    newMembers,
+                    finalCloseBraceToken,
+                    typeDeclaration.SemicolonToken);
+            }
+        }
+
+        private static bool IsMemberDeclarationOnlyValidWithinTypeDeclaration(MemberDeclarationSyntax? memberDeclaration)
+        {
+            return memberDeclaration?.Kind
+                is SyntaxKind.ConstructorDeclaration
+                or SyntaxKind.ConversionOperatorDeclaration
+                or SyntaxKind.DestructorDeclaration
+                or SyntaxKind.EventDeclaration
+                or SyntaxKind.EventFieldDeclaration
+                or SyntaxKind.FieldDeclaration
+                or SyntaxKind.IndexerDeclaration
+                or SyntaxKind.MethodDeclaration
+                or SyntaxKind.OperatorDeclaration
+                or SyntaxKind.PropertyDeclaration;
+        }
+
+        private void ParseNamespaceBodyWorker(
+            [NotNullIfNotNull(nameof(openBraceOrSemicolon))] ref SyntaxToken? openBraceOrSemicolon,
+            ref NamespaceBodyBuilder body,
+            ref SyntaxListBuilder? initialBadNodes,
+            SyntaxKind parentKind,
+            out bool sawMemberDeclarationOnlyValidWithinTypeDeclaration)
+        {
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
 
@@ -425,6 +578,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             NamespaceParts seen = NamespaceParts.None;
             var pendingIncompleteMembers = _pool.Allocate<MemberDeclarationSyntax>();
             bool reportUnexpectedToken = true;
+
+            sawMemberDeclarationOnlyValidWithinTypeDeclaration = false;
 
             try
             {
@@ -563,7 +718,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             goto default;
 
                         default:
-                            var memberOrStatement = isGlobal ? this.ParseMemberDeclarationOrStatement(parentKind) : this.ParseMemberDeclaration(parentKind);
+                            var memberOrStatement = isGlobal
+                                ? this.ParseMemberDeclarationOrStatement(parentKind)
+                                : this.ParseMemberDeclaration(parentKind);
+
+                            sawMemberDeclarationOnlyValidWithinTypeDeclaration |= IsMemberDeclarationOnlyValidWithinTypeDeclaration(memberOrStatement);
                             if (memberOrStatement == null)
                             {
                                 // incomplete members must be processed before we add any nodes to the body:
@@ -2574,7 +2733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         this.Reset(ref afterAttributesPoint);
 
                         if (this.CurrentToken.Kind is not SyntaxKind.CloseBraceToken and not SyntaxKind.EndOfFileToken &&
-                            this.IsPossibleStatement(acceptAccessibilityMods: true))
+                            this.IsPossibleStatement())
                         {
                             var saveTerm = _termState;
                             _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
@@ -2754,7 +2913,7 @@ parse_member_name:;
 
                 this.Reset(ref afterAttributesPoint);
 
-                if (this.IsPossibleStatement(acceptAccessibilityMods: false))
+                if (this.IsPossibleStatement())
                 {
                     var saveTerm = _termState;
                     _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
@@ -3719,12 +3878,41 @@ parse_member_name:;
             return TryEatToken(SyntaxKind.CheckedKeyword);
         }
 
-        private OperatorDeclarationSyntax ParseOperatorDeclaration(
+        private MemberDeclarationSyntax ParseOperatorDeclaration(
             SyntaxList<AttributeListSyntax> attributes,
             SyntaxListBuilder modifiers,
             TypeSyntax type,
             ExplicitInterfaceSpecifierSyntax explicitInterfaceOpt)
         {
+            // We can get here after seeing `explicit` or `implicit` or `operator`.  `ret-type explicit op ...` is not
+            // legal though.
+            var firstToken = this.CurrentToken;
+            if (firstToken.Kind is SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword &&
+                this.PeekToken(1).Kind is SyntaxKind.OperatorKeyword)
+            {
+                var conversionOperator = TryParseConversionOperatorDeclaration(attributes, modifiers);
+                if (conversionOperator is not null)
+                {
+                    // We need to ensure the type syntax the user provided gets an appropriate error and is placed as
+                    // leading skipped trivia for the explicit/implicit keyword.
+                    var newImplicitOrExplicitKeyword = AddLeadingSkippedSyntax(
+                        conversionOperator.ImplicitOrExplicitKeyword,
+                        AddError(type, ErrorCode.ERR_BadOperatorSyntax, firstToken.Text));
+                    return conversionOperator.Update(
+                        conversionOperator.AttributeLists,
+                        conversionOperator.Modifiers,
+                        newImplicitOrExplicitKeyword,
+                        conversionOperator.ExplicitInterfaceSpecifier,
+                        conversionOperator.OperatorKeyword,
+                        conversionOperator.CheckedKeyword,
+                        conversionOperator.Type,
+                        conversionOperator.ParameterList,
+                        conversionOperator.Body,
+                        conversionOperator.ExpressionBody,
+                        conversionOperator.SemicolonToken);
+                }
+            }
+
             var opKeyword = this.EatToken(SyntaxKind.OperatorKeyword);
             var checkedKeyword = TryEatCheckedOrHandleUnchecked(ref opKeyword);
             SyntaxToken opToken;
@@ -8650,7 +8838,7 @@ done:;
                 && !(stopOnSwitchSections && this.IsPossibleSwitchSection())
                 && IsMakingProgress(ref lastTokenPosition))
             {
-                if (this.IsPossibleStatement(acceptAccessibilityMods: true))
+                if (this.IsPossibleStatement())
                 {
                     var statement = this.ParsePossiblyAttributedStatement();
                     if (statement != null)
@@ -8679,7 +8867,7 @@ done:;
         private bool IsPossibleStatementStartOrStop()
         {
             return this.CurrentToken.Kind == SyntaxKind.SemicolonToken
-                || this.IsPossibleStatement(acceptAccessibilityMods: true);
+                || this.IsPossibleStatement();
         }
 
         private PostSkipAction SkipBadStatementListTokens(SyntaxListBuilder<StatementSyntax> statements, SyntaxKind expected, out GreenNode trailingTrivia)
@@ -8689,14 +8877,14 @@ done:;
                 // We know we have a bad statement, so it can't be a local
                 // function, meaning we shouldn't consider accessibility
                 // modifiers to be the start of a statement
-                static p => !p.IsPossibleStatement(acceptAccessibilityMods: false),
+                static p => !p.IsPossibleStatement(),
                 static (p, _) => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken,
                 expected,
                 closeKind: SyntaxKind.None,
                 out trailingTrivia);
         }
 
-        private bool IsPossibleStatement(bool acceptAccessibilityMods)
+        private bool IsPossibleStatement()
         {
             var tk = this.CurrentToken.Kind;
             switch (tk)
@@ -8735,14 +8923,6 @@ done:;
                 case SyntaxKind.IdentifierToken:
                     return IsTrueIdentifier();
 
-                // Accessibility modifiers are not legal in a statement,
-                // but a common mistake for local functions. Parse to give a
-                // better error message.
-                case SyntaxKind.PublicKeyword:
-                case SyntaxKind.InternalKeyword:
-                case SyntaxKind.ProtectedKeyword:
-                case SyntaxKind.PrivateKeyword:
-                    return acceptAccessibilityMods;
                 default:
                     return IsPredefinedType(tk)
                         || IsPossibleExpression();

@@ -32,7 +32,6 @@ internal sealed class SyncNamespacesCommandHandler
 {
     private readonly VisualStudioWorkspace _workspace;
     private readonly IUIThreadOperationExecutor _threadOperationExecutor;
-    private readonly IGlobalOptionService _globalOptions;
     private readonly IThreadingContext _threadingContext;
     private IServiceProvider? _serviceProvider;
 
@@ -41,12 +40,10 @@ internal sealed class SyncNamespacesCommandHandler
     public SyncNamespacesCommandHandler(
         IUIThreadOperationExecutor threadOperationExecutor,
         VisualStudioWorkspace workspace,
-        IGlobalOptionService globalOptions,
         IThreadingContext threadingContext)
     {
         _threadOperationExecutor = threadOperationExecutor;
         _workspace = workspace;
-        _globalOptions = globalOptions;
         _threadingContext = threadingContext;
     }
 
@@ -134,7 +131,6 @@ internal sealed class SyncNamespacesCommandHandler
         }
 
         var syncService = projects[0].GetRequiredLanguageService<ISyncNamespacesService>();
-        var options = _globalOptions.GetCodeActionOptionsProvider();
 
         Solution? solution = null;
         var status = _threadOperationExecutor.Execute(
@@ -142,7 +138,7 @@ internal sealed class SyncNamespacesCommandHandler
             operationContext =>
             {
                 solution = _threadingContext.JoinableTaskFactory.Run(
-                    () => syncService.SyncNamespacesAsync(projects, options, operationContext.GetCodeAnalysisProgress(), operationContext.UserCancellationToken));
+                    () => syncService.SyncNamespacesAsync(projects, operationContext.GetCodeAnalysisProgress(), operationContext.UserCancellationToken));
             });
 
         if (status != UIThreadOperationStatus.Canceled && solution is not null)
