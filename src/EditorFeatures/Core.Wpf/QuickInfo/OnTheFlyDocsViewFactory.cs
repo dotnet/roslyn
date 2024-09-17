@@ -5,11 +5,11 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Windows;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo;
 
 [Export(typeof(IViewElementFactory))]
 [Name("OnTheFlyDocsElement converter")]
-[TypeConversion(from: typeof(EditorFeaturesOnTheFlyDocsElement), to: typeof(UIElement))]
+[TypeConversion(from: typeof(QuickInfoOnTheFlyDocsElement), to: typeof(UIElement))]
 [Order(Before = "Default")]
 internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
 {
@@ -46,11 +46,11 @@ internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
             throw new InvalidOperationException("TView must be UIElement");
         }
 
-        var editorFeaturesOnTheFlyDocsElement = (EditorFeaturesOnTheFlyDocsElement)model;
+        var onTheFlyDocsElement = (QuickInfoOnTheFlyDocsElement)model;
 
         Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Showed_Link, KeyValueLogMessage.Create(m =>
         {
-            m["SymbolHeaderText"] = editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsInfo.SymbolSignature;
+            m["SymbolHeaderText"] = onTheFlyDocsElement.Info.SymbolSignature;
         }, LogLevel.Information));
 
         var quickInfoSession = _asyncQuickInfoBroker.GetSession(textView);
@@ -62,11 +62,11 @@ internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
 
         OnTheFlyDocsLogger.LogShowedOnTheFlyDocsLink();
 
-        if (editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsInfo.HasComments)
+        if (onTheFlyDocsElement.Info.HasComments)
         {
             OnTheFlyDocsLogger.LogShowedOnTheFlyDocsLinkWithDocComments();
         }
 
-        return new OnTheFlyDocsView(textView, _factoryService, _listenerProvider, quickInfoSession, _threadingContext, editorFeaturesOnTheFlyDocsElement) as TView;
+        return new OnTheFlyDocsView(textView, _factoryService, _listenerProvider, quickInfoSession, _threadingContext, onTheFlyDocsElement) as TView;
     }
 }

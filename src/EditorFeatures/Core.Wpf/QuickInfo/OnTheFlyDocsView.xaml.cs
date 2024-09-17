@@ -11,11 +11,11 @@ using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Copilot;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -58,15 +58,15 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     public string OnTheFlyDocumentation => EditorFeaturesResources.On_the_fly_documentation;
 #pragma warning restore CA1822 // Mark members as static
 
-    public OnTheFlyDocsView(ITextView textView, IViewElementFactoryService viewElementFactoryService, IAsynchronousOperationListenerProvider listenerProvider, IAsyncQuickInfoSession asyncQuickInfoSession, IThreadingContext threadingContext, EditorFeaturesOnTheFlyDocsElement editorFeaturesOnTheFlyDocsElement)
+    public OnTheFlyDocsView(ITextView textView, IViewElementFactoryService viewElementFactoryService, IAsynchronousOperationListenerProvider listenerProvider, IAsyncQuickInfoSession asyncQuickInfoSession, IThreadingContext threadingContext, QuickInfoOnTheFlyDocsElement onTheFlyDocsElement)
     {
         _textView = textView;
         _viewElementFactoryService = viewElementFactoryService;
         _asyncListener = listenerProvider.GetListener(FeatureAttribute.OnTheFlyDocs);
         _asyncQuickInfoSession = asyncQuickInfoSession;
         _threadingContext = threadingContext;
-        _onTheFlyDocsInfo = editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsInfo;
-        _document = editorFeaturesOnTheFlyDocsElement.Document;
+        _onTheFlyDocsInfo = onTheFlyDocsElement.Info;
+        _document = onTheFlyDocsElement.Document;
 
         var sparkle = new ImageElement(new VisualStudio.Core.Imaging.ImageId(CopilotConstants.CopilotIconMonikerGuid, CopilotConstants.CopilotIconSparkleId));
 
