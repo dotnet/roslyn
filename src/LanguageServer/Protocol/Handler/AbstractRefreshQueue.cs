@@ -51,6 +51,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
+            Initialize(clientCapabilities);
+            return Task.CompletedTask;
+        }
+
+        public void Initialize(ClientCapabilities clientCapabilities)
+        {
             if (_refreshQueue is null && GetRefreshSupport(clientCapabilities) is true)
             {
                 // Only send a refresh notification to the client every 2s (if needed) in order to avoid
@@ -67,11 +73,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _isQueueCreated = true;
                 _lspWorkspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
             }
-
-            return Task.CompletedTask;
         }
 
-        private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
+        protected virtual void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
         {
             if (e.DocumentId is not null && e.Kind is WorkspaceChangeKind.DocumentChanged)
             {
