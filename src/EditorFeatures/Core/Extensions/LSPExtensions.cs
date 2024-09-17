@@ -3,6 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.QuickInfo.Presentation;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
@@ -23,14 +26,39 @@ internal static class VSEditorLSPExtensions
     public static Roslyn.Text.Adornments.ContainerElement ToLSPElement(this VisualStudio.Text.Adornments.ContainerElement element)
         => new((Roslyn.Text.Adornments.ContainerElementStyle)element.Style, element.Elements.Select(ToLSPElement));
 
+    public static Roslyn.Text.Adornments.ImageElement ToLSPElement(this QuickInfoGlyphElement element)
+        => new(element.Glyph.GetImageId().ToLSPImageId());
+
+    public static Roslyn.Text.Adornments.ClassifiedTextRun ToLSPRun(this QuickInfoClassifiedTextRun run)
+        => new(run.ClassificationTypeName, run.Text, (Roslyn.Text.Adornments.ClassifiedTextRunStyle)run.Style, markerTagType: null, run.NavigationAction, run.Tooltip);
+
+    public static Roslyn.Text.Adornments.ClassifiedTextElement ToLSPElement(this QuickInfoClassifiedTextElement element)
+        => new(element.Runs.Select(ToLSPRun));
+
+    public static Roslyn.Text.Adornments.ContainerElement ToLSPElement(this QuickInfoContainerElement element)
+        => new((Roslyn.Text.Adornments.ContainerElementStyle)element.Style, element.Elements.Select(ToLSPElement));
+
     private static object? ToLSPElement(object? value)
         => value switch
         {
-            VisualStudio.Core.Imaging.ImageId imageId => ToLSPImageId(imageId),
-            VisualStudio.Text.Adornments.ImageElement element => ToLSPImageElement(element),
-            VisualStudio.Text.Adornments.ContainerElement element => ToLSPElement(element),
-            VisualStudio.Text.Adornments.ClassifiedTextElement element => ToLSPElement(element),
-            VisualStudio.Text.Adornments.ClassifiedTextRun run => ToLSPRun(run),
+            VisualStudio.Core.Imaging.ImageId imageId => imageId.ToLSPImageId(),
+            VisualStudio.Text.Adornments.ImageElement element => element.ToLSPImageElement(),
+            VisualStudio.Text.Adornments.ContainerElement element => element.ToLSPElement(),
+            VisualStudio.Text.Adornments.ClassifiedTextElement element => element.ToLSPElement(),
+            VisualStudio.Text.Adornments.ClassifiedTextRun run => run.ToLSPRun(),
+
             _ => value,
         };
+
+    private static object? ToLSPElement(QuickInfoElement value)
+    {
+        return value switch
+        {
+            QuickInfoGlyphElement element => element.ToLSPElement(),
+            QuickInfoContainerElement element => element.ToLSPElement(),
+            QuickInfoClassifiedTextElement element => element.ToLSPElement(),
+
+            _ => throw ExceptionUtilities.UnexpectedValue(value)
+        };
+    }
 }
