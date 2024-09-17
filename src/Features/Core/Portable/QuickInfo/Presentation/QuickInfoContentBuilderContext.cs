@@ -5,19 +5,16 @@
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Formatting;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+namespace Microsoft.CodeAnalysis.QuickInfo.Presentation;
 
-/// <summary>
-/// Context to build content for quick info item for intellisense.
-/// </summary>
-internal sealed class IntellisenseQuickInfoBuilderContext(
+internal sealed class QuickInfoContentBuilderContext(
     Document document,
     ClassificationOptions classificationOptions,
     LineFormattingOptions lineFormattingOptions,
-    NavigationActionFactory? navigationActionFactory)
+    INavigationActionFactory? navigationActionFactory)
 {
     public Document Document { get; } = document;
     public ClassificationOptions ClassificationOptions { get; } = classificationOptions;
     public LineFormattingOptions LineFormattingOptions { get; } = lineFormattingOptions;
-    public NavigationActionFactory? NavigationActionFactory { get; } = navigationActionFactory;
+    public INavigationActionFactory? NavigationActionFactory { get; } = navigationActionFactory;
 }

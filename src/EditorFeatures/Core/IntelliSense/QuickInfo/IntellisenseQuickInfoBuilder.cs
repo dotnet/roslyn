@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
 using CodeAnalysisQuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem;
@@ -22,7 +23,7 @@ internal static class IntellisenseQuickInfoBuilder
 {
     private static async Task<ContainerElement> BuildInteractiveContentAsync(
         CodeAnalysisQuickInfoItem quickInfoItem,
-        IntellisenseQuickInfoBuilderContext? context,
+        QuickInfoContentBuilderContext? context,
         CancellationToken cancellationToken)
     {
         // Build the first line of QuickInfo item, the images and the Description section should be on the first line with Wrapped style
@@ -143,10 +144,10 @@ internal static class IntellisenseQuickInfoBuilder
         Document document,
         ClassificationOptions classificationOptions,
         LineFormattingOptions lineFormattingOptions,
-        NavigationActionFactory navigationActionFactory,
+        INavigationActionFactory navigationActionFactory,
         CancellationToken cancellationToken)
     {
-        var context = new IntellisenseQuickInfoBuilderContext(document, classificationOptions, lineFormattingOptions, navigationActionFactory);
+        var context = new QuickInfoContentBuilderContext(document, classificationOptions, lineFormattingOptions, navigationActionFactory);
         var content = await BuildInteractiveContentAsync(quickInfoItem, context, cancellationToken).ConfigureAwait(false);
         return new IntellisenseQuickInfoItem(trackingSpan, content);
     }
@@ -159,7 +160,7 @@ internal static class IntellisenseQuickInfoBuilder
     /// </summary>
     internal static Task<ContainerElement> BuildContentWithoutNavigationActionsAsync(
         CodeAnalysisQuickInfoItem quickInfoItem,
-        IntellisenseQuickInfoBuilderContext? context,
+        QuickInfoContentBuilderContext? context,
         CancellationToken cancellationToken)
     {
         return BuildInteractiveContentAsync(quickInfoItem, context, cancellationToken);

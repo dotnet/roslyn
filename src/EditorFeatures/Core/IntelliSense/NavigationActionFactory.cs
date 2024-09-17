@@ -9,19 +9,20 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
 
 internal sealed class NavigationActionFactory(
     Document document,
     IThreadingContext threadingContext,
     IUIThreadOperationExecutor operationExecutor,
     IAsynchronousOperationListener asyncListener,
-    Lazy<IStreamingFindUsagesPresenter> streamingPresenter)
+    Lazy<IStreamingFindUsagesPresenter> streamingPresenter) : INavigationActionFactory
 {
     public Action CreateNavigationAction(string navigationTarget)
     {
@@ -30,7 +31,8 @@ internal sealed class NavigationActionFactory(
         var workspace = document.Project.Solution.Workspace;
         var documentId = document.Id;
 
-        return () => NavigateToQuickInfoTargetAsync(navigationTarget, workspace, documentId, threadingContext, operationExecutor, asyncListener, streamingPresenter.Value).Forget();
+        return () => NavigateToQuickInfoTargetAsync(
+            navigationTarget, workspace, documentId, threadingContext, operationExecutor, asyncListener, streamingPresenter.Value).Forget();
     }
 
     private static async Task NavigateToQuickInfoTargetAsync(

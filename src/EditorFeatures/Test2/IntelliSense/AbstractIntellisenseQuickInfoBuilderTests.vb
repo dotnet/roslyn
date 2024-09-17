@@ -5,6 +5,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Formatting

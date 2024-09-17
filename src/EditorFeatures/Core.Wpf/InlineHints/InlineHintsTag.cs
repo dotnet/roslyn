@@ -14,12 +14,13 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.InlineHints;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
@@ -115,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                         _taggerProvider.AsynchronousOperationListener,
                         _taggerProvider.StreamingFindUsagesPresenter);
 
-                    var context = new IntellisenseQuickInfoBuilderContext(
+                    var context = new QuickInfoContentBuilderContext(
                         document,
                         classificationOptions,
                         lineFormattingOptions,

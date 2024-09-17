@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
@@ -18,7 +19,7 @@ internal static class Helpers
 {
     internal static IReadOnlyCollection<object> BuildInteractiveTextElements(
         ImmutableArray<TaggedText> taggedTexts,
-        IntellisenseQuickInfoBuilderContext? context)
+        QuickInfoContentBuilderContext? context)
     {
         var index = 0;
         return BuildInteractiveTextElements(taggedTexts, ref index, context);
@@ -27,7 +28,7 @@ internal static class Helpers
     private static IReadOnlyCollection<object> BuildInteractiveTextElements(
         ImmutableArray<TaggedText> taggedTexts,
         ref int index,
-        IntellisenseQuickInfoBuilderContext? context)
+        QuickInfoContentBuilderContext? context)
     {
         // This method produces a sequence of zero or more paragraphs
         var paragraphs = new List<object>();

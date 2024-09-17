@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer;
@@ -42,7 +43,7 @@ internal sealed class EditorLspHoverResultCreationService(IGlobalOptionService g
         // and we explicitly calling BuildContentWithoutNavigationActionsAsync.
         var context = document is null
             ? null
-            : new IntellisenseQuickInfoBuilderContext(
+            : new QuickInfoContentBuilderContext(
                 document,
                 classificationOptions,
                 await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(false),
