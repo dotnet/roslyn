@@ -11,8 +11,10 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -688,6 +690,22 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         Assert.True(oldMethodDeclarations[0].IsIncrementallyIdenticalTo(newMethodDeclarations[0]));
         Assert.True(oldMethodDeclarations[1].IsIncrementallyIdenticalTo(newMethodDeclarations[1]));
         Assert.True(oldMethodDeclarations[2].IsIncrementallyIdenticalTo(newMethodDeclarations[2]));
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestUsesForkForUnchangedGeneratedFileAsync(bool mutatingLspWorkspace)
+    {
+        var generatorText = "// Hello World!";
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
+        await AddGeneratorAsync(new SingleFileTestGenerator(generatorText), testLspServer.TestWorkspace);
+
+        var sourceGeneratedDocuments = await testLspServer.GetCurrentSolution().Projects.Single().GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocumentIdentity = sourceGeneratedDocuments.Single().Identity;
+        var sourceGeneratorDocumentUri = SourceGeneratedDocumentUri.Create(sourceGeneratedDocumentIdentity);
+
+        var sourceGeneratedDocument = await OpenDocumentAndVerifyLspTextAsync(sourceGeneratorDocumentUri, testLspServer, generatorText) as SourceGeneratedDocument;
+        AssertEx.NotNull(sourceGeneratedDocument);
+        Assert.NotSame(testLspServer.TestWorkspace.CurrentSolution, sourceGeneratedDocument.Project.Solution);
     }
 
     private static async Task<Document> OpenDocumentAndVerifyLspTextAsync(Uri documentUri, TestLspServer testLspServer, string openText = "LSP text")

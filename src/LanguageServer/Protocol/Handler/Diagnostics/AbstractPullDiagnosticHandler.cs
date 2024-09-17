@@ -133,7 +133,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             // the updated diagnostics are.
             using var _1 = PooledDictionary<ProjectOrDocumentId, PreviousPullResult>.GetInstance(out var documentIdToPreviousDiagnosticParams);
             using var _2 = PooledHashSet<PreviousPullResult>.GetInstance(out var removedDocuments);
-            ProcessPreviousResults(context.Solution, previousResults, documentIdToPreviousDiagnosticParams, removedDocuments);
+            await ProcessPreviousResultsAsync(context.Solution, previousResults, documentIdToPreviousDiagnosticParams, removedDocuments, cancellationToken).ConfigureAwait(false);
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
             // the user from squiggles or error-list.
@@ -219,17 +219,18 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
 
         return CreateReturn(progress);
 
-        static void ProcessPreviousResults(
+        static async Task ProcessPreviousResultsAsync(
             Solution solution,
             ImmutableArray<PreviousPullResult> previousResults,
             Dictionary<ProjectOrDocumentId, PreviousPullResult> idToPreviousDiagnosticParams,
-            HashSet<PreviousPullResult> removedResults)
+            HashSet<PreviousPullResult> removedResults,
+            CancellationToken cancellationToken)
         {
             foreach (var diagnosticParams in previousResults)
             {
                 if (diagnosticParams.TextDocument != null)
                 {
-                    var id = GetIdForPreviousResult(diagnosticParams.TextDocument, solution);
+                    var id = await GetIdForPreviousResultAsync(diagnosticParams.TextDocument, solution, cancellationToken).ConfigureAwait(false);
                     if (id != null)
                     {
                         idToPreviousDiagnosticParams[id.Value] = diagnosticParams;
@@ -244,9 +245,9 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
             }
         }
 
-        static ProjectOrDocumentId? GetIdForPreviousResult(TextDocumentIdentifier textDocumentIdentifier, Solution solution)
+        static async Task<ProjectOrDocumentId?> GetIdForPreviousResultAsync(TextDocumentIdentifier textDocumentIdentifier, Solution solution, CancellationToken cancellationToken)
         {
-            var document = solution.GetDocument(textDocumentIdentifier);
+            var document = await solution.GetDocumentAsync(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
             if (document != null)
             {
                 return new ProjectOrDocumentId(document.Id);

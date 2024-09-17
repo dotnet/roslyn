@@ -427,6 +427,20 @@ namespace Roslyn.Test.Utilities
             workspace.TryApplyChanges(newSolution);
         }
 
+        protected static async Task AddGeneratorAsync(ISourceGenerator generator, EditorTestWorkspace workspace)
+        {
+            var analyzerReference = new TestGeneratorReference(generator);
+
+            var solution = workspace.CurrentSolution
+                .Projects.Single()
+                .AddAnalyzerReference(analyzerReference)
+                .Solution;
+
+            await workspace.ChangeSolutionAsync(solution);
+            await WaitForWorkspaceOperationsAsync(workspace);
+
+        }
+
         internal static async Task<Dictionary<string, IList<LSP.Location>>> GetAnnotatedLocationsAsync(EditorTestWorkspace workspace, Solution solution)
         {
             var locations = new Dictionary<string, IList<LSP.Location>>();
@@ -620,6 +634,19 @@ namespace Roslyn.Test.Utilities
                 return languageServer;
             }
 
+            public async Task<Document> GetDocumentAsync(Uri uri)
+            {
+                var document = await GetCurrentSolution().GetDocumentAsync(new LSP.TextDocumentIdentifier { Uri = uri }, CancellationToken.None).ConfigureAwait(false);
+                Contract.ThrowIfNull(document, $"Unable to find document with {uri} in solution");
+                return document;
+            }
+
+            public async Task<SourceText> GetDocumentTextAsync(Uri uri)
+            {
+                var document = await GetDocumentAsync(uri).ConfigureAwait(false);
+                return await document.GetTextAsync(CancellationToken.None).ConfigureAwait(false);
+            }
+
             public async Task<ResponseType?> ExecuteRequestAsync<RequestType, ResponseType>(string methodName, RequestType request, CancellationToken cancellationToken) where RequestType : class
             {
                 // If creating the LanguageServer threw we might timeout without this.
@@ -655,7 +682,7 @@ namespace Roslyn.Test.Utilities
                 {
                     // LSP open files don't care about the project context, just the file contents with the URI.
                     // So pick any of the linked documents to get the text from.
-                    var sourceText = await TestWorkspace.CurrentSolution.GetDocuments(documentUri).First().GetTextAsync(CancellationToken.None).ConfigureAwait(false);
+                    var sourceText = await GetDocumentTextAsync(documentUri).ConfigureAwait(false);
                     text = sourceText.ToString();
                 }
 

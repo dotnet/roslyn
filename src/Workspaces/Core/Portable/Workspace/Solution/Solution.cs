@@ -1647,8 +1647,14 @@ public partial class Solution
 
     /// <summary>
     /// Gets the set of <see cref="DocumentId"/>s in this <see cref="Solution"/> with a
-    /// <see cref="TextDocument.FilePath"/> that matches the given file path.
+    /// <see cref="TextDocument.FilePath"/> that matches the given file path. This may return IDs for any type of document
+    /// including <see cref="AdditionalDocument"/>s or <see cref="AnalyzerConfigDocument" />s.
     /// </summary>
+    /// <remarks>
+    /// It's possible (but unlikely) that the same file may exist as more than one type of document in the same solution. If this
+    /// were to return more than one <see cref="DocumentId"/>, you should not assume that just because one is a regular source file means
+    /// that all of them would be.
+    /// </remarks>
     public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string? filePath) => this.SolutionState.GetDocumentIdsWithFilePath(filePath);
 
     /// <summary>

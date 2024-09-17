@@ -43,14 +43,21 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             { ".mts", s_typeScriptLanguageInformation },
         };
 
-        public LanguageInformation GetLanguageInformation(string documentPath, string? lspLanguageId)
+        public LanguageInformation GetLanguageInformation(Uri uri, string? lspLanguageId)
         {
-            var extension = Path.GetExtension(documentPath);
-            if (s_extensionToLanguageInformation.TryGetValue(extension, out var languageInformation))
+            // First try to get language information from the URI path.
+            // We can do this for File uris and absolute uris.  We use local path to get the value without any query parameters.
+            if (uri.IsFile || uri.IsAbsoluteUri)
             {
-                return languageInformation;
+                var localPath = uri.LocalPath;
+                var extension = Path.GetExtension(localPath);
+                if (s_extensionToLanguageInformation.TryGetValue(extension, out var languageInformation))
+                {
+                    return languageInformation;
+                }
             }
 
+            // If the URI file path mapping failed, use the languageId from the LSP client (if any).
             return lspLanguageId switch
             {
                 "csharp" => s_csharpLanguageInformation,
@@ -60,7 +67,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 "xaml" => s_xamlLanguageInformation,
                 "typescript" => s_typeScriptLanguageInformation,
                 "javascript" => s_typeScriptLanguageInformation,
-                _ => throw new InvalidOperationException($"Unsupported extension '{extension}' and LSP language id '{lspLanguageId}'")
+                _ => throw new InvalidOperationException($"Unable to determine language for '{uri}' with LSP language id '{lspLanguageId}'")
             };
         }
     }

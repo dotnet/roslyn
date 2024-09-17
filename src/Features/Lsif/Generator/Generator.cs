@@ -210,9 +210,9 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             // use this document can benefit from that single shared model.
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken);
 
-            var (uri, contentBase64Encoded) = await GetUriAndContentAsync(document, cancellationToken);
+            var contentBase64Encoded = await GetBase64EncodedContentAsync(document, cancellationToken);
 
-            var documentVertex = new Graph.LsifDocument(uri, GetLanguageKind(semanticModel.Language), contentBase64Encoded, idFactory);
+            var documentVertex = new Graph.LsifDocument(document.GetURI(), GetLanguageKind(semanticModel.Language), contentBase64Encoded, idFactory);
             lsifJsonWriter.Write(documentVertex);
             lsifJsonWriter.Write(new Event(Event.EventKind.Begin, documentVertex.GetId(), idFactory));
 
@@ -443,32 +443,21 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             return (new DefinitionRangeTag(syntaxToken.Text, symbolKind, fullRange), fullRangeSpan);
         }
 
-        private static async Task<(Uri uri, string? contentBase64Encoded)> GetUriAndContentAsync(
+        private static async Task<string?> GetBase64EncodedContentAsync(
             Document document, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfNull(document.FilePath);
-
-            string? contentBase64Encoded = null;
-            Uri uri;
-
             if (document is SourceGeneratedDocument)
             {
                 var text = await document.GetValueTextAsync(cancellationToken);
 
                 // We always use UTF-8 encoding when writing out file contents, as that's expected by LSIF implementations.
                 // TODO: when we move to .NET Core, is there a way to reduce allocations here?
-                contentBase64Encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(text.ToString()));
-
-                // There is a triple slash here, so the "host" portion of the URI is empty, similar to
-                // how file URIs work.
-                uri = ProtocolConversions.CreateUriFromSourceGeneratedFilePath(document.FilePath);
+                return Convert.ToBase64String(Encoding.UTF8.GetBytes(text.ToString()));
             }
             else
             {
-                uri = ProtocolConversions.CreateAbsoluteUri(document.FilePath);
+                return null;
             }
-
-            return (uri, contentBase64Encoded);
         }
 
         private static async Task GenerateSemanticTokensAsync(

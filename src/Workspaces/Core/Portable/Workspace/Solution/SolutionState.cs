@@ -1180,10 +1180,7 @@ internal sealed partial class SolutionState
         return new(newSolutionState, oldProjectState, newProjectState);
     }
 
-    /// <summary>
-    /// Gets the set of <see cref="DocumentId"/>s in this <see cref="Solution"/> with a
-    /// <see cref="TextDocument.FilePath"/> that matches the given file path.
-    /// </summary>
+    /// <inheritdoc cref="Solution.GetDocumentIdsWithFilePath(string?)" />
     public ImmutableArray<DocumentId> GetDocumentIdsWithFilePath(string? filePath)
     {
         if (string.IsNullOrEmpty(filePath))

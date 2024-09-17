@@ -35,13 +35,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     {
         private const string CSharpMarkdownLanguageName = "csharp";
         private const string VisualBasicMarkdownLanguageName = "vb";
-        private const string SourceGeneratedDocumentBaseUri = "source-generated:///";
         private const string BlockCodeFence = "```";
         private const string InlineCodeFence = "`";
-
-#pragma warning disable RS0030 // Do not use banned APIs
-        private static readonly Uri s_sourceGeneratedDocumentBaseUri = new(SourceGeneratedDocumentBaseUri, UriKind.Absolute);
-#pragma warning restore
 
         private static readonly char[] s_dirSeparators = [PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar];
 
@@ -188,7 +183,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static string GetDocumentFilePathFromUri(Uri uri)
-            => uri.IsFile ? uri.LocalPath : uri.AbsoluteUri;
+        {
+            return uri.IsFile ? uri.LocalPath : uri.AbsoluteUri;
+        }
 
         /// <summary>
         /// Converts an absolute local file path or an absolute URL string to <see cref="Uri"/>.
@@ -259,28 +256,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 #pragma warning disable SYSLIB0013 // Type or member is obsolete
             static string EscapeUriPart(string stringToEscape)
                 => Uri.EscapeUriString(stringToEscape).Replace("#", "%23");
-#pragma warning restore
-        }
-
-        public static Uri CreateUriFromSourceGeneratedFilePath(string filePath)
-        {
-            Debug.Assert(!PathUtilities.IsAbsolute(filePath));
-
-            // Fast path for common cases:
-            if (IsAscii(filePath))
-            {
-#pragma warning disable RS0030 // Do not use banned APIs
-                return new Uri(s_sourceGeneratedDocumentBaseUri, filePath);
-#pragma warning restore
-            }
-
-            // Workaround for https://github.com/dotnet/runtime/issues/89538:
-
-            var parts = filePath.Split(s_dirSeparators);
-            var url = SourceGeneratedDocumentBaseUri + string.Join("/", parts.Select(Uri.EscapeDataString));
-
-#pragma warning disable RS0030 // Do not use banned APIs
-            return new Uri(url, UriKind.Absolute);
 #pragma warning restore
         }
 
@@ -512,13 +487,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Range = MappedSpanResultToRange(mappedSpan)
             };
 
-            static async Task<LSP.Location?> ConvertTextSpanToLocationAsync(
+            static async Task<LSP.Location> ConvertTextSpanToLocationAsync(
                 TextDocument document,
                 TextSpan span,
                 bool isStale,
                 CancellationToken cancellationToken)
             {
-                Debug.Assert(document.FilePath != null);
                 var uri = document.GetURI();
 
                 var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);

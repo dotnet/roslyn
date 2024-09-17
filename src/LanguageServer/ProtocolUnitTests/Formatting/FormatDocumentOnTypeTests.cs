@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var characterTyped = ";";
             var locationTyped = testLspServer.GetLocations("type").Single();
-            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync();
+            var documentText = await testLspServer.GetDocumentTextAsync(locationTyped.Uri);
 
             var results = await RunFormatDocumentOnTypeAsync(testLspServer, characterTyped, locationTyped);
             var actualText = ApplyTextEdits(results, documentText);
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var characterTyped = ";";
             var locationTyped = testLspServer.GetLocations("type").Single();
-            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync();
+            var documentText = await testLspServer.GetDocumentTextAsync(locationTyped.Uri);
 
             var results = await RunFormatDocumentOnTypeAsync(testLspServer, characterTyped, locationTyped, insertSpaces: false, tabSize: 4);
             var actualText = ApplyTextEdits(results, documentText);

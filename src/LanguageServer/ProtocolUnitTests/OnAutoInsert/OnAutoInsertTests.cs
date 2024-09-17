@@ -404,7 +404,7 @@ End Class";
             await using var testLspServer = await testLspServerTask;
             var locationTyped = testLspServer.GetLocations("type").Single();
 
-            var document = testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single();
+            var document = await testLspServer.GetDocumentAsync(locationTyped.Uri);
             var documentText = await document.GetTextAsync();
 
             var result = await RunOnAutoInsertAsync(testLspServer, characterTyped, locationTyped, insertSpaces, tabSize);
@@ -419,7 +419,7 @@ End Class";
         {
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var locationTyped = testLspServer.GetLocations("type").Single();
-            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync();
+            var documentText = await (await testLspServer.GetDocumentAsync(locationTyped.Uri)).GetTextAsync();
 
             var result = await RunOnAutoInsertAsync(testLspServer, characterTyped, locationTyped, insertSpaces, tabSize);
 

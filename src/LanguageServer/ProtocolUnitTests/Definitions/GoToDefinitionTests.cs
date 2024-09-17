@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Xunit;
 using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -222,6 +223,37 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Definitions
 
             var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
             Assert.Single(results);
+        }
+
+        [Theory, CombinatorialData]
+        public async Task TestGotoDefinitionAsync_SourceGeneratedDocument(bool mutatingLspWorkspace)
+        {
+            var source =
+                """
+                namespace M
+                {
+                    class A
+                    {
+                        public {|caret:|}B b;
+                    }
+                }
+                """;
+            var generated =
+                """
+                namespace M
+                {
+                    class B
+                    {
+                    }
+                }
+                """;
+
+            await using var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace);
+            await AddGeneratorAsync(new SingleFileTestGenerator(generated), testLspServer.TestWorkspace);
+
+            var results = await RunGotoDefinitionAsync(testLspServer, testLspServer.GetLocations("caret").Single());
+            var result = Assert.Single(results);
+            Assert.Equal(SourceGeneratedDocumentUri.Scheme, result.Uri.Scheme);
         }
 
         private static async Task<LSP.Location[]> RunGotoDefinitionAsync(TestLspServer testLspServer, LSP.Location caret)

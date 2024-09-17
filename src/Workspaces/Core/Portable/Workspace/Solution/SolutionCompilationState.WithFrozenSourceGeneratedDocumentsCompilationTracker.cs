@@ -75,10 +75,9 @@ internal partial class SolutionCompilationState
 
         public ICompilationTracker Fork(ProjectState newProject, TranslationAction? translate)
         {
-            // TODO: This only needs to be implemented if a feature that operates from a source generated file then makes
-            // further mutations to that project, which isn't needed for now. This will be need to be fixed up when we complete
-            // https://github.com/dotnet/roslyn/issues/49533.
-            throw new NotImplementedException();
+            // We'll apply the translation to the underlying tracker, and then replace the documents again.
+            var underlyingTracker = this.UnderlyingTracker.Fork(newProject, translate);
+            return new WithFrozenSourceGeneratedDocumentsCompilationTracker(underlyingTracker, _replacementDocumentStates);
         }
 
         public ICompilationTracker WithCreateCreationPolicy(bool forceRegeneration)

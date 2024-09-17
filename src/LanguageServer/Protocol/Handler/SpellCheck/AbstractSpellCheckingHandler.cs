@@ -74,12 +74,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
 
             // First, let the client know if any workspace documents have gone away.  That way it can remove those for
             // the user from squiggles or error-list.
-            HandleRemovedDocuments(context, previousResults, progress);
+            await HandleRemovedDocumentsAsync(context, previousResults, progress, cancellationToken).ConfigureAwait(false);
 
             // Create a mapping from documents to the previous results the client says it has for them.  That way as we
             // process documents we know if we should tell the client it should stay the same, or we can tell it what
             // the updated spans are.
-            var documentToPreviousParams = GetDocumentToPreviousParams(context, previousResults);
+            var documentToPreviousParams = await GetDocumentToPreviousParamsAsync(context, previousResults, cancellationToken).ConfigureAwait(false);
 
             // Next process each file in priority order. Determine if spans are changed or unchanged since the
             // last time we notified the client.  Report back either to the client so they can update accordingly.
@@ -129,8 +129,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             return progress.GetFlattenedValues();
         }
 
-        private static Dictionary<Document, PreviousPullResult> GetDocumentToPreviousParams(
-            RequestContext context, ImmutableArray<PreviousPullResult> previousResults)
+        private static async Task<Dictionary<Document, PreviousPullResult>> GetDocumentToPreviousParamsAsync(
+            RequestContext context, ImmutableArray<PreviousPullResult> previousResults, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             {
                 if (requestParams.TextDocument != null)
                 {
-                    var document = context.Solution.GetDocument(requestParams.TextDocument);
+                    var document = await context.Solution.GetDocumentAsync(requestParams.TextDocument, cancellationToken).ConfigureAwait(false);
                     if (document != null)
                         result[document] = requestParams;
                 }
@@ -199,8 +199,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             }
         }
 
-        private void HandleRemovedDocuments(
-            RequestContext context, ImmutableArray<PreviousPullResult> previousResults, BufferedProgress<TReport[]> progress)
+        private async Task HandleRemovedDocumentsAsync(
+            RequestContext context, ImmutableArray<PreviousPullResult> previousResults, BufferedProgress<TReport[]> progress, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(context.Solution);
 
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                 var textDocument = previousResult.TextDocument;
                 if (textDocument != null)
                 {
-                    var document = context.Solution.GetDocument(textDocument);
+                    var document = await context.Solution.GetDocumentAsync(textDocument, cancellationToken).ConfigureAwait(false);
                     if (document == null)
                     {
                         context.TraceInformation($"Clearing spans for removed document: {textDocument.Uri}");

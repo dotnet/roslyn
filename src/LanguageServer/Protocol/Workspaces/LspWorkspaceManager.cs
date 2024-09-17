@@ -210,8 +210,17 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
             foreach (var workspace in registeredWorkspaces)
             {
-                await ApplyChangeToMutatingWorkspaceAsync(workspace, uri, (_, documentId) =>
-                    workspace.TryOnDocumentClosedAsync(documentId, cancellationToken)).ConfigureAwait(false);
+                await ApplyChangeToMutatingWorkspaceAsync(workspace, uri, async (_, documentId) =>
+                {
+                    if (documentId.IsSourceGenerated)
+                    {
+                        // Source generated documents cannot go through OnDocumentOpened/Closed.
+                        // There is a separate OnSourceGeneratedDocumentOpened/Closed method, but there is no need
+                        // for us to call it in LSP - it deals with mapping TextBuffers to text containers.
+                        return;
+                    }
+                    await workspace.TryOnDocumentClosedAsync(documentId, cancellationToken).ConfigureAwait(false);
+                }).ConfigureAwait(false);
             }
         }
     }
@@ -274,11 +283,9 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // Find the matching document from the LSP solutions.
         foreach (var (workspace, lspSolution, isForked) in lspSolutions)
         {
-            var documents = lspSolution.GetTextDocuments(textDocumentIdentifier.Uri);
-            if (documents.Any())
+            var document = await lspSolution.GetTextDocumentAsync(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
+            if (document != null)
             {
-                var document = documents.FindDocumentInProjectContext(textDocumentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
-
                 // Record metadata on how we got this document.
                 var workspaceKind = document.Project.Solution.WorkspaceKind;
                 _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspaceKind);
@@ -383,7 +390,16 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
             // Step 3: Check to see if the LSP text matches the workspace text.
             var documentsInWorkspace = GetDocumentsForUris(_trackedDocuments.Keys.ToImmutableArray(), workspaceCurrentSolution);
-            if (await DoesAllTextMatchWorkspaceSolutionAsync(documentsInWorkspace, cancellationToken).ConfigureAwait(false))
+            var sourceGeneratedDocuments =
+                _trackedDocuments.Keys.Where(static uri => uri.Scheme == SourceGeneratedDocumentUri.Scheme)
+                    .Select(uri => (identity: SourceGeneratedDocumentUri.DeserializeIdentity(workspaceCurrentSolution, uri), _trackedDocuments[uri].Text))
+                    .Where(tuple => tuple.identity.HasValue)
+                    .SelectAsArray(tuple => (tuple.identity!.Value, DateTime.Now, tuple.Text));
+
+            // We don't want to check if the source generated document text matches the workspace text because that
+            // will trigger generators to run.  We don't want that to happen in the queue dispatch as it could be quite slow.
+            var doesAllTextMatch = await DoesAllTextMatchWorkspaceSolutionAsync(documentsInWorkspace, cancellationToken).ConfigureAwait(false);
+            if (doesAllTextMatch && !sourceGeneratedDocuments.Any())
             {
                 // Remember that the current LSP text matches the text in this workspace solution.
                 _cachedLspSolutions[workspace] = (forkedFromVersion: null, workspaceCurrentSolution);
@@ -396,12 +412,30 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
             // Step 5: Fork a new solution from the workspace with the LSP text applied.
             var lspSolution = workspaceCurrentSolution;
-            foreach (var (uri, workspaceDocuments) in documentsInWorkspace)
-                lspSolution = lspSolution.WithDocumentText(workspaceDocuments.Select(d => d.Id), _trackedDocuments[uri].Text);
+            // If the workspace text matched but we have source generated documents open, we can
+            // leave the normal documents as-is (the text matched) and just fork with the frozen sg docs.
+            if (!doesAllTextMatch)
+            {
+                foreach (var (uri, workspaceDocuments) in documentsInWorkspace)
+                    lspSolution = lspSolution.WithDocumentText(workspaceDocuments.Select(d => d.Id), _trackedDocuments[uri].Text);
+            }
 
-            // Remember this forked solution and the workspace version it was forked from.
-            _cachedLspSolutions[workspace] = (workspaceCurrentSolution.WorkspaceVersion, lspSolution);
-            return (lspSolution, IsForked: true);
+            lspSolution = lspSolution.WithFrozenSourceGeneratedDocuments(sourceGeneratedDocuments);
+
+            // Did we actually have to fork anything? WithFrozenSourceGeneratedDocuments will return the same instance if we were able to
+            // immediately determine we already had the same generated contents
+            if (lspSolution == workspaceCurrentSolution)
+            {
+                // Remember that the current LSP text matches the text in this workspace solution.
+                _cachedLspSolutions[workspace] = (forkedFromVersion: null, workspaceCurrentSolution);
+                return (workspaceCurrentSolution, IsForked: false);
+            }
+            else
+            {
+                // Remember this forked solution and the workspace version it was forked from.
+                _cachedLspSolutions[workspace] = (workspaceCurrentSolution.WorkspaceVersion, lspSolution);
+                return (lspSolution, IsForked: true);
+            }
         }
 
         async ValueTask TryOpenAndEditDocumentsInMutatingWorkspaceAsync(Workspace workspace)
@@ -410,6 +444,13 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             {
                 await ApplyChangeToMutatingWorkspaceAsync(workspace, uri, async (mutatingWorkspace, documentId) =>
                 {
+                    if (documentId.IsSourceGenerated)
+                    {
+                        // Source generated documents cannot go through OnDocumentOpened/Closed.
+                        // There is a separate OnSourceGeneratedDocumentOpened/Closed method, but there is no need
+                        // for us to call it in LSP - it deals with mapping TextBuffers to text containers.
+                        return;
+                    }
                     // This may be the first time this workspace is hearing that this document is open from LSP's
                     // perspective. Attempt to open it there.
                     //
@@ -473,8 +514,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             languageId = trackedDocument.LanguageId;
         }
 
-        var documentFilePath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
-        return _languageInfoProvider.GetLanguageInformation(documentFilePath, languageId).LanguageName;
+        return _languageInfoProvider.GetLanguageInformation(uri, languageId).LanguageName;
     }
 
     /// <summary>
