@@ -8585,5 +8585,86 @@ public class C
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.FailsPEVerify);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73563")]
+        public void IsMetadataVirtual_01()
+        {
+            var src1 = @"
+using System.Collections.Generic;
+using System.Threading;
+
+public struct S : IAsyncEnumerable<int>
+{
+    public IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken token = default) => throw null;
+
+    void M()
+    {
+        GetAsyncEnumerator();
+    }
+}
+";
+
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net80);
+
+            var src2 = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task Main()
+    {
+        await foreach (var i in new S())
+        {
+        }
+    }
+}
+";
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80);
+            comp2.VerifyEmitDiagnostics(); // Indirectly calling IsMetadataVirtual on S.GetAsyncEnumerator (a read which causes the lock to be set)
+            comp1.VerifyEmitDiagnostics(); // Would call EnsureMetadataVirtual on S.GetAsyncEnumerator and would therefore assert if S was not already ForceCompleted
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73563")]
+        public void IsMetadataVirtual_02()
+        {
+            var src1 = @"
+using System;
+using System.Threading.Tasks;
+
+public struct S2 : IAsyncDisposable
+{
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
+    }
+
+    void M()
+    {
+        DisposeAsync();
+    }
+}
+";
+
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net80);
+
+            var src2 = @"
+class C
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        await using (new S2())
+        {
+        }
+
+        await using (var s = new S2())
+        {
+        }
+    }
+}
+";
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80);
+            comp2.VerifyEmitDiagnostics(); // Indirectly calling IsMetadataVirtual on S.DisposeAsync (a read which causes the lock to be set)
+            comp1.VerifyEmitDiagnostics(); // Would call EnsureMetadataVirtual on S.DisposeAsync and would therefore assert if S was not already ForceCompleted
+        }
     }
 }
