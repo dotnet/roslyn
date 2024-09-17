@@ -5,6 +5,6 @@
     <DefineConstants>$(DefineConstants),TEXT_ANALYZERS</DefineConstants>
   </PropertyGroup>
   <PropertyGroup>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
   </PropertyGroup>
 </Project>

@@ -1,7 +1,7 @@
 <Project>
   <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" />
   <PropertyGroup>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <NoWarn>$(NoWarn);NU1701</NoWarn>
     <DefineConstants>$(DefineConstants),MICROSOFT_CODEANALYSIS_PUBLIC_API_ANALYZERS</DefineConstants>
   </PropertyGroup>

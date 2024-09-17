@@ -4,7 +4,7 @@
     <TargetFramework>$(NetCurrent)</TargetFramework>
     <ServerGarbageCollection>true</ServerGarbageCollection>
     <NonShipping>true</NonShipping>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Test.Utilities\Test.Utilities.csproj" />
