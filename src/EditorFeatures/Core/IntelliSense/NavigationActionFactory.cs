@@ -5,6 +5,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.GoToDefinition;
@@ -31,11 +32,17 @@ internal sealed class NavigationActionFactory(
         var workspace = document.Project.Solution.Workspace;
         var documentId = document.Id;
 
-        return () => NavigateToQuickInfoTargetAsync(
+        if (Uri.TryCreate(navigationTarget, UriKind.Absolute, out var absoluteUri))
+        {
+            var target = new QuickInfoHyperLink(workspace, absoluteUri);
+            return target.NavigationAction;
+        }
+
+        return () => NavigateToTargetAsync(
             navigationTarget, workspace, documentId, threadingContext, operationExecutor, asyncListener, streamingPresenter.Value).Forget();
     }
 
-    private static async Task NavigateToQuickInfoTargetAsync(
+    private static async Task NavigateToTargetAsync(
         string navigationTarget,
         Workspace workspace,
         DocumentId documentId,
@@ -46,7 +53,7 @@ internal sealed class NavigationActionFactory(
     {
         try
         {
-            using var token = asyncListener.BeginAsyncOperation(nameof(NavigateToQuickInfoTargetAsync));
+            using var token = asyncListener.BeginAsyncOperation(nameof(NavigateToTargetAsync));
             using var context = operationExecutor.BeginExecute(EditorFeaturesResources.IntelliSense, EditorFeaturesResources.Navigating, allowCancellation: true, showProgress: false);
 
             var cancellationToken = context.UserCancellationToken;

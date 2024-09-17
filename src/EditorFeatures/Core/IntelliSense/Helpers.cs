@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.Text.Adornments;
@@ -135,22 +133,12 @@ internal static class Helpers
                 if (part.NavigationTarget is not null &&
                     context?.NavigationActionFactory is { } factory)
                 {
-                    var document = context.Document;
-                    if (Uri.TryCreate(part.NavigationTarget, UriKind.Absolute, out var absoluteUri))
-                    {
-                        var target = new QuickInfoHyperLink(document.Project.Solution.Workspace, absoluteUri);
-                        var tooltip = part.NavigationHint;
-                        currentRuns.Add(new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text, target.NavigationAction, tooltip, style));
-                    }
-                    else
-                    {
-                        currentRuns.Add(new ClassifiedTextRun(
-                            part.Tag.ToClassificationTypeName(),
-                            part.Text,
-                            factory.CreateNavigationAction(part.NavigationTarget),
-                            tooltip: part.NavigationHint,
-                            style));
-                    }
+                    currentRuns.Add(new ClassifiedTextRun(
+                        part.Tag.ToClassificationTypeName(),
+                        part.Text,
+                        factory.CreateNavigationAction(part.NavigationTarget),
+                        tooltip: part.NavigationHint,
+                        style));
                 }
                 else
                 {
