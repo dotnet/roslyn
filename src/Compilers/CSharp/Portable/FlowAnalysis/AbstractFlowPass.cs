@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var access = (BoundPropertyAccess)node;
 
-                        if (Binder.AccessingAutoPropertyFromConstructor(access, _symbol))
+                        if (Binder.AccessingAutoPropertyFromConstructor(access, _symbol, useAsLvalue: true))
                         {
                             var backingField = (access.PropertySymbol as SourcePropertySymbolBase)?.BackingField;
                             if (backingField != null)
@@ -2026,6 +2026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitReceiverAfterCall(receiver, setter);
         }
 
+        // PROTOTYPE: Test all uses of this method.
         // returns false if expression is not a property access
         // or if the property has a backing field
         // and accessed in a corresponding constructor
@@ -2036,7 +2037,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return !Binder.AccessingAutoPropertyFromConstructor((BoundPropertyAccess)expr, _symbol);
+            return !Binder.AccessingAutoPropertyFromConstructor((BoundPropertyAccess)expr, _symbol, useAsLvalue: true);
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)

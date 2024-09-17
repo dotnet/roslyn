@@ -479,8 +479,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (HasInitializer(field)) continue;
 
-                            if (!isAssigned(thisSlot, field) &&
-                                !(field.AssociatedSymbol is { } associatedProperty && isAssigned(thisSlot, associatedProperty)))
+                            int fieldSlot = VariableSlot(field, thisSlot);
+                            if (fieldSlot == -1 || !this.State.IsAssigned(fieldSlot))
                             {
                                 Symbol associatedPropertyOrEvent = field.AssociatedSymbol;
                                 bool hasAssociatedProperty = associatedPropertyOrEvent?.Kind == SymbolKind.Property;
@@ -532,12 +532,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!parameter.IsThis);
                     Diagnostics.Add(ErrorCode.ERR_ParamUnassigned, location, parameter.Name);
                 }
-            }
-
-            bool isAssigned(int thisSlot, Symbol symbol)
-            {
-                int slot = VariableSlot(symbol, thisSlot);
-                return slot != -1 && this.State.IsAssigned(slot);
             }
         }
 
@@ -1060,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression receiver, out Symbol member)
+        protected override bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression receiver, out Symbol member, bool useAsLvalue)
         {
             receiver = null;
             member = null;
@@ -1099,7 +1093,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var propAccess = (BoundPropertyAccess)expr;
 
-                        if (Binder.AccessingAutoPropertyFromConstructor(propAccess, this.CurrentSymbol))
+                        if (Binder.AccessingAutoPropertyFromConstructor(propAccess, this.CurrentSymbol, useAsLvalue))
                         {
                             var propSymbol = propAccess.PropertySymbol;
                             member = (propSymbol as SourcePropertySymbolBase)?.BackingField;
@@ -1327,13 +1321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (containingSlot == thisSlot)
                     {
                         // should we handle nested fields here? https://github.com/dotnet/roslyn/issues/59890
-                        var implicitlyInitializedField = fieldIdentifier.Symbol switch
-                        {
-                            FieldSymbol f => f,
-                            SourcePropertySymbolBase { BackingField: { } backingField } => backingField, // PROTOTYPE: Temporary work around.
-                            var s => throw ExceptionUtilities.UnexpectedValue(s),
-                        };
-                        AddImplicitlyInitializedField(implicitlyInitializedField);
+                        AddImplicitlyInitializedField((FieldSymbol)fieldIdentifier.Symbol);
 
                         if (fieldSymbol.RefKind != RefKind.None)
                         {
@@ -1640,7 +1628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     {
                         var expression = (BoundExpression)node;
-                        int slot = MakeSlot(expression);
+                        int slot = MakeSlot(expression, useAsLvalue: true);
                         SetSlotState(slot, written);
                         if (written) NoteWrite(expression, value, read);
                         break;

@@ -201,14 +201,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return containingSlot;
         }
 
-        protected abstract bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression? receiver, [NotNullWhen(true)] out Symbol? member);
+        protected abstract bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression? receiver, [NotNullWhen(true)] out Symbol? member, bool useAsLvalue = false);
 
         /// <summary>
         /// Return the slot for a variable, or -1 if it is not tracked (because, for example, it is an empty struct).
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        protected virtual int MakeSlot(BoundExpression node)
+        protected virtual int MakeSlot(BoundExpression node, bool useAsLvalue = false)
         {
             switch (node.Kind)
             {
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.FieldAccess:
                 case BoundKind.EventAccess:
                 case BoundKind.PropertyAccess:
-                    if (TryGetReceiverAndMember(node, out BoundExpression? receiver, out Symbol? member))
+                    if (TryGetReceiverAndMember(node, out BoundExpression? receiver, out Symbol? member, useAsLvalue))
                     {
                         Debug.Assert((receiver is null) != member.RequiresInstanceReceiver());
                         return MakeMemberSlot(receiver, member);

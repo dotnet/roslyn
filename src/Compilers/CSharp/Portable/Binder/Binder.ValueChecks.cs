@@ -1694,7 +1694,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (setMethod is null)
                 {
                     var containing = this.ContainingMemberOrLambda;
-                    if (!AccessingAutoPropertyFromConstructor(receiver, propertySymbol, containing)
+                    if (!AccessingAutoPropertyFromConstructor(receiver, propertySymbol, containing, useAsLvalue: true)
                         && !isAllowedDespiteReadonly(receiver))
                     {
                         Error(diagnostics, ErrorCode.ERR_AssgReadonlyProp, node, propertySymbol);

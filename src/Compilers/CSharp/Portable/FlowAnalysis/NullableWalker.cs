@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _expressionIsRead = true;
 
         /// <summary>
-        /// Used to allow <see cref="MakeSlot(BoundExpression)"/> to substitute the correct slot for a <see cref="BoundConditionalReceiver"/> when
+        /// Used to allow <see cref="MakeSlot(BoundExpression, bool)"/> to substitute the correct slot for a <see cref="BoundConditionalReceiver"/> when
         /// it's encountered.
         /// </summary>
         private int _lastConditionalAccessSlot = -1;
@@ -1927,7 +1927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression? receiver, [NotNullWhen(true)] out Symbol? member)
+        protected override bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression? receiver, [NotNullWhen(true)] out Symbol? member, bool useAsLvalue)
         {
             receiver = null;
             member = null;
@@ -1968,6 +1968,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var propAccess = (BoundPropertyAccess)expr;
                         var propSymbol = propAccess.PropertySymbol;
                         member = propSymbol;
+                        // PROTOTYPE: Why don't we call Binder.AccessingAutoPropertyFromConstructor
+                        // to match the DefiniteAssignment implementation?
                         if (propSymbol.IsStatic)
                         {
                             return true;
@@ -1985,7 +1987,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver.Type is object;
         }
 
-        protected override int MakeSlot(BoundExpression node)
+        protected override int MakeSlot(BoundExpression node, bool useAsLvalue = false)
         {
             int result = makeSlot(node);
 #if DEBUG
@@ -9754,15 +9756,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
 
             var left = node.Left;
-            // PROTOTYPE: We cannot simply use the associated property if the field is a backing field
-            // if the property uses `field`, because the relationship between property and field may
-            // be something other than { get => field; set { field = value; } }.
             switch (left)
             {
                 // when binding initializers, we treat assignments to auto-properties or field-like events as direct assignments to the underlying field.
                 // in order to track member state based on these initializers, we need to see the assignment in terms of the associated member
-                case BoundFieldAccess { ExpressionSymbol: FieldSymbol { AssociatedSymbol: PropertySymbol property }, /*PROTOTYPE: Temporary work around*/Syntax: not FieldExpressionSyntax } fieldAccess:
-                    left = new BoundPropertyAccess(fieldAccess.Syntax, fieldAccess.ReceiverOpt, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, property, LookupResultKind.Viable, property.Type, fieldAccess.HasErrors);
+                case BoundFieldAccess { ExpressionSymbol: FieldSymbol { AssociatedSymbol: PropertySymbol autoProperty }, /*PROTOTYPE: Temporary work around*/Syntax: not FieldExpressionSyntax } fieldAccess:
+                    left = new BoundPropertyAccess(fieldAccess.Syntax, fieldAccess.ReceiverOpt, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, autoProperty, LookupResultKind.Viable, autoProperty.Type, fieldAccess.HasErrors);
                     break;
                 case BoundFieldAccess { ExpressionSymbol: FieldSymbol { AssociatedSymbol: EventSymbol @event } } fieldAccess:
                     left = new BoundEventAccess(fieldAccess.Syntax, fieldAccess.ReceiverOpt, @event, isUsableAsField: true, LookupResultKind.Viable, @event.Type, fieldAccess.HasErrors);
@@ -9842,10 +9841,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void AdjustSetValue(BoundExpression left, ref TypeWithState rightState)
         {
-            // PROTOTYPE: AdjustSetValue() is called from VisitAssignmentOperator() above, and in
-            // that method, we may have replaced a BoundFieldAccess with a BoundPropertyAccess,
-            // but the underlying field may have different attributes than the property. Are we incorrectly
-            // interpreting the nullable state of the resulting assignment?
             var property = left switch
             {
                 BoundPropertyAccess propAccess => propAccess.PropertySymbol,

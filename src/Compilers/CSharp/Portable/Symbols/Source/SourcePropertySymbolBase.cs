@@ -668,10 +668,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// True if the property has a synthesized backing field, and
-        /// either no setter or the setter is auto-implemented.
+        /// either no accessor or the accessor is auto-implemented.
         /// </summary>
-        internal bool CanAssignBackingFieldDirectlyInConstructor
-            => BackingField is { } && (SetMethod is null || HasAutoPropertySet);
+        internal bool CanUseBackingFieldDirectlyInConstructor(bool useAsLvalue)
+        {
+            if (BackingField is null)
+            {
+                return false;
+            }
+            if (useAsLvalue)
+            {
+                return SetMethod is null || HasAutoPropertySet;
+            }
+            else
+            {
+                return GetMethod is null || HasAutoPropertyGet;
+            }
+        }
 
         private bool IsSetOnEitherPart(Flags flags)
         {
