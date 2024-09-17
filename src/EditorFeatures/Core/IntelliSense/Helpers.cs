@@ -6,18 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.GoToDefinition;
-using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text.Adornments;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
@@ -136,11 +128,11 @@ internal static class Helpers
             {
                 // This is tagged text getting added to the current line we are building.
                 var style = GetClassifiedTextRunStyle(part.Style);
+
+                // If the tagged text has navigation target AND a NavigationActionFactory
+                // is available, we'll create the classified run with a navigation action.
                 if (part.NavigationTarget is not null &&
-                    context?.ThreadingContext is { } threadingContext &&
-                    context?.OperationExecutor is { } operationExecutor &&
-                    context?.AsynchronousOperationListener is { } asyncListener &&
-                    context?.StreamingPresenter is { } streamingPresenter)
+                    context?.NavigationActionFactory is { } factory)
                 {
                     var document = context.Document;
                     if (Uri.TryCreate(part.NavigationTarget, UriKind.Absolute, out var absoluteUri))
@@ -151,16 +143,12 @@ internal static class Helpers
                     }
                     else
                     {
-                        // ⚠ PERF: avoid capturing Solution (including indirectly through Project or Document
-                        // instances) as part of the navigationAction delegate.
-                        var target = part.NavigationTarget;
-                        var tooltip = part.NavigationHint;
-                        var documentId = document.Id;
-                        var workspace = document.Project.Solution.Workspace;
                         currentRuns.Add(new ClassifiedTextRun(
-                            part.Tag.ToClassificationTypeName(), part.Text,
-                            () => _ = NavigateToQuickInfoTargetAsync(target, workspace, documentId, threadingContext, operationExecutor, asyncListener, streamingPresenter.Value),
-                            tooltip, style));
+                            part.Tag.ToClassificationTypeName(),
+                            part.Text,
+                            factory.CreateNavigationAction(part.NavigationTarget),
+                            tooltip: part.NavigationHint,
+                            style));
                     }
                 }
                 else
@@ -185,50 +173,6 @@ internal static class Helpers
         }
 
         return paragraphs;
-    }
-
-    private static async Task NavigateToQuickInfoTargetAsync(
-        string navigationTarget,
-        Workspace workspace,
-        DocumentId documentId,
-        IThreadingContext threadingContext,
-        IUIThreadOperationExecutor operationExecutor,
-        IAsynchronousOperationListener asyncListener,
-        IStreamingFindUsagesPresenter streamingPresenter)
-    {
-        try
-        {
-            using var token = asyncListener.BeginAsyncOperation(nameof(NavigateToQuickInfoTargetAsync));
-            using var context = operationExecutor.BeginExecute(EditorFeaturesResources.IntelliSense, EditorFeaturesResources.Navigating, allowCancellation: true, showProgress: false);
-
-            var cancellationToken = context.UserCancellationToken;
-            var solution = workspace.CurrentSolution;
-            SymbolKeyResolution resolvedSymbolKey;
-            try
-            {
-                var project = solution.GetRequiredProject(documentId.ProjectId);
-                var compilation = await project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-                resolvedSymbolKey = SymbolKey.ResolveString(navigationTarget, compilation, cancellationToken: cancellationToken);
-            }
-            catch
-            {
-                // Ignore symbol resolution failures. It likely is just a badly formed URI.
-                return;
-            }
-
-            if (resolvedSymbolKey.GetAnySymbol() is { } symbol)
-            {
-                var location = await GoToDefinitionHelpers.GetDefinitionLocationAsync(
-                    symbol, solution, threadingContext, streamingPresenter, cancellationToken).ConfigureAwait(false);
-                await location.TryNavigateToAsync(threadingContext, new NavigationOptions(PreferProvisionalTab: true, ActivateTab: true), cancellationToken).ConfigureAwait(false);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-        }
-        catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
-        {
-        }
     }
 
     private static ClassifiedTextRunStyle GetClassifiedTextRunStyle(TaggedTextStyle style)

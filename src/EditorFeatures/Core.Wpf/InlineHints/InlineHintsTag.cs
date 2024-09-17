@@ -108,14 +108,19 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                     var classificationOptions = _taggerProvider.EditorOptionsService.GlobalOptions.GetClassificationOptions(document.Project.Language);
                     var lineFormattingOptions = _span.Snapshot.TextBuffer.GetLineFormattingOptions(_taggerProvider.EditorOptionsService, explicitFormat: false);
 
-                    var context = new IntellisenseQuickInfoBuilderContext(
+                    var navigationActionFactory = new NavigationActionFactory(
                         document,
-                        classificationOptions,
-                        lineFormattingOptions,
                         _taggerProvider.ThreadingContext,
                         _taggerProvider.OperationExecutor,
                         _taggerProvider.AsynchronousOperationListener,
                         _taggerProvider.StreamingFindUsagesPresenter);
+
+                    var context = new IntellisenseQuickInfoBuilderContext(
+                        document,
+                        classificationOptions,
+                        lineFormattingOptions,
+                        navigationActionFactory);
+
                     return Implementation.IntelliSense.Helpers.BuildInteractiveTextElements(taggedText, context);
                 }
             }

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,13 +9,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.QuickInfo;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Adornments;
-using Microsoft.VisualStudio.Utilities;
 using CodeAnalysisQuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem;
 using IntellisenseQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem;
 
@@ -147,13 +143,10 @@ internal static class IntellisenseQuickInfoBuilder
         Document document,
         ClassificationOptions classificationOptions,
         LineFormattingOptions lineFormattingOptions,
-        IThreadingContext threadingContext,
-        IUIThreadOperationExecutor operationExecutor,
-        IAsynchronousOperationListener asyncListener,
-        Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
+        NavigationActionFactory navigationActionFactory,
         CancellationToken cancellationToken)
     {
-        var context = new IntellisenseQuickInfoBuilderContext(document, classificationOptions, lineFormattingOptions, threadingContext, operationExecutor, asyncListener, streamingPresenter);
+        var context = new IntellisenseQuickInfoBuilderContext(document, classificationOptions, lineFormattingOptions, navigationActionFactory);
         var content = await BuildInteractiveContentAsync(quickInfoItem, context, cancellationToken).ConfigureAwait(false);
         return new IntellisenseQuickInfoItem(trackingSpan, content);
     }

@@ -481,8 +481,8 @@ internal sealed class CompletionSource : IAsyncExpandingCompletionSource
             return null;
 
         var lineFormattingOptions = snapshot.TextBuffer.GetLineFormattingOptions(_editorOptionsService, explicitFormat: false);
-        var context = new IntellisenseQuickInfoBuilderContext(
-            document, displayOptions.ClassificationOptions, lineFormattingOptions, _threadingContext, _operationExecutor, _asyncListener, _streamingPresenter);
+        var navigationActionFactory = new NavigationActionFactory(document, _threadingContext, _operationExecutor, _asyncListener, _streamingPresenter);
+        var context = new IntellisenseQuickInfoBuilderContext(document, displayOptions.ClassificationOptions, lineFormattingOptions, navigationActionFactory);
 
         var elements = IntelliSense.Helpers.BuildInteractiveTextElements(description.TaggedParts, context).ToArray();
         if (elements.Length == 0)
