@@ -12,6 +12,7 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class CustomMessageHandler()
-    : ILspServiceDocumentRequestHandler<CustomMessageParams, CustomMessage>
+    : ILspServiceDocumentRequestHandler<CustomMessageParams, CustomResponse>
 {
     private const string MethodName = "roslyn/customMessage";
 
@@ -31,12 +32,12 @@ internal class CustomMessageHandler()
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(CustomMessageParams request)
     {
-        return request.Message.TextDocumentPositions.First().TextDocument;
+        return request.Message.TextDocument!;
     }
 
-    public async Task<CustomMessage> HandleRequestAsync(CustomMessageParams request, RequestContext context, CancellationToken cancellationToken)
+    public async Task<CustomResponse> HandleRequestAsync(CustomMessageParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        return request.Message;
+        return new CustomResponse(request.Message.Message, request.Message.Positions);
 
 #pragma warning disable CS0162 // Unreachable code detected
         AppDomain? appDomain = null;
@@ -74,24 +75,36 @@ internal class CustomMessageHandler()
             var assembly = appDomain.Load(assemblyName);
 
             var handlerType = assembly.GetType(request.TypeFullName);
-            var handlerMethod = handlerType.GetMethod("ExecuteAsync", BindingFlags.Static);
+            var handlerMethod = handlerType.GetMethod("ExecuteAsync", BindingFlags.Instance);
+
+            JsonSerializerOptions readOptions = new();
+            LinePositionReadConverter linePositionReadConverter = new(request.Message.Positions.Select(tdp => ProtocolConversions.PositionToLinePosition(tdp)).ToArray());
+            readOptions.Converters.Add(linePositionReadConverter);
 
             var messageType = handlerMethod.GetParameters()[0].ParameterType;
-            var deserializedMessage = JsonSerializer.Deserialize(request.Message.Message, messageType);
+            var deserializedMessage = JsonSerializer.Deserialize(request.Message.Message, messageType, readOptions);
 
-            var linePositions = request.Message.TextDocumentPositions.Select(tdp => ProtocolConversions.PositionToLinePosition(tdp.Position)).ToArray();
-
-            var parameters = new object?[] { deserializedMessage, context.Document, linePositions, cancellationToken };
-            var resultTask = (Task)handlerMethod.Invoke(null, parameters);
+            var handler = Activator.CreateInstance(handlerType);
+            var parameters = new object?[] { deserializedMessage, context.Document, cancellationToken };
+            var resultTask = (Task)handlerMethod.Invoke(handler, parameters);
 
             await resultTask.ConfigureAwait(false);
 
             var resultProperty = resultTask.GetType().GetProperty("Result");
             var result = resultProperty.GetValue(resultTask);
 
-            var resultJson = JsonSerializer.Serialize(result, resultProperty.PropertyType);
+            JsonSerializerOptions writeOptions = new();
+            LinePositionWriteConverter linePositionWriteConverter = new();
+            writeOptions.Converters.Add(linePositionWriteConverter);
 
-            return new CustomMessage(JsonNode.Parse(resultJson)!, []);
+            var resultJson = JsonSerializer.Serialize(result, resultProperty.PropertyType, writeOptions);
+
+            return new CustomResponse(
+                JsonNode.Parse(resultJson)!,
+                linePositionWriteConverter.LinePositions
+                    .OrderBy(p => p.Value)
+                    .Select(p => new Position(p.Key.Line, p.Key.Character))
+                    .ToArray());
         }
         finally
         {

@@ -8,13 +8,10 @@ using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
 
-internal class CustomMessage(JsonNode message, TextDocumentIdentifier? textDocument, Position[] positions)
+internal class CustomResponse(JsonNode message, Position[] positions)
 {
     [JsonPropertyName("message")]
     public JsonNode Message { get; } = Requires.NotNull(message);
-
-    [JsonPropertyName("textDocument")]
-    public TextDocumentIdentifier? TextDocument { get; } = textDocument;
 
     [JsonPropertyName("positions")]
     public Position[] Positions { get; } = Requires.NotNull(positions);
