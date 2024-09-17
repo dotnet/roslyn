@@ -1208,11 +1208,16 @@ class Program
     static void Test(I1 x)
     {
         _ = x[null];
+        _ = x.get_Item(null);
     }
 }
 ";
             var comp2 = CreateCompilation(text2, references: [comp1.ToMetadataReference()]);
-            comp2.VerifyDiagnostics();
+            comp2.VerifyDiagnostics(
+                // (7,15): error CS0571: 'I1.this[I1].get': cannot explicitly call operator or accessor
+                //         _ = x.get_Item(null);
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "get_Item").WithArguments("I1.this[I1].get").WithLocation(7, 15)
+                );
 
             var comp3 = CreateCompilation(text2, references: [comp1.EmitToImageReference()]);
             comp3.VerifyDiagnostics(
