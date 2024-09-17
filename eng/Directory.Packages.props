@@ -20,7 +20,7 @@
     -->
     <MicrosoftNetCoreAppRuntimePackagesVersion>8.0.0</MicrosoftNetCoreAppRuntimePackagesVersion>
     <MicrosoftWindowsDesktopAppRuntimePackagesVersion>8.0.0</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
-    <_xunitVersion>2.9.0</_xunitVersion>
+    <_xunitVersion>2.6.6</_xunitVersion>
     <SqliteVersion>2.1.0</SqliteVersion>
     <MicrosoftVisualStudioExtensibilityVersion>17.10.2079</MicrosoftVisualStudioExtensibilityVersion>
   </PropertyGroup>
@@ -282,7 +282,7 @@
     <PackageVersion Include="xunit.core" Version="$(_xunitVersion)" />
     <PackageVersion Include="Xunit.Combinatorial" Version="1.6.24" />
     <PackageVersion Include="xunit.extensibility.core" Version="$(_xunitVersion)" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5 " />
     <PackageVersion Include="xunit.runner.utility" Version="$(_xunitVersion)" />
     <PackageVersion Include="xunit.abstractions" Version="2.0.3" />
     <PackageVersion Include="xunit.extensibility.execution" Version="$(_xunitVersion)" />
