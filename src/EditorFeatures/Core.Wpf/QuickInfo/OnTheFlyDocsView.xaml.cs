@@ -37,7 +37,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     private readonly IAsyncQuickInfoSession _asyncQuickInfoSession;
     private readonly IThreadingContext _threadingContext;
     private readonly Document _document;
-    private readonly OnTheFlyDocsElement _onTheFlyDocsElement;
+    private readonly OnTheFlyDocsInfo _onTheFlyDocsInfo;
     private readonly ContentControl _responseControl = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new();
 
@@ -65,7 +65,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         _asyncListener = listenerProvider.GetListener(FeatureAttribute.OnTheFlyDocs);
         _asyncQuickInfoSession = asyncQuickInfoSession;
         _threadingContext = threadingContext;
-        _onTheFlyDocsElement = editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsElement;
+        _onTheFlyDocsInfo = editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsInfo;
         _document = editorFeaturesOnTheFlyDocsElement.Document;
 
         var sparkle = new ImageElement(new VisualStudio.Core.Imaging.ImageId(CopilotConstants.CopilotIconMonikerGuid, CopilotConstants.CopilotIconSparkleId));
@@ -137,7 +137,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
 
         try
         {
-            var response = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsElement.SymbolSignature, _onTheFlyDocsElement.DeclarationCode, _onTheFlyDocsElement.Language, cancellationToken).ConfigureAwait(false);
+            var response = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsInfo.SymbolSignature, _onTheFlyDocsInfo.DeclarationCode, _onTheFlyDocsInfo.Language, cancellationToken).ConfigureAwait(false);
             var copilotRequestTime = stopwatch.Elapsed;
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -202,12 +202,12 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         CurrentState = OnTheFlyDocsState.Loading;
         Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Loading_State_Entered, KeyValueLogMessage.Create(m =>
         {
-            m["SymbolHeaderText"] = _onTheFlyDocsElement.SymbolSignature;
-            m["HasDocumentationComments"] = _onTheFlyDocsElement.HasComments;
+            m["SymbolHeaderText"] = _onTheFlyDocsInfo.SymbolSignature;
+            m["HasDocumentationComments"] = _onTheFlyDocsInfo.HasComments;
         }, LogLevel.Information));
 
         OnTheFlyDocsLogger.LogOnTheFlyDocsResultsRequested();
-        if (_onTheFlyDocsElement.HasComments)
+        if (_onTheFlyDocsInfo.HasComments)
         {
             OnTheFlyDocsLogger.LogOnTheFlyDocsResultsRequestedWithDocComments();
         }

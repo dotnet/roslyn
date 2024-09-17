@@ -50,7 +50,7 @@ internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
 
         Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Showed_Link, KeyValueLogMessage.Create(m =>
         {
-            m["SymbolHeaderText"] = editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsElement.SymbolSignature;
+            m["SymbolHeaderText"] = editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsInfo.SymbolSignature;
         }, LogLevel.Information));
 
         var quickInfoSession = _asyncQuickInfoBroker.GetSession(textView);
@@ -62,7 +62,7 @@ internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
 
         OnTheFlyDocsLogger.LogShowedOnTheFlyDocsLink();
 
-        if (editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsElement.HasComments)
+        if (editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsInfo.HasComments)
         {
             OnTheFlyDocsLogger.LogShowedOnTheFlyDocsLinkWithDocComments();
         }

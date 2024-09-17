@@ -130,8 +130,8 @@ internal static class IntellisenseQuickInfoBuilder
             }
         }
 
-        if (context is not null && quickInfoItem.OnTheFlyDocsElement is not null)
-            elements.Add(new EditorFeaturesOnTheFlyDocsElement(context.Document, quickInfoItem.OnTheFlyDocsElement));
+        if (context is not null && quickInfoItem.OnTheFlyDocsInfo is not null)
+            elements.Add(new EditorFeaturesOnTheFlyDocsElement(context.Document, quickInfoItem.OnTheFlyDocsInfo));
 
         return new ContainerElement(
                             ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
