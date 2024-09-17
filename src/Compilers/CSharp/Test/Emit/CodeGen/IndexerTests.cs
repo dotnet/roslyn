@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1190,16 +1191,35 @@ Override.set y: 1
         [WorkItem("https://github.com/dotnet/roslyn/issues/75032")]
         public void MissingDefaultMemberAttribute()
         {
-            var text = @"
-interface I1
+            var text1 = @"
+public interface I1
 {
-    I1 this[I1 args] { get; }
+    public I1 this[I1 args] { get; }
 }
 ";
-            var comp = CreateCompilation(text);
-            comp.MakeMemberMissing(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor);
+            var comp1 = CreateCompilation(text1);
+            comp1.MakeMemberMissing(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor);
 
-            CompileAndVerify(comp).VerifyDiagnostics();
+            CompileAndVerify(comp1).VerifyDiagnostics();
+
+            var text2 = @"
+class Program
+{
+    static void Test(I1 x)
+    {
+        _ = x[null];
+    }
+}
+";
+            var comp2 = CreateCompilation(text2, references: [comp1.ToMetadataReference()]);
+            comp2.VerifyDiagnostics();
+
+            var comp3 = CreateCompilation(text2, references: [comp1.EmitToImageReference()]);
+            comp3.VerifyDiagnostics(
+                // (6,13): error CS0021: Cannot apply indexing with [] to an expression of type 'I1'
+                //         _ = x[null];
+                Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[null]").WithArguments("I1").WithLocation(6, 13)
+                );
         }
     }
 }
