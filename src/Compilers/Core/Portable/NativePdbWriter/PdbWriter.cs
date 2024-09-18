@@ -414,11 +414,13 @@ namespace Microsoft.Cci
             return result.ToStringAndFree();
         }
 
-        private string GetAssemblyReferenceAlias(IAssemblyReference assembly, HashSet<string> declaredExternAliasesOpt)
+#nullable enable
+
+        private string GetAssemblyReferenceAlias(IAssemblyReference assembly, HashSet<string>? declaredExternAliases)
         {
             var allAliases = _metadataWriter.Context.Module.GetAssemblyReferenceAliases(_metadataWriter.Context);
 
-            if (declaredExternAliasesOpt is not null)
+            if (declaredExternAliases is not null)
             {
                 foreach (AssemblyReferenceAlias alias in allAliases)
                 {
@@ -434,7 +436,7 @@ namespace Microsoft.Cci
                     // the alias requires binding.  For example, "using A.B;" could refer to
                     // either "A::B" or "global::A.B".
 
-                    if (assembly == alias.Assembly && declaredExternAliasesOpt.Contains(alias.Name))
+                    if (assembly == alias.Assembly && declaredExternAliases.Contains(alias.Name))
                     {
                         return alias.Name;
                     }
@@ -453,6 +455,8 @@ namespace Microsoft.Cci
             // no alias defined for given assembly -> error in compiler
             throw ExceptionUtilities.Unreachable();
         }
+
+#nullable disable
 
         private void DefineLocalScopes(ImmutableArray<LocalScope> scopes, StandaloneSignatureHandle localSignatureHandleOpt)
         {
