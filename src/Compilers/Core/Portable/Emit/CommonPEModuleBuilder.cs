@@ -91,12 +91,13 @@ namespace Microsoft.CodeAnalysis.Emit
         public int CurrentGenerationOrdinal => (PreviousGeneration?.Ordinal + 1) ?? 0;
 
         /// <summary>
-        /// Creates the type definition of HotReloadException type if it has been synthesized yet and returns its constructor.
+        /// Creates the type definition of HotReloadException type if it has not been synthesized yet and returns its constructor.
         /// </summary>
         public abstract IMethodSymbolInternal GetOrCreateHotReloadExceptionConstructorDefinition();
 
         /// <summary>
-        /// Creates the type definition of HotReloadException type if it has been synthesized yet and the module is an EnC delta.
+        /// Creates the type definition of HotReloadException type if it has not been synthesized yet and the module is an EnC delta.
+        /// Returns the synthesized type definition or null if the module is not an EnC delta or a user-defined type is already defined in the compilation.
         /// </summary>
         public abstract INamedTypeSymbolInternal? TryGetOrCreateSynthesizedHotReloadExceptionType();
 

@@ -16145,6 +16145,102 @@ class C
         }
 
         [Fact]
+        public void Method_Delete_SynthesizedHotReloadException_MissingExceptionType()
+        {
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Minimal)
+                .AddBaseline(
+                    source: """
+                        class C
+                        {
+                            void F() {}
+                        }
+                        """)
+                .AddGeneration(
+                    // 1
+                    source: """
+                        class C
+                        {
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.F"), newSymbolProvider: c => c.GetMember("C")),
+                    ],
+                    expectedErrors:
+                    [
+                        // error CS7043: Cannot emit update; constructor 'System.Exception..ctor(string)' is missing.
+                        Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingSymbol).WithArguments("constructor", "System.Exception..ctor(string)").WithLocation(1, 1)
+                    ])
+                .Verify();
+        }
+
+        [Fact]
+        public void Method_Delete_SynthesizedHotReloadException_MissingCompilerGeneratedAttribute()
+        {
+            var libs = """
+                namespace System
+                {
+                    public class Exception
+                    {
+                        public Exception(string message) {}
+                    }
+                }
+                """;
+
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Minimal)
+                .AddBaseline(
+                    source: libs + """
+                        class C
+                        {
+                            void F() {}
+                        }
+                        """)
+                .AddGeneration(
+                    // 1
+                    source: libs + """
+                        class C
+                        {
+                        }
+                        """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Delete, symbolProvider: c => c.GetMember("C.F"), newSymbolProvider: c => c.GetMember("C")),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifySynthesizedMembers("System.Runtime.CompilerServices.HotReloadException");
+                        g.VerifyTypeDefNames("HotReloadException");
+
+                        // Note TypeRef CompilerGeneratedAttribute not present:
+                        g.VerifyTypeRefNames("Object");
+
+                        g.VerifyIL("""
+                             {
+                              // Code size       13 (0xd)
+                              .maxstack  8
+                              IL_0000:  ldstr      0x70000005
+                              IL_0005:  ldc.i4.s   -2
+                              IL_0007:  newobj     0x06000004
+                              IL_000c:  throw
+                            }
+                            {
+                              // Code size       16 (0x10)
+                              .maxstack  8
+                              IL_0000:  ldarg.0
+                              IL_0001:  ldarg.1
+                              IL_0002:  call       0x06000003
+                              IL_0007:  nop
+                              IL_0008:  ldarg.0
+                              IL_0009:  ldarg.2
+                              IL_000a:  stfld      0x04000001
+                              IL_000f:  ret
+                            }
+                            """);
+                    })
+                .Verify();
+        }
+
+        [Fact]
         public void Method_Delete_PredefinedHotReloadException()
         {
             var exceptionSource = """

@@ -553,10 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             if (symbol is null)
             {
-                if (diagnostics.DiagnosticBag != null)
-                {
-                    AddDiagnosticsForUserDefinedReservedType(description.FullName, diagnostics.DiagnosticBag);
-                }
+                AddDiagnosticsForExistingAttribute(description, diagnostics);
 
                 var containingNamespace = GetOrSynthesizeNamespace(description.Namespace);
 
@@ -572,18 +569,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        protected void AddDiagnosticsForUserDefinedReservedType(string fullName, DiagnosticBag diagnostics)
-        {
-            var metadataName = MetadataTypeName.FromFullName(fullName);
-            var userDefinedType = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref metadataName);
-            if (userDefinedType is { })
-            {
-                Debug.Assert((object)userDefinedType.ContainingModule == _sourceAssembly.SourceModule);
-                Debug.Assert(!userDefinedType.IsErrorType());
+#nullable enable
 
-                diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_TypeReserved, [fullName]), userDefinedType.GetFirstLocation());
+        private void AddDiagnosticsForExistingAttribute(AttributeDescription description, BindingDiagnosticBag diagnostics)
+        {
+            var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
+            var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
+            Debug.Assert(userDefinedAttribute is null || (object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
+            Debug.Assert(userDefinedAttribute?.IsErrorType() != true);
+
+            if (userDefinedAttribute is not null)
+            {
+                diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.GetFirstLocation(), description.FullName);
             }
         }
+
+#nullable disable
 
         protected NamespaceSymbol GetOrSynthesizeNamespace(string namespaceFullName)
         {

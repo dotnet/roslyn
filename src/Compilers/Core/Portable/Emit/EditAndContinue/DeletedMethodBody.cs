@@ -87,7 +87,8 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
             builder.EmitStringConstant(message);
             builder.EmitIntConstant(codeValue);
 
-            builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment: 5);
+            // consumes message and code, pushes the created exception object:
+            builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment: -1);
             builder.EmitToken(hotReloadExceptionCtorDef.GetCciAdapter(), context.SyntaxNode!, context.Diagnostics);
             builder.EmitThrow(isRethrow: false);
             builder.Realize();

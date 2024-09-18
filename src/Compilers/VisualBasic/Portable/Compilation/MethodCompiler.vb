@@ -255,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     compiler.CompileSynthesizedMethods(additionalTypes)
                 End If
 
-                ' Create and compile HotReloadException type if emitting deltas even if it Is Not used.
+                ' Create and compile HotReloadException type if emitting deltas even if it is not used.
                 ' We might need to use it for deleted members, which we determine when indexing metadata.
                 Dim hotReloadException = moduleBeingBuiltOpt.TryGetOrCreateSynthesizedHotReloadExceptionType()
                 If hotReloadException IsNot Nothing Then

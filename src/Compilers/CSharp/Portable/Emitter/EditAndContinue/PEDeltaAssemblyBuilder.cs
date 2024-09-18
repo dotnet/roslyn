@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         /// <summary>
         /// HotReloadException type. May be created even if not used. We might find out
-        /// we need it late in the emit pahse only after all types and members have been compiled.
+        /// we need it late in the emit phase only after all types and members have been compiled.
         /// <see cref="_isHotReloadExceptionTypeUsed"/> indicates if the type is actually used in the delta.
         /// </summary>
         private SynthesizedHotReloadExceptionSymbol? _lazyHotReloadExceptionType;
