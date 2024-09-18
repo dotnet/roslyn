@@ -81,16 +81,8 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     }
 
     void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy _) => TrackOpenedDocument(moniker, textBuffer);
-    void IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame) { }
 
     void IOpenTextBufferEventListener.OnCloseDocument(string moniker) => TryUntrackClosingDocument(moniker);
-
-    /// <summary>
-    /// File hierarchy events are not relevant to the misc workspace.
-    /// </summary>
-    void IOpenTextBufferEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
-    {
-    }
 
     void IOpenTextBufferEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer buffer)
     {
@@ -105,6 +97,21 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
             TrackOpenedDocument(newMoniker, buffer);
         }
     }
+
+    /// <summary>
+    /// Not relevant to the misc workspace.
+    /// </summary>
+    void IOpenTextBufferEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy) { }
+
+    /// <summary>
+    /// Not relevant to the misc workspace.
+    /// </summary>
+    void IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame) { }
+
+    /// <summary>
+    /// Not relevant to the misc workspace.
+    /// </summary>
+    void IOpenTextBufferEventListener.OnSaveDocument(string moniker) { }
 
     public void RegisterLanguage(Guid languageGuid, string languageName, string scriptExtension)
         => _languageInformationByLanguageGuid.Add(languageGuid, new LanguageInformation(languageName, scriptExtension));
@@ -259,7 +266,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
-        if (_fileTrackingMetadataAsSourceService.TryAddDocumentToWorkspace(moniker, textBuffer.AsTextContainer()))
+        if (_fileTrackingMetadataAsSourceService.TryAddDocumentToWorkspace(moniker, textBuffer.AsTextContainer(), out var _))
         {
             // We already added it, so we will keep it excluded from the misc files workspace
             return;

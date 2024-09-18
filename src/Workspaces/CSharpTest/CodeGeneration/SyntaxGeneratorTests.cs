@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
     public sealed class SyntaxGeneratorTests
     {
         private readonly CSharpCompilation _emptyCompilation = CSharpCompilation.Create("empty",
-            references: [TestMetadata.Net451.mscorlib, TestMetadata.Net451.System]);
+            references: [NetFramework.mscorlib, NetFramework.System]);
 
         private Workspace _workspace;
         private SyntaxGenerator _generator;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         public static Compilation Compile(string code)
         {
             return CSharpCompilation.Create("test")
-                .AddReferences(TestMetadata.Net451.mscorlib, TestMetadata.Net451.System, TestMetadata.Net451.SystemCore, TestMetadata.Net451.SystemRuntime, TestReferences.NetFx.ValueTuple.tuplelib)
+                .AddReferences(NetFramework.mscorlib, NetFramework.System, NetFramework.SystemCore, NetFramework.SystemRuntime, TestReferences.NetFx.ValueTuple.tuplelib)
                 .AddSyntaxTrees(ParseSyntaxTree(code));
         }
 
@@ -3996,7 +3996,7 @@ $@"public class C
 @"public record struct C;
 ";
             var comp = CSharpCompilation.Create("test")
-                .AddReferences(TestMetadata.Net451.mscorlib)
+                .AddReferences(NetFramework.mscorlib)
                 .AddSyntaxTrees(ParseSyntaxTree(src, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview)));
 
             var symbolC = (INamedTypeSymbol)comp.GlobalNamespace.GetMembers("C").First();

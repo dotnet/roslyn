@@ -764,5 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             builderArgument = null;
             return false;
         }
+
+        internal override int? TryGetOverloadResolutionPriority() => null;
     }
 }

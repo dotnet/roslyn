@@ -256,7 +256,7 @@ internal class ProjectSystemProjectOptionsProcessor : IDisposable
         static IEnumerable<string> EnumerateLines(
             ITemporaryStorageStreamHandle storageHandle)
         {
-            using var stream = storageHandle.ReadFromTemporaryStorage(CancellationToken.None);
+            using var stream = storageHandle.ReadFromTemporaryStorage();
             using var reader = new StreamReader(stream);
 
             while (reader.ReadLine() is string line)

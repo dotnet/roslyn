@@ -37,7 +37,7 @@ internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
     {
     }
 
-    protected override async Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override async Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -109,8 +109,7 @@ internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
             var withField = await codeGenService.AddFieldAsync(
                 new CodeGenerationSolutionContext(
                     document.Project.Solution,
-                    CodeGenerationContext.Default,
-                    fallbackOptions),
+                    CodeGenerationContext.Default),
                 field.ContainingType,
                 fieldToAdd,
                 cancellationToken).ConfigureAwait(false);

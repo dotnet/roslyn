@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -22,14 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.EmbeddedStatementPlacement), Shared]
-internal sealed class EmbeddedStatementPlacementCodeFixProvider : CodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class EmbeddedStatementPlacementCodeFixProvider() : CodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public EmbeddedStatementPlacementCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.EmbeddedStatementPlacementDiagnosticId];
 
@@ -40,18 +37,18 @@ internal sealed class EmbeddedStatementPlacementCodeFixProvider : CodeFixProvide
         context.RegisterCodeFix(
             CodeAction.Create(
                 CSharpCodeFixesResources.Place_statement_on_following_line,
-                c => FixAllAsync(document, [diagnostic], context.GetOptionsProvider(), c),
+                c => FixAllAsync(document, [diagnostic], c),
                 nameof(CSharpCodeFixesResources.Place_statement_on_following_line)),
             context.Diagnostics);
         return Task.CompletedTask;
     }
 
-    public static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CodeActionOptionsProvider codeActionOptionsProvider, CancellationToken cancellationToken)
+    public static async Task<Document> FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(codeActionOptionsProvider, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var endOfLineTrivia = ElasticEndOfLine(options.NewLine);
 
@@ -136,5 +133,5 @@ internal sealed class EmbeddedStatementPlacementCodeFixProvider : CodeFixProvide
 
     public override FixAllProvider GetFixAllProvider()
         => FixAllProvider.Create(
-            async (context, document, diagnostics) => await FixAllAsync(document, diagnostics, context.GetOptionsProvider(), context.CancellationToken).ConfigureAwait(false));
+            async (context, document, diagnostics) => await FixAllAsync(document, diagnostics, context.CancellationToken).ConfigureAwait(false));
 }

@@ -25,12 +25,7 @@ internal sealed partial class RenameTrackingTaggerProvider
         private readonly int _trackingSessionId = trackingSessionId;
         private readonly bool _shouldRestoreStateOnUndo = shouldRestoreStateOnUndo;
 
-        private ITextUndoTransaction _parent;
-        public ITextUndoTransaction Parent
-        {
-            get { return _parent; }
-            set { _parent = value; }
-        }
+        public ITextUndoTransaction Parent { get; set; }
 
         public bool CanRedo => true;
 

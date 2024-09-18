@@ -528,7 +528,7 @@ class Async
             int padding = GeneratedNames.MakeStateMachineTypeName("A", 0, 0).Length - 1;
             string longName = s_longSymbolName.Substring(padding);
             var source = string.Format(sourceTemplate, longName);
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
             comp.VerifyDiagnostics();
             // CONSIDER: Location would light up if synthesized methods had them.
             comp.VerifyEmitDiagnostics(

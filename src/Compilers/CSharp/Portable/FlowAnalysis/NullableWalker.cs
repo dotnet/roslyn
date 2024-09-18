@@ -3704,7 +3704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Record the final state
                 NullableFlowState resultState = getResultState(node, collectionKind);
-                var resultTypeWithState = TypeWithState.Create(node.Type, resultState);
+                var resultTypeWithState = TypeWithState.Create(strippedTargetCollectionType, resultState);
                 SetAnalyzedNullability(node, resultTypeWithState);
                 return resultTypeWithState;
             }
@@ -4572,7 +4572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is done using <see cref="TargetTypedAnalysisCompletion"/>. All registered completions must be processed
         /// (ie. analyzed via some conversion) before the nullable analysis completes.
         /// </summary>
-        private static bool IsTargetTypedExpression(BoundExpression node)
+        internal static bool IsTargetTypedExpression(BoundExpression node)
         {
             return node is BoundConditionalOperator { WasTargetTyped: true } or
                            BoundConvertedSwitchExpression { WasTargetTyped: true } or
@@ -5818,6 +5818,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (wasTargetTyped)
             {
                 resultType = null;
+            }
+            else if (IsTargetTypedExpression(consequence))
+            {
+                resultType = alternativeRValue.Type;
+            }
+            else if (IsTargetTypedExpression(alternative))
+            {
+                resultType = consequenceRValue.Type;
             }
             else
             {
@@ -7186,7 +7194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.In:
                     {
                         // Note: for lambda arguments, they will be converted in the context/state we saved for that argument
-                        if (conversion is { Kind: ConversionKind.ImplicitUserDefined })
+                        if (conversion is { IsValid: true, Kind: ConversionKind.ImplicitUserDefined })
                         {
                             var argumentResultType = resultType.Type;
                             conversion = GenerateConversion(_conversions, argumentNoConversion, argumentResultType, parameterType.Type, fromExplicitCast: false, extensionMethodThisArgument: false, isChecked: conversionOpt?.Checked ?? false);
@@ -9307,14 +9315,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (conversionOpt != null && conversionOpt != convertedNode)
             {
                 Debug.Assert(conversionOpt.ConversionGroupOpt == conversionGroup);
-                visitResult = withType(visitResult, conversionOpt.Type);
+
+                // https://github.com/dotnet/roslyn/issues/35046
+                // SetAnalyzedNullability will drop the type if the visitResult.RValueType.Type differs from conversionOpt.Type.
+                // (It will use the top-level nullability from visitResult, though.)
+                //
+                // Here, the visitResult represents the result of visiting the operand.
+                // Ideally, we would use the visitResult to reinfer the types of the containing conversions, and store those results here.
                 SetAnalyzedNullability(conversionOpt, visitResult);
+
                 conversionOpt = conversionOpt.Operand as BoundConversion;
             }
-
-            static VisitResult withType(VisitResult visitResult, TypeSymbol newType) =>
-                new VisitResult(TypeWithState.Create(newType, visitResult.RValueType.State),
-                                TypeWithAnnotations.Create(newType, visitResult.LValueType.NullableAnnotation));
         }
 
         /// <summary>
@@ -11284,8 +11295,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // https://github.com/dotnet/roslyn/issues/33344: this fails to produce an updated tuple type for a default expression
-            // (should produce nullable element types for those elements that are of reference types)
             SetResultType(node, TypeWithState.ForType(type));
             return result;
         }

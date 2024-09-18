@@ -42,10 +42,7 @@ internal abstract class AbstractSpeculationAnalyzer<
     where TInvocationExpressionSyntax : TExpressionSyntax
     where TConversion : struct
 {
-    private readonly TExpressionSyntax _expression;
     private readonly TExpressionSyntax _newExpressionForReplace;
-    private readonly SemanticModel _semanticModel;
-    private readonly CancellationToken _cancellationToken;
     private readonly bool _skipVerificationForReplacedNode;
     private readonly bool _failOnOverloadResolutionFailuresInOriginalCode;
     private readonly bool _isNewSemanticModelSpeculativeModel;
@@ -81,10 +78,10 @@ internal abstract class AbstractSpeculationAnalyzer<
         bool skipVerificationForReplacedNode = false,
         bool failOnOverloadResolutionFailuresInOriginalCode = false)
     {
-        _expression = expression;
+        OriginalExpression = expression;
         _newExpressionForReplace = newExpression;
-        _semanticModel = semanticModel;
-        _cancellationToken = cancellationToken;
+        OriginalSemanticModel = semanticModel;
+        CancellationToken = cancellationToken;
         _skipVerificationForReplacedNode = skipVerificationForReplacedNode;
         _failOnOverloadResolutionFailuresInOriginalCode = failOnOverloadResolutionFailuresInOriginalCode;
         _isNewSemanticModelSpeculativeModel = true;
@@ -100,7 +97,7 @@ internal abstract class AbstractSpeculationAnalyzer<
     /// <summary>
     /// Original expression to be replaced.
     /// </summary>
-    public TExpressionSyntax OriginalExpression => _expression;
+    public TExpressionSyntax OriginalExpression { get; }
 
     SyntaxNode ISpeculationAnalyzer.OriginalExpression => OriginalExpression;
 
@@ -126,7 +123,7 @@ internal abstract class AbstractSpeculationAnalyzer<
     /// <summary>
     /// Semantic model for the syntax tree corresponding to <see cref="OriginalExpression"/>
     /// </summary>
-    public SemanticModel OriginalSemanticModel => _semanticModel;
+    public SemanticModel OriginalSemanticModel { get; }
 
     /// <summary>
     /// Node which replaces the <see cref="OriginalExpression"/>.
@@ -170,7 +167,7 @@ internal abstract class AbstractSpeculationAnalyzer<
         }
     }
 
-    public CancellationToken CancellationToken => _cancellationToken;
+    public CancellationToken CancellationToken { get; }
 
     protected abstract SyntaxNode GetSemanticRootForSpeculation(TExpressionSyntax expression);
 
@@ -205,7 +202,7 @@ internal abstract class AbstractSpeculationAnalyzer<
         if (_lazySpeculativeSemanticModel == null)
         {
             var nodeToSpeculate = this.SemanticRootOfReplacedExpression;
-            _lazySpeculativeSemanticModel = CreateSpeculativeSemanticModel(this.SemanticRootOfOriginalExpression, nodeToSpeculate, _semanticModel);
+            _lazySpeculativeSemanticModel = CreateSpeculativeSemanticModel(this.SemanticRootOfOriginalExpression, nodeToSpeculate, OriginalSemanticModel);
             ValidateSpeculativeSemanticModel(_lazySpeculativeSemanticModel, nodeToSpeculate);
         }
     }
@@ -650,7 +647,7 @@ internal abstract class AbstractSpeculationAnalyzer<
             // semantics.  We could potentially support this, but we'd have to do the analysis the instance invoked
             // on and the instance passed as the first parameter are identical.
 
-            var originalIsStaticAccess = IsStaticAccess(_semanticModel.GetSymbolInfo(originalExpression, CancellationToken).Symbol);
+            var originalIsStaticAccess = IsStaticAccess(OriginalSemanticModel.GetSymbolInfo(originalExpression, CancellationToken).Symbol);
             var replacedIsStaticAccess = IsStaticAccess(this.SpeculativeSemanticModel.GetSymbolInfo(newExpression, CancellationToken).Symbol);
             if (originalIsStaticAccess != replacedIsStaticAccess)
                 return false;
@@ -751,16 +748,16 @@ internal abstract class AbstractSpeculationAnalyzer<
     {
         var forEachExpression = GetForEachStatementExpression(forEachStatement);
         if (forEachExpression.IsMissing ||
-            !forEachExpression.Span.Contains(_expression.SpanStart))
+            !forEachExpression.Span.Contains(OriginalExpression.SpanStart))
         {
             return false;
         }
 
         // inferred variable type compatible
-        if (IsForEachTypeInferred(forEachStatement, _semanticModel))
+        if (IsForEachTypeInferred(forEachStatement, OriginalSemanticModel))
         {
-            var local = (ILocalSymbol)_semanticModel.GetRequiredDeclaredSymbol(forEachStatement, _cancellationToken);
-            var newLocal = (ILocalSymbol)this.SpeculativeSemanticModel.GetRequiredDeclaredSymbol(newForEachStatement, _cancellationToken);
+            var local = (ILocalSymbol)OriginalSemanticModel.GetRequiredDeclaredSymbol(forEachStatement, CancellationToken);
+            var newLocal = (ILocalSymbol)this.SpeculativeSemanticModel.GetRequiredDeclaredSymbol(newForEachStatement, CancellationToken);
             if (!SymbolsAreCompatible(local.Type, newLocal.Type))
             {
                 return true;
@@ -804,7 +801,7 @@ internal abstract class AbstractSpeculationAnalyzer<
             // GetEnumerator method on a specific type.
             if (getEnumerator.IsImplementableMember())
             {
-                var expressionType = this.SpeculativeSemanticModel.GetTypeInfo(newForEachStatementExpression, _cancellationToken).ConvertedType;
+                var expressionType = this.SpeculativeSemanticModel.GetTypeInfo(newForEachStatementExpression, CancellationToken).ConvertedType;
                 if (expressionType != null)
                 {
                     var implementationMember = expressionType.FindImplementationForInterfaceMember(getEnumerator);
@@ -847,7 +844,7 @@ internal abstract class AbstractSpeculationAnalyzer<
         ISymbol? newSymbol;
         if (useSpeculativeModel)
         {
-            newSymbol = this.SpeculativeSemanticModel.GetSymbolInfo(newType, _cancellationToken).Symbol;
+            newSymbol = this.SpeculativeSemanticModel.GetSymbolInfo(newType, CancellationToken).Symbol;
         }
         else
         {
@@ -875,7 +872,7 @@ internal abstract class AbstractSpeculationAnalyzer<
 
     private bool ReplacementBreaksExpression(TExpressionSyntax expression, TExpressionSyntax newExpression)
     {
-        var originalSymbolInfo = _semanticModel.GetSymbolInfo(expression);
+        var originalSymbolInfo = OriginalSemanticModel.GetSymbolInfo(expression);
         if (_failOnOverloadResolutionFailuresInOriginalCode && originalSymbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure)
         {
             return true;

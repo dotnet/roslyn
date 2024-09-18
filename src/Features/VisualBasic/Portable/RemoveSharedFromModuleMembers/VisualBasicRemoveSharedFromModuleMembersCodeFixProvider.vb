@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveSharedFromModuleMembers
             Return Task.CompletedTask
         End Function
 
-        Protected Overrides Function FixAllAsync(document As Document, diagnostics As ImmutableArray(Of Diagnostic), editor As SyntaxEditor, fallbackOptions As CodeActionOptionsProvider, cancellationToken As CancellationToken) As Task
+        Protected Overrides Function FixAllAsync(document As Document, diagnostics As ImmutableArray(Of Diagnostic), editor As SyntaxEditor, cancellationToken As CancellationToken) As Task
             For Each diagnostic In diagnostics
                 Dim node = diagnostic.Location.FindNode(cancellationToken)
                 Dim newNode = GetReplacement(document, node)

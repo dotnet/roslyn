@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_MissingRuntimeHelper,
                      ERRID.ERR_CannotGotoNonScopeBlocksWithClosure,
                      ERRID.ERR_SymbolDefinedInAssembly
-                    ' Update src\EditorFeatures\VisualBasic\LanguageServer\VisualBasicLspBuildOnlyDiagnostics.vb
+                    ' Update src\Features\VisualBasic\Portable\Diagnostics\LanguageServer\VisualBasicLspBuildOnlyDiagnostics.vb
                     ' whenever new values are added here.
                     Return True
                 Case ERRID.Void,
@@ -1215,6 +1215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      ERRID.ERR_FailureSigningAssembly,
                      ERRID.ERR_SignButNoPrivateKey,
                      ERRID.ERR_InvalidVersionFormat,
+                     ERRID.ERR_InvalidVersionFormatDeterministic,
                      ERRID.ERR_ExpectedSingleScript,
                      ERRID.ERR_ReferenceDirectiveOnlyAllowedInScripts,
                      ERRID.ERR_NamespaceNotAllowedInScript,

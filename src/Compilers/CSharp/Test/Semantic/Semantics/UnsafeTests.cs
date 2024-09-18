@@ -73,7 +73,7 @@ class C
 
     unsafe IntPtr M2(IntPtr p) => p;
 }";
-            var comp2 = CreateCompilationWithMscorlib45(text2,
+            var comp2 = CreateCompilationWithMscorlib461(text2,
                 references: new[] { ref1 },
                 options: TestOptions.UnsafeDebugDll);
             comp2.VerifyDiagnostics(
@@ -276,11 +276,11 @@ class C
 ";
 
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (4,56): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,56): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     unsafe System.Collections.Generic.IEnumerator<int> Goo()
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Goo").WithArguments("ref and unsafe in async and iterator methods").WithLocation(4, 56));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "Goo").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(4, 56));
 
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
         }
 
@@ -299,11 +299,11 @@ class C
 ";
 
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         unsafe { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "unsafe").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 9));
 
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
         }
 
@@ -322,11 +322,11 @@ unsafe class C
 ";
 
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         unsafe { }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "unsafe").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 9));
 
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
         }
 
@@ -346,11 +346,11 @@ unsafe class C
 ";
 
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (6,35): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,35): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         System.Action a = () => { unsafe { } };
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 35));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "unsafe").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 35));
 
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
         }
 
@@ -377,15 +377,15 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (5,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         unsafe // langversion error in C# 12
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(5, 9),
-                // (7,13): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "unsafe").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(5, 9),
+                // (7,13): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //             int* p = null; // unnecessary langversion error in C# 12
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 13),
-                // (13,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "int*").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 13),
+                // (13,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         int* p = null; // necessary langversion error in C# 12
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("ref and unsafe in async and iterator methods").WithLocation(13, 9));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "int*").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(13, 9));
 
             var expectedDiagnostics = new[]
             {
@@ -394,7 +394,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(13, 9)
             };
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -419,21 +419,21 @@ unsafe class C
 
             // https://github.com/dotnet/roslyn/issues/73280 - diagnostics inside the unsafe block are unnecessary
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         unsafe
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 9),
-                // (8,13): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "unsafe").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 9),
+                // (8,13): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //             int *p = &x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int *").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 13),
-                // (8,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "int *").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 13),
+                // (8,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //             int *p = &x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 22),
-                // (9,14): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "&x").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 22),
+                // (9,14): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //             *p = *p + 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("ref and unsafe in async and iterator methods").WithLocation(9, 14),
-                // (9,19): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "p").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(9, 14),
+                // (9,19): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //             *p = *p + 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("ref and unsafe in async and iterator methods").WithLocation(9, 19));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "p").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(9, 19));
 
             var expectedDiagnostics = new[]
             {
@@ -442,7 +442,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_AddressOfInIterator, "x").WithLocation(8, 23)
             };
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -466,21 +466,21 @@ unsafe class C
 
             // https://github.com/dotnet/roslyn/issues/73280 - diagnostics inside the unsafe block are unnecessary
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (5,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         unsafe
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(5, 9),
-                // (7,13): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "unsafe").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(5, 9),
+                // (7,13): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //             int *p = &x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int *").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 13),
-                // (7,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "int *").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 13),
+                // (7,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //             int *p = &x;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 22),
-                // (8,14): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "&x").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 22),
+                // (8,14): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //             *p = *p + 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 14),
-                // (8,19): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "p").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 14),
+                // (8,19): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //             *p = *p + 1;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "p").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 19));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "p").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 19));
 
             var expectedDiagnostics = new[]
             {
@@ -489,7 +489,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_AddressOfInIterator, "x").WithLocation(7, 23)
             };
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -608,15 +608,15 @@ unsafe class C
 
             // https://github.com/dotnet/roslyn/issues/73280 - diagnostics inside the unsafe block are unnecessary
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
-                // (8,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         unsafe
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 9),
-                // (10,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "unsafe").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 9),
+                // (10,17): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //             x = sizeof(nint);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 17));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(10, 17));
 
             var expectedOutput = IntPtr.Size.ToString();
-            CompileAndVerify(code, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
+            CompileAndVerify(code, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
             CompileAndVerify(code, expectedOutput: expectedOutput, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
         }
 
@@ -637,11 +637,11 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (5,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         unsafe
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(5, 9));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "unsafe").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(5, 9));
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
         }
 
@@ -662,9 +662,9 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (5,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         unsafe
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "unsafe").WithArguments("ref and unsafe in async and iterator methods").WithLocation(5, 9));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "unsafe").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(5, 9));
 
             var expectedDiagnostics = new[]
             {
@@ -673,7 +673,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(7, 13)
             };
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -751,7 +751,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_AddressOfInIterator, "x").WithLocation(20, 23)
             };
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -809,7 +809,7 @@ unsafe class C
                 Diagnostic(ErrorCode.WRN_AddressOfInAsync, "x").WithLocation(30, 23)
             };
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -875,7 +875,7 @@ unsafe class C
                 //         var lam = async () => await Task.Yield();
                 Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(8, 31));
 
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
         }
 
@@ -902,7 +902,7 @@ unsafe class C
                 //         async void local() { await Task.Yield(); }
                 Diagnostic(ErrorCode.ERR_AwaitInUnsafeContext, "await Task.Yield()").WithLocation(9, 30));
 
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
         }
 
@@ -922,9 +922,9 @@ unsafe class C
 
             // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (6,25): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,25): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         var lam = () => sizeof(nint);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 25));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "sizeof(nint)").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 25));
 
             var expectedDiagnostics = new[]
             {
@@ -933,7 +933,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(6, 25)
             };
 
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -961,7 +961,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(7, 24)
             };
 
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -981,7 +981,7 @@ unsafe class C
                 """;
 
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
         }
 
@@ -1012,7 +1012,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(9, 28)
             };
 
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1040,7 +1040,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(7, 24)
             };
 
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1072,7 +1072,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 29)
             };
 
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1104,7 +1104,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(10, 29)
             };
 
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1124,9 +1124,9 @@ unsafe class C
 
             // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (5,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         int* p = null;
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("ref and unsafe in async and iterator methods").WithLocation(5, 9));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "int*").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(5, 9));
 
             var expectedDiagnostics = new[]
             {
@@ -1135,7 +1135,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(5, 9)
             };
 
-            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1155,7 +1155,7 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1177,7 +1177,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1200,7 +1200,7 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1225,7 +1225,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1243,7 +1243,7 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1261,11 +1261,11 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (3,56): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,56): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     unsafe System.Collections.Generic.IEnumerable<int> M(int*[] p)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("ref and unsafe in async and iterator methods").WithLocation(3, 56));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "M").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(3, 56));
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1290,7 +1290,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1386,7 +1386,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(5, 22)
             };
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1412,7 +1412,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(6, 26)
             };
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1435,7 +1435,7 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1460,7 +1460,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1483,7 +1483,7 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1508,7 +1508,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1526,7 +1526,7 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1544,11 +1544,11 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (3,78): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,78): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     public static unsafe System.Collections.Generic.IEnumerable<int> operator+(C c, int*[] p)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "+").WithArguments("ref and unsafe in async and iterator methods").WithLocation(3, 78));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "+").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(3, 78));
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1573,7 +1573,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1631,7 +1631,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(5, 22)
             };
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1655,7 +1655,7 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1681,7 +1681,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1705,7 +1705,7 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1734,7 +1734,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1753,7 +1753,7 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1772,11 +1772,11 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (5,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         get { yield break; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("ref and unsafe in async and iterator methods").WithLocation(5, 9));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "get").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(5, 9));
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1802,7 +1802,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1874,7 +1874,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(5, 28)
             };
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1902,7 +1902,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 15)
             };
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1926,7 +1926,7 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -1952,7 +1952,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -1976,7 +1976,7 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -2005,7 +2005,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -2024,7 +2024,7 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -2043,11 +2043,11 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (5,9): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         get { yield break; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("ref and unsafe in async and iterator methods").WithLocation(5, 9));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "get").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(5, 9));
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
@@ -2073,7 +2073,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -2145,7 +2145,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(5, 28)
             };
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -2173,7 +2173,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "int*").WithLocation(6, 15)
             };
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -2194,7 +2194,7 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
         }
 
@@ -2214,7 +2214,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -2238,7 +2238,7 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
         }
 
@@ -2261,7 +2261,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -2280,7 +2280,7 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
         }
 
@@ -2299,11 +2299,11 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
-                // (4,56): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,56): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     unsafe System.Collections.Generic.IEnumerable<int> M(int*[] p)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M").WithArguments("ref and unsafe in async and iterator methods").WithLocation(4, 56));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "M").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(4, 56));
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
         }
 
@@ -2326,7 +2326,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -2384,7 +2384,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_SizeofUnsafe, "sizeof(nint)").WithArguments("nint").WithLocation(6, 22)
             };
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -2399,7 +2399,7 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
         }
 
@@ -2421,7 +2421,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -2439,7 +2439,7 @@ unsafe class C
                 """;
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics();
         }
 
@@ -2461,7 +2461,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -2486,7 +2486,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -2514,7 +2514,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -2549,7 +2549,7 @@ unsafe class C
                 Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(5, 9)
             ];
 
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -2574,7 +2574,7 @@ unsafe class C
             };
 
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(code, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -2593,7 +2593,7 @@ unsafe class C
                 }
                 """;
             CreateCompilation(code, parseOptions: TestOptions.Regular12, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
-            CreateCompilation(code, parseOptions: TestOptions.RegularNext, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
             CreateCompilation(code, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
         }
 
@@ -3199,9 +3199,9 @@ unsafe class C<T>
                 // (4,70): error CS1637: Iterators cannot have pointer type parameters
                 //     unsafe System.Collections.Generic.IEnumerable<int> Iterator(int* p)
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p").WithLocation(4, 70),
-                // (4,56): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,56): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     unsafe System.Collections.Generic.IEnumerable<int> Iterator(int* p)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Iterator").WithArguments("ref and unsafe in async and iterator methods").WithLocation(4, 56)); //this is for putting "unsafe" on an iterator, not for the parameter type
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "Iterator").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(4, 56)); //this is for putting "unsafe" on an iterator, not for the parameter type
 
             var expectedDiagnostics = new[]
             {
@@ -3210,7 +3210,7 @@ unsafe class C<T>
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p").WithLocation(4, 70)
             };
 
-            CreateCompilation(withUnsafeOnMembers, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(withUnsafeOnMembers, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(withUnsafeOnMembers, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
 
             var withUnsafeOnTypeAndMembers = string.Format(template, "unsafe", "unsafe");
@@ -3218,9 +3218,9 @@ unsafe class C<T>
                 // (4,70): error CS1637: Iterators cannot have pointer type parameters
                 //     unsafe System.Collections.Generic.IEnumerable<int> Iterator(int* p)
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p").WithLocation(4, 70),
-                // (4,56): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,56): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     unsafe System.Collections.Generic.IEnumerable<int> Iterator(int* p)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Iterator").WithArguments("ref and unsafe in async and iterator methods").WithLocation(4, 56)); //this is for putting "unsafe" on an iterator, not for the parameter type
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "Iterator").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(4, 56)); //this is for putting "unsafe" on an iterator, not for the parameter type
 
             expectedDiagnostics = [
                 // (4,70): error CS1637: Iterators cannot have pointer type parameters
@@ -3228,7 +3228,7 @@ unsafe class C<T>
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "p").WithLocation(4, 70)
             ];
 
-            CreateCompilation(withUnsafeOnTypeAndMembers, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(withUnsafeOnTypeAndMembers, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(withUnsafeOnTypeAndMembers, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -3257,22 +3257,22 @@ unsafe class C<T>
 
             var withUnsafeOnMembers = string.Format(template, "", "unsafe");
             CreateCompilation(withUnsafeOnMembers, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (4,56): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,56): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     unsafe System.Collections.Generic.IEnumerable<int> Iterator(int*[] p)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Iterator").WithArguments("ref and unsafe in async and iterator methods").WithLocation(4, 56)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "Iterator").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(4, 56)
                 );
 
-            CreateCompilation(withUnsafeOnMembers, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(withUnsafeOnMembers, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation(withUnsafeOnMembers, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
 
             var withUnsafeOnTypeAndMembers = string.Format(template, "unsafe", "unsafe");
             CreateCompilation(withUnsafeOnTypeAndMembers, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (4,56): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,56): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     unsafe System.Collections.Generic.IEnumerable<int> Iterator(int*[] p)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Iterator").WithArguments("ref and unsafe in async and iterator methods").WithLocation(4, 56)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "Iterator").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(4, 56)
                 );
 
-            CreateCompilation(withUnsafeOnTypeAndMembers, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(withUnsafeOnTypeAndMembers, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation(withUnsafeOnTypeAndMembers, options: TestOptions.UnsafeReleaseDll).VerifyEmitDiagnostics();
         }
 
@@ -10453,7 +10453,7 @@ struct S
             };
 
             CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(text, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(text).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -10826,7 +10826,7 @@ struct S
             };
 
             CreateCompilation(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
-            CreateCompilation(text, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(text, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(text).VerifyDiagnostics(expectedDiagnostics);
         }
 

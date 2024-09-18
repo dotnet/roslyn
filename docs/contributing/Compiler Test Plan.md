@@ -85,6 +85,7 @@ This document provides guidance for thinking about language interactions and tes
 - Conversions (boxing/unboxing)
 - Nullable (wrapping, unwrapping)
 - Overload resolution, override/hide/implement (OHI)
+  - OverloadResolutionPriorityAttribute
 - Inheritance (virtual, override, abstract, new)
 - Anonymous types
 - Tuple types and literals (elements with explicit or inferred names, long tuples), tuple equality

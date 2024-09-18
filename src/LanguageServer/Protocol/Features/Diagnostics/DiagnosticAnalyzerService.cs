@@ -27,6 +27,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [Shared]
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
+        private static readonly Option2<bool> s_crashOnAnalyzerException = new("dotnet_crash_on_analyzer_exception", defaultValue: false);
+
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
 
         public IAsynchronousOperationListener Listener { get; }
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _diagnosticsRefresher = diagnosticsRefresher;
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
 
-            globalOptions.AddOptionChangedHandler(this, (_, e) =>
+            globalOptions.AddOptionChangedHandler(this, (_, _, e) =>
             {
                 if (e.HasOption(IsGlobalOptionAffectingDiagnostics))
                 {
@@ -59,12 +61,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             });
         }
 
+        public bool CrashOnAnalyzerException
+            => GlobalOptions.GetOption(s_crashOnAnalyzerException);
+
         public static bool IsGlobalOptionAffectingDiagnostics(IOption2 option)
             => option == NamingStyleOptions.NamingPreferences ||
                option.Definition.Group.Parent == CodeStyleOptionGroups.CodeStyle ||
                option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption ||
                option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption ||
-               option == SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption;
+               option == SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption ||
+               option == s_crashOnAnalyzerException;
 
         public void RequestDiagnosticRefresh()
             => _diagnosticsRefresher?.RequestWorkspaceRefresh();

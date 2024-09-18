@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.CSharp.EncapsulateField;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
 using Microsoft.CodeAnalysis.Notification;
@@ -42,8 +43,11 @@ internal class EncapsulateFieldTestState : IDisposable
     {
         var workspace = EditorTestWorkspace.CreateCSharp(markup, composition: EditorTestCompositions.EditorFeatures);
 
-        workspace.GlobalOptions.SetGlobalOption(CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
-        workspace.GlobalOptions.SetGlobalOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+        workspace.SetAnalyzerFallbackOptions(new OptionsCollection(LanguageNames.CSharp)
+        {
+            { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+            { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement }
+        });
 
         return new EncapsulateFieldTestState(workspace);
     }

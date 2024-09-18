@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
                             textChanges = newText.GetTextChanges(oldText);
                         }
 
-                        var edits = textChanges.Select(tc => ProtocolConversions.TextChangeToTextEdit(tc, oldText)).ToArray();
+                        var edits = textChanges.Select(tc => new LSP.SumType<LSP.TextEdit, LSP.AnnotatedTextEdit>(ProtocolConversions.TextChangeToTextEdit(tc, oldText))).ToArray();
 
                         if (edits.Length > 0)
                         {

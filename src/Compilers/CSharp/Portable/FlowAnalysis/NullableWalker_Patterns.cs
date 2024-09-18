@@ -898,8 +898,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultTypes.Add(armType);
                 Join(ref endState, ref this.State);
 
-                // Build placeholders for inference in order to preserve annotations.
-                placeholderBuilder.Add(CreatePlaceholderIfNecessary(expression, armType.ToTypeWithAnnotations(compilation)));
+                if (!IsTargetTypedExpression(expression))
+                {
+                    // Build placeholders for inference in order to preserve annotations.
+                    placeholderBuilder.Add(CreatePlaceholderIfNecessary(expression, armType.ToTypeWithAnnotations(compilation)));
+                }
             }
 
             SetState(endState);
@@ -917,10 +920,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (inferType && inferredType is null)
             {
-                // This can happen when we're inferring the return type of a lambda, or when there are no arms (an error case).
-                // For this case, we don't need to do any work, as the unconverted switch expression can't contribute info, and
-                // there is nothing that is being publicly exposed to the semantic model.
-                Debug.Assert((node is BoundUnconvertedSwitchExpression && _returnTypesOpt is not null)
+                // This can happen when we're inferring the return type of a lambda or visiting a node without diagnostics like
+                // BoundConvertedTupleLiteral.SourceTuple. For these cases, we don't need to do any work,
+                // the unconverted switch expression can't contribute info. The conversion that should be on top of this
+                // can add or remove nullability, and nested nodes aren't being publicly exposed by the semantic model.
+                // See also NullableWalker.VisitConditionalOperatorCore for a similar check for conditional operators.
+                Debug.Assert((node is BoundUnconvertedSwitchExpression && (_returnTypesOpt is not null || _disableDiagnostics))
                                 || node is BoundSwitchExpression { SwitchArms: { Length: 0 } });
                 inferredState = default;
 
