@@ -65,7 +65,7 @@ try
         await Console.Out.WriteLineAsync($"Discovering tests in {testDescriptor}...").ConfigureAwait(false);
 
         using var xunit = new XunitFrontController(AppDomainSupport.IfAvailable, assemblyFileName, shadowCopy: false);
-        var configuration = ConfigReader.Load(assemblyFileName, configFileName: null, warnings: null);
+        var configuration = ConfigReader.Load(assemblyFileName);
         var sink = new Sink();
         xunit.Find(includeSourceInformation: false,
                    messageSink: sink,
