@@ -159,6 +159,7 @@ namespace Roslyn.Test.Utilities
         public static bool IsWindowsDesktop => IsWindows && IsDesktop;
         public static bool IsMonoDesktop => Type.GetType("Mono.Runtime") != null;
         public static bool IsMono => MonoHelpers.IsRunningOnMono();
+        public static bool IsNewMono => Type.GetType("Mono.RuntimeStructs") != null;
         public static bool IsCoreClr => !IsDesktop;
         public static bool IsCoreClrUnix => IsCoreClr && IsUnix;
         public static bool IsMonoOrCoreClr => IsMono || IsCoreClr;
@@ -329,6 +330,12 @@ namespace Roslyn.Test.Utilities
     public class ClrOnly : ExecutionCondition
     {
         public override bool ShouldSkip => MonoHelpers.IsRunningOnMono();
+        public override string SkipReason => "Test not supported on Mono";
+    }
+
+    public class NotMono : ExecutionCondition
+    {
+        public override bool ShouldSkip => MonoHelpers.IsUsingMonoRuntime();
         public override string SkipReason => "Test not supported on Mono";
     }
 
