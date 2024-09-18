@@ -263,7 +263,7 @@ Remarks are cool too\.
             var results = await RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(expectedMarkdown, results.Contents.Value.Fourth.Value);
+            Assert.Equal(expectedMarkdown, results.Contents.Fourth.Value);
         }
 
         [Theory, CombinatorialData]
@@ -330,7 +330,7 @@ Remarks are cool too.
             var results = await RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(expectedText, results.Contents.Value.Fourth.Value);
+            Assert.Equal(expectedText, results.Contents.Fourth.Value);
         }
 
         [Theory, CombinatorialData]
@@ -384,7 +384,7 @@ _italic\_ \*\*text\*\*_
             var results = await RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(expectedMarkdown, results.Contents.Value.Fourth.Value);
+            Assert.Equal(expectedMarkdown, results.Contents.Fourth.Value);
         }
 
         [Theory, CombinatorialData]
@@ -421,7 +421,7 @@ void A.AMethod(int i)
             var results = await RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(expectedMarkdown, results.Contents.Value.Fourth.Value);
+            Assert.Equal(expectedMarkdown, results.Contents.Fourth.Value);
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/vscode-csharp/issues/6577")]
@@ -449,7 +449,7 @@ class C
             var results = await RunGetHoverAsync(
                 testLspServer,
                 expectedLocation).ConfigureAwait(false);
-            Assert.Equal(expectedMarkdown, results.Contents.Value.Fourth.Value);
+            Assert.Equal(expectedMarkdown, results.Contents.Fourth.Value);
         }
 
         private static async Task<LSP.Hover> RunGetHoverAsync(

@@ -405,7 +405,7 @@ internal sealed partial class ProjectSystemProject
                         // the batch, since those have already been removed out of _documentPathsToDocumentIds.
                         if (!_documentsAddedInBatch.Any(d => d.Id == documentId))
                         {
-                            documentsToChange.Add((documentId, new WorkspaceFileTextLoader(_project._projectSystemProjectFactory.Workspace.Services.SolutionServices, filePath, defaultEncoding: null)));
+                            documentsToChange.Add((documentId, new WorkspaceFileTextLoader(_project._projectSystemProjectFactory.SolutionServices, filePath, defaultEncoding: null)));
                         }
                     }
                 }
@@ -428,6 +428,7 @@ internal sealed partial class ProjectSystemProject
                                 [documentId]);
                         }
                     }
+
                     return projectUpdateState;
                 }, onAfterUpdateAlways: null).ConfigureAwait(false);
 

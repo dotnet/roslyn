@@ -12,11 +12,11 @@ public partial class ProjectDependencyGraph
 {
     internal ProjectDependencyGraph WithProjectReferenceRemoved(ProjectId projectId, ProjectId referencedProjectId)
     {
-        Contract.ThrowIfFalse(_projectIds.Contains(projectId));
+        Contract.ThrowIfFalse(ProjectIds.Contains(projectId));
         Contract.ThrowIfFalse(_referencesMap[projectId].Contains(referencedProjectId));
 
         // Removing a project reference doesn't change the set of projects
-        var projectIds = _projectIds;
+        var projectIds = ProjectIds;
 
         // Incrementally update the graph
         var referencesMap = ComputeNewReferencesMapForRemovedProjectReference(_referencesMap, projectId, referencedProjectId);

@@ -3,39 +3,28 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Composition;
+using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
+using System.Composition;
 using System.IO;
-using System.Reflection;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Remote.Diagnostics
+namespace Microsoft.CodeAnalysis.Remote.Diagnostics;
+
+/// <summary>
+/// Customizes the path where to store shadow-copies of analyzer assemblies.
+/// </summary>
+[ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider), [WorkspaceKind.RemoteWorkspace]), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class RemoteAnalyzerAssemblyLoaderService(
+    [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
+    : IAnalyzerAssemblyLoaderProvider
 {
-    /// <summary>
-    /// Customizes the path where to store shadow-copies of analyzer assemblies.
-    /// </summary>
-    [ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider), [WorkspaceKind.RemoteWorkspace]), Shared]
-    internal sealed class RemoteAnalyzerAssemblyLoaderService : IAnalyzerAssemblyLoaderProvider
-    {
-        private readonly RemoteAnalyzerAssemblyLoader _loader;
-        private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader;
+    private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader =
+        new(AbstractAnalyzerAssemblyLoaderProvider.GetDefaultShadowCopyPath(), externalResolvers.ToImmutableArray());
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RemoteAnalyzerAssemblyLoaderService([ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
-        {
-            var baseDirectory = Path.GetDirectoryName(Path.GetFullPath(typeof(RemoteAnalyzerAssemblyLoader).GetTypeInfo().Assembly.Location));
-            Debug.Assert(baseDirectory != null);
-
-            var resolvers = externalResolvers.ToImmutableArray();
-            _loader = new(baseDirectory, resolvers);
-            _shadowCopyLoader = new(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"), resolvers);
-        }
-
-        public IAnalyzerAssemblyLoader GetLoader(bool shadowCopy)
-            => shadowCopy ? _shadowCopyLoader : _loader;
-    }
+    public IAnalyzerAssemblyLoaderInternal GetShadowCopyLoader()
+        => _shadowCopyLoader;
 }

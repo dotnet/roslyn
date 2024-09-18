@@ -17,12 +17,6 @@ internal abstract class AbstractRazorCohostRequestHandler<TRequestType, TRespons
 
     Task<TResponseType> IRequestHandler<TRequestType, TResponseType, RequestContext>.HandleRequestAsync(TRequestType request, RequestContext context, CancellationToken cancellationToken)
     {
-        // We have to wrap the RequestContext in order to expose it to Roslyn. We could create our own (by exporting
-        // and IRequestContextFactory) but that would not be possible if/when we live in the same server as Roslyn
-        // so may as well deal with it now.
-        // This does mean we can't nicely pass through the original Uri, which would have ProjectContext info, but
-        // we get the Project so that will have to do.
-
         var razorRequestContext = new RazorCohostRequestContext(context);
         return HandleRequestAsync(request, razorRequestContext, cancellationToken);
     }

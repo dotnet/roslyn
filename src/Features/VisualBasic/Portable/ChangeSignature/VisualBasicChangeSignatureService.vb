@@ -277,7 +277,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             potentiallyUpdatedNode As SyntaxNode,
             originalNode As SyntaxNode,
             updatedSignature As SignatureChange,
-            fallbackOptions As LineFormattingOptionsProvider,
             cancellationToken As CancellationToken) As Task(Of SyntaxNode)
 
             Dim vbnode = DirectCast(potentiallyUpdatedNode, VisualBasicSyntaxNode)
@@ -291,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                vbnode.IsKind(SyntaxKind.EventBlock) OrElse
                vbnode.IsKind(SyntaxKind.EventStatement) Then
 
-                Dim updatedLeadingTrivia = Await UpdateParamNodesInLeadingTriviaAsync(document, vbnode, declarationSymbol, updatedSignature, fallbackOptions, cancellationToken).ConfigureAwait(False)
+                Dim updatedLeadingTrivia = Await UpdateParamNodesInLeadingTriviaAsync(document, vbnode, declarationSymbol, updatedSignature, cancellationToken).ConfigureAwait(False)
                 vbnode = vbnode.WithLeadingTrivia(updatedLeadingTrivia)
             End If
 
@@ -608,7 +607,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
             node As VisualBasicSyntaxNode,
             declarationSymbol As ISymbol,
             updatedSignature As SignatureChange,
-            fallbackOptions As LineFormattingOptionsProvider,
             cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of SyntaxTrivia))
 
             If Not node.HasLeadingTrivia Then
@@ -627,7 +625,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 Return node.GetLeadingTrivia().ToImmutableArray()
             End If
 
-            Dim options = Await document.GetLineFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(False)
+            Dim options = Await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(False)
             Return GetPermutedDocCommentTrivia(node, permutedParamNodes, document.Project.Services, options)
         End Function
 

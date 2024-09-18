@@ -833,8 +833,8 @@ public class SomeClass : Base
 }";
         MarkupTestFile.GetPosition(markup, out var code, out int position);
 
-        await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Regular, false, false, null, null, null, null, null, null);
-        await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Script, false, false, null, null, null, null, null, null);
+        await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Regular, false, deletedCharTrigger: null, false, null, null, null, null, null, null);
+        await BaseVerifyWorkerAsync(code, position, "@class()", "void Base.@class()", SourceCodeKind.Script, false, deletedCharTrigger: null, false, null, null, null, null, null, null);
     }
 
     [WpfFact]
@@ -851,8 +851,8 @@ public class SomeClass : Base
 }";
         MarkupTestFile.GetPosition(markup, out var code, out int position);
 
-        await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Regular, false, false, null, null, null, null, null, null);
-        await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Script, false, false, null, null, null, null, null, null);
+        await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Regular, false, deletedCharTrigger: null, false, null, null, null, null, null, null);
+        await BaseVerifyWorkerAsync(code, position, "@class", "int Base.@class { get; set; }", SourceCodeKind.Script, false, deletedCharTrigger: null, false, null, null, null, null, null, null);
     }
 
     [WpfFact]

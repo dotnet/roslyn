@@ -5,6 +5,8 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
@@ -35,6 +37,7 @@ internal sealed partial class SyntaxTreeIndex
     public bool ContainsTupleExpressionOrTupleType => _contextInfo.ContainsTupleExpressionOrTupleType;
     public bool ContainsUsingStatement => _contextInfo.ContainsUsingStatement;
     public bool ContainsCollectionInitializer => _contextInfo.ContainsCollectionInitializer;
+    public bool ContainsAttribute => _contextInfo.ContainsAttribute;
 
     /// <summary>
     /// Gets the set of global aliases that point to something with the provided name and arity.
@@ -62,5 +65,16 @@ internal sealed partial class SyntaxTreeIndex
         }
 
         return result.ToImmutableAndClear();
+    }
+
+    public bool TryGetInterceptsLocation(InterceptsLocationData data, out TextSpan span)
+    {
+        if (_interceptsLocationInfo == null)
+        {
+            span = default;
+            return false;
+        }
+
+        return _interceptsLocationInfo.TryGetValue(data, out span);
     }
 }

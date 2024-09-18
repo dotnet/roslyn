@@ -1878,6 +1878,10 @@ Additional information: {1}</value>
   <data name="Prefer_primary_constructors" xml:space="preserve">
     <value>Prefer primary constructors</value>
   </data>
+  <data name="Prefer_System_Threading_Lock" xml:space="preserve">
+    <value>Prefer 'System.Threading.Lock'</value>
+    <comment>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</comment>
+  </data>
   <data name="Prefer_collection_expression" xml:space="preserve">
     <value>Prefer collection expression</value>
   </data>
@@ -1911,9 +1915,6 @@ Additional information: {1}</value>
   </data>
   <data name="Balanced_Run_generators_after_saving_or_building" xml:space="preserve">
     <value>Balanced. Run generators after saving or building</value>
-  </data>
-  <data name="Roslyn_save_command_handler" xml:space="preserve">
-    <value>Roslyn save command handler</value>
   </data>
   <data name="Generator_running" xml:space="preserve">
     <value>Generator running...</value>

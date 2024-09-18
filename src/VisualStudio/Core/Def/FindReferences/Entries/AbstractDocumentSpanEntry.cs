@@ -75,7 +75,7 @@ internal partial class StreamingFindUsagesPresenter
 
         public static async Task<MappedSpanResult?> TryMapAndGetFirstAsync(DocumentSpan documentSpan, SourceText sourceText, CancellationToken cancellationToken)
         {
-            var service = documentSpan.Document.Services.GetService<ISpanMappingService>();
+            var service = documentSpan.Document.DocumentServiceProvider.GetService<ISpanMappingService>();
             if (service == null)
             {
                 return new MappedSpanResult(documentSpan.Document.FilePath, sourceText.Lines.GetLinePositionSpan(documentSpan.SourceSpan), documentSpan.SourceSpan);

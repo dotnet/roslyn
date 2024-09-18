@@ -320,6 +320,11 @@ function GetIbcSourceBranchName() {
 }
 
 function GetIbcDropName() {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+     'PSAvoidUsingConvertToSecureStringWithPlainText',
+     '',
+     Justification='$officialVisualStudioDropAccessToken is a script parameter so it needs to be plain text')]
+    param()
 
     if ($officialIbcDrop -and $officialIbcDrop -ne "default"){
         return $officialIbcDrop
@@ -629,6 +634,13 @@ function Deploy-VsixViaTool() {
   # Configure RemoteHostOptions.OOP64Bit for testing
   $oop64bitValue = [int]$oop64bit.ToBool()
   &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOP64Bit dword $oop64bitValue
+
+  # Disable targeted notifications
+  if ($ci) {
+    # Currently does not work via vsregedit, so only apply this setting in CI
+    #&$vsRegEdit set "$vsDir" $hive HKCU "RemoteSettings" TurnOffSwitch dword 1
+    reg add hkcu\Software\Microsoft\VisualStudio\RemoteSettings /f /t REG_DWORD /v TurnOffSwitch /d 1
+  }
 }
 
 # Ensure that procdump is available on the machine.  Returns the path to the directory that contains

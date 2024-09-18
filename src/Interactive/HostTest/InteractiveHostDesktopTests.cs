@@ -937,7 +937,7 @@ public class C
             var lib = CSharpCompilation.Create(
 "Lib",
 new[] { SyntaxFactory.ParseSyntaxTree(source) },
-new[] { Net451.mscorlib, Net451.System },
+new[] { NetFramework.mscorlib, NetFramework.System },
 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             var libFile = Temp.CreateFile("lib").WriteAllBytes(lib.EmitToArray());

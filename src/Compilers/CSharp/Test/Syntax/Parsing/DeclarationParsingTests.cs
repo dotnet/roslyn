@@ -5756,7 +5756,7 @@ partial class PartialPartial
         public void TestPartialEnum()
         {
             var text = @"partial enum E{}";
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics(
                 // (1,14): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
                 // partial enum E{}
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "E").WithLocation(1, 14));

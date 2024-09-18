@@ -56,7 +56,7 @@ public class CodeFixServiceTests
         var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
         var document = project.Documents.Single();
         var unused = await fixService.GetMostSevereFixAsync(
-            document, TextSpan.FromBounds(0, 0), new DefaultCodeActionRequestPriorityProvider(), CodeActionOptions.DefaultProvider, CancellationToken.None);
+            document, TextSpan.FromBounds(0, 0), new DefaultCodeActionRequestPriorityProvider(), CancellationToken.None);
 
         var fixer1 = (MockFixer)fixers.Single().Value;
         var fixer2 = (MockFixer)reference.Fixers.Single();
@@ -83,7 +83,7 @@ public class CodeFixServiceTests
         GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager, analyzerReference);
 
         // Verify that we do not crash when computing fixes.
-        _ = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, CancellationToken.None);
+        _ = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), CancellationToken.None);
 
         // Verify that code fix is invoked with both the diagnostics in the context,
         // i.e. duplicate diagnostics are not silently discarded by the CodeFixService.
@@ -109,7 +109,7 @@ public class CodeFixServiceTests
         GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager, analyzerReference);
 
         // Verify registered configuration code actions do not have duplicates.
-        var fixCollections = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, CancellationToken.None);
+        var fixCollections = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), CancellationToken.None);
         var codeActions = fixCollections.SelectManyAsArray(c => c.Fixes.Select(f => f.Action));
         Assert.Equal(7, codeActions.Length);
         var uniqueTitles = new HashSet<string>();
@@ -141,14 +141,14 @@ public class CodeFixServiceTests
 
         // Verify only analyzerWithFix is executed when GetFixesAsync is invoked with 'CodeActionRequestPriority.Normal'.
         _ = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0),
-            priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Default), CodeActionOptions.DefaultProvider,
+            priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Default),
             cancellationToken: CancellationToken.None);
         Assert.True(analyzerWithFix.ReceivedCallback);
         Assert.False(analyzerWithoutFix.ReceivedCallback);
 
         // Verify both analyzerWithFix and analyzerWithoutFix are executed when GetFixesAsync is invoked with 'CodeActionRequestPriority.Lowest'.
         _ = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0),
-            priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Lowest), CodeActionOptions.DefaultProvider,
+            priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Lowest),
             cancellationToken: CancellationToken.None);
         Assert.True(analyzerWithFix.ReceivedCallback);
         Assert.True(analyzerWithoutFix.ReceivedCallback);
@@ -177,7 +177,7 @@ public class CodeFixServiceTests
 
         // Verify both analyzers are executed when GetFixesAsync is invoked with 'CodeActionRequestPriority.Normal'.
         _ = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0),
-            priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Default), CodeActionOptions.DefaultProvider,
+            priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Default),
             cancellationToken: CancellationToken.None);
         Assert.True(documentDiagnosticAnalyzer.ReceivedCallback);
     }
@@ -207,7 +207,7 @@ public class CodeFixServiceTests
 
         Assert.False(codeFix.Called);
         var fixCollectionSet = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0),
-            priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Default), CodeActionOptions.DefaultProvider,
+            priorityProvider: new DefaultCodeActionRequestPriorityProvider(CodeActionRequestPriority.Default),
             cancellationToken: CancellationToken.None);
         Assert.True(codeFix.Called);
         var fixCollection = Assert.Single(fixCollectionSet);
@@ -293,7 +293,7 @@ public class CodeFixServiceTests
         var reference = new MockAnalyzerReference(codefix, ImmutableArray.Create(diagnosticAnalyzer));
         var project = workspace.CurrentSolution.Projects.Single().AddAnalyzerReference(reference);
         document = project.Documents.Single();
-        var fixes = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, CancellationToken.None);
+        var fixes = await tuple.codeFixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), CancellationToken.None);
 
         if (exception)
         {
@@ -318,7 +318,7 @@ public class CodeFixServiceTests
 
         GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var document, out var extensionManager);
         var unused = await tuple.codeFixService.GetMostSevereFixAsync(
-            document, TextSpan.FromBounds(0, 0), new DefaultCodeActionRequestPriorityProvider(), CodeActionOptions.DefaultProvider, CancellationToken.None);
+            document, TextSpan.FromBounds(0, 0), new DefaultCodeActionRequestPriorityProvider(), CancellationToken.None);
         Assert.True(extensionManager.IsDisabled(codefix));
         Assert.False(extensionManager.IsIgnored(codefix));
         Assert.True(errorReported);
@@ -778,7 +778,7 @@ public class CodeFixServiceTests
 
         var document = project.Documents.Single();
 
-        return await fixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), CodeActionOptions.DefaultProvider, CancellationToken.None);
+        return await fixService.GetFixesAsync(document, TextSpan.FromBounds(0, 0), CancellationToken.None);
     }
 
     private sealed class NuGetCodeFixProvider : AbstractNuGetOrVsixCodeFixProvider
@@ -879,7 +879,7 @@ public class CodeFixServiceTests
         var tuple = ServiceSetup(fixers, additionalDocument: new EditorTestHostDocument("Additional Document", filePath: "test.txt"));
         using var workspace = tuple.workspace;
         GetDocumentAndExtensionManager(tuple.analyzerService, workspace, out var txtDocument, out var extensionManager, analyzerReference, documentKind: TextDocumentKind.AdditionalDocument);
-        var txtDocumentCodeFixes = await tuple.codeFixService.GetFixesAsync(txtDocument, TextSpan.FromBounds(0, 1), CodeActionOptions.DefaultProvider, CancellationToken.None);
+        var txtDocumentCodeFixes = await tuple.codeFixService.GetFixesAsync(txtDocument, TextSpan.FromBounds(0, 1), CancellationToken.None);
         Assert.Equal(2, txtDocumentCodeFixes.Length);
         var txtDocumentCodeFixTitles = txtDocumentCodeFixes.Select(s => s.Fixes.Single().Action.Title).ToImmutableArray();
         Assert.Contains(fixer1.Title, txtDocumentCodeFixTitles);
@@ -896,7 +896,7 @@ public class CodeFixServiceTests
         tuple = ServiceSetup(fixers, additionalDocument: new EditorTestHostDocument("Additional Document", filePath: "test.log"));
         using var workspace2 = tuple.workspace;
         GetDocumentAndExtensionManager(tuple.analyzerService, workspace2, out var logDocument, out extensionManager, analyzerReference, documentKind: TextDocumentKind.AdditionalDocument);
-        var logDocumentCodeFixes = await tuple.codeFixService.GetFixesAsync(logDocument, TextSpan.FromBounds(0, 1), CodeActionOptions.DefaultProvider, CancellationToken.None);
+        var logDocumentCodeFixes = await tuple.codeFixService.GetFixesAsync(logDocument, TextSpan.FromBounds(0, 1), CancellationToken.None);
         var logDocumentCodeFix = Assert.Single(logDocumentCodeFixes);
         var logDocumentCodeFixTitle = logDocumentCodeFix.Fixes.Single().Action.Title;
         Assert.Equal(fixer2.Title, logDocumentCodeFixTitle);
@@ -1080,11 +1080,11 @@ class C
             includeSuppressedDiagnostics: true, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
         await diagnosticIncrementalAnalyzer.GetTestAccessor().TextDocumentOpenAsync(sourceDocument);
 
-        var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
-        var priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Default, lowPriorityAnalyzers);
-        var normalPriFixes = await tuple.codeFixService.GetFixesAsync(sourceDocument, testSpan, priorityProvider, CodeActionOptions.DefaultProvider, CancellationToken.None);
-        priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Low, lowPriorityAnalyzers);
-        var lowPriFixes = await tuple.codeFixService.GetFixesAsync(sourceDocument, testSpan, priorityProvider, CodeActionOptions.DefaultProvider, CancellationToken.None);
+        var lowPriorityAnalyzerData = new SuggestedActionPriorityProvider.LowPriorityAnalyzersAndDiagnosticIds();
+        var priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Default, lowPriorityAnalyzerData);
+        var normalPriFixes = await tuple.codeFixService.GetFixesAsync(sourceDocument, testSpan, priorityProvider, CancellationToken.None);
+        priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Low, lowPriorityAnalyzerData);
+        var lowPriFixes = await tuple.codeFixService.GetFixesAsync(sourceDocument, testSpan, priorityProvider, CancellationToken.None);
 
         if (expectedNoFixes)
         {
@@ -1098,14 +1098,16 @@ class C
         {
             Assert.Empty(normalPriFixes);
             expectedFixCollection = Assert.Single(lowPriFixes);
-            var lowPriorityAnalyzer = Assert.Single(lowPriorityAnalyzers);
+            var lowPriorityAnalyzer = Assert.Single(lowPriorityAnalyzerData.Analyzers);
             Assert.Same(analyzer, lowPriorityAnalyzer);
+            Assert.Equal(analyzer.SupportedDiagnostics.Select(d => d.Id), lowPriorityAnalyzerData.SupportedDiagnosticIds);
         }
         else
         {
             expectedFixCollection = Assert.Single(normalPriFixes);
             Assert.Empty(lowPriFixes);
-            Assert.Empty(lowPriorityAnalyzers);
+            Assert.Empty(lowPriorityAnalyzerData.Analyzers);
+            Assert.Empty(lowPriorityAnalyzerData.SupportedDiagnosticIds);
         }
 
         var fix = expectedFixCollection.Fixes.Single();

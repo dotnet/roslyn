@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Roslyn.LanguageServer.Protocol;
 
@@ -41,12 +42,15 @@ internal static class VSInternalExtensionUtilities
         AddOrReplaceConverter<Location, VSInternalLocation>();
         AddOrReplaceConverter<VSProjectContext, VSInternalProjectContext>();
         AddOrReplaceConverter<ServerCapabilities, VSInternalServerCapabilities>();
+#pragma warning disable CS0618 // SymbolInformation is obsolete but we need the converter regardless
         AddOrReplaceConverter<SymbolInformation, VSInternalSymbolInformation>();
+#pragma warning restore CS0618
         AddOrReplaceConverter<ReferenceParams, VSInternalReferenceParams>();
         AddOrReplaceConverter<SignatureInformation, VSInternalSignatureInformation>();
         AddOrReplaceConverter<TextDocumentClientCapabilities, VSInternalTextDocumentClientCapabilities>();
         AddOrReplaceConverter<RenameRange, VSInternalRenameRange>();
         AddOrReplaceConverter<RenameParams, VSInternalRenameParams>();
+        AddOrReplaceConverter<DocumentSymbol, RoslynDocumentSymbol>();
 
         void AddOrReplaceConverter<TBase, TExtension>()
             where TExtension : TBase

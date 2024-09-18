@@ -741,7 +741,7 @@ index: 1);
                 HashSet<string> s;|]
             }
             """,
-string.Format(FeaturesResources.Generate_constructor_0_1, "Program", "bool b, HashSet<string> s"));
+string.Format(CodeFixesResources.Generate_constructor_0_1, "Program", "bool b, HashSet<string> s"));
     }
 
     [Fact]
@@ -762,7 +762,7 @@ string.Format(FeaturesResources.Generate_constructor_0_1, "Program", "bool b, Ha
                 }
             }
             """,
-string.Format(FeaturesResources.Generate_field_assigning_constructor_0_1, "Program", "bool b, HashSet<string> s"));
+string.Format(CodeFixesResources.Generate_field_assigning_constructor_0_1, "Program", "bool b, HashSet<string> s"));
     }
 
     [Fact]

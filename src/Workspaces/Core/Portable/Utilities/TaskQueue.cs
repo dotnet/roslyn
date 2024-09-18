@@ -18,7 +18,6 @@ internal sealed class TaskQueue
     public TaskScheduler Scheduler { get; }
 
     private readonly object _gate = new();
-    private Task _latestTask;
 
     public TaskQueue(IAsynchronousOperationListener operationListener, TaskScheduler taskScheduler)
     {
@@ -27,10 +26,10 @@ internal sealed class TaskQueue
 
         Listener = operationListener;
         Scheduler = taskScheduler;
-        _latestTask = Task.CompletedTask;
+        LastScheduledTask = Task.CompletedTask;
     }
 
-    public Task LastScheduledTask => _latestTask;
+    public Task LastScheduledTask { get; private set; }
 
     private IAsyncToken BeginOperation(string taskName)
         => Listener.BeginAsyncOperation(taskName);
@@ -74,8 +73,8 @@ internal sealed class TaskQueue
     {
         lock (_gate)
         {
-            var task = _latestTask.SafeContinueWith(_ => operation(), cancellationToken, TaskContinuationOptions.None, Scheduler);
-            _latestTask = task;
+            var task = LastScheduledTask.SafeContinueWith(_ => operation(), cancellationToken, TaskContinuationOptions.None, Scheduler);
+            LastScheduledTask = task;
             return task;
         }
     }
@@ -86,8 +85,8 @@ internal sealed class TaskQueue
     {
         lock (_gate)
         {
-            var task = _latestTask.SafeContinueWith(_ => operation(), cancellationToken, TaskContinuationOptions.None, Scheduler);
-            _latestTask = task;
+            var task = LastScheduledTask.SafeContinueWith(_ => operation(), cancellationToken, TaskContinuationOptions.None, Scheduler);
+            LastScheduledTask = task;
             return task;
         }
     }
@@ -98,8 +97,8 @@ internal sealed class TaskQueue
     {
         lock (_gate)
         {
-            var task = _latestTask.SafeContinueWithFromAsync(_ => operation(), cancellationToken, TaskContinuationOptions.None, Scheduler);
-            _latestTask = task;
+            var task = LastScheduledTask.SafeContinueWithFromAsync(_ => operation(), cancellationToken, TaskContinuationOptions.None, Scheduler);
+            LastScheduledTask = task;
             return task;
         }
     }
@@ -110,8 +109,8 @@ internal sealed class TaskQueue
     {
         lock (_gate)
         {
-            var task = _latestTask.SafeContinueWithFromAsync(_ => operation(), cancellationToken, TaskContinuationOptions.None, Scheduler);
-            _latestTask = task;
+            var task = LastScheduledTask.SafeContinueWithFromAsync(_ => operation(), cancellationToken, TaskContinuationOptions.None, Scheduler);
+            LastScheduledTask = task;
             return task;
         }
     }

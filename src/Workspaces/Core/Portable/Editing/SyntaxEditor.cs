@@ -55,7 +55,6 @@ namespace Microsoft.CodeAnalysis.Editing;
 /// </remarks>
 public class SyntaxEditor
 {
-    private readonly SyntaxGenerator _generator;
     private readonly List<Change> _changes = [];
 
     /// <summary>
@@ -87,7 +86,7 @@ public class SyntaxEditor
     internal SyntaxEditor(SyntaxNode root, SyntaxGenerator generator)
     {
         OriginalRoot = root;
-        _generator = generator;
+        Generator = generator;
     }
 
     /// <summary>
@@ -98,7 +97,7 @@ public class SyntaxEditor
     /// <summary>
     /// A <see cref="SyntaxGenerator"/> to use to create and change <see cref="SyntaxNode"/>'s.
     /// </summary>
-    public SyntaxGenerator Generator => _generator;
+    public SyntaxGenerator Generator { get; }
 
     /// <summary>
     /// Returns the changed root node.
@@ -110,7 +109,7 @@ public class SyntaxEditor
         var newRoot = OriginalRoot.TrackNodes(nodes);
 
         foreach (var change in _changes)
-            newRoot = change.Apply(newRoot, _generator);
+            newRoot = change.Apply(newRoot, Generator);
 
         return newRoot;
     }

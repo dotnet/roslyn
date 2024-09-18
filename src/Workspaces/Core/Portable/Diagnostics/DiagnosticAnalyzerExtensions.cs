@@ -11,16 +11,16 @@ internal static partial class DiagnosticAnalyzerExtensions
     public static DiagnosticAnalyzerCategory GetDiagnosticAnalyzerCategory(this DiagnosticAnalyzer analyzer)
         => analyzer switch
         {
-            FileContentLoadAnalyzer _ => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis,
-            DocumentDiagnosticAnalyzer _ => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis,
-            ProjectDiagnosticAnalyzer _ => DiagnosticAnalyzerCategory.ProjectAnalysis,
+            FileContentLoadAnalyzer => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis,
+            DocumentDiagnosticAnalyzer => DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis,
+            ProjectDiagnosticAnalyzer => DiagnosticAnalyzerCategory.None,
             IBuiltInAnalyzer builtInAnalyzer => builtInAnalyzer.GetAnalyzerCategory(),
 
             // Compiler analyzer supports syntax diagnostics, span-based semantic diagnostics and project level diagnostics.
             // For a public analyzer it is not possible to know the diagnostic categorization, so return a worst-case categorization.
             _ => analyzer.IsCompilerAnalyzer()
-                ? DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticSpanAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis
-                : DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis
+                ? DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticSpanAnalysis
+                : DiagnosticAnalyzerCategory.SyntaxTreeWithoutSemanticsAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis,
         };
 
     public static bool SupportAnalysisKind(this DiagnosticAnalyzer analyzer, AnalysisKind kind)
@@ -47,11 +47,5 @@ internal static partial class DiagnosticAnalyzerExtensions
     {
         var category = analyzer.GetDiagnosticAnalyzerCategory();
         return (category & DiagnosticAnalyzerCategory.SemanticSpanAnalysis) != 0;
-    }
-
-    public static bool SupportsProjectDiagnosticAnalysis(this DiagnosticAnalyzer analyzer)
-    {
-        var category = analyzer.GetDiagnosticAnalyzerCategory();
-        return (category & DiagnosticAnalyzerCategory.ProjectAnalysis) != 0;
     }
 }

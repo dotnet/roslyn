@@ -580,34 +580,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Conversion.NoConversion;
         }
 
-        private static bool IsStandardImplicitConversionFromExpression(ConversionKind kind)
-        {
-            if (IsStandardImplicitConversionFromType(kind))
-            {
-                return true;
-            }
-
-            // See comment in ClassifyStandardImplicitConversion(BoundExpression, ...)
-            // where the set of standard implicit conversions is extended from the spec
-            // to include conversions from expression.
-            switch (kind)
-            {
-                case ConversionKind.NullLiteral:
-                case ConversionKind.AnonymousFunction:
-                case ConversionKind.MethodGroup:
-                case ConversionKind.ImplicitEnumeration:
-                case ConversionKind.ImplicitDynamic:
-                case ConversionKind.ImplicitNullToPointer:
-                case ConversionKind.ImplicitTupleLiteral:
-                case ConversionKind.StackAllocToPointerType:
-                case ConversionKind.StackAllocToSpanType:
-                case ConversionKind.InlineArray:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-
         // See https://github.com/dotnet/csharpstandard/blob/standard-v7/standard/conversions.md#1042-standard-implicit-conversions:
         // "The standard conversions are those pre-defined conversions that can occur as part of a user-defined conversion."
         private static bool IsStandardImplicitConversionFromType(ConversionKind kind)
@@ -669,10 +641,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversion conversion = ClassifyImplicitBuiltInConversionFromExpression(sourceExpression, source, destination, ref useSiteInfo);
             if (conversion.Exists &&
                 !conversion.IsInterpolatedStringHandler &&
-                !conversion.IsCollectionExpression)
+                !isImplicitCollectionExpressionConversion(conversion))
             {
                 // <Metalama> This Assert sometimes fails on valid code
-                // Debug.Assert(IsStandardImplicitConversionFromExpression(conversion.Kind));
+                // Debug.Assert(isStandardImplicitConversionFromExpression(conversion.Kind));
                 // </Metalama>
                 return conversion;
             }
@@ -683,6 +655,42 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return Conversion.NoConversion;
+
+            static bool isImplicitCollectionExpressionConversion(Conversion conversion)
+            {
+                return conversion switch
+                {
+                    { Kind: ConversionKind.CollectionExpression } => true,
+                    { Kind: ConversionKind.ImplicitNullable, UnderlyingConversions: [{ Kind: ConversionKind.CollectionExpression }] } => true,
+                    _ => false,
+                };
+            }
+
+            static bool isStandardImplicitConversionFromExpression(ConversionKind kind)
+            {
+                if (IsStandardImplicitConversionFromType(kind))
+                {
+                    return true;
+                }
+
+                switch (kind)
+                {
+                    case ConversionKind.NullLiteral:
+                    case ConversionKind.AnonymousFunction:
+                    case ConversionKind.MethodGroup:
+                    case ConversionKind.ImplicitEnumeration:
+                    case ConversionKind.ImplicitDynamic:
+                    case ConversionKind.ImplicitNullToPointer:
+                    case ConversionKind.ImplicitTupleLiteral:
+                    case ConversionKind.StackAllocToPointerType:
+                    case ConversionKind.StackAllocToSpanType:
+                    case ConversionKind.InlineArray:
+                    case ConversionKind.InterpolatedString:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
         }
 
         private Conversion ClassifyStandardImplicitConversion(TypeSymbol source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)

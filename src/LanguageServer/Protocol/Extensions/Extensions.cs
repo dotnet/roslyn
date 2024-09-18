@@ -243,5 +243,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
             return true;
         }
+
+        public static int CompareTo(this Position p1, Position p2)
+        {
+            if (p1.Line > p2.Line)
+                return 1;
+            else if (p1.Line < p2.Line)
+                return -1;
+
+            if (p1.Character > p2.Character)
+                return 1;
+            else if (p1.Character < p2.Character)
+                return -1;
+
+            return 0;
+        }
     }
 }

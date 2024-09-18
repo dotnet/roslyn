@@ -107,7 +107,7 @@ internal abstract class AbstractExtractClassRefactoringProvider(IExtractClassOpt
         }
 
         var action = new ExtractClassWithDialogCodeAction(
-            document, memberSpan, optionsService, containingType, containingTypeDeclarationNode, context.Options, selectedMembers);
+            document, memberSpan, optionsService, containingType, containingTypeDeclarationNode, selectedMembers);
 
         return (action, false);
     }
@@ -134,7 +134,7 @@ internal abstract class AbstractExtractClassRefactoringProvider(IExtractClassOpt
         }
 
         return new ExtractClassWithDialogCodeAction(
-            document, span, optionsService, selectedType, selectedClassNode, context.Options, selectedMembers: []);
+            document, span, optionsService, selectedType, selectedClassNode, selectedMembers: []);
     }
 
     private static bool HasBaseType(INamedTypeSymbol containingType) => containingType.BaseType?.SpecialType != SpecialType.System_Object;

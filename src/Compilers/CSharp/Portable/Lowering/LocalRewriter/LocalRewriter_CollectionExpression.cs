@@ -54,12 +54,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(elementType is { });
                         return VisitArrayOrSpanCollectionExpression(node, collectionTypeKind, node.Type, TypeWithAnnotations.Create(elementType));
                     case CollectionExpressionTypeKind.CollectionBuilder:
-                        // If the collection type is ImmutableArray<T>, then construction is optimized to use
-                        // ImmutableCollectionsMarshal.AsImmutableArray.
-                        if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out var arrayElementType) &&
-                            _compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T) is MethodSymbol asImmutableArray)
+                        // A few special cases when a collection type is an ImmutableArray<T>
+                        if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out var arrayElementType))
                         {
-                            return VisitImmutableArrayCollectionExpression(node, arrayElementType, asImmutableArray);
+                            // For `[]` try to use `ImmutableArray<T>.Empty` singleton if available
+                            if (node.Elements.IsEmpty &&
+                                _compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty) is FieldSymbol immutableArrayOfTEmpty)
+                            {
+                                var immutableArrayOfTargetCollectionTypeEmpty = immutableArrayOfTEmpty.AsMember((NamedTypeSymbol)node.Type);
+                                return _factory.Field(receiver: null, immutableArrayOfTargetCollectionTypeEmpty);
+                            }
+
+                            // Otherwise try to optimize construction using `ImmutableCollectionsMarshal.AsImmutableArray`.
+                            // Note, that we skip that path if collection expression is just `[.. readOnlySpan]` of the same element type,
+                            // in such cases it is more efficient to emit a direct call of `ImmutableArray.Create`
+                            if (_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T) is MethodSymbol asImmutableArray &&
+                                !CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out _))
+                            {
+                                return VisitImmutableArrayCollectionExpression(node, arrayElementType, asImmutableArray);
+                            }
                         }
                         return VisitCollectionBuilderCollectionExpression(node);
                     case CollectionExpressionTypeKind.ArrayInterface:
@@ -136,6 +149,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return result;
                 }
             }
+        }
+
+        private static bool CanOptimizeSingleSpreadAsCollectionBuilderArgument(BoundCollectionExpression node, [NotNullWhen(true)] out BoundExpression? spreadExpression)
+        {
+            spreadExpression = null;
+
+            if (node is
+                {
+                    CollectionBuilderMethod: { } builder,
+                    Elements: [BoundCollectionExpressionSpreadElement { Expression: { Type: NamedTypeSymbol spreadType } expr }],
+                } &&
+                ConversionsBase.HasIdentityConversion(builder.Parameters[0].Type, spreadType) &&
+                (!builder.ReturnType.IsRefLikeType || builder.Parameters[0].EffectiveScope == ScopedKind.ScopedValue))
+            {
+                spreadExpression = expr;
+            }
+
+            return spreadExpression is not null;
         }
 
         private BoundExpression VisitImmutableArrayCollectionExpression(BoundCollectionExpression node, TypeWithAnnotations elementType, MethodSymbol asImmutableArray)
@@ -375,7 +406,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions));
 
             var elementType = spanType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
-            BoundExpression span = VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType);
+
+            // If collection expression is of form `[.. anotherReadOnlySpan]`
+            // with `anotherReadOnlySpan` being a ReadOnlySpan of the same type as target collection type
+            // and that span cannot be captured in a returned ref struct
+            // we can directly use `anotherReadOnlySpan` as collection builder argument and skip the copying assignment.
+            BoundExpression span = CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out var spreadExpression)
+                ? spreadExpression
+                : VisitArrayOrSpanCollectionExpression(node, CollectionExpressionTypeKind.ReadOnlySpan, spanType, elementType);
 
             var invocation = new BoundCall(
                 node.Syntax,
@@ -1028,6 +1066,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (addRangeMethod is null)
                             return false;
+
+                        if (spreadElement.EnumeratorInfoOpt is { } enumeratorInfo)
+                        {
+                            var iCollectionOfTType = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T);
+                            var iCollectionOfElementType = iCollectionOfTType.Construct(enumeratorInfo.ElementType);
+                            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+                            // If collection has a struct enumerator but doesn't implement ICollection<T>
+                            // then manual `foreach` is always more efficient then using `AddRange` method
+                            if (enumeratorInfo.GetEnumeratorInfo.Method.ReturnType.IsValueType &&
+                                !enumeratorInfo.CollectionType.ImplementsInterface(iCollectionOfElementType, ref discardedUseSiteInfo))
+                            {
+                                return false;
+                            }
+                        }
 
                         var type = rewrittenSpreadOperand.Type!;
 
