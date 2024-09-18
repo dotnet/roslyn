@@ -56,9 +56,9 @@ variables:
 
   - name: UbuntuQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: Build.Ubuntu.1804.Amd64.Open
+      value: Build.Ubuntu.2004.Amd64.Open
     ${{ else }}:
-      value: Build.Ubuntu.1804.Amd64
+      value: Build.Ubuntu.2004.Amd64
 
   - name: HelixWindowsQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -74,9 +74,9 @@ variables:
 
   - name: HelixUbuntuQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
-      value: Ubuntu.1804.Amd64.Open
+      value: Ubuntu.2004.Amd64.Open
     ${{ else }}:
-      value: Ubuntu.1804.Amd64
+      value: Ubuntu.2004.Amd64
 
   - name: HelixMacOsQueueName
     ${{ if eq(variables['System.TeamProject'], 'public') }}:
@@ -132,7 +132,7 @@ stages:
     pool:
       ${{ if eq(variables['System.TeamProject'], 'public') }}:
         name: $[replace(replace(eq(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'true'), True, 'NetCore-Svc-Public' ), False, 'NetCore-Public')]
-        demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
+        demands: ImageOverride -equals Build.Ubuntu.2004.Amd64.Open
 
       ${{ if eq(variables['System.TeamProject'], 'internal') }}:
         name: $[replace(replace(eq(contains(coalesce(variables['System.PullRequest.TargetBranch'], variables['Build.SourceBranch'], 'refs/heads/main'), 'release'), 'true'), True, 'NetCore1ESPool-Svc-Internal'), False, 'NetCore1ESPool-Internal')]
