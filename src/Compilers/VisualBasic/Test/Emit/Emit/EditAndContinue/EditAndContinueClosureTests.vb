@@ -2222,7 +2222,7 @@ End Class
             diff2.VerifyIL("C.F", expectedIL.Replace("<<VALUE>>", "2"))
         End Sub
 
-        <ConditionalFact(GetType(NotMono))>
+        <Fact>
         Public Sub Capture_Local()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -2330,7 +2330,7 @@ End Class
             End Using
         End Sub
 
-        <ConditionalFact(GetType(NotMono))>
+        <Fact>
         Public Sub Capture_Parameter()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -2434,7 +2434,7 @@ End Class
             End Using
         End Sub
 
-        <ConditionalFact(GetType(NotMono))>
+        <Fact>
         Public Sub Capture_This()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -2529,7 +2529,7 @@ End Class
             End Using
         End Sub
 
-        <ConditionalFact(GetType(NotMono))>
+        <Fact>
         Public Sub CeaseCapture_Local()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -2604,7 +2604,7 @@ End Class
             End Using
         End Sub
 
-        <ConditionalFact(GetType(NotMono))>
+        <Fact>
         Public Sub CeaseCapture_LastLocal()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -2763,7 +2763,7 @@ End Class
             End Using
         End Sub
 
-        <ConditionalFact(GetType(NotMono))>
+        <Fact>
         Public Sub CeaseCapture_This()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -2865,7 +2865,7 @@ End Class
             End Using
         End Sub
 
-        <ConditionalFact(GetType(NotMono))>
+        <Fact>
         Public Sub AddingAndRemovingClosure()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -2977,7 +2977,7 @@ End Class
             End Using
         End Sub
 
-        <ConditionalFact(GetType(NotMono))>
+        <Fact>
         Public Sub ChainClosure()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -3134,7 +3134,7 @@ End Class
             End Using
         End Sub
 
-        <ConditionalFact(GetType(NotMono))>
+        <Fact>
         Public Sub UnchainClosure()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -3276,7 +3276,7 @@ End Class
             End Using
         End Sub
 
-        <ConditionalFact(GetType(NotMono))>
+        <Fact>
         Public Sub ChangeClosureParent()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -3499,7 +3499,7 @@ End Class
             End Using
         End Sub
 
-        <ConditionalFact(GetType(NotMono))>
+        <Fact>
         Public Sub ChangeLambdaParent()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -3651,7 +3651,7 @@ End Class
         ''' The value of the captured variable might be uninitialized in the lambda.
         ''' We leave it up to the user to set its value as needed.
         ''' </summary>
-        <ConditionalFact(GetType(NotMono))>
+        <Fact>
         Public Sub UninitializedCapture()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
@@ -3732,7 +3732,7 @@ End Class
             End Using
         End Sub
 
-	<ConditionalFact(GetType(NotMono))>
+        <Fact>
         Public Sub CaptureOrdering()
             Using test = New EditAndContinueTest()
                 test.AddBaseline(
