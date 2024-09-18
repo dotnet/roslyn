@@ -161,6 +161,9 @@ namespace Roslyn.Test.Utilities
             }
         }
 
+        public static void Equal<T>(ReadOnlySpan<T> expected, T[] actual) =>
+            Equal<T>(expected.ToArray(), actual);
+
         public static void Equal<T>(ImmutableArray<T> expected, IEnumerable<T> actual)
             => Equal(expected, actual, comparer: null, message: null);
 
