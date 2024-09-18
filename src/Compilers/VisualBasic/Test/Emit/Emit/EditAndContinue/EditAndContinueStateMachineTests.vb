@@ -975,8 +975,9 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotMono))>
         Public Sub AsyncMethodOverloads()
+
             Using New EditAndContinueTest().
                 AddBaseline(
                     source:="
@@ -1052,7 +1053,7 @@ End Class
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotMono))>
         Public Sub UpdateIterator_NoVariables()
             Using New EditAndContinueTest().
                 AddBaseline(
@@ -1186,7 +1187,7 @@ End Class",
             End Using
         End Sub
 
-        <Fact>
+        <ConditionalFact(GetType(NotMono))>
         Public Sub UpdateAsync_NoVariables()
             Using New EditAndContinueTest().
                 AddBaseline(
