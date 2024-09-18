@@ -65,6 +65,11 @@ internal enum EditAndContinueCapabilities
     /// Adding a static or instance field to an existing generic type.
     /// </summary>
     GenericAddFieldToExistingType = 1 << 9,
+
+    /// <summary>
+    /// The runtime supports adding to InterfaceImpl table.
+    /// </summary>
+    AddExplicitInterfaceImplementation = 1 << 10,
 }
 
 internal static class EditAndContinueCapabilitiesParser
@@ -87,6 +92,7 @@ internal static class EditAndContinueCapabilitiesParser
                 nameof(EditAndContinueCapabilities.GenericAddMethodToExistingType) => EditAndContinueCapabilities.GenericAddMethodToExistingType,
                 nameof(EditAndContinueCapabilities.GenericUpdateMethod) => EditAndContinueCapabilities.GenericUpdateMethod,
                 nameof(EditAndContinueCapabilities.GenericAddFieldToExistingType) => EditAndContinueCapabilities.GenericAddFieldToExistingType,
+                nameof(EditAndContinueCapabilities.AddExplicitInterfaceImplementation) => EditAndContinueCapabilities.AddExplicitInterfaceImplementation,
 
                 // To make it eaiser for  runtimes to specify more broad capabilities
                 "AddDefinitionToExistingType" => EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType,
@@ -122,6 +128,9 @@ internal static class EditAndContinueCapabilitiesParser
 
         if (capabilities.HasFlag(EditAndContinueCapabilities.UpdateParameters))
             builder.Add(nameof(EditAndContinueCapabilities.UpdateParameters));
+
+        if (capabilities.HasFlag(EditAndContinueCapabilities.AddExplicitInterfaceImplementation))
+            builder.Add(nameof(EditAndContinueCapabilities.AddExplicitInterfaceImplementation));
 
         return builder.ToImmutable();
     }

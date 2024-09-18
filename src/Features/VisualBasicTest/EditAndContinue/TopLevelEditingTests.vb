@@ -4789,6 +4789,10 @@ End Structure
                 "Update [Function F() As Task(Of String)]@11 -> [Async Function F() As Task(Of String)]@11")
 
             edits.VerifySemanticDiagnostics(
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
+
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.MakeMethodAsyncNotSupportedByRuntime, "Async Function F()")},
                 capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
         End Sub
 
@@ -5268,7 +5272,7 @@ End Class"
                 "Update [Function F() As Task(Of String)]@11 -> [Iterator Function F() As Task(Of String)]@11")
 
             edits.VerifySemanticDiagnostics(
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>
