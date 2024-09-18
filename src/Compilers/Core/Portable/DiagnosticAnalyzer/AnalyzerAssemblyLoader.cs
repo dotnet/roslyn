@@ -100,7 +100,9 @@ namespace Microsoft.CodeAnalysis
 
         private void CheckIfDisposed()
         {
-#if NET
+            // <Metalama> NET -> NET7_0_OR_GREATER
+#if NET7_0_OR_GREATER
+            // </Metalama>
             ObjectDisposedException.ThrowIf(_isDisposed, this);
 #else
             if (_isDisposed)

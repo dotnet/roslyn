@@ -827,6 +827,6 @@ public partial class Project
 
     // <Metalama> This code is used by Try.Metalama.
     public Task<ImmutableArray<Diagnostic>> GetTransformerDiagnosticsAsync(CancellationToken cancellationToken)
-        => _solution.CompilationState.GetTransformerDiagnosticsAsync(_projectState, cancellationToken);
+        => Solution.CompilationState.GetTransformerDiagnosticsAsync(State, cancellationToken);
     // </Metalama>
 }

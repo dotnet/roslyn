@@ -14,6 +14,6 @@
     "Microsoft.DotNet.Arcade.Sdk": "9.0.0-beta.24416.2",
     "Microsoft.DotNet.Helix.Sdk": "9.0.0-beta.24416.2",
     "Microsoft.Build.Traversal": "3.4.0",
-    "PostSharp.Engineering.Sdk": "2023.2.129"
+    "PostSharp.Engineering.Sdk": "2023.2.130"
   }
 }
