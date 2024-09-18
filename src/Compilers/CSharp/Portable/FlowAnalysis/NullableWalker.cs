@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // If this constructor has `SetsRequiredMembers`, then we need to check the state of _all_ required properties, regardless of whether they are auto-properties or not.
                             // For auto-properties, `GetMembersUnordered()` will return the backing field, and `checkStateOnConstructorExit` will follow that to the property itself, so we only need
                             // to force property analysis if the member is required and _does not_ have a backing field.
-                            // PROTOTYPE: This check for BackingField seems too generous. Shouldn't we also check the appropriate accessors are missing or auto-implemented?
+                            // PROTOTYPE: Is checking BackingField sufficient or should we check the appropriate accessors are missing or auto-implemented?
                             var shouldForcePropertyAnalysis = !constructorEnforcesRequiredMembers && member is not SourcePropertySymbolBase { BackingField: not null } && member.IsRequired();
                             checkMemberStateOnConstructorExit(method, member, state, thisSlot, exitLocation, membersWithStateEnforcedByRequiredMembers, forcePropertyAnalysis: shouldForcePropertyAnalysis);
                         }
@@ -1074,11 +1074,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        // PROTOTYPE: Why are we returning the auto-property backing field rather than using the property?
-                        // VisitMemberAccess does the opposite. What are the implications of the inconsistency?
-                        // PROTOTYPE: This check for BackingField seems too generous. Shouldn't we also check the appropriate accessors are missing or auto-implemented?
+                        // PROTOTYPE: Is checking IsAutoProperty sufficient or should we check the appropriate accessors are missing or auto-implemented?
                         static Symbol getFieldSymbolToBeInitialized(Symbol requiredMember)
-                            => requiredMember is SourcePropertySymbol { IsAutoProperty: true } prop ? prop.BackingField : requiredMember; // PROTOTYPE: This is the only use of IsAutoProperty.
+                            => requiredMember is SourcePropertySymbol { IsAutoProperty: true } prop ? prop.BackingField : requiredMember;
                     }
                 }
             }

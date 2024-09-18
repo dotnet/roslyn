@@ -2026,7 +2026,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitReceiverAfterCall(receiver, setter);
         }
 
-        // PROTOTYPE: Test all uses of this method.
         // returns false if expression is not a property access
         // or if the property has a backing field
         // and accessed in a corresponding constructor
@@ -2173,7 +2172,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var property = node.PropertySymbol;
 
-            if (Binder.AccessingAutoPropertyFromConstructor(node, _symbol))
+            // PROTOTYPE: Is VisitPropertyAccess only called when the property access is an r-value?
+            if (Binder.AccessingAutoPropertyFromConstructor(node, _symbol, useAsLvalue: false))
             {
                 var backingField = (property as SourcePropertySymbolBase)?.BackingField;
                 if (backingField != null)

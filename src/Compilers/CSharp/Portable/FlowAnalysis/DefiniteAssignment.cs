@@ -1425,7 +1425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     {
                         var propertyAccess = (BoundPropertyAccess)node;
-                        if (Binder.AccessingAutoPropertyFromConstructor(propertyAccess, this.CurrentSymbol))
+                        if (Binder.AccessingAutoPropertyFromConstructor(propertyAccess, this.CurrentSymbol, useAsLvalue: false)) // PROTOTYPE: Is useAsLvalue: false correct?
                         {
                             var property = propertyAccess.PropertySymbol;
                             var backingField = (property as SourcePropertySymbolBase)?.BackingField;
@@ -2676,7 +2676,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
         {
             var result = base.VisitPropertyAccess(node);
-            if (Binder.AccessingAutoPropertyFromConstructor(node, this.CurrentSymbol))
+            // PROTOTYPE: Is VisitPropertyAccess only called when the property access is an r-value?
+            if (Binder.AccessingAutoPropertyFromConstructor(node, this.CurrentSymbol, useAsLvalue: false))
             {
                 var property = node.PropertySymbol;
                 var backingField = (property as SourcePropertySymbolBase)?.BackingField;
