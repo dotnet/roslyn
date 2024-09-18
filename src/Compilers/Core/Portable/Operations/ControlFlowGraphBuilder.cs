@@ -6056,8 +6056,7 @@ oneMoreTime:
 #if DEBUG
                         var validKinds = ImmutableArray.Create(OperationKind.Invocation, OperationKind.DynamicInvocation, OperationKind.Increment, OperationKind.Literal,
                                                                OperationKind.LocalReference, OperationKind.Binary, OperationKind.FieldReference, OperationKind.Invalid,
-                                                               OperationKind.InterpolatedString, OperationKind.PropertyReference, OperationKind.FieldReference,
-                                                               OperationKind.EventReference);
+                                                               OperationKind.InterpolatedString, OperationKind.PropertyReference, OperationKind.EventReference);
                         Debug.Assert(validKinds.Contains(innerInitializer.Kind));
 #endif
                         EvalStackFrame frame = PushStackFrame();
