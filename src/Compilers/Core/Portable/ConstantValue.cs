@@ -367,8 +367,6 @@ namespace Microsoft.CodeAnalysis
 
         public static ConstantValue Create(object value, ConstantValueTypeDiscriminator discriminator)
         {
-            Debug.Assert(BitConverter.IsLittleEndian);
-
             switch (discriminator)
             {
                 case ConstantValueTypeDiscriminator.Null: return Null;
