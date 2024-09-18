@@ -237,14 +237,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         var result = await state.Target.Owner._codeFixService.GetMostSevereFixAsync(
                             document, range.Span.ToTextSpan(), priorityProvider, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-                        if (result.HasFix)
+                        if (result != null)
                         {
                             Logger.Log(FunctionId.SuggestedActions_HasSuggestedActionsAsync);
-                            return GetFixCategory(result.CodeFixCollection.FirstDiagnostic.Severity);
+                            return GetFixCategory(result.FirstDiagnostic.Severity);
                         }
-
-                        if (!result.UpToDate)
-                            return null;
                     }
 
                     return null;

@@ -51,16 +51,19 @@ internal abstract class AbstractBlockStructureProvider : BlockStructureProvider
             // We only collapse the "inner" span which has larger start.
             spans.Sort(static (x, y) => y.TextSpan.Start.CompareTo(x.TextSpan.Start));
 
-            var lastAddedLine = -1;
+            var lastAddedLineStart = -1;
+            var lastAddedLineEnd = -1;
             var text = context.SyntaxTree.GetText(context.CancellationToken);
 
             foreach (var span in spans)
             {
-                var line = text.Lines.GetLinePosition(span.TextSpan.Start).Line;
-                if (line == lastAddedLine)
+                var lineStart = text.Lines.GetLinePosition(span.TextSpan.Start).Line;
+                var lineEnd = text.Lines.GetLinePosition(span.TextSpan.End).Line;
+                if (lineStart == lastAddedLineStart && lastAddedLineEnd == lineEnd)
                     continue;
 
-                lastAddedLine = line;
+                lastAddedLineStart = lineStart;
+                lastAddedLineEnd = lineEnd;
                 context.Spans.Add(span);
             }
         }
