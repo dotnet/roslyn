@@ -47,13 +47,6 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
     [Fact]
     public async Task CreatingDirectoryWatchRequestsDirectoryWatch()
     {
-        bool b = true;
-        while (b)
-        {
-            System.Threading.Thread.Sleep(TimeSpan.FromSeconds(1));
-            Console.WriteLine($"here: {System.Diagnostics.Process.GetCurrentProcess().Id}");
-        }
-
         AsynchronousOperationListenerProvider.Enable(enable: true);
 
         await using var testLspServer = await TestLspServer.CreateAsync(_clientCapabilitiesWithFileWatcherSupport, TestOutputLogger);
