@@ -171,7 +171,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         if (IsUsingSemanticContext)
         {
             var document = this.BaseViewModel.Session.TriggerDocument;
-            var smartRenameContext = ImmutableDictionary<string, string[]>.Empty;
+            var smartRenameContext = ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>.Empty;
             try
             {
                 var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
@@ -179,9 +179,9 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
                     .ConfigureAwait(false);
                 var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session.RenameInfo, renameLocations, cancellationToken)
                     .ConfigureAwait(false);
-                smartRenameContext = ImmutableDictionary.CreateRange<string, string[]>(
+                smartRenameContext = ImmutableDictionary.CreateRange<string, ImmutableArray<(string filePath, string content)>>(
                     context
-                    .Select(n => new KeyValuePair<string, string[]>(n.Key, n.Value.ToArray())));
+                    .Select(n => new KeyValuePair<string, ImmutableArray<(string filePath, string content)>>(n.Key, n.Value)));
             }
             catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
             {

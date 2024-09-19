@@ -8,11 +8,11 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -473,7 +473,8 @@ class C
     }
 }";
             var tree = Parse(source);
-            var compilation = CreateEmptyCompilation(tree, new[] { MscorlibRefSilverlight }, TestOptions.ReleaseExe, assemblyName: "Test");
+            var compilation = CreateEmptyCompilation(tree, [Net461.References.mscorlib], TestOptions.ReleaseExe, assemblyName: "Test");
+            compilation.MakeMemberMissing(SpecialMember.System_Array__LongLength);
             CompileAndVerify(compilation, expectedOutput: "k");
         }
 
@@ -15130,7 +15131,7 @@ class Program
     }
 }";
 
-            var testReference = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.Repros.BadDefaultParameterValue).GetReference();
+            var testReference = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.Metadata.BadDefaultParameterValue).GetReference();
             var compilation = CompileAndVerify(source, references: new[] { testReference });
             compilation.VerifyIL("Program.Main", @"
 {

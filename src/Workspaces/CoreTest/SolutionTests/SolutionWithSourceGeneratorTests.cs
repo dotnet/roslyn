@@ -4,14 +4,11 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -84,7 +81,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
 
         // Go from one analyzer reference to the other
-        project = project.WithAnalyzerReferences(new[] { analyzerReference2 });
+        project = project.WithAnalyzerReferences([analyzerReference2]);
 
         Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
 
@@ -132,12 +129,12 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
 
         // Go from one generator to two.
-        project = project.WithAnalyzerReferences(new[] { generatorReferenceToKeep, analyzerReferenceToAddAndRemove });
+        project = project.WithAnalyzerReferences([generatorReferenceToKeep, analyzerReferenceToAddAndRemove]);
 
         Assert.Equal(2, (await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees.Count());
 
         // And go back to one
-        project = project.WithAnalyzerReferences(new[] { generatorReferenceToKeep });
+        project = project.WithAnalyzerReferences([generatorReferenceToKeep]);
 
         Assert.Single((await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees);
     }
@@ -154,7 +151,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         var generatorReference2 = new TestGeneratorReference(new SingleFileTestGenerator("", hintName: "DuplicateFile"), analyzerFilePath: "Z:\\B.dll");
 
         var project = AddEmptyProject(workspace.CurrentSolution)
-            .AddAnalyzerReferences(new[] { generatorReference1, generatorReference2 });
+            .AddAnalyzerReferences([generatorReference1, generatorReference2]);
 
         Assert.Equal(2, (await project.GetRequiredCompilationAsync(CancellationToken.None)).SyntaxTrees.Count());
 
@@ -927,82 +924,4 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         Assert.NotEqual(checksum1, checksum3);
         Assert.NotEqual(checksum2, checksum3);
     }
-
-#if NET
-
-    private sealed class DoNotLoadAssemblyLoader : IAnalyzerAssemblyLoader
-    {
-        public static readonly IAnalyzerAssemblyLoader Instance = new DoNotLoadAssemblyLoader();
-
-        public void AddDependencyLocation(string fullPath)
-        {
-        }
-
-        public Assembly LoadFromPath(string fullPath)
-            => throw new InvalidOperationException("These tests should not be loading analyzer assemblies in those host workspace, only in the remote one.");
-    }
-
-    [Fact]
-    public async Task UpdatingAnalyzerReferenceReloadsGenerators()
-    {
-        // We have two versions of the same source generator attached to this project as a resource.  Each creates a
-        // 'HelloWorld' class, just with a different string it emits inside.
-        const string AnalyzerResourceV1 = @"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v1";
-        const string AnalyzerResourceV2 = @"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v2";
-
-        using var workspace = CreateWorkspace(testHost: TestHost.OutOfProcess);
-        var solution = workspace.CurrentSolution;
-
-        var project1 = solution.AddProject("P1", "P1", LanguageNames.CSharp);
-
-        using var tempRoot = new TempRoot();
-        var tempDirectory = tempRoot.CreateDirectory();
-
-        var analyzerPath = Path.Combine(tempDirectory.Path, "Microsoft.CodeAnalysis.TestAnalyzerReference.dll");
-
-        var analyzerAssemblyLoaderProvider = workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-
-        // Add and test the v1 generator first.
-        {
-            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(AnalyzerResourceV1))
-            using (var destination = File.OpenWrite(analyzerPath))
-            {
-                stream!.CopyTo(destination);
-            }
-
-            // Pass in an always throwing assembly loader so we can be sure that no loading happens on the host side.
-            project1 = project1.WithAnalyzerReferences([new AnalyzerFileReference(analyzerPath, DoNotLoadAssemblyLoader.Instance)]);
-
-            var generatedDocuments = await project1.GetSourceGeneratedDocumentsAsync();
-            var helloWorldDoc = generatedDocuments.Single(d => d.Name == "HelloWorld.cs");
-
-            var contents = await helloWorldDoc.GetTextAsync();
-            Assert.True(contents.ToString().Contains("Hello, World 1!"));
-        }
-
-        // Now, overwrite the analyzer reference with a new version that generates different contents
-        {
-            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(AnalyzerResourceV2))
-            using (var destination = File.OpenWrite(analyzerPath))
-            {
-                stream!.CopyTo(destination);
-            }
-
-            // Make a new analyzer reference to that location (note: with the same throwing assembly loader).  on the
-            // host side, this will simply instantiate a new reference.  But this will cause all the machinery to run
-            // syncing this new reference to the oop side, which will load the analyzer reference in a dedicated ALC.
-            project1 = project1.WithAnalyzerReferences([new AnalyzerFileReference(analyzerPath, DoNotLoadAssemblyLoader.Instance)]);
-
-            var generatedDocuments = await project1.GetSourceGeneratedDocumentsAsync();
-            var helloWorldDoc = generatedDocuments.Single(d => d.Name == "HelloWorld.cs");
-
-            // Note that the contents are now different than what we saw before.  This is with an analyzer at the same path,
-            // with the same assembly name and type name for the generator.  Because there is a dedicated ALC, this reloads
-            // fine.
-            var contents = await helloWorldDoc.GetTextAsync();
-            Assert.True(contents.ToString().Contains("Hello, World 2!"));
-        }
-    }
-
-#endif
 }

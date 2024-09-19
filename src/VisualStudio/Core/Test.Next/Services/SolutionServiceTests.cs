@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
@@ -291,7 +290,7 @@ public class SolutionServiceTests
     {
         var code = @"class Test { void Method() { } }";
 
-        await VerifySolutionUpdate(code, s => s.WithDocumentFolders(s.Projects.First().Documents.First().Id, new[] { "test" }));
+        await VerifySolutionUpdate(code, s => s.WithDocumentFolders(s.Projects.First().Documents.First().Id, ["test"]));
     }
 
     [Fact]
@@ -447,10 +446,7 @@ public class SolutionServiceTests
         await Verify(remoteWorkspace, currentSolution, remoteSolution3);
 
         // move to new solution backward
-        var solutionInfo2 = await assetProvider.CreateSolutionInfoAsync(
-            await solution1.CompilationState.GetChecksumAsync(CancellationToken.None),
-            remoteWorkspace.Services.SolutionServices,
-            CancellationToken.None);
+        var solutionInfo2 = await assetProvider.CreateSolutionInfoAsync(await solution1.CompilationState.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
         var solution2 = remoteWorkspace.GetTestAccessor().CreateSolutionFromInfo(solutionInfo2);
 
         // move to new solution forward

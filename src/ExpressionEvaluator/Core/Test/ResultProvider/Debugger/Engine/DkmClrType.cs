@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                                                          BindingFlags.Instance |
                                                          BindingFlags.Static;
         private readonly Type _lmrType;
-        private readonly ReadOnlyCollection<DkmClrEvalAttribute> _evalAttributes;
+        private readonly System.Lazy<ReadOnlyCollection<DkmClrEvalAttribute>> _lazyEvalAttributes;
         private readonly DkmClrObjectFavoritesInfo _favorites;
         private ReadOnlyCollection<DkmClrType> _lazyGenericArguments;
 
@@ -44,7 +44,9 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             ModuleInstance = module;
             AppDomain = appDomain;
             _lmrType = lmrType;
-            _evalAttributes = GetEvalAttributes(lmrType);
+            _lazyEvalAttributes = new System.Lazy<ReadOnlyCollection<DkmClrEvalAttribute>>(
+                () => GetEvalAttributes(lmrType),
+                LazyThreadSafetyMode.PublicationOnly);
             _favorites = favorites;
         }
 
@@ -139,7 +141,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
 
         public ReadOnlyCollection<DkmClrEvalAttribute> GetEvalAttributes()
         {
-            return _evalAttributes;
+            return _lazyEvalAttributes.Value;
         }
 
         public DkmClrModuleInstance ModuleInstance { get; }
@@ -152,7 +154,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
         private string GetDebuggerDisplay()
         {
             var result = _lmrType.ToString();
-            var proxyAttribute = _evalAttributes.OfType<DkmClrDebuggerTypeProxyAttribute>().FirstOrDefault();
+            var proxyAttribute = _lazyEvalAttributes.Value.OfType<DkmClrDebuggerTypeProxyAttribute>().FirstOrDefault();
             result = proxyAttribute != null
                 ? string.Format("{0} (Proxy = {1})", result, proxyAttribute.ProxyType.GetLmrType().ToString())
                 : result;

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -5756,6 +5757,132 @@ public class UseCollectionExpressionForArrayTests
                 }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/74931")]
+    public async Task AllowSwitchToReadOnlySpanCSharp12(bool implicitType, bool whenTypesLooselyMatch)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+
+                class C
+                {
+                    void M(char c)
+                    {
+                        Split([|[|new|]{{(implicitType ? "" : " char")}}[]|] { c });
+                    }
+
+                    void Split(char[] p) { }
+                    void Split(ReadOnlySpan<char> p) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class C
+                {
+                    void M(char c)
+                    {
+                        Split([c]);
+                    }
+                
+                    void Split(char[] p) { }
+                    void Split(ReadOnlySpan<char> p) { }
+                }
+                """,
+            EditorConfig = $$"""
+                [*]
+                dotnet_style_prefer_collection_expression={{(whenTypesLooselyMatch ? "when_types_loosely_match" : "when_types_exactly_match")}}
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/74931")]
+    public async Task AllowSwitchToReadOnlySpanCSharp13(bool implicitType, bool whenTypesLooselyMatch)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+
+                class C
+                {
+                    void M(char c)
+                    {
+                        Split([|[|new|]{{(implicitType ? "" : " char")}}[]|] { c });
+                    }
+
+                    void Split(char[] p) { }
+                    void Split(ReadOnlySpan<char> p) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class C
+                {
+                    void M(char c)
+                    {
+                        Split([c]);
+                    }
+                
+                    void Split(char[] p) { }
+                    void Split(ReadOnlySpan<char> p) { }
+                }
+                """,
+            EditorConfig = $$"""
+                [*]
+                dotnet_style_prefer_collection_expression={{(whenTypesLooselyMatch ? "when_types_loosely_match" : "when_types_exactly_match")}}
+                """,
+            LanguageVersion = LanguageVersion.CSharp13,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/74931")]
+    public async Task AllowSwitchToReadOnlySpanGeneric1(bool implicitType, bool whenTypesLooselyMatch)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System;
+
+                class C
+                {
+                    void M(char c)
+                    {
+                        Split([|[|new|]{{(implicitType ? "" : " char")}}[]|] { c });
+                    }
+
+                    void Split<T>(T[] p) { }
+                    void Split<T>(ReadOnlySpan<T> p) { }
+                }
+                """,
+            FixedCode = """
+                using System;
+                
+                class C
+                {
+                    void M(char c)
+                    {
+                        Split([c]);
+                    }
+                
+                    void Split<T>(T[] p) { }
+                    void Split<T>(ReadOnlySpan<T> p) { }
+                }
+                """,
+            EditorConfig = $$"""
+                [*]
+                dotnet_style_prefer_collection_expression={{(whenTypesLooselyMatch ? "when_types_loosely_match" : "when_types_exactly_match")}}
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 }

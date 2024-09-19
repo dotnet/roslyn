@@ -32,7 +32,7 @@ If you are interested in fixing issues and contributing directly to the code bas
 
 The Roslyn community can be found on [GitHub Discussions](https://github.com/dotnet/roslyn/discussions), where you can ask questions, voice ideas, and share your projects.
 
-To chat with other community members, you can join the Roslyn [Discord](https://discord.com/invite/tGJvv88) or [Gitter](https://gitter.im/dotnet/roslyn).
+To chat with other community members, you can join the Roslyn channel on the [CSharp Community Discord](https://discord.com/invite/tGJvv88).
 
 Our [Code of Conduct](CODE-OF-CONDUCT.md) applies to all Roslyn community channels and has adopted the [.NET Foundation Code of Conduct](https://dotnetfoundation.org/code-of-conduct).
 

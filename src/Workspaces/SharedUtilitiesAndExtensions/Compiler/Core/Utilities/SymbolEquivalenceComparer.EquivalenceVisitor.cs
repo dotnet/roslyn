@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -42,10 +43,30 @@ internal partial class SymbolEquivalenceComparer
                     }
                 }
 
+                if (symbolEquivalenceComparer._arrayAndReadOnlySpanCompareEqually)
+                {
+                    if (xKind == SymbolKind.ArrayType && y.IsReadOnlySpan())
+                    {
+                        return AreArrayAndReadOnlySpanEquivalent((IArrayTypeSymbol)x, (INamedTypeSymbol)y, equivalentTypesWithDifferingAssemblies);
+                    }
+                    else if (x.IsReadOnlySpan() && yKind == SymbolKind.ArrayType)
+                    {
+                        return AreArrayAndReadOnlySpanEquivalent((IArrayTypeSymbol)y, (INamedTypeSymbol)x, equivalentTypesWithDifferingAssemblies);
+                    }
+                }
+
                 return false;
             }
 
             return AreEquivalentWorker(x, y, xKind, equivalentTypesWithDifferingAssemblies);
+        }
+
+        private bool AreArrayAndReadOnlySpanEquivalent(IArrayTypeSymbol array, INamedTypeSymbol readOnlySpanType, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
+        {
+            if (array.Rank != 1)
+                return false;
+
+            return AreEquivalent(array.ElementType, readOnlySpanType.TypeArguments.Single(), equivalentTypesWithDifferingAssemblies);
         }
 
         internal bool AreEquivalent(CustomModifier x, CustomModifier y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)

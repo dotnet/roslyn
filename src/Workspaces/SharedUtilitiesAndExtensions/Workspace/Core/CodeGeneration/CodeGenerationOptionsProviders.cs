@@ -46,4 +46,7 @@ internal static class CodeGenerationOptionsProviders
         var service = document.GetRequiredLanguageService<ICodeGenerationService>();
         return service.GetInfo(context, options, document.Project.ParseOptions);
     }
+
+    public static CodeGenerationOptions GetDefault(LanguageServices languageServices)
+        => languageServices.GetRequiredService<ICodeGenerationService>().DefaultOptions;
 }

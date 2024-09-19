@@ -556,6 +556,66 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
     }
 
     [Fact]
+    public async Task InsertInlineDoSnippetWhenDottingBeforeMemberAccessExpressionOnTheNextLineTest()
+    {
+        await VerifySnippetAsync("""
+            using System;
+
+            class C
+            {
+                void M(bool flag)
+                {
+                    flag.$$
+                    Console.WriteLine();
+                }
+            }
+            """, """
+            using System;
+
+            class C
+            {
+                void M(bool flag)
+                {
+                    do
+                    {
+                        $$
+                    }
+                    while (flag);
+                    Console.WriteLine();
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task NoInlineDoSnippetWhenDottingBeforeMemberAccessExpressionOnTheSameLineTest()
+    {
+        await VerifySnippetIsAbsentAsync("""
+            class C
+            {
+                void M(bool flag)
+                {
+                    flag.$$ToString();
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task NoInlineDoSnippetWhenDottingBeforeContextualKeywordOnTheSameLineTest()
+    {
+        await VerifySnippetIsAbsentAsync("""
+            class C
+            {
+                void M(bool flag)
+                {
+                    flag.$$var a = 0;
+                }
+            }
+            """);
+    }
+
+    [Fact]
     public async Task NoInlineDoSnippetForTypeItselfTest()
     {
         await VerifySnippetIsAbsentAsync("""

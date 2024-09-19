@@ -766,7 +766,7 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
 
                 // add an yield break to avoid throws after the return.
                 var yieldBreakStatement = YieldStatement(SyntaxKind.YieldBreakStatement);
-                documentUpdateInfo = new DocumentUpdateInfo(returnStatement, statements.Concat(new[] { yieldBreakStatement }));
+                documentUpdateInfo = new DocumentUpdateInfo(returnStatement, statements.Concat([yieldBreakStatement]));
                 return true;
             }
 

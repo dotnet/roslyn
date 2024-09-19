@@ -544,7 +544,7 @@ Now, consider that the generator author wants to optionally allow opting in/out 
 This value of `MyGenerator_EnableLogging` will be emitted to a generated analyzer config file, for each of the additional files in the compilation, with an item name of `build_metadata.AdditionalFiles.MyGenerator_EnableLogging`. The generator can read this value in the context of each additional file:
 
 ```cs
-context.AdditionalFilesProvider
+context.AdditionalTextsProvider
        .Combine(context.AnalyzerConfigOptionsProvider)
        .Select((pair, ctx) =>
            pair.Right.GetOptions(pair.Left).TryGetValue("build_metadata.AdditionalFiles.MyGenerator_EnableLogging", out var perFileLoggingSwitch)

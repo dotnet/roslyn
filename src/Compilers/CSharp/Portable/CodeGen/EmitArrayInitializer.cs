@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // the null terminator off as part of creating the span instance.
 
             Debug.Assert(inPlaceTarget is null || TargetIsNotOnHeap(inPlaceTarget), "in-place construction target should not be on heap");
-            Debug.Assert(_diagnostics.DiagnosticBag is not null, $"Expected non-null {nameof(_diagnostics)}.{nameof(_diagnostics.DiagnosticBag)}");
+            RoslynDebug.Assert(_diagnostics.DiagnosticBag is not null, $"Expected non-null {nameof(_diagnostics)}.{nameof(_diagnostics.DiagnosticBag)}");
 
             if (start is null != length is null)
             {

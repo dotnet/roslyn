@@ -149,8 +149,7 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
 
             try
             {
-                var results = await service.EmitSolutionUpdateAsync(sessionId, solution, CreateActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false);
-                return results.Dehydrate(solution);
+                return (await service.EmitSolutionUpdateAsync(sessionId, solution, CreateActiveStatementSpanProvider(callbackId), cancellationToken).ConfigureAwait(false)).Dehydrate();
             }
             catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
             {
@@ -168,7 +167,7 @@ internal sealed class RemoteEditAndContinueService : BrokeredServiceBase, IRemot
     private static ImmutableArray<DiagnosticData> GetUnexpectedUpdateError(Solution solution, Exception e)
     {
         var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
-        var diagnostic = Diagnostic.Create(descriptor, Location.None, new[] { e.Message });
+        var diagnostic = Diagnostic.Create(descriptor, Location.None, [e.Message]);
         return [DiagnosticData.Create(solution, diagnostic, project: null)];
     }
 
