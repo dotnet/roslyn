@@ -28,9 +28,9 @@ namespace Roslyn.Test.Utilities.Desktop
     {
         public static void AddArray<T>(this SerializationInfo info, string name, ImmutableArray<T> value) where T : class
         {
-            // we will copy the content into an array and serialize the copy
-            // we could serialize element-wise, but that would require serializing
-            // name and type for every serialized element which seems worse than creating a copy.
+            // This will store the underlying T[] directly into the SerializationInfo. That is safe because it
+            // only ever reads from the array. This is done instead of creating a copy because it is a 
+            // significant source of allocations in our unit tests.
             info.AddValue(name, value.IsDefault ? null : ImmutableCollectionsMarshal.AsArray(value), typeof(T[]));
         }
 
@@ -42,9 +42,9 @@ namespace Roslyn.Test.Utilities.Desktop
 
         public static void AddByteArray(this SerializationInfo info, string name, ImmutableArray<byte> value)
         {
-            // we will copy the content into an array and serialize the copy
-            // we could serialize element-wise, but that would require serializing
-            // name and type for every serialized element which seems worse than creating a copy.
+            // This will store the underlying byte[] directly into the SerializationInfo. That is safe because it
+            // only ever reads from the array. This is done instead of creating a copy because it is a 
+            // significant source of allocations in our unit tests.
             info.AddValue(name, value.IsDefault ? null : ImmutableCollectionsMarshal.AsArray(value), typeof(byte[]));
         }
 
