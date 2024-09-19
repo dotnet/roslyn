@@ -6021,7 +6021,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var namedAssignment = (AssignmentExpressionSyntax)memberInitializerSyntax;
 
                 var memberNameSyntax = namedAssignment.Left as IdentifierNameSyntax;
-
                 if (memberNameSyntax != null)
                 {
                     var memberName = memberNameSyntax.Identifier.ValueText;
