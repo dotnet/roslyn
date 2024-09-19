@@ -10405,6 +10405,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!isCandidateUnique(ref method, m))
                 {
                     methods.Free();
+                    useParams = false;
                     return null;
                 }
             }
@@ -10434,6 +10435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!OverloadResolution.FilterMethodsForUniqueSignature(methods, out bool useParamsForScope))
                     {
                         methods.Free();
+                        useParams = false;
                         return null;
                     }
 
