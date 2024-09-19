@@ -12,6 +12,7 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -27,7 +28,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
     {
         /// <summary>
         /// We would accept inherited members for tests purposes comparing to <see cref="TypeHelpers.MemberBindingFlags"/> 
-        /// because an actual VS <see cref="GetEvalAttributes(Type)"/> may return attributes from base types.
+        /// because an actual VS <see cref="GetEvalAttributes(DkmClrAppDomain, Type)"/> may return attributes from base types.
         /// Therefore, we do not check here for <see cref="BindingFlags.DeclaredOnly"/>.
         /// </summary>
         private const BindingFlags MemberBindingFlags = BindingFlags.Public |
@@ -45,7 +46,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             AppDomain = appDomain;
             _lmrType = lmrType;
             _lazyEvalAttributes = new System.Lazy<ReadOnlyCollection<DkmClrEvalAttribute>>(
-                () => GetEvalAttributes(lmrType),
+                () => GetEvalAttributes(appDomain, lmrType),
                 LazyThreadSafetyMode.PublicationOnly);
             _favorites = favorites;
         }
@@ -188,9 +189,14 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             return assembly.GetType(proxyName);
         }
 
-        private static ReadOnlyCollection<DkmClrEvalAttribute> GetEvalAttributes(Type type)
+        private static ReadOnlyCollection<DkmClrEvalAttribute> GetEvalAttributes(DkmClrAppDomain appDomain, Type type)
         {
             var reflectionType = ((TypeImpl)type).Type;
+            if (appDomain.TypeToEvalAttributesMap.TryGetValue(reflectionType, out var cachedAttributes))
+            {
+                return cachedAttributes;
+            }
+
             var attributes = ArrayBuilder<DkmClrEvalAttribute>.GetInstance();
 
             var proxyType = GetProxyType(reflectionType);
@@ -220,7 +226,9 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                 attributes.AddRange(debuggerVisualizers);
             }
 
-            return attributes.ToImmutableAndFree();
+            var col = attributes.ToImmutableAndFree();
+            appDomain.TypeToEvalAttributesMap[reflectionType] = col;
+            return col;
         }
 
         private static ReadOnlyCollection<DkmClrDebuggerBrowsableAttribute> GetBrowsableAttributes(Type type, MemberInfo member)

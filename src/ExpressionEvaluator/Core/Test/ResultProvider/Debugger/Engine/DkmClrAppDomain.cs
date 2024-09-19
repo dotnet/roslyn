@@ -10,14 +10,20 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
 namespace Microsoft.VisualStudio.Debugger.Clr
 {
     public class DkmClrAppDomain
     {
+        public Dictionary<Type, ReadOnlyCollection<DkmClrEvalAttribute>> TypeToEvalAttributesMap { get; }
+
         internal DkmClrAppDomain(DkmClrRuntimeInstance runtime)
         {
             RuntimeInstance = runtime;
+            TypeToEvalAttributesMap = new Dictionary<Type, ReadOnlyCollection<DkmClrEvalAttribute>>();
         }
 
         public DkmClrRuntimeInstance RuntimeInstance { get; }
