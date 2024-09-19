@@ -1758,16 +1758,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             var sourceProperty = GetSourcePropertyDefinitionIfAny(propertyAccess.PropertySymbol);
             return sourceProperty is { } &&
-                    TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.AllIgnoreOptions) &&
-                    IsConstructorOrField(fromMember, isStatic: sourceProperty.IsStatic);
+                TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.AllIgnoreOptions) &&
+                IsConstructorOrField(fromMember, isStatic: sourceProperty.IsStatic);
         }
 
         private static bool CanUseBackingFieldDirectlyInConstructor(BoundPropertyAccess propertyAccess, bool useAsLvalue)
         {
             var sourceProperty = GetSourcePropertyDefinitionIfAny(propertyAccess.PropertySymbol);
             return sourceProperty is { } &&
-                    sourceProperty.CanUseBackingFieldDirectlyInConstructor(useAsLvalue) &&
-                    (sourceProperty.IsStatic || propertyAccess.ReceiverOpt?.Kind == BoundKind.ThisReference);
+                sourceProperty.CanUseBackingFieldDirectlyInConstructor(useAsLvalue) &&
+                (sourceProperty.IsStatic || propertyAccess.ReceiverOpt?.Kind == BoundKind.ThisReference);
         }
 
         private static SourcePropertySymbolBase? GetSourcePropertyDefinitionIfAny(PropertySymbol propertySymbol)

@@ -388,6 +388,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return AccessorKind.Get;
             }
 
+            return GetAccessorKind(valueKind);
+        }
+
+        private static AccessorKind GetAccessorKind(BindValueKind valueKind)
+        {
             var coreValueKind = valueKind & ValueKindSignificantBitsMask;
             return coreValueKind switch
             {
@@ -529,20 +534,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var propertyAccess = (BoundPropertyAccess)expr;
                         if (propertyAccess.PropertySymbol.RefKind == RefKind.None)
                         {
-                            bool? useAsLvalue = RequiresRValueOnly(valueKind) ? false : RequiresAssignableVariable(valueKind) ? true : null;
-                            if (useAsLvalue.HasValue)
+                            var accessorKind = GetAccessorKind(valueKind);
+                            if (CanUseBackingFieldDirectlyInConstructor(propertyAccess, useAsLvalue: accessorKind != AccessorKind.Get))
                             {
-                                if (CanUseBackingFieldDirectlyInConstructor(propertyAccess, useAsLvalue.Value))
-                                {
-                                    // Update the property access to indicate that the backing field should be used directly.
-                                    expr = propertyAccess.Update(
-                                        propertyAccess.ReceiverOpt,
-                                        propertyAccess.InitialBindingReceiverIsSubjectToCloning,
-                                        propertyAccess.PropertySymbol,
-                                        useAsLvalue.Value ? AccessorKind.Set : AccessorKind.Get, // PROTOTYPE: What about compound assignment, increment?
-                                        propertyAccess.ResultKind,
-                                        propertyAccess.Type);
-                                }
+                                // Update the property access to indicate that the backing field should be used directly.
+                                expr = propertyAccess.Update(
+                                    propertyAccess.ReceiverOpt,
+                                    propertyAccess.InitialBindingReceiverIsSubjectToCloning,
+                                    propertyAccess.PropertySymbol,
+                                    useBackingField: accessorKind,
+                                    propertyAccess.ResultKind,
+                                    propertyAccess.Type);
                             }
                         }
                     }

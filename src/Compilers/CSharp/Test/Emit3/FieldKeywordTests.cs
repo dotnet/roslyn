@@ -2411,6 +2411,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = $$"""
                 #pragma warning disable 649
                 using System;
+                struct C1
+                {
+                    public int F1;
+                    public int P1 { get; }
+                    public C1(int i) { P1 += i; }
+                }
+                struct C2
+                {
+                    public int F2;
+                    public int P2 { get => field; }
+                    public C2(int i) { P2 += i; }
+                }
                 struct C3
                 {
                     public int F3;
@@ -2439,11 +2451,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
+                        var c1 = new C1(1);
+                        var c2 = new C2(2);
                         var c3 = new C3(3);
                         var c6 = new C6(6);
                         var c7 = new C7(7);
                         var c9 = new C9(9);
-                        Console.WriteLine((c3.P3, c6.P6, c7.P7, c9.P9));
+                        Console.WriteLine((c1.P1, c2.P2, c3.P3, c6.P6, c7.P7, c9.P9));
                     }
                 }
                 """;
@@ -2451,8 +2465,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 source,
                 targetFramework: GetTargetFramework(useInit),
                 verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput(useInit, "(3, 6, 7, 9)"));
+                expectedOutput: IncludeExpectedOutput(useInit, "(1, 2, 3, 6, 7, 9)"));
             verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C1..ctor(int)", $$"""
+                {
+                  // Code size       29 (0x1d)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C1.F1"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  stfld      "int C1.<P1>k__BackingField"
+                  IL_000e:  ldarg.0
+                  IL_000f:  ldarg.0
+                  IL_0010:  call       "readonly int C1.P1.get"
+                  IL_0015:  ldarg.1
+                  IL_0016:  add
+                  IL_0017:  stfld      "int C1.<P1>k__BackingField"
+                  IL_001c:  ret
+                }
+                """);
+            verifier.VerifyIL("C2..ctor(int)", $$"""
+                {
+                  // Code size       29 (0x1d)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C2.F2"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  stfld      "int C2.<P2>k__BackingField"
+                  IL_000e:  ldarg.0
+                  IL_000f:  ldarg.0
+                  IL_0010:  call       "int C2.P2.get"
+                  IL_0015:  ldarg.1
+                  IL_0016:  add
+                  IL_0017:  stfld      "int C2.<P2>k__BackingField"
+                  IL_001c:  ret
+                }
+                """);
             verifier.VerifyIL("C3..ctor(int)", $$"""
                 {
                     // Code size       29 (0x1d)
@@ -2539,6 +2591,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = $$"""
                 #pragma warning disable 649
                 using System;
+                struct C1
+                {
+                    public int F1;
+                    public int P1 { get; }
+                    public C1(bool unused) { P1++; }
+                }
+                struct C2
+                {
+                    public int F2;
+                    public int P2 { get => field; }
+                    public C2(bool unused) { P2++; }
+                }
                 struct C3
                 {
                     public int F3;
@@ -2567,11 +2631,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
+                        var c1 = new C1(false);
+                        var c2 = new C2(false);
                         var c3 = new C3(false);
                         var c6 = new C6(false);
                         var c7 = new C7(false);
                         var c9 = new C9(false);
-                        Console.WriteLine((c3.P3, c6.P6, c7.P7, c9.P9));
+                        Console.WriteLine((c1.P1, c2.P2, c3.P3, c6.P6, c7.P7, c9.P9));
                     }
                 }
                 """;
@@ -2579,8 +2645,52 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 source,
                 targetFramework: GetTargetFramework(useInit),
                 verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput(useInit, "(1, 1, 1, 1)"));
+                expectedOutput: IncludeExpectedOutput(useInit, "(1, 1, 1, 1, 1, 1)"));
             verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C1..ctor(bool)", $$"""
+                {
+                  // Code size       31 (0x1f)
+                  .maxstack  3
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C1.F1"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  stfld      "int C1.<P1>k__BackingField"
+                  IL_000e:  ldarg.0
+                  IL_000f:  call       "readonly int C1.P1.get"
+                  IL_0014:  stloc.0
+                  IL_0015:  ldarg.0
+                  IL_0016:  ldloc.0
+                  IL_0017:  ldc.i4.1
+                  IL_0018:  add
+                  IL_0019:  stfld      "int C1.<P1>k__BackingField"
+                  IL_001e:  ret
+                }
+                """);
+            verifier.VerifyIL("C2..ctor(bool)", $$"""
+                {
+                  // Code size       31 (0x1f)
+                  .maxstack  3
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C2.F2"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  stfld      "int C2.<P2>k__BackingField"
+                  IL_000e:  ldarg.0
+                  IL_000f:  call       "int C2.P2.get"
+                  IL_0014:  stloc.0
+                  IL_0015:  ldarg.0
+                  IL_0016:  ldloc.0
+                  IL_0017:  ldc.i4.1
+                  IL_0018:  add
+                  IL_0019:  stfld      "int C2.<P2>k__BackingField"
+                  IL_001e:  ret
+                }
+                """);
             verifier.VerifyIL("C3..ctor(bool)", $$"""
                 {
                   // Code size       31 (0x1f)
@@ -2679,6 +2789,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = $$"""
                 #pragma warning disable 649
                 using System;
+                struct C1
+                {
+                    public int F1;
+                    public object P1 { get; }
+                    public C1(object value) { P1 ??= value; }
+                }
+                struct C2
+                {
+                    public int F2;
+                    public object P2 { get => field; }
+                    public C2(object value) { P2 ??= value; }
+                }
                 struct C3
                 {
                     public int F3;
@@ -2707,11 +2829,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
+                        var c1 = new C1(1);
+                        var c2 = new C2(2);
                         var c3 = new C3(3);
                         var c6 = new C6(6);
                         var c7 = new C7(7);
                         var c9 = new C9(9);
-                        Console.WriteLine((c3.P3, c6.P6, c7.P7, c9.P9));
+                        Console.WriteLine((c1.P1, c2.P2, c3.P3, c6.P6, c7.P7, c9.P9));
                     }
                 }
                 """;
@@ -2719,8 +2843,46 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 source,
                 targetFramework: GetTargetFramework(useInit),
                 verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput(useInit, "(3, 6, 7, 9)"));
+                expectedOutput: IncludeExpectedOutput(useInit, "(1, 2, 3, 6, 7, 9)"));
             verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C1..ctor", $$"""
+                {
+                  // Code size       30 (0x1e)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C1.F1"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldnull
+                  IL_0009:  stfld      "object C1.<P1>k__BackingField"
+                  IL_000e:  ldarg.0
+                  IL_000f:  call       "readonly object C1.P1.get"
+                  IL_0014:  brtrue.s   IL_001d
+                  IL_0016:  ldarg.0
+                  IL_0017:  ldarg.1
+                  IL_0018:  stfld      "object C1.<P1>k__BackingField"
+                  IL_001d:  ret
+                }
+                """);
+            verifier.VerifyIL("C2..ctor", $$"""
+                {
+                  // Code size       30 (0x1e)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C2.F2"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldnull
+                  IL_0009:  stfld      "object C2.<P2>k__BackingField"
+                  IL_000e:  ldarg.0
+                  IL_000f:  call       "object C2.P2.get"
+                  IL_0014:  brtrue.s   IL_001d
+                  IL_0016:  ldarg.0
+                  IL_0017:  ldarg.1
+                  IL_0018:  stfld      "object C2.<P2>k__BackingField"
+                  IL_001d:  ret
+                }
+                """);
             verifier.VerifyIL("C3..ctor", $$"""
                 {
                   // Code size       32 (0x20)
