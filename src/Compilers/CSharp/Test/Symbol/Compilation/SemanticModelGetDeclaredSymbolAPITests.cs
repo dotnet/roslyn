@@ -5306,15 +5306,6 @@ class Program
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
-            var propertyDecls = root.DescendantNodes()
-                .OfType<ClassDeclarationSyntax>()
-                .First()
-                .ChildNodes()
-                .OfType<PropertyDeclarationSyntax>()
-                .ToArray();
-            var valuePropertyDecl = propertyDecls[1];
-            var valueProperty = model.GetDeclaredSymbol(valuePropertyDecl);
-            Assert.NotNull(valueProperty);
 
             var initializers = root.DescendantNodes()
                 .OfType<InitializerExpressionSyntax>()
@@ -5322,9 +5313,7 @@ class Program
                 .ChildNodes()
                 .ToArray();
             var initializedSymbol = model.GetSymbolInfo(initializers[1]).Symbol;
-
-            Assert.NotNull(initializedSymbol);
-            Assert.True(initializedSymbol.Equals(valueProperty, SymbolEqualityComparer.Default));
+            Assert.Equal("System.String? Thing.Value { get; set; }", initializedSymbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
@@ -5374,15 +5363,6 @@ class Program
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
-            var propertyDecls = root.DescendantNodes()
-                .OfType<ClassDeclarationSyntax>()
-                .First(s => s.Identifier.Text is "Thing")
-                .ChildNodes()
-                .OfType<PropertyDeclarationSyntax>()
-                .ToArray();
-            var valuePropertyDecl = propertyDecls[1];
-            var valueProperty = model.GetDeclaredSymbol(valuePropertyDecl);
-            Assert.NotNull(valueProperty);
 
             var thingInitializer = root.DescendantNodes()
                 .OfType<AssignmentExpressionSyntax>()
@@ -5391,9 +5371,7 @@ class Program
                 as InitializerExpressionSyntax;
             var valueInitializer = thingInitializer.Expressions[1];
             var initializedSymbol = model.GetSymbolInfo(valueInitializer).Symbol;
-
-            Assert.NotNull(initializedSymbol);
-            Assert.True(initializedSymbol.Equals(valueProperty, SymbolEqualityComparer.Default));
+            Assert.Equal("System.String? Thing.Value { get; set; }", initializedSymbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
@@ -5435,15 +5413,6 @@ class Program
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
-            var valueFieldDecl = root.DescendantNodes()
-                .OfType<ClassDeclarationSyntax>()
-                .First()
-                .ChildNodes()
-                .OfType<FieldDeclarationSyntax>()
-                .ElementAt(1)
-                .Declaration.Variables.First();
-            var valueField = model.GetDeclaredSymbol(valueFieldDecl);
-            Assert.NotNull(valueField);
 
             var initializers = root.DescendantNodes()
                 .OfType<InitializerExpressionSyntax>()
@@ -5451,9 +5420,7 @@ class Program
                 .ChildNodes()
                 .ToArray();
             var initializedSymbol = model.GetSymbolInfo(initializers[1]).Symbol;
-
-            Assert.NotNull(initializedSymbol);
-            Assert.True(initializedSymbol.Equals(valueField, SymbolEqualityComparer.Default));
+            Assert.Equal("System.String? Thing.Value", initializedSymbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
@@ -5511,7 +5478,6 @@ class Program
                 .ChildNodes()
                 .ToArray();
             var initializedSymbol = model.GetSymbolInfo(initializers[1]).Symbol;
-
             Assert.Null(initializedSymbol);
         }
 
@@ -5554,15 +5520,6 @@ class Program
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
-            var propertyDecls = root.DescendantNodes()
-                .OfType<ClassDeclarationSyntax>()
-                .First()
-                .ChildNodes()
-                .OfType<PropertyDeclarationSyntax>()
-                .ToArray();
-            var valuePropertyDecl = propertyDecls[1];
-            var valueProperty = model.GetDeclaredSymbol(valuePropertyDecl);
-            Assert.NotNull(valueProperty);
 
             var initializers = root.DescendantNodes()
                 .OfType<InitializerExpressionSyntax>()
@@ -5570,9 +5527,7 @@ class Program
                 .ChildNodes()
                 .ToArray();
             var initializedSymbol = model.GetSymbolInfo(initializers[0]).Symbol;
-
-            Assert.NotNull(initializedSymbol);
-            Assert.True(initializedSymbol.Equals(valueProperty, SymbolEqualityComparer.Default));
+            Assert.Equal("System.String? Thing.Value { get; set; }", initializedSymbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
@@ -5622,15 +5577,6 @@ class Program
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
-            var propertyDecls = root.DescendantNodes()
-                .OfType<ClassDeclarationSyntax>()
-                .First(s => s.Identifier.Text is "Thing")
-                .ChildNodes()
-                .OfType<PropertyDeclarationSyntax>()
-                .ToArray();
-            var valuePropertyDecl = propertyDecls[1];
-            var valueProperty = model.GetDeclaredSymbol(valuePropertyDecl);
-            Assert.NotNull(valueProperty);
 
             var thingInitializer = root.DescendantNodes()
                 .OfType<AssignmentExpressionSyntax>()
@@ -5639,9 +5585,7 @@ class Program
                 as InitializerExpressionSyntax;
             var valueInitializer = thingInitializer.Expressions[0];
             var initializedSymbol = model.GetSymbolInfo(valueInitializer).Symbol;
-
-            Assert.NotNull(initializedSymbol);
-            Assert.True(initializedSymbol.Equals(valueProperty, SymbolEqualityComparer.Default));
+            Assert.Equal("System.String? Thing.Value { get; set; }", initializedSymbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
@@ -5683,15 +5627,6 @@ class Program
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
-            var valueFieldDecl = root.DescendantNodes()
-                .OfType<ClassDeclarationSyntax>()
-                .First()
-                .ChildNodes()
-                .OfType<FieldDeclarationSyntax>()
-                .ElementAt(1)
-                .Declaration.Variables.First();
-            var valueField = model.GetDeclaredSymbol(valueFieldDecl);
-            Assert.NotNull(valueField);
 
             var initializers = root.DescendantNodes()
                 .OfType<InitializerExpressionSyntax>()
@@ -5699,9 +5634,7 @@ class Program
                 .ChildNodes()
                 .ToArray();
             var initializedSymbol = model.GetSymbolInfo(initializers[0]).Symbol;
-
-            Assert.NotNull(initializedSymbol);
-            Assert.True(initializedSymbol.Equals(valueField, SymbolEqualityComparer.Default));
+            Assert.Equal("System.String? Thing.Value", initializedSymbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
@@ -5759,7 +5692,6 @@ class Program
                 .ChildNodes()
                 .ToArray();
             var initializedSymbol = model.GetSymbolInfo(initializers[0]).Symbol;
-
             Assert.Null(initializedSymbol);
         }
 
