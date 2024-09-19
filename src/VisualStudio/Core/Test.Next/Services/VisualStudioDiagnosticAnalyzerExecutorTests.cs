@@ -137,9 +137,8 @@ End Class";
             var analyzerType = typeof(CSharpUseExplicitTypeDiagnosticAnalyzer);
 
             var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
 
-            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(workspace.Services.SolutionServices.GetLanguageServices(LanguageNames.CSharp));
             workspace.GlobalOptions.SetGlobalOption(CSharpCodeStyleOptions.VarWhenTypeIsApparent, new CodeStyleOption<bool>(false, NotificationOption.Suggestion));
 
             // run analysis
@@ -149,7 +148,7 @@ End Class";
 
             var compilationWithAnalyzers = (await project.GetCompilationAsync()).WithAnalyzers(
                 analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
-                new WorkspaceAnalyzerOptions(project.AnalyzerOptions, ideAnalyzerOptions));
+                project.AnalyzerOptions);
 
             var result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
             var analyzerResult = result.AnalysisResult[compilationWithAnalyzers.Analyzers[0]];
@@ -184,10 +183,8 @@ End Class";
             var runner = CreateAnalyzerRunner();
             var analyzers = analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray();
 
-            var ideAnalyzerOptions = IdeAnalyzerOptions.GetDefault(project.Services);
-
             var compilationWithAnalyzers = (await project.GetCompilationAsync())
-                .WithAnalyzers(analyzers, new WorkspaceAnalyzerOptions(project.AnalyzerOptions, ideAnalyzerOptions));
+                .WithAnalyzers(analyzers, project.AnalyzerOptions);
 
             var result = await runner.AnalyzeProjectAsync(project, compilationWithAnalyzers,
                 logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
@@ -210,8 +207,8 @@ End Class";
             var project = workspace.CurrentSolution.GetProject(projectId).AddAnalyzerReference(analyzerReference);
 
             var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(
-                    analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
-                    new WorkspaceAnalyzerOptions(project.AnalyzerOptions, IdeAnalyzerOptions.GetDefault(project.Services)));
+                analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
+                project.AnalyzerOptions);
 
             var result = await executor.AnalyzeProjectAsync(
                 project, analyzerDriver, logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken);

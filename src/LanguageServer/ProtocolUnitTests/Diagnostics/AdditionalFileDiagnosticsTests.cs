@@ -35,12 +35,12 @@ public class AdditionalFileDiagnosticsTests : AbstractPullDiagnosticTestsBase
         await using var testLspServer = await CreateTestWorkspaceFromXmlAsync(workspaceXml, mutatingLspWorkspace, BackgroundAnalysisScope.FullSolution, useVSDiagnostics);
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             @"C:\C.cs: []",
             @$"C:\Test.txt: [{MockAdditionalFileDiagnosticAnalyzer.Id}]",
             @"C:\CSProj1.csproj: []"
-        }, results.Select(r => $"{r.Uri.LocalPath}: [{string.Join(", ", r.Diagnostics.Select(d => d.Code?.Value?.ToString()))}]"));
+        ], results.Select(r => $"{r.Uri.LocalPath}: [{string.Join(", ", r.Diagnostics.Select(d => d.Code?.Value?.ToString()))}]"));
 
         // Asking again should give us back an unchanged diagnostic.
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));

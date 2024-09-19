@@ -6606,7 +6606,8 @@ oneMoreTime:
                     }
                     else
                     {
-                        Debug.Fail("This code path should not be reachable.");
+                        Debug.Assert(operation.Parent is InvocationOperation { Parent: CollectionExpressionOperation ce } && ce.HasErrors(_compilation),
+                            "Expected to reach this only in collection expression infinite chain cases.");
                         return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
                     }
 

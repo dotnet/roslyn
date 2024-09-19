@@ -287,11 +287,6 @@
         <target state="translated">위치 매개 변수 '{0}'과(와) 일치하려면 레코드 멤버 '{1}'이(가) 유형 '{2}'의 읽을 수 있는 인스턴스 속성 또는 필드여야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
-        <target state="translated">foreach 문은 '{0}'이(가) ref struct 또는 ref struct를 허용하는 형식 매개 변수이므로 비동기 또는 반복기 메서드에서 '{0}' 형식의 열거자에 대해 작동할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
         <target state="translated">'{0}' 형식의 매개 변수는 비동기 메서드나 비동기 람다 식에서 선언할 수 없습니다.</target>
@@ -330,6 +325,16 @@
       <trans-unit id="ERR_BuilderAttributeDisallowed">
         <source>The AsyncMethodBuilder attribute is disallowed on anonymous methods without an explicit return type.</source>
         <target state="translated">AsyncMethodBuilder 특성은 명시적 반환 형식이 없는 익명 메서드에서 허용되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on this member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUtf8">
@@ -495,6 +500,11 @@
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
         <target state="translated">형식을 생성할 수 없으므로 컬렉션 식을 사용하여 '{0}' 형식을 초기화할 수 없습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
+        <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
+        <target state="new">Collection initializer results in an infinite chain of instantiations of collection '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -1138,8 +1148,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="translated">이 네임스페이스에서는 '인터셉터' 실험적 기능을 사용할 수 없습니다. 프로젝트에 '{0}'을(를) 추가하세요.</target>
+        <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="needs-review-translation">이 네임스페이스에서는 '인터셉터' 실험적 기능을 사용할 수 없습니다. 프로젝트에 '{0}'을(를) 추가하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
@@ -1453,13 +1463,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
-        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="translated">'{0}': 비동기 using 문에 사용된 형식은 암시적으로 'System.IAsyncDisposable'로 변환할 수 있거나 적합한 'DisposeAsync' 메서드를 구현해야 합니다. 'await using' 대신 'using'을 사용하시겠습니까?</target>
+        <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
+        <target state="needs-review-translation">'{0}': 비동기 using 문에 사용된 형식은 암시적으로 'System.IAsyncDisposable'로 변환할 수 있거나 적합한 'DisposeAsync' 메서드를 구현해야 합니다. 'await using' 대신 'using'을 사용하시겠습니까?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
-        <target state="translated">'{0}': using 문에 사용된 형식은 암시적으로 'System.IDisposable'로 변환할 수 있어야 합니다. 'using' 대신 'await using'을 사용하시겠습니까?</target>
+        <source>'{0}': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
+        <target state="needs-review-translation">'{0}': using 문에 사용된 형식은 암시적으로 'System.IDisposable'로 변환할 수 있어야 합니다. 'using' 대신 'await using'을 사용하시겠습니까?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForCallerArgumentExpressionParam">
@@ -2387,9 +2397,9 @@
         <target state="translated">확장 속성 패턴</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureFieldAndValueKeywords">
-        <source>field and value keywords</source>
-        <target state="translated">필드 및 값 키워드</target>
+      <trans-unit id="IDS_FeatureFieldKeyword">
+        <source>field keyword</source>
+        <target state="new">field keyword</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFileScopedNamespace">
@@ -2590,6 +2600,11 @@
       <trans-unit id="IDS_Missing">
         <source>&lt;missing&gt;</source>
         <target state="translated">&lt;missing&gt;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_OverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="new">overload resolution priority</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
@@ -9562,8 +9577,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
-        <target state="translated">'{0}': using 문에 사용된 형식은 암시적으로 'System.IDisposable'로 변환할 수 있어야 합니다.</target>
+        <source>'{0}': type used in a using statement must implement 'System.IDisposable'.</source>
+        <target state="needs-review-translation">'{0}': using 문에 사용된 형식은 암시적으로 'System.IDisposable'로 변환할 수 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -13090,8 +13105,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
-        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="translated">'{0}': 비동기 using 문에 사용된 형식은 암시적으로 'System.IAsyncDisposable'로 변환할 수 있거나 적합한 'DisposeAsync' 메서드를 구현해야 합니다.</target>
+        <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
+        <target state="needs-review-translation">'{0}': 비동기 using 문에 사용된 형식은 암시적으로 'System.IAsyncDisposable'로 변환할 수 있거나 적합한 'DisposeAsync' 메서드를 구현해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

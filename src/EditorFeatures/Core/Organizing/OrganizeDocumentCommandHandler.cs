@@ -37,14 +37,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Organizing;
 [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 internal class OrganizeDocumentCommandHandler(
     IThreadingContext threadingContext,
-    IGlobalOptionService globalOptions,
     IAsynchronousOperationListenerProvider listenerProvider) :
     ICommandHandler<OrganizeDocumentCommandArgs>,
     ICommandHandler<SortImportsCommandArgs>,
     ICommandHandler<SortAndRemoveUnnecessaryImportsCommandArgs>
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
-    private readonly IGlobalOptionService _globalOptions = globalOptions;
     private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.OrganizeDocument);
 
     public string DisplayName => EditorFeaturesResources.Organize_Document;
@@ -175,7 +173,7 @@ internal class OrganizeDocumentCommandHandler(
             async (document, cancellationToken) =>
             {
                 var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
-                var options = await document.GetOrganizeImportsOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+                var options = await document.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false);
                 return await organizeImportsService.OrganizeImportsAsync(document, options, cancellationToken).ConfigureAwait(false);
             });
 
@@ -193,8 +191,8 @@ internal class OrganizeDocumentCommandHandler(
                 var removeImportsService = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
                 var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
 
-                var newDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
-                var options = await document.GetOrganizeImportsOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+                var newDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
+                var options = await document.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false);
                 return await organizeImportsService.OrganizeImportsAsync(newDocument, options, cancellationToken).ConfigureAwait(false);
             });
 }

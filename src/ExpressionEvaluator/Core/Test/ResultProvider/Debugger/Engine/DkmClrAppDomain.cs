@@ -15,26 +15,21 @@ namespace Microsoft.VisualStudio.Debugger.Clr
 {
     public class DkmClrAppDomain
     {
-        private readonly DkmClrRuntimeInstance _runtime;
-
         internal DkmClrAppDomain(DkmClrRuntimeInstance runtime)
         {
-            _runtime = runtime;
+            RuntimeInstance = runtime;
         }
 
-        public DkmClrRuntimeInstance RuntimeInstance
-        {
-            get { return _runtime; }
-        }
+        public DkmClrRuntimeInstance RuntimeInstance { get; }
 
         public DkmClrModuleInstance FindClrModuleInstance(Guid mvid)
         {
-            return _runtime.FindClrModuleInstance(mvid);
+            return RuntimeInstance.FindClrModuleInstance(mvid);
         }
 
         public DkmClrModuleInstance[] GetClrModuleInstances()
         {
-            return _runtime.Modules;
+            return RuntimeInstance.Modules;
         }
     }
 }

@@ -2959,8 +2959,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 break;
 
                             case OperationKind.ExpressionStatement:
-                                // For constructor initializer, we generate an IInvocationOperation with an implicit IExpressionStatementOperation parent.
-                                Debug.Assert(operationBlock.Kind == OperationKind.Invocation);
+                                // For constructor initializer, we generate an IInvocationOperation (or invalid
+                                // operation in the case of an error) with an implicit IExpressionStatementOperation parent.
+                                Debug.Assert(operationBlock.Kind is OperationKind.Invocation or OperationKind.Invalid);
                                 Debug.Assert(operationBlock.Parent.IsImplicit);
                                 Debug.Assert(operationBlock.Parent.Parent is IConstructorBodyOperation ctorBody &&
                                     ctorBody.Initializer == operationBlock.Parent);

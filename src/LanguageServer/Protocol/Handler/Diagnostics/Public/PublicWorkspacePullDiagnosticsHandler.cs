@@ -36,9 +36,6 @@ internal sealed partial class PublicWorkspacePullDiagnosticsHandler : AbstractWo
     protected override string? GetRequestDiagnosticCategory(WorkspaceDiagnosticParams diagnosticsParams)
         => diagnosticsParams.Identifier;
 
-    protected override DiagnosticTag[] ConvertTags(DiagnosticData diagnosticData, bool isLiveSource)
-        => ConvertTags(diagnosticData, isLiveSource, potentialDuplicate: false);
-
     protected override WorkspaceDiagnosticPartialReport CreateReport(TextDocumentIdentifier identifier, Roslyn.LanguageServer.Protocol.Diagnostic[] diagnostics, string resultId)
         => new(new WorkspaceDiagnosticReport
         {

@@ -156,7 +156,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
         {
             var textDocumentIdentifier = ProtocolConversions.DocumentToTextDocumentIdentifier(document);
 
-            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var spans = await service.GetSpansAsync(document, cancellationToken).ConfigureAwait(false);
 
             // protocol requires the results be in sorted order
@@ -186,13 +185,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                 {
                     var span = spans[i];
 
-                    var kind = span.Kind switch
-                    {
-                        SpellCheckKind.Identifier => VSInternalSpellCheckableRangeKind.Identifier,
-                        SpellCheckKind.Comment => VSInternalSpellCheckableRangeKind.Comment,
-                        SpellCheckKind.String => VSInternalSpellCheckableRangeKind.String,
-                        _ => throw ExceptionUtilities.UnexpectedValue(span.Kind),
-                    };
+                    var kind = ProtocolConversions.SpellCheckSpanKindToSpellCheckableRangeKind(span.Kind);
 
                     triples[triplesIndex++] = (int)kind;
                     triples[triplesIndex++] = span.TextSpan.Start - lastSpanEnd;

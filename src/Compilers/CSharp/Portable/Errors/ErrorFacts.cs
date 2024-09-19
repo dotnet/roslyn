@@ -1837,7 +1837,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_FieldsInRoStruct
                 or ErrorCode.ERR_AutoPropsInRoStruct
                 or ErrorCode.ERR_FieldlikeEventsInRoStruct
-                or ErrorCode.ERR_BadSpecialByRefIterator
                 or ErrorCode.ERR_FieldAutoPropCantBeByRefLike
                 or ErrorCode.ERR_StackAllocConversionNotPossible
                 or ErrorCode.ERR_EscapeCall
@@ -2415,6 +2414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CollectionExpressionMissingAdd
                 or ErrorCode.WRN_ConvertingLock
                 or ErrorCode.ERR_DynamicDispatchToParamsCollection
+                or ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls
                 or ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls
                 or ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember
                 or ErrorCode.ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember
@@ -2452,6 +2452,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.INF_IdentifierConflictWithContextualKeyword
                 or ErrorCode.ERR_InlineArrayAttributeOnRecord
                 or ErrorCode.ERR_FeatureNotAvailableInVersion13
+                or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride
+                or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

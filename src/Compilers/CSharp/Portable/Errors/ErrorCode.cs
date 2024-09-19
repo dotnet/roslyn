@@ -1529,7 +1529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AutoPropsInRoStruct = 8341,
         ERR_FieldlikeEventsInRoStruct = 8342,
         // ERR_RefStructInterfaceImpl = 8343,
-        ERR_BadSpecialByRefIterator = 8344,
+        // ERR_BadSpecialByRefIterator = 8344,
         ERR_FieldAutoPropCantBeByRefLike = 8345,
         ERR_StackAllocConversionNotPossible = 8346,
 
@@ -2292,7 +2292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // available 9219,
         // available 9220,
         // available 9221,
-        // available 9222,
+        ERR_CollectionInitializerInfiniteChainOfAddCalls = 9222,
         ERR_ParamsCollectionInfiniteChainOfConstructorCalls = 9223,
         ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember = 9224,
         ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember = 9225,
@@ -2340,6 +2340,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InlineArrayAttributeOnRecord = 9259,
         ERR_FeatureNotAvailableInVersion13 = 9260,
+
+        ERR_CannotApplyOverloadResolutionPriorityToOverride = 9261,
+        ERR_CannotApplyOverloadResolutionPriorityToMember = 9262,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

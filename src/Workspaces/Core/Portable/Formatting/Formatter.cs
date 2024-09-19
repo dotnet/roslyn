@@ -338,7 +338,7 @@ public static class Formatter
         else
         {
             syntaxFormattingOptions = null;
-            lineFormattingOptions = optionSet.GetLineFormattingOptions(document.Project.Language, fallbackOptions: null);
+            lineFormattingOptions = optionSet.GetLineFormattingOptions(document.Project.Language);
         }
 
         return (syntaxFormattingOptions, lineFormattingOptions);
@@ -367,7 +367,7 @@ public static class Formatter
     internal static async ValueTask<OrganizeImportsOptions> GetOrganizeImportsOptionsAsync(Document document, CancellationToken cancellationToken)
     {
         var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return optionSet.GetOrganizeImportsOptions(document.Project.Language, fallbackOptions: null);
+        return optionSet.GetOrganizeImportsOptions(document.Project.Language);
     }
 #pragma warning restore
 }

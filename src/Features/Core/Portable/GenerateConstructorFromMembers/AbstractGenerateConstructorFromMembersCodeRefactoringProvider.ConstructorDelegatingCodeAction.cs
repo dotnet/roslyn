@@ -21,14 +21,12 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
         AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
         Document document,
         State state,
-        bool addNullChecks,
-        CleanCodeGenerationOptionsProvider fallbackOptions) : CodeAction
+        bool addNullChecks) : CodeAction
     {
         private readonly AbstractGenerateConstructorFromMembersCodeRefactoringProvider _service = service;
         private readonly Document _document = document;
         private readonly State _state = state;
         private readonly bool _addNullChecks = addNullChecks;
-        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
         protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
         {
@@ -52,7 +50,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
             using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var nullCheckStatements);
             using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var assignStatements);
 
-            var useThrowExpressions = await _service.PrefersThrowExpressionAsync(_document, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var useThrowExpressions = await _service.PrefersThrowExpressionAsync(_document, cancellationToken).ConfigureAwait(false);
 
             for (var i = _state.DelegatedConstructor.Parameters.Length; i < _state.Parameters.Length; i++)
             {
@@ -64,6 +62,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
                     factory.IdentifierName(symbolName));
 
                 factory.AddAssignmentStatements(
+                    factory.SyntaxGeneratorInternal,
                     semanticModel, parameter, fieldAccess,
                     _addNullChecks, useThrowExpressions,
                     nullCheckStatements, assignStatements);
@@ -85,8 +84,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
                     _document.Project.Solution,
                     new CodeGenerationContext(
                         contextLocation: syntaxTree.GetLocation(_state.TextSpan),
-                        afterThisLocation: afterThisLocation),
-                    _fallbackOptions),
+                        afterThisLocation: afterThisLocation)),
                 _state.ContainingType,
                 CodeGenerationSymbolFactory.CreateConstructorSymbol(
                     attributes: default,

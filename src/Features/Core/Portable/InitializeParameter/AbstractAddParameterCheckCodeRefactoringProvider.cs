@@ -55,7 +55,6 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         IBlockOperation? blockStatementOpt,
         ImmutableArray<SyntaxNode> listOfParameterNodes,
         TextSpan parameterSpan,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         // List to keep track of the valid parameters
@@ -87,7 +86,6 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
         SyntaxNode functionDeclaration,
         IMethodSymbol methodSymbol,
         IBlockOperation? blockStatementOpt,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -384,7 +382,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
 
     private TStatementSyntax CreateNullCheckStatement(SemanticModel semanticModel, SyntaxGenerator generator, IParameterSymbol parameter, TSimplifierOptions options)
         => CreateParameterCheckIfStatement(
-            (TExpressionSyntax)generator.CreateNullCheckExpression(semanticModel, parameter.Name),
+            (TExpressionSyntax)generator.CreateNullCheckExpression(generator.SyntaxGeneratorInternal, semanticModel, parameter.Name),
             (TStatementSyntax)generator.CreateThrowArgumentNullExceptionStatement(semanticModel.Compilation, parameter),
             options);
 

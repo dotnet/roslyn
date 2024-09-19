@@ -64,7 +64,7 @@ internal sealed class FormatNewFileHandler : ILspServiceRequestHandler<FormatNew
         if (formattingService is not null)
         {
             var hintDocument = project.Documents.FirstOrDefault();
-            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).ConfigureAwait(false);
+            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
             document = await formattingService.FormatNewDocumentAsync(document, hintDocument, cleanupOptions, cancellationToken).ConfigureAwait(false);
         }
 
@@ -73,7 +73,7 @@ internal sealed class FormatNewFileHandler : ILspServiceRequestHandler<FormatNew
         var removeImportsService = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
         if (removeImportsService is not null)
         {
-            document = await removeImportsService.RemoveUnnecessaryImportsAsync(document, syntaxFormattingOptions, cancellationToken).ConfigureAwait(false);
+            document = await removeImportsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
         }
 
         // Now format the document so indentation etc. is correct

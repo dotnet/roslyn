@@ -47,18 +47,18 @@ namespace System.Diagnostics.CodeAnalysis
 }";
         return CSharpCompilation.Create("unconditionalsuppress",
              options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-            syntaxTrees: new[] { CSharpSyntaxTree.ParseText(unconditionalSuppressMessageDef) },
-            references: new[] { TestBase.MscorlibRef }).EmitToImageReference();
+            syntaxTrees: [CSharpSyntaxTree.ParseText(unconditionalSuppressMessageDef)],
+            references: [TestBase.MscorlibRef]).EmitToImageReference();
     }, LazyThreadSafetyMode.PublicationOnly);
 
     protected override async Task VerifyAsync(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, string rootNamespace = null)
     {
         using var workspace = CreateWorkspaceFromFile(source, language, rootNamespace);
 
-        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[]
-        {
+        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(
+        [
             new AnalyzerImageReference(analyzers.ToImmutableArray())
-        }).WithProjectMetadataReferences(
+        ]).WithProjectMetadataReferences(
             workspace.Projects.Single().Id,
             workspace.Projects.Single().MetadataReferences.Append(_unconditionalSuppressMessageRef.Value)));
 
@@ -113,7 +113,7 @@ public class C2
 {
 }
 ",
-            new[] { new ThrowExceptionForEachNamedTypeAnalyzer(ExceptionDispatchInfo.Capture(new Exception())) },
+            [new ThrowExceptionForEachNamedTypeAnalyzer(ExceptionDispatchInfo.Capture(new Exception()))],
             diagnostics: [diagnostic, diagnostic, diagnostic]);
     }
 
@@ -123,7 +123,7 @@ public class C2
         var diagnostic = Diagnostic("AD0001", null);
 
         await VerifyCSharpAsync("public class C { }",
-            new[] { new ThrowExceptionFromSupportedDiagnostics(new Exception()) },
+            [new ThrowExceptionFromSupportedDiagnostics(new Exception())],
             diagnostics: [diagnostic]);
     }
 }

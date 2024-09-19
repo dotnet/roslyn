@@ -66,14 +66,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)]
             public new string FixedCode { set => base.FixedCode = value; }
 
-#if !CODE_STYLE
-            internal CodeActionOptionsProvider CodeActionOptions
-            {
-                get => _sharedState.CodeActionOptions;
-                set => _sharedState.CodeActionOptions = value;
-            }
-#endif
-
             /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
             public string? EditorConfig
             {
@@ -118,13 +110,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
 
 #if !CODE_STYLE
-
-            protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), _sharedState.GetIdeAnalyzerOptions(project));
-
-            protected override CodeRefactoringContext CreateCodeRefactoringContext(Document document, TextSpan span, Action<CodeAction> registerRefactoring, CancellationToken cancellationToken)
-                => new CodeRefactoringContext(document, span, (action, textSpan) => registerRefactoring(action), _sharedState.CodeActionOptions, cancellationToken);
-
             /// <summary>
             /// The <see cref="TestHost"/> we want this test to run in.  Defaults to <see cref="TestHost.OutOfProcess"/> if unspecified.
             /// </summary>

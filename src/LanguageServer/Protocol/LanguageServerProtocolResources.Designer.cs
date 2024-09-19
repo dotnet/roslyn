@@ -122,5 +122,38 @@ namespace Microsoft.CodeAnalysis.LanguageServer {
                 return ResourceManager.GetString("TextDocumentSyncSerializationError", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to deserialize FormattingOptions. Invalid token: {0}.
+        /// </summary>
+        internal static string FormattingOptionsEncounteredInvalidToken
+        {
+            get
+            {
+                return ResourceManager.GetString("FormattingOptionsEncounteredInvalidToken", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to deserialize FormattingOptions as it ended unexpectedly.
+        /// </summary>
+        internal static string FormattingOptionsEndedUnexpectedly
+        {
+            get
+            {
+                return ResourceManager.GetString("FormattingOptionsEndedUnexpectedly", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to deserialize FormattingOptions. Missing required property: {0}.
+        /// </summary>
+        internal static string FormattingOptionsMissingRequiredProperty
+        {
+            get
+            {
+                return ResourceManager.GetString("FormattingOptionsMissingRequiredProperty", resourceCulture);
+            }
+        }
     }
 }

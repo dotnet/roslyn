@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -32,7 +31,6 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
     protected sealed override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         ExpressionSyntax stackAllocExpression,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
@@ -48,7 +46,6 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
 
         var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
             document,
-            fallbackOptions,
             stackAllocExpression,
             matches,
             static e => e switch

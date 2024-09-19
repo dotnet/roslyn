@@ -20,19 +20,14 @@ public sealed partial class Match<TNode>
     private const double MatchingDistance2 = 0.5;
     private const double MatchingDistance3 = 0.75;
     private const double MaxDistance = 1.0;
-
-    private readonly TreeComparer<TNode> _comparer;
-    private readonly TNode _root1;
-    private readonly TNode _root2;
-
     private readonly Dictionary<TNode, TNode> _oneToTwo = [];
     private readonly Dictionary<TNode, TNode> _twoToOne = [];
 
     internal Match(TNode root1, TNode root2, TreeComparer<TNode> comparer, IEnumerable<KeyValuePair<TNode, TNode>> knownMatches)
     {
-        _root1 = root1;
-        _root2 = root2;
-        _comparer = comparer;
+        OldRoot = root1;
+        NewRoot = root2;
+        Comparer = comparer;
 
         var labelCount = comparer.LabelCount;
         CategorizeNodesByLabels(comparer, root1, labelCount, out var nodes1, out _);
@@ -150,7 +145,7 @@ public sealed partial class Match<TNode>
 
     private void ComputeMatchForLabel(int label, List<TNode> s1, List<TNode> s2)
     {
-        var tiedToAncestor = _comparer.TiedToAncestor(label);
+        var tiedToAncestor = Comparer.TiedToAncestor(label);
 
         ComputeMatchForLabel(s1, s2, tiedToAncestor, EpsilonDistance);     // almost exact match
         ComputeMatchForLabel(s1, s2, tiedToAncestor, MatchingDistance1);   // ok match
@@ -213,8 +208,8 @@ public sealed partial class Match<TNode>
                     // If one node's ancestor is present in the subtree and the other isn't then we are not in the scenario
                     // of comparing subtrees with matching roots and thus we consider the nodes not matching.
 
-                    var hasAncestor1 = _comparer.TryGetAncestor(node1, tiedToAncestor, out var ancestor1);
-                    var hasAncestor2 = _comparer.TryGetAncestor(node2, tiedToAncestor, out var ancestor2);
+                    var hasAncestor1 = Comparer.TryGetAncestor(node1, tiedToAncestor, out var ancestor1);
+                    var hasAncestor2 = Comparer.TryGetAncestor(node2, tiedToAncestor, out var ancestor2);
                     if (hasAncestor1 != hasAncestor2)
                     {
                         continue;
@@ -225,7 +220,7 @@ public sealed partial class Match<TNode>
                         // Since CategorizeNodesByLabels added nodes to the s1/s2 lists in depth-first prefix order,
                         // we can also accept equality in the following condition. That's because we find the partner 
                         // of the parent node before we get to finding it for the child node of the same kind.
-                        Debug.Assert(_comparer.GetLabel(ancestor1) <= _comparer.GetLabel(node1));
+                        Debug.Assert(Comparer.GetLabel(ancestor1) <= Comparer.GetLabel(node1));
 
                         if (!Contains(ancestor1, ancestor2))
                         {
@@ -241,7 +236,7 @@ public sealed partial class Match<TNode>
                 // Now, we have no other choice than comparing the node "values"
                 // and looking for the one with the smaller distance.
 
-                var distance = _comparer.GetDistance(node1, node2);
+                var distance = Comparer.GetDistance(node1, node2);
                 if (distance < bestDistance)
                 {
                     matched = true;
@@ -284,8 +279,8 @@ public sealed partial class Match<TNode>
 
     internal bool TryAdd(TNode node1, TNode node2)
     {
-        Debug.Assert(_comparer.TreesEqual(node1, _root1));
-        Debug.Assert(_comparer.TreesEqual(node2, _root2));
+        Debug.Assert(Comparer.TreesEqual(node1, OldRoot));
+        Debug.Assert(Comparer.TreesEqual(node2, NewRoot));
 
         if (_oneToTwo.ContainsKey(node1) || _twoToOne.ContainsKey(node2))
         {
@@ -300,42 +295,42 @@ public sealed partial class Match<TNode>
     internal bool TryGetPartnerInTree1(TNode node2, out TNode partner1)
     {
         var result = _twoToOne.TryGetValue(node2, out partner1);
-        Debug.Assert(_comparer.TreesEqual(node2, _root2));
-        Debug.Assert(!result || _comparer.TreesEqual(partner1, _root1));
+        Debug.Assert(Comparer.TreesEqual(node2, NewRoot));
+        Debug.Assert(!result || Comparer.TreesEqual(partner1, OldRoot));
         return result;
     }
 
     internal bool HasPartnerInTree1(TNode node2)
     {
-        Debug.Assert(_comparer.TreesEqual(node2, _root2));
+        Debug.Assert(Comparer.TreesEqual(node2, NewRoot));
         return _twoToOne.ContainsKey(node2);
     }
 
     internal bool TryGetPartnerInTree2(TNode node1, out TNode partner2)
     {
         var result = _oneToTwo.TryGetValue(node1, out partner2);
-        Debug.Assert(_comparer.TreesEqual(node1, _root1));
-        Debug.Assert(!result || _comparer.TreesEqual(partner2, _root2));
+        Debug.Assert(Comparer.TreesEqual(node1, OldRoot));
+        Debug.Assert(!result || Comparer.TreesEqual(partner2, NewRoot));
         return result;
     }
 
     internal bool HasPartnerInTree2(TNode node1)
     {
-        Debug.Assert(_comparer.TreesEqual(node1, _root1));
+        Debug.Assert(Comparer.TreesEqual(node1, OldRoot));
         return _oneToTwo.ContainsKey(node1);
     }
 
     internal bool Contains(TNode node1, TNode node2)
     {
-        Debug.Assert(_comparer.TreesEqual(node2, _root2));
+        Debug.Assert(Comparer.TreesEqual(node2, NewRoot));
         return TryGetPartnerInTree2(node1, out var partner2) && node2.Equals(partner2);
     }
 
-    public TreeComparer<TNode> Comparer => _comparer;
+    public TreeComparer<TNode> Comparer { get; }
 
-    public TNode OldRoot => _root1;
+    public TNode OldRoot { get; }
 
-    public TNode NewRoot => _root2;
+    public TNode NewRoot { get; }
 
     public IReadOnlyDictionary<TNode, TNode> Matches
     {

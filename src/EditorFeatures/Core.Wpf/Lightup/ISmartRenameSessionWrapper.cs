@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
@@ -29,6 +30,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
     private static readonly Func<object, IReadOnlyList<string>> s_suggestedNamesAccessor;
 
     private static readonly Func<object, CancellationToken, Task<IReadOnlyList<string>>> s_getSuggestionsAsync;
+    private static readonly Func<object, ImmutableDictionary<string, string[]>, CancellationToken, Task<IReadOnlyList<string>>> s_getSuggestionsAsync_WithContext;
     private static readonly Action<object> s_onCancel;
     private static readonly Action<object, string> s_onSuccess;
 
@@ -47,13 +49,14 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
         s_suggestedNamesAccessor = LightupHelpers.CreatePropertyAccessor<object, IReadOnlyList<string>>(s_wrappedType, nameof(SuggestedNames), []);
 
         s_getSuggestionsAsync = LightupHelpers.CreateFunctionAccessor<object, CancellationToken, Task<IReadOnlyList<string>>>(s_wrappedType, nameof(GetSuggestionsAsync), typeof(CancellationToken), SpecializedTasks.EmptyReadOnlyList<string>());
+        s_getSuggestionsAsync_WithContext = LightupHelpers.CreateFunctionAccessor<object, ImmutableDictionary<string, string[]>, CancellationToken, Task<IReadOnlyList<string>>>(s_wrappedType, nameof(GetSuggestionsAsync), typeof(ImmutableDictionary<string, string[]>), typeof(CancellationToken), SpecializedTasks.EmptyReadOnlyList<string>());
         s_onCancel = LightupHelpers.CreateActionAccessor<object>(s_wrappedType, nameof(OnCancel));
         s_onSuccess = LightupHelpers.CreateActionAccessor<object, string>(s_wrappedType, nameof(OnSuccess), typeof(string));
     }
 
     private ISmartRenameSessionWrapper(object instance)
     {
-        this._instance = instance;
+        _instance = instance;
     }
 
     public TimeSpan AutomaticFetchDelay => s_automaticFetchDelayAccessor(_instance);
@@ -92,6 +95,9 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
 
     public Task<IReadOnlyList<string>> GetSuggestionsAsync(CancellationToken cancellationToken)
         => s_getSuggestionsAsync(_instance, cancellationToken);
+
+    public Task<IReadOnlyList<string>> GetSuggestionsAsync(ImmutableDictionary<string, string[]> context, CancellationToken cancellationToken)
+        => s_getSuggestionsAsync_WithContext(_instance, context, cancellationToken);
 
     public void OnCancel()
         => s_onCancel(_instance);

@@ -386,7 +386,7 @@ For example, to turn your generator project into a NuGet package at build, add t
 
 Any *runtime* dependencies, that is, code that the end users program will need to rely on, can simply be added as a dependency of the generator NuGet package via the usual referencing mechanism.
 
-For example, consider a generator that creates code that relies on `Newtonsoft.Json`. The generator does not directly use the dependency, it just emits code that relies on the library being referenced in the users compilation. The author would add a reference to `Newtonsoft.Json` as a public dependency, and when the user adds the generator package it will referenced automatically.
+For example, consider a generator that creates code that relies on `Newtonsoft.Json`. The generator does not directly use the dependency, it just emits code that relies on the library being referenced in the users compilation. The author would add a reference to `Newtonsoft.Json` as a public dependency, and when the user adds the generator package it will be referenced automatically.
 
 ```xml
 <Project>
@@ -544,7 +544,7 @@ Now, consider that the generator author wants to optionally allow opting in/out 
 This value of `MyGenerator_EnableLogging` will be emitted to a generated analyzer config file, for each of the additional files in the compilation, with an item name of `build_metadata.AdditionalFiles.MyGenerator_EnableLogging`. The generator can read this value in the context of each additional file:
 
 ```cs
-context.AdditionalFilesProvider
+context.AdditionalTextsProvider
        .Combine(context.AnalyzerConfigOptionsProvider)
        .Select((pair, ctx) =>
            pair.Right.GetOptions(pair.Left).TryGetValue("build_metadata.AdditionalFiles.MyGenerator_EnableLogging", out var perFileLoggingSwitch)

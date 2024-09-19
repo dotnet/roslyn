@@ -1273,6 +1273,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return (null, null);
             }
+            else if (IsIndexer && CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute))
+            {
+                (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out var hasAnyDiagnostics);
+
+                if (attributeData.CommonConstructorArguments is [{ ValueInternal: int priority }])
+                {
+                    arguments.GetOrCreateData<PropertyEarlyWellKnownAttributeData>().OverloadResolutionPriority = priority;
+
+                    if (!hasAnyDiagnostics)
+                    {
+                        return (attributeData, boundAttribute);
+                    }
+                }
+
+                return (null, null);
+            }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
         }
@@ -1388,6 +1404,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_UnscopedRefAttributeUnsupportedMemberTarget, arguments.AttributeSyntaxOpt.Location);
                 }
             }
+            else if (attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
+            {
+                MessageID.IDS_OverloadResolutionPriority.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
+
+                if (!CanHaveOverloadResolutionPriority)
+                {
+                    diagnostics.Add(IsOverride
+                            // Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.
+                            ? ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride
+                            // Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+                            : ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember,
+                        arguments.AttributeSyntaxOpt);
+                }
+            }
         }
 
 #nullable enable
@@ -1493,6 +1523,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal sealed override int? TryGetOverloadResolutionPriority()
+        {
+            Debug.Assert(this.IsIndexer);
+            return GetEarlyDecodedWellKnownAttributeData()?.OverloadResolutionPriority;
+        }
+
         #endregion
 
         #region Completion
@@ -1555,6 +1591,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 }
 
                                 DeclaringCompilation.SymbolDeclaredEvent(this);
+                                if (this.IsPartialDefinition())
+                                {
+                                    if (_getMethod is not null)
+                                        DeclaringCompilation.SymbolDeclaredEvent(_getMethod);
+
+                                    if (_setMethod is not null)
+                                        DeclaringCompilation.SymbolDeclaredEvent(_setMethod);
+                                }
+
                                 var completedOnThisThread = _state.NotePartComplete(CompletionPart.FinishPropertyParameters);
                                 Debug.Assert(completedOnThisThread);
                             }

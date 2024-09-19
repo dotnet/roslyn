@@ -42,7 +42,7 @@ namespace Roslyn.Test.Utilities
     [UseExportProvider]
     public abstract partial class AbstractLanguageServerProtocolTests
     {
-        private static readonly SystemTextJsonFormatter s_messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
+        protected static readonly JsonSerializerOptions JsonSerializerOptions = RoslynLanguageServer.CreateJsonMessageFormatter().JsonSerializerOptions;
 
         private protected readonly AbstractLspLogger TestOutputLspLogger;
         protected AbstractLanguageServerProtocolTests(ITestOutputHelper? testOutputHelper)
@@ -124,8 +124,8 @@ namespace Roslyn.Test.Utilities
         /// <param name="actual">the actual object to be converted to JSON.</param>
         public static void AssertJsonEquals<T1, T2>(T1 expected, T2 actual)
         {
-            var expectedStr = JsonSerializer.Serialize(expected, s_messageFormatter.JsonSerializerOptions);
-            var actualStr = JsonSerializer.Serialize(actual, s_messageFormatter.JsonSerializerOptions);
+            var expectedStr = JsonSerializer.Serialize(expected, JsonSerializerOptions);
+            var actualStr = JsonSerializer.Serialize(actual, JsonSerializerOptions);
             AssertEqualIgnoringWhitespace(expectedStr, actualStr);
         }
 
@@ -133,7 +133,7 @@ namespace Roslyn.Test.Utilities
         {
             var expectedWithoutWhitespace = Regex.Replace(expected, @"\s+", string.Empty);
             var actualWithoutWhitespace = Regex.Replace(actual, @"\s+", string.Empty);
-            Assert.Equal(expectedWithoutWhitespace, actualWithoutWhitespace);
+            AssertEx.Equal(expectedWithoutWhitespace, actualWithoutWhitespace);
         }
 
         /// <summary>
@@ -181,6 +181,7 @@ namespace Roslyn.Test.Utilities
         {
             var imageId = glyph.GetImageId();
 
+#pragma warning disable CS0618 // SymbolInformation is obsolete, need to switch to DocumentSymbol/WorkspaceSymbol
             var info = new LSP.VSSymbolInformation()
             {
                 Kind = kind,
@@ -191,6 +192,7 @@ namespace Roslyn.Test.Utilities
 
             if (containerName != null)
                 info.ContainerName = containerName;
+#pragma warning restore CS0618
 
             return info;
         }
@@ -269,7 +271,7 @@ namespace Roslyn.Test.Utilities
                 SortText = sortText,
                 InsertTextFormat = LSP.InsertTextFormat.Plaintext,
                 Kind = kind,
-                Data = JsonSerializer.SerializeToElement(new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document)), s_messageFormatter.JsonSerializerOptions),
+                Data = JsonSerializer.SerializeToElement(new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document)), JsonSerializerOptions),
                 Preselect = preselect,
                 VsResolveTextEditOnCommit = vsResolveTextEditOnCommit,
                 LabelDetails = labelDetails
@@ -349,7 +351,7 @@ namespace Roslyn.Test.Utilities
             if (initializationOptions.AdditionalAnalyzers != null)
                 analyzerReferencesByLanguage = analyzerReferencesByLanguage.WithAdditionalAnalyzers(languageName, initializationOptions.AdditionalAnalyzers);
 
-            solution = solution.WithAnalyzerReferences(new[] { analyzerReferencesByLanguage });
+            solution = solution.WithAnalyzerReferences([analyzerReferencesByLanguage]);
             await workspace.ChangeSolutionAsync(solution);
 
             // Important: We must wait for workspace creation operations to finish.
@@ -371,7 +373,7 @@ namespace Roslyn.Test.Utilities
             var workspace = CreateWorkspace(lspOptions, workspaceKind, mutatingLspWorkspace);
 
             workspace.InitializeDocuments(XElement.Parse(xmlContent), openDocuments: false);
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { CreateTestAnalyzersReference() }));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([CreateTestAnalyzersReference()]));
 
             // Important: We must wait for workspace creation operations to finish.
             // Otherwise we could have a race where workspace change events triggered by creation are changing the state
@@ -640,6 +642,11 @@ namespace Roslyn.Test.Utilities
             public Task ExecuteNotification0Async(string methodName)
             {
                 return _clientRpc.NotifyWithParameterObjectAsync(methodName);
+            }
+
+            public Task ExecutePreSerializedRequestAsync(string methodName, JsonDocument serializedRequest)
+            {
+                return _clientRpc.InvokeWithParameterObjectAsync(methodName, serializedRequest);
             }
 
             public async Task OpenDocumentAsync(Uri documentUri, string? text = null, string languageId = "")

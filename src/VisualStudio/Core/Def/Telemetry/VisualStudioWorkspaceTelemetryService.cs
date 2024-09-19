@@ -5,9 +5,10 @@
 using System;
 using System.Composition;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -19,20 +20,16 @@ using Roslyn.Utilities;
 namespace Microsoft.VisualStudio.LanguageServices.Telemetry;
 
 [ExportWorkspaceService(typeof(IWorkspaceTelemetryService)), Shared]
-internal sealed class VisualStudioWorkspaceTelemetryService : AbstractWorkspaceTelemetryService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VisualStudioWorkspaceTelemetryService(
+    IThreadingContext threadingContext,
+    VisualStudioWorkspace workspace,
+    IGlobalOptionService globalOptions) : AbstractWorkspaceTelemetryService
 {
-    private readonly VisualStudioWorkspace _workspace;
-    private readonly IGlobalOptionService _globalOptions;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioWorkspaceTelemetryService(
-        VisualStudioWorkspace workspace,
-        IGlobalOptionService globalOptions)
-    {
-        _workspace = workspace;
-        _globalOptions = globalOptions;
-    }
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly VisualStudioWorkspace _workspace = workspace;
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     protected override ILogger CreateLogger(TelemetrySession telemetrySession, bool logDelta)
         => AggregateLogger.Create(
@@ -44,13 +41,16 @@ internal sealed class VisualStudioWorkspaceTelemetryService : AbstractWorkspaceT
 
     protected override void TelemetrySessionInitialized()
     {
+        var cancellationToken = _threadingContext.DisposalToken;
         _ = Task.Run(async () =>
         {
-            var client = await RemoteHostClient.TryGetClientAsync(_workspace, CancellationToken.None).ConfigureAwait(false);
+            // Wait until the remote host was created by some other party (we don't want to cause it to happen ourselves
+            // in the call to RemoteHostClient below).
+            await RemoteHostClient.WaitForClientCreationAsync(_workspace, cancellationToken).ConfigureAwait(false);
+
+            var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
-            {
                 return;
-            }
 
             var settings = SerializeCurrentSessionSettings();
             Contract.ThrowIfNull(settings);
@@ -61,7 +61,7 @@ internal sealed class VisualStudioWorkspaceTelemetryService : AbstractWorkspaceT
             // initialize session in the remote service
             _ = await client.TryInvokeAsync<IRemoteProcessTelemetryService>(
                 (service, cancellationToken) => service.InitializeTelemetrySessionAsync(Process.GetCurrentProcess().Id, settings, logDelta, cancellationToken),
-                CancellationToken.None).ConfigureAwait(false);
-        });
+                cancellationToken).ConfigureAwait(false);
+        }, cancellationToken);
     }
 }

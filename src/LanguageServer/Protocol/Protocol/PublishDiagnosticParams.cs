@@ -26,6 +26,14 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
+        /// Optional version number of the document for which the diagnostics are published
+        /// </summary>
+        /// <remarks>Since LSP 3.15</remarks>
+        [JsonPropertyName("version")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public int? Version { get; init; }
+
+        /// <summary>
         /// Gets or sets the collection of diagnostics.
         /// </summary>
         [JsonPropertyName("diagnostics")]

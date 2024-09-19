@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return false;
         }
 
-        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
             return false;
         }
@@ -764,5 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             builderArgument = null;
             return false;
         }
+
+        internal override int? TryGetOverloadResolutionPriority() => null;
     }
 }
