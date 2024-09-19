@@ -524,6 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return expr;
 
                 case BoundKind.PropertyAccess:
+                    if (!InAttributeArgument)
                     {
                         var propertyAccess = (BoundPropertyAccess)expr;
                         var propertySymbol = propertyAccess.PropertySymbol;
