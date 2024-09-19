@@ -1327,6 +1327,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenBody);
                 }
             }
+            else if (enumeratorInfo is { InlineArraySpanType: not WellKnownType.Unknown })
+            {
+                statement = RewriteForEachStatementAsFor(
+                    node,
+                    getPreamble: GetInlineArrayForEachStatementPreambleDelegate(),
+                    getItem: GetInlineArrayForEachStatementGetItemDelegate(),
+                    getLength: GetInlineArrayForEachStatementGetLengthDelegate(),
+                    arg: null,
+                    convertedExpression.Operand,
+                    enumeratorInfo,
+                    elementPlaceholder: null,
+                    elementConversion: null,
+                    iterationVariables,
+                    deconstructionOpt: null,
+                    breakLabel,
+                    continueLabel,
+                    rewrittenBody);
+            }
             else
             {
                 statement = RewriteForEachEnumerator(

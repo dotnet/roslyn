@@ -169,9 +169,7 @@ while [[ $# > 0 ]]; do
     --warnaserror)
       warn_as_error=true
       ;;
-    --sourcebuild|/p:arcadebuildfromsource=true)
-      # Arcade specifies /p:ArcadeBuildFromSource=true instead of --sourceBuild, but that's not developer friendly so we
-      # have an alias.
+    --sourcebuild)
       source_build=true
       # RestoreUseStaticGraphEvaluation will cause prebuilts
       restoreUseStaticGraphEvaluation=false
@@ -281,6 +279,12 @@ function BuildSolution {
     roslyn_use_hard_links="/p:ROSLYNUSEHARDLINKS=true"
   fi
 
+  local source_build_args=""
+  if [[ "$source_build" == true ]]; then
+    source_build_args="/p:DotNetBuildSourceOnly=true \
+                       /p:DotNetBuildRepo=true"
+  fi
+
   # Setting /p:TreatWarningsAsErrors=true is a workaround for https://github.com/Microsoft/msbuild/issues/3062.
   # We don't pass /warnaserror to msbuild (warn_as_error is set to false by default above), but set 
   # /p:TreatWarningsAsErrors=true so that compiler reported warnings, other than IDE0055 are treated as errors. 
@@ -302,7 +306,7 @@ function BuildSolution {
     /p:ContinuousIntegrationBuild=$ci \
     /p:TreatWarningsAsErrors=true \
     /p:TestRuntimeAdditionalArguments=$test_runtime_args \
-    /p:ArcadeBuildFromSource=$source_build \
+    $source_build_args \
     $test_runtime \
     $mono_tool \
     $generate_documentation_file \
@@ -335,7 +339,9 @@ if [[ "$restore" == true || "$test_core_clr" == true ]]; then
   install=true
 fi
 InitializeDotNetCli $install
-if [[ "$restore" == true && "$source_build" != true ]]; then
+# Check the dev switch --source-build as well as ensure that source only switches were not passed in via extra properties
+# Source only builds would not have 'dotnet' ambiently available.
+if [[ "$restore" == true && "$source_build" != true && $properties != *"DotNetBuildSourceOnly=true"* ]]; then
   dotnet tool restore
 fi
 

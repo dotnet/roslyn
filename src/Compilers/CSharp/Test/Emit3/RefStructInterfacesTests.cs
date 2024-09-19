@@ -13669,7 +13669,7 @@ namespace System
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // https://github.com/dotnet/roslyn/issues/73563
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/73563")]
         public void AwaitUsing_LanguageVersion_01()
         {
@@ -16106,7 +16106,7 @@ Block[B7] - Exit
             AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // https://github.com/dotnet/roslyn/issues/73563
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/73563")]
         public void AwaitForeach_IAsyncEnumerableT_LanguageVersion_01()
         {
@@ -22378,7 +22378,7 @@ ref struct S
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/73553")] // Enable once we get support for 'byreflike' in IL.
+        [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/73553")]
         public void RefFieldTypeAllowsRefLike()
         {
@@ -22401,7 +22401,7 @@ ref struct S
 {
     static void F<T >(ref T r1) where T : allows ref struct
     {
-        var r2 = new R2();
+        var r2 = new R2<T>();
         r2.F = ref r1;
     }
 }";
@@ -22409,7 +22409,7 @@ ref struct S
             comp.VerifyEmitDiagnostics(
                 // (6,12): error CS0570: 'R2.F' is not supported by the language
                 //         r2.F = ref r1;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "F").WithArguments("R2.F").WithLocation(6, 12)
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F").WithArguments("R2<T>.F").WithLocation(6, 12)
                 );
         }
 

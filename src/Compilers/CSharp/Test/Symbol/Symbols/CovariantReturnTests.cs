@@ -262,7 +262,7 @@ namespace System.Runtime.CompilerServices
             {
                 Assert.True(method.IsOverride);
                 Assert.False(method.IsVirtual);
-                Assert.True(method.IsMetadataVirtual(ignoreInterfaceImplementationChanges: true));
+                Assert.True(method.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges));
                 var isCovariant = !method.ReturnType.Equals(overriddenMethod.ReturnType, TypeCompareKind.AllIgnoreOptions);
                 var checkMetadata = hasReturnConversion(method.ReturnType, overriddenMethod.ReturnType);
                 if (checkMetadata)
