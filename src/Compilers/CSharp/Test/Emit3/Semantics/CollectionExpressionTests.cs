@@ -41269,5 +41269,418 @@ class Program
                 //         (Container<int>, int) x = ([1, 2], 3);
                 Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("Container<int>").WithLocation(7, 36));
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70708")]
+        public void InlineArraySpread_01()
+        {
+            string source = """
+                class Program
+                {
+                    static int[] Test(MyArray<int> x) => [..x];
+
+                    static void Main()
+                    {
+                        MyArray<int> x = new();
+                        x[0] = -3;
+                        x[1] = -2;
+                        x[2] = -1;
+
+                        var a = Test(x);
+                        foreach (var i in a)
+                            System.Console.Write(i);
+
+                        System.Console.Write(a.Length);
+                    }
+                }
+
+                [System.Runtime.CompilerServices.InlineArray(3)]
+                struct MyArray<T>
+                {
+                    T _e0;
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("-3-2-13"));
+
+            verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       52 (0x34)
+  .maxstack  3
+  .locals init (MyArray<int> V_0,
+                int V_1,
+                int[] V_2,
+                MyArray<int>& V_3,
+                int V_4,
+                int V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  stloc.1
+  IL_0004:  ldc.i4.3
+  IL_0005:  newarr     ""int""
+  IL_000a:  stloc.2
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  stloc.3
+  IL_000e:  ldc.i4.0
+  IL_000f:  stloc.s    V_4
+  IL_0011:  br.s       IL_002d
+  IL_0013:  ldloc.3
+  IL_0014:  ldloc.s    V_4
+  IL_0016:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<MyArray<int>, int>(ref MyArray<int>, int)""
+  IL_001b:  ldind.i4
+  IL_001c:  stloc.s    V_5
+  IL_001e:  ldloc.2
+  IL_001f:  ldloc.1
+  IL_0020:  ldloc.s    V_5
+  IL_0022:  stelem.i4
+  IL_0023:  ldloc.1
+  IL_0024:  ldc.i4.1
+  IL_0025:  add
+  IL_0026:  stloc.1
+  IL_0027:  ldloc.s    V_4
+  IL_0029:  ldc.i4.1
+  IL_002a:  add
+  IL_002b:  stloc.s    V_4
+  IL_002d:  ldloc.s    V_4
+  IL_002f:  ldc.i4.3
+  IL_0030:  blt.s      IL_0013
+  IL_0032:  ldloc.2
+  IL_0033:  ret
+}
+");
+
+            comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_Unsafe__Add_T);
+            comp.VerifyDiagnostics(
+                // (3,45): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.Unsafe.Add'
+                //     static int[] Test(MyArray<int> x) => [..x];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Runtime.CompilerServices.Unsafe", "Add").WithLocation(3, 45)
+                );
+
+            comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T);
+            comp.VerifyDiagnostics(
+                // (3,45): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.Unsafe.As'
+                //     static int[] Test(MyArray<int> x) => [..x];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Runtime.CompilerServices.Unsafe", "As").WithLocation(3, 45),
+                // (8,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.Unsafe.As'
+                //         x[0] = -3;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x[0]").WithArguments("System.Runtime.CompilerServices.Unsafe", "As").WithLocation(8, 9),
+                // (9,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.Unsafe.As'
+                //         x[1] = -2;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x[1]").WithArguments("System.Runtime.CompilerServices.Unsafe", "As").WithLocation(9, 9),
+                // (10,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.Unsafe.As'
+                //         x[2] = -1;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x[2]").WithArguments("System.Runtime.CompilerServices.Unsafe", "As").WithLocation(10, 9)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70708")]
+        public void InlineArraySpread_02()
+        {
+            string source = """
+                class Program
+                {
+                    static int[] Test(ref readonly MyArray<int> x) => [..x];
+
+                    static void Main()
+                    {
+                        MyArray<int> x = new();
+                        x[0] = -3;
+                        x[1] = -2;
+                        x[2] = -1;
+                
+                        var a = Test(in x);
+                        foreach (var i in a)
+                            System.Console.Write(i);
+                
+                        System.Console.Write(a.Length);
+                    }
+                }
+
+                [System.Runtime.CompilerServices.InlineArray(3)]
+                struct MyArray<T>
+                {
+                    T _e0;
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("-3-2-13"));
+
+            verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       57 (0x39)
+  .maxstack  3
+  .locals init (MyArray<int> V_0,
+                int V_1,
+                int[] V_2,
+                MyArray<int>& V_3,
+                int V_4,
+                int V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  ldobj      ""MyArray<int>""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.1
+  IL_0009:  ldc.i4.3
+  IL_000a:  newarr     ""int""
+  IL_000f:  stloc.2
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  stloc.3
+  IL_0013:  ldc.i4.0
+  IL_0014:  stloc.s    V_4
+  IL_0016:  br.s       IL_0032
+  IL_0018:  ldloc.3
+  IL_0019:  ldloc.s    V_4
+  IL_001b:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayElementRefReadOnly<MyArray<int>, int>(in MyArray<int>, int)""
+  IL_0020:  ldind.i4
+  IL_0021:  stloc.s    V_5
+  IL_0023:  ldloc.2
+  IL_0024:  ldloc.1
+  IL_0025:  ldloc.s    V_5
+  IL_0027:  stelem.i4
+  IL_0028:  ldloc.1
+  IL_0029:  ldc.i4.1
+  IL_002a:  add
+  IL_002b:  stloc.1
+  IL_002c:  ldloc.s    V_4
+  IL_002e:  ldc.i4.1
+  IL_002f:  add
+  IL_0030:  stloc.s    V_4
+  IL_0032:  ldloc.s    V_4
+  IL_0034:  ldc.i4.3
+  IL_0035:  blt.s      IL_0018
+  IL_0037:  ldloc.2
+  IL_0038:  ret
+}
+");
+            comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_Unsafe__Add_T);
+            comp.VerifyDiagnostics(
+                // (3,58): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.Unsafe.Add'
+                //     static int[] Test(ref readonly MyArray<int> x) => [..x];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Runtime.CompilerServices.Unsafe", "Add").WithLocation(3, 58)
+                );
+
+            comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_Unsafe__As_T);
+            comp.VerifyDiagnostics(
+                // (3,58): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.Unsafe.As'
+                //     static int[] Test(ref readonly MyArray<int> x) => [..x];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Runtime.CompilerServices.Unsafe", "As").WithLocation(3, 58),
+                // (8,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.Unsafe.As'
+                //         x[0] = -3;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x[0]").WithArguments("System.Runtime.CompilerServices.Unsafe", "As").WithLocation(8, 9),
+                // (9,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.Unsafe.As'
+                //         x[1] = -2;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x[1]").WithArguments("System.Runtime.CompilerServices.Unsafe", "As").WithLocation(9, 9),
+                // (10,9): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.Unsafe.As'
+                //         x[2] = -1;
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x[2]").WithArguments("System.Runtime.CompilerServices.Unsafe", "As").WithLocation(10, 9)
+                );
+
+            comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_Unsafe__AsRef_T);
+            comp.VerifyDiagnostics(
+                // (3,58): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.Unsafe.AsRef'
+                //     static int[] Test(ref readonly MyArray<int> x) => [..x];
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "x").WithArguments("System.Runtime.CompilerServices.Unsafe", "AsRef").WithLocation(3, 58)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70708")]
+        public void InlineArraySpread_03()
+        {
+            string source = """
+                class Program
+                {
+                    static int[] Test() => [..GetVal()];
+
+                    static MyArray<int> GetVal()
+                    {
+                        MyArray<int> x = new();
+                        x[0] = -3;
+                        x[1] = -2;
+                        x[2] = -1;
+                
+                        return x;
+                    }
+
+                    static void Main()
+                    {
+                        var a = Test();
+                        foreach (var i in a)
+                            System.Console.Write(i);
+                
+                        System.Console.Write(a.Length);
+                    }
+                }
+
+                [System.Runtime.CompilerServices.InlineArray(3)]
+                struct MyArray<T>
+                {
+                    T _e0;
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("-3-2-13"));
+
+            verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       56 (0x38)
+  .maxstack  3
+  .locals init (int V_0,
+                int[] V_1,
+                MyArray<int> V_2,
+                MyArray<int>& V_3,
+                int V_4,
+                int V_5)
+  IL_0000:  call       ""MyArray<int> Program.GetVal()""
+  IL_0005:  ldc.i4.0
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.3
+  IL_0008:  newarr     ""int""
+  IL_000d:  stloc.1
+  IL_000e:  stloc.2
+  IL_000f:  ldloca.s   V_2
+  IL_0011:  stloc.3
+  IL_0012:  ldc.i4.0
+  IL_0013:  stloc.s    V_4
+  IL_0015:  br.s       IL_0031
+  IL_0017:  ldloc.3
+  IL_0018:  ldloc.s    V_4
+  IL_001a:  call       ""ref readonly int <PrivateImplementationDetails>.InlineArrayElementRefReadOnly<MyArray<int>, int>(in MyArray<int>, int)""
+  IL_001f:  ldind.i4
+  IL_0020:  stloc.s    V_5
+  IL_0022:  ldloc.1
+  IL_0023:  ldloc.0
+  IL_0024:  ldloc.s    V_5
+  IL_0026:  stelem.i4
+  IL_0027:  ldloc.0
+  IL_0028:  ldc.i4.1
+  IL_0029:  add
+  IL_002a:  stloc.0
+  IL_002b:  ldloc.s    V_4
+  IL_002d:  ldc.i4.1
+  IL_002e:  add
+  IL_002f:  stloc.s    V_4
+  IL_0031:  ldloc.s    V_4
+  IL_0033:  ldc.i4.3
+  IL_0034:  blt.s      IL_0017
+  IL_0036:  ldloc.1
+  IL_0037:  ret
+}
+");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/70708")]
+        public void InlineArraySpread_04()
+        {
+            string source = """
+                class Program
+                {
+                    static int[] Test(MyArray<int> x) => [..x];
+
+                    static void Main()
+                    {
+                        MyArray<int> x = new();
+                        x[0] = -3;
+                        x[1] = -2;
+                        x[2] = -1;
+
+                        var a = Test(x);
+                        foreach (var i in a)
+                            System.Console.Write(i);
+
+                        System.Console.Write(a.Length);
+                    }
+                }
+
+                [System.Runtime.CompilerServices.InlineArray(3)]
+                struct MyArray<T>
+                {
+                    T _e0;
+
+                    public int Length => throw null;
+                    public int Count => throw null;
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+            var verifier = CompileAndVerify(
+                comp,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("-3-2-13"));
+
+            verifier.VerifyIL("Program.Test",
+@"
+{
+  // Code size       52 (0x34)
+  .maxstack  3
+  .locals init (MyArray<int> V_0,
+                int V_1,
+                int[] V_2,
+                MyArray<int>& V_3,
+                int V_4,
+                int V_5)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  stloc.1
+  IL_0004:  ldc.i4.3
+  IL_0005:  newarr     ""int""
+  IL_000a:  stloc.2
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  stloc.3
+  IL_000e:  ldc.i4.0
+  IL_000f:  stloc.s    V_4
+  IL_0011:  br.s       IL_002d
+  IL_0013:  ldloc.3
+  IL_0014:  ldloc.s    V_4
+  IL_0016:  call       ""ref int <PrivateImplementationDetails>.InlineArrayElementRef<MyArray<int>, int>(ref MyArray<int>, int)""
+  IL_001b:  ldind.i4
+  IL_001c:  stloc.s    V_5
+  IL_001e:  ldloc.2
+  IL_001f:  ldloc.1
+  IL_0020:  ldloc.s    V_5
+  IL_0022:  stelem.i4
+  IL_0023:  ldloc.1
+  IL_0024:  ldc.i4.1
+  IL_0025:  add
+  IL_0026:  stloc.1
+  IL_0027:  ldloc.s    V_4
+  IL_0029:  ldc.i4.1
+  IL_002a:  add
+  IL_002b:  stloc.s    V_4
+  IL_002d:  ldloc.s    V_4
+  IL_002f:  ldc.i4.3
+  IL_0030:  blt.s      IL_0013
+  IL_0032:  ldloc.2
+  IL_0033:  ret
+}
+");
+        }
     }
 }

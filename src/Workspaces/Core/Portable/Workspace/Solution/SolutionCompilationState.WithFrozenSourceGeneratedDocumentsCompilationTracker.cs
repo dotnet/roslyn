@@ -89,9 +89,9 @@ internal partial class SolutionCompilationState
                 : new WithFrozenSourceGeneratedDocumentsCompilationTracker(underlyingTracker, _replacementDocumentStates);
         }
 
-        public ICompilationTracker WithDoNotCreateCreationPolicy(CancellationToken cancellationToken)
+        public ICompilationTracker WithDoNotCreateCreationPolicy()
         {
-            var underlyingTracker = this.UnderlyingTracker.WithDoNotCreateCreationPolicy(cancellationToken);
+            var underlyingTracker = this.UnderlyingTracker.WithDoNotCreateCreationPolicy();
             return underlyingTracker == this.UnderlyingTracker
                 ? this
                 : new WithFrozenSourceGeneratedDocumentsCompilationTracker(underlyingTracker, _replacementDocumentStates);

@@ -106,7 +106,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 // Keep firing events for this doc, as long as we haven't exceeded the max amount
                 // of waiting time, and there's no user input that should take precedence.
-                if (stopwatch.Elapsed.Ticks > MaxTimeSlice || IsInputPending())
+                if (stopwatch.Elapsed.TotalMilliseconds > MaxTimeSlice || IsInputPending())
                 {
                     await this.Listener.Delay(delayBetweenProcessing, cancellationToken).ConfigureAwait(true);
                     stopwatch = SharedStopwatch.StartNew();

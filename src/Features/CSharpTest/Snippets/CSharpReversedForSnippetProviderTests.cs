@@ -571,6 +571,68 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
     }
 
     [Theory]
+    [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
+    public async Task InsertInlineReversedForSnippetWhenDottingBeforeMemberAccessExpressionOnTheNextLineTest(string intType)
+    {
+        await VerifySnippetAsync($$"""
+            using System;
+
+            class C
+            {
+                void M({{intType}} @int)
+                {
+                    @int.$$
+                    Console.WriteLine();
+                }
+            }
+            """, $$"""
+            using System;
+
+            class C
+            {
+                void M({{intType}} @int)
+                {
+                    for ({{intType}} {|0:i|} = @int - 1; {|0:i|} >= 0; {|0:i|}--)
+                    {
+                        $$
+                    }
+                    Console.WriteLine();
+                }
+            }
+            """);
+    }
+
+    [Theory]
+    [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
+    public async Task NoInlineReversedForSnippetWhenDottingBeforeMemberAccessExpressionOnTheSameLineTest(string intType)
+    {
+        await VerifySnippetIsAbsentAsync($$"""
+            class C
+            {
+                void M({{intType}} @int)
+                {
+                    @int.$$ToString();
+                }
+            }
+            """);
+    }
+
+    [Theory]
+    [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
+    public async Task NoInlineReversedForSnippetWhenDottingBeforeContextualKeywordOnTheSameLineTest(string intType)
+    {
+        await VerifySnippetIsAbsentAsync($$"""
+            class C
+            {
+                void M({{intType}} @int)
+                {
+                    @int.$$var a = 0;
+                }
+            }
+            """);
+    }
+
+    [Theory]
     [InlineData("int[]", "Length")]
     [InlineData("Span<byte>", "Length")]
     [InlineData("ReadOnlySpan<long>", "Length")]

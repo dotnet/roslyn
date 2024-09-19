@@ -502,6 +502,11 @@
         <target state="translated">Не удается инициализировать тип "{0}" с выражением коллекции, так как тип не является конструируемым.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
+        <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
+        <target state="new">Collection initializer results in an infinite chain of instantiations of collection '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">Параметр типа "{1}" имеет ограничение "unmanaged", поэтому "{1}" не может использоваться в качестве ограничения для "{0}".</target>

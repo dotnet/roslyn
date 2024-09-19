@@ -26,12 +26,7 @@ parameters:
   type: boolean
   default: false
 
-# The variables `_DotNetArtifactsCategory` and `_DotNetValidationArtifactsCategory` are required for proper publishing of build artifacts. See https://github.com/dotnet/roslyn/pull/38259
 variables:
-  - name: _DotNetArtifactsCategory
-    value: .NETCore
-  - name: _DotNetValidationArtifactsCategory
-    value: .NETCoreValidation
   - group: DotNet-Roslyn-SDLValidation-Params
   - group: DotNet-Roslyn-Insertion-Variables
   - name: Codeql.Enabled
@@ -253,8 +248,6 @@ extends:
                        /p:RepositoryName=$(Build.Repository.Name)
                        /p:VisualStudioDropName=$(VisualStudio.DropName)
                        /p:DotNetSignType=$(SignType)
-                       /p:PublishToSymbolServer=true
-                       /p:DotNetArtifactsCategory=$(_DotNetArtifactsCategory)
                        /p:DotnetPublishUsingPipelines=true
                        /p:IgnoreIbcMergeErrors=true
                        /p:GenerateSbom=true
