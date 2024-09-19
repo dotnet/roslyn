@@ -10,7 +10,6 @@ using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CustomMessage;
@@ -64,6 +63,6 @@ internal class CustomMessageHandler()
         // Serialize the TResponse and return it to the extension.
         var responseType = resultProperty.PropertyType;
         var responseJson = JsonSerializer.Serialize(result, responseType);
-        return new CustomMessage(JsonNode.Parse(responseJson)!, request.Message.TextDocument!, []);
+        return new CustomResponse(JsonNode.Parse(responseJson)!, []);
     }
 }
