@@ -76,4 +76,9 @@ internal interface ICopilotCodeAnalysisService : ILanguageService
     /// </summary>
     Task<bool> IsAnyExclusionAsync(CancellationToken cancellationToken);
 
+    /// <summary>
+    /// Determines if the given <paramref name="filePath"/> is excluded in the workspace.
+    /// </summary>
+    Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken);
+
 }

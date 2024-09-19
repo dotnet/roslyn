@@ -21,6 +21,7 @@ using IsAvailableAsyncDelegateType = Func<CancellationToken, Task<bool>>;
 using StartRefinementSessionAsyncDelegateType = Func<Document, Document, Diagnostic?, CancellationToken, Task>;
 using GetOnTheFlyDocsAsyncDelegateType = Func<string, ImmutableArray<string>, string, CancellationToken, Task<string>>;
 using IsAnyExclusionAsyncDelegateType = Func<CancellationToken, Task<bool>>;
+using IsFileExcludedAsyncDelegateType = Func<string, CancellationToken, Task<bool>>;
 
 internal sealed partial class CSharpCopilotCodeAnalysisService
 {
@@ -37,6 +38,7 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
         private const string StartRefinementSessionAsyncMethodName = "StartRefinementSessionAsync";
         private const string GetOnTheFlyDocsAsyncMethodName = "GetOnTheFlyDocsAsync";
         private const string IsAnyExclusionAsyncMethodName = "IsAnyExclusionAsync";
+        private const string IsFileExcludedAsyncMethodName = "IsFileExcludedAsync";
 
         // Create and cache closed delegate to ensure we use a singleton object and with better performance.
         private readonly Type? _analyzerType;
@@ -48,6 +50,7 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
         private readonly Lazy<StartRefinementSessionAsyncDelegateType?> _lazyStartRefinementSessionAsyncDelegate;
         private readonly Lazy<GetOnTheFlyDocsAsyncDelegateType?> _lazyGetOnTheFlyDocsAsyncDelegate;
         private readonly Lazy<IsAnyExclusionAsyncDelegateType?> _lazyIsAnyExclusionAsyncDelegate;
+        private readonly Lazy<IsFileExcludedAsyncDelegateType?> _lazyIsFileExcludedAsyncDelegate;
 
         public ReflectionWrapper(IServiceProvider serviceProvider, IVsService<SVsBrokeredServiceContainer, IBrokeredServiceContainer> brokeredServiceContainer)
         {
@@ -77,6 +80,7 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
             _lazyStartRefinementSessionAsyncDelegate = new(CreateStartRefinementSessionAsyncDelegate, LazyThreadSafetyMode.PublicationOnly);
             _lazyGetOnTheFlyDocsAsyncDelegate = new(CreateGetOnTheFlyDocsAsyncDelegate, LazyThreadSafetyMode.PublicationOnly);
             _lazyIsAnyExclusionAsyncDelegate = new(CreateIsAnyExclusionAsyncDelegate, LazyThreadSafetyMode.PublicationOnly);
+            _lazyIsFileExcludedAsyncDelegate = new(CreateIsFileExcludedAsyncDelegate, LazyThreadSafetyMode.PublicationOnly);
         }
 
         private T? CreateDelegate<T>(string methodName, Type[] types) where T : Delegate
@@ -117,6 +121,9 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
 
         private IsAnyExclusionAsyncDelegateType? CreateIsAnyExclusionAsyncDelegate()
             => CreateDelegate<IsAnyExclusionAsyncDelegateType>(IsAnyExclusionAsyncMethodName, [typeof(CancellationToken)]);
+
+        private IsFileExcludedAsyncDelegateType? CreateIsFileExcludedAsyncDelegate()
+            => CreateDelegate<IsFileExcludedAsyncDelegateType>(IsFileExcludedAsyncMethodName, [typeof(string), typeof(CancellationToken)]);
 
         public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
         {
@@ -172,6 +179,14 @@ internal sealed partial class CSharpCopilotCodeAnalysisService
                 return false;
 
             return await _lazyIsAnyExclusionAsyncDelegate.Value(cancellationToken).ConfigureAwait(false);
+        }
+
+        public async Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken)
+        {
+            if (_lazyIsFileExcludedAsyncDelegate.Value is null)
+                return false;
+
+            return await _lazyIsFileExcludedAsyncDelegate.Value(filePath, cancellationToken).ConfigureAwait(false);
         }
     }
 }

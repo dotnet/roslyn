@@ -137,6 +137,19 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
 
         try
         {
+            if (_onTheFlyDocsElement.IsContentExcluded)
+            {
+                SetResultText(EditorFeaturesResources.Your_organization_excluded_a_referenced_file_from_Copilot);
+                CurrentState = OnTheFlyDocsState.Finished;
+                Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Content_Excluded, KeyValueLogMessage.Create(m =>
+                {
+                    m["SymbolHeaderText"] = _onTheFlyDocsElement.SymbolSignature;
+                }, LogLevel.Information));
+
+                return;
+
+            }
+
             var response = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsElement.SymbolSignature, _onTheFlyDocsElement.DeclarationCode, _onTheFlyDocsElement.Language, cancellationToken).ConfigureAwait(false);
             var copilotRequestTime = stopwatch.Elapsed;
 

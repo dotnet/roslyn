@@ -622,6 +622,11 @@
         <target state="translated">No se puede cambiar el nombre de este elemento porque está en una ubicación a la que no se puede navegar.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Your_organization_excluded_a_referenced_file_from_Copilot">
+        <source>Your organization excluded a referenced file from Copilot.</source>
+        <target state="new">Your organization excluded a referenced file from Copilot.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_Esc_to_cancel">
         <source>{0} (Esc to cancel)</source>
         <target state="translated">{0} (Escape para cancelar)</target>

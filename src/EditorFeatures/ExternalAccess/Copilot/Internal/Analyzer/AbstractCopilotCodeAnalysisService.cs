@@ -40,6 +40,7 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
     protected abstract Task StartRefinementSessionCoreAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken);
     protected abstract Task<string> GetOnTheFlyDocsCoreAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
     protected abstract Task<bool> IsAnyExclusionCoreAsync(CancellationToken cancellationToken);
+    protected abstract Task<bool> IsFileExcludedCoreAsync(string filePath, CancellationToken cancellationToken);
 
     public Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
         => IsAvailableCoreAsync(cancellationToken);
@@ -186,5 +187,13 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
             return false;
 
         return await IsAnyExclusionCoreAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken)
+    {
+        if (!await IsAvailableAsync(cancellationToken).ConfigureAwait(false))
+            return false;
+
+        return await IsFileExcludedCoreAsync(filePath, cancellationToken).ConfigureAwait(false);
     }
 }

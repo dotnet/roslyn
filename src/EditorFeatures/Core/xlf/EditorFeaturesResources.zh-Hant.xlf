@@ -622,6 +622,11 @@
         <target state="translated">因為無法瀏覽到此項目的所在位置，所以無法予以重新命名。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Your_organization_excluded_a_referenced_file_from_Copilot">
+        <source>Your organization excluded a referenced file from Copilot.</source>
+        <target state="new">Your organization excluded a referenced file from Copilot.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_Esc_to_cancel">
         <source>{0} (Esc to cancel)</source>
         <target state="translated">{0} (按 Esc 取消)</target>

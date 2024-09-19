@@ -953,4 +953,7 @@ Do you want to proceed?</value>
   <data name="An_error_occurred_while_generating_documentation_for_this_code" xml:space="preserve">
     <value>An error occurred while generating documentation for this code.</value>
   </data>
+  <data name="Your_organization_excluded_a_referenced_file_from_Copilot" xml:space="preserve">
+    <value>Your organization excluded a referenced file from Copilot.</value>
+  </data>
 </root>

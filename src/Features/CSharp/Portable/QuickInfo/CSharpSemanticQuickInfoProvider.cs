@@ -146,12 +146,12 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             return null;
         }
 
-        // Checks to see if there have been any files excluded at the workspace level
-        // since the copilot service passes along symbol information.
-        if (await copilotService.IsAnyExclusionAsync(cancellationToken).ConfigureAwait(false))
-        {
-            return null;
-        }
+        //// Checks to see if there have been any files excluded at the workspace level
+        //// since the copilot service passes along symbol information.
+        //if (await copilotService.IsAnyExclusionAsync(cancellationToken).ConfigureAwait(false))
+        //{
+        //    return null;
+        //}
 
         if (document.GetLanguageService<ICopilotOptionsService>() is not { } service ||
             !await service.IsOnTheFlyDocsOptionEnabledAsync().ConfigureAwait(false))
@@ -182,6 +182,16 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             return null;
         }
 
+        var hasContentExcluded = false;
+        var symbolFilePaths = symbol.DeclaringSyntaxReferences.Select(reference => reference.SyntaxTree.FilePath);
+        foreach (var symbolFilePath in symbolFilePaths)
+        {
+            if (await copilotService.IsFileExcludedAsync(symbolFilePath, cancellationToken).ConfigureAwait(false))
+            {
+                hasContentExcluded = true;
+            }
+        }
+
         var maxLength = 1000;
         var symbolStrings = symbol.DeclaringSyntaxReferences.Select(reference =>
         {
@@ -190,6 +200,6 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             return sourceText.GetSubText(new Text.TextSpan(span.Start, Math.Min(maxLength, span.Length))).ToString();
         }).ToImmutableArray();
 
-        return new OnTheFlyDocsElement(symbol.ToDisplayString(), symbolStrings, symbol.Language);
+        return new OnTheFlyDocsElement(symbol.ToDisplayString(), symbolStrings, symbol.Language, hasContentExcluded);
     }
 }

@@ -622,6 +622,11 @@
         <target state="translated">この要素は、移動できない場所にあるため、名前を変更できません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Your_organization_excluded_a_referenced_file_from_Copilot">
+        <source>Your organization excluded a referenced file from Copilot.</source>
+        <target state="new">Your organization excluded a referenced file from Copilot.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_Esc_to_cancel">
         <source>{0} (Esc to cancel)</source>
         <target state="translated">{0} (キャンセルするには Esc キーを押します)</target>

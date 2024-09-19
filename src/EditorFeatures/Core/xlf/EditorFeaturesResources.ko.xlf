@@ -622,6 +622,11 @@
         <target state="translated">이 요소는 탐색할 수 없는 위치에 있으므로 이름을 바꿀 수 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Your_organization_excluded_a_referenced_file_from_Copilot">
+        <source>Your organization excluded a referenced file from Copilot.</source>
+        <target state="new">Your organization excluded a referenced file from Copilot.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_Esc_to_cancel">
         <source>{0} (Esc to cancel)</source>
         <target state="translated">{0}(취소하려면 Esc)</target>
