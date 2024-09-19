@@ -4,8 +4,6 @@
 
 using System;
 using System.Composition;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -32,84 +30,40 @@ internal class CustomMessageHandler()
 
     public TextDocumentIdentifier GetTextDocumentIdentifier(CustomMessageParams request)
     {
-        return request.Message.TextDocument!;
+        return request.Message.TextDocument;
     }
 
     public async Task<CustomResponse> HandleRequestAsync(CustomMessageParams request, RequestContext context, CancellationToken cancellationToken)
     {
-        return new CustomResponse(request.Message.Message, request.Message.Positions);
+        // Create the Handler instance. Requires having a parameterless constructor.
+        // ```
+        // public class CustomMessageHandler
+        // {
+        //     public Task<TResponse> ExecuteAsync(TRequest, Document, CancellationToken);
+        // }
+        // ```
+        var handler = Activator.CreateInstanceFrom(request.AssemblyPath, request.TypeFullName).Unwrap();
 
-#pragma warning disable CS0162 // Unreachable code detected
-        AppDomain? appDomain = null;
-        try
-        {
-            var basePath = Path.GetDirectoryName(request.AssemblyPath);
-            appDomain = AppDomain.CreateDomain(request.TypeFullName, null, new AppDomainSetup()
-            {
-                ConfigurationFile = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile,
-                ApplicationBase = basePath,
-            });
+        // Use reflection to find the ExecuteAsync method.
+        var handlerType = handler.GetType();
+        var executeMethod = handlerType.GetMethod("ExecuteAsync", BindingFlags.Public | BindingFlags.Instance);
 
-            appDomain.AssemblyResolve += (object sender, ResolveEventArgs args) =>
-            {
-                Assembly? assembly = null;
-                try
-                {
-                    assembly = Assembly.Load(args.Name);
-                    if (assembly != null)
-                        return assembly;
-                }
-                catch { }
+        // Deserialize the message into the expected TRequest type.
+        var requestType = executeMethod.GetParameters()[0].ParameterType;
+        var message = JsonSerializer.Deserialize(request.Message.Message, requestType);
 
-                var name = new AssemblyName(args.Name);
-                var possiblePath = Path.Combine(basePath, $"{name.Name}.dll");
-                assembly = Assembly.LoadFrom(possiblePath);
+        // Invoke the execute method.
+        var parameters = new object?[] { message, context.Document, cancellationToken };
+        var resultTask = (Task)executeMethod.Invoke(handler, parameters);
 
-                if (assembly != null)
-                    return assembly;
+        // Await the result and get its value.
+        await resultTask.ConfigureAwait(false);
+        var resultProperty = resultTask.GetType().GetProperty("Result");
+        var result = resultProperty.GetValue(resultTask);
 
-                return null;
-            };
-
-            var assemblyName = AssemblyName.GetAssemblyName(request.AssemblyPath);
-            var assembly = appDomain.Load(assemblyName);
-
-            var handlerType = assembly.GetType(request.TypeFullName);
-            var handlerMethod = handlerType.GetMethod("ExecuteAsync", BindingFlags.Instance);
-
-            JsonSerializerOptions readOptions = new();
-            LinePositionReadConverter linePositionReadConverter = new(request.Message.Positions.Select(tdp => ProtocolConversions.PositionToLinePosition(tdp)).ToArray());
-            readOptions.Converters.Add(linePositionReadConverter);
-
-            var messageType = handlerMethod.GetParameters()[0].ParameterType;
-            var deserializedMessage = JsonSerializer.Deserialize(request.Message.Message, messageType, readOptions);
-
-            var handler = Activator.CreateInstance(handlerType);
-            var parameters = new object?[] { deserializedMessage, context.Document, cancellationToken };
-            var resultTask = (Task)handlerMethod.Invoke(handler, parameters);
-
-            await resultTask.ConfigureAwait(false);
-
-            var resultProperty = resultTask.GetType().GetProperty("Result");
-            var result = resultProperty.GetValue(resultTask);
-
-            JsonSerializerOptions writeOptions = new();
-            LinePositionWriteConverter linePositionWriteConverter = new();
-            writeOptions.Converters.Add(linePositionWriteConverter);
-
-            var resultJson = JsonSerializer.Serialize(result, resultProperty.PropertyType, writeOptions);
-
-            return new CustomResponse(
-                JsonNode.Parse(resultJson)!,
-                linePositionWriteConverter.LinePositions
-                    .OrderBy(p => p.Value)
-                    .Select(p => new Position(p.Key.Line, p.Key.Character))
-                    .ToArray());
-        }
-        finally
-        {
-            AppDomain.Unload(appDomain);
-        }
-#pragma warning restore CS0162 // Unreachable code detected
+        // Serialize the TResponse and return it to the extension.
+        var responseType = resultProperty.PropertyType;
+        var responseJson = JsonSerializer.Serialize(result, responseType);
+        return new CustomMessage(JsonNode.Parse(responseJson)!, request.Message.TextDocument!, []);
     }
 }
