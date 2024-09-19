@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 internal static class GlyphExtensions
 {
     // hardcode ImageCatalogGuid locally rather than calling KnownImageIds.ImageCatalogGuid
-    // So it doesnot have dependency for Microsoft.VisualStudio.ImageCatalog.dll
+    // So it does not have dependency for Microsoft.VisualStudio.ImageCatalog.dll
     // https://github.com/dotnet/roslyn/issues/26642
     private static readonly Guid ImageCatalogGuid = Guid.Parse("ae27a6b0-e345-4288-96df-5eaf394ee369");
 

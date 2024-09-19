@@ -153,7 +153,14 @@ internal static class TaggedTextExtensions
                 // * Empty <para> elements
                 // * Explicit line breaks at the start of a comment
                 // * Multiple line breaks between paragraphs
-                AddLinesAndClear();
+                if (_lines.Count > 0)
+                {
+                    AddLinesAndClear();
+                }
+                else
+                {
+                    // The current paragraph is empty, so we simply ignore it.
+                }
             }
         }
 

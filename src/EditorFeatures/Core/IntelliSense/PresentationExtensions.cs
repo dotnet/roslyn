@@ -20,7 +20,9 @@ internal static class PresentationExtensions
         => new(element.Glyph.GetImageId());
 
     public static VisualStudio.Text.Adornments.ClassifiedTextRun ToVsRun(this QuickInfoClassifiedTextRun run)
-        => new(run.ClassificationTypeName, run.Text, run.NavigationAction, run.Tooltip, (VisualStudio.Text.Adornments.ClassifiedTextRunStyle)run.Style);
+        => run.NavigationAction is not null
+            ? new(run.ClassificationTypeName, run.Text, run.NavigationAction, run.Tooltip, (VisualStudio.Text.Adornments.ClassifiedTextRunStyle)run.Style)
+            : new(run.ClassificationTypeName, run.Text, (VisualStudio.Text.Adornments.ClassifiedTextRunStyle)run.Style);
 
     public static VisualStudio.Text.Adornments.ClassifiedTextElement ToVsElement(this QuickInfoClassifiedTextElement element)
         => new(element.Runs.Select(ToVsRun));
