@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -46,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!verifier._visitedExpressions.Contains(analyzedNode))
                         {
-                            Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unverified node: {analyzedNode.GetDebuggerDisplay()}");
+                            RoslynDebug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unverified node: {analyzedNode.GetDebuggerDisplay()}");
                         }
                     }
                 }
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         if (!verifier._analyzedNullabilityMap.ContainsKey(verifiedNode))
                         {
-                            Debug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unanalyzed node: {verifiedNode.GetDebuggerDisplay()}");
+                            RoslynDebug.Assert(false, $"Analyzed {verifier._analyzedNullabilityMap.Count} nodes in NullableWalker, but DebugVerifier expects {verifier._visitedExpressions.Count}. Example of unanalyzed node: {verifiedNode.GetDebuggerDisplay()}");
                         }
                     }
                 }
@@ -67,11 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (expression.IsParamsArrayOrCollection)
                 {
                     // Params collections are processed element wise. 
-                    Debug.Assert(!_analyzedNullabilityMap.ContainsKey(expression), $"Found unexpected {expression} `{expression.Syntax}` in the map.");
+                    RoslynDebug.Assert(!_analyzedNullabilityMap.ContainsKey(expression), $"Found unexpected {expression} `{expression.Syntax}` in the map.");
                 }
                 else if (overrideSkippedExpression || !s_skippedExpressions.Contains(expression.Kind))
                 {
-                    Debug.Assert(_analyzedNullabilityMap.ContainsKey(expression), $"Did not find {expression} `{expression.Syntax}` in the map.");
+                    RoslynDebug.Assert(_analyzedNullabilityMap.ContainsKey(expression), $"Did not find {expression} `{expression.Syntax}` in the map.");
                     _visitedExpressions.Add(expression);
                 }
             }
