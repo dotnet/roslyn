@@ -10981,14 +10981,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? VisitObjectInitializerMember(BoundObjectInitializerMember node)
         {
-            // We reach this point when we have just an identifier name in the initializer without an actual
-            // assignment, like "Value"
-            Debug.Assert(node.Syntax.Parent.IsKind(SyntaxKind.ObjectInitializerExpression),
-                "Expected to visit this only in a member initializer with a missing assignment");
-
-            // We cannot perform any analysis here, as we have no real expression assignment or access
-            SetNotNullResult(node);
-            return null;
+            // Should be handled by VisitObjectCreationExpression.
+            throw ExceptionUtilities.Unreachable();
         }
 
         public override BoundNode? VisitDynamicObjectInitializerMember(BoundDynamicObjectInitializerMember node)

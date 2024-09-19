@@ -7166,56 +7166,56 @@ public struct B
             var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics(expectedDiagnostics);
 
-            var expectedFlowGraph = """
-                Block[B0] - Entry
-                    Statements (0)
-                    Next (Regular) Block[B1]
-                        Entering: {R1}
-                .locals {R1}
-                {
-                    CaptureIds: [0]
-                    Block[B1] - Block
-                        Predecessors: [B0]
-                        Statements (5)
-                            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'this')
-                              Value:
-                                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: B) (Syntax: 'this')
-                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i')
-                              Left:
-                                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i')
-                                  Children(1):
-                                      IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'i')
-                                        Children(1):
-                                            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: B, IsImplicit) (Syntax: 'this')
-                              Right:
-                                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'i')
-                                  Children(0)
-                            IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'j++')
-                              Children(1):
-                                  IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32, IsInvalid) (Syntax: 'j++')
-                                    Target:
-                                      IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'j')
-                            IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M2()')
-                              Children(1):
-                                  IInvocationOperation (System.Int32 B.M2()) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M2()')
-                                    Instance Receiver:
-                                      null
-                                    Arguments(0)
-                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'X = 2')
-                              Left:
-                                IPropertyReferenceOperation: System.Int32 B.X { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'X')
-                                  Instance Receiver:
-                                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: B, IsImplicit) (Syntax: 'this')
-                              Right:
-                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
-                        Next (Return) Block[B2]
+            var expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+.locals {R1}
+{
+    CaptureIds: [0]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (5)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'this')
+                Value:
+                IInstanceReferenceOperation (ReferenceKind: ContainingTypeInstance) (OperationKind.InstanceReference, Type: B) (Syntax: 'this')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i')
+                Left:
+                IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'i')
+                    Children(1):
+                        IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'i')
+                        Children(1):
                             IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: B, IsImplicit) (Syntax: 'this')
-                            Leaving: {R1}
-                }
-                Block[B2] - Exit
-                    Predecessors: [B1]
-                    Statements (0)
-                """;
+                Right:
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'i')
+                    Children(0)
+            IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'j++')
+                Children(1):
+                    IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32, IsInvalid) (Syntax: 'j++')
+                    Target:
+                        IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'j')
+            IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M2()')
+                Children(1):
+                    IInvocationOperation (System.Int32 B.M2()) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M2()')
+                    Instance Receiver:
+                        null
+                    Arguments(0)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'X = 2')
+                Left:
+                IPropertyReferenceOperation: System.Int32 B.X { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'X')
+                    Instance Receiver:
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: B, IsImplicit) (Syntax: 'this')
+                Right:
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+        Next (Return) Block[B2]
+            IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: B, IsImplicit) (Syntax: 'this')
+            Leaving: {R1}
+}
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(src, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
         }
 
@@ -9934,85 +9934,85 @@ public class C
             };
             comp.VerifyEmitDiagnostics(expectedDiagnostics);
 
-            var expectedFlowGraph = """
-                Block[B0] - Entry
-                    Statements (0)
-                    Next (Regular) Block[B1]
-                        Entering: {R1} {R2}
-                .locals {R1}
-                {
-                    Locals: [<anonymous type: System.Int32 A> a] [<anonymous type: System.Int32 A> b]
-                    .locals {R2}
-                    {
-                        CaptureIds: [0]
-                        Block[B1] - Block
-                            Predecessors: [B0]
-                            Statements (2)
-                                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '10')
-                                  Value:
-                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
-                                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: System.Int32 A>, IsImplicit) (Syntax: 'a = new { A = 10 }')
-                                  Left:
-                                    ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: <anonymous type: System.Int32 A>, IsImplicit) (Syntax: 'a = new { A = 10 }')
-                                  Right:
-                                    IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 A>) (Syntax: 'new { A = 10 }')
-                                      Initializers(1):
-                                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, Constant: 10) (Syntax: 'A = 10')
-                                            Left:
-                                              IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 A>.A { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'A')
-                                                Instance Receiver:
-                                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 A>, IsImplicit) (Syntax: 'new { A = 10 }')
-                                            Right:
-                                              IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 10, IsImplicit) (Syntax: '10')
-                            Next (Regular) Block[B2]
-                                Leaving: {R2}
-                                Entering: {R3}
-                    }
-                    .locals {R3}
-                    {
-                        CaptureIds: [1]
-                        Block[B2] - Block
-                            Predecessors: [B1]
-                            Statements (6)
-                                ILocalReferenceOperation: a (OperationKind.LocalReference, Type: <anonymous type: System.Int32 A>) (Syntax: 'a')
-                                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'i')
-                                  Children(0)
-                                IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'j++')
-                                  Children(1):
-                                      IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32, IsInvalid) (Syntax: 'j++')
-                                        Target:
-                                          IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'j')
-                                IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M2()')
-                                  Children(1):
-                                      IInvocationOperation (System.Int32 C.M2()) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M2()')
-                                        Instance Receiver:
-                                          null
-                                        Arguments(0)
-                                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '20')
-                                  Value:
-                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
-                                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: System.Int32 A>, IsInvalid, IsImplicit) (Syntax: 'b = a with  ... ), A = 20 }')
-                                  Left:
-                                    ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: <anonymous type: System.Int32 A>, IsInvalid, IsImplicit) (Syntax: 'b = a with  ... ), A = 20 }')
-                                  Right:
-                                    IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 A>, IsInvalid) (Syntax: 'a with { i, ... ), A = 20 }')
-                                      Initializers(1):
-                                          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a with { i, ... ), A = 20 }')
-                                            Left:
-                                              IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 A>.A { get; } (OperationKind.PropertyReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a with { i, ... ), A = 20 }')
-                                                Instance Receiver:
-                                                  IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 A>, IsInvalid, IsImplicit) (Syntax: 'a with { i, ... ), A = 20 }')
-                                            Right:
-                                              IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: <anonymous type: System.Int32 A>, IsImplicit) (Syntax: 'a')
-                            Next (Regular) Block[B3]
-                                Leaving: {R3} {R1}
-                    }
-                }
-                Block[B3] - Exit
-                    Predecessors: [B2]
-                    Statements (0)
+            var expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+.locals {R1}
+{
+    Locals: [<anonymous type: System.Int32 A> a] [<anonymous type: System.Int32 A> b]
+    .locals {R2}
+    {
+        CaptureIds: [0]
+        Block[B1] - Block
+            Predecessors: [B0]
+            Statements (2)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '10')
+                    Value:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: System.Int32 A>, IsImplicit) (Syntax: 'a = new { A = 10 }')
+                    Left:
+                    ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: <anonymous type: System.Int32 A>, IsImplicit) (Syntax: 'a = new { A = 10 }')
+                    Right:
+                    IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 A>) (Syntax: 'new { A = 10 }')
+                        Initializers(1):
+                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, Constant: 10) (Syntax: 'A = 10')
+                            Left:
+                                IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 A>.A { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'A')
+                                Instance Receiver:
+                                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 A>, IsImplicit) (Syntax: 'new { A = 10 }')
+                            Right:
+                                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, Constant: 10, IsImplicit) (Syntax: '10')
+            Next (Regular) Block[B2]
+                Leaving: {R2}
+                Entering: {R3}
+    }
+    .locals {R3}
+    {
+        CaptureIds: [1]
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (6)
+                ILocalReferenceOperation: a (OperationKind.LocalReference, Type: <anonymous type: System.Int32 A>) (Syntax: 'a')
+                IInvalidOperation (OperationKind.Invalid, Type: null, IsInvalid, IsImplicit) (Syntax: 'i')
+                    Children(0)
+                IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'j++')
+                    Children(1):
+                        IIncrementOrDecrementOperation (Postfix) (OperationKind.Increment, Type: System.Int32, IsInvalid) (Syntax: 'j++')
+                        Target:
+                            IParameterReferenceOperation: j (OperationKind.ParameterReference, Type: System.Int32, IsInvalid) (Syntax: 'j')
+                IInvalidOperation (OperationKind.Invalid, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M2()')
+                    Children(1):
+                        IInvocationOperation (System.Int32 C.M2()) (OperationKind.Invocation, Type: System.Int32, IsInvalid) (Syntax: 'M2()')
+                        Instance Receiver:
+                            null
+                        Arguments(0)
+                IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '20')
+                    Value:
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 20) (Syntax: '20')
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: <anonymous type: System.Int32 A>, IsInvalid, IsImplicit) (Syntax: 'b = a with  ... ), A = 20 }')
+                    Left:
+                    ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: <anonymous type: System.Int32 A>, IsInvalid, IsImplicit) (Syntax: 'b = a with  ... ), A = 20 }')
+                    Right:
+                    IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 A>, IsInvalid) (Syntax: 'a with { i, ... ), A = 20 }')
+                        Initializers(1):
+                            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a with { i, ... ), A = 20 }')
+                            Left:
+                                IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 A>.A { get; } (OperationKind.PropertyReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'a with { i, ... ), A = 20 }')
+                                Instance Receiver:
+                                    IInstanceReferenceOperation (ReferenceKind: ImplicitReceiver) (OperationKind.InstanceReference, Type: <anonymous type: System.Int32 A>, IsInvalid, IsImplicit) (Syntax: 'a with { i, ... ), A = 20 }')
+                            Right:
+                                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: <anonymous type: System.Int32 A>, IsImplicit) (Syntax: 'a')
+            Next (Regular) Block[B3]
+                Leaving: {R3} {R1}
+    }
+}
+Block[B3] - Exit
+    Predecessors: [B2]
+    Statements (0)
 
-                """;
+";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(src, expectedFlowGraph, expectedDiagnostics, parseOptions: TestOptions.RegularPreview);
         }
 

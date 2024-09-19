@@ -6017,17 +6017,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var memberInitializerSyntax = boundMemberInitializer.Syntax;
 
-                IdentifierNameSyntax memberNameSyntax;
-                if (memberInitializerSyntax is AssignmentExpressionSyntax namedAssignment)
-                {
-                    Debug.Assert(memberInitializerSyntax.IsKind(SyntaxKind.SimpleAssignmentExpression));
-                    memberNameSyntax = namedAssignment.Left as IdentifierNameSyntax;
-                }
-                else
-                {
-                    Debug.Assert(memberInitializerSyntax.IsKind(SyntaxKind.IdentifierName));
-                    memberNameSyntax = (IdentifierNameSyntax)memberInitializerSyntax;
-                }
+                Debug.Assert(memberInitializerSyntax.Kind() == SyntaxKind.SimpleAssignmentExpression);
+                var namedAssignment = (AssignmentExpressionSyntax)memberInitializerSyntax;
+
+                var memberNameSyntax = namedAssignment.Left as IdentifierNameSyntax;
 
                 if (memberNameSyntax != null)
                 {
