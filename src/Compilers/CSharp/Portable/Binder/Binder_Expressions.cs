@@ -5616,8 +5616,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // SPEC:    A member initializer that specifies an expression after the equals sign is processed in the same way as an assignment (spec 7.17.1) to the field or property.
 
-            var includeError = true;
-
             switch (memberInitializer.Kind())
             {
                 case SyntaxKind.SimpleAssignmentExpression:
@@ -5673,16 +5671,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return boundNode;
                         }
 
-                        includeError = false;
-                        break;
+                        var badRight = new BoundBadExpression(
+                            identifierName,
+                            LookupResultKind.Empty,
+                            symbols: [],
+                            childBoundNodes: [],
+                            type: null,
+                            hasErrors: true)
+                        {
+                            WasCompilerGenerated = true,
+                        };
+                        boundNode = new BoundAssignmentOperator(
+                            identifierName, boundNode, badRight, isRef: false, ErrorTypeSymbol.UnknownResultType, hasErrors: true)
+                        {
+                            WasCompilerGenerated = true,
+                        };
+
+                        return boundNode;
                     }
             }
 
             var boundExpression = BindValue(memberInitializer, diagnostics, BindValueKind.RValue);
-            if (includeError)
-            {
-                Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, memberInitializer);
-            }
+            Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, memberInitializer);
             return BindToTypeForErrorRecovery(ToBadExpression(boundExpression, LookupResultKind.NotAValue));
         }
 

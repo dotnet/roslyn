@@ -6056,7 +6056,7 @@ oneMoreTime:
 #if DEBUG
                         var validKinds = ImmutableArray.Create(OperationKind.Invocation, OperationKind.DynamicInvocation, OperationKind.Increment, OperationKind.Literal,
                                                                OperationKind.LocalReference, OperationKind.Binary, OperationKind.FieldReference, OperationKind.Invalid,
-                                                               OperationKind.InterpolatedString, OperationKind.PropertyReference, OperationKind.EventReference);
+                                                               OperationKind.InterpolatedString);
                         Debug.Assert(validKinds.Contains(innerInitializer.Kind));
 #endif
                         EvalStackFrame frame = PushStackFrame();
@@ -6585,12 +6585,8 @@ oneMoreTime:
                     }
                     else
                     {
-                        Debug.Assert(
-                            // We have a collection expression infinite chain case
-                            (operation.Parent is InvocationOperation { Parent: CollectionExpressionOperation ce } && ce.HasErrors(_compilation)) ||
-                            // We have an object initializer with an invalid assignment
-                            (operation.Parent is { Kind: OperationKind.None }),
-                            "Expected to reach this only in collection expression infinite chain cases, or in invalid assignments inside object initializers.");
+                        Debug.Assert(operation.Parent is InvocationOperation { Parent: CollectionExpressionOperation ce } && ce.HasErrors(_compilation),
+                            "Expected to reach this only in collection expression infinite chain cases.");
 
                         return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
                     }
