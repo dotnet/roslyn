@@ -13,6 +13,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
@@ -30,13 +31,13 @@ namespace Roslyn.Test.Utilities.Desktop
             // we will copy the content into an array and serialize the copy
             // we could serialize element-wise, but that would require serializing
             // name and type for every serialized element which seems worse than creating a copy.
-            info.AddValue(name, value.IsDefault ? null : value.ToArray(), typeof(T[]));
+            info.AddValue(name, value.IsDefault ? null : ImmutableCollectionsMarshal.AsArray(value), typeof(T[]));
         }
 
         public static ImmutableArray<T> GetArray<T>(this SerializationInfo info, string name) where T : class
         {
-            var arr = (T[])info.GetValue(name, typeof(T[]));
-            return ImmutableArray.Create<T>(arr);
+            var array = (T[])info.GetValue(name, typeof(T[]));
+            return ImmutableCollectionsMarshal.AsImmutableArray(array);
         }
 
         public static void AddByteArray(this SerializationInfo info, string name, ImmutableArray<byte> value)
@@ -44,13 +45,13 @@ namespace Roslyn.Test.Utilities.Desktop
             // we will copy the content into an array and serialize the copy
             // we could serialize element-wise, but that would require serializing
             // name and type for every serialized element which seems worse than creating a copy.
-            info.AddValue(name, value.IsDefault ? null : value.ToArray(), typeof(byte[]));
+            info.AddValue(name, value.IsDefault ? null : ImmutableCollectionsMarshal.AsArray(value), typeof(byte[]));
         }
 
         public static ImmutableArray<byte> GetByteArray(this SerializationInfo info, string name)
         {
-            var arr = (byte[])info.GetValue(name, typeof(byte[]));
-            return ImmutableArray.Create<byte>(arr);
+            var array = (byte[])info.GetValue(name, typeof(byte[]));
+            return ImmutableCollectionsMarshal.AsImmutableArray(array);
         }
     }
 }
