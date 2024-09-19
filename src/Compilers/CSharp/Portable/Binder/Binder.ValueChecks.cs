@@ -527,15 +527,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!InAttributeArgument)
                     {
                         var propertyAccess = (BoundPropertyAccess)expr;
-                        var propertySymbol = propertyAccess.PropertySymbol;
-                        if (propertySymbol.RefKind == RefKind.None)
+                        if (propertyAccess.PropertySymbol.RefKind == RefKind.None)
                         {
                             bool? useAsLvalue = RequiresRValueOnly(valueKind) ? false : RequiresAssignableVariable(valueKind) ? true : null;
                             if (useAsLvalue.HasValue)
                             {
-                                if (AccessingAutoPropertyFromConstructor(propertyAccess.ReceiverOpt, propertySymbol, useAsLvalue.Value))
+                                if (CanUseBackingFieldDirectlyInConstructor(propertyAccess, useAsLvalue.Value))
                                 {
-                                    // Update expr to mark that the property access should use the backing field.
+                                    // Update the property access to indicate that the backing field should be used directly.
                                     expr = propertyAccess.Update(
                                         propertyAccess.ReceiverOpt,
                                         propertyAccess.InitialBindingReceiverIsSubjectToCloning,
@@ -1720,7 +1719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (setMethod is null)
                 {
                     var containing = this.ContainingMemberOrLambda;
-                    if (!(expr is BoundPropertyAccess propertyAccess && AccessingAutoPropertyFromConstructor(propertyAccess, containing, useAsLvalue: true))
+                    if (!(expr is BoundPropertyAccess propertyAccess && AccessingAutoPropertyFromConstructor(propertyAccess, containing))
                         && !isAllowedDespiteReadonly(receiver))
                     {
                         Error(diagnostics, ErrorCode.ERR_AssgReadonlyProp, node, propertySymbol);

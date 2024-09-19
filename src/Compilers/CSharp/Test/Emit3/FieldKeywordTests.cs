@@ -1648,9 +1648,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        // PROTOTYPE: Add similar tests for nullability. Or perhaps just test that we're not inferring the
-        // nullability of the property from the nullability of the field when both (or even one?) of the
-        // accessors are manually-implemented.
         [Theory]
         [CombinatorialData]
         public void ConstructorAssignment_02A([CombinatorialValues("class", "struct", "ref struct")] string typeKind, bool useInit)
@@ -3048,7 +3045,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        // PROTOTYPE: Test S1, S3 against existing compiler, without field-backed properties. There should be no changes.
         [Theory]
         [CombinatorialData]
         public void DefaultInitialization_01A(bool useInit, bool includeStructInitializationWarnings)
@@ -3326,7 +3322,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
-        // PROTOTYPE: Test S1, S3 against existing compiler, without field-backed properties. There should be no changes.
         [Theory]
         [CombinatorialData]
         public void DefaultInitialization_02A(bool useInit, bool includeStructInitializationWarnings)

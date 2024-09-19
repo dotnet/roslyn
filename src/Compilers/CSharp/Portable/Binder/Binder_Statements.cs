@@ -1750,9 +1750,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 #nullable enable
-        // PROTOTYPE: This is the API for flow analysis to query the calculated value.
-        // PROTOTYPE: Remove 'useAsLvalue'.
-        internal static bool AccessingAutoPropertyFromConstructor(BoundPropertyAccess propertyAccess, Symbol fromMember, bool useAsLvalue)
+        internal static bool AccessingAutoPropertyFromConstructor(BoundPropertyAccess propertyAccess, Symbol fromMember)
         {
             if (propertyAccess.UseBackingField == AccessorKind.Unknown)
             {
@@ -1764,16 +1762,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     IsConstructorOrField(fromMember, isStatic: sourceProperty.IsStatic);
         }
 
-        // PROTOTYPE: This is the API for calculating the value. Rename method.
-        // PROTOTYPE: Should this take a BoundPropertyAccess instead of separate receiver, propertySymbol, so it's more obvious how it's used?
-        private static bool AccessingAutoPropertyFromConstructor(BoundExpression? receiver, PropertySymbol propertySymbol, bool useAsLvalue)
+        private static bool CanUseBackingFieldDirectlyInConstructor(BoundPropertyAccess propertyAccess, bool useAsLvalue)
         {
-            var sourceProperty = GetSourcePropertyDefinitionIfAny(propertySymbol);
-            var propertyIsStatic = propertySymbol.IsStatic;
-
+            var sourceProperty = GetSourcePropertyDefinitionIfAny(propertyAccess.PropertySymbol);
             return sourceProperty is { } &&
                     sourceProperty.CanUseBackingFieldDirectlyInConstructor(useAsLvalue) &&
-                    (propertyIsStatic || receiver?.Kind == BoundKind.ThisReference);
+                    (sourceProperty.IsStatic || propertyAccess.ReceiverOpt?.Kind == BoundKind.ThisReference);
         }
 
         private static SourcePropertySymbolBase? GetSourcePropertyDefinitionIfAny(PropertySymbol propertySymbol)

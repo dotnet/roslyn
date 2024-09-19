@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var access = (BoundPropertyAccess)node;
 
-                        if (Binder.AccessingAutoPropertyFromConstructor(access, _symbol, useAsLvalue: true))
+                        if (Binder.AccessingAutoPropertyFromConstructor(access, _symbol))
                         {
                             var backingField = (access.PropertySymbol as SourcePropertySymbolBase)?.BackingField;
                             if (backingField != null)
@@ -2036,7 +2036,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return !Binder.AccessingAutoPropertyFromConstructor((BoundPropertyAccess)expr, _symbol, useAsLvalue: true);
+            return !Binder.AccessingAutoPropertyFromConstructor((BoundPropertyAccess)expr, _symbol);
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
@@ -2172,8 +2172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var property = node.PropertySymbol;
 
-            // PROTOTYPE: Is VisitPropertyAccess only called when the property access is an r-value?
-            if (Binder.AccessingAutoPropertyFromConstructor(node, _symbol, useAsLvalue: false))
+            if (Binder.AccessingAutoPropertyFromConstructor(node, _symbol))
             {
                 var backingField = (property as SourcePropertySymbolBase)?.BackingField;
                 if (backingField != null)

@@ -2194,7 +2194,6 @@
     <!-- Whether receiver will need to be cloned during emit (only valid before lowering) -->
     <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
     <Field Name="PropertySymbol" Type="PropertySymbol"/>
-    <!-- PROTOTYPE: Improve property name. Perhaps UseBackingFieldFromConstructor? -->
     <Field Name="UseBackingField" Type="AccessorKind" />
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
   </Node>

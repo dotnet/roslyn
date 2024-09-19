@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _expressionIsRead = true;
 
         /// <summary>
-        /// Used to allow <see cref="MakeSlot(BoundExpression, bool)"/> to substitute the correct slot for a <see cref="BoundConditionalReceiver"/> when
+        /// Used to allow <see cref="MakeSlot(BoundExpression)"/> to substitute the correct slot for a <see cref="BoundConditionalReceiver"/> when
         /// it's encountered.
         /// </summary>
         private int _lastConditionalAccessSlot = -1;
@@ -1925,7 +1925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression? receiver, [NotNullWhen(true)] out Symbol? member, bool useAsLvalue)
+        protected override bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression? receiver, [NotNullWhen(true)] out Symbol? member)
         {
             receiver = null;
             member = null;
@@ -1985,7 +1985,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiver.Type is object;
         }
 
-        protected override int MakeSlot(BoundExpression node, bool useAsLvalue = false)
+        protected override int MakeSlot(BoundExpression node)
         {
             int result = makeSlot(node);
 #if DEBUG
@@ -9758,7 +9758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // when binding initializers, we treat assignments to auto-properties or field-like events as direct assignments to the underlying field.
                 // in order to track member state based on these initializers, we need to see the assignment in terms of the associated member
-                case BoundFieldAccess { ExpressionSymbol: FieldSymbol { AssociatedSymbol: PropertySymbol autoProperty }, /*PROTOTYPE: Temporary work around*/Syntax: not FieldExpressionSyntax } fieldAccess:
+                case BoundFieldAccess { ExpressionSymbol: FieldSymbol { AssociatedSymbol: PropertySymbol autoProperty }, Syntax: not FieldExpressionSyntax } fieldAccess:
                     left = new BoundPropertyAccess(fieldAccess.Syntax, fieldAccess.ReceiverOpt, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, autoProperty, useBackingField: AccessorKind.Unknown, LookupResultKind.Viable, autoProperty.Type, fieldAccess.HasErrors);
                     break;
                 case BoundFieldAccess { ExpressionSymbol: FieldSymbol { AssociatedSymbol: EventSymbol @event } } fieldAccess:

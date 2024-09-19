@@ -1054,7 +1054,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression receiver, out Symbol member, bool useAsLvalue)
+        protected override bool TryGetReceiverAndMember(BoundExpression expr, out BoundExpression receiver, out Symbol member)
         {
             receiver = null;
             member = null;
@@ -1093,7 +1093,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var propAccess = (BoundPropertyAccess)expr;
 
-                        if (Binder.AccessingAutoPropertyFromConstructor(propAccess, this.CurrentSymbol, useAsLvalue))
+                        if (Binder.AccessingAutoPropertyFromConstructor(propAccess, this.CurrentSymbol))
                         {
                             var propSymbol = propAccess.PropertySymbol;
                             member = (propSymbol as SourcePropertySymbolBase)?.BackingField;
@@ -1425,7 +1425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     {
                         var propertyAccess = (BoundPropertyAccess)node;
-                        if (Binder.AccessingAutoPropertyFromConstructor(propertyAccess, this.CurrentSymbol, useAsLvalue: false))
+                        if (Binder.AccessingAutoPropertyFromConstructor(propertyAccess, this.CurrentSymbol))
                         {
                             var property = propertyAccess.PropertySymbol;
                             var backingField = (property as SourcePropertySymbolBase)?.BackingField;
@@ -1628,7 +1628,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     {
                         var expression = (BoundExpression)node;
-                        int slot = MakeSlot(expression, useAsLvalue: true);
+                        int slot = MakeSlot(expression);
                         SetSlotState(slot, written);
                         if (written) NoteWrite(expression, value, read);
                         break;
@@ -2676,8 +2676,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
         {
             var result = base.VisitPropertyAccess(node);
-            // PROTOTYPE: Is VisitPropertyAccess only called when the property access is an r-value?
-            if (Binder.AccessingAutoPropertyFromConstructor(node, this.CurrentSymbol, useAsLvalue: false))
+            if (Binder.AccessingAutoPropertyFromConstructor(node, this.CurrentSymbol))
             {
                 var property = node.PropertySymbol;
                 var backingField = (property as SourcePropertySymbolBase)?.BackingField;

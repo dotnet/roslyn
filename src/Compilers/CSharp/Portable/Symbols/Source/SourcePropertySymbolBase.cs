@@ -656,7 +656,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected bool HasExplicitAccessModifier
             => (_propertyFlags & Flags.HasExplicitAccessModifier) != 0;
 
-        // PROTOTYPE: Remove if not used.
         internal bool IsAutoProperty
             => IsSetOnEitherPart(Flags.HasAutoPropertyGet | Flags.HasAutoPropertySet);
 
