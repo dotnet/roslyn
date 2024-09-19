@@ -82,7 +82,7 @@ namespace Roslyn.Utilities
 
             public AssertInterpolatedStringHandler(int literalLength, int formattedCount, bool condition, out bool shouldAppend)
             {
-                shouldAppend = condition;
+                shouldAppend = !condition;
                 if (shouldAppend)
                 {
                     _builder = new StringBuilder(literalLength + formattedCount);
