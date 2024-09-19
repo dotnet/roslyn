@@ -87,10 +87,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // if left conversion is intrinsic implicit (always succeeds) and results in a reference type
             // we can apply conversion before doing the null check that allows for a more efficient IL emit.
-            // span conversion is from a reference type (array/string) to a value type ([ReadOnly]Span) so it cannot participate here.
             Debug.Assert(rewrittenLeft.Type is { });
             if (rewrittenLeft.Type.IsReferenceType &&
-                BoundNode.GetConversion(leftConversion, leftPlaceholder) is { IsImplicit: true, IsUserDefined: false, IsSpan: false })
+                BoundNode.GetConversion(leftConversion, leftPlaceholder) is { Kind: ConversionKind.Identity or ConversionKind.ImplicitReference })
             {
                 rewrittenLeft = ApplyConversionIfNotIdentity(leftConversion, leftPlaceholder, rewrittenLeft);
 
