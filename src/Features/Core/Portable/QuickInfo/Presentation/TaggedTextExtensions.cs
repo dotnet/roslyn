@@ -6,16 +6,14 @@ using System;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
+namespace Microsoft.CodeAnalysis.QuickInfo.Presentation;
 
 internal static class TaggedTextExtensions
 {
-    internal static ImmutableArray<object> ToInteractiveTextElements(
+    internal static ImmutableArray<QuickInfoElement> ToInteractiveTextElements(
         this ImmutableArray<TaggedText> taggedTexts,
         INavigationActionFactory? navigationActionFactory)
     {
@@ -81,7 +79,7 @@ internal static class TaggedTextExtensions
             }
         }
 
-        static ClassifiedTextRun CreateRun(TaggedText part)
+        static QuickInfoClassifiedTextRun CreateRun(TaggedText part)
         {
             return new(
                 part.Tag.ToClassificationTypeName(),
@@ -89,7 +87,7 @@ internal static class TaggedTextExtensions
                 part.Style.ToClassifiedTextRunStyle());
         }
 
-        static ClassifiedTextRun CreateRunWithNavigationAction(TaggedText part, INavigationActionFactory navigationActionFactory)
+        static QuickInfoClassifiedTextRun CreateRunWithNavigationAction(TaggedText part, INavigationActionFactory navigationActionFactory)
         {
             Contract.ThrowIfNull(part.NavigationTarget);
 
@@ -108,13 +106,13 @@ internal static class TaggedTextExtensions
         public static TextElementBuilder Empty => default;
 
         // This builder will produce zero or more paragraphs.
-        private TemporaryArray<object> _paragraphs;
+        private TemporaryArray<QuickInfoElement> _paragraphs;
 
         // Each paragraph is constructed from one or more lines
-        private TemporaryArray<object> _lines;
+        private TemporaryArray<QuickInfoElement> _lines;
 
         // Each line is constructed from one or more runs
-        private TemporaryArray<ClassifiedTextRun> _runs;
+        private TemporaryArray<QuickInfoClassifiedTextRun> _runs;
 
         /// <summary>
         /// Gets a mutable reference to a <see cref="TextElementBuilder"/> stored in a <c>using</c> variable.
@@ -135,7 +133,7 @@ internal static class TaggedTextExtensions
             _runs.Dispose();
         }
 
-        public void Add(ClassifiedTextRun run)
+        public void Add(QuickInfoClassifiedTextRun run)
         {
             _runs.Add(run);
         }
@@ -145,7 +143,7 @@ internal static class TaggedTextExtensions
             if (_runs.Count > 0)
             {
                 // This line break means the end of a line within a paragraph.
-                _lines.Add(new ClassifiedTextElement(_runs.ToImmutableAndClear()));
+                _lines.Add(ClassifiedText(_runs.ToImmutableAndClear()));
             }
             else
             {
@@ -159,38 +157,38 @@ internal static class TaggedTextExtensions
             }
         }
 
-        public void AddContainer(ImmutableArray<object> nestedElements, string text)
+        public void AddContainer(ImmutableArray<QuickInfoElement> nestedElements, string text)
         {
             if (_runs.Count > 0)
             {
-                // This line break means the end of a line within a paragraph.
-                _lines.Add(new ClassifiedTextElement(_runs.ToImmutableAndClear()));
+                // When a container is encountered, complete the current line.
+                _lines.Add(ClassifiedText(_runs.ToImmutableAndClear()));
             }
 
-            var innerContainer = nestedElements is [var item, .. var rest]
-                ? new ContainerElement(
-                    ContainerElementStyle.Stacked,
-                    item,
-                    new ContainerElement(
-                        ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
-                        rest))
-                : new ContainerElement(
-                    ContainerElementStyle.Stacked,
-                    nestedElements);
+            using var newElements = TemporaryArray<QuickInfoElement>.Empty;
+            newElements.Add(ClassifiedText(PlainText(text)));
 
-            var container = new ContainerElement(
-                ContainerElementStyle.Wrapped,
-                new ClassifiedTextElement(new ClassifiedTextRun(ClassificationTypeNames.Text, text)),
-                innerContainer);
+            switch (nestedElements)
+            {
+                case [] or [_]:
+                    newElements.Add(StackedContainer(nestedElements));
+                    break;
 
-            _paragraphs.Add(container);
+                case [var item, .. var rest]:
+                    newElements.Add(
+                        StackedContainer(item,
+                            StackedContainer(includeVerticalPadding: true, rest)));
+                    break;
+            }
+
+            _lines.Add(WrappedContainer(newElements.ToImmutableAndClear()));
         }
 
-        public ImmutableArray<object> ToImmutableAndClear()
+        public ImmutableArray<QuickInfoElement> ToImmutableAndClear()
         {
             if (_runs.Count > 0)
             {
-                _lines.Add(new ClassifiedTextElement(_runs.ToImmutableAndClear()));
+                _lines.Add(ClassifiedText(_runs.ToImmutableAndClear()));
             }
 
             if (_lines.Count > 0)
@@ -216,34 +214,58 @@ internal static class TaggedTextExtensions
             else
             {
                 // The lines of a multi-line paragraph are stacked to produce the full paragraph.
-                var container = new ContainerElement(ContainerElementStyle.Stacked, _lines.ToImmutableAndClear());
+                var container = StackedContainer(_lines.ToImmutableAndClear());
                 _paragraphs.Add(container);
             }
         }
+
+        private static QuickInfoClassifiedTextRun PlainText(string text)
+            => new(ClassificationTypeNames.Text, text);
+
+        private static QuickInfoClassifiedTextElement ClassifiedText(params ImmutableArray<QuickInfoClassifiedTextRun> runs)
+            => new(runs);
+
+        private static QuickInfoContainerElement StackedContainer(params ImmutableArray<QuickInfoElement> elements)
+            => StackedContainer(includeVerticalPadding: false, elements);
+
+        private static QuickInfoContainerElement StackedContainer(bool includeVerticalPadding, params ImmutableArray<QuickInfoElement> elements)
+        {
+            var style = QuickInfoContainerStyle.Stacked;
+
+            if (includeVerticalPadding)
+            {
+                style |= QuickInfoContainerStyle.VerticalPadding;
+            }
+
+            return new(style, elements);
+        }
+
+        private static QuickInfoContainerElement WrappedContainer(params ImmutableArray<QuickInfoElement> elements)
+            => new(QuickInfoContainerStyle.Wrapped, elements);
     }
 
-    public static ClassifiedTextRunStyle ToClassifiedTextRunStyle(this TaggedTextStyle style)
+    public static QuickInfoClassifiedTextStyle ToClassifiedTextRunStyle(this TaggedTextStyle style)
     {
-        var result = ClassifiedTextRunStyle.Plain;
+        var result = QuickInfoClassifiedTextStyle.Plain;
 
         if ((style & TaggedTextStyle.Emphasis) == TaggedTextStyle.Emphasis)
         {
-            result |= ClassifiedTextRunStyle.Italic;
+            result |= QuickInfoClassifiedTextStyle.Italic;
         }
 
         if ((style & TaggedTextStyle.Strong) == TaggedTextStyle.Strong)
         {
-            result |= ClassifiedTextRunStyle.Bold;
+            result |= QuickInfoClassifiedTextStyle.Bold;
         }
 
         if ((style & TaggedTextStyle.Underline) == TaggedTextStyle.Underline)
         {
-            result |= ClassifiedTextRunStyle.Underline;
+            result |= QuickInfoClassifiedTextStyle.Underline;
         }
 
         if ((style & TaggedTextStyle.Code) == TaggedTextStyle.Code)
         {
-            result |= ClassifiedTextRunStyle.UseClassificationFont;
+            result |= QuickInfoClassifiedTextStyle.UseClassificationFont;
         }
 
         return result;

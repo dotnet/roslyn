@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
                 _taggerProvider.AsynchronousOperationListener,
                 _taggerProvider.StreamingFindUsagesPresenter);
 
-            return taggedText.ToInteractiveTextElements(navigationActionFactory);
+            return taggedText.ToInteractiveVsTextAdornments(navigationActionFactory);
         }
 
         private static FrameworkElement CreateElement(

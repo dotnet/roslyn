@@ -46,7 +46,7 @@ internal static class IntellisenseQuickInfoBuilder
         if (descSection != null)
         {
             var isFirstElement = true;
-            foreach (var element in descSection.TaggedParts.ToInteractiveTextElements(context?.NavigationActionFactory))
+            foreach (var element in descSection.TaggedParts.ToInteractiveVsTextAdornments(context?.NavigationActionFactory))
             {
                 if (isFirstElement)
                 {
@@ -68,7 +68,7 @@ internal static class IntellisenseQuickInfoBuilder
         if (documentationCommentSection != null)
         {
             var isFirstElement = true;
-            foreach (var element in documentationCommentSection.TaggedParts.ToInteractiveTextElements(context?.NavigationActionFactory))
+            foreach (var element in documentationCommentSection.TaggedParts.ToInteractiveVsTextAdornments(context?.NavigationActionFactory))
             {
                 if (isFirstElement)
                 {
@@ -92,7 +92,7 @@ internal static class IntellisenseQuickInfoBuilder
         // Add the remaining sections as Stacked style
         elements.AddRange(
             quickInfoItem.Sections.Where(s => s.Kind is not QuickInfoSectionKinds.Description and not QuickInfoSectionKinds.DocumentationComments)
-                                  .SelectMany(s => s.TaggedParts.ToInteractiveTextElements(context?.NavigationActionFactory)));
+                                  .SelectMany(s => s.TaggedParts.ToInteractiveVsTextAdornments(context?.NavigationActionFactory)));
 
         // build text for RelatedSpan
         if (quickInfoItem.RelatedSpans.Any() && context != null)

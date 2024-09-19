@@ -480,7 +480,7 @@ internal sealed class CompletionSource : IAsyncExpandingCompletionSource
 
         var navigationActionFactory = new NavigationActionFactory(document, _threadingContext, _operationExecutor, _asyncListener, _streamingPresenter);
 
-        var elements = description.TaggedParts.ToInteractiveTextElements(navigationActionFactory);
+        var elements = description.TaggedParts.ToInteractiveVsTextAdornments(navigationActionFactory);
         if (elements.Length == 0)
             return new ClassifiedTextElement();
 
