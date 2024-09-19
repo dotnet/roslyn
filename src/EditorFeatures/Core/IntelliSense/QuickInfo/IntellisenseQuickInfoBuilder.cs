@@ -46,7 +46,7 @@ internal static class IntellisenseQuickInfoBuilder
         if (descSection != null)
         {
             var isFirstElement = true;
-            foreach (var element in Helpers.BuildInteractiveTextElements(descSection.TaggedParts, context))
+            foreach (var element in descSection.TaggedParts.ToInteractiveTextElements(context?.NavigationActionFactory))
             {
                 if (isFirstElement)
                 {
@@ -68,7 +68,7 @@ internal static class IntellisenseQuickInfoBuilder
         if (documentationCommentSection != null)
         {
             var isFirstElement = true;
-            foreach (var element in Helpers.BuildInteractiveTextElements(documentationCommentSection.TaggedParts, context))
+            foreach (var element in documentationCommentSection.TaggedParts.ToInteractiveTextElements(context?.NavigationActionFactory))
             {
                 if (isFirstElement)
                 {
@@ -92,7 +92,7 @@ internal static class IntellisenseQuickInfoBuilder
         // Add the remaining sections as Stacked style
         elements.AddRange(
             quickInfoItem.Sections.Where(s => s.Kind is not QuickInfoSectionKinds.Description and not QuickInfoSectionKinds.DocumentationComments)
-                                  .SelectMany(s => Helpers.BuildInteractiveTextElements(s.TaggedParts, context)));
+                                  .SelectMany(s => s.TaggedParts.ToInteractiveTextElements(context?.NavigationActionFactory)));
 
         // build text for RelatedSpan
         if (quickInfoItem.RelatedSpans.Any() && context != null)
@@ -110,9 +110,14 @@ internal static class IntellisenseQuickInfoBuilder
                 var tabSize = context.LineFormattingOptions.TabSize;
 
                 var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+
                 var spans = IndentationHelper.GetSpansWithAlignedIndentation(text, classifiedSpans, tabSize);
-                var textRunsOfSpan = spans.Select(s => new ClassifiedTextRun(s.ClassificationType, text.GetSubText(s.TextSpan).ToString(), ClassifiedTextRunStyle.UseClassificationFont)).ToList();
-                if (textRunsOfSpan.Count > 0)
+
+                var textRunsOfSpan = spans.SelectAsArray(
+                    static (span, text) => new ClassifiedTextRun(span.ClassificationType, text.ToString(span.TextSpan), ClassifiedTextRunStyle.UseClassificationFont),
+                    arg: text);
+
+                if (textRunsOfSpan.Length > 0)
                 {
                     if (spanSeparatorNeededBefore)
                     {
@@ -124,7 +129,7 @@ internal static class IntellisenseQuickInfoBuilder
                 }
             }
 
-            if (textRuns.Any())
+            if (textRuns.Count > 0)
             {
                 elements.Add(new ClassifiedTextElement(textRuns));
             }
@@ -134,8 +139,8 @@ internal static class IntellisenseQuickInfoBuilder
             elements.Add(new QuickInfoOnTheFlyDocsElement(context.Document, quickInfoItem.OnTheFlyDocsInfo));
 
         return new ContainerElement(
-                            ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
-                            elements);
+            ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
+            elements);
     }
 
     internal static async Task<IntellisenseQuickInfoItem> BuildItemAsync(
