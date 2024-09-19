@@ -882,6 +882,23 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             if (previewChanges)
             {
                 var previewService = Workspace.Services.GetService<IPreviewDialogService>();
+
+                // The preview service needs to be called from the UI thread, since it's doing COM calls underneath.
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                newSolution = previewService.PreviewChanges(
+                    string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Rename),
+                    "vs.csharp.refactoring.rename",
+                    string.Format(EditorFeaturesResources.Rename_0_to_1_colon, this.OriginalSymbolName, this.ReplacementText),
+                    RenameInfo.FullDisplayName,
+                    RenameInfo.Glyph,
+                    newSolution,
+                    TriggerDocument.Project.Solution);
+
+                if (newSolution == null)
+                {
+                    // User clicked cancel.
+                    return;
+                }
             }
 
             // The user hasn't canceled by now, so we're done waiting for them. Off to rename!
