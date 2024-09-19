@@ -61,7 +61,7 @@ internal sealed class LoadedProject : IDisposable
         _fileChangeContext.FileChanged += FileChangedContext_FileChanged;
 
         // Start watching for file changes for the project file as well
-        _fileChangeContext.EnqueueWatchingFile(projectSystemProject.FilePath);
+        _fileChangeContext.EnqueueWatchingFile(_projectFilePath);
     }
 
     private void FileChangedContext_FileChanged(object? sender, string filePath)
