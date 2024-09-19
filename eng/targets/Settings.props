@@ -8,7 +8,7 @@
     <PackageTags>Roslyn CodeAnalysis Compiler CSharp VB VisualBasic Parser Scanner Lexer Emit CodeGeneration Metadata IL Compilation Scripting Syntax Semantics</PackageTags>
     <ThirdPartyNoticesFilePath>$(MSBuildThisFileDirectory)..\..\src\NuGet\ThirdPartyNotices.rtf</ThirdPartyNoticesFilePath>
 
-    <VSSDKTargetPlatformRegRootSuffix>Exp</VSSDKTargetPlatformRegRootSuffix>
+    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
 
     <!-- Workaround for old Microsoft.VisualStudio.Progression.* packages -->
     <NoWarn>$(NoWarn);VSIXCompatibility1001</NoWarn>
