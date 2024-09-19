@@ -146,13 +146,6 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             return null;
         }
 
-        //// Checks to see if there have been any files excluded at the workspace level
-        //// since the copilot service passes along symbol information.
-        //if (await copilotService.IsAnyExclusionAsync(cancellationToken).ConfigureAwait(false))
-        //{
-        //    return null;
-        //}
-
         if (document.GetLanguageService<ICopilotOptionsService>() is not { } service ||
             !await service.IsOnTheFlyDocsOptionEnabledAsync().ConfigureAwait(false))
         {
@@ -182,6 +175,7 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             return null;
         }
 
+        // Checks to see if any of the files containing the symbol are excluded.
         var hasContentExcluded = false;
         var symbolFilePaths = symbol.DeclaringSyntaxReferences.Select(reference => reference.SyntaxTree.FilePath);
         foreach (var symbolFilePath in symbolFilePaths)
