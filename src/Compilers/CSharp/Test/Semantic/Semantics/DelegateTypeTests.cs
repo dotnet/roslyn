@@ -7317,6 +7317,74 @@ class Program
         }
 
         [Fact]
+        public void Params_ReducedExtensionMethod_ErrorSource()
+        {
+            var source = """
+                static class E
+                {
+                    public static void M<T>(this T x, params T y)
+                    {
+                    }
+                }
+                class C
+                {
+                    void M(System.Collections.Generic.List<int> col)
+                    {
+                        var d = col.M;
+                        d(1, 2, 3);
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,39): error CS0225: The params parameter must have a valid collection type
+                //     public static void M<T>(this T x, params T y)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(3, 39),
+                // (12,9): error CS1593: Delegate 'Action<List<int>>' does not take 3 arguments
+                //         d(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "d").WithArguments("System.Action<System.Collections.Generic.List<int>>", "3").WithLocation(12, 9));
+        }
+
+        [Fact]
+        public void Params_ReducedExtensionMethod_Metadata()
+        {
+            /*
+                public static class E
+                {
+                    public static void M<T>(this T x, params T y)
+                    {
+                    }
+                }
+             */
+            var ilSource = """
+                .class public auto ansi abstract sealed beforefieldinit E extends System.Object
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (01 00 00 00)
+                    .method public hidebysig static void M<T>(!!T x, !!T y) cil managed 
+                    {
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (01 00 00 00)
+                        .param [2] .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (01 00 00 00)
+                        .maxstack 8
+                        ret
+                    }
+                }
+                """;
+            var source = """
+                class C
+                {
+                    void M(int[] arr)
+                    {
+                        var d = arr.M;
+                        d(1, 2, 3);
+                    }
+                }
+                """;
+            CreateCompilationWithIL(source, ilSource).VerifyDiagnostics(
+                // (6,9): error CS1593: Delegate 'Action<int[]>' does not take 3 arguments
+                //         d(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "d").WithArguments("System.Action<int[]>", "3").WithLocation(6, 9));
+        }
+
+        [Fact]
         public void BestCommonType_01()
         {
             var source =
