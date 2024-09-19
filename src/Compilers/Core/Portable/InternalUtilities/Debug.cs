@@ -89,9 +89,7 @@ namespace Roslyn.Utilities
                 }
             }
 
-            internal string ToStringAndClear() => _builder is null
-                ? ""
-                : _builder.ToString();
+            internal string ToStringAndClear() => _builder!.ToString();
 
             public void AppendLiteral(string value) => _builder!.Append(value);
 
