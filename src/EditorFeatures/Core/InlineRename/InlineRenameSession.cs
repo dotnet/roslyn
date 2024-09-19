@@ -874,62 +874,69 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         CommitStateChange?.Invoke(this, true);
         var cancellationToken = operationContext.UserCancellationToken;
         var eventName = previewChanges ? FunctionId.Rename_CommitCoreWithPreview : FunctionId.Rename_CommitCore;
-        using (Logger.LogBlock(eventName, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken))
+        try
         {
-            var info = await _conflictResolutionTask.JoinAsync(cancellationToken).ConfigureAwait(true);
-            var newSolution = info.NewSolution;
-
-            if (previewChanges)
+            using (Logger.LogBlock(eventName, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken))
             {
-                var previewService = Workspace.Services.GetService<IPreviewDialogService>();
+                var info = await _conflictResolutionTask.JoinAsync(cancellationToken).ConfigureAwait(true);
+                var newSolution = info.NewSolution;
 
-                // The preview service needs to be called from the UI thread, since it's doing COM calls underneath.
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-                newSolution = previewService.PreviewChanges(
-                    string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Rename),
-                    "vs.csharp.refactoring.rename",
-                    string.Format(EditorFeaturesResources.Rename_0_to_1_colon, this.OriginalSymbolName, this.ReplacementText),
-                    RenameInfo.FullDisplayName,
-                    RenameInfo.Glyph,
-                    newSolution,
-                    TriggerDocument.Project.Solution);
-
-                if (newSolution == null)
+                if (previewChanges)
                 {
-                    // User clicked cancel.
-                    return;
-                }
-            }
+                    var previewService = Workspace.Services.GetService<IPreviewDialogService>();
 
-            // The user hasn't canceled by now, so we're done waiting for them. Off to rename!
-            using var _1 = operationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Updating_files);
+                    // The preview service needs to be called from the UI thread, since it's doing COM calls underneath.
+                    await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                    newSolution = previewService.PreviewChanges(
+                        string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Rename),
+                        "vs.csharp.refactoring.rename",
+                        string.Format(EditorFeaturesResources.Rename_0_to_1_colon, this.OriginalSymbolName, this.ReplacementText),
+                        RenameInfo.FullDisplayName,
+                        RenameInfo.Glyph,
+                        newSolution,
+                        TriggerDocument.Project.Solution);
 
-            await TaskScheduler.Default;
-
-            // While on the background, attempt to figure out the actual changes to make to the workspace's current solution.
-            var documentChanges = await CalculateFinalDocumentChangesAsync(newSolution, cancellationToken).ConfigureAwait(false);
-
-            // Now jump back to the UI thread to actually apply those changes.
-            await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-            // We're about to make irrevocable changes to the workspace and UI.  We're no longer cancellable at this point.
-            using var _2 = operationContext.AddScope(allowCancellation: false, EditorFeaturesResources.Updating_files);
-            cancellationToken = CancellationToken.None;
-
-            // Dismiss the rename UI and rollback any linked edits made.
-            DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(
-                RenameLogMessage.UserActionOutcome.Committed, previewChanges,
-                () =>
-                {
-                    // Now try to apply that change we computed to the workspace.
-                    var error = TryApplyRename(documentChanges);
-                    if (error is not null)
+                    if (newSolution == null)
                     {
-                        var notificationService = Workspace.Services.GetService<INotificationService>();
-                        notificationService.SendNotification(
-                            error.Value.message, EditorFeaturesResources.Rename_Symbol, error.Value.severity);
+                        // User clicked cancel.
+                        return;
                     }
-                });
+                }
+
+                // The user hasn't canceled by now, so we're done waiting for them. Off to rename!
+                using var _1 = operationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Updating_files);
+
+                await TaskScheduler.Default;
+
+                // While on the background, attempt to figure out the actual changes to make to the workspace's current solution.
+                var documentChanges = await CalculateFinalDocumentChangesAsync(newSolution, cancellationToken).ConfigureAwait(false);
+
+                // Now jump back to the UI thread to actually apply those changes.
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+                // We're about to make irrevocable changes to the workspace and UI.  We're no longer cancellable at this point.
+                using var _2 = operationContext.AddScope(allowCancellation: false, EditorFeaturesResources.Updating_files);
+                cancellationToken = CancellationToken.None;
+
+                // Dismiss the rename UI and rollback any linked edits made.
+                DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(
+                    RenameLogMessage.UserActionOutcome.Committed, previewChanges,
+                    () =>
+                    {
+                        // Now try to apply that change we computed to the workspace.
+                        var error = TryApplyRename(documentChanges);
+                        if (error is not null)
+                        {
+                            var notificationService = Workspace.Services.GetService<INotificationService>();
+                            notificationService.SendNotification(
+                                error.Value.message, EditorFeaturesResources.Rename_Symbol, error.Value.severity);
+                        }
+                    });
+            }
+        }
+        finally
+        {
+            CommitStateChange?.Invoke(this, false);
         }
 
         async Task<ImmutableArray<(DocumentId documentId, string newName, SyntaxNode newRoot, SourceText newText)>> CalculateFinalDocumentChangesAsync(
