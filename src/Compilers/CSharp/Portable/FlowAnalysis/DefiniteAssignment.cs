@@ -1425,7 +1425,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     {
                         var propertyAccess = (BoundPropertyAccess)node;
-                        if (Binder.AccessingAutoPropertyFromConstructor(propertyAccess, this.CurrentSymbol, useAsLvalue: false)) // PROTOTYPE: Is useAsLvalue: false correct?
+                        if (Binder.AccessingAutoPropertyFromConstructor(propertyAccess, this.CurrentSymbol, useAsLvalue: false))
                         {
                             var property = propertyAccess.PropertySymbol;
                             var backingField = (property as SourcePropertySymbolBase)?.BackingField;

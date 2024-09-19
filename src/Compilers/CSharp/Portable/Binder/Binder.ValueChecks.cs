@@ -523,6 +523,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(valueKind is (BindValueKind.Assignable or BindValueKind.RefOrOut or BindValueKind.RefAssignable) || diagnostics.DiagnosticBag is null || diagnostics.HasAnyResolvedErrors());
                     return expr;
 
+                case BoundKind.PropertyAccess:
+                    {
+                        var propertyAccess = (BoundPropertyAccess)expr;
+                        var propertySymbol = propertyAccess.PropertySymbol;
+                        if (propertySymbol.RefKind == RefKind.None)
+                        {
+                            bool? useAsLvalue = RequiresRValueOnly(valueKind) ? false : RequiresAssignableVariable(valueKind) ? true : null;
+                            if (useAsLvalue.HasValue)
+                            {
+                                if (AccessingAutoPropertyFromConstructor(propertyAccess.ReceiverOpt, propertySymbol, useAsLvalue.Value))
+                                {
+                                    // Update expr to mark that the property access should use the backing field.
+                                    expr = propertyAccess.Update(
+                                        propertyAccess.ReceiverOpt,
+                                        propertyAccess.InitialBindingReceiverIsSubjectToCloning,
+                                        propertyAccess.PropertySymbol,
+                                        useAsLvalue.Value ? AccessorKind.Set : AccessorKind.Get, // PROTOTYPE: What about compound assignment, increment?
+                                        propertyAccess.ResultKind,
+                                        propertyAccess.Type);
+                                }
+                            }
+                        }
+                    }
+                    break;
+
                 case BoundKind.IndexerAccess:
                     expr = BindIndexerDefaultArgumentsAndParamsCollection((BoundIndexerAccess)expr, valueKind, diagnostics);
                     break;
@@ -1694,7 +1719,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (setMethod is null)
                 {
                     var containing = this.ContainingMemberOrLambda;
-                    if (!AccessingAutoPropertyFromConstructor(receiver, propertySymbol, containing, useAsLvalue: true)
+                    if (!(expr is BoundPropertyAccess propertyAccess && AccessingAutoPropertyFromConstructor(propertyAccess, containing, useAsLvalue: true))
                         && !isAllowedDespiteReadonly(receiver))
                     {
                         Error(diagnostics, ErrorCode.ERR_AssgReadonlyProp, node, propertySymbol);

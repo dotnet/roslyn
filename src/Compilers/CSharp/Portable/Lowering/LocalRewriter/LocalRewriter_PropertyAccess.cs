@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
 
                 return oldNodeOpt != null ?
-                    oldNodeOpt.Update(rewrittenReceiverOpt, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, propertySymbol, resultKind, type) :
-                    new BoundPropertyAccess(syntax, rewrittenReceiverOpt, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, propertySymbol, resultKind, type);
+                    oldNodeOpt.Update(rewrittenReceiverOpt, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, propertySymbol, useBackingField: AccessorKind.Unknown, resultKind, type) :
+                    new BoundPropertyAccess(syntax, rewrittenReceiverOpt, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, propertySymbol, useBackingField: AccessorKind.Unknown, resultKind, type);
             }
             else
             {
@@ -83,8 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(argumentRefKindsOpt.IsDefaultOrEmpty);
                 return oldNodeOpt != null ?
-                    oldNodeOpt.Update(rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, property, LookupResultKind.Viable, property.Type) :
-                    new BoundPropertyAccess(syntax, rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, property, LookupResultKind.Viable, property.Type);
+                    oldNodeOpt.Update(rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, property, useBackingField: AccessorKind.Unknown, LookupResultKind.Viable, property.Type) :
+                    new BoundPropertyAccess(syntax, rewrittenReceiver, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, property, useBackingField: AccessorKind.Unknown, LookupResultKind.Viable, property.Type);
             }
             else
             {

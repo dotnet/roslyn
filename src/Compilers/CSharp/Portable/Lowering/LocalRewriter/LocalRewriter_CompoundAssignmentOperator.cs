@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // This is a temporary object that will be rewritten away before the lowering completes.
                             return propertyAccess.Update(TransformPropertyOrEventReceiver(propertyAccess.PropertySymbol, propertyAccess.ReceiverOpt,
                                                                                           isRegularCompoundAssignment, stores, temps),
-                                                         propertyAccess.InitialBindingReceiverIsSubjectToCloning, propertyAccess.PropertySymbol, propertyAccess.ResultKind, propertyAccess.Type);
+                                                         propertyAccess.InitialBindingReceiverIsSubjectToCloning, propertyAccess.PropertySymbol, propertyAccess.UseBackingField, propertyAccess.ResultKind, propertyAccess.Type);
                         }
                     }
                     break;

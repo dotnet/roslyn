@@ -1749,26 +1749,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new CSDiagnosticInfo(ErrorCode.ERR_BadEventUsageNoField, leastOverridden);
         }
 
+#nullable enable
+        // PROTOTYPE: This is the API for flow analysis to query the calculated value.
+        // PROTOTYPE: Remove 'useAsLvalue'.
         internal static bool AccessingAutoPropertyFromConstructor(BoundPropertyAccess propertyAccess, Symbol fromMember, bool useAsLvalue)
         {
-            return AccessingAutoPropertyFromConstructor(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember, useAsLvalue);
+            if (propertyAccess.UseBackingField == AccessorKind.Unknown)
+            {
+                return false;
+            }
+            var sourceProperty = GetSourcePropertyDefinitionIfAny(propertyAccess.PropertySymbol);
+            return sourceProperty is { } &&
+                    TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.AllIgnoreOptions) &&
+                    IsConstructorOrField(fromMember, isStatic: sourceProperty.IsStatic);
         }
 
-        private static bool AccessingAutoPropertyFromConstructor(BoundExpression receiver, PropertySymbol propertySymbol, Symbol fromMember, bool useAsLvalue)
+        // PROTOTYPE: This is the API for calculating the value. Rename method.
+        // PROTOTYPE: Should this take a BoundPropertyAccess instead of separate receiver, propertySymbol, so it's more obvious how it's used?
+        private static bool AccessingAutoPropertyFromConstructor(BoundExpression? receiver, PropertySymbol propertySymbol, bool useAsLvalue)
+        {
+            var sourceProperty = GetSourcePropertyDefinitionIfAny(propertySymbol);
+            var propertyIsStatic = propertySymbol.IsStatic;
+
+            return sourceProperty is { } &&
+                    sourceProperty.CanUseBackingFieldDirectlyInConstructor(useAsLvalue) &&
+                    (propertyIsStatic || receiver?.Kind == BoundKind.ThisReference);
+        }
+
+        private static SourcePropertySymbolBase? GetSourcePropertyDefinitionIfAny(PropertySymbol propertySymbol)
         {
             if (!propertySymbol.IsDefinition && propertySymbol.ContainingType.Equals(propertySymbol.ContainingType.OriginalDefinition, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 propertySymbol = propertySymbol.OriginalDefinition;
             }
 
-            var sourceProperty = propertySymbol as SourcePropertySymbolBase;
-            var propertyIsStatic = propertySymbol.IsStatic;
-
-            return (object)sourceProperty != null &&
-                    sourceProperty.CanUseBackingFieldDirectlyInConstructor(useAsLvalue) &&
-                    TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.AllIgnoreOptions) &&
-                    IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
-                    (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);
+            return propertySymbol as SourcePropertySymbolBase;
         }
 
         private static bool IsConstructorOrField(Symbol member, bool isStatic)
@@ -1778,6 +1793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                 MethodKind.Constructor) ||
                     (member as FieldSymbol)?.IsStatic == isStatic;
         }
+#nullable disable
 
         private TypeSymbol GetAccessThroughType(BoundExpression receiver)
         {

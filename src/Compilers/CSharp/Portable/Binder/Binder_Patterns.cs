@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors |= !TryGetSpecialTypeMember(Compilation, SpecialMember.System_Array__Length, node, diagnostics, out PropertySymbol lengthProperty);
                 if (lengthProperty is not null)
                 {
-                    lengthAccess = new BoundPropertyAccess(node, receiverPlaceholder, initialBindingReceiverIsSubjectToCloning: ThreeState.False, lengthProperty, LookupResultKind.Viable, lengthProperty.Type) { WasCompilerGenerated = true };
+                    lengthAccess = new BoundPropertyAccess(node, receiverPlaceholder, initialBindingReceiverIsSubjectToCloning: ThreeState.False, lengthProperty, useBackingField: AccessorKind.Unknown, LookupResultKind.Viable, lengthProperty.Type) { WasCompilerGenerated = true };
                 }
                 else
                 {
