@@ -5274,12 +5274,12 @@ class Program
                 public class Thing
                 {
                     public int Key { get; set; }
-                    public string? Value { get; set; }
+                    public string Value { get; set; }
                 }
 
                 public class Using
                 {
-                    public static Thing CreateThing(int key, string? value)
+                    public static Thing CreateThing(int key, string value)
                     {
                         return new()
                         {
@@ -5292,12 +5292,6 @@ class Program
             var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
-                // (4,18): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public string? Value { get; set; }
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 18),
-                // (9,52): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public static Thing CreateThing(int key, string? value)
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 52),
                 // (14,13): error CS0747: Invalid initializer member declarator
                 //             Value,
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Value").WithLocation(14, 13)
@@ -5313,7 +5307,7 @@ class Program
                 .ChildNodes()
                 .ToArray();
             var initializedSymbol = model.GetSymbolInfo(initializers[1]).Symbol;
-            Assert.Equal("System.String? Thing.Value { get; set; }", initializedSymbol.ToTestDisplayString());
+            Assert.Equal("System.String Thing.Value { get; set; }", initializedSymbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
@@ -5328,12 +5322,12 @@ class Program
                 public class Thing
                 {
                     public int Key { get; set; }
-                    public string? Value { get; set; }
+                    public string Value { get; set; }
                 }
 
                 public class Using
                 {
-                    public static Outer CreateOuterThing(int key, string? value)
+                    public static Outer CreateOuterThing(int key, string value)
                     {
                         return new()
                         {
@@ -5349,12 +5343,6 @@ class Program
             var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
-                // (9,18): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public string? Value { get; set; }
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 18),
-                // (14,57): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public static Outer CreateOuterThing(int key, string? value)
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 57),
                 // (21,17): error CS0747: Invalid initializer member declarator
                 //                 Value,
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Value").WithLocation(21, 17)
@@ -5371,7 +5359,7 @@ class Program
                 as InitializerExpressionSyntax;
             var valueInitializer = thingInitializer.Expressions[1];
             var initializedSymbol = model.GetSymbolInfo(valueInitializer).Symbol;
-            Assert.Equal("System.String? Thing.Value { get; set; }", initializedSymbol.ToTestDisplayString());
+            Assert.Equal("System.String Thing.Value { get; set; }", initializedSymbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
@@ -5381,12 +5369,12 @@ class Program
                 public class Thing
                 {
                     public int Key;
-                    public string? Value;
+                    public string Value;
                 }
 
                 public class Using
                 {
-                    public static Thing CreateThing(int key, string? value)
+                    public static Thing CreateThing(int key, string value)
                     {
                         return new()
                         {
@@ -5399,12 +5387,6 @@ class Program
             var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
-                // (4,18): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public string? Value;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 18),
-                // (9,52): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public static Thing CreateThing(int key, string? value)
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 52),
                 // (14,13): error CS0747: Invalid initializer member declarator
                 //             Value,
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Value").WithLocation(14, 13)
@@ -5420,22 +5402,24 @@ class Program
                 .ChildNodes()
                 .ToArray();
             var initializedSymbol = model.GetSymbolInfo(initializers[1]).Symbol;
-            Assert.Equal("System.String? Thing.Value", initializedSymbol.ToTestDisplayString());
+            Assert.Equal("System.String Thing.Value", initializedSymbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
         public void ObjectInitializerIncompleteMemberValueAssignment04()
         {
             var source = """
+                #pragma warning disable CS0067
+
                 public class Thing
                 {
                     public int Key;
-                    public event Action? Handler;
+                    public event System.Action Handler;
                 }
 
                 public class Using
                 {
-                    public static Thing CreateThing(int key, Action? handler)
+                    public static Thing CreateThing(int key, System.Action handler)
                     {
                         return new()
                         {
@@ -5448,24 +5432,12 @@ class Program
             var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
-                // (4,18): error CS0246: The type or namespace name 'Action' could not be found (are you missing a using directive or an assembly reference?)
-                //     public event Action? Handler;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Action").WithArguments("Action").WithLocation(4, 18),
-                // (4,26): error CS0066: 'Thing.Handler': event must be of a delegate type
-                //     public event Action? Handler;
-                Diagnostic(ErrorCode.ERR_EventNotDelegate, "Handler").WithArguments("Thing.Handler").WithLocation(4, 26),
-                // (4,26): warning CS0067: The event 'Thing.Handler' is never used
-                //     public event Action? Handler;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Handler").WithArguments("Thing.Handler").WithLocation(4, 26),
-                // (9,46): error CS0246: The type or namespace name 'Action' could not be found (are you missing a using directive or an assembly reference?)
-                //     public static Thing CreateThing(int key, Action? handler)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Action").WithArguments("Action").WithLocation(9, 46),
-                // (14,13): error CS0747: Invalid initializer member declarator
+                // (16,13): error CS0747: Invalid initializer member declarator
                 //             Handler,
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Handler").WithLocation(14, 13),
-                // (14,13): error CS0070: The event 'Thing.Handler' can only appear on the left hand side of += or -= (except when used from within the type 'Thing')
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Handler").WithLocation(16, 13),
+                // (16,13): error CS0070: The event 'Thing.Handler' can only appear on the left hand side of += or -= (except when used from within the type 'Thing')
                 //             Handler,
-                Diagnostic(ErrorCode.ERR_BadEventUsage, "Handler").WithArguments("Thing.Handler", "Thing").WithLocation(14, 13)
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "Handler").WithArguments("Thing.Handler", "Thing").WithLocation(16, 13)
                 );
 
             var tree = comp.SyntaxTrees[0];
@@ -5488,12 +5460,12 @@ class Program
                 public class Thing
                 {
                     public int Key { get; set; }
-                    public string? Value { get; set; }
+                    public string Value { get; set; }
                 }
 
                 public class Using
                 {
-                    public static Thing CreateThing(int key, string? value)
+                    public static Thing CreateThing(int key, string value)
                     {
                         return new()
                         {
@@ -5506,12 +5478,6 @@ class Program
             var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
-                // (4,18): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public string? Value { get; set; }
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 18),
-                // (9,52): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public static Thing CreateThing(int key, string? value)
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 52),
                 // (13,13): error CS0747: Invalid initializer member declarator
                 //             Value,
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Value").WithLocation(13, 13)
@@ -5527,7 +5493,7 @@ class Program
                 .ChildNodes()
                 .ToArray();
             var initializedSymbol = model.GetSymbolInfo(initializers[0]).Symbol;
-            Assert.Equal("System.String? Thing.Value { get; set; }", initializedSymbol.ToTestDisplayString());
+            Assert.Equal("System.String Thing.Value { get; set; }", initializedSymbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
@@ -5542,12 +5508,12 @@ class Program
                 public class Thing
                 {
                     public int Key { get; set; }
-                    public string? Value { get; set; }
+                    public string Value { get; set; }
                 }
 
                 public class Using
                 {
-                    public static Outer CreateOuterThing(int key, string? value)
+                    public static Outer CreateOuterThing(int key, string value)
                     {
                         return new()
                         {
@@ -5563,12 +5529,6 @@ class Program
             var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
-                // (9,18): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public string? Value { get; set; }
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 18),
-                // (14,57): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public static Outer CreateOuterThing(int key, string? value)
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(14, 57),
                 // (20,17): error CS0747: Invalid initializer member declarator
                 //                 Value,
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Value").WithLocation(20, 17)
@@ -5585,7 +5545,7 @@ class Program
                 as InitializerExpressionSyntax;
             var valueInitializer = thingInitializer.Expressions[0];
             var initializedSymbol = model.GetSymbolInfo(valueInitializer).Symbol;
-            Assert.Equal("System.String? Thing.Value { get; set; }", initializedSymbol.ToTestDisplayString());
+            Assert.Equal("System.String Thing.Value { get; set; }", initializedSymbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
@@ -5595,12 +5555,12 @@ class Program
                 public class Thing
                 {
                     public int Key;
-                    public string? Value;
+                    public string Value;
                 }
 
                 public class Using
                 {
-                    public static Thing CreateThing(int key, string? value)
+                    public static Thing CreateThing(int key, string value)
                     {
                         return new()
                         {
@@ -5613,12 +5573,6 @@ class Program
             var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
-                // (4,18): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public string? Value;
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(4, 18),
-                // (9,52): warning CS8632: The annotation for nullable reference types should only be used in code within a '#nullable' annotations context.
-                //     public static Thing CreateThing(int key, string? value)
-                Diagnostic(ErrorCode.WRN_MissingNonNullTypesContextForAnnotation, "?").WithLocation(9, 52),
                 // (13,13): error CS0747: Invalid initializer member declarator
                 //             Value,
                 Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Value").WithLocation(13, 13)
@@ -5634,22 +5588,24 @@ class Program
                 .ChildNodes()
                 .ToArray();
             var initializedSymbol = model.GetSymbolInfo(initializers[0]).Symbol;
-            Assert.Equal("System.String? Thing.Value", initializedSymbol.ToTestDisplayString());
+            Assert.Equal("System.String Thing.Value", initializedSymbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
         public void ObjectInitializerIncompleteMemberValueAssignment08()
         {
             var source = """
+                #pragma warning disable CS0067
+                
                 public class Thing
                 {
                     public int Key;
-                    public event Action? Handler;
+                    public event System.Action Handler;
                 }
 
                 public class Using
                 {
-                    public static Thing CreateThing(int key, Action? handler)
+                    public static Thing CreateThing(int key, System.Action handler)
                     {
                         return new()
                         {
@@ -5662,24 +5618,12 @@ class Program
             var comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
-                // (4,18): error CS0246: The type or namespace name 'Action' could not be found (are you missing a using directive or an assembly reference?)
-                //     public event Action? Handler;
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Action").WithArguments("Action").WithLocation(4, 18),
-                // (4,26): error CS0066: 'Thing.Handler': event must be of a delegate type
-                //     public event Action? Handler;
-                Diagnostic(ErrorCode.ERR_EventNotDelegate, "Handler").WithArguments("Thing.Handler").WithLocation(4, 26),
-                // (4,26): warning CS0067: The event 'Thing.Handler' is never used
-                //     public event Action? Handler;
-                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "Handler").WithArguments("Thing.Handler").WithLocation(4, 26),
-                // (9,46): error CS0246: The type or namespace name 'Action' could not be found (are you missing a using directive or an assembly reference?)
-                //     public static Thing CreateThing(int key, Action? handler)
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Action").WithArguments("Action").WithLocation(9, 46),
-                // (13,13): error CS0747: Invalid initializer member declarator
+                // (15,13): error CS0747: Invalid initializer member declarator
                 //             Handler,
-                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Handler").WithLocation(13, 13),
-                // (13,13): error CS0070: The event 'Thing.Handler' can only appear on the left hand side of += or -= (except when used from within the type 'Thing')
+                Diagnostic(ErrorCode.ERR_InvalidInitializerElementInitializer, "Handler").WithLocation(15, 13),
+                // (15,13): error CS0070: The event 'Thing.Handler' can only appear on the left hand side of += or -= (except when used from within the type 'Thing')
                 //             Handler,
-                Diagnostic(ErrorCode.ERR_BadEventUsage, "Handler").WithArguments("Thing.Handler", "Thing").WithLocation(13, 13)
+                Diagnostic(ErrorCode.ERR_BadEventUsage, "Handler").WithArguments("Thing.Handler", "Thing").WithLocation(15, 13)
                 );
 
             var tree = comp.SyntaxTrees[0];

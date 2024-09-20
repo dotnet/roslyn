@@ -5668,6 +5668,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Do not bind to a non-member, like a BoundBadExpression
                         if (boundNode.Kind is BoundKind.ObjectInitializerMember)
                         {
+                            boundNode = boundNode.WithHasErrors();
                             return boundNode;
                         }
 
