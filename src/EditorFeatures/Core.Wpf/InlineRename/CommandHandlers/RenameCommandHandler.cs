@@ -38,8 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public RenameCommandHandler(
             IThreadingContext threadingContext,
             InlineRenameService renameService,
+            IGlobalOptionService globalOptionService,
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
-            : base(threadingContext, renameService, asynchronousOperationListenerProvider)
+            : base(threadingContext, renameService, globalOptionService, asynchronousOperationListenerProvider)
         {
         }
 

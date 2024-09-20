@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -22,15 +23,18 @@ internal abstract partial class AbstractRenameCommandHandler
 {
     private readonly IThreadingContext _threadingContext;
     private readonly InlineRenameService _renameService;
+    private readonly IGlobalOptionService _globalOptionService;
     private readonly IAsynchronousOperationListener _listener;
 
     protected AbstractRenameCommandHandler(
         IThreadingContext threadingContext,
         InlineRenameService renameService,
+        IGlobalOptionService globalOptionService,
         IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
     {
         _threadingContext = threadingContext;
         _renameService = renameService;
+        _globalOptionService = globalOptionService;
         _listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Rename);
     }
 
