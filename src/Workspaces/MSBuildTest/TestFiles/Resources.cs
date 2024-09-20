@@ -135,6 +135,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string Issue30174_InspectedLibrary => GetText("Issue30174.InspectedLibrary.InspectedLibrary.csproj");
                 public static string Issue30174_ReferencedLibrary => GetText("Issue30174.ReferencedLibrary.ReferencedLibrary.csproj");
                 public static string MSBuildExecutionError => GetText("ProjectFiles.CSharp.MSBuildExecutionError.csproj");
+                public static string MSBuildExecutionWarning => GetText("ProjectFiles.CSharp.MSBuildExecutionWarning.csproj");
                 public static string MSBuildEvaluationErrorWithSyntax => GetText("ProjectFiles.CSharp.MSBuildEvaluationErrorWithSyntax.csproj");
                 public static string MSBuildEvaluationErrorWithExpressionInputs => GetText("ProjectFiles.CSharp.MSBuildEvaluationErrorWithExpressionInputs.csproj");
                 public static string MallformedAdditionalFilePath => GetText("ProjectFiles.CSharp.MallformedAdditionalFilePath.csproj");

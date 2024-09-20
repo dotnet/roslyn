@@ -582,7 +582,7 @@ class C1
                 .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.WithoutCSharpTargetsImported));
             var solutionFilePath = GetSolutionFileName(@"TestSolution.sln");
 
-            //Msbuild failed when processing the file with message: Project does not contain 'Compile' target.
+            //MSBuild failed when processing the file with message: Project does not contain 'Compile' target.
             using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
             var project = solution.Projects.First();
@@ -596,7 +596,7 @@ class C1
                 .WithFile(@"VisualBasicProject\VisualBasicProject.vbproj", Resources.ProjectFiles.VisualBasic.WithoutVBTargetsImported));
             var projectFilePath = GetSolutionFileName(@"VisualBasicProject\VisualBasicProject.vbproj");
 
-            //Msbuild failed when processing the file with message: Project does not contain 'Compile' target.
+            //MSBuild failed when processing the file with message: Project does not contain 'Compile' target.
             using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
             var project = await workspace.OpenProjectAsync(projectFilePath);
             Assert.NotEmpty(project.Documents);
@@ -3005,7 +3005,7 @@ class C { }";
             var proj = await workspace.OpenProjectAsync(projectFilePath);
 
             var diagnostic = Assert.Single(workspace.Diagnostics);
-            Assert.StartsWith("Msbuild failed", diagnostic.Message);
+            Assert.StartsWith("MSBuild failed", diagnostic.Message);
 
             Assert.Empty(proj.DocumentIds);
         }
@@ -3022,7 +3022,7 @@ class C { }";
             var proj = await workspace.OpenProjectAsync(projectFilePath);
 
             var diagnostic = Assert.Single(workspace.Diagnostics);
-            Assert.StartsWith("Msbuild failed", diagnostic.Message);
+            Assert.StartsWith("MSBuild failed", diagnostic.Message);
 
             Assert.Equal(2, proj.DocumentIds.Count);
         }
@@ -3039,7 +3039,7 @@ class C { }";
             var solution = await workspace.OpenSolutionAsync(solutionFilePath);
 
             var diagnostic = Assert.Single(workspace.Diagnostics);
-            Assert.StartsWith("Msbuild failed", diagnostic.Message);
+            Assert.StartsWith("MSBuild failed", diagnostic.Message);
 
             var project = Assert.Single(solution.Projects);
             Assert.Equal(2, project.DocumentIds.Count);
@@ -3057,7 +3057,24 @@ class C { }";
             var proj = await workspace.OpenProjectAsync(projectFilePath);
 
             var diagnostic = Assert.Single(workspace.Diagnostics);
-            Assert.StartsWith("Msbuild failed", diagnostic.Message);
+            Assert.StartsWith("MSBuild failed", diagnostic.Message);
+            Assert.Equal(WorkspaceDiagnosticKind.Failure, diagnostic.Kind);
+        }
+
+        [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]
+        public async Task TestOpenProject_MSBuildExecutionWarning()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles()
+                .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.MSBuildExecutionWarning));
+
+            var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            using var workspace = CreateMSBuildWorkspace(throwOnWorkspaceFailed: false);
+            var proj = await workspace.OpenProjectAsync(projectFilePath);
+
+            var diagnostic = Assert.Single(workspace.Diagnostics);
+            Assert.StartsWith("MSBuild warning", diagnostic.Message);
+            Assert.Equal(WorkspaceDiagnosticKind.Warning, diagnostic.Kind);
         }
 
         [ConditionalFact(typeof(IsEnglishLocal), typeof(VisualStudioMSBuildInstalled))]

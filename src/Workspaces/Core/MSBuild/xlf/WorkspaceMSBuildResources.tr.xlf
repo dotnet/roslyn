@@ -18,13 +18,23 @@
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0">
-        <source>Msbuild failed when processing the file '{0}'</source>
-        <target state="translated">'{0}' dosyası işlenirken MSBuild başarısız oldu</target>
+        <source>MSBuild failed when processing the file '{0}'</source>
+        <target state="needs-review-translation">'{0}' dosyası işlenirken MSBuild başarısız oldu</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
-        <source>Msbuild failed when processing the file '{0}' with message: {1}</source>
-        <target state="translated">MSBuild mesaj ile '{0}' dosyasını işlerken başarısız oldu: {1}</target>
+        <source>MSBuild failed when processing the file '{0}' with message: {1}</source>
+        <target state="needs-review-translation">MSBuild mesaj ile '{0}' dosyasını işlerken başarısız oldu: {1}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Msbuild_warning_when_processing_the_file_0">
+        <source>MSBuild warning when processing the file '{0}'</source>
+        <target state="new">MSBuild warning when processing the file '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Msbuild_warning_when_processing_the_file_0_with_message_1">
+        <source>MSBuild warning when processing the file '{0}' with message: {1}</source>
+        <target state="new">MSBuild warning when processing the file '{0}' with message: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Path_for_additional_document_0_was_null">
