@@ -2946,6 +2946,107 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory]
+        [CombinatorialData]
+        public void BetterConversionFromExpression_19(
+            [CombinatorialValues(
+                "List<int>",
+                "List<int?>",
+                "List<byte>",
+                "List<object>",
+                "List<(int, int)>"
+            )] string type1,
+            [CombinatorialValues(
+                "List<int>",
+                "List<int?>",
+                "List<byte>",
+                "List<object>",
+                "List<(int, int)>"
+            )] string type2)
+        {
+            if (type1 == type2)
+            {
+                return;
+            }
+
+            var source = $$"""
+                using System;
+                using System.Collections.Generic;
+
+                M1([default]);
+                M1([new()]);
+                M1(default, default);
+                M1(new(), new());
+
+                partial class Program
+                {
+                    static void M1(params {{type1}} s) => Console.WriteLine("{{type1}}");
+                    static void M1(params {{type2}} s) => Console.WriteLine("{{type2}}");
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+
+            string expectedType;
+
+            switch (type1, type2)
+            {
+                // (int, int) vs everything but object is ambiguous
+                case ("List<(int, int)>", not "List<object>"):
+                case (not "List<object>", "List<(int, int)>"):
+                    comp.VerifyDiagnostics(
+                        // (4,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(params List<int?>)' and 'Program.M1(params List<(int, int)>)'
+                        // M1([default]);
+                        Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments($"Program.M1(params System.Collections.Generic.{type1})", $"Program.M1(params System.Collections.Generic.{type2})").WithLocation(4, 1),
+                        // (5,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(params List<int?>)' and 'Program.M1(params List<(int, int)>)'
+                        // M1([new()]);
+                        Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments($"Program.M1(params System.Collections.Generic.{type1})", $"Program.M1(params System.Collections.Generic.{type2})").WithLocation(5, 1),
+                        // (6,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(params List<int?>)' and 'Program.M1(params List<(int, int)>)'
+                        // M1(default, default);
+                        Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments($"Program.M1(params System.Collections.Generic.{type1})", $"Program.M1(params System.Collections.Generic.{type2})").WithLocation(6, 1),
+                        // (7,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(params List<int?>)' and 'Program.M1(params List<(int, int)>)'
+                        // M1(new(), new());
+                        Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments($"Program.M1(params System.Collections.Generic.{type1})", $"Program.M1(params System.Collections.Generic.{type2})").WithLocation(7, 1)
+                    );
+                    return;
+
+                // Then byte is always preferred when present
+                case ("List<byte>", _):
+                case (_, "List<byte>"):
+                    expectedType = "List<byte>";
+                    break;
+
+                // Then int
+                case ("List<int>", _):
+                case (_, "List<int>"):
+                    expectedType = "List<int>";
+                    break;
+
+                // Then int?
+                case ("List<int?>", _):
+                case (_, "List<int?>"):
+                    expectedType = "List<int?>";
+                    break;
+
+                // Finally (int, int). It's only non-ambiguous when the other type is object
+                case ("List<object>", "List<(int, int)>"):
+                case ("List<(int, int)>", "List<object>"):
+                    expectedType = "List<(int, int)>";
+                    break;
+
+                // Unreachable
+                default:
+                    throw ExceptionUtilities.Unreachable();
+            }
+
+            CompileAndVerify(comp, expectedOutput: $"""
+                {expectedType}
+                {expectedType}
+                {expectedType}
+                {expectedType}
+                """);
+        }
+
+        [Theory]
         [InlineData("System.ReadOnlySpan<char>")]
         [InlineData("System.Span<char>")]
         public void BetterConversionFromExpression_String_01(string spanType)
