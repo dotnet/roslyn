@@ -2432,6 +2432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var source = $$"""
                 using System;
+                using System.Collections.Generic;
 
                 object o = null;
                 dynamic d = null;
@@ -2445,6 +2446,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 M2([o, d]);
                 M2([d, o]);
 
+                IEnumerable<object> x = [];
+                IEnumerable<dynamic> y = [];
+                M1([..x]);
+                M1([..y]);
+                M1([o, ..x]);
+                M1([d, ..x]);
+                M1([..y, o]);
+                M1([..y, d]);
+                M1([..x, ..y]);
+                M1([..y, ..x]);
+
                 partial class Program
                 {
                     static void M1({{spanType}} s) => Console.WriteLine("{{spanType}}");
@@ -2455,6 +2467,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
             string expectedOutput = IncludeExpectedOutput($"""
+                {readOnlySpanType}
+                {readOnlySpanType}
+                {readOnlySpanType}
+                {readOnlySpanType}
+                {readOnlySpanType}
+                {readOnlySpanType}
+                {readOnlySpanType}
+                {readOnlySpanType}
                 {readOnlySpanType}
                 {readOnlySpanType}
                 {readOnlySpanType}
@@ -2488,7 +2508,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void BetterConversionFromExpression_14()
         {
             var source = $$"""
-                using System;
                 using System.Collections.Generic;
 
                 object o = null;
@@ -2498,6 +2517,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 o.M1([d, d]);
                 o.M1([o, d]);
                 o.M1([d, o]);
+
+                IEnumerable<object> x = [];
+                IEnumerable<dynamic> y = [];
+                o.M1([..x]);
+                o.M1([..y]);
+                o.M1([o, ..x]);
+                o.M1([d, ..x]);
+                o.M1([..y, o]);
+                o.M1([..y, d]);
+                o.M1([..x, ..y]);
+                o.M1([..y, ..x]);
 
                 static class Ext1
                 {
@@ -2511,18 +2541,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
             var expectedDiagnostics = new[] {
-                // (7,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.M1(object, List<dynamic>)' and 'Ext2.M1(object, List<object>)'
+                // (6,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.M1(object, List<dynamic>)' and 'Ext2.M1(object, List<object>)'
                 // o.M1([o, o]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ext1.M1(object, System.Collections.Generic.List<dynamic>)", "Ext2.M1(object, System.Collections.Generic.List<object>)").WithLocation(6, 3),
+                // (7,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.M1(object, List<dynamic>)' and 'Ext2.M1(object, List<object>)'
+                // o.M1([d, d]);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ext1.M1(object, System.Collections.Generic.List<dynamic>)", "Ext2.M1(object, System.Collections.Generic.List<object>)").WithLocation(7, 3),
                 // (8,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.M1(object, List<dynamic>)' and 'Ext2.M1(object, List<object>)'
-                // o.M1([d, d]);
+                // o.M1([o, d]);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ext1.M1(object, System.Collections.Generic.List<dynamic>)", "Ext2.M1(object, System.Collections.Generic.List<object>)").WithLocation(8, 3),
                 // (9,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.M1(object, List<dynamic>)' and 'Ext2.M1(object, List<object>)'
-                // o.M1([o, d]);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ext1.M1(object, System.Collections.Generic.List<dynamic>)", "Ext2.M1(object, System.Collections.Generic.List<object>)").WithLocation(9, 3),
-                // (10,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.M1(object, List<dynamic>)' and 'Ext2.M1(object, List<object>)'
                 // o.M1([d, o]);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ext1.M1(object, System.Collections.Generic.List<dynamic>)", "Ext2.M1(object, System.Collections.Generic.List<object>)").WithLocation(10, 3)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ext1.M1(object, System.Collections.Generic.List<dynamic>)", "Ext2.M1(object, System.Collections.Generic.List<object>)").WithLocation(9, 3),
+                // (13,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.M1(object, List<dynamic>)' and 'Ext2.M1(object, List<object>)'
+                // o.M1([..x]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ext1.M1(object, System.Collections.Generic.List<dynamic>)", "Ext2.M1(object, System.Collections.Generic.List<object>)").WithLocation(13, 3),
+                // (14,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.M1(object, List<dynamic>)' and 'Ext2.M1(object, List<object>)'
+                // o.M1([..y]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ext1.M1(object, System.Collections.Generic.List<dynamic>)", "Ext2.M1(object, System.Collections.Generic.List<object>)").WithLocation(14, 3),
+                // (15,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.M1(object, List<dynamic>)' and 'Ext2.M1(object, List<object>)'
+                // o.M1([o, ..x]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ext1.M1(object, System.Collections.Generic.List<dynamic>)", "Ext2.M1(object, System.Collections.Generic.List<object>)").WithLocation(15, 3),
+                // (16,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.M1(object, List<dynamic>)' and 'Ext2.M1(object, List<object>)'
+                // o.M1([d, ..x]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ext1.M1(object, System.Collections.Generic.List<dynamic>)", "Ext2.M1(object, System.Collections.Generic.List<object>)").WithLocation(16, 3),
+                // (17,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.M1(object, List<dynamic>)' and 'Ext2.M1(object, List<object>)'
+                // o.M1([..y, o]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ext1.M1(object, System.Collections.Generic.List<dynamic>)", "Ext2.M1(object, System.Collections.Generic.List<object>)").WithLocation(17, 3),
+                // (18,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.M1(object, List<dynamic>)' and 'Ext2.M1(object, List<object>)'
+                // o.M1([..y, d]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ext1.M1(object, System.Collections.Generic.List<dynamic>)", "Ext2.M1(object, System.Collections.Generic.List<object>)").WithLocation(18, 3),
+                // (19,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.M1(object, List<dynamic>)' and 'Ext2.M1(object, List<object>)'
+                // o.M1([..x, ..y]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ext1.M1(object, System.Collections.Generic.List<dynamic>)", "Ext2.M1(object, System.Collections.Generic.List<object>)").WithLocation(19, 3),
+                // (20,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.M1(object, List<dynamic>)' and 'Ext2.M1(object, List<object>)'
+                // o.M1([..y, ..x]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ext1.M1(object, System.Collections.Generic.List<dynamic>)", "Ext2.M1(object, System.Collections.Generic.List<object>)").WithLocation(20, 3)
             };
 
             CreateCompilation(source,
@@ -2561,6 +2615,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 M2([o, d]);
                 M2([d, o]);
 
+                IEnumerable<object> x = [];
+                IEnumerable<dynamic> y = [];
+                M1([..x]);
+                M1([..y]);
+                M1([o, ..x]);
+                M1([d, ..x]);
+                M1([..y, o]);
+                M1([..y, d]);
+                M1([..x, ..y]);
+                M1([..y, ..x]);
+
                 partial class Program
                 {
                     static void M1({{ienumerableType}} s) => Console.WriteLine("{{ienumerableType}}");
@@ -2571,6 +2636,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
             string expectedOutput = IncludeExpectedOutput($"""
+                {listType}
+                {listType}
+                {listType}
+                {listType}
+                {listType}
+                {listType}
+                {listType}
+                {listType}
                 {listType}
                 {listType}
                 {listType}
@@ -2608,7 +2681,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var listType = dynamicList ? "List<dynamic>" : "List<object>";
 
             var source = $$"""
-                using System;
                 using System.Collections.Generic;
 
                 object o = null;
@@ -2623,6 +2695,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 M2([o, d]);
                 M2([d, o]);
 
+                IEnumerable<object> x = [];
+                IEnumerable<dynamic> y = [];
+                M1([..x]);
+                M1([..y]);
+                M1([o, ..x]);
+                M1([d, ..x]);
+                M1([..y, o]);
+                M1([..y, d]);
+                M1([..x, ..y]);
+                M1([..y, ..x]);
+
                 partial class Program
                 {
                     static void M1({{hashSetType}} s) { }
@@ -2633,30 +2716,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
             var expectedDiagnostics = new[] {
-                // (7,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(HashSet<object>)' and 'Program.M1(List<dynamic>)'
+                // (6,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(HashSet<dynamic>)' and 'Program.M1(List<object>)'
                 // M1([o, o]);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments(generateMethodSignature("M1", hashSetType), generateMethodSignature("M1", listType)).WithLocation(7, 1),
-                // (8,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(HashSet<object>)' and 'Program.M1(List<dynamic>)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments(generateMethodSignature("M1", hashSetType), generateMethodSignature("M1", listType)).WithLocation(6, 1),
+                // (7,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(HashSet<dynamic>)' and 'Program.M1(List<object>)'
                 // M1([d, d]);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments(generateMethodSignature("M1", hashSetType), generateMethodSignature("M1", listType)).WithLocation(8, 1),
-                // (9,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(HashSet<object>)' and 'Program.M1(List<dynamic>)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments(generateMethodSignature("M1", hashSetType), generateMethodSignature("M1", listType)).WithLocation(7, 1),
+                // (8,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(HashSet<dynamic>)' and 'Program.M1(List<object>)'
                 // M1([o, d]);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments(generateMethodSignature("M1", hashSetType), generateMethodSignature("M1", listType)).WithLocation(9, 1),
-                // (10,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(HashSet<object>)' and 'Program.M1(List<dynamic>)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments(generateMethodSignature("M1", hashSetType), generateMethodSignature("M1", listType)).WithLocation(8, 1),
+                // (9,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(HashSet<dynamic>)' and 'Program.M1(List<object>)'
                 // M1([d, o]);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments(generateMethodSignature("M1", hashSetType), generateMethodSignature("M1", listType)).WithLocation(10, 1),
-                // (11,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M2(List<dynamic>)' and 'Program.M2(HashSet<object>)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments(generateMethodSignature("M1", hashSetType), generateMethodSignature("M1", listType)).WithLocation(9, 1),
+                // (10,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M2(List<object>)' and 'Program.M2(HashSet<dynamic>)'
                 // M2([o, o]);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments(generateMethodSignature("M2", listType), generateMethodSignature("M2", hashSetType)).WithLocation(11, 1),
-                // (12,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M2(List<dynamic>)' and 'Program.M2(HashSet<object>)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments(generateMethodSignature("M2", listType),generateMethodSignature("M2", hashSetType)).WithLocation(10, 1),
+                // (11,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M2(List<object>)' and 'Program.M2(HashSet<dynamic>)'
                 // M2([d, d]);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments(generateMethodSignature("M2", listType), generateMethodSignature("M2", hashSetType)).WithLocation(12, 1),
-                // (13,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M2(List<dynamic>)' and 'Program.M2(HashSet<object>)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments(generateMethodSignature("M2", listType),generateMethodSignature("M2", hashSetType)).WithLocation(11, 1),
+                // (12,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M2(List<object>)' and 'Program.M2(HashSet<dynamic>)'
                 // M2([o, d]);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments(generateMethodSignature("M2", listType), generateMethodSignature("M2", hashSetType)).WithLocation(13, 1),
-                // (14,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M2(List<dynamic>)' and 'Program.M2(HashSet<object>)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments(generateMethodSignature("M2", listType),generateMethodSignature("M2", hashSetType)).WithLocation(12, 1),
+                // (13,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M2(List<object>)' and 'Program.M2(HashSet<dynamic>)'
                 // M2([d, o]);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments(generateMethodSignature("M2", listType), generateMethodSignature("M2", hashSetType)).WithLocation(14, 1)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments(generateMethodSignature("M2", listType),generateMethodSignature("M2", hashSetType)).WithLocation(13, 1),
+                // (17,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(HashSet<dynamic>)' and 'Program.M1(List<object>)'
+                // M1([..x]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments(generateMethodSignature("M1", hashSetType), generateMethodSignature("M1", listType)).WithLocation(17, 1),
+                // (18,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(HashSet<dynamic>)' and 'Program.M1(List<object>)'
+                // M1([..y]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments(generateMethodSignature("M1", hashSetType), generateMethodSignature("M1", listType)).WithLocation(18, 1),
+                // (19,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(HashSet<dynamic>)' and 'Program.M1(List<object>)'
+                // M1([o, ..x]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments(generateMethodSignature("M1", hashSetType), generateMethodSignature("M1", listType)).WithLocation(19, 1),
+                // (20,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(HashSet<dynamic>)' and 'Program.M1(List<object>)'
+                // M1([d, ..x]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments(generateMethodSignature("M1", hashSetType), generateMethodSignature("M1", listType)).WithLocation(20, 1),
+                // (21,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(HashSet<dynamic>)' and 'Program.M1(List<object>)'
+                // M1([..y, o]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments(generateMethodSignature("M1", hashSetType), generateMethodSignature("M1", listType)).WithLocation(21, 1),
+                // (22,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(HashSet<dynamic>)' and 'Program.M1(List<object>)'
+                // M1([..y, d]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments(generateMethodSignature("M1", hashSetType), generateMethodSignature("M1", listType)).WithLocation(22, 1),
+                // (23,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(HashSet<dynamic>)' and 'Program.M1(List<object>)'
+                // M1([..x, ..y]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments(generateMethodSignature("M1", hashSetType), generateMethodSignature("M1", listType)).WithLocation(23, 1),
+                // (24,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(HashSet<dynamic>)' and 'Program.M1(List<object>)'
+                // M1([..y, ..x]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments(generateMethodSignature("M1", hashSetType), generateMethodSignature("M1", listType)).WithLocation(24, 1)
             };
 
             CreateCompilation(source,
@@ -2680,6 +2787,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var source = $$"""
                 using System;
+                using System.Collections.Generic;
 
                 M1([(a: 1, b: 2)]);
                 M1([(a: 1, d: 2)]);
@@ -2689,6 +2797,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 M2([(a: 1, d: 2)]);
                 M2([(c: 1, b: 2)]);
                 M2([(c: 1, d: 2)]);
+
+                IEnumerable<(int a, int b)> x = [];
+                IEnumerable<(int c, int d)> y = [];
+                M1([..x]);
+                M1([..y]);
+                M1([(a: 1, b: 2), ..x]);
+                M1([(c: 3, d: 4), ..x]);
+                M1([..y, (a: 5, b: 6)]);
+                M1([..y, (c: 7, d: 8)]);
+                M1([..x, ..y]);
+                M1([..y, ..x]);
 
                 partial class Program
                 {
@@ -2700,6 +2819,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
 
             string expectedOutput = IncludeExpectedOutput($"""
+                c, d
+                c, d
+                c, d
+                c, d
+                c, d
+                c, d
+                c, d
+                c, d
                 c, d
                 c, d
                 c, d
@@ -2743,6 +2870,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 o.M1([(c: 1, b: 2)]);
                 o.M1([(c: 1, d: 2)]);
 
+                IEnumerable<(int a, int b)> x = [];
+                IEnumerable<(int c, int d)> y = [];
+                o.M1([..x]);
+                o.M1([..y]);
+                o.M1([(a: 1, b: 2), ..x]);
+                o.M1([(c: 3, d: 4), ..x]);
+                o.M1([..y, (a: 5, b: 6)]);
+                o.M1([..y, (c: 7, d: 8)]);
+                o.M1([..x, ..y]);
+                o.M1([..y, ..x]);
+
+
                 static class Ex1
                 {
                     public static void M1(this object o, List<(int a, int b)> s) => Console.WriteLine("a, b");
@@ -2753,17 +2892,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static void M1(this object o, List<(int c, int d)> s) => Console.WriteLine("c, d");
                 }
                 """;
-
-            string expectedOutput = IncludeExpectedOutput($"""
-                c, d
-                c, d
-                c, d
-                c, d
-                c, d
-                c, d
-                c, d
-                c, d
-                """);
 
             var expectedDiagnostics = new[] {
                 // (6,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ex1.M1(object, List<(int a, int b)>)' and 'Ex2.M1(object, List<(int c, int d)>)'
@@ -2777,7 +2905,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ex1.M1(object, System.Collections.Generic.List<(int a, int b)>)", "Ex2.M1(object, System.Collections.Generic.List<(int c, int d)>)").WithLocation(8, 3),
                 // (9,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ex1.M1(object, List<(int a, int b)>)' and 'Ex2.M1(object, List<(int c, int d)>)'
                 // o.M1([(c: 1, d: 2)]);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ex1.M1(object, System.Collections.Generic.List<(int a, int b)>)", "Ex2.M1(object, System.Collections.Generic.List<(int c, int d)>)").WithLocation(9, 3)
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ex1.M1(object, System.Collections.Generic.List<(int a, int b)>)", "Ex2.M1(object, System.Collections.Generic.List<(int c, int d)>)").WithLocation(9, 3),
+                // (13,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ex1.M1(object, List<(int a, int b)>)' and 'Ex2.M1(object, List<(int c, int d)>)'
+                // o.M1([..x]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ex1.M1(object, System.Collections.Generic.List<(int a, int b)>)", "Ex2.M1(object, System.Collections.Generic.List<(int c, int d)>)").WithLocation(13, 3),
+                // (14,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ex1.M1(object, List<(int a, int b)>)' and 'Ex2.M1(object, List<(int c, int d)>)'
+                // o.M1([..y]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ex1.M1(object, System.Collections.Generic.List<(int a, int b)>)", "Ex2.M1(object, System.Collections.Generic.List<(int c, int d)>)").WithLocation(14, 3),
+                // (15,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ex1.M1(object, List<(int a, int b)>)' and 'Ex2.M1(object, List<(int c, int d)>)'
+                // o.M1([(a: 1, b: 2), ..x]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ex1.M1(object, System.Collections.Generic.List<(int a, int b)>)", "Ex2.M1(object, System.Collections.Generic.List<(int c, int d)>)").WithLocation(15, 3),
+                // (16,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ex1.M1(object, List<(int a, int b)>)' and 'Ex2.M1(object, List<(int c, int d)>)'
+                // o.M1([(c: 3, d: 4), ..x]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ex1.M1(object, System.Collections.Generic.List<(int a, int b)>)", "Ex2.M1(object, System.Collections.Generic.List<(int c, int d)>)").WithLocation(16, 3),
+                // (17,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ex1.M1(object, List<(int a, int b)>)' and 'Ex2.M1(object, List<(int c, int d)>)'
+                // o.M1([..y, (a: 5, b: 6)]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ex1.M1(object, System.Collections.Generic.List<(int a, int b)>)", "Ex2.M1(object, System.Collections.Generic.List<(int c, int d)>)").WithLocation(17, 3),
+                // (18,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ex1.M1(object, List<(int a, int b)>)' and 'Ex2.M1(object, List<(int c, int d)>)'
+                // o.M1([..y, (c: 7, d: 8)]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ex1.M1(object, System.Collections.Generic.List<(int a, int b)>)", "Ex2.M1(object, System.Collections.Generic.List<(int c, int d)>)").WithLocation(18, 3),
+                // (19,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ex1.M1(object, List<(int a, int b)>)' and 'Ex2.M1(object, List<(int c, int d)>)'
+                // o.M1([..x, ..y]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ex1.M1(object, System.Collections.Generic.List<(int a, int b)>)", "Ex2.M1(object, System.Collections.Generic.List<(int c, int d)>)").WithLocation(19, 3),
+                // (20,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ex1.M1(object, List<(int a, int b)>)' and 'Ex2.M1(object, List<(int c, int d)>)'
+                // o.M1([..y, ..x]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ex1.M1(object, System.Collections.Generic.List<(int a, int b)>)", "Ex2.M1(object, System.Collections.Generic.List<(int c, int d)>)").WithLocation(20, 3)
             };
 
             CreateCompilation(source,
