@@ -5665,12 +5665,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(objectInitializerMemberBinder != null);
 
                         var boundNode = objectInitializerMemberBinder.BindObjectInitializerMemberMissingAssignment(identifierName, implicitReceiver, diagnostics);
-                        // Do not bind to a non-member, like a BoundBadExpression
-                        if (boundNode.Kind is BoundKind.ObjectInitializerMember)
-                        {
-                            boundNode = boundNode.WithHasErrors();
-                            return boundNode;
-                        }
 
                         var badRight = new BoundBadExpression(
                             identifierName,
