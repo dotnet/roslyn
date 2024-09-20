@@ -2424,6 +2424,376 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory]
+        [CombinatorialData]
+        public void BetterConversionFromExpression_13(bool dynamicReadOnlySpan)
+        {
+            var spanType = dynamicReadOnlySpan ? "Span<object>" : "Span<dynamic>";
+            var readOnlySpanType = dynamicReadOnlySpan ? "ReadOnlySpan<dynamic>" : "ReadOnlySpan<object>";
+
+            var source = $$"""
+                using System;
+
+                object o = null;
+                dynamic d = null;
+
+                M1([o, o]);
+                M1([d, d]);
+                M1([o, d]);
+                M1([d, o]);
+                M2([o, o]);
+                M2([d, d]);
+                M2([o, d]);
+                M2([d, o]);
+
+                partial class Program
+                {
+                    static void M1({{spanType}} s) => Console.WriteLine("{{spanType}}");
+                    static void M1({{readOnlySpanType}} s) => Console.WriteLine("{{readOnlySpanType}}");
+                    static void M2({{readOnlySpanType}} s) => Console.WriteLine("{{readOnlySpanType}}");
+                    static void M2({{spanType}} s) => Console.WriteLine("{{spanType}}");
+                }
+                """;
+
+            string expectedOutput = IncludeExpectedOutput($"""
+                {readOnlySpanType}
+                {readOnlySpanType}
+                {readOnlySpanType}
+                {readOnlySpanType}
+                {readOnlySpanType}
+                {readOnlySpanType}
+                {readOnlySpanType}
+                {readOnlySpanType}
+                """);
+
+            CompileAndVerify(source,
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.Regular13,
+                expectedOutput: expectedOutput);
+
+            CompileAndVerify(source,
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.RegularPreview,
+                expectedOutput: expectedOutput);
+
+            CompileAndVerify(source,
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.Regular12,
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void BetterConversionFromExpression_14()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections.Generic;
+
+                object o = null;
+                dynamic d = null;
+
+                o.M1([o, o]);
+                o.M1([d, d]);
+                o.M1([o, d]);
+                o.M1([d, o]);
+
+                static class Ext1
+                {
+                    public static void M1(this object o, List<dynamic> d) { }
+                }
+
+                static class Ext2
+                {
+                    public static void M1(this object o, List<object> d) { }
+                }
+                """;
+
+            var expectedDiagnostics = new[] {
+                // (7,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.M1(object, List<dynamic>)' and 'Ext2.M1(object, List<object>)'
+                // o.M1([o, o]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ext1.M1(object, System.Collections.Generic.List<dynamic>)", "Ext2.M1(object, System.Collections.Generic.List<object>)").WithLocation(7, 3),
+                // (8,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.M1(object, List<dynamic>)' and 'Ext2.M1(object, List<object>)'
+                // o.M1([d, d]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ext1.M1(object, System.Collections.Generic.List<dynamic>)", "Ext2.M1(object, System.Collections.Generic.List<object>)").WithLocation(8, 3),
+                // (9,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.M1(object, List<dynamic>)' and 'Ext2.M1(object, List<object>)'
+                // o.M1([o, d]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ext1.M1(object, System.Collections.Generic.List<dynamic>)", "Ext2.M1(object, System.Collections.Generic.List<object>)").WithLocation(9, 3),
+                // (10,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ext1.M1(object, List<dynamic>)' and 'Ext2.M1(object, List<object>)'
+                // o.M1([d, o]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ext1.M1(object, System.Collections.Generic.List<dynamic>)", "Ext2.M1(object, System.Collections.Generic.List<object>)").WithLocation(10, 3)
+            };
+
+            CreateCompilation(source,
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(source,
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(source,
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void BetterConversionFromExpression_15(bool dynamicList)
+        {
+            var ienumerableType = dynamicList ? "IEnumerable<object>" : "IEnumerable<dynamic>";
+            var listType = dynamicList ? "List<dynamic>" : "List<object>";
+
+            var source = $$"""
+                using System;
+                using System.Collections.Generic;
+
+                object o = null;
+                dynamic d = null;
+
+                M1([o, o]);
+                M1([d, d]);
+                M1([o, d]);
+                M1([d, o]);
+                M2([o, o]);
+                M2([d, d]);
+                M2([o, d]);
+                M2([d, o]);
+
+                partial class Program
+                {
+                    static void M1({{ienumerableType}} s) => Console.WriteLine("{{ienumerableType}}");
+                    static void M1({{listType}} s) => Console.WriteLine("{{listType}}");
+                    static void M2({{listType}} s) => Console.WriteLine("{{listType}}");
+                    static void M2({{ienumerableType}} s) => Console.WriteLine("{{ienumerableType}}");
+                }
+                """;
+
+            string expectedOutput = IncludeExpectedOutput($"""
+                {listType}
+                {listType}
+                {listType}
+                {listType}
+                {listType}
+                {listType}
+                {listType}
+                {listType}
+                """);
+
+            CompileAndVerify(source,
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.Regular13,
+                expectedOutput: expectedOutput);
+
+            CompileAndVerify(source,
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.RegularPreview,
+                expectedOutput: expectedOutput);
+
+            CompileAndVerify(source,
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.Regular12,
+                expectedOutput: expectedOutput);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void BetterConversionFromExpression_16(bool dynamicList)
+        {
+            var hashSetType = dynamicList ? "HashSet<object>" : "HashSet<dynamic>";
+            var listType = dynamicList ? "List<dynamic>" : "List<object>";
+
+            var source = $$"""
+                using System;
+                using System.Collections.Generic;
+
+                object o = null;
+                dynamic d = null;
+
+                M1([o, o]);
+                M1([d, d]);
+                M1([o, d]);
+                M1([d, o]);
+                M2([o, o]);
+                M2([d, d]);
+                M2([o, d]);
+                M2([d, o]);
+
+                partial class Program
+                {
+                    static void M1({{hashSetType}} s) { }
+                    static void M1({{listType}} s) { }
+                    static void M2({{listType}} s) { }
+                    static void M2({{hashSetType}} s) { }
+                }
+                """;
+
+            var expectedDiagnostics = new[] {
+                // (7,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(HashSet<object>)' and 'Program.M1(List<dynamic>)'
+                // M1([o, o]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments(generateMethodSignature("M1", hashSetType), generateMethodSignature("M1", listType)).WithLocation(7, 1),
+                // (8,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(HashSet<object>)' and 'Program.M1(List<dynamic>)'
+                // M1([d, d]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments(generateMethodSignature("M1", hashSetType), generateMethodSignature("M1", listType)).WithLocation(8, 1),
+                // (9,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(HashSet<object>)' and 'Program.M1(List<dynamic>)'
+                // M1([o, d]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments(generateMethodSignature("M1", hashSetType), generateMethodSignature("M1", listType)).WithLocation(9, 1),
+                // (10,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M1(HashSet<object>)' and 'Program.M1(List<dynamic>)'
+                // M1([d, o]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments(generateMethodSignature("M1", hashSetType), generateMethodSignature("M1", listType)).WithLocation(10, 1),
+                // (11,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M2(List<dynamic>)' and 'Program.M2(HashSet<object>)'
+                // M2([o, o]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments(generateMethodSignature("M2", listType), generateMethodSignature("M2", hashSetType)).WithLocation(11, 1),
+                // (12,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M2(List<dynamic>)' and 'Program.M2(HashSet<object>)'
+                // M2([d, d]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments(generateMethodSignature("M2", listType), generateMethodSignature("M2", hashSetType)).WithLocation(12, 1),
+                // (13,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M2(List<dynamic>)' and 'Program.M2(HashSet<object>)'
+                // M2([o, d]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments(generateMethodSignature("M2", listType), generateMethodSignature("M2", hashSetType)).WithLocation(13, 1),
+                // (14,1): error CS0121: The call is ambiguous between the following methods or properties: 'Program.M2(List<dynamic>)' and 'Program.M2(HashSet<object>)'
+                // M2([d, o]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArguments(generateMethodSignature("M2", listType), generateMethodSignature("M2", hashSetType)).WithLocation(14, 1)
+            };
+
+            CreateCompilation(source,
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(source,
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(source,
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+
+            static string generateMethodSignature(string methodName, string parameterType) =>
+                $"Program.{methodName}(System.Collections.Generic.{parameterType})";
+        }
+
+        [Fact]
+        public void BetterConversionFromExpression_17()
+        {
+            var source = $$"""
+                using System;
+
+                M1([(a: 1, b: 2)]);
+                M1([(a: 1, d: 2)]);
+                M1([(c: 1, b: 2)]);
+                M1([(c: 1, d: 2)]);
+                M2([(a: 1, b: 2)]);
+                M2([(a: 1, d: 2)]);
+                M2([(c: 1, b: 2)]);
+                M2([(c: 1, d: 2)]);
+
+                partial class Program
+                {
+                    static void M1(Span<(int a, int b)> s) => Console.WriteLine("a, b");
+                    static void M1(ReadOnlySpan<(int c, int d)> s) => Console.WriteLine("c, d");
+                    static void M2(ReadOnlySpan<(int c, int d)> s) => Console.WriteLine("c, d");
+                    static void M2(Span<(int a, int b)> s) => Console.WriteLine("a, b");
+                }
+                """;
+
+            string expectedOutput = IncludeExpectedOutput($"""
+                c, d
+                c, d
+                c, d
+                c, d
+                c, d
+                c, d
+                c, d
+                c, d
+                """);
+
+            CompileAndVerify(source,
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.Regular13,
+                expectedOutput: expectedOutput);
+
+            CompileAndVerify(source,
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.RegularPreview,
+                expectedOutput: expectedOutput);
+
+            CompileAndVerify(source,
+                verify: Verification.Skipped,
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.Regular12,
+                expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void BetterConversionFromExpression_18()
+        {
+            var source = $$"""
+                using System;
+                using System.Collections.Generic;
+
+                object o = null;
+
+                o.M1([(a: 1, b: 2)]);
+                o.M1([(a: 1, d: 2)]);
+                o.M1([(c: 1, b: 2)]);
+                o.M1([(c: 1, d: 2)]);
+
+                static class Ex1
+                {
+                    public static void M1(this object o, List<(int a, int b)> s) => Console.WriteLine("a, b");
+                }
+
+                static class Ex2
+                {
+                    public static void M1(this object o, List<(int c, int d)> s) => Console.WriteLine("c, d");
+                }
+                """;
+
+            string expectedOutput = IncludeExpectedOutput($"""
+                c, d
+                c, d
+                c, d
+                c, d
+                c, d
+                c, d
+                c, d
+                c, d
+                """);
+
+            var expectedDiagnostics = new[] {
+                // (6,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ex1.M1(object, List<(int a, int b)>)' and 'Ex2.M1(object, List<(int c, int d)>)'
+                // o.M1([(a: 1, b: 2)]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ex1.M1(object, System.Collections.Generic.List<(int a, int b)>)", "Ex2.M1(object, System.Collections.Generic.List<(int c, int d)>)").WithLocation(6, 3),
+                // (7,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ex1.M1(object, List<(int a, int b)>)' and 'Ex2.M1(object, List<(int c, int d)>)'
+                // o.M1([(a: 1, d: 2)]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ex1.M1(object, System.Collections.Generic.List<(int a, int b)>)", "Ex2.M1(object, System.Collections.Generic.List<(int c, int d)>)").WithLocation(7, 3),
+                // (8,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ex1.M1(object, List<(int a, int b)>)' and 'Ex2.M1(object, List<(int c, int d)>)'
+                // o.M1([(c: 1, b: 2)]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ex1.M1(object, System.Collections.Generic.List<(int a, int b)>)", "Ex2.M1(object, System.Collections.Generic.List<(int c, int d)>)").WithLocation(8, 3),
+                // (9,3): error CS0121: The call is ambiguous between the following methods or properties: 'Ex1.M1(object, List<(int a, int b)>)' and 'Ex2.M1(object, List<(int c, int d)>)'
+                // o.M1([(c: 1, d: 2)]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M1").WithArguments("Ex1.M1(object, System.Collections.Generic.List<(int a, int b)>)", "Ex2.M1(object, System.Collections.Generic.List<(int c, int d)>)").WithLocation(9, 3)
+            };
+
+            CreateCompilation(source,
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(source,
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(source,
+                targetFramework: TargetFramework.Net80,
+                parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Theory]
         [InlineData("System.ReadOnlySpan<char>")]
         [InlineData("System.Span<char>")]
         public void BetterConversionFromExpression_String_01(string spanType)
