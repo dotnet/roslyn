@@ -12,7 +12,6 @@
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ExpressionEvaluator;
@@ -192,43 +191,44 @@ namespace Microsoft.VisualStudio.Debugger.Clr
         private static ReadOnlyCollection<DkmClrEvalAttribute> GetEvalAttributes(DkmClrAppDomain appDomain, Type type)
         {
             var reflectionType = ((TypeImpl)type).Type;
-            if (appDomain.TypeToEvalAttributesMap.TryGetValue(reflectionType, out var cachedAttributes))
-            {
-                return cachedAttributes;
-            }
+            return appDomain.TypeToEvalAttributesMap.GetOrAdd(
+                reflectionType,
+                static (k, a) => getEvalAttributesCore(k, a),
+                type);
 
-            var attributes = ArrayBuilder<DkmClrEvalAttribute>.GetInstance();
-
-            var proxyType = GetProxyType(reflectionType);
-            if (proxyType != null)
+            static ReadOnlyCollection<DkmClrEvalAttribute> getEvalAttributesCore(System.Type reflectionType, Type type)
             {
-                attributes.Add(new DkmClrDebuggerTypeProxyAttribute(new DkmClrType((TypeImpl)proxyType)));
-            }
+                var attributes = ArrayBuilder<DkmClrEvalAttribute>.GetInstance();
 
-            var members = type.GetMembers(MemberBindingFlags).Where(TypeHelpers.IsVisibleMember);
-            foreach (var member in members)
-            {
-                foreach (var attribute in GetBrowsableAttributes(type, member))
+                var proxyType = GetProxyType(reflectionType);
+                if (proxyType != null)
                 {
-                    attributes.Add(attribute);
+                    attributes.Add(new DkmClrDebuggerTypeProxyAttribute(new DkmClrType((TypeImpl)proxyType)));
                 }
-            }
 
-            var debuggerDisplay = GetDebuggerDisplayAttribute(reflectionType);
-            if (debuggerDisplay != null)
-            {
-                attributes.Add(debuggerDisplay);
-            }
+                var members = type.GetMembers(MemberBindingFlags).Where(TypeHelpers.IsVisibleMember);
+                foreach (var member in members)
+                {
+                    foreach (var attribute in GetBrowsableAttributes(type, member))
+                    {
+                        attributes.Add(attribute);
+                    }
+                }
 
-            var debuggerVisualizers = GetDebuggerVisualizerAttributes(reflectionType);
-            if (debuggerVisualizers != null)
-            {
-                attributes.AddRange(debuggerVisualizers);
-            }
+                var debuggerDisplay = GetDebuggerDisplayAttribute(reflectionType);
+                if (debuggerDisplay != null)
+                {
+                    attributes.Add(debuggerDisplay);
+                }
 
-            var col = attributes.ToImmutableAndFree();
-            appDomain.TypeToEvalAttributesMap[reflectionType] = col;
-            return col;
+                var debuggerVisualizers = GetDebuggerVisualizerAttributes(reflectionType);
+                if (debuggerVisualizers != null)
+                {
+                    attributes.AddRange(debuggerVisualizers);
+                }
+
+                return attributes.ToImmutableAndFree();
+            }
         }
 
         private static ReadOnlyCollection<DkmClrDebuggerBrowsableAttribute> GetBrowsableAttributes(Type type, MemberInfo member)
