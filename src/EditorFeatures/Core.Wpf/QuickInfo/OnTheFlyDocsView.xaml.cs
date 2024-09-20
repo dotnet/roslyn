@@ -141,11 +141,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
             {
                 SetResultText(EditorFeaturesResources.Your_organization_excluded_a_referenced_file_from_Copilot);
                 CurrentState = OnTheFlyDocsState.Finished;
-                Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Content_Excluded, KeyValueLogMessage.Create(m =>
-                {
-                    m["SymbolHeaderText"] = _onTheFlyDocsElement.SymbolSignature;
-                }, LogLevel.Information));
-
+                Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Content_Excluded, logLevel: LogLevel.Information);
                 return;
 
             }
@@ -215,7 +211,6 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         CurrentState = OnTheFlyDocsState.Loading;
         Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Loading_State_Entered, KeyValueLogMessage.Create(m =>
         {
-            m["SymbolHeaderText"] = _onTheFlyDocsElement.SymbolSignature;
             m["HasDocumentationComments"] = _onTheFlyDocsElement.HasComments;
         }, LogLevel.Information));
 
