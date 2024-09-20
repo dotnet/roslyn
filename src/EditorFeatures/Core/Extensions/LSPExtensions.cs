@@ -3,19 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
 internal static class VSEditorLSPExtensions
 {
-    public static Roslyn.Core.Imaging.ImageId ToLSPImageId(this Glyph glyph)
-    {
-        var (guid, id) = glyph.GetVsImageData();
-
-        return new(guid, id);
-    }
-
     public static Roslyn.Core.Imaging.ImageId ToLSPImageId(this VisualStudio.Core.Imaging.ImageId imageId)
         => new(imageId.Guid, imageId.Id);
 
@@ -31,18 +23,6 @@ internal static class VSEditorLSPExtensions
     public static Roslyn.Text.Adornments.ContainerElement ToLSPElement(this VisualStudio.Text.Adornments.ContainerElement element)
         => new((Roslyn.Text.Adornments.ContainerElementStyle)element.Style, element.Elements.Select(ToLSPElement));
 
-    public static Roslyn.Text.Adornments.ImageElement ToLSPElement(this QuickInfoGlyphElement element)
-        => new(element.Glyph.ToLSPImageId());
-
-    public static Roslyn.Text.Adornments.ClassifiedTextRun ToLSPRun(this QuickInfoClassifiedTextRun run)
-        => new(run.ClassificationTypeName, run.Text, (Roslyn.Text.Adornments.ClassifiedTextRunStyle)run.Style, markerTagType: null, run.NavigationAction, run.Tooltip);
-
-    public static Roslyn.Text.Adornments.ClassifiedTextElement ToLSPElement(this QuickInfoClassifiedTextElement element)
-        => new(element.Runs.Select(ToLSPRun));
-
-    public static Roslyn.Text.Adornments.ContainerElement ToLSPElement(this QuickInfoContainerElement element)
-        => new((Roslyn.Text.Adornments.ContainerElementStyle)element.Style, element.Elements.Select(ToLSPElement));
-
     private static object? ToLSPElement(object? value)
         => value switch
         {
@@ -54,16 +34,4 @@ internal static class VSEditorLSPExtensions
 
             _ => value,
         };
-
-    private static object? ToLSPElement(QuickInfoElement value)
-    {
-        return value switch
-        {
-            QuickInfoGlyphElement element => element.ToLSPElement(),
-            QuickInfoContainerElement element => element.ToLSPElement(),
-            QuickInfoClassifiedTextElement element => element.ToLSPElement(),
-
-            _ => value
-        };
-    }
 }

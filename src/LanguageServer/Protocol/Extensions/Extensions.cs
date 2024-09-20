@@ -10,9 +10,11 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindUsages;
+using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Core.Imaging;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Text.Adornments;
 using Roslyn.Utilities;
@@ -257,6 +259,37 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 return -1;
 
             return 0;
+        }
+
+        public static ImageId ToLSPImageId(this Glyph glyph)
+        {
+            var (guid, id) = glyph.GetVsImageData();
+
+            return new(guid, id);
+        }
+
+        public static ImageElement ToLSPElement(this QuickInfoGlyphElement element)
+            => new(element.Glyph.ToLSPImageId());
+
+        public static ClassifiedTextRun ToLSPRun(this QuickInfoClassifiedTextRun run)
+            => new(run.ClassificationTypeName, run.Text, (ClassifiedTextRunStyle)run.Style, markerTagType: null, run.NavigationAction, run.Tooltip);
+
+        public static ClassifiedTextElement ToLSPElement(this QuickInfoClassifiedTextElement element)
+            => new(element.Runs.Select(ToLSPRun));
+
+        public static ContainerElement ToLSPElement(this QuickInfoContainerElement element)
+            => new((ContainerElementStyle)element.Style, element.Elements.Select(ToLSPElement));
+
+        private static object? ToLSPElement(QuickInfoElement value)
+        {
+            return value switch
+            {
+                QuickInfoGlyphElement element => element.ToLSPElement(),
+                QuickInfoContainerElement element => element.ToLSPElement(),
+                QuickInfoClassifiedTextElement element => element.ToLSPElement(),
+
+                _ => value
+            };
         }
     }
 }
