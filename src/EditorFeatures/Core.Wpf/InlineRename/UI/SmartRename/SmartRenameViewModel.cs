@@ -92,7 +92,13 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         }
     }
 
-    public bool IsSuggestionsPanelExpanded => HasSuggestions;
+    /// <summary>
+    /// IsSuggestionsPanelExpanded is used to control the visibility of the suggestions panel.
+    /// SupportsAutomaticSuggestions the flag to determine whether the SmartRename will generate suggestion automatically.
+    /// When SupportsAutomaticSuggestions disenabled, the suggestions panel is supposed to always expanded once it's shown, thus users can see the suggestions.
+    /// When SupportsAutomaticSuggestions enabled, the suggestions panel is supposed to react to the smart rename button click. If the button is clicked, IsAutomaticSuggestionsEnabled will be true, the panel will be expanded, Otherwise, it will be collapsed.
+    /// </summary>
+    public bool IsSuggestionsPanelExpanded => HasSuggestions && (!SupportsAutomaticSuggestions || IsAutomaticSuggestionsEnabled);
 
     public string GetSuggestionsTooltip
         => SupportsAutomaticSuggestions
@@ -286,7 +292,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             {
                 this.FetchSuggestions(isAutomaticOnInitialization: false);
             }
-
+            NotifyPropertyChanged(nameof(IsSuggestionsPanelExpanded));
             NotifyPropertyChanged(nameof(IsAutomaticSuggestionsEnabled));
             // Use existing "CollapseSuggestionsPanel" option (true if user does not wish to get suggestions automatically) to honor user's choice.
             _globalOptionService.SetGlobalOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel, !IsAutomaticSuggestionsEnabled);
