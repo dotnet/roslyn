@@ -3,14 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.QuickInfo.Presentation;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
 internal static class VSEditorLSPExtensions
 {
+    public static Roslyn.Core.Imaging.ImageId ToLSPImageId(this Glyph glyph)
+    {
+        var (guid, id) = glyph.GetVsImageData();
+
+        return new(guid, id);
+    }
+
     public static Roslyn.Core.Imaging.ImageId ToLSPImageId(this VisualStudio.Core.Imaging.ImageId imageId)
         => new(imageId.Guid, imageId.Id);
 
@@ -27,7 +32,7 @@ internal static class VSEditorLSPExtensions
         => new((Roslyn.Text.Adornments.ContainerElementStyle)element.Style, element.Elements.Select(ToLSPElement));
 
     public static Roslyn.Text.Adornments.ImageElement ToLSPElement(this QuickInfoGlyphElement element)
-        => new(element.Glyph.GetImageId().ToLSPImageId());
+        => new(element.Glyph.ToLSPImageId());
 
     public static Roslyn.Text.Adornments.ClassifiedTextRun ToLSPRun(this QuickInfoClassifiedTextRun run)
         => new(run.ClassificationTypeName, run.Text, (Roslyn.Text.Adornments.ClassifiedTextRunStyle)run.Style, markerTagType: null, run.NavigationAction, run.Tooltip);
@@ -58,7 +63,7 @@ internal static class VSEditorLSPExtensions
             QuickInfoContainerElement element => element.ToLSPElement(),
             QuickInfoClassifiedTextElement element => element.ToLSPElement(),
 
-            _ => throw ExceptionUtilities.UnexpectedValue(value)
+            _ => value
         };
     }
 }

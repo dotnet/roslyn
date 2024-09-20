@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Roslyn.LanguageServer.Protocol;
@@ -23,7 +22,7 @@ internal sealed class EditorLspSymbolInformationCreationService : ILspSymbolInfo
 
     public SymbolInformation Create(string name, string? containerName, LSP.SymbolKind kind, LSP.Location location, Glyph glyph)
     {
-        var imageId = glyph.GetImageId();
+        var (guid, id) = glyph.GetVsImageData();
 #pragma warning disable CS0618 // SymbolInformation is obsolete, need to switch to DocumentSymbol/WorkspaceSymbol
         return new VSSymbolInformation
         {
@@ -31,7 +30,7 @@ internal sealed class EditorLspSymbolInformationCreationService : ILspSymbolInfo
             ContainerName = containerName,
             Kind = kind,
             Location = location,
-            Icon = new VSImageId { Guid = imageId.Guid, Id = imageId.Id },
+            Icon = new VSImageId { Guid = guid, Id = id },
         };
 #pragma warning restore CS0618
     }

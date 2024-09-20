@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -34,12 +33,11 @@ internal sealed class EditorLspReferencesResultCreationService() : ILspReference
     {
         // TO-DO: The Origin property should be added once Rich-Nav is completed.
         // https://github.com/dotnet/roslyn/issues/42847
-        var imageId = definitionGlyph.GetImageId();
         var result = new VSInternalReferenceItem
         {
             DefinitionId = definitionId,
             DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
-            DefinitionIcon = new ImageElement(imageId.ToLSPImageId()),
+            DefinitionIcon = new ImageElement(definitionGlyph.ToLSPImageId()),
             DisplayPath = location?.Uri.LocalPath,
             Id = id,
             Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : [],
@@ -51,10 +49,10 @@ internal sealed class EditorLspReferencesResultCreationService() : ILspReference
         if (location != null)
             result.Location = location;
 
-        if (documentSpan != null)
+        if (documentSpan is var (document, _))
         {
-            result.DocumentName = documentSpan.Value.Document.Name;
-            result.ProjectName = documentSpan.Value.Document.Project.Name;
+            result.DocumentName = document.Name;
+            result.ProjectName = document.Project.Name;
         }
 
         foreach (var (key, value) in properties)

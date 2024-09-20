@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
@@ -43,7 +42,7 @@ internal sealed class EditorLspCompletionResultCreationService : AbstractLspComp
         var lspItem = new LSP.VSInternalCompletionItem
         {
             Label = item.GetEntireDisplayText(),
-            Icon = new ImageElement(item.Tags.GetFirstGlyph().GetImageId().ToLSPImageId()),
+            Icon = new ImageElement(item.Tags.GetFirstGlyph().ToLSPImageId()),
         };
 
         // Complex text edits (e.g. override and partial method completions) are always populated in the
