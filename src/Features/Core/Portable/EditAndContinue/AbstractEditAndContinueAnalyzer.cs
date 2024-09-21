@@ -3172,7 +3172,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                             continue;
                         }
 
-                        AnalyzeSymbolUpdate(diagnosticContext, capabilities, semanticEdits, out var hasAttributeChange, cancellationToken);
+                        AnalyzeSymbolUpdate(diagnosticContext, capabilities, semanticEdits, out var hasAttributeChange, out var hasAccessibilityChange, cancellationToken);
 
                         if (newSymbol is IParameterSymbol or ITypeParameterSymbol)
                         {
@@ -3219,11 +3219,13 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                         }
 
                         // Avoid creating unnecessary updates that are easy to determine.
-                        if (!hasAttributeChange && newSymbol is
-                            INamedTypeSymbol { IsGenericType: false } or // changes in type parameter attributes and constraints need type update
-                            IPropertySymbol { IsIndexer: false } or      // changes in parameter attributes need indexer update
-                            IFieldSymbol or
-                            IEventSymbol)
+                        if (!hasAttributeChange &&
+                            !hasAccessibilityChange &&
+                            newSymbol is
+                                INamedTypeSymbol { IsGenericType: false } or // changes in type parameter attributes and constraints need type update
+                                IPropertySymbol { IsIndexer: false } or      // changes in parameter attributes need indexer update
+                                IFieldSymbol or
+                                IEventSymbol)
                         {
                             continue;
                         }
@@ -3303,7 +3305,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
                     var diagnosticContext = CreateDiagnosticContext(diagnostics, oldSymbol, newSymbol, newDeclaration, newModel, editScript.Match, diagnosticSpan);
 
-                    AnalyzeSymbolUpdate(diagnosticContext, capabilities, semanticEdits, out var _, cancellationToken);
+                    AnalyzeSymbolUpdate(diagnosticContext, capabilities, semanticEdits, out var _, out var _, cancellationToken);
 
                     // if the member doesn't have a body triva changes have no effect:
                     var oldBody = TryGetDeclarationBody(oldDeclaration, oldSymbol);
@@ -3993,6 +3995,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         EditAndContinueCapabilitiesGrantor capabilities,
         out bool hasGeneratedAttributeChange,
         out bool hasGeneratedReturnTypeAttributeChange,
+        out bool hasAccessibilityChange,
         CancellationToken cancellationToken)
     {
         var rudeEdit = RudeEditKind.None;
@@ -4001,6 +4004,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
         hasGeneratedAttributeChange = false;
         hasGeneratedReturnTypeAttributeChange = false;
+        hasAccessibilityChange = false;
 
         if (oldSymbol.Kind != newSymbol.Kind)
         {
@@ -4085,7 +4089,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
         if (oldSymbol.DeclaredAccessibility != newSymbol.DeclaredAccessibility)
         {
-            rudeEdit = RudeEditKind.ChangingAccessibility;
+            hasAccessibilityChange = true;
         }
 
         if (oldSymbol.IsStatic != newSymbol.IsStatic ||
@@ -4394,13 +4398,14 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         EditAndContinueCapabilitiesGrantor capabilities,
         ArrayBuilder<SemanticEditInfo> semanticEdits,
         out bool hasAttributeChange,
+        out bool hasAccessibilityChange,
         CancellationToken cancellationToken)
     {
         // TODO: fails in VB on delegate parameter https://github.com/dotnet/roslyn/issues/53337
         // Contract.ThrowIfFalse(newSymbol.IsImplicitlyDeclared == newDeclaration is null);
 
         ReportUpdatedSymbolDeclarationRudeEdits(
-            diagnosticContext, capabilities, out var hasGeneratedAttributeChange, out var hasGeneratedReturnTypeAttributeChange, cancellationToken);
+            diagnosticContext, capabilities, out var hasGeneratedAttributeChange, out var hasGeneratedReturnTypeAttributeChange, out hasAccessibilityChange, cancellationToken);
 
         // We don't check capabilities of the runtime to update compiler generated attributes.
         // All runtimes support changing the attributes in metadata, some just don't reflect the changes in the Reflection model.
