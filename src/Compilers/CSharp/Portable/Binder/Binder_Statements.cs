@@ -2501,15 +2501,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static BoundStatement bindIfStatement(Binder binder, IfStatementSyntax node, BindingDiagnosticBag diagnostics)
             {
-                var stack = ArrayBuilder<(Binder, IfStatementSyntax IfStatementSyntax, BoundExpression Condition, BoundStatement Consequence, bool WrapWithVariables)>.GetInstance();
+                var stack = ArrayBuilder<(Binder, IfStatementSyntax IfStatementSyntax, BoundExpression Condition, BoundStatement Consequence)>.GetInstance();
 
                 BoundStatement? alternative;
-                bool wrapWithVariables = false;
                 while (true)
                 {
                     var condition = binder.BindBooleanExpression(node.Condition, diagnostics);
                     var consequence = binder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
-                    stack.Push((binder, node, condition, consequence, wrapWithVariables));
+                    stack.Push((binder, node, condition, consequence));
 
                     if (node.Else == null)
                     {
@@ -2524,7 +2523,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(b != null);
                         binder = b;
                         node = ifStatementSyntax;
-                        wrapWithVariables = true;
                     }
                     else
                     {
@@ -2538,9 +2536,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     BoundExpression condition;
                     BoundStatement consequence;
-                    (binder, node, condition, consequence, wrapWithVariables) = stack.Pop();
+                    (binder, node, condition, consequence) = stack.Pop();
                     result = new BoundIfStatement(node, condition, consequence, alternative);
-                    if (wrapWithVariables)
+                    if (stack.Any())
                     {
                         result = binder.WrapWithVariablesIfAny(node, result);
                     }

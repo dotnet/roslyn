@@ -1536,72 +1536,58 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             if (operation == _currentStatement)
             {
-                if (operation.WhenFalse == null)
-                {
-                    // if (condition)
-                    //   consequence;
-                    //
-                    // becomes
-                    //
-                    // GotoIfFalse condition afterif;
-                    // consequence;
-                    // afterif:
+                // if (condition)
+                //   consequence;
+                //
+                // becomes
+                //
+                // GotoIfFalse condition afterif;
+                // consequence;
+                // afterif:
 
-                    BasicBlockBuilder? afterIf = null;
-                    VisitConditionalBranch(operation.Condition, ref afterIf, jumpIfTrue: false);
+
+                // if (condition)
+                //     consequence;
+                // else
+                //     alternative
+                //
+                // becomes
+                //
+                // GotoIfFalse condition alt;
+                // consequence
+                // goto afterif;
+                // alt:
+                // alternative;
+                // afterif:
+
+                var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
+
+                while (true)
+                {
+                    BasicBlockBuilder? whenFalse = null;
+                    VisitConditionalBranch(operation.Condition, ref whenFalse, jumpIfTrue: false);
+                    Debug.Assert(whenFalse is { });
                     VisitStatement(operation.WhenTrue);
-                    AppendNewBlock(afterIf);
+                    UnconditionalBranch(afterIf);
+
+                    AppendNewBlock(whenFalse);
+
+                    if (operation.WhenFalse is IConditionalOperation nested)
+                    {
+                        operation = nested;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
-                else
+
+                if (operation.WhenFalse is not null)
                 {
-                    // if (condition)
-                    //     consequence;
-                    // else
-                    //     alternative
-                    //
-                    // becomes
-                    //
-                    // GotoIfFalse condition alt;
-                    // consequence
-                    // goto afterif;
-                    // alt:
-                    // alternative;
-                    // afterif:
-
-                    var stack = ArrayBuilder<(IConditionalOperation, BasicBlockBuilder)>.GetInstance();
-
-                    while (true)
-                    {
-                        BasicBlockBuilder? whenFalse = null;
-                        VisitConditionalBranch(operation.Condition, ref whenFalse, jumpIfTrue: false);
-                        Debug.Assert(whenFalse is { });
-                        VisitStatement(operation.WhenTrue);
-                        var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
-                        UnconditionalBranch(afterIf);
-
-                        AppendNewBlock(whenFalse);
-                        stack.Push((operation, afterIf));
-
-                        if (operation.WhenFalse is IConditionalOperation { WhenFalse: not null } nested)
-                        {
-                            operation = nested;
-                        }
-                        else
-                        {
-                            break;
-                        }
-                    }
-
                     VisitStatement(operation.WhenFalse);
-                    do
-                    {
-                        var (conditional, afterIf) = stack.Pop();
-                        AppendNewBlock(afterIf);
-                    }
-                    while (stack.Any());
-
-                    stack.Free();
                 }
+
+                AppendNewBlock(afterIf);
 
                 return null;
             }
