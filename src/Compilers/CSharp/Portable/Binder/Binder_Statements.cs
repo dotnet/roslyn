@@ -1752,17 +1752,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         internal static bool AccessingAutoPropertyFromConstructor(BoundPropertyAccess propertyAccess, Symbol fromMember)
         {
-#if DEBUG
-            Debug.Assert(propertyAccess.WasPropertyBackingFieldAccessChecked || allowUnchecked(propertyAccess));
-
-            static bool allowUnchecked(BoundPropertyAccess propertyAccess)
-            {
-                var syntax = propertyAccess.Syntax;
-                // Ignore property access within nameof().
-                return syntax.Ancestors().Any(s => s is InvocationExpressionSyntax { Expression: IdentifierNameSyntax { Identifier: { RawContextualKind: (int)SyntaxKind.NameOfKeyword } } });
-            }
-#endif
-
             if (propertyAccess.UseBackingField == AccessorKind.Unknown)
             {
                 return false;

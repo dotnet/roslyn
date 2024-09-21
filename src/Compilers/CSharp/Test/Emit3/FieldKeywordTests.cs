@@ -6836,5 +6836,211 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             VerifyMergedProperties(actualProperties, actualFields);
         }
+
+        [Theory]
+        [InlineData("{ get; }")]
+        [InlineData("{ get; set; }")]
+        [InlineData("{ get => field; }")]
+        [InlineData("{ set { field = value; } }")]
+        [InlineData("{ get => field; set; }")]
+        [InlineData("{ get; set { field = value; } }")]
+        [InlineData("{ get => field; set { field = value; } }")]
+        public void Nameof_01(string accessors)
+        {
+            string source = $$"""
+                #nullable enable
+                using static System.Console;
+                struct S1
+                {
+                    static object? P1 {{accessors}}
+                    static S1()
+                    {
+                        WriteLine(nameof(P1));
+                        WriteLine(nameof(S1.P1));
+                    }
+                    public static void M()
+                    {
+                        WriteLine(nameof(P1));
+                        WriteLine(nameof(S1.P1));
+                    }
+                }
+                struct S2
+                {
+                    object? P2 {{accessors}}
+                    public S2(S2 s)
+                    {
+                        WriteLine(nameof(P2));
+                        WriteLine(nameof(S2.P2));
+                        WriteLine(nameof(this.P2));
+                    }
+                    public void M(S2 s)
+                    {
+                        WriteLine(nameof(P2));
+                        WriteLine(nameof(S2.P2));
+                        WriteLine(nameof(this.P2));
+                    }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        S1.M();
+                        new S2(default).M(default);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                P1
+                P1
+                P1
+                P1
+                P2
+                P2
+                P2
+                P2
+                P2
+                P2
+                """);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("{ get; }")]
+        [InlineData("{ get; set; }")]
+        [InlineData("{ get => field; }")]
+        [InlineData("{ set { field = value; } }")]
+        [InlineData("{ get => field; set; }")]
+        [InlineData("{ get; set { field = value; } }")]
+        [InlineData("{ get => field; set { field = value; } }")]
+        public void Nameof_02(string accessors)
+        {
+            string source = $$"""
+                #nullable enable
+                struct S
+                {
+                    object? P {{accessors}}
+                    public S(bool unused)
+                    {
+                        _ = nameof(new S().P);
+                    }
+                    public void M()
+                    {
+                        _ = nameof(new S().P);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,20): error CS8082: Sub-expression cannot be used in an argument to nameof.
+                //         _ = nameof(new S().P);
+                Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "new S()").WithLocation(7, 20),
+                // (11,20): error CS8082: Sub-expression cannot be used in an argument to nameof.
+                //         _ = nameof(new S().P);
+                Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "new S()").WithLocation(11, 20));
+        }
+
+        [Theory]
+        [InlineData("{ get; }")]
+        [InlineData("{ get => field; }")]
+        public void Nameof_03(string accessors)
+        {
+            string source = $$"""
+                #nullable enable
+                class C
+                {
+                    public object? F = null;
+                }
+                struct S1
+                {
+                    static C? P1 {{accessors}}
+                    static S1()
+                    {
+                        _ = nameof((P1 = new()).F);
+                    }
+                    static void M()
+                    {
+                        _ = nameof((P1 = new()).F);
+                    }
+                }
+                struct S2
+                {
+                    C? P2 {{accessors}}
+                    S2(bool unused)
+                    {
+                        _ = nameof((P2 = new()).F);
+                    }
+                    void M()
+                    {
+                        _ = nameof((P2 = new()).F);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,20): error CS8082: Sub-expression cannot be used in an argument to nameof.
+                //         _ = nameof((P1 = new()).F);
+                Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "(P1 = new())").WithLocation(11, 20),
+                // (15,21): error CS0200: Property or indexer 'S1.P1' cannot be assigned to -- it is read only
+                //         _ = nameof((P1 = new()).F);
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P1").WithArguments("S1.P1").WithLocation(15, 21),
+                // (23,20): error CS8082: Sub-expression cannot be used in an argument to nameof.
+                //         _ = nameof((P2 = new()).F);
+                Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "(P2 = new())").WithLocation(23, 20),
+                // (27,21): error CS0200: Property or indexer 'S2.P2' cannot be assigned to -- it is read only
+                //         _ = nameof((P2 = new()).F);
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P2").WithArguments("S2.P2").WithLocation(27, 21));
+        }
+
+        [Theory]
+        [InlineData("{ get; }")]
+        [InlineData("{ get => field; }")]
+        public void RangeVariableValue_01(string accessors)
+        {
+            string source = $$"""
+                #nullable enable
+                using System.Linq;
+                struct S
+                {
+                    object? P {{accessors}}
+                    S(object value)
+                    {
+                        _ = from x in new [] { value }
+                            let y = (P = x)
+                            select (P = y);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,22): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                //             let y = (P = x)
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "P").WithLocation(9, 22),
+                // (10,21): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                //             select (P = y);
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "P").WithLocation(10, 21));
+        }
+
+        [Theory]
+        [InlineData("{ get; set; }")]
+        [InlineData("{ get => field; set; }")]
+        public void RangeVariableValue_02(string accessors)
+        {
+            string source = $$"""
+                #nullable enable
+                using System.Linq;
+                struct S
+                {
+                    object? P {{accessors}}
+                    S(S s, object value)
+                    {
+                        _ = from x in new [] { value }
+                            let y = (s.P = x)
+                            select (s.P = y);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }
