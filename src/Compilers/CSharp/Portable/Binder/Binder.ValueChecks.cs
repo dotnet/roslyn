@@ -548,6 +548,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                     }
+#if DEBUG
+                    expr.WasPropertyBackingFieldAccessChecked = true;
+#endif
                     break;
 
                 case BoundKind.IndexerAccess:

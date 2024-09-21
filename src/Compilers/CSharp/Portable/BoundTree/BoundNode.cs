@@ -55,6 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ParamsArrayOrCollection = 1 << 9,
 
+            /// <summary>
+            /// Set after checking if the property access should use the backing field directly.
+            /// </summary>
+            WasPropertyBackingFieldAccessChecked = 1 << 10,
+
             AttributesPreservedInClone = HasErrors | CompilerGenerated | IsSuppressed | WasConverted | ParamsArrayOrCollection,
         }
 
@@ -322,6 +327,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (value)
                 {
                     _attributes |= BoundNodeAttributes.WasConverted;
+                }
+            }
+        }
+
+        public bool WasPropertyBackingFieldAccessChecked
+        {
+            get
+            {
+                return (_attributes & BoundNodeAttributes.WasPropertyBackingFieldAccessChecked) != 0;
+            }
+            set
+            {
+                Debug.Assert((_attributes & BoundNodeAttributes.WasPropertyBackingFieldAccessChecked) == 0, "should not be set twice or reset");
+                if (value)
+                {
+                    _attributes |= BoundNodeAttributes.WasPropertyBackingFieldAccessChecked;
                 }
             }
         }

@@ -1752,6 +1752,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         internal static bool AccessingAutoPropertyFromConstructor(BoundPropertyAccess propertyAccess, Symbol fromMember)
         {
+#if DEBUG
+            Debug.Assert(propertyAccess.WasPropertyBackingFieldAccessChecked);
+#endif
             if (propertyAccess.UseBackingField == AccessorKind.Unknown)
             {
                 return false;
