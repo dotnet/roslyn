@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -557,12 +558,33 @@ namespace Roslyn.Test.Utilities
             [CallerFilePath] string expectedValueSourcePath = null,
             [CallerLineNumber] int expectedValueSourceLine = 0)
         {
-            var normalizedExpected = NormalizeWhitespace(expected);
-            var normalizedActual = NormalizeWhitespace(actual);
+            AssertEqualToleratingWhitespaceDifferences(expected.AsSpan(), actual.AsSpan(), message, escapeQuotes, expectedValueSourcePath, expectedValueSourceLine);
+        }
 
-            if (normalizedExpected != normalizedActual)
+        // compares against a baseline
+        public static void AssertEqualToleratingWhitespaceDifferences(
+            ReadOnlySpan<char> expected,
+            ReadOnlySpan<char> actual,
+            string message = null,
+            bool escapeQuotes = false,
+            [CallerFilePath] string expectedValueSourcePath = null,
+            [CallerLineNumber] int expectedValueSourceLine = 0)
+        {
+            var normalizedExpected = NormalizeWhitespace(expected, out var pooled1);
+            var normalizedActual = NormalizeWhitespace(actual, out var pooled2);
+
+            if (!normalizedExpected.SequenceEqual(normalizedActual))
             {
-                Assert.True(false, GetAssertMessage(expected, actual, message, escapeQuotes, expectedValueSourcePath, expectedValueSourceLine));
+                Assert.True(false, GetAssertMessage(expected.ToString(), actual.ToString(), message, escapeQuotes, expectedValueSourcePath, expectedValueSourceLine));
+            }
+
+            if (pooled1 != null)
+            {
+                ArrayPool<char>.Shared.Return(pooled1);
+            }
+            if (pooled2 != null)
+            {
+                ArrayPool<char>.Shared.Return(pooled2);
             }
         }
 
@@ -594,37 +616,117 @@ namespace Roslyn.Test.Utilities
 
         public static void AssertContainsToleratingWhitespaceDifferences(string expectedSubString, string actualString)
         {
-            expectedSubString = NormalizeWhitespace(expectedSubString);
-            actualString = NormalizeWhitespace(actualString);
-            Assert.Contains(expectedSubString, actualString, StringComparison.Ordinal);
+            AssertContainsToleratingWhitespaceDifferences(expectedSubString.AsSpan(), actualString.AsSpan());
+        }
+
+        public static void AssertContainsToleratingWhitespaceDifferences(ReadOnlySpan<char> expectedSubString, ReadOnlySpan<char> actualString)
+        {
+            expectedSubString = NormalizeWhitespace(expectedSubString, out var pooled1);
+            actualString = NormalizeWhitespace(actualString, out var pooled2);
+
+            if (!actualString.Contains(expectedSubString, StringComparison.Ordinal))
+            {
+                // Call through to actual API to get same error message experience
+                Assert.Contains(expectedSubString.ToString(), actualString.ToString(), StringComparison.Ordinal);
+            }
+
+            if (pooled1 != null)
+            {
+                ArrayPool<char>.Shared.Return(pooled1);
+            }
+            if (pooled2 != null)
+            {
+                ArrayPool<char>.Shared.Return(pooled2);
+            }
         }
 
         public static void AssertStartsWithToleratingWhitespaceDifferences(string expectedSubString, string actualString)
         {
-            expectedSubString = NormalizeWhitespace(expectedSubString);
-            actualString = NormalizeWhitespace(actualString);
-            Assert.StartsWith(expectedSubString, actualString, StringComparison.Ordinal);
+            AssertStartsWithToleratingWhitespaceDifferences(expectedSubString.AsSpan(), actualString.AsSpan());
         }
 
-        internal static string NormalizeWhitespace(string input)
+        public static void AssertStartsWithToleratingWhitespaceDifferences(ReadOnlySpan<char> expectedSubString, ReadOnlySpan<char> actualString)
         {
-            var output = new StringBuilder();
-            var inputLines = input.Split('\n', '\r');
-            foreach (var line in inputLines)
-            {
-                var trimmedLine = line.Trim();
-                if (trimmedLine.Length > 0)
-                {
-                    if (!(trimmedLine[0] == '{' || trimmedLine[0] == '}'))
-                    {
-                        output.Append("  ");
-                    }
+            expectedSubString = NormalizeWhitespace(expectedSubString, out var pooled1);
+            actualString = NormalizeWhitespace(actualString, out var pooled2);
 
-                    output.AppendLine(trimmedLine);
-                }
+            if (!actualString.StartsWith(expectedSubString, StringComparison.Ordinal))
+            {
+                // Call through to actual API to get same error message experience
+                Assert.StartsWith(expectedSubString.ToString(), actualString.ToString(), StringComparison.Ordinal);
             }
 
-            return output.ToString();
+            if (pooled1 != null)
+            {
+                ArrayPool<char>.Shared.Return(pooled1);
+            }
+            if (pooled2 != null)
+            {
+                ArrayPool<char>.Shared.Return(pooled2);
+            }
+        }
+
+        internal static ReadOnlySpan<char> NormalizeWhitespace(ReadOnlySpan<char> input, out char[] pooledAlloc)
+        {
+            return NormalizeWhitespaceROM(input, out pooledAlloc).Span;
+        }
+
+        internal static ReadOnlyMemory<char> NormalizeWhitespaceROM(ReadOnlySpan<char> input, out char[] pooledAlloc)
+        {
+            // Setup allocation (start with none)
+            pooledAlloc = null;
+            int allocSize = 0;
+
+            // Loop over each line section until we run out of lines
+            int prev = 0;
+            int next = input.IndexOfAny("\r\n".AsSpan());
+            if (next < 0) next = input.Length;
+            while (true)
+            {
+                // Get the line, trimmed
+                var trimmedLine = input.Slice(prev, next - prev).Trim();
+                if (trimmedLine.Length > 0)
+                {
+                    // We want to append 2 spaces first if we don't start with { or }
+                    int spacesToAppend = 0;
+                    if (!(trimmedLine[0] == '{' || trimmedLine[0] == '}'))
+                    {
+                        spacesToAppend = 2;
+                    }
+
+                    // Ensure buffer size is big enough
+                    int newChars = spacesToAppend + trimmedLine.Length + Environment.NewLine.Length;
+                    pooledAlloc ??= ArrayPool<char>.Shared.Rent(newChars);
+                    if (pooledAlloc.Length < allocSize + newChars)
+                    {
+                        char[] newArr = ArrayPool<char>.Shared.Rent(allocSize + newChars);
+                        pooledAlloc.AsSpan().Slice(0, allocSize).CopyTo(newArr.AsSpan().Slice(0, allocSize));
+                        ArrayPool<char>.Shared.Return(pooledAlloc);
+                        pooledAlloc = newArr;
+                    }
+
+                    // Copy new text into buffer
+                    pooledAlloc.AsSpan().Slice(allocSize, spacesToAppend).Fill(' ');
+                    allocSize += spacesToAppend;
+                    trimmedLine.CopyTo(pooledAlloc.AsSpan().Slice(allocSize, trimmedLine.Length));
+                    allocSize += trimmedLine.Length;
+                    Environment.NewLine.AsSpan().CopyTo(pooledAlloc.AsSpan().Slice(allocSize, Environment.NewLine.Length));
+                    allocSize += Environment.NewLine.Length;
+                }
+
+                // Exit if done
+                if (next == input.Length) break;
+
+                // Find next section
+                prev = next + 1;
+                next = input.Slice(prev).IndexOfAny("\r\n".AsSpan());
+                if (next >= 0) next += prev;
+                else next = input.Length;
+            }
+
+            // Return the valid part of our allocation
+            if (pooledAlloc == null) return default;
+            return pooledAlloc.AsMemory().Slice(0, allocSize);
         }
 
         public static string GetAssertMessage(string expected, string actual, string prefix = null, bool escapeQuotes = false, string expectedValueSourcePath = null, int expectedValueSourceLine = 0)

@@ -5,6 +5,7 @@
 #nullable disable
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -28,8 +29,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         private readonly Dictionary<SyntaxNode, IOperation> _explicitNodeMap;
         private readonly Dictionary<ILabelSymbol, uint> _labelIdMap;
 
-        private const string indent = "  ";
-        protected string _currentIndent;
+        private const int indent = 2;
+        protected int _currentIndent;
         private bool _pendingIndent;
         private uint _currentLabelId = 0;
 
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             _root = root;
             _builder = new StringBuilder();
 
-            _currentIndent = new string(' ', initialIndent);
+            _currentIndent = initialIndent;
             _pendingIndent = true;
 
             _explicitNodeMap = new Dictionary<SyntaxNode, IOperation>();
@@ -62,13 +63,186 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public static void Verify(string expectedOperationTree, string actualOperationTree)
         {
-            char[] newLineChars = Environment.NewLine.ToCharArray();
-            string actual = actualOperationTree.Trim(newLineChars);
-            actual = actual.Replace(" \n", "\n").Replace(" \r", "\r");
-            expectedOperationTree = expectedOperationTree.Trim(newLineChars);
-            expectedOperationTree = expectedOperationTree.Replace("\r\n", "\n").Replace(" \n", "\n").Replace("\n", Environment.NewLine);
+            // Finds spaces before newlines and places them in the specified toRemove buffer in reverse index order
+            static void FindSpacesBeforeNewlineHelper(char[] buffer, int bufferSize, ref int[] toRemove, ref int toRemoveCount)
+            {
+                int i = bufferSize;
+                while (true)
+                {
+                    // Go to next preceding \r or \n (if any)
+                    i = buffer.AsSpan().Slice(0, i).LastIndexOfAny("\r\n".AsSpan());
+                    if (i <= 0) break;
 
-            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedOperationTree, actual);
+                    // If preceded by a space, then we mark it for removal (if applicable)
+                    if (buffer[i - 1] == ' ')
+                    {
+                        // Expand / borrow toRemove array if required
+                        toRemove ??= ArrayPool<int>.Shared.Rent(64);
+                        if (toRemoveCount == toRemove.Length)
+                        {
+                            var newArr = ArrayPool<int>.Shared.Rent(toRemove.Length * 2);
+                            toRemove.AsSpan().CopyTo(newArr.AsSpan().Slice(0, toRemove.Length));
+                            ArrayPool<int>.Shared.Return(toRemove);
+                            toRemove = newArr;
+                        }
+
+                        // Write value into removal buffer
+                        toRemove[toRemoveCount++] = i - 1;
+                    }
+                }
+            }
+
+            // Removes characters from the buffer at the specified positions given from the toRemove buffer (reverse index order expected)
+            static void RemoveHelper(ref char[] buffer, ref int bufferSize, int[] toRemove, int toRemoveCount)
+            {
+                if (toRemoveCount > 0)
+                {
+                    int newBufferSize = bufferSize - toRemoveCount;
+                    char[] buffer2 = ArrayPool<char>.Shared.Rent(newBufferSize);
+                    int currentEnd = bufferSize;
+                    int newCurrentEnd = newBufferSize;
+                    for (int i = 0; i < toRemoveCount; i++)
+                    {
+                        int size = currentEnd - (toRemove[i] + 1);
+                        buffer.AsSpan().Slice(currentEnd - size, size).CopyTo(buffer2.AsSpan().Slice(newCurrentEnd - size, size));
+                        currentEnd -= size + 1;
+                        newCurrentEnd -= size;
+                    }
+                    Debug.Assert(currentEnd == newCurrentEnd);
+                    buffer.AsSpan().Slice(0, currentEnd).CopyTo(buffer2.AsSpan().Slice(0, newCurrentEnd));
+                    ArrayPool<char>.Shared.Return(buffer);
+                    buffer = buffer2;
+                    bufferSize = newBufferSize;
+                }
+            }
+
+            // Inserts the specified character into the buffer at the positions given from toInsert buffer (reverse index order expected)
+            static void InsertHelper(ref char[] buffer, ref int bufferSize, int[] toInsert, int toInsertCount, char c)
+            {
+                if (toInsertCount > 0)
+                {
+                    int newBufferSize = bufferSize + toInsertCount;
+                    char[] buffer2 = ArrayPool<char>.Shared.Rent(newBufferSize);
+                    int currentEnd = bufferSize;
+                    int newCurrentEnd = newBufferSize;
+                    for (int i = 0; i < toInsertCount; i++)
+                    {
+                        int size = currentEnd - toInsert[i];
+                        buffer.AsSpan().Slice(currentEnd - size, size).CopyTo(buffer2.AsSpan().Slice(newCurrentEnd - size, size));
+                        buffer2[newCurrentEnd - size - 1] = c;
+                        currentEnd -= size;
+                        newCurrentEnd -= size + 1;
+                    }
+                    Debug.Assert(currentEnd == newCurrentEnd);
+                    buffer.AsSpan().Slice(0, currentEnd).CopyTo(buffer2.AsSpan().Slice(0, newCurrentEnd));
+                    ArrayPool<char>.Shared.Return(buffer);
+                    buffer = buffer2;
+                    bufferSize = newBufferSize;
+                }
+            }
+
+            // Replaces LF/CRLF with Environment.NewLine in buffer
+            // intBuffer is a generic buffer from ArrayPool for storing integers, its values may be trashed
+            static void ReplaceLineEndingsHelper(ref char[] buffer, ref int bufferSize, ref int[] intBuffer)
+            {
+                if (Environment.NewLine == "\r\n")
+                {
+                    // Find all LFs not prepended with a CR, add them to intBuffer (our toInsert list)
+                    ref int[] toInsert = ref intBuffer;
+                    int toInsertCount = 0;
+                    int i = bufferSize;
+                    while (true)
+                    {
+                        // Go to next preceding \n (if any)
+                        i = buffer.AsSpan().Slice(0, i).LastIndexOf('\n');
+                        if (i < 0) break;
+
+                        // Check for lack of preceding \r
+                        if (i == 0 || buffer[i - 1] != '\r')
+                        {
+                            // Expand / borrow toInsert array if required
+                            toInsert ??= ArrayPool<int>.Shared.Rent(64);
+                            if (toInsertCount == toInsert.Length)
+                            {
+                                var newArr = ArrayPool<int>.Shared.Rent(toInsert.Length * 2);
+                                toInsert.AsSpan().CopyTo(newArr.AsSpan().Slice(0, toInsert.Length));
+                                ArrayPool<int>.Shared.Return(toInsert);
+                                toInsert = newArr;
+                            }
+
+                            // Write value into removal buffer
+                            toInsert[toInsertCount++] = i;
+                        }
+                    }
+
+                    // Insert \r at all these positions
+                    InsertHelper(ref buffer, ref bufferSize, toInsert, toInsertCount, '\r');
+                }
+                else if (Environment.NewLine == "\n")
+                {
+                    // Find all CRs, and add them to intBuffer (our toRemove list)
+                    ref int[] toRemove = ref intBuffer;
+                    int toRemoveCount = 0;
+                    int i = bufferSize;
+                    while (true)
+                    {
+                        // Go to next preceding \r (if any)
+                        i = buffer.AsSpan().Slice(0, i).LastIndexOf('\r');
+                        if (i < 0) break;
+
+                        // Expand / borrow toRemove array if required
+                        toRemove ??= ArrayPool<int>.Shared.Rent(64);
+                        if (toRemoveCount == toRemove.Length)
+                        {
+                            var newArr = ArrayPool<int>.Shared.Rent(toRemove.Length * 2);
+                            toRemove.AsSpan().CopyTo(newArr.AsSpan().Slice(0, toRemove.Length));
+                            ArrayPool<int>.Shared.Return(toRemove);
+                            toRemove = newArr;
+                        }
+
+                        // Write value into removal buffer
+                        toRemove[toRemoveCount++] = i;
+                    }
+
+                    // Perform removal
+                    RemoveHelper(ref buffer, ref bufferSize, toRemove, toRemoveCount);
+                }
+                else
+                {
+                    throw new NotSupportedException("Only supported line endings are lf and crlf (OperationTreeVerifier.Verify)");
+                }
+            }
+
+            // Emulate actualOperationTree.Trim(newLineChars).Replace(" \n", "\n").Replace(" \r", "\r") into actualBuffer with actualBufferSize
+            ReadOnlySpan<char> actual = actualOperationTree.AsSpan().Trim(Environment.NewLine.AsSpan());
+            char[] actualBuffer = ArrayPool<char>.Shared.Rent(actual.Length);
+            int actualBufferSize = actual.Length;
+            actual.CopyTo(actualBuffer.AsSpan().Slice(0, actualBufferSize));
+            int[] toRemove = null;
+            int toRemoveCount = 0;
+            FindSpacesBeforeNewlineHelper(actualBuffer, actualBufferSize, ref toRemove, ref toRemoveCount);
+            RemoveHelper(ref actualBuffer, ref actualBufferSize, toRemove, toRemoveCount);
+
+            // Emulate expectedOperationTree.Trim(newLineChars).Replace("\r\n", "\n").Replace(" \n", "\n").Replace("\n", Environment.NewLine) into expectedBuffer with expectedBufferSize
+            // We assume all line endings are either LF or CRLF in expected
+            ReadOnlySpan<char> expected = expectedOperationTree.AsSpan().Trim(Environment.NewLine.AsSpan());
+            char[] expectedBuffer = ArrayPool<char>.Shared.Rent(expected.Length);
+            int expectedBufferSize = expected.Length;
+            expected.CopyTo(expectedBuffer.AsSpan().Slice(0, expectedBufferSize));
+            toRemoveCount = 0;
+            FindSpacesBeforeNewlineHelper(expectedBuffer, expectedBufferSize, ref toRemove, ref toRemoveCount);
+            RemoveHelper(ref expectedBuffer, ref expectedBufferSize, toRemove, toRemoveCount);
+            ReplaceLineEndingsHelper(ref expectedBuffer, ref expectedBufferSize, ref toRemove);
+
+            // Return toRemove buffer
+            if (toRemove != null) ArrayPool<int>.Shared.Return(toRemove);
+
+            // Perform assertion
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedBuffer.AsSpan(0, expectedBufferSize), actualBuffer.AsSpan(0, actualBufferSize));
+
+            // Return character buffers
+            ArrayPool<char>.Shared.Return(actualBuffer);
+            ArrayPool<char>.Shared.Return(expectedBuffer);
         }
 
         #region Logging helpers
@@ -192,8 +366,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             if (_pendingIndent)
             {
-                str = _currentIndent + str;
                 _pendingIndent = false;
+                _builder.Append(' ', _currentIndent);
             }
 
             _builder.Append(str);
@@ -212,7 +386,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private void Unindent()
         {
-            _currentIndent = _currentIndent.Substring(indent.Length);
+            _currentIndent = (int)checked((uint)_currentIndent - indent);
         }
 
         private void LogConstant(Optional<object> constant, string header = "Constant")

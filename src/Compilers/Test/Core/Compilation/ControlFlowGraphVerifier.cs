@@ -1824,7 +1824,7 @@ endRegion:
                 int id = _anonymousFunctionsMap.Count;
                 _anonymousFunctionsMap.Add(operation, g);
                 Assert.Equal(OperationKind.AnonymousFunction, g.OriginalOperation.Kind);
-                GetFlowGraph(_builder, _compilation, g, _region, $"#A{id}{_idSuffix}", _currentIndent.Length + 4, _associatedSymbol);
+                GetFlowGraph(_builder, _compilation, g, _region, $"#A{id}{_idSuffix}", _currentIndent + 4, _associatedSymbol);
                 LogString("}");
                 LogNewLine();
             }
