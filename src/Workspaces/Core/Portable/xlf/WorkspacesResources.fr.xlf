@@ -44,12 +44,12 @@
       </trans-unit>
       <trans-unit id="Changing_project_between_ordinary_and_interactive_submission_is_not_supported">
         <source>Changing project between ordinary and interactive submission is not supported</source>
-        <target state="new">Changing project between ordinary and interactive submission is not supported</target>
+        <target state="translated">Le changement de projet entre la soumission ordinaire et la soumission interactive n'est pas pris en charge</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_project_language_is_not_supported">
         <source>Changing project language is not supported</source>
-        <target state="new">Changing project language is not supported</target>
+        <target state="translated">Le changement de langue du projet n'est pas pris en charge</target>
         <note />
       </trans-unit>
       <trans-unit id="CodeAction_0_did_not_produce_a_changed_solution">
@@ -134,12 +134,12 @@
       </trans-unit>
       <trans-unit id="Removing_compilation_options_is_not_supported">
         <source>Removing compilation options is not supported</source>
-        <target state="new">Removing compilation options is not supported</target>
+        <target state="translated">La suppression des options de compilation n'est pas prise en charge</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_parse_options_is_not_supported">
         <source>Removing parse options is not supported</source>
-        <target state="new">Removing parse options is not supported</target>
+        <target state="translated">La suppression des options d'analyse n'est pas prise en charge</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">

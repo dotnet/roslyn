@@ -44,12 +44,12 @@
       </trans-unit>
       <trans-unit id="Changing_project_between_ordinary_and_interactive_submission_is_not_supported">
         <source>Changing project between ordinary and interactive submission is not supported</source>
-        <target state="new">Changing project between ordinary and interactive submission is not supported</target>
+        <target state="translated">不支持在普通提交和交互式提交之间更改项目</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_project_language_is_not_supported">
         <source>Changing project language is not supported</source>
-        <target state="new">Changing project language is not supported</target>
+        <target state="translated">不支持更改项目语言</target>
         <note />
       </trans-unit>
       <trans-unit id="CodeAction_0_did_not_produce_a_changed_solution">
@@ -134,12 +134,12 @@
       </trans-unit>
       <trans-unit id="Removing_compilation_options_is_not_supported">
         <source>Removing compilation options is not supported</source>
-        <target state="new">Removing compilation options is not supported</target>
+        <target state="translated">不支持移除编译选项</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_parse_options_is_not_supported">
         <source>Removing parse options is not supported</source>
-        <target state="new">Removing parse options is not supported</target>
+        <target state="translated">不支持移除分析选项</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">
