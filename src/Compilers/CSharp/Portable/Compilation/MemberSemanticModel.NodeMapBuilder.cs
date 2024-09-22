@@ -301,6 +301,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (alternative is BoundIfStatement elseIfStatement)
                     {
                         node = elseIfStatement;
+                        if (ShouldAddNode(node))
+                        {
+                            _map.Add(node.Syntax, node);
+                        }
                     }
                     else
                     {

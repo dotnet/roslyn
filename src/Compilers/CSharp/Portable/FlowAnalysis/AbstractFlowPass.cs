@@ -1708,7 +1708,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // 5.3.3.5 If statements
 
-            var stack = ArrayBuilder<TLocalState>.GetInstance();
+            var stack = ArrayBuilder<(TLocalState, BoundIfStatement)>.GetInstance();
 
             TLocalState trueState;
             while (true)
@@ -1727,11 +1727,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 }
 
-                SetState(falseState);
                 if (alternative is BoundIfStatement elseIfStatement)
                 {
-                    stack.Push(trueState);
                     node = elseIfStatement;
+                    stack.Push((trueState, node));
+                    EnterRegionIfNeeded(node);
                 }
                 else
                 {
@@ -1747,7 +1747,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     break;
                 }
-                trueState = stack.Pop();
+                (trueState, node) = stack.Pop();
+                LeaveRegionIfNeeded(node);
             }
 
             stack.Free();
