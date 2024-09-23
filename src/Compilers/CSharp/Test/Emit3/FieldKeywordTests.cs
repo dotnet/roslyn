@@ -1650,41 +1650,88 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void ConstructorAssignment_02([CombinatorialValues("class", "struct", "ref struct")] string typeKind, bool useInit)
+        public void ConstructorAssignment_02A([CombinatorialValues("class", "struct", "ref struct")] string typeKind, bool useInit)
         {
             string setter = useInit ? "init" : "set";
             string source = $$"""
+                #pragma warning disable 649
                 using System;
-                {{typeKind}} C
+                {{typeKind}} C1
                 {
+                    public int F1;
                     public int P1 { get; }
+                    public C1(int i) { P1 = i; }
+                    public C1(int x, out int y) { y = P1; F1 = x; }
+                }
+                {{typeKind}} C2
+                {
+                    public int F2;
                     public int P2 { get => field; }
+                    public C2(int i) { P2 = i; }
+                    public C2(int x, out int y) { y = P2; F2 = x; }
+                }
+                {{typeKind}} C3
+                {
+                    public int F3;
                     public int P3 { get => field; {{setter}}; }
+                    public C3(int i) { P3 = i; }
+                    public C3(int x, out int y) { y = P3; F3 = x; }
+                }
+                {{typeKind}} C4
+                {
+                    public int F4;
                     public int P4 { get => field; {{setter}} { } }
-                    public int P5 { get => 0; {{setter}}; }
+                    public C4(int i) { P4 = i; }
+                    public C4(int x, out int y) { y = P4; F4 = x; }
+                }
+                {{typeKind}} C5
+                {
+                    public int F5;
+                    public int P5 { get => default; {{setter}}; }
+                    public C5(int i) { P5 = i; }
+                    public C5(int x, out int y) { y = P5; F5 = x; }
+                }
+                {{typeKind}} C6
+                {
+                    public int F6;
                     public int P6 { get; {{setter}}; }
+                    public C6(int i) { P6 = i; }
+                    public C6(int x, out int y) { y = P6; F6 = x; }
+                }
+                {{typeKind}} C7
+                {
+                    public int F7;
                     public int P7 { get; {{setter}} { } }
+                    public C7(int i) { P7 = i; }
+                    public C7(int x, out int y) { y = P7; F7 = x; }
+                }
+                {{typeKind}} C8
+                {
+                    public int F8;
                     public int P8 { {{setter}} { field = value; } }
+                    public C8(int i) { P8 = i; }
+                }
+                {{typeKind}} C9
+                {
+                    public int F9;
                     public int P9 { get { return field; } {{setter}} { field = value; } }
-                    public C()
-                    {
-                        P1 = 1;
-                        P2 = 2;
-                        P3 = 3;
-                        P4 = 4;
-                        P5 = 5;
-                        P6 = 6;
-                        P7 = 7;
-                        P8 = 8;
-                        P9 = 9;
-                    }
+                    public C9(int i) { P9 = i; }
+                    public C9(int x, out int y) { y = P9; F9 = x; }
                 }
                 class Program
                 {
                     static void Main()
                     {
-                        var c = new C();
-                        Console.WriteLine((c.P1, c.P2, c.P3, c.P4, c.P5, c.P6, c.P7, c.P9));
+                        var c1 = new C1(1);
+                        var c2 = new C2(2);
+                        var c3 = new C3(3);
+                        var c4 = new C4(4);
+                        var c5 = new C5(5);
+                        var c6 = new C6(6);
+                        var c7 = new C7(7);
+                        var c8 = new C8(8);
+                        var c9 = new C9(9);
+                        Console.WriteLine((c1.P1, c2.P2, c3.P3, c4.P4, c5.P5, c6.P6, c7.P7, c9.P9));
                     }
                 }
                 """;
@@ -1696,104 +1743,1258 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             verifier.VerifyDiagnostics();
             if (typeKind == "class")
             {
-                verifier.VerifyIL("C..ctor", $$"""
+                verifier.VerifyIL("C1..ctor(int)", $$"""
                     {
-                      // Code size       71 (0x47)
+                      // Code size       14 (0xe)
                       .maxstack  2
                       IL_0000:  ldarg.0
                       IL_0001:  call       "object..ctor()"
                       IL_0006:  ldarg.0
-                      IL_0007:  ldc.i4.1
-                      IL_0008:  stfld      "int C.<P1>k__BackingField"
-                      IL_000d:  ldarg.0
-                      IL_000e:  ldc.i4.2
-                      IL_000f:  stfld      "int C.<P2>k__BackingField"
-                      IL_0014:  ldarg.0
-                      IL_0015:  ldc.i4.3
-                      IL_0016:  call       "void C.P3.{{setter}}"
-                      IL_001b:  ldarg.0
-                      IL_001c:  ldc.i4.4
-                      IL_001d:  call       "void C.P4.{{setter}}"
-                      IL_0022:  ldarg.0
-                      IL_0023:  ldc.i4.5
-                      IL_0024:  call       "void C.P5.{{setter}}"
-                      IL_0029:  ldarg.0
-                      IL_002a:  ldc.i4.6
-                      IL_002b:  call       "void C.P6.{{setter}}"
-                      IL_0030:  ldarg.0
-                      IL_0031:  ldc.i4.7
-                      IL_0032:  call       "void C.P7.{{setter}}"
-                      IL_0037:  ldarg.0
-                      IL_0038:  ldc.i4.8
-                      IL_0039:  call       "void C.P8.{{setter}}"
-                      IL_003e:  ldarg.0
-                      IL_003f:  ldc.i4.s   9
-                      IL_0041:  call       "void C.P9.{{setter}}"
-                      IL_0046:  ret
+                      IL_0007:  ldarg.1
+                      IL_0008:  stfld      "int C1.<P1>k__BackingField"
+                      IL_000d:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C2..ctor(int)", $$"""
+                    {
+                      // Code size       14 (0xe)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "object..ctor()"
+                      IL_0006:  ldarg.0
+                      IL_0007:  ldarg.1
+                      IL_0008:  stfld      "int C2.<P2>k__BackingField"
+                      IL_000d:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C3..ctor(int)", $$"""
+                    {
+                      // Code size       14 (0xe)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "object..ctor()"
+                      IL_0006:  ldarg.0
+                      IL_0007:  ldarg.1
+                      IL_0008:  call       "void C3.P3.{{setter}}"
+                      IL_000d:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C4..ctor(int)", $$"""
+                    {
+                      // Code size       14 (0xe)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "object..ctor()"
+                      IL_0006:  ldarg.0
+                      IL_0007:  ldarg.1
+                      IL_0008:  call       "void C4.P4.{{setter}}"
+                      IL_000d:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C5..ctor(int)", $$"""
+                    {
+                      // Code size       14 (0xe)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "object..ctor()"
+                      IL_0006:  ldarg.0
+                      IL_0007:  ldarg.1
+                      IL_0008:  call       "void C5.P5.{{setter}}"
+                      IL_000d:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C6..ctor(int)", $$"""
+                    {
+                      // Code size       14 (0xe)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "object..ctor()"
+                      IL_0006:  ldarg.0
+                      IL_0007:  ldarg.1
+                      IL_0008:  call       "void C6.P6.{{setter}}"
+                      IL_000d:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C7..ctor(int)", $$"""
+                    {
+                      // Code size       14 (0xe)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "object..ctor()"
+                      IL_0006:  ldarg.0
+                      IL_0007:  ldarg.1
+                      IL_0008:  call       "void C7.P7.{{setter}}"
+                      IL_000d:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C8..ctor(int)", $$"""
+                    {
+                      // Code size       14 (0xe)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "object..ctor()"
+                      IL_0006:  ldarg.0
+                      IL_0007:  ldarg.1
+                      IL_0008:  call       "void C8.P8.{{setter}}"
+                      IL_000d:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C9..ctor(int)", $$"""
+                    {
+                      // Code size       14 (0xe)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "object..ctor()"
+                      IL_0006:  ldarg.0
+                      IL_0007:  ldarg.1
+                      IL_0008:  call       "void C9.P9.{{setter}}"
+                      IL_000d:  ret
                     }
                     """);
             }
             else
             {
-                verifier.VerifyIL("C..ctor", $$"""
+                verifier.VerifyIL("C1..ctor(int)", $$"""
                     {
-                      // Code size      121 (0x79)
+                      // Code size       15 (0xf)
                       .maxstack  2
                       IL_0000:  ldarg.0
                       IL_0001:  ldc.i4.0
-                      IL_0002:  stfld      "int C.<P2>k__BackingField"
+                      IL_0002:  stfld      "int C1.F1"
+                      IL_0007:  ldarg.0
+                      IL_0008:  ldarg.1
+                      IL_0009:  stfld      "int C1.<P1>k__BackingField"
+                      IL_000e:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C2..ctor(int)", $$"""
+                    {
+                      // Code size       15 (0xf)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldc.i4.0
+                      IL_0002:  stfld      "int C2.F2"
+                      IL_0007:  ldarg.0
+                      IL_0008:  ldarg.1
+                      IL_0009:  stfld      "int C2.<P2>k__BackingField"
+                      IL_000e:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C3..ctor(int)", $$"""
+                    {
+                      // Code size       15 (0xf)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldc.i4.0
+                      IL_0002:  stfld      "int C3.F3"
+                      IL_0007:  ldarg.0
+                      IL_0008:  ldarg.1
+                      IL_0009:  call       "void C3.P3.{{setter}}"
+                      IL_000e:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C4..ctor(int)", $$"""
+                    {
+                      // Code size       22 (0x16)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldc.i4.0
+                      IL_0002:  stfld      "int C4.F4"
                       IL_0007:  ldarg.0
                       IL_0008:  ldc.i4.0
-                      IL_0009:  stfld      "int C.<P3>k__BackingField"
+                      IL_0009:  stfld      "int C4.<P4>k__BackingField"
                       IL_000e:  ldarg.0
-                      IL_000f:  ldc.i4.0
-                      IL_0010:  stfld      "int C.<P4>k__BackingField"
-                      IL_0015:  ldarg.0
-                      IL_0016:  ldc.i4.0
-                      IL_0017:  stfld      "int C.<P5>k__BackingField"
-                      IL_001c:  ldarg.0
-                      IL_001d:  ldc.i4.0
-                      IL_001e:  stfld      "int C.<P6>k__BackingField"
-                      IL_0023:  ldarg.0
-                      IL_0024:  ldc.i4.0
-                      IL_0025:  stfld      "int C.<P7>k__BackingField"
-                      IL_002a:  ldarg.0
-                      IL_002b:  ldc.i4.0
-                      IL_002c:  stfld      "int C.<P8>k__BackingField"
-                      IL_0031:  ldarg.0
-                      IL_0032:  ldc.i4.0
-                      IL_0033:  stfld      "int C.<P9>k__BackingField"
-                      IL_0038:  ldarg.0
-                      IL_0039:  ldc.i4.1
-                      IL_003a:  stfld      "int C.<P1>k__BackingField"
-                      IL_003f:  ldarg.0
-                      IL_0040:  ldc.i4.2
-                      IL_0041:  stfld      "int C.<P2>k__BackingField"
-                      IL_0046:  ldarg.0
-                      IL_0047:  ldc.i4.3
-                      IL_0048:  call       "void C.P3.{{setter}}"
-                      IL_004d:  ldarg.0
-                      IL_004e:  ldc.i4.4
-                      IL_004f:  call       "void C.P4.{{setter}}"
-                      IL_0054:  ldarg.0
-                      IL_0055:  ldc.i4.5
-                      IL_0056:  call       "void C.P5.{{setter}}"
-                      IL_005b:  ldarg.0
-                      IL_005c:  ldc.i4.6
-                      IL_005d:  call       "void C.P6.{{setter}}"
-                      IL_0062:  ldarg.0
-                      IL_0063:  ldc.i4.7
-                      IL_0064:  call       "void C.P7.{{setter}}"
-                      IL_0069:  ldarg.0
-                      IL_006a:  ldc.i4.8
-                      IL_006b:  call       "void C.P8.{{setter}}"
-                      IL_0070:  ldarg.0
-                      IL_0071:  ldc.i4.s   9
-                      IL_0073:  call       "void C.P9.{{setter}}"
-                      IL_0078:  ret
+                      IL_000f:  ldarg.1
+                      IL_0010:  call       "void C4.P4.{{setter}}"
+                      IL_0015:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C5..ctor(int)", $$"""
+                    {
+                      // Code size       15 (0xf)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldc.i4.0
+                      IL_0002:  stfld      "int C5.F5"
+                      IL_0007:  ldarg.0
+                      IL_0008:  ldarg.1
+                      IL_0009:  call       "void C5.P5.{{setter}}"
+                      IL_000e:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C6..ctor(int)", $$"""
+                    {
+                      // Code size       15 (0xf)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldc.i4.0
+                      IL_0002:  stfld      "int C6.F6"
+                      IL_0007:  ldarg.0
+                      IL_0008:  ldarg.1
+                      IL_0009:  call       "void C6.P6.{{setter}}"
+                      IL_000e:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C7..ctor(int)", $$"""
+                    {
+                      // Code size       22 (0x16)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldc.i4.0
+                      IL_0002:  stfld      "int C7.F7"
+                      IL_0007:  ldarg.0
+                      IL_0008:  ldc.i4.0
+                      IL_0009:  stfld      "int C7.<P7>k__BackingField"
+                      IL_000e:  ldarg.0
+                      IL_000f:  ldarg.1
+                      IL_0010:  call       "void C7.P7.{{setter}}"
+                      IL_0015:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C8..ctor(int)", $$"""
+                    {
+                      // Code size       22 (0x16)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldc.i4.0
+                      IL_0002:  stfld      "int C8.F8"
+                      IL_0007:  ldarg.0
+                      IL_0008:  ldc.i4.0
+                      IL_0009:  stfld      "int C8.<P8>k__BackingField"
+                      IL_000e:  ldarg.0
+                      IL_000f:  ldarg.1
+                      IL_0010:  call       "void C8.P8.{{setter}}"
+                      IL_0015:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C9..ctor(int)", $$"""
+                    {
+                      // Code size       22 (0x16)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldc.i4.0
+                      IL_0002:  stfld      "int C9.F9"
+                      IL_0007:  ldarg.0
+                      IL_0008:  ldc.i4.0
+                      IL_0009:  stfld      "int C9.<P9>k__BackingField"
+                      IL_000e:  ldarg.0
+                      IL_000f:  ldarg.1
+                      IL_0010:  call       "void C9.P9.{{setter}}"
+                      IL_0015:  ret
                     }
                     """);
             }
+            if (typeKind == "class")
+            {
+                verifier.VerifyIL("C1..ctor(int, out int)", $$"""
+                    {
+                      // Code size       22 (0x16)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "object..ctor()"
+                      IL_0006:  ldarg.2
+                      IL_0007:  ldarg.0
+                      IL_0008:  call       "int C1.P1.get"
+                      IL_000d:  stind.i4
+                      IL_000e:  ldarg.0
+                      IL_000f:  ldarg.1
+                      IL_0010:  stfld      "int C1.F1"
+                      IL_0015:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C2..ctor(int, out int)", $$"""
+                    {
+                      // Code size       22 (0x16)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "object..ctor()"
+                      IL_0006:  ldarg.2
+                      IL_0007:  ldarg.0
+                      IL_0008:  call       "int C2.P2.get"
+                      IL_000d:  stind.i4
+                      IL_000e:  ldarg.0
+                      IL_000f:  ldarg.1
+                      IL_0010:  stfld      "int C2.F2"
+                      IL_0015:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C3..ctor(int, out int)", $$"""
+                    {
+                      // Code size       22 (0x16)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "object..ctor()"
+                      IL_0006:  ldarg.2
+                      IL_0007:  ldarg.0
+                      IL_0008:  call       "int C3.P3.get"
+                      IL_000d:  stind.i4
+                      IL_000e:  ldarg.0
+                      IL_000f:  ldarg.1
+                      IL_0010:  stfld      "int C3.F3"
+                      IL_0015:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C4..ctor(int, out int)", $$"""
+                    {
+                      // Code size       22 (0x16)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "object..ctor()"
+                      IL_0006:  ldarg.2
+                      IL_0007:  ldarg.0
+                      IL_0008:  call       "int C4.P4.get"
+                      IL_000d:  stind.i4
+                      IL_000e:  ldarg.0
+                      IL_000f:  ldarg.1
+                      IL_0010:  stfld      "int C4.F4"
+                      IL_0015:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C5..ctor(int, out int)", $$"""
+                    {
+                      // Code size       22 (0x16)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "object..ctor()"
+                      IL_0006:  ldarg.2
+                      IL_0007:  ldarg.0
+                      IL_0008:  call       "int C5.P5.get"
+                      IL_000d:  stind.i4
+                      IL_000e:  ldarg.0
+                      IL_000f:  ldarg.1
+                      IL_0010:  stfld      "int C5.F5"
+                      IL_0015:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C6..ctor(int, out int)", $$"""
+                    {
+                      // Code size       22 (0x16)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "object..ctor()"
+                      IL_0006:  ldarg.2
+                      IL_0007:  ldarg.0
+                      IL_0008:  call       "int C6.P6.get"
+                      IL_000d:  stind.i4
+                      IL_000e:  ldarg.0
+                      IL_000f:  ldarg.1
+                      IL_0010:  stfld      "int C6.F6"
+                      IL_0015:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C7..ctor(int, out int)", $$"""
+                    {
+                      // Code size       22 (0x16)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "object..ctor()"
+                      IL_0006:  ldarg.2
+                      IL_0007:  ldarg.0
+                      IL_0008:  call       "int C7.P7.get"
+                      IL_000d:  stind.i4
+                      IL_000e:  ldarg.0
+                      IL_000f:  ldarg.1
+                      IL_0010:  stfld      "int C7.F7"
+                      IL_0015:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C9..ctor(int, out int)", $$"""
+                    {
+                      // Code size       22 (0x16)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "object..ctor()"
+                      IL_0006:  ldarg.2
+                      IL_0007:  ldarg.0
+                      IL_0008:  call       "int C9.P9.get"
+                      IL_000d:  stind.i4
+                      IL_000e:  ldarg.0
+                      IL_000f:  ldarg.1
+                      IL_0010:  stfld      "int C9.F9"
+                      IL_0015:  ret
+                    }
+                    """);
+            }
+            else
+            {
+                verifier.VerifyIL("C1..ctor(int, out int)", $$"""
+                    {
+                      // Code size       23 (0x17)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldc.i4.0
+                      IL_0002:  stfld      "int C1.<P1>k__BackingField"
+                      IL_0007:  ldarg.2
+                      IL_0008:  ldarg.0
+                      IL_0009:  call       "readonly int C1.P1.get"
+                      IL_000e:  stind.i4
+                      IL_000f:  ldarg.0
+                      IL_0010:  ldarg.1
+                      IL_0011:  stfld      "int C1.F1"
+                      IL_0016:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C2..ctor(int, out int)", $$"""
+                    {
+                      // Code size       30 (0x1e)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldc.i4.0
+                      IL_0002:  stfld      "int C2.F2"
+                      IL_0007:  ldarg.0
+                      IL_0008:  ldc.i4.0
+                      IL_0009:  stfld      "int C2.<P2>k__BackingField"
+                      IL_000e:  ldarg.2
+                      IL_000f:  ldarg.0
+                      IL_0010:  call       "int C2.P2.get"
+                      IL_0015:  stind.i4
+                      IL_0016:  ldarg.0
+                      IL_0017:  ldarg.1
+                      IL_0018:  stfld      "int C2.F2"
+                      IL_001d:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C3..ctor(int, out int)", $$"""
+                    {
+                      // Code size       30 (0x1e)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldc.i4.0
+                      IL_0002:  stfld      "int C3.F3"
+                      IL_0007:  ldarg.0
+                      IL_0008:  ldc.i4.0
+                      IL_0009:  stfld      "int C3.<P3>k__BackingField"
+                      IL_000e:  ldarg.2
+                      IL_000f:  ldarg.0
+                      IL_0010:  call       "int C3.P3.get"
+                      IL_0015:  stind.i4
+                      IL_0016:  ldarg.0
+                      IL_0017:  ldarg.1
+                      IL_0018:  stfld      "int C3.F3"
+                      IL_001d:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C4..ctor(int, out int)", $$"""
+                    {
+                      // Code size       30 (0x1e)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldc.i4.0
+                      IL_0002:  stfld      "int C4.F4"
+                      IL_0007:  ldarg.0
+                      IL_0008:  ldc.i4.0
+                      IL_0009:  stfld      "int C4.<P4>k__BackingField"
+                      IL_000e:  ldarg.2
+                      IL_000f:  ldarg.0
+                      IL_0010:  call       "int C4.P4.get"
+                      IL_0015:  stind.i4
+                      IL_0016:  ldarg.0
+                      IL_0017:  ldarg.1
+                      IL_0018:  stfld      "int C4.F4"
+                      IL_001d:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C5..ctor(int, out int)", $$"""
+                    {
+                      // Code size       30 (0x1e)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldc.i4.0
+                      IL_0002:  stfld      "int C5.F5"
+                      IL_0007:  ldarg.0
+                      IL_0008:  ldc.i4.0
+                      IL_0009:  stfld      "int C5.<P5>k__BackingField"
+                      IL_000e:  ldarg.2
+                      IL_000f:  ldarg.0
+                      IL_0010:  call       "int C5.P5.get"
+                      IL_0015:  stind.i4
+                      IL_0016:  ldarg.0
+                      IL_0017:  ldarg.1
+                      IL_0018:  stfld      "int C5.F5"
+                      IL_001d:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C6..ctor(int, out int)", $$"""
+                    {
+                      // Code size       23 (0x17)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldc.i4.0
+                      IL_0002:  stfld      "int C6.<P6>k__BackingField"
+                      IL_0007:  ldarg.2
+                      IL_0008:  ldarg.0
+                      IL_0009:  call       "readonly int C6.P6.get"
+                      IL_000e:  stind.i4
+                      IL_000f:  ldarg.0
+                      IL_0010:  ldarg.1
+                      IL_0011:  stfld      "int C6.F6"
+                      IL_0016:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C7..ctor(int, out int)", $$"""
+                    {
+                      // Code size       23 (0x17)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldc.i4.0
+                      IL_0002:  stfld      "int C7.<P7>k__BackingField"
+                      IL_0007:  ldarg.2
+                      IL_0008:  ldarg.0
+                      IL_0009:  call       "readonly int C7.P7.get"
+                      IL_000e:  stind.i4
+                      IL_000f:  ldarg.0
+                      IL_0010:  ldarg.1
+                      IL_0011:  stfld      "int C7.F7"
+                      IL_0016:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C9..ctor(int, out int)", $$"""
+                    {
+                      // Code size       30 (0x1e)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldc.i4.0
+                      IL_0002:  stfld      "int C9.F9"
+                      IL_0007:  ldarg.0
+                      IL_0008:  ldc.i4.0
+                      IL_0009:  stfld      "int C9.<P9>k__BackingField"
+                      IL_000e:  ldarg.2
+                      IL_000f:  ldarg.0
+                      IL_0010:  call       "int C9.P9.get"
+                      IL_0015:  stind.i4
+                      IL_0016:  ldarg.0
+                      IL_0017:  ldarg.1
+                      IL_0018:  stfld      "int C9.F9"
+                      IL_001d:  ret
+                    }
+                    """);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConstructorAssignment_02B(bool useInit)
+        {
+            string setter = useInit ? "init" : "set";
+            string source = $$"""
+                #pragma warning disable 649
+                using System;
+                class C3
+                {
+                    public int F3;
+                    public virtual int P3 { get => field; {{setter}}; }
+                    public C3(int i) { P3 = i; }
+                    public C3(int x, out int y) { y = P3; F3 = x; }
+                }
+                class C6
+                {
+                    public int F6;
+                    public virtual int P6 { get; {{setter}}; }
+                    public C6(int i) { P6 = i; }
+                    public C6(int x, out int y) { y = P6; F6 = x; }
+                }
+                class C9
+                {
+                    public int F9;
+                    public virtual int P9 { get { return field; } {{setter}} { field = value; } }
+                    public C9(int i) { P9 = i; }
+                    public C9(int x, out int y) { y = P9; F9 = x; }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c3 = new C3(3);
+                        var c6 = new C6(6);
+                        var c9 = new C9(9);
+                        Console.WriteLine((c3.P3, c6.P6, c9.P9));
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                source,
+                targetFramework: GetTargetFramework(useInit),
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput(useInit, "(3, 6, 9)"));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C3..ctor(int)", $$"""
+                {
+                    // Code size       14 (0xe)
+                    .maxstack  2
+                    IL_0000:  ldarg.0
+                    IL_0001:  call       "object..ctor()"
+                    IL_0006:  ldarg.0
+                    IL_0007:  ldarg.1
+                    IL_0008:  callvirt   "void C3.P3.{{setter}}"
+                    IL_000d:  ret
+                }
+                """);
+            verifier.VerifyIL("C6..ctor(int)", $$"""
+                {
+                    // Code size       14 (0xe)
+                    .maxstack  2
+                    IL_0000:  ldarg.0
+                    IL_0001:  call       "object..ctor()"
+                    IL_0006:  ldarg.0
+                    IL_0007:  ldarg.1
+                    IL_0008:  callvirt   "void C6.P6.{{setter}}"
+                    IL_000d:  ret
+                }
+                """);
+            verifier.VerifyIL("C9..ctor(int)", $$"""
+                {
+                    // Code size       14 (0xe)
+                    .maxstack  2
+                    IL_0000:  ldarg.0
+                    IL_0001:  call       "object..ctor()"
+                    IL_0006:  ldarg.0
+                    IL_0007:  ldarg.1
+                    IL_0008:  callvirt   "void C9.P9.{{setter}}"
+                    IL_000d:  ret
+                }
+                """);
+            verifier.VerifyIL("C3..ctor(int, out int)", $$"""
+                {
+                    // Code size       22 (0x16)
+                    .maxstack  2
+                    IL_0000:  ldarg.0
+                    IL_0001:  call       "object..ctor()"
+                    IL_0006:  ldarg.2
+                    IL_0007:  ldarg.0
+                    IL_0008:  callvirt   "int C3.P3.get"
+                    IL_000d:  stind.i4
+                    IL_000e:  ldarg.0
+                    IL_000f:  ldarg.1
+                    IL_0010:  stfld      "int C3.F3"
+                    IL_0015:  ret
+                }
+                """);
+            verifier.VerifyIL("C6..ctor(int, out int)", $$"""
+                {
+                    // Code size       22 (0x16)
+                    .maxstack  2
+                    IL_0000:  ldarg.0
+                    IL_0001:  call       "object..ctor()"
+                    IL_0006:  ldarg.2
+                    IL_0007:  ldarg.0
+                    IL_0008:  callvirt   "int C6.P6.get"
+                    IL_000d:  stind.i4
+                    IL_000e:  ldarg.0
+                    IL_000f:  ldarg.1
+                    IL_0010:  stfld      "int C6.F6"
+                    IL_0015:  ret
+                }
+                """);
+            verifier.VerifyIL("C9..ctor(int, out int)", $$"""
+                {
+                    // Code size       22 (0x16)
+                    .maxstack  2
+                    IL_0000:  ldarg.0
+                    IL_0001:  call       "object..ctor()"
+                    IL_0006:  ldarg.2
+                    IL_0007:  ldarg.0
+                    IL_0008:  callvirt   "int C9.P9.get"
+                    IL_000d:  stind.i4
+                    IL_000e:  ldarg.0
+                    IL_000f:  ldarg.1
+                    IL_0010:  stfld      "int C9.F9"
+                    IL_0015:  ret
+                }
+                """);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConstructorAssignment_02C(bool useInit)
+        {
+            string setter = useInit ? "init" : "set";
+            string source = $$"""
+                #pragma warning disable 649
+                using System;
+                struct C1
+                {
+                    public int F1;
+                    public int P1 { get; }
+                    public C1(int i) { P1 += i; F1 = i; }
+                }
+                struct C2
+                {
+                    public int F2;
+                    public int P2 { get => field; }
+                    public C2(int i) { P2 += i; F2 = i; }
+                }
+                struct C3
+                {
+                    public int F3;
+                    public int P3 { get => field; {{setter}}; }
+                    public C3(int i) { P3 += i; F3 = i; }
+                }
+                struct C6
+                {
+                    public int F6;
+                    public int P6 { get; {{setter}}; }
+                    public C6(int i) { P6 += i; F6 = i; }
+                }
+                struct C7
+                {
+                    public int F7;
+                    public int P7 { get; {{setter}} { field = value; } }
+                    public C7(int i) { P7 += i; F7 = i; }
+                }
+                struct C9
+                {
+                    public int F9;
+                    public int P9 { get { return field; } {{setter}} { field = value; } }
+                    public C9(int i) { P9 += i; F9 = i; }
+                }
+                struct Program
+                {
+                    static void Main()
+                    {
+                        var c1 = new C1(1);
+                        var c2 = new C2(2);
+                        var c3 = new C3(3);
+                        var c6 = new C6(6);
+                        var c7 = new C7(7);
+                        var c9 = new C9(9);
+                        Console.WriteLine((c1.F1, c1.P1, c2.F2, c2.P2, c3.F3, c3.P3, c6.F6, c6.P6, c7.F7, c7.P7, c9.F9, c9.P9));
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                source,
+                targetFramework: GetTargetFramework(useInit),
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput(useInit, "(1, 1, 2, 2, 3, 3, 6, 6, 7, 7, 9, 9)"));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C1..ctor(int)", $$"""
+                {
+                  // Code size       29 (0x1d)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C1.<P1>k__BackingField"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldarg.0
+                  IL_0009:  call       "readonly int C1.P1.get"
+                  IL_000e:  ldarg.1
+                  IL_000f:  add
+                  IL_0010:  stfld      "int C1.<P1>k__BackingField"
+                  IL_0015:  ldarg.0
+                  IL_0016:  ldarg.1
+                  IL_0017:  stfld      "int C1.F1"
+                  IL_001c:  ret
+                }
+                """);
+            verifier.VerifyIL("C2..ctor(int)", $$"""
+                {
+                  // Code size       29 (0x1d)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C2.<P2>k__BackingField"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldarg.0
+                  IL_0009:  call       "int C2.P2.get"
+                  IL_000e:  ldarg.1
+                  IL_000f:  add
+                  IL_0010:  stfld      "int C2.<P2>k__BackingField"
+                  IL_0015:  ldarg.0
+                  IL_0016:  ldarg.1
+                  IL_0017:  stfld      "int C2.F2"
+                  IL_001c:  ret
+                }
+                """);
+            verifier.VerifyIL("C3..ctor(int)", $$"""
+                {
+                  // Code size       29 (0x1d)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C3.<P3>k__BackingField"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldarg.0
+                  IL_0009:  call       "int C3.P3.get"
+                  IL_000e:  ldarg.1
+                  IL_000f:  add
+                  IL_0010:  call       "void C3.P3.{{setter}}"
+                  IL_0015:  ldarg.0
+                  IL_0016:  ldarg.1
+                  IL_0017:  stfld      "int C3.F3"
+                  IL_001c:  ret
+                }
+                """);
+            verifier.VerifyIL("C6..ctor(int)", $$"""
+                {
+                  // Code size       29 (0x1d)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C6.<P6>k__BackingField"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldarg.0
+                  IL_0009:  call       "readonly int C6.P6.get"
+                  IL_000e:  ldarg.1
+                  IL_000f:  add
+                  IL_0010:  call       "void C6.P6.{{setter}}"
+                  IL_0015:  ldarg.0
+                  IL_0016:  ldarg.1
+                  IL_0017:  stfld      "int C6.F6"
+                  IL_001c:  ret
+                }
+                """);
+            verifier.VerifyIL("C7..ctor(int)", $$"""
+                {
+                  // Code size       36 (0x24)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C7.F7"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  stfld      "int C7.<P7>k__BackingField"
+                  IL_000e:  ldarg.0
+                  IL_000f:  ldarg.0
+                  IL_0010:  call       "readonly int C7.P7.get"
+                  IL_0015:  ldarg.1
+                  IL_0016:  add
+                  IL_0017:  call       "void C7.P7.{{setter}}"
+                  IL_001c:  ldarg.0
+                  IL_001d:  ldarg.1
+                  IL_001e:  stfld      "int C7.F7"
+                  IL_0023:  ret
+                }
+                """);
+            verifier.VerifyIL("C9..ctor(int)", $$"""
+                {
+                  // Code size       36 (0x24)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C9.F9"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  stfld      "int C9.<P9>k__BackingField"
+                  IL_000e:  ldarg.0
+                  IL_000f:  ldarg.0
+                  IL_0010:  call       "int C9.P9.get"
+                  IL_0015:  ldarg.1
+                  IL_0016:  add
+                  IL_0017:  call       "void C9.P9.{{setter}}"
+                  IL_001c:  ldarg.0
+                  IL_001d:  ldarg.1
+                  IL_001e:  stfld      "int C9.F9"
+                  IL_0023:  ret
+                }
+                """);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConstructorAssignment_02D(bool useInit)
+        {
+            string setter = useInit ? "init" : "set";
+            string source = $$"""
+                #pragma warning disable 649
+                using System;
+                struct C1
+                {
+                    public int F1;
+                    public int P1 { get; }
+                    public C1(int i) { P1++; F1 = i; }
+                }
+                struct C2
+                {
+                    public int F2;
+                    public int P2 { get => field; }
+                    public C2(int i) { P2++; F2 = i; }
+                }
+                struct C3
+                {
+                    public int F3;
+                    public int P3 { get => field; {{setter}}; }
+                    public C3(int i) { P3++; F3 = i; }
+                }
+                struct C6
+                {
+                    public int F6;
+                    public int P6 { get; {{setter}}; }
+                    public C6(int i) { P6++; F6 = i; }
+                }
+                struct C7
+                {
+                    public int F7;
+                    public int P7 { get; {{setter}} { field = value; } }
+                    public C7(int i) { P7++; F7 = i; }
+                }
+                struct C9
+                {
+                    public int F9;
+                    public int P9 { get { return field; } {{setter}} { field = value; } }
+                    public C9(int i) { P9++; F9 = i; }
+                }
+                struct Program
+                {
+                    static void Main()
+                    {
+                        var c1 = new C1(1);
+                        var c2 = new C2(2);
+                        var c3 = new C3(3);
+                        var c6 = new C6(6);
+                        var c7 = new C7(7);
+                        var c9 = new C9(9);
+                        Console.WriteLine((c1.F1, c1.P1, c2.F2, c2.P2, c3.F3, c3.P3, c6.F6, c6.P6, c7.F7, c7.P7, c9.F9, c9.P9));
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                source,
+                targetFramework: GetTargetFramework(useInit),
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput(useInit, "(1, 1, 2, 1, 3, 1, 6, 1, 7, 1, 9, 1)"));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C1..ctor(int)", $$"""
+                {
+                  // Code size       31 (0x1f)
+                  .maxstack  3
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C1.<P1>k__BackingField"
+                  IL_0007:  ldarg.0
+                  IL_0008:  call       "readonly int C1.P1.get"
+                  IL_000d:  stloc.0
+                  IL_000e:  ldarg.0
+                  IL_000f:  ldloc.0
+                  IL_0010:  ldc.i4.1
+                  IL_0011:  add
+                  IL_0012:  stfld      "int C1.<P1>k__BackingField"
+                  IL_0017:  ldarg.0
+                  IL_0018:  ldarg.1
+                  IL_0019:  stfld      "int C1.F1"
+                  IL_001e:  ret
+                }
+                """);
+            verifier.VerifyIL("C2..ctor(int)", $$"""
+                {
+                  // Code size       31 (0x1f)
+                  .maxstack  3
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C2.<P2>k__BackingField"
+                  IL_0007:  ldarg.0
+                  IL_0008:  call       "int C2.P2.get"
+                  IL_000d:  stloc.0
+                  IL_000e:  ldarg.0
+                  IL_000f:  ldloc.0
+                  IL_0010:  ldc.i4.1
+                  IL_0011:  add
+                  IL_0012:  stfld      "int C2.<P2>k__BackingField"
+                  IL_0017:  ldarg.0
+                  IL_0018:  ldarg.1
+                  IL_0019:  stfld      "int C2.F2"
+                  IL_001e:  ret
+                }
+                """);
+            verifier.VerifyIL("C3..ctor(int)", $$"""
+                {
+                  // Code size       31 (0x1f)
+                  .maxstack  3
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C3.<P3>k__BackingField"
+                  IL_0007:  ldarg.0
+                  IL_0008:  call       "int C3.P3.get"
+                  IL_000d:  stloc.0
+                  IL_000e:  ldarg.0
+                  IL_000f:  ldloc.0
+                  IL_0010:  ldc.i4.1
+                  IL_0011:  add
+                  IL_0012:  call       "void C3.P3.{{setter}}"
+                  IL_0017:  ldarg.0
+                  IL_0018:  ldarg.1
+                  IL_0019:  stfld      "int C3.F3"
+                  IL_001e:  ret
+                }
+                """);
+            verifier.VerifyIL("C6..ctor(int)", $$"""
+                {
+                  // Code size       31 (0x1f)
+                  .maxstack  3
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C6.<P6>k__BackingField"
+                  IL_0007:  ldarg.0
+                  IL_0008:  call       "readonly int C6.P6.get"
+                  IL_000d:  stloc.0
+                  IL_000e:  ldarg.0
+                  IL_000f:  ldloc.0
+                  IL_0010:  ldc.i4.1
+                  IL_0011:  add
+                  IL_0012:  call       "void C6.P6.{{setter}}"
+                  IL_0017:  ldarg.0
+                  IL_0018:  ldarg.1
+                  IL_0019:  stfld      "int C6.F6"
+                  IL_001e:  ret
+                }
+                """);
+            verifier.VerifyIL("C7..ctor(int)", $$"""
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  3
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C7.F7"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  stfld      "int C7.<P7>k__BackingField"
+                  IL_000e:  ldarg.0
+                  IL_000f:  call       "readonly int C7.P7.get"
+                  IL_0014:  stloc.0
+                  IL_0015:  ldarg.0
+                  IL_0016:  ldloc.0
+                  IL_0017:  ldc.i4.1
+                  IL_0018:  add
+                  IL_0019:  call       "void C7.P7.{{setter}}"
+                  IL_001e:  ldarg.0
+                  IL_001f:  ldarg.1
+                  IL_0020:  stfld      "int C7.F7"
+                  IL_0025:  ret
+                }
+                """);
+            verifier.VerifyIL("C9..ctor(int)", $$"""
+                {
+                  // Code size       38 (0x26)
+                  .maxstack  3
+                  .locals init (int V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C9.F9"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  stfld      "int C9.<P9>k__BackingField"
+                  IL_000e:  ldarg.0
+                  IL_000f:  call       "int C9.P9.get"
+                  IL_0014:  stloc.0
+                  IL_0015:  ldarg.0
+                  IL_0016:  ldloc.0
+                  IL_0017:  ldc.i4.1
+                  IL_0018:  add
+                  IL_0019:  call       "void C9.P9.{{setter}}"
+                  IL_001e:  ldarg.0
+                  IL_001f:  ldarg.1
+                  IL_0020:  stfld      "int C9.F9"
+                  IL_0025:  ret
+                }
+                """);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConstructorAssignment_02E(bool useInit)
+        {
+            string setter = useInit ? "init" : "set";
+            string source = $$"""
+                #pragma warning disable 649
+                using System;
+                struct C1
+                {
+                    public int F1;
+                    public object P1 { get; }
+                    public C1(int value) { P1 ??= value; F1 = value; }
+                }
+                struct C2
+                {
+                    public int F2;
+                    public object P2 { get => field; }
+                    public C2(int value) { P2 ??= value; F2 = value; }
+                }
+                struct C3
+                {
+                    public int F3;
+                    public object P3 { get => field; {{setter}}; }
+                    public C3(int value) { P3 ??= value; F3 = value; }
+                }
+                struct C6
+                {
+                    public int F6;
+                    public object P6 { get; {{setter}}; }
+                    public C6(int value) { P6 ??= value; F6 = value; }
+                }
+                struct C7
+                {
+                    public int F7;
+                    public object P7 { get; {{setter}} { field = value; } }
+                    public C7(int value) { P7 ??= value; F7 = value; }
+                }
+                struct C9
+                {
+                    public int F9;
+                    public object P9 { get { return field; } {{setter}} { field = value; } }
+                    public C9(int value) { P9 ??= value; F9 = value; }
+                }
+                struct Program
+                {
+                    static void Main()
+                    {
+                        var c1 = new C1(1);
+                        var c2 = new C2(2);
+                        var c3 = new C3(3);
+                        var c6 = new C6(6);
+                        var c7 = new C7(7);
+                        var c9 = new C9(9);
+                        Console.WriteLine((c1.F1, c1.P1, c2.F2, c2.P2, c3.F3, c3.P3, c6.F6, c6.P6, c7.F7, c7.P7, c9.F9, c9.P9));
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                source,
+                targetFramework: GetTargetFramework(useInit),
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput(useInit, "(1, 1, 2, 2, 3, 3, 6, 6, 7, 7, 9, 9)"));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C1..ctor", $$"""
+                {
+                  // Code size       35 (0x23)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldnull
+                  IL_0002:  stfld      "object C1.<P1>k__BackingField"
+                  IL_0007:  ldarg.0
+                  IL_0008:  call       "readonly object C1.P1.get"
+                  IL_000d:  brtrue.s   IL_001b
+                  IL_000f:  ldarg.0
+                  IL_0010:  ldarg.1
+                  IL_0011:  box        "int"
+                  IL_0016:  stfld      "object C1.<P1>k__BackingField"
+                  IL_001b:  ldarg.0
+                  IL_001c:  ldarg.1
+                  IL_001d:  stfld      "int C1.F1"
+                  IL_0022:  ret
+                }
+                """);
+            verifier.VerifyIL("C2..ctor", $$"""
+                {
+                  // Code size       35 (0x23)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldnull
+                  IL_0002:  stfld      "object C2.<P2>k__BackingField"
+                  IL_0007:  ldarg.0
+                  IL_0008:  call       "object C2.P2.get"
+                  IL_000d:  brtrue.s   IL_001b
+                  IL_000f:  ldarg.0
+                  IL_0010:  ldarg.1
+                  IL_0011:  box        "int"
+                  IL_0016:  stfld      "object C2.<P2>k__BackingField"
+                  IL_001b:  ldarg.0
+                  IL_001c:  ldarg.1
+                  IL_001d:  stfld      "int C2.F2"
+                  IL_0022:  ret
+                }
+                """);
+            verifier.VerifyIL("C3..ctor", $$"""
+                {
+                  // Code size       37 (0x25)
+                  .maxstack  3
+                  .locals init (object V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldnull
+                  IL_0002:  stfld      "object C3.<P3>k__BackingField"
+                  IL_0007:  ldarg.0
+                  IL_0008:  call       "object C3.P3.get"
+                  IL_000d:  brtrue.s   IL_001d
+                  IL_000f:  ldarg.0
+                  IL_0010:  ldarg.1
+                  IL_0011:  box        "int"
+                  IL_0016:  dup
+                  IL_0017:  stloc.0
+                  IL_0018:  call       "void C3.P3.{{setter}}"
+                  IL_001d:  ldarg.0
+                  IL_001e:  ldarg.1
+                  IL_001f:  stfld      "int C3.F3"
+                  IL_0024:  ret
+                }
+                """);
+            verifier.VerifyIL("C6..ctor", $$"""
+                {
+                  // Code size       37 (0x25)
+                  .maxstack  3
+                  .locals init (object V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldnull
+                  IL_0002:  stfld      "object C6.<P6>k__BackingField"
+                  IL_0007:  ldarg.0
+                  IL_0008:  call       "readonly object C6.P6.get"
+                  IL_000d:  brtrue.s   IL_001d
+                  IL_000f:  ldarg.0
+                  IL_0010:  ldarg.1
+                  IL_0011:  box        "int"
+                  IL_0016:  dup
+                  IL_0017:  stloc.0
+                  IL_0018:  call       "void C6.P6.{{setter}}"
+                  IL_001d:  ldarg.0
+                  IL_001e:  ldarg.1
+                  IL_001f:  stfld      "int C6.F6"
+                  IL_0024:  ret
+                }
+                """);
+            verifier.VerifyIL("C7..ctor", $$"""
+                {
+                  // Code size       44 (0x2c)
+                  .maxstack  3
+                  .locals init (object V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C7.F7"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldnull
+                  IL_0009:  stfld      "object C7.<P7>k__BackingField"
+                  IL_000e:  ldarg.0
+                  IL_000f:  call       "readonly object C7.P7.get"
+                  IL_0014:  brtrue.s   IL_0024
+                  IL_0016:  ldarg.0
+                  IL_0017:  ldarg.1
+                  IL_0018:  box        "int"
+                  IL_001d:  dup
+                  IL_001e:  stloc.0
+                  IL_001f:  call       "void C7.P7.{{setter}}"
+                  IL_0024:  ldarg.0
+                  IL_0025:  ldarg.1
+                  IL_0026:  stfld      "int C7.F7"
+                  IL_002b:  ret
+                }
+                """);
+            verifier.VerifyIL("C9..ctor", $$"""
+                {
+                  // Code size       44 (0x2c)
+                  .maxstack  3
+                  .locals init (object V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C9.F9"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldnull
+                  IL_0009:  stfld      "object C9.<P9>k__BackingField"
+                  IL_000e:  ldarg.0
+                  IL_000f:  call       "object C9.P9.get"
+                  IL_0014:  brtrue.s   IL_0024
+                  IL_0016:  ldarg.0
+                  IL_0017:  ldarg.1
+                  IL_0018:  box        "int"
+                  IL_001d:  dup
+                  IL_001e:  stloc.0
+                  IL_001f:  call       "void C9.P9.{{setter}}"
+                  IL_0024:  ldarg.0
+                  IL_0025:  ldarg.1
+                  IL_0026:  stfld      "int C9.F9"
+                  IL_002b:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -2032,48 +3233,52 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void DefaultInitialization_01(bool useRefStruct, bool useInit, bool includeStructInitializationWarnings)
+        public void DefaultInitialization_01A(bool useInit, bool includeStructInitializationWarnings)
         {
-            string typeKind = useRefStruct ? "ref struct" : "    struct";
             string setter = useInit ? "init" : "set";
             string source = $$"""
                 using System;
-                {{typeKind}} S0
+                struct S1
                 {
-                    public int F0;
-                    public int P0 { get; {{setter}}; }
-                    public S0(int unused) { _ = P0; }
-                }
-                {{typeKind}} S1
-                {
-                    public int F1;
-                    public int P1 { get => field; }
+                    public int P1 { get; }
                     public S1(int unused) { _ = P1; }
                 }
-                {{typeKind}} S2
+                struct S2
                 {
-                    public int F2;
-                    public int P2 { get => field; {{setter}}; }
+                    public int P2 { get => field; }
                     public S2(int unused) { _ = P2; }
                 }
-                {{typeKind}} S3
+                struct S3
                 {
-                    public int F3;
-                    public int P3 { get => field; {{setter}} { field = value; } }
+                    public int P3 { get; {{setter}}; }
                     public S3(int unused) { _ = P3; }
+                }
+                struct S4
+                {
+                    public int P4 { get => field; {{setter}} { field = value; } }
+                    public S4(int unused) { _ = P4; }
+                }
+                struct S5
+                {
+                    public int P5 { get; {{setter}} { field = value; } }
+                    public S5(int unused) { _ = P5; }
+                }
+                struct S6
+                {
+                    public int P6 { get => field; {{setter}}; }
+                    public S6(int unused) { _ = P6; }
                 }
                 class Program
                 {
                     static void Main()
                     {
-                        var s0 = new S0(-1);
                         var s1 = new S1(1);
                         var s2 = new S2(2);
                         var s3 = new S3(3);
-                        Console.WriteLine((s0.F0, s0.P0));
-                        Console.WriteLine((s1.F1, s1.P1));
-                        Console.WriteLine((s2.F2, s2.P2));
-                        Console.WriteLine((s3.F3, s3.P3));
+                        var s4 = new S4(4);
+                        var s5 = new S5(5);
+                        var s6 = new S6(6);
+                        Console.WriteLine((s1.P1, s2.P2, s3.P3, s4.P4, s5.P5, s6.P6));
                     }
                 }
                 """;
@@ -2082,178 +3287,149 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 options: includeStructInitializationWarnings ? TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings) : TestOptions.ReleaseExe,
                 targetFramework: GetTargetFramework(useInit),
                 verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput(useInit, """
-                    (0, 0)
-                    (0, 0)
-                    (0, 0)
-                    (0, 0)
-                    """));
+                expectedOutput: IncludeExpectedOutput(useInit, "(0, 0, 0, 0, 0, 0)"));
             if (includeStructInitializationWarnings)
             {
                 verifier.VerifyDiagnostics(
-                    // (4,16): warning CS0649: Field 'S0.F0' is never assigned to, and will always have its default value 0
-                    //     public int F0;
-                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F0").WithArguments("S0.F0", "0").WithLocation(4, 16),
-                    // (6,12): warning CS9021: Control is returned to caller before auto-implemented property 'S0.P0' is explicitly assigned, causing a preceding implicit assignment of 'default'.
-                    //     public S0(int unused) { _ = P0; }
-                    Diagnostic(ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion, "S0").WithArguments("S0.P0").WithLocation(6, 12),
-                    // (6,12): warning CS9022: Control is returned to caller before field 'S0.F0' is explicitly assigned, causing a preceding implicit assignment of 'default'.
-                    //     public S0(int unused) { _ = P0; }
-                    Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S0").WithArguments("S0.F0").WithLocation(6, 12),
-                    // (6,33): warning CS9018: Auto-implemented property 'P0' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.
-                    //     public S0(int unused) { _ = P0; }
-                    Diagnostic(ErrorCode.WRN_UseDefViolationPropertySupportedVersion, "P0").WithArguments("P0").WithLocation(6, 33),
-                    // (10,16): warning CS0649: Field 'S1.F1' is never assigned to, and will always have its default value 0
-                    //     public int F1;
-                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("S1.F1", "0").WithLocation(10, 16),
-                    // (12,33): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+                    // (5,12): warning CS9021: Control is returned to caller before auto-implemented property 'S1.P1' is explicitly assigned, causing a preceding implicit assignment of 'default'.
                     //     public S1(int unused) { _ = P1; }
-                    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P1").WithLocation(12, 33),
-                    // (16,16): warning CS0649: Field 'S2.F2' is never assigned to, and will always have its default value 0
-                    //     public int F2;
-                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F2").WithArguments("S2.F2", "0").WithLocation(16, 16),
-                    // (18,12): warning CS9021: Control is returned to caller before auto-implemented property 'S2.P2' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                    Diagnostic(ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion, "S1").WithArguments("S1.P1").WithLocation(5, 12),
+                    // (5,33): warning CS9018: Auto-implemented property 'P1' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.
+                    //     public S1(int unused) { _ = P1; }
+                    Diagnostic(ErrorCode.WRN_UseDefViolationPropertySupportedVersion, "P1").WithArguments("P1").WithLocation(5, 33),
+                    // (10,33): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
                     //     public S2(int unused) { _ = P2; }
-                    Diagnostic(ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion, "S2").WithArguments("S2.P2").WithLocation(18, 12),
-                    // (18,12): warning CS9022: Control is returned to caller before field 'S2.F2' is explicitly assigned, causing a preceding implicit assignment of 'default'.
-                    //     public S2(int unused) { _ = P2; }
-                    Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S2").WithArguments("S2.F2").WithLocation(18, 12),
-                    // (18,33): warning CS9018: Auto-implemented property 'P2' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.
-                    //     public S2(int unused) { _ = P2; }
-                    Diagnostic(ErrorCode.WRN_UseDefViolationPropertySupportedVersion, "P2").WithArguments("P2").WithLocation(18, 33),
-                    // (22,16): warning CS0649: Field 'S3.F3' is never assigned to, and will always have its default value 0
-                    //     public int F3;
-                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F3").WithArguments("S3.F3", "0").WithLocation(22, 16),
-                    // (24,33): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+                    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P2").WithLocation(10, 33),
+                    // (15,12): warning CS9021: Control is returned to caller before auto-implemented property 'S3.P3' is explicitly assigned, causing a preceding implicit assignment of 'default'.
                     //     public S3(int unused) { _ = P3; }
-                    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P3").WithLocation(24, 33));
+                    Diagnostic(ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion, "S3").WithArguments("S3.P3").WithLocation(15, 12),
+                    // (15,33): warning CS9018: Auto-implemented property 'P3' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.
+                    //     public S3(int unused) { _ = P3; }
+                    Diagnostic(ErrorCode.WRN_UseDefViolationPropertySupportedVersion, "P3").WithArguments("P3").WithLocation(15, 33),
+                    // (20,33): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+                    //     public S4(int unused) { _ = P4; }
+                    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P4").WithLocation(20, 33),
+                    // (25,12): warning CS9021: Control is returned to caller before auto-implemented property 'S5.P5' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                    //     public S5(int unused) { _ = P5; }
+                    Diagnostic(ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion, "S5").WithArguments("S5.P5").WithLocation(25, 12),
+                    // (25,33): warning CS9018: Auto-implemented property 'P5' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.
+                    //     public S5(int unused) { _ = P5; }
+                    Diagnostic(ErrorCode.WRN_UseDefViolationPropertySupportedVersion, "P5").WithArguments("P5").WithLocation(25, 33),
+                    // (30,33): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+                    //     public S6(int unused) { _ = P6; }
+                    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P6").WithLocation(30, 33));
             }
             else
             {
-                verifier.VerifyDiagnostics(
-                    // (4,16): warning CS0649: Field 'S0.F0' is never assigned to, and will always have its default value 0
-                    //     public int F0;
-                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F0").WithArguments("S0.F0", "0").WithLocation(4, 16),
-                    // (10,16): warning CS0649: Field 'S1.F1' is never assigned to, and will always have its default value 0
-                    //     public int F1;
-                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("S1.F1", "0").WithLocation(10, 16),
-                    // (16,16): warning CS0649: Field 'S2.F2' is never assigned to, and will always have its default value 0
-                    //     public int F2;
-                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F2").WithArguments("S2.F2", "0").WithLocation(16, 16),
-                    // (22,16): warning CS0649: Field 'S3.F3' is never assigned to, and will always have its default value 0
-                    //     public int F3;
-                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F3").WithArguments("S3.F3", "0").WithLocation(22, 16));
+                verifier.VerifyDiagnostics();
             }
-            verifier.VerifyIL("S0..ctor", $$"""
-                    {
-                      // Code size       22 (0x16)
-                      .maxstack  2
-                      IL_0000:  ldarg.0
-                      IL_0001:  ldc.i4.0
-                      IL_0002:  stfld      "int S0.F0"
-                      IL_0007:  ldarg.0
-                      IL_0008:  ldc.i4.0
-                      IL_0009:  stfld      "int S0.<P0>k__BackingField"
-                      IL_000e:  ldarg.0
-                      IL_000f:  call       "readonly int S0.P0.get"
-                      IL_0014:  pop
-                      IL_0015:  ret
-                    }
-                    """);
             verifier.VerifyIL("S1..ctor", $$"""
-                    {
-                      // Code size       22 (0x16)
-                      .maxstack  2
-                      IL_0000:  ldarg.0
-                      IL_0001:  ldc.i4.0
-                      IL_0002:  stfld      "int S1.F1"
-                      IL_0007:  ldarg.0
-                      IL_0008:  ldc.i4.0
-                      IL_0009:  stfld      "int S1.<P1>k__BackingField"
-                      IL_000e:  ldarg.0
-                      IL_000f:  call       "int S1.P1.get"
-                      IL_0014:  pop
-                      IL_0015:  ret
-                    }
-                    """);
+                {
+                    // Code size       15 (0xf)
+                    .maxstack  2
+                    IL_0000:  ldarg.0
+                    IL_0001:  ldc.i4.0
+                    IL_0002:  stfld      "int S1.<P1>k__BackingField"
+                    IL_0007:  ldarg.0
+                    IL_0008:  call       "readonly int S1.P1.get"
+                    IL_000d:  pop
+                    IL_000e:  ret
+                }
+                """);
             verifier.VerifyIL("S2..ctor", $$"""
-                    {
-                      // Code size       22 (0x16)
-                      .maxstack  2
-                      IL_0000:  ldarg.0
-                      IL_0001:  ldc.i4.0
-                      IL_0002:  stfld      "int S2.F2"
-                      IL_0007:  ldarg.0
-                      IL_0008:  ldc.i4.0
-                      IL_0009:  stfld      "int S2.<P2>k__BackingField"
-                      IL_000e:  ldarg.0
-                      IL_000f:  call       "int S2.P2.get"
-                      IL_0014:  pop
-                      IL_0015:  ret
-                    }
-                    """);
+                {
+                    // Code size       15 (0xf)
+                    .maxstack  2
+                    IL_0000:  ldarg.0
+                    IL_0001:  ldc.i4.0
+                    IL_0002:  stfld      "int S2.<P2>k__BackingField"
+                    IL_0007:  ldarg.0
+                    IL_0008:  call       "int S2.P2.get"
+                    IL_000d:  pop
+                    IL_000e:  ret
+                }
+                """);
             verifier.VerifyIL("S3..ctor", $$"""
-                    {
-                      // Code size       22 (0x16)
-                      .maxstack  2
-                      IL_0000:  ldarg.0
-                      IL_0001:  ldc.i4.0
-                      IL_0002:  stfld      "int S3.F3"
-                      IL_0007:  ldarg.0
-                      IL_0008:  ldc.i4.0
-                      IL_0009:  stfld      "int S3.<P3>k__BackingField"
-                      IL_000e:  ldarg.0
-                      IL_000f:  call       "int S3.P3.get"
-                      IL_0014:  pop
-                      IL_0015:  ret
-                    }
-                    """);
+                {
+                    // Code size       15 (0xf)
+                    .maxstack  2
+                    IL_0000:  ldarg.0
+                    IL_0001:  ldc.i4.0
+                    IL_0002:  stfld      "int S3.<P3>k__BackingField"
+                    IL_0007:  ldarg.0
+                    IL_0008:  call       "readonly int S3.P3.get"
+                    IL_000d:  pop
+                    IL_000e:  ret
+                }
+                """);
+            verifier.VerifyIL("S4..ctor", $$"""
+                {
+                    // Code size       15 (0xf)
+                    .maxstack  2
+                    IL_0000:  ldarg.0
+                    IL_0001:  ldc.i4.0
+                    IL_0002:  stfld      "int S4.<P4>k__BackingField"
+                    IL_0007:  ldarg.0
+                    IL_0008:  call       "int S4.P4.get"
+                    IL_000d:  pop
+                    IL_000e:  ret
+                }
+                """);
+            verifier.VerifyIL("S5..ctor", $$"""
+                {
+                    // Code size       15 (0xf)
+                    .maxstack  2
+                    IL_0000:  ldarg.0
+                    IL_0001:  ldc.i4.0
+                    IL_0002:  stfld      "int S5.<P5>k__BackingField"
+                    IL_0007:  ldarg.0
+                    IL_0008:  call       "readonly int S5.P5.get"
+                    IL_000d:  pop
+                    IL_000e:  ret
+                }
+                """);
+            verifier.VerifyIL("S6..ctor", $$"""
+                {
+                    // Code size       15 (0xf)
+                    .maxstack  2
+                    IL_0000:  ldarg.0
+                    IL_0001:  ldc.i4.0
+                    IL_0002:  stfld      "int S6.<P6>k__BackingField"
+                    IL_0007:  ldarg.0
+                    IL_0008:  call       "int S6.P6.get"
+                    IL_000d:  pop
+                    IL_000e:  ret
+                }
+                """);
         }
 
         [Theory]
         [CombinatorialData]
-        public void DefaultInitialization_02(bool useRefStruct, bool useInit, bool includeStructInitializationWarnings)
+        public void DefaultInitialization_01B(bool useInit, bool includeStructInitializationWarnings)
         {
-            string typeKind = useRefStruct ? "ref struct" : "    struct";
             string setter = useInit ? "init" : "set";
             string source = $$"""
                 using System;
-                {{typeKind}} S0
-                {
-                    public int F0;
-                    public int P0 { get; {{setter}}; }
-                    public S0(int i) { P0 = i; }
-                }
-                {{typeKind}} S1
+                struct S1
                 {
                     public int F1;
-                    public int P1 { get => field; }
-                    public S1(int i) { P1 = i; }
+                    public int P1 { get; }
+                    public S1(int unused) { _ = P1; }
                 }
-                {{typeKind}} S2
+                struct S2
                 {
                     public int F2;
-                    public int P2 { get => field; {{setter}}; }
-                    public S2(int i) { P2 = i; }
-                }
-                {{typeKind}} S3
-                {
-                    public int F3;
-                    public int P3 { get => field; {{setter}} { field = value; } }
-                    public S3(int i) { P3 = i; }
+                    public int P2 { get => field; }
+                    public S2(int unused) { _ = P2; }
                 }
                 class Program
                 {
                     static void Main()
                     {
-                        var s0 = new S0(-1);
                         var s1 = new S1(1);
                         var s2 = new S2(2);
-                        var s3 = new S3(3);
-                        Console.WriteLine((s0.F0, s0.P0));
                         Console.WriteLine((s1.F1, s1.P1));
                         Console.WriteLine((s2.F2, s2.P2));
-                        Console.WriteLine((s3.F3, s3.P3));
                     }
                 }
                 """;
@@ -2263,113 +3439,330 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 targetFramework: GetTargetFramework(useInit),
                 verify: Verification.Skipped,
                 expectedOutput: IncludeExpectedOutput(useInit, """
-                    (0, -1)
-                    (0, 1)
-                    (0, 2)
-                    (0, 3)
+                    (0, 0)
+                    (0, 0)
                     """));
             if (includeStructInitializationWarnings)
             {
                 verifier.VerifyDiagnostics(
-                    // (4,16): warning CS0649: Field 'S0.F0' is never assigned to, and will always have its default value 0
-                    //     public int F0;
-                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F0").WithArguments("S0.F0", "0").WithLocation(4, 16),
-                    // (6,12): warning CS9022: Control is returned to caller before field 'S0.F0' is explicitly assigned, causing a preceding implicit assignment of 'default'.
-                    //     public S0(int i) { P0 = i; }
-                    Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S0").WithArguments("S0.F0").WithLocation(6, 12),
-                    // (10,16): warning CS0649: Field 'S1.F1' is never assigned to, and will always have its default value 0
+                    // (4,16): warning CS0649: Field 'S1.F1' is never assigned to, and will always have its default value 0
                     //     public int F1;
-                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("S1.F1", "0").WithLocation(10, 16),
-                    // (12,24): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
-                    //     public S1(int i) { P1 = i; }
-                    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P1").WithLocation(12, 24),
-                    // (16,16): warning CS0649: Field 'S2.F2' is never assigned to, and will always have its default value 0
+                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("S1.F1", "0").WithLocation(4, 16),
+                    // (6,12): warning CS9021: Control is returned to caller before auto-implemented property 'S1.P1' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                    //     public S1(int unused) { _ = P1; }
+                    Diagnostic(ErrorCode.WRN_UnassignedThisAutoPropertySupportedVersion, "S1").WithArguments("S1.P1").WithLocation(6, 12),
+                    // (6,12): warning CS9022: Control is returned to caller before field 'S1.F1' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                    //     public S1(int unused) { _ = P1; }
+                    Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S1").WithArguments("S1.F1").WithLocation(6, 12),
+                    // (6,33): warning CS9018: Auto-implemented property 'P1' is read before being explicitly assigned, causing a preceding implicit assignment of 'default'.
+                    //     public S1(int unused) { _ = P1; }
+                    Diagnostic(ErrorCode.WRN_UseDefViolationPropertySupportedVersion, "P1").WithArguments("P1").WithLocation(6, 33),
+                    // (10,16): warning CS0649: Field 'S2.F2' is never assigned to, and will always have its default value 0
                     //     public int F2;
-                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F2").WithArguments("S2.F2", "0").WithLocation(16, 16),
-                    // (18,12): warning CS9022: Control is returned to caller before field 'S2.F2' is explicitly assigned, causing a preceding implicit assignment of 'default'.
-                    //     public S2(int i) { P2 = i; }
-                    Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S2").WithArguments("S2.F2").WithLocation(18, 12),
-                    // (22,16): warning CS0649: Field 'S3.F3' is never assigned to, and will always have its default value 0
-                    //     public int F3;
-                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F3").WithArguments("S3.F3", "0").WithLocation(22, 16),
-                    // (24,24): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
-                    //     public S3(int i) { P3 = i; }
-                    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P3").WithLocation(24, 24));
+                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F2").WithArguments("S2.F2", "0").WithLocation(10, 16),
+                    // (12,33): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+                    //     public S2(int unused) { _ = P2; }
+                    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P2").WithLocation(12, 33));
             }
             else
             {
                 verifier.VerifyDiagnostics(
-                    // (4,16): warning CS0649: Field 'S0.F0' is never assigned to, and will always have its default value 0
-                    //     public int F0;
-                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F0").WithArguments("S0.F0", "0").WithLocation(4, 16),
-                    // (10,16): warning CS0649: Field 'S1.F1' is never assigned to, and will always have its default value 0
+                    // (4,16): warning CS0649: Field 'S1.F1' is never assigned to, and will always have its default value 0
                     //     public int F1;
-                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("S1.F1", "0").WithLocation(10, 16),
-                    // (16,16): warning CS0649: Field 'S2.F2' is never assigned to, and will always have its default value 0
+                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F1").WithArguments("S1.F1", "0").WithLocation(4, 16),
+                    // (10,16): warning CS0649: Field 'S2.F2' is never assigned to, and will always have its default value 0
                     //     public int F2;
-                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F2").WithArguments("S2.F2", "0").WithLocation(16, 16),
-                    // (22,16): warning CS0649: Field 'S3.F3' is never assigned to, and will always have its default value 0
-                    //     public int F3;
-                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F3").WithArguments("S3.F3", "0").WithLocation(22, 16));
+                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F2").WithArguments("S2.F2", "0").WithLocation(10, 16));
             }
-            verifier.VerifyIL("S0..ctor", $$"""
-                    {
-                      // Code size       15 (0xf)
-                      .maxstack  2
-                      IL_0000:  ldarg.0
-                      IL_0001:  ldc.i4.0
-                      IL_0002:  stfld      "int S0.F0"
-                      IL_0007:  ldarg.0
-                      IL_0008:  ldarg.1
-                      IL_0009:  call       "void S0.P0.{{setter}}"
-                      IL_000e:  ret
-                    }
-                    """);
             verifier.VerifyIL("S1..ctor", $$"""
-                    {
-                      // Code size       22 (0x16)
-                      .maxstack  2
-                      IL_0000:  ldarg.0
-                      IL_0001:  ldc.i4.0
-                      IL_0002:  stfld      "int S1.F1"
-                      IL_0007:  ldarg.0
-                      IL_0008:  ldc.i4.0
-                      IL_0009:  stfld      "int S1.<P1>k__BackingField"
-                      IL_000e:  ldarg.0
-                      IL_000f:  ldarg.1
-                      IL_0010:  stfld      "int S1.<P1>k__BackingField"
-                      IL_0015:  ret
-                    }
-                    """);
+                {
+                    // Code size       22 (0x16)
+                    .maxstack  2
+                    IL_0000:  ldarg.0
+                    IL_0001:  ldc.i4.0
+                    IL_0002:  stfld      "int S1.F1"
+                    IL_0007:  ldarg.0
+                    IL_0008:  ldc.i4.0
+                    IL_0009:  stfld      "int S1.<P1>k__BackingField"
+                    IL_000e:  ldarg.0
+                    IL_000f:  call       "readonly int S1.P1.get"
+                    IL_0014:  pop
+                    IL_0015:  ret
+                }
+                """);
             verifier.VerifyIL("S2..ctor", $$"""
+                {
+                    // Code size       22 (0x16)
+                    .maxstack  2
+                    IL_0000:  ldarg.0
+                    IL_0001:  ldc.i4.0
+                    IL_0002:  stfld      "int S2.F2"
+                    IL_0007:  ldarg.0
+                    IL_0008:  ldc.i4.0
+                    IL_0009:  stfld      "int S2.<P2>k__BackingField"
+                    IL_000e:  ldarg.0
+                    IL_000f:  call       "int S2.P2.get"
+                    IL_0014:  pop
+                    IL_0015:  ret
+                }
+                """);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DefaultInitialization_02A(bool useInit, bool includeStructInitializationWarnings)
+        {
+            string setter = useInit ? "init" : "set";
+            string source = $$"""
+                using System;
+                struct S1
+                {
+                    public int P1 { get; }
+                    public S1(int i) { P1 = i; }
+                }
+                struct S2
+                {
+                    public int P2 { get => field; }
+                    public S2(int i) { P2 = i; }
+                }
+                struct S3
+                {
+                    public int P3 { get; {{setter}}; }
+                    public S3(int i) { P3 = i; }
+                }
+                struct S4
+                {
+                    public int P4 { get => field; {{setter}} { field = value; } }
+                    public S4(int i) { P4 = i; }
+                }
+                struct S5
+                {
+                    public int P5 { get; {{setter}} { field = value; } }
+                    public S5(int i) { P5 = i; }
+                }
+                struct S6
+                {
+                    public int P6 { get => field; {{setter}}; }
+                    public S6(int i) { P6 = i; }
+                }
+                struct S7
+                {
+                    public int P7 { {{setter}} { field = value; } }
+                    public S7(int i) { P7 = i; }
+                }
+                class Program
+                {
+                    static void Main()
                     {
-                      // Code size       15 (0xf)
-                      .maxstack  2
-                      IL_0000:  ldarg.0
-                      IL_0001:  ldc.i4.0
-                      IL_0002:  stfld      "int S2.F2"
-                      IL_0007:  ldarg.0
-                      IL_0008:  ldarg.1
-                      IL_0009:  call       "void S2.P2.{{setter}}"
-                      IL_000e:  ret
+                        var s1 = new S1(1);
+                        var s2 = new S2(2);
+                        var s3 = new S3(3);
+                        var s4 = new S4(4);
+                        var s5 = new S5(5);
+                        var s6 = new S6(6);
+                        var s7 = new S7(7);
+                        Console.WriteLine((s1.P1, s2.P2, s3.P3, s4.P4, s5.P5, s6.P6));
                     }
-                    """);
+                }
+                """;
+            var verifier = CompileAndVerify(
+                source,
+                options: includeStructInitializationWarnings ? TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings) : TestOptions.ReleaseExe,
+                targetFramework: GetTargetFramework(useInit),
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput(useInit, "(1, 2, 3, 4, 5, 6)"));
+            if (includeStructInitializationWarnings)
+            {
+                verifier.VerifyDiagnostics(
+                    // (20,24): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+                    //     public S4(int i) { P4 = i; }
+                    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P4").WithLocation(20, 24),
+                    // (25,24): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+                    //     public S5(int i) { P5 = i; }
+                    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P5").WithLocation(25, 24),
+                    // (35,24): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+                    //     public S7(int i) { P7 = i; }
+                    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P7").WithLocation(35, 24));
+            }
+            else
+            {
+                verifier.VerifyDiagnostics();
+            }
+            verifier.VerifyIL("S1..ctor", $$"""
+                {
+                    // Code size        8 (0x8)
+                    .maxstack  2
+                    IL_0000:  ldarg.0
+                    IL_0001:  ldarg.1
+                    IL_0002:  stfld      "int S1.<P1>k__BackingField"
+                    IL_0007:  ret
+                }
+                """);
+            verifier.VerifyIL("S2..ctor", $$"""
+                {
+                  // Code size        8 (0x8)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  stfld      "int S2.<P2>k__BackingField"
+                  IL_0007:  ret
+                }
+                """);
             verifier.VerifyIL("S3..ctor", $$"""
+                {
+                    // Code size        8 (0x8)
+                    .maxstack  2
+                    IL_0000:  ldarg.0
+                    IL_0001:  ldarg.1
+                    IL_0002:  call       "void S3.P3.{{setter}}"
+                    IL_0007:  ret
+                }
+                """);
+            verifier.VerifyIL("S4..ctor", $$"""
+                {
+                  // Code size       15 (0xf)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int S4.<P4>k__BackingField"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldarg.1
+                  IL_0009:  call       "void S4.P4.{{setter}}"
+                  IL_000e:  ret
+                }
+                """);
+            verifier.VerifyIL("S5..ctor", $$"""
+                {
+                  // Code size       15 (0xf)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int S5.<P5>k__BackingField"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldarg.1
+                  IL_0009:  call       "void S5.P5.{{setter}}"
+                  IL_000e:  ret
+                }
+                """);
+            verifier.VerifyIL("S6..ctor", $$"""
+                {
+                    // Code size        8 (0x8)
+                    .maxstack  2
+                    IL_0000:  ldarg.0
+                    IL_0001:  ldarg.1
+                    IL_0002:  call       "void S6.P6.{{setter}}"
+                    IL_0007:  ret
+                }
+                """);
+            verifier.VerifyIL("S7..ctor", $$"""
+                {
+                  // Code size       15 (0xf)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int S7.<P7>k__BackingField"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldarg.1
+                  IL_0009:  call       "void S7.P7.{{setter}}"
+                  IL_000e:  ret
+                }
+                """);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void DefaultInitialization_02B(bool useInit, bool includeStructInitializationWarnings)
+        {
+            string setter = useInit ? "init" : "set";
+            string source = $$"""
+                using System;
+                struct S3
+                {
+                    public int F3;
+                    public int P3 { get; {{setter}}; }
+                    public S3(int i) { P3 = i; }
+                }
+                struct S4
+                {
+                    public int F4;
+                    public int P4 { get => field; {{setter}} { field = value; } }
+                    public S4(int i) { P4 = i; }
+                }
+                class Program
+                {
+                    static void Main()
                     {
-                      // Code size       22 (0x16)
-                      .maxstack  2
-                      IL_0000:  ldarg.0
-                      IL_0001:  ldc.i4.0
-                      IL_0002:  stfld      "int S3.F3"
-                      IL_0007:  ldarg.0
-                      IL_0008:  ldc.i4.0
-                      IL_0009:  stfld      "int S3.<P3>k__BackingField"
-                      IL_000e:  ldarg.0
-                      IL_000f:  ldarg.1
-                      IL_0010:  call       "void S3.P3.{{setter}}"
-                      IL_0015:  ret
+                        var s3 = new S3(3);
+                        var s4 = new S4(4);
+                        Console.WriteLine((s3.F3, s3.P3));
+                        Console.WriteLine((s4.F4, s4.P4));
                     }
-                    """);
+                }
+                """;
+            var verifier = CompileAndVerify(
+                source,
+                options: includeStructInitializationWarnings ? TestOptions.ReleaseExe.WithSpecificDiagnosticOptions(ReportStructInitializationWarnings) : TestOptions.ReleaseExe,
+                targetFramework: GetTargetFramework(useInit),
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput(useInit, """
+                    (0, 3)
+                    (0, 4)
+                    """));
+            if (includeStructInitializationWarnings)
+            {
+                verifier.VerifyDiagnostics(
+                    // (4,16): warning CS0649: Field 'S3.F3' is never assigned to, and will always have its default value 0
+                    //     public int F3;
+                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F3").WithArguments("S3.F3", "0").WithLocation(4, 16),
+                    // (6,12): warning CS9022: Control is returned to caller before field 'S3.F3' is explicitly assigned, causing a preceding implicit assignment of 'default'.
+                    //     public S3(int i) { P3 = i; }
+                    Diagnostic(ErrorCode.WRN_UnassignedThisSupportedVersion, "S3").WithArguments("S3.F3").WithLocation(6, 12),
+                    // (10,16): warning CS0649: Field 'S4.F4' is never assigned to, and will always have its default value 0
+                    //     public int F4;
+                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F4").WithArguments("S4.F4", "0").WithLocation(10, 16),
+                    // (12,24): warning CS9020: The 'this' object is read before all of its fields have been assigned, causing preceding implicit assignments of 'default' to non-explicitly assigned fields.
+                    //     public S4(int i) { P4 = i; }
+                    Diagnostic(ErrorCode.WRN_UseDefViolationThisSupportedVersion, "P4").WithLocation(12, 24));
+            }
+            else
+            {
+                verifier.VerifyDiagnostics(
+                    // (4,16): warning CS0649: Field 'S3.F3' is never assigned to, and will always have its default value 0
+                    //     public int F3;
+                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F3").WithArguments("S3.F3", "0").WithLocation(4, 16),
+                    // (10,16): warning CS0649: Field 'S4.F4' is never assigned to, and will always have its default value 0
+                    //     public int F4;
+                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F4").WithArguments("S4.F4", "0").WithLocation(10, 16));
+            }
+            verifier.VerifyIL("S3..ctor", $$"""
+                {
+                    // Code size       15 (0xf)
+                    .maxstack  2
+                    IL_0000:  ldarg.0
+                    IL_0001:  ldc.i4.0
+                    IL_0002:  stfld      "int S3.F3"
+                    IL_0007:  ldarg.0
+                    IL_0008:  ldarg.1
+                    IL_0009:  call       "void S3.P3.{{setter}}"
+                    IL_000e:  ret
+                }
+                """);
+            verifier.VerifyIL("S4..ctor", $$"""
+                {
+                  // Code size       22 (0x16)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int S4.F4"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  stfld      "int S4.<P4>k__BackingField"
+                  IL_000e:  ldarg.0
+                  IL_000f:  ldarg.1
+                  IL_0010:  call       "void S4.P4.{{setter}}"
+                  IL_0015:  ret
+                }
+                """);
         }
 
         [Theory]
@@ -3150,6 +4543,333 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory]
+        [CombinatorialData]
+        public void Nullability_01(bool useNullableAnnotation)
+        {
+            string annotation = useNullableAnnotation ? "?" : " ";
+            string source = $$"""
+                #nullable enable
+                class C
+                {
+                    object{{annotation}} P1 => field;
+                    object{{annotation}} P2 { get => field; }
+                    object{{annotation}} P3 { set { field = value; } }
+                    object{{annotation}} P4 { get => field; set { field = value; } }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            if (useNullableAnnotation)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,13): warning CS8618: Non-nullable property 'P1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    //     object  P1 => field;
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P1").WithArguments("property", "P1").WithLocation(4, 13),
+                    // (5,13): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    //     object  P2 { get => field; }
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P2").WithArguments("property", "P2").WithLocation(5, 13),
+                    // (6,13): warning CS8618: Non-nullable property 'P3' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    //     object  P3 { set { field = value; } }
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P3").WithArguments("property", "P3").WithLocation(6, 13),
+                    // (7,13): warning CS8618: Non-nullable property 'P4' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    //     object  P4 { get => field; set { field = value; } }
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P4").WithArguments("property", "P4").WithLocation(7, 13));
+            }
+        }
+
+        [Fact]
+        public void Nullability_02()
+        {
+            string source = """
+                #nullable enable
+                class C
+                {
+                    string? P1 => field.ToString(); // 1
+                    string P2 => field.ToString();
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,19): warning CS8602: Dereference of a possibly null reference.
+                //     string? P1 => field.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(4, 19),
+                // (5,12): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                //     string P2 => field.ToString();
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "P2").WithArguments("property", "P2").WithLocation(5, 12));
+        }
+
+        [Fact]
+        public void Nullability_03()
+        {
+            string source = """
+                #nullable enable
+                class C
+                {
+                    string P
+                    {
+                        get
+                        {
+                            if (field.Length == 0) return field;
+                            if (field is null) return field; // 1
+                            return field;
+                        }
+                    }
+                    C() { P = ""; }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,39): warning CS8603: Possible null reference return.
+                //             if (field is null) return field; // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "field").WithLocation(9, 39));
+        }
+
+        [Fact]
+        public void Nullability_04()
+        {
+            string source = """
+                #nullable enable
+                class C
+                {
+                    string? P
+                    {
+                        set
+                        {
+                            if (value is null)
+                            {
+                                field = value;
+                                field.ToString(); // 1
+                                return;
+                            }
+                            field = value;
+                            field.ToString();
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,17): warning CS8602: Dereference of a possibly null reference.
+                //                 field.ToString(); // 1
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(11, 17));
+        }
+
+        // NullableWalker assumes the backing field is used exactly as in an auto-property,
+        // (e.g. { get { return field; } set { field = value; } }), and therefore the inferred nullability
+        // of the initializer value can be used directly for the inferred nullability of the property.
+        [Theory]
+        [CombinatorialData]
+        public void Nullability_05(bool useNullableAnnotation, bool initializeNotNull, bool useInit)
+        {
+            string setter = useInit ? "init" : "set ";
+            string annotation = useNullableAnnotation ? "?" : " ";
+            string initializerValue = initializeNotNull ? "NotNull()" : "MaybeNull()";
+            string source = $$"""
+                #nullable enable
+                class C
+                {
+                    object{{annotation}} P1 { get; } = {{initializerValue}};
+                    object{{annotation}} P2 { get => field; } = {{initializerValue}};
+                    object{{annotation}} P3 { get => field; {{setter}}; } = {{initializerValue}};
+                    object{{annotation}} P4 { get; {{setter}}; } = {{initializerValue}};
+                    object{{annotation}} P5 { get; {{setter}} { field = value; } } = {{initializerValue}};
+                    object{{annotation}} P6 { {{setter}} { field = value; } } = {{initializerValue}};
+                    static object NotNull() => new object();
+                    static object? MaybeNull() => new object();
+                    C()
+                    {
+                        P1.ToString();
+                        P2.ToString();
+                        P3.ToString();
+                        P4.ToString();
+                        P5.ToString();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: GetTargetFramework(useInit));
+            if (initializeNotNull)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else if (useNullableAnnotation)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (14,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P1.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P1").WithLocation(14, 9),
+                    // (15,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P2.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P2").WithLocation(15, 9),
+                    // (16,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P3.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P3").WithLocation(16, 9),
+                    // (17,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P4.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P4").WithLocation(17, 9),
+                    // (18,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P5.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P5").WithLocation(18, 9));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,27): warning CS8601: Possible null reference assignment.
+                    //     object  P1 { get; } = MaybeNull();
+                    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "MaybeNull()").WithLocation(4, 27),
+                    // (5,36): warning CS8601: Possible null reference assignment.
+                    //     object  P2 { get => field; } = MaybeNull();
+                    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "MaybeNull()").WithLocation(5, 36),
+                    // (6,42): warning CS8601: Possible null reference assignment.
+                    //     object  P3 { get => field; set ; } = MaybeNull();
+                    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "MaybeNull()").WithLocation(6, 42),
+                    // (7,33): warning CS8601: Possible null reference assignment.
+                    //     object  P4 { get; set ; } = MaybeNull();
+                    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "MaybeNull()").WithLocation(7, 33),
+                    // (8,51): warning CS8601: Possible null reference assignment.
+                    //     object  P5 { get; set  { field = value; } } = MaybeNull();
+                    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "MaybeNull()").WithLocation(8, 51),
+                    // (9,46): warning CS8601: Possible null reference assignment.
+                    //     object  P6 { set  { field = value; } } = MaybeNull();
+                    Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "MaybeNull()").WithLocation(9, 46),
+                    // (14,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P1.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P1").WithLocation(14, 9),
+                    // (15,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P2.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P2").WithLocation(15, 9),
+                    // (16,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P3.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P3").WithLocation(16, 9),
+                    // (17,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P4.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P4").WithLocation(17, 9),
+                    // (18,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P5.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P5").WithLocation(18, 9));
+            }
+        }
+
+        // Based on RequiredMembersTests.RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_01.
+        [Theory]
+        [CombinatorialData]
+        public void RequiredMemberNullability_01(bool includeRequired)
+        {
+            string modifier = includeRequired ? "required" : "";
+            string source = $$"""
+                #nullable enable
+                class C
+                {
+                    public {{modifier}} object P1 { get; }
+                    public {{modifier}} object P2 { get => field; }
+                    public {{modifier}} object P3 { get => ""; }
+
+                    C(bool unused) { }
+
+                    C() : this(true)
+                    {
+                        P1.ToString();
+                        P2.ToString();
+                        P3.ToString();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            if (includeRequired)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,28): error CS9034: Required member 'C.P1' must be settable.
+                    //     public required object P1 { get; }
+                    Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "P1").WithArguments("C.P1").WithLocation(4, 28),
+                    // (5,28): error CS9034: Required member 'C.P2' must be settable.
+                    //     public required object P2 { get => field; }
+                    Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "P2").WithArguments("C.P2").WithLocation(5, 28),
+                    // (6,28): error CS9034: Required member 'C.P3' must be settable.
+                    //     public required object P3 { get => ""; }
+                    Diagnostic(ErrorCode.ERR_RequiredMemberMustBeSettable, "P3").WithArguments("C.P3").WithLocation(6, 28),
+                    // (12,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P1.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P1").WithLocation(12, 9),
+                    // (13,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P2.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P2").WithLocation(13, 9),
+                    // (14,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P3.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P3").WithLocation(14, 9));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (8,5): warning CS8618: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    //     C(bool unused) { }
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P2").WithLocation(8, 5),
+                    // (8,5): warning CS8618: Non-nullable property 'P1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    //     C(bool unused) { }
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P1").WithLocation(8, 5));
+            }
+        }
+
+        // Based on RequiredMembersTests.RequiredMemberSuppressesNullabilityWarnings_ChainedConstructor_01.
+        [Theory]
+        [CombinatorialData]
+        public void RequiredMemberNullability_02(bool includeRequired)
+        {
+            string modifier = includeRequired ? "required" : "";
+            string source = $$"""
+                #nullable enable
+                class C
+                {
+                    public {{modifier}} object P4 { get; set; }
+                    public {{modifier}} object P5 { get => field; set; }
+                    public {{modifier}} object P6 { get => field; set { field = value; } }
+                    public {{modifier}} object P7 { get => ""; set { } }
+
+                    C(bool unused) { }
+
+                    C() : this(true)
+                    {
+                        P4.ToString();
+                        P5.ToString();
+                        P6.ToString();
+                        P7.ToString();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            if (includeRequired)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (13,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P4.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P4").WithLocation(13, 9),
+                    // (14,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P5.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P5").WithLocation(14, 9),
+                    // (15,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P6.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P6").WithLocation(15, 9),
+                    // (16,9): warning CS8602: Dereference of a possibly null reference.
+                    //         P7.ToString();
+                    Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "P7").WithLocation(16, 9));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (9,5): warning CS8618: Non-nullable property 'P5' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    //     C(bool unused) { }
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P5").WithLocation(9, 5),
+                    // (9,5): warning CS8618: Non-nullable property 'P6' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    //     C(bool unused) { }
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P6").WithLocation(9, 5),
+                    // (9,5): warning CS8618: Non-nullable property 'P4' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                    //     C(bool unused) { }
+                    Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("property", "P4").WithLocation(9, 5));
+            }
+        }
+
+        [Theory]
         [InlineData(false, false)]
         [InlineData(false, true)]
         [InlineData(true, false)]
@@ -3599,6 +5319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     C.<P1>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
                     C.<P2>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
                     """));
+
             if (useDEBUG)
             {
                 verifier.VerifyIL("C.P1.get", """
@@ -3640,9 +5361,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     """);
             }
+
             var comp = (CSharpCompilation)verifier.Compilation;
-            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
-            var expectedMembers = new[]
+            var containingType = comp.GetMember<NamedTypeSymbol>("C");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
+            var expectedFields = new[]
             {
                 "System.Object C.<P1>k__BackingField",
                 "System.Object C.<P2>k__BackingField",
@@ -3650,7 +5373,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Object C.<P4>k__BackingField",
                 "System.Object C.<P5>k__BackingField",
             };
-            AssertEx.Equal(expectedMembers, actualMembers);
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
+            VerifyMergedProperties(actualProperties, actualFields);
         }
 
         [Fact]
@@ -5133,6 +6859,212 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
 
             VerifyMergedProperties(actualProperties, actualFields);
+        }
+
+        [Theory]
+        [InlineData("{ get; }")]
+        [InlineData("{ get; set; }")]
+        [InlineData("{ get => field; }")]
+        [InlineData("{ set { field = value; } }")]
+        [InlineData("{ get => field; set; }")]
+        [InlineData("{ get; set { field = value; } }")]
+        [InlineData("{ get => field; set { field = value; } }")]
+        public void Nameof_01(string accessors)
+        {
+            string source = $$"""
+                #nullable enable
+                using static System.Console;
+                struct S1
+                {
+                    static object? P1 {{accessors}}
+                    static S1()
+                    {
+                        WriteLine(nameof(P1));
+                        WriteLine(nameof(S1.P1));
+                    }
+                    public static void M()
+                    {
+                        WriteLine(nameof(P1));
+                        WriteLine(nameof(S1.P1));
+                    }
+                }
+                struct S2
+                {
+                    object? P2 {{accessors}}
+                    public S2(S2 s)
+                    {
+                        WriteLine(nameof(P2));
+                        WriteLine(nameof(S2.P2));
+                        WriteLine(nameof(this.P2));
+                    }
+                    public void M(S2 s)
+                    {
+                        WriteLine(nameof(P2));
+                        WriteLine(nameof(S2.P2));
+                        WriteLine(nameof(this.P2));
+                    }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        S1.M();
+                        new S2(default).M(default);
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: """
+                P1
+                P1
+                P1
+                P1
+                P2
+                P2
+                P2
+                P2
+                P2
+                P2
+                """);
+            verifier.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData("{ get; }")]
+        [InlineData("{ get; set; }")]
+        [InlineData("{ get => field; }")]
+        [InlineData("{ set { field = value; } }")]
+        [InlineData("{ get => field; set; }")]
+        [InlineData("{ get; set { field = value; } }")]
+        [InlineData("{ get => field; set { field = value; } }")]
+        public void Nameof_02(string accessors)
+        {
+            string source = $$"""
+                #nullable enable
+                struct S
+                {
+                    object? P {{accessors}}
+                    public S(bool unused)
+                    {
+                        _ = nameof(new S().P);
+                    }
+                    public void M()
+                    {
+                        _ = nameof(new S().P);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,20): error CS8082: Sub-expression cannot be used in an argument to nameof.
+                //         _ = nameof(new S().P);
+                Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "new S()").WithLocation(7, 20),
+                // (11,20): error CS8082: Sub-expression cannot be used in an argument to nameof.
+                //         _ = nameof(new S().P);
+                Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "new S()").WithLocation(11, 20));
+        }
+
+        [Theory]
+        [InlineData("{ get; }")]
+        [InlineData("{ get => field; }")]
+        public void Nameof_03(string accessors)
+        {
+            string source = $$"""
+                #nullable enable
+                class C
+                {
+                    public object? F = null;
+                }
+                struct S1
+                {
+                    static C? P1 {{accessors}}
+                    static S1()
+                    {
+                        _ = nameof((P1 = new()).F);
+                    }
+                    static void M()
+                    {
+                        _ = nameof((P1 = new()).F);
+                    }
+                }
+                struct S2
+                {
+                    C? P2 {{accessors}}
+                    S2(bool unused)
+                    {
+                        _ = nameof((P2 = new()).F);
+                    }
+                    void M()
+                    {
+                        _ = nameof((P2 = new()).F);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (11,20): error CS8082: Sub-expression cannot be used in an argument to nameof.
+                //         _ = nameof((P1 = new()).F);
+                Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "(P1 = new())").WithLocation(11, 20),
+                // (15,21): error CS0200: Property or indexer 'S1.P1' cannot be assigned to -- it is read only
+                //         _ = nameof((P1 = new()).F);
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P1").WithArguments("S1.P1").WithLocation(15, 21),
+                // (23,20): error CS8082: Sub-expression cannot be used in an argument to nameof.
+                //         _ = nameof((P2 = new()).F);
+                Diagnostic(ErrorCode.ERR_SubexpressionNotInNameof, "(P2 = new())").WithLocation(23, 20),
+                // (27,21): error CS0200: Property or indexer 'S2.P2' cannot be assigned to -- it is read only
+                //         _ = nameof((P2 = new()).F);
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P2").WithArguments("S2.P2").WithLocation(27, 21));
+        }
+
+        [Theory]
+        [InlineData("{ get; }")]
+        [InlineData("{ get => field; }")]
+        public void RangeVariableValue_01(string accessors)
+        {
+            string source = $$"""
+                #nullable enable
+                using System.Linq;
+                struct S
+                {
+                    object? P {{accessors}}
+                    S(object value)
+                    {
+                        _ = from x in new [] { value }
+                            let y = (P = x)
+                            select (P = y);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (9,22): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                //             let y = (P = x)
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "P").WithLocation(9, 22),
+                // (10,21): error CS1673: Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.
+                //             select (P = y);
+                Diagnostic(ErrorCode.ERR_ThisStructNotInAnonMeth, "P").WithLocation(10, 21));
+        }
+
+        [Theory]
+        [InlineData("{ get; set; }")]
+        [InlineData("{ get => field; set; }")]
+        public void RangeVariableValue_02(string accessors)
+        {
+            string source = $$"""
+                #nullable enable
+                using System.Linq;
+                struct S
+                {
+                    object? P {{accessors}}
+                    S(S s, object value)
+                    {
+                        _ = from x in new [] { value }
+                            let y = (s.P = x)
+                            select (s.P = y);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

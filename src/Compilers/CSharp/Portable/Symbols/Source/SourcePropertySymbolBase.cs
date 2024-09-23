@@ -648,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal bool IsAutoPropertyOrUsesFieldKeyword
-            => IsAutoProperty || UsesFieldKeyword;
+            => IsSetOnEitherPart(Flags.HasAutoPropertyGet | Flags.HasAutoPropertySet | Flags.UsesFieldKeyword);
 
         internal bool UsesFieldKeyword
             => IsSetOnEitherPart(Flags.UsesFieldKeyword);
@@ -658,6 +658,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal bool IsAutoProperty
             => IsSetOnEitherPart(Flags.HasAutoPropertyGet | Flags.HasAutoPropertySet);
+
+        internal bool HasAutoPropertyGet
+            => IsSetOnEitherPart(Flags.HasAutoPropertyGet);
+
+        internal bool HasAutoPropertySet
+            => IsSetOnEitherPart(Flags.HasAutoPropertySet);
+
+        /// <summary>
+        /// True if the property has a synthesized backing field, and
+        /// either no accessor or the accessor is auto-implemented.
+        /// </summary>
+        internal bool CanUseBackingFieldDirectlyInConstructor(bool useAsLvalue)
+        {
+            if (BackingField is null)
+            {
+                return false;
+            }
+            if (useAsLvalue)
+            {
+                return SetMethod is null || HasAutoPropertySet;
+            }
+            else
+            {
+                return GetMethod is null || HasAutoPropertyGet;
+            }
+        }
 
         private bool IsSetOnEitherPart(Flags flags)
         {
@@ -871,7 +897,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             diagnostics.Add(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, Location);
                         }
                     }
-                    else if (!hasGetAccessor && IsAutoProperty)
+                    else if (!hasGetAccessor && HasAutoPropertySet)
                     {
                         // The only forms of auto-property that are disallowed are { set; } and { init; }.
                         // Other forms of auto- or manually-implemented accessors are allowed
