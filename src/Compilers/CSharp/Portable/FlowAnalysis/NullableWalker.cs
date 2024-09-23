@@ -1073,7 +1073,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        // PROTOTYPE: Is checking IsAutoProperty sufficient or should we check the appropriate accessors are missing or auto-implemented?
                         static Symbol getFieldSymbolToBeInitialized(Symbol requiredMember)
                             => requiredMember is SourcePropertySymbol { IsAutoProperty: true } prop ? prop.BackingField : requiredMember;
                     }
@@ -1965,8 +1964,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var propAccess = (BoundPropertyAccess)expr;
                         var propSymbol = propAccess.PropertySymbol;
                         member = propSymbol;
-                        // PROTOTYPE: Why don't we call Binder.AccessingAutoPropertyFromConstructor
-                        // to match the DefiniteAssignment implementation?
                         if (propSymbol.IsStatic)
                         {
                             return true;
