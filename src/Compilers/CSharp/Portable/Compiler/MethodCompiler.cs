@@ -2227,7 +2227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (_found is { })
                 {
-                    return node;
+                    return null;
                 }
 
                 return base.Visit(node);
