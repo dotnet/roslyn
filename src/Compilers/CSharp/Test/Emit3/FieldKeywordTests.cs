@@ -2415,37 +2415,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     public int F1;
                     public int P1 { get; }
-                    public C1(int i) { P1 += i; }
+                    public C1(int i) { P1 += i; F1 = i; }
                 }
                 struct C2
                 {
                     public int F2;
                     public int P2 { get => field; }
-                    public C2(int i) { P2 += i; }
+                    public C2(int i) { P2 += i; F2 = i; }
                 }
                 struct C3
                 {
                     public int F3;
                     public int P3 { get => field; {{setter}}; }
-                    public C3(int i) { P3 += i; }
+                    public C3(int i) { P3 += i; F3 = i; }
                 }
                 struct C6
                 {
                     public int F6;
                     public int P6 { get; {{setter}}; }
-                    public C6(int i) { P6 += i; }
+                    public C6(int i) { P6 += i; F6 = i; }
                 }
                 struct C7
                 {
                     public int F7;
                     public int P7 { get; {{setter}} { field = value; } }
-                    public C7(int i) { P7 += i; }
+                    public C7(int i) { P7 += i; F7 = i; }
                 }
                 struct C9
                 {
                     public int F9;
                     public int P9 { get { return field; } {{setter}} { field = value; } }
-                    public C9(int i) { P9 += i; }
+                    public C9(int i) { P9 += i; F9 = i; }
                 }
                 struct Program
                 {
@@ -2457,7 +2457,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         var c6 = new C6(6);
                         var c7 = new C7(7);
                         var c9 = new C9(9);
-                        Console.WriteLine((c1.P1, c2.P2, c3.P3, c6.P6, c7.P7, c9.P9));
+                        Console.WriteLine((c1.F1, c1.P1, c2.F2, c2.P2, c3.F3, c3.P3, c6.F6, c6.P6, c7.F7, c7.P7, c9.F9, c9.P9));
                     }
                 }
                 """;
@@ -2465,7 +2465,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 source,
                 targetFramework: GetTargetFramework(useInit),
                 verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput(useInit, "(1, 2, 3, 6, 7, 9)"));
+                expectedOutput: IncludeExpectedOutput(useInit, "(1, 1, 2, 2, 3, 3, 6, 6, 7, 7, 9, 9)"));
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C1..ctor(int)", $$"""
                 {
@@ -2473,16 +2473,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   .maxstack  3
                   IL_0000:  ldarg.0
                   IL_0001:  ldc.i4.0
-                  IL_0002:  stfld      "int C1.F1"
+                  IL_0002:  stfld      "int C1.<P1>k__BackingField"
                   IL_0007:  ldarg.0
-                  IL_0008:  ldc.i4.0
-                  IL_0009:  stfld      "int C1.<P1>k__BackingField"
-                  IL_000e:  ldarg.0
-                  IL_000f:  ldarg.0
-                  IL_0010:  call       "readonly int C1.P1.get"
-                  IL_0015:  ldarg.1
-                  IL_0016:  add
-                  IL_0017:  stfld      "int C1.<P1>k__BackingField"
+                  IL_0008:  ldarg.0
+                  IL_0009:  call       "readonly int C1.P1.get"
+                  IL_000e:  ldarg.1
+                  IL_000f:  add
+                  IL_0010:  stfld      "int C1.<P1>k__BackingField"
+                  IL_0015:  ldarg.0
+                  IL_0016:  ldarg.1
+                  IL_0017:  stfld      "int C1.F1"
                   IL_001c:  ret
                 }
                 """);
@@ -2492,93 +2492,99 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   .maxstack  3
                   IL_0000:  ldarg.0
                   IL_0001:  ldc.i4.0
-                  IL_0002:  stfld      "int C2.F2"
+                  IL_0002:  stfld      "int C2.<P2>k__BackingField"
                   IL_0007:  ldarg.0
-                  IL_0008:  ldc.i4.0
-                  IL_0009:  stfld      "int C2.<P2>k__BackingField"
-                  IL_000e:  ldarg.0
-                  IL_000f:  ldarg.0
-                  IL_0010:  call       "int C2.P2.get"
-                  IL_0015:  ldarg.1
-                  IL_0016:  add
-                  IL_0017:  stfld      "int C2.<P2>k__BackingField"
+                  IL_0008:  ldarg.0
+                  IL_0009:  call       "int C2.P2.get"
+                  IL_000e:  ldarg.1
+                  IL_000f:  add
+                  IL_0010:  stfld      "int C2.<P2>k__BackingField"
+                  IL_0015:  ldarg.0
+                  IL_0016:  ldarg.1
+                  IL_0017:  stfld      "int C2.F2"
                   IL_001c:  ret
                 }
                 """);
             verifier.VerifyIL("C3..ctor(int)", $$"""
                 {
-                    // Code size       29 (0x1d)
-                    .maxstack  3
-                    IL_0000:  ldarg.0
-                    IL_0001:  ldc.i4.0
-                    IL_0002:  stfld      "int C3.F3"
-                    IL_0007:  ldarg.0
-                    IL_0008:  ldc.i4.0
-                    IL_0009:  stfld      "int C3.<P3>k__BackingField"
-                    IL_000e:  ldarg.0
-                    IL_000f:  ldarg.0
-                    IL_0010:  call       "int C3.P3.get"
-                    IL_0015:  ldarg.1
-                    IL_0016:  add
-                    IL_0017:  call       "void C3.P3.{{setter}}"
-                    IL_001c:  ret
+                  // Code size       29 (0x1d)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C3.<P3>k__BackingField"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldarg.0
+                  IL_0009:  call       "int C3.P3.get"
+                  IL_000e:  ldarg.1
+                  IL_000f:  add
+                  IL_0010:  call       "void C3.P3.{{setter}}"
+                  IL_0015:  ldarg.0
+                  IL_0016:  ldarg.1
+                  IL_0017:  stfld      "int C3.F3"
+                  IL_001c:  ret
                 }
                 """);
             verifier.VerifyIL("C6..ctor(int)", $$"""
                 {
-                    // Code size       29 (0x1d)
-                    .maxstack  3
-                    IL_0000:  ldarg.0
-                    IL_0001:  ldc.i4.0
-                    IL_0002:  stfld      "int C6.F6"
-                    IL_0007:  ldarg.0
-                    IL_0008:  ldc.i4.0
-                    IL_0009:  stfld      "int C6.<P6>k__BackingField"
-                    IL_000e:  ldarg.0
-                    IL_000f:  ldarg.0
-                    IL_0010:  call       "readonly int C6.P6.get"
-                    IL_0015:  ldarg.1
-                    IL_0016:  add
-                    IL_0017:  call       "void C6.P6.{{setter}}"
-                    IL_001c:  ret
+                  // Code size       29 (0x1d)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C6.<P6>k__BackingField"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldarg.0
+                  IL_0009:  call       "readonly int C6.P6.get"
+                  IL_000e:  ldarg.1
+                  IL_000f:  add
+                  IL_0010:  call       "void C6.P6.{{setter}}"
+                  IL_0015:  ldarg.0
+                  IL_0016:  ldarg.1
+                  IL_0017:  stfld      "int C6.F6"
+                  IL_001c:  ret
                 }
                 """);
             verifier.VerifyIL("C7..ctor(int)", $$"""
                 {
-                    // Code size       29 (0x1d)
-                    .maxstack  3
-                    IL_0000:  ldarg.0
-                    IL_0001:  ldc.i4.0
-                    IL_0002:  stfld      "int C7.F7"
-                    IL_0007:  ldarg.0
-                    IL_0008:  ldc.i4.0
-                    IL_0009:  stfld      "int C7.<P7>k__BackingField"
-                    IL_000e:  ldarg.0
-                    IL_000f:  ldarg.0
-                    IL_0010:  call       "readonly int C7.P7.get"
-                    IL_0015:  ldarg.1
-                    IL_0016:  add
-                    IL_0017:  call       "void C7.P7.{{setter}}"
-                    IL_001c:  ret
+                  // Code size       36 (0x24)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C7.F7"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  stfld      "int C7.<P7>k__BackingField"
+                  IL_000e:  ldarg.0
+                  IL_000f:  ldarg.0
+                  IL_0010:  call       "readonly int C7.P7.get"
+                  IL_0015:  ldarg.1
+                  IL_0016:  add
+                  IL_0017:  call       "void C7.P7.{{setter}}"
+                  IL_001c:  ldarg.0
+                  IL_001d:  ldarg.1
+                  IL_001e:  stfld      "int C7.F7"
+                  IL_0023:  ret
                 }
                 """);
             verifier.VerifyIL("C9..ctor(int)", $$"""
                 {
-                    // Code size       29 (0x1d)
-                    .maxstack  3
-                    IL_0000:  ldarg.0
-                    IL_0001:  ldc.i4.0
-                    IL_0002:  stfld      "int C9.F9"
-                    IL_0007:  ldarg.0
-                    IL_0008:  ldc.i4.0
-                    IL_0009:  stfld      "int C9.<P9>k__BackingField"
-                    IL_000e:  ldarg.0
-                    IL_000f:  ldarg.0
-                    IL_0010:  call       "int C9.P9.get"
-                    IL_0015:  ldarg.1
-                    IL_0016:  add
-                    IL_0017:  call       "void C9.P9.{{setter}}"
-                    IL_001c:  ret
+                  // Code size       36 (0x24)
+                  .maxstack  3
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.0
+                  IL_0002:  stfld      "int C9.F9"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldc.i4.0
+                  IL_0009:  stfld      "int C9.<P9>k__BackingField"
+                  IL_000e:  ldarg.0
+                  IL_000f:  ldarg.0
+                  IL_0010:  call       "int C9.P9.get"
+                  IL_0015:  ldarg.1
+                  IL_0016:  add
+                  IL_0017:  call       "void C9.P9.{{setter}}"
+                  IL_001c:  ldarg.0
+                  IL_001d:  ldarg.1
+                  IL_001e:  stfld      "int C9.F9"
+                  IL_0023:  ret
                 }
                 """);
         }
@@ -2595,49 +2601,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     public int F1;
                     public int P1 { get; }
-                    public C1(bool unused) { P1++; }
+                    public C1(int i) { P1++; F1 = i; }
                 }
                 struct C2
                 {
                     public int F2;
                     public int P2 { get => field; }
-                    public C2(bool unused) { P2++; }
+                    public C2(int i) { P2++; F2 = i; }
                 }
                 struct C3
                 {
                     public int F3;
                     public int P3 { get => field; {{setter}}; }
-                    public C3(bool unused) { P3++; }
+                    public C3(int i) { P3++; F3 = i; }
                 }
                 struct C6
                 {
                     public int F6;
                     public int P6 { get; {{setter}}; }
-                    public C6(bool unused) { P6++; }
+                    public C6(int i) { P6++; F6 = i; }
                 }
                 struct C7
                 {
                     public int F7;
                     public int P7 { get; {{setter}} { field = value; } }
-                    public C7(bool unused) { P7++; }
+                    public C7(int i) { P7++; F7 = i; }
                 }
                 struct C9
                 {
                     public int F9;
                     public int P9 { get { return field; } {{setter}} { field = value; } }
-                    public C9(bool unused) { P9++; }
+                    public C9(int i) { P9++; F9 = i; }
                 }
                 struct Program
                 {
                     static void Main()
                     {
-                        var c1 = new C1(false);
-                        var c2 = new C2(false);
-                        var c3 = new C3(false);
-                        var c6 = new C6(false);
-                        var c7 = new C7(false);
-                        var c9 = new C9(false);
-                        Console.WriteLine((c1.P1, c2.P2, c3.P3, c6.P6, c7.P7, c9.P9));
+                        var c1 = new C1(1);
+                        var c2 = new C2(2);
+                        var c3 = new C3(3);
+                        var c6 = new C6(6);
+                        var c7 = new C7(7);
+                        var c9 = new C9(9);
+                        Console.WriteLine((c1.F1, c1.P1, c2.F2, c2.P2, c3.F3, c3.P3, c6.F6, c6.P6, c7.F7, c7.P7, c9.F9, c9.P9));
                     }
                 }
                 """;
@@ -2645,99 +2651,99 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 source,
                 targetFramework: GetTargetFramework(useInit),
                 verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput(useInit, "(1, 1, 1, 1, 1, 1)"));
+                expectedOutput: IncludeExpectedOutput(useInit, "(1, 1, 2, 1, 3, 1, 6, 1, 7, 1, 9, 1)"));
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C1..ctor(bool)", $$"""
+            verifier.VerifyIL("C1..ctor(int)", $$"""
                 {
                   // Code size       31 (0x1f)
                   .maxstack  3
                   .locals init (int V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  ldc.i4.0
-                  IL_0002:  stfld      "int C1.F1"
+                  IL_0002:  stfld      "int C1.<P1>k__BackingField"
                   IL_0007:  ldarg.0
-                  IL_0008:  ldc.i4.0
-                  IL_0009:  stfld      "int C1.<P1>k__BackingField"
+                  IL_0008:  call       "readonly int C1.P1.get"
+                  IL_000d:  stloc.0
                   IL_000e:  ldarg.0
-                  IL_000f:  call       "readonly int C1.P1.get"
-                  IL_0014:  stloc.0
-                  IL_0015:  ldarg.0
-                  IL_0016:  ldloc.0
-                  IL_0017:  ldc.i4.1
-                  IL_0018:  add
-                  IL_0019:  stfld      "int C1.<P1>k__BackingField"
+                  IL_000f:  ldloc.0
+                  IL_0010:  ldc.i4.1
+                  IL_0011:  add
+                  IL_0012:  stfld      "int C1.<P1>k__BackingField"
+                  IL_0017:  ldarg.0
+                  IL_0018:  ldarg.1
+                  IL_0019:  stfld      "int C1.F1"
                   IL_001e:  ret
                 }
                 """);
-            verifier.VerifyIL("C2..ctor(bool)", $$"""
+            verifier.VerifyIL("C2..ctor(int)", $$"""
                 {
                   // Code size       31 (0x1f)
                   .maxstack  3
                   .locals init (int V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  ldc.i4.0
-                  IL_0002:  stfld      "int C2.F2"
+                  IL_0002:  stfld      "int C2.<P2>k__BackingField"
                   IL_0007:  ldarg.0
-                  IL_0008:  ldc.i4.0
-                  IL_0009:  stfld      "int C2.<P2>k__BackingField"
+                  IL_0008:  call       "int C2.P2.get"
+                  IL_000d:  stloc.0
                   IL_000e:  ldarg.0
-                  IL_000f:  call       "int C2.P2.get"
-                  IL_0014:  stloc.0
-                  IL_0015:  ldarg.0
-                  IL_0016:  ldloc.0
-                  IL_0017:  ldc.i4.1
-                  IL_0018:  add
-                  IL_0019:  stfld      "int C2.<P2>k__BackingField"
+                  IL_000f:  ldloc.0
+                  IL_0010:  ldc.i4.1
+                  IL_0011:  add
+                  IL_0012:  stfld      "int C2.<P2>k__BackingField"
+                  IL_0017:  ldarg.0
+                  IL_0018:  ldarg.1
+                  IL_0019:  stfld      "int C2.F2"
                   IL_001e:  ret
                 }
                 """);
-            verifier.VerifyIL("C3..ctor(bool)", $$"""
+            verifier.VerifyIL("C3..ctor(int)", $$"""
                 {
                   // Code size       31 (0x1f)
                   .maxstack  3
                   .locals init (int V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  ldc.i4.0
-                  IL_0002:  stfld      "int C3.F3"
+                  IL_0002:  stfld      "int C3.<P3>k__BackingField"
                   IL_0007:  ldarg.0
-                  IL_0008:  ldc.i4.0
-                  IL_0009:  stfld      "int C3.<P3>k__BackingField"
+                  IL_0008:  call       "int C3.P3.get"
+                  IL_000d:  stloc.0
                   IL_000e:  ldarg.0
-                  IL_000f:  call       "int C3.P3.get"
-                  IL_0014:  stloc.0
-                  IL_0015:  ldarg.0
-                  IL_0016:  ldloc.0
-                  IL_0017:  ldc.i4.1
-                  IL_0018:  add
-                  IL_0019:  call       "void C3.P3.{{setter}}"
+                  IL_000f:  ldloc.0
+                  IL_0010:  ldc.i4.1
+                  IL_0011:  add
+                  IL_0012:  call       "void C3.P3.{{setter}}"
+                  IL_0017:  ldarg.0
+                  IL_0018:  ldarg.1
+                  IL_0019:  stfld      "int C3.F3"
                   IL_001e:  ret
                 }
                 """);
-            verifier.VerifyIL("C6..ctor(bool)", $$"""
+            verifier.VerifyIL("C6..ctor(int)", $$"""
                 {
                   // Code size       31 (0x1f)
                   .maxstack  3
                   .locals init (int V_0)
                   IL_0000:  ldarg.0
                   IL_0001:  ldc.i4.0
-                  IL_0002:  stfld      "int C6.F6"
+                  IL_0002:  stfld      "int C6.<P6>k__BackingField"
                   IL_0007:  ldarg.0
-                  IL_0008:  ldc.i4.0
-                  IL_0009:  stfld      "int C6.<P6>k__BackingField"
+                  IL_0008:  call       "readonly int C6.P6.get"
+                  IL_000d:  stloc.0
                   IL_000e:  ldarg.0
-                  IL_000f:  call       "readonly int C6.P6.get"
-                  IL_0014:  stloc.0
-                  IL_0015:  ldarg.0
-                  IL_0016:  ldloc.0
-                  IL_0017:  ldc.i4.1
-                  IL_0018:  add
-                  IL_0019:  call       "void C6.P6.{{setter}}"
+                  IL_000f:  ldloc.0
+                  IL_0010:  ldc.i4.1
+                  IL_0011:  add
+                  IL_0012:  call       "void C6.P6.{{setter}}"
+                  IL_0017:  ldarg.0
+                  IL_0018:  ldarg.1
+                  IL_0019:  stfld      "int C6.F6"
                   IL_001e:  ret
                 }
                 """);
-            verifier.VerifyIL("C7..ctor(bool)", $$"""
+            verifier.VerifyIL("C7..ctor(int)", $$"""
                 {
-                  // Code size       31 (0x1f)
+                  // Code size       38 (0x26)
                   .maxstack  3
                   .locals init (int V_0)
                   IL_0000:  ldarg.0
@@ -2754,12 +2760,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0017:  ldc.i4.1
                   IL_0018:  add
                   IL_0019:  call       "void C7.P7.{{setter}}"
-                  IL_001e:  ret
+                  IL_001e:  ldarg.0
+                  IL_001f:  ldarg.1
+                  IL_0020:  stfld      "int C7.F7"
+                  IL_0025:  ret
                 }
                 """);
-            verifier.VerifyIL("C9..ctor(bool)", $$"""
+            verifier.VerifyIL("C9..ctor(int)", $$"""
                 {
-                  // Code size       31 (0x1f)
+                  // Code size       38 (0x26)
                   .maxstack  3
                   .locals init (int V_0)
                   IL_0000:  ldarg.0
@@ -2776,7 +2785,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0017:  ldc.i4.1
                   IL_0018:  add
                   IL_0019:  call       "void C9.P9.{{setter}}"
-                  IL_001e:  ret
+                  IL_001e:  ldarg.0
+                  IL_001f:  ldarg.1
+                  IL_0020:  stfld      "int C9.F9"
+                  IL_0025:  ret
                 }
                 """);
         }
@@ -2793,37 +2805,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     public int F1;
                     public object P1 { get; }
-                    public C1(object value) { P1 ??= value; }
+                    public C1(int value) { P1 ??= value; F1 = value; }
                 }
                 struct C2
                 {
                     public int F2;
                     public object P2 { get => field; }
-                    public C2(object value) { P2 ??= value; }
+                    public C2(int value) { P2 ??= value; F2 = value; }
                 }
                 struct C3
                 {
                     public int F3;
                     public object P3 { get => field; {{setter}}; }
-                    public C3(object value) { P3 ??= value; }
+                    public C3(int value) { P3 ??= value; F3 = value; }
                 }
                 struct C6
                 {
                     public int F6;
                     public object P6 { get; {{setter}}; }
-                    public C6(object value) { P6 ??= value; }
+                    public C6(int value) { P6 ??= value; F6 = value; }
                 }
                 struct C7
                 {
                     public int F7;
                     public object P7 { get; {{setter}} { field = value; } }
-                    public C7(object value) { P7 ??= value; }
+                    public C7(int value) { P7 ??= value; F7 = value; }
                 }
                 struct C9
                 {
                     public int F9;
                     public object P9 { get { return field; } {{setter}} { field = value; } }
-                    public C9(object value) { P9 ??= value; }
+                    public C9(int value) { P9 ??= value; F9 = value; }
                 }
                 struct Program
                 {
@@ -2835,7 +2847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         var c6 = new C6(6);
                         var c7 = new C7(7);
                         var c9 = new C9(9);
-                        Console.WriteLine((c1.P1, c2.P2, c3.P3, c6.P6, c7.P7, c9.P9));
+                        Console.WriteLine((c1.F1, c1.P1, c2.F2, c2.P2, c3.F3, c3.P3, c6.F6, c6.P6, c7.F7, c7.P7, c9.F9, c9.P9));
                     }
                 }
                 """;
@@ -2843,93 +2855,97 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 source,
                 targetFramework: GetTargetFramework(useInit),
                 verify: Verification.Skipped,
-                expectedOutput: IncludeExpectedOutput(useInit, "(1, 2, 3, 6, 7, 9)"));
+                expectedOutput: IncludeExpectedOutput(useInit, "(1, 1, 2, 2, 3, 3, 6, 6, 7, 7, 9, 9)"));
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C1..ctor", $$"""
                 {
-                  // Code size       30 (0x1e)
+                  // Code size       35 (0x23)
                   .maxstack  2
                   IL_0000:  ldarg.0
-                  IL_0001:  ldc.i4.0
-                  IL_0002:  stfld      "int C1.F1"
+                  IL_0001:  ldnull
+                  IL_0002:  stfld      "object C1.<P1>k__BackingField"
                   IL_0007:  ldarg.0
-                  IL_0008:  ldnull
-                  IL_0009:  stfld      "object C1.<P1>k__BackingField"
-                  IL_000e:  ldarg.0
-                  IL_000f:  call       "readonly object C1.P1.get"
-                  IL_0014:  brtrue.s   IL_001d
-                  IL_0016:  ldarg.0
-                  IL_0017:  ldarg.1
-                  IL_0018:  stfld      "object C1.<P1>k__BackingField"
-                  IL_001d:  ret
+                  IL_0008:  call       "readonly object C1.P1.get"
+                  IL_000d:  brtrue.s   IL_001b
+                  IL_000f:  ldarg.0
+                  IL_0010:  ldarg.1
+                  IL_0011:  box        "int"
+                  IL_0016:  stfld      "object C1.<P1>k__BackingField"
+                  IL_001b:  ldarg.0
+                  IL_001c:  ldarg.1
+                  IL_001d:  stfld      "int C1.F1"
+                  IL_0022:  ret
                 }
                 """);
             verifier.VerifyIL("C2..ctor", $$"""
                 {
-                  // Code size       30 (0x1e)
+                  // Code size       35 (0x23)
                   .maxstack  2
                   IL_0000:  ldarg.0
-                  IL_0001:  ldc.i4.0
-                  IL_0002:  stfld      "int C2.F2"
+                  IL_0001:  ldnull
+                  IL_0002:  stfld      "object C2.<P2>k__BackingField"
                   IL_0007:  ldarg.0
-                  IL_0008:  ldnull
-                  IL_0009:  stfld      "object C2.<P2>k__BackingField"
-                  IL_000e:  ldarg.0
-                  IL_000f:  call       "object C2.P2.get"
-                  IL_0014:  brtrue.s   IL_001d
-                  IL_0016:  ldarg.0
-                  IL_0017:  ldarg.1
-                  IL_0018:  stfld      "object C2.<P2>k__BackingField"
-                  IL_001d:  ret
+                  IL_0008:  call       "object C2.P2.get"
+                  IL_000d:  brtrue.s   IL_001b
+                  IL_000f:  ldarg.0
+                  IL_0010:  ldarg.1
+                  IL_0011:  box        "int"
+                  IL_0016:  stfld      "object C2.<P2>k__BackingField"
+                  IL_001b:  ldarg.0
+                  IL_001c:  ldarg.1
+                  IL_001d:  stfld      "int C2.F2"
+                  IL_0022:  ret
                 }
                 """);
             verifier.VerifyIL("C3..ctor", $$"""
                 {
-                  // Code size       32 (0x20)
+                  // Code size       37 (0x25)
                   .maxstack  3
                   .locals init (object V_0)
                   IL_0000:  ldarg.0
-                  IL_0001:  ldc.i4.0
-                  IL_0002:  stfld      "int C3.F3"
+                  IL_0001:  ldnull
+                  IL_0002:  stfld      "object C3.<P3>k__BackingField"
                   IL_0007:  ldarg.0
-                  IL_0008:  ldnull
-                  IL_0009:  stfld      "object C3.<P3>k__BackingField"
-                  IL_000e:  ldarg.0
-                  IL_000f:  call       "object C3.P3.get"
-                  IL_0014:  brtrue.s   IL_001f
-                  IL_0016:  ldarg.0
-                  IL_0017:  ldarg.1
-                  IL_0018:  dup
-                  IL_0019:  stloc.0
-                  IL_001a:  call       "void C3.P3.{{setter}}"
-                  IL_001f:  ret
+                  IL_0008:  call       "object C3.P3.get"
+                  IL_000d:  brtrue.s   IL_001d
+                  IL_000f:  ldarg.0
+                  IL_0010:  ldarg.1
+                  IL_0011:  box        "int"
+                  IL_0016:  dup
+                  IL_0017:  stloc.0
+                  IL_0018:  call       "void C3.P3.{{setter}}"
+                  IL_001d:  ldarg.0
+                  IL_001e:  ldarg.1
+                  IL_001f:  stfld      "int C3.F3"
+                  IL_0024:  ret
                 }
                 """);
             verifier.VerifyIL("C6..ctor", $$"""
                 {
-                  // Code size       32 (0x20)
+                  // Code size       37 (0x25)
                   .maxstack  3
                   .locals init (object V_0)
                   IL_0000:  ldarg.0
-                  IL_0001:  ldc.i4.0
-                  IL_0002:  stfld      "int C6.F6"
+                  IL_0001:  ldnull
+                  IL_0002:  stfld      "object C6.<P6>k__BackingField"
                   IL_0007:  ldarg.0
-                  IL_0008:  ldnull
-                  IL_0009:  stfld      "object C6.<P6>k__BackingField"
-                  IL_000e:  ldarg.0
-                  IL_000f:  call       "readonly object C6.P6.get"
-                  IL_0014:  brtrue.s   IL_001f
-                  IL_0016:  ldarg.0
-                  IL_0017:  ldarg.1
-                  IL_0018:  dup
-                  IL_0019:  stloc.0
-                  IL_001a:  call       "void C6.P6.{{setter}}"
-                  IL_001f:  ret
+                  IL_0008:  call       "readonly object C6.P6.get"
+                  IL_000d:  brtrue.s   IL_001d
+                  IL_000f:  ldarg.0
+                  IL_0010:  ldarg.1
+                  IL_0011:  box        "int"
+                  IL_0016:  dup
+                  IL_0017:  stloc.0
+                  IL_0018:  call       "void C6.P6.{{setter}}"
+                  IL_001d:  ldarg.0
+                  IL_001e:  ldarg.1
+                  IL_001f:  stfld      "int C6.F6"
+                  IL_0024:  ret
                 }
                 """);
             verifier.VerifyIL("C7..ctor", $$"""
                 {
-                  // Code size       32 (0x20)
+                  // Code size       44 (0x2c)
                   .maxstack  3
                   .locals init (object V_0)
                   IL_0000:  ldarg.0
@@ -2940,18 +2956,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0009:  stfld      "object C7.<P7>k__BackingField"
                   IL_000e:  ldarg.0
                   IL_000f:  call       "readonly object C7.P7.get"
-                  IL_0014:  brtrue.s   IL_001f
+                  IL_0014:  brtrue.s   IL_0024
                   IL_0016:  ldarg.0
                   IL_0017:  ldarg.1
-                  IL_0018:  dup
-                  IL_0019:  stloc.0
-                  IL_001a:  call       "void C7.P7.{{setter}}"
-                  IL_001f:  ret
+                  IL_0018:  box        "int"
+                  IL_001d:  dup
+                  IL_001e:  stloc.0
+                  IL_001f:  call       "void C7.P7.{{setter}}"
+                  IL_0024:  ldarg.0
+                  IL_0025:  ldarg.1
+                  IL_0026:  stfld      "int C7.F7"
+                  IL_002b:  ret
                 }
                 """);
             verifier.VerifyIL("C9..ctor", $$"""
                 {
-                  // Code size       32 (0x20)
+                  // Code size       44 (0x2c)
                   .maxstack  3
                   .locals init (object V_0)
                   IL_0000:  ldarg.0
@@ -2962,13 +2982,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0009:  stfld      "object C9.<P9>k__BackingField"
                   IL_000e:  ldarg.0
                   IL_000f:  call       "object C9.P9.get"
-                  IL_0014:  brtrue.s   IL_001f
+                  IL_0014:  brtrue.s   IL_0024
                   IL_0016:  ldarg.0
                   IL_0017:  ldarg.1
-                  IL_0018:  dup
-                  IL_0019:  stloc.0
-                  IL_001a:  call       "void C9.P9.{{setter}}"
-                  IL_001f:  ret
+                  IL_0018:  box        "int"
+                  IL_001d:  dup
+                  IL_001e:  stloc.0
+                  IL_001f:  call       "void C9.P9.{{setter}}"
+                  IL_0024:  ldarg.0
+                  IL_0025:  ldarg.1
+                  IL_0026:  stfld      "int C9.F9"
+                  IL_002b:  ret
                 }
                 """);
         }
