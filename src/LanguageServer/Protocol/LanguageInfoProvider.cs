@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return lspLanguageId switch
             {
                 "csharp" => s_csharpLanguageInformation,
-                "fsharp" => s_csharpLanguageInformation,
+                "fsharp" => s_fsharpLanguageInformation,
                 "vb" => s_vbLanguageInformation,
                 "razor" => s_razorLanguageInformation,
                 "xaml" => s_xamlLanguageInformation,
