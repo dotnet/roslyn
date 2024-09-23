@@ -540,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 propertyAccess.ReceiverOpt,
                                 propertyAccess.InitialBindingReceiverIsSubjectToCloning,
                                 propertyAccess.PropertySymbol,
-                                useBackingField: GetAccessorKind(valueKind),
+                                autoPropertyAccessorKind: GetAccessorKind(valueKind),
                                 propertyAccess.ResultKind,
                                 propertyAccess.Type);
                         }

@@ -9758,7 +9758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // when binding initializers, we treat assignments to auto-properties or field-like events as direct assignments to the underlying field.
                 // in order to track member state based on these initializers, we need to see the assignment in terms of the associated member
                 case BoundFieldAccess { ExpressionSymbol: FieldSymbol { AssociatedSymbol: PropertySymbol autoProperty }, Syntax: not FieldExpressionSyntax } fieldAccess:
-                    left = new BoundPropertyAccess(fieldAccess.Syntax, fieldAccess.ReceiverOpt, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, autoProperty, useBackingField: AccessorKind.Unknown, LookupResultKind.Viable, autoProperty.Type, fieldAccess.HasErrors);
+                    left = new BoundPropertyAccess(fieldAccess.Syntax, fieldAccess.ReceiverOpt, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, autoProperty, autoPropertyAccessorKind: AccessorKind.Unknown, LookupResultKind.Viable, autoProperty.Type, fieldAccess.HasErrors);
                     break;
                 case BoundFieldAccess { ExpressionSymbol: FieldSymbol { AssociatedSymbol: EventSymbol @event } } fieldAccess:
                     left = new BoundEventAccess(fieldAccess.Syntax, fieldAccess.ReceiverOpt, @event, isUsableAsField: true, LookupResultKind.Viable, @event.Type, fieldAccess.HasErrors);

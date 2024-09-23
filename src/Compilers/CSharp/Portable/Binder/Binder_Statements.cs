@@ -1753,7 +1753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         internal static bool AccessingAutoPropertyFromConstructor(BoundPropertyAccess propertyAccess, Symbol fromMember)
         {
-            return AccessingAutoPropertyFromConstructor(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember, propertyAccess.UseBackingField);
+            return AccessingAutoPropertyFromConstructor(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember, propertyAccess.AutoPropertyAccessorKind);
         }
 
         private static bool AccessingAutoPropertyFromConstructor(BoundExpression? receiver, PropertySymbol propertySymbol, Symbol fromMember, AccessorKind accessorKind)
