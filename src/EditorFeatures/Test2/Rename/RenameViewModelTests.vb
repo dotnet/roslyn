@@ -585,8 +585,10 @@ class D : B
                     edit.Apply()
                 End Using
 
+                Dim threadingContext = workspace.ExportProvider.GetExport(Of IThreadingContext)().Value
+
                 Using dashboard = New RenameDashboard(
-                    New RenameDashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession)),
+                    New RenameDashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), threadingContext),
                     editorFormatMapService:=Nothing,
                     textView:=cursorDocument.GetTextView())
 
@@ -624,7 +626,6 @@ class D : B
                 Dim TestQuickInfoBroker = New TestQuickInfoBroker()
                 Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider)().Value
                 Dim editorFormatMapService = workspace.ExportProvider.GetExport(Of IEditorFormatMapService)().Value
-                Dim threadingContext = workspace.ExportProvider.GetExport(Of IThreadingContext)().Value
 
                 Using flyout = New RenameFlyout(
                     New RenameFlyoutViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), selectionSpan:=Nothing, registerOleComponent:=False, globalOptions, threadingContext, listenerProvider, Nothing), ' Don't registerOleComponent in tests, it requires OleComponentManagers that don't exist in our host
