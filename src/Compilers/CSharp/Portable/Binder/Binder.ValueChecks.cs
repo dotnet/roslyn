@@ -531,21 +531,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     if (!InAttributeArgument)
                     {
+                        // If the property has a synthesized backing field, record the accessor kind of the property
+                        // access for determining whether the property access can use the backing field directly.
                         var propertyAccess = (BoundPropertyAccess)expr;
-                        if (propertyAccess.PropertySymbol.RefKind == RefKind.None)
+                        if (HasSynthesizedBackingField(propertyAccess.PropertySymbol, out _))
                         {
-                            var accessorKind = GetAccessorKind(valueKind);
-                            if (CanUseBackingFieldDirectlyInConstructor(propertyAccess, useAsLvalue: accessorKind != AccessorKind.Get))
-                            {
-                                // Update the property access to indicate that the backing field should be used directly.
-                                expr = propertyAccess.Update(
-                                    propertyAccess.ReceiverOpt,
-                                    propertyAccess.InitialBindingReceiverIsSubjectToCloning,
-                                    propertyAccess.PropertySymbol,
-                                    useBackingField: accessorKind,
-                                    propertyAccess.ResultKind,
-                                    propertyAccess.Type);
-                            }
+                            expr = propertyAccess.Update(
+                                propertyAccess.ReceiverOpt,
+                                propertyAccess.InitialBindingReceiverIsSubjectToCloning,
+                                propertyAccess.PropertySymbol,
+                                useBackingField: GetAccessorKind(valueKind),
+                                propertyAccess.ResultKind,
+                                propertyAccess.Type);
                         }
                     }
 #if DEBUG
@@ -1724,7 +1721,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (setMethod is null)
                 {
                     var containing = this.ContainingMemberOrLambda;
-                    if (!(expr is BoundPropertyAccess propertyAccess && AccessingAutoPropertyFromConstructor(propertyAccess, containing))
+                    if (!AccessingAutoPropertyFromConstructor(receiver, propertySymbol, containing, AccessorKind.Set)
                         && !isAllowedDespiteReadonly(receiver))
                     {
                         Error(diagnostics, ErrorCode.ERR_AssgReadonlyProp, node, propertySymbol);

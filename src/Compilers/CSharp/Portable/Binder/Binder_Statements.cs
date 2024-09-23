@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -1752,33 +1753,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         internal static bool AccessingAutoPropertyFromConstructor(BoundPropertyAccess propertyAccess, Symbol fromMember)
         {
-            if (propertyAccess.UseBackingField == AccessorKind.Unknown)
+            return AccessingAutoPropertyFromConstructor(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember, propertyAccess.UseBackingField);
+        }
+
+        private static bool AccessingAutoPropertyFromConstructor(BoundExpression? receiver, PropertySymbol propertySymbol, Symbol fromMember, AccessorKind accessorKind)
+        {
+            if (!HasSynthesizedBackingField(propertySymbol, out var sourceProperty))
             {
                 return false;
             }
 
-            var sourceProperty = GetSourcePropertyDefinitionIfAny(propertyAccess.PropertySymbol);
+            var propertyIsStatic = propertySymbol.IsStatic;
+
             return sourceProperty is { } &&
+                sourceProperty.CanUseBackingFieldDirectlyInConstructor(useAsLvalue: accessorKind != AccessorKind.Get) &&
                 TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.AllIgnoreOptions) &&
-                IsConstructorOrField(fromMember, isStatic: sourceProperty.IsStatic);
+                IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
+                (propertyIsStatic || receiver?.Kind == BoundKind.ThisReference);
         }
 
-        private static bool CanUseBackingFieldDirectlyInConstructor(BoundPropertyAccess propertyAccess, bool useAsLvalue)
-        {
-            var sourceProperty = GetSourcePropertyDefinitionIfAny(propertyAccess.PropertySymbol);
-            return sourceProperty is { } &&
-                sourceProperty.CanUseBackingFieldDirectlyInConstructor(useAsLvalue) &&
-                (sourceProperty.IsStatic || propertyAccess.ReceiverOpt?.Kind == BoundKind.ThisReference);
-        }
-
-        private static SourcePropertySymbolBase? GetSourcePropertyDefinitionIfAny(PropertySymbol propertySymbol)
+        private static bool HasSynthesizedBackingField(PropertySymbol propertySymbol, [NotNullWhen(true)] out SourcePropertySymbolBase? sourcePropertyDefinition)
         {
             if (!propertySymbol.IsDefinition && propertySymbol.ContainingType.Equals(propertySymbol.ContainingType.OriginalDefinition, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 propertySymbol = propertySymbol.OriginalDefinition;
             }
 
-            return propertySymbol as SourcePropertySymbolBase;
+            if (propertySymbol is SourcePropertySymbolBase { BackingField: { } } sourceProperty)
+            {
+                sourcePropertyDefinition = sourceProperty;
+                return true;
+            }
+
+            sourcePropertyDefinition = null;
+            return false;
         }
 
         private static bool IsConstructorOrField(Symbol member, bool isStatic)
