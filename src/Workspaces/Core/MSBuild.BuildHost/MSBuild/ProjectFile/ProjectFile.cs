@@ -199,10 +199,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             static FileGlobs GetFileGlobs(GlobResult g)
             {
-                var includes = g.IncludeGlobs.ToImmutableArray();
-                var excludes = g.Excludes.ToImmutableArray();
-                var removes = g.Removes.ToImmutableArray();
-
                 return new FileGlobs(g.IncludeGlobs.ToImmutableArray(), g.Excludes.ToImmutableArray(), g.Removes.ToImmutableArray());
             }
         }
