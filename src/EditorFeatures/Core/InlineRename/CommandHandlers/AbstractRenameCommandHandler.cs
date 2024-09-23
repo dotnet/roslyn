@@ -72,12 +72,6 @@ internal abstract partial class AbstractRenameCommandHandler
             return;
         }
 
-        // If commit in progress, don't do anything, as we don't want user change the text view
-        if (_renameService.ActiveSession.IsCommitInProgress)
-        {
-            return;
-        }
-
         var selectedSpans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
         if (selectedSpans.Count > 1)
         {
@@ -129,17 +123,6 @@ internal abstract partial class AbstractRenameCommandHandler
     private void Commit(IUIThreadOperationContext operationContext)
     {
         RoslynDebug.AssertNotNull(_renameService.ActiveSession);
-        if (_renameService.ActiveSession.IsCommitInProgress)
-        {
-            // When the commit is in-progress, don't sync wait for the commit.
-            // This might happen when user async commit the rename using 'enter' key, then they invoke 'save command'. We don't want to block UI thread again.
-            return;
-        }
-
-        // We only async commit the rename session when it is invoked by 'enter' key or from the button in UI. (Which should cover most cases)
-        // For other command handler still commit the session because we don't want to regress the behavior.
-        // Example: When the rename session is committed by 'SaveCommand', we want to ensure rename is committed, then save the document.
-        // If it's async rename, the document would still be dirty after 'SaveCommand' is executed.
         _renameService.ActiveSession.Commit(previewChanges: false, operationContext);
     }
 }
