@@ -486,7 +486,7 @@ Option Strict Off
         End Sub
 
         <Fact>
-        Public Sub Type_Update_Modifiers_Accessibility_Insignificant(accessibility As String)
+        Public Sub Type_Update_Modifiers_Accessibility_Insignificant()
 
             Dim src1 = "Friend Interface C : End Interface"
             Dim src2 = "Interface C : End Interface"
@@ -508,7 +508,7 @@ Option Strict Off
 
             Dim src1 = "
 Class D
-    " + accessibility + "Class C
+    " + accessibility + " Class C
     End Class
 End Class"
             Dim src2 = "
@@ -520,7 +520,7 @@ End Class"
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemantics(
-                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C"))})
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("D.C"))})
         End Sub
 
         <Fact>
@@ -4748,7 +4748,7 @@ End Structure
         <InlineData("Protected")>
         <InlineData("Friend")>
         <InlineData("Protected Friend")>
-        Public Sub Method_Update_Modifiers_Accessibility_Significant(accessibility As string)
+        Public Sub Method_Update_Modifiers_Accessibility_Significant(accessibility As String)
             Dim src1 = "
 Class C
     " & accessibility & " _
@@ -6306,7 +6306,7 @@ Class C
 End Class"
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemantics({SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+            edits.VerifySemantics({SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -6327,7 +6327,7 @@ End Class"
 
             ' the update is not necessary and can be eliminated:
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifySemantics({SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single())})
+            edits.VerifySemantics({SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -6724,7 +6724,7 @@ End Class"
                 {
                     DocumentResults(),
                     DocumentResults(
-                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)})
                 })
         End Sub
 
@@ -6861,7 +6861,7 @@ End Class"
                 {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
                 {
                     DocumentResults(
-                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)}),
+                        semanticEdits:={SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), partialType:="C", preserveLocalVariables:=True)}),
                     DocumentResults()
                 })
         End Sub
@@ -7584,7 +7584,7 @@ End Class
 
 #Region "Fields"
         <Theory>
-        <InlineData("Private")>
+        <InlineData("Public")>
         <InlineData("Protected")>
         <InlineData("Friend")>
         <InlineData("Protected Friend")>
@@ -7609,14 +7609,13 @@ End Class"
         Public Sub Field_Update_Modifiers_Accessibility_Insignificant()
             Dim src1 = "
 Class C
-    Public _
+    Private _
     Dim F As Integer
 End Class"
 
             Dim src2 = "
 Class C
     
-    Sub F()
     Dim F As Integer
 End Class"
 
@@ -8515,11 +8514,7 @@ End Class"
 
             Dim edits = GetTopEdits(src1, src2)
 
-            ' updates are not necessary and could be eliminated:
-            edits.VerifySemantics({
-                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.P")),
-                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.get_P")),
-                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.set_P"))})
+            edits.VerifySemantics()
         End Sub
 
         <Theory>
@@ -8585,11 +8580,7 @@ End Class"
 
             Dim edits = GetTopEdits(src1, src2)
 
-            ' updates are not necessary and could be eliminated:
-            edits.VerifySemantics({
-                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.P")),
-                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.get_P")),
-                SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.set_P"))})
+            edits.VerifySemantics()
         End Sub
 
         <Fact>
@@ -8770,7 +8761,7 @@ End Class"
             ' Note that all tokens are aligned to avoid trivia edits.
             Dim src1 = "
 Class C
-    Public Property F As Integer
+    Public Property P As Integer
         Friend _
         Get
             Return Nothing
@@ -8781,7 +8772,7 @@ Class C
 End Class"
             Dim src2 = "
 Class C
-    Public Property F As Integer
+    Public Property P As Integer
         Private _
         Get
             Return Nothing
@@ -8801,7 +8792,7 @@ End Class"
             ' Note that all tokens are aligned to avoid trivia edits.
             Dim src1 = "
 Class C
-    Public Property F As Integer
+    Public Property P As Integer
         Get
             Return Nothing
         End Get
@@ -8812,7 +8803,7 @@ Class C
 End Class"
             Dim src2 = "
 Class C
-    Public Property F As Integer
+    Public Property P As Integer
         Get
             Return Nothing
         End Get
@@ -9447,8 +9438,8 @@ End Class
             Dim src2 = "Class C : Dim a As Integer = 0 : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAccessibility, "Class C", DeletedSymbolDisplay(FeaturesResources.constructor, "New()")))
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -9457,8 +9448,8 @@ End Class
             Dim src2 = "Class C : Property a As Integer = 0 : End Class"
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.ChangingAccessibility, "Class C", DeletedSymbolDisplay(FeaturesResources.constructor, "New()")))
+            edits.VerifySemantics(ActiveStatementsDescription.Empty,
+                                  {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").InstanceConstructors.Single(), preserveLocalVariables:=True)})
         End Sub
 
         <Fact>
@@ -11060,11 +11051,13 @@ Imports System
 Class C
     " & accessibility & " _
     Custom Event E As Action
-        Get
-        End Get
-        Set 
-        End Set
-    End Property
+        AddHandler(value As Action)
+        End AddHandler
+        RemoveHandler(value As Action)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
 End Class"
 
             Dim src2 = "
@@ -11072,16 +11065,19 @@ Imports System
 Class C
     
     Custom Event E As Action
-        Get
-        End Get
-        Set 
-        End Set
-    End Property
+        AddHandler(value As Action)
+        End AddHandler
+        RemoveHandler(value As Action)
+        End RemoveHandler
+        RaiseEvent()
+        End RaiseEvent
+    End Event
 End Class"
 
             Dim edits = GetTopEdits(src1, src2)
 
-            ' update of the event itself is not necessary and could be eliminated:
+            ' Update of the event itself is not necessary and could be eliminated.
+            ' Note: raise event isn't updated - it's accessibility is always "private".
             edits.VerifySemantics({
                 SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.E")),
                 SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember("C.add_E")),
@@ -11101,7 +11097,8 @@ End Class"
 
             Dim src1 = "
 Class C
-   " & oldModifiers & " Custom Event E As Action
+    " & oldModifiers & " _
+    Custom Event E As Action
     AddHandler(value As Action)
     End AddHandler
     RemoveHandler(value As Action)
@@ -11113,7 +11110,8 @@ End Class"
 
             Dim src2 = "
 Class C
-   " & newModifiers & " Custom Event E As Action
+    " & newModifiers & " _
+    Custom Event E As Action
     AddHandler(value As Action)
     End AddHandler
     RemoveHandler(value As Action)

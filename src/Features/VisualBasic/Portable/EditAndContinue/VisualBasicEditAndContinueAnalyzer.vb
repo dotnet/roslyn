@@ -850,13 +850,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         result.Add((oldEventSymbol, newEventSymbol, EditKind.Update))
 
                         If oldEventSymbol.AddMethod IsNot Nothing OrElse newEventSymbol.AddMethod IsNot Nothing Then
-                            If IsMemberOrDelegateReplaced(oldEventSymbol, newEventSymbol) Then
+                            If DiffersInAccessibilityModifiers(oldEventSymbol.AddMethod, newEventSymbol.AddMethod) OrElse
+                               IsMemberOrDelegateReplaced(oldEventSymbol, newEventSymbol) Then
                                 result.Add((oldEventSymbol.AddMethod, newEventSymbol.AddMethod, editKind))
                             End If
                         End If
 
                         If oldEventSymbol.RemoveMethod IsNot Nothing OrElse newEventSymbol.RemoveMethod IsNot Nothing Then
-                            If IsMemberOrDelegateReplaced(oldEventSymbol, newEventSymbol) Then
+                            If DiffersInAccessibilityModifiers(oldEventSymbol.RemoveMethod, newEventSymbol.RemoveMethod) OrElse
+                               IsMemberOrDelegateReplaced(oldEventSymbol, newEventSymbol) Then
                                 result.Add((oldEventSymbol.RemoveMethod, newEventSymbol.RemoveMethod, editKind))
                             End If
                         End If
