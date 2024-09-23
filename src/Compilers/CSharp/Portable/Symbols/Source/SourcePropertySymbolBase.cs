@@ -853,6 +853,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (!IsStatic &&
+                ContainingType.IsInterface &&
+                IsSetOnEitherPart(Flags.RequiresBackingField))
+            {
+                diagnostics.Add(ErrorCode.ERR_InterfacesCantContainFields, Location);
+            }
+
             if (!IsExpressionBodied)
             {
                 bool hasGetAccessor = GetMethod is object;
