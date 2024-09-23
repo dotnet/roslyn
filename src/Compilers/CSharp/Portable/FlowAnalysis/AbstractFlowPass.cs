@@ -996,17 +996,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundNegatedPattern negated:
                         return !patternMatchesNull(negated.Negated);
                     case BoundBinaryPattern binary:
-                        if (binary.Disjunction)
+                        var binaryPatterns = getBinaryPatterns(binary);
+                        Debug.Assert(binaryPatterns.Peek().Left is not BoundBinaryPattern);
+                        bool currentPatternMatchesNull = patternMatchesNull(binaryPatterns.Peek().Left);
+
+                        while (binaryPatterns.TryPop(out var currentBinary))
                         {
-                            // `a?.b(out x) is null or C`
-                            // pattern matches null if either subpattern matches null
-                            var leftNullTest = patternMatchesNull(binary.Left);
-                            return patternMatchesNull(binary.Left) || patternMatchesNull(binary.Right);
+                            if (binary.Disjunction)
+                            {
+                                // `a?.b(out x) is null or C`
+                                // pattern matches null if either subpattern matches null
+                                currentPatternMatchesNull = currentPatternMatchesNull || patternMatchesNull(binary.Right);
+                            }
+
+                            // `a?.b out x is not null and var c`
+                            // pattern matches null only if both subpatterns match null
+                            currentPatternMatchesNull = currentPatternMatchesNull && patternMatchesNull(binary.Right);
                         }
 
-                        // `a?.b out x is not null and var c`
-                        // pattern matches null only if both subpatterns match null
-                        return patternMatchesNull(binary.Left) && patternMatchesNull(binary.Right);
+                        binaryPatterns.Free();
+                        return currentPatternMatchesNull;
                     case BoundDeclarationPattern { IsVar: true }:
                     case BoundDiscardPattern:
                         return true;
@@ -1027,21 +1036,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundNegatedPattern negated:
                         return !isBoolTest(negated.Negated);
                     case BoundBinaryPattern binary:
-                        if (binary.Disjunction)
+                        var binaryPatterns = getBinaryPatterns(binary);
+                        Debug.Assert(binaryPatterns.Peek().Left is not BoundBinaryPattern);
+                        bool? currentBoolTest = isBoolTest(binaryPatterns.Peek().Left);
+
+                        while (binaryPatterns.TryPop(out var currentBinary))
                         {
-                            // `(a != null && a.b(out x)) is true or true` matches `true`
-                            // `(a != null && a.b(out x)) is true or false` matches any boolean
-                            // both subpatterns must have the same bool test for the test to propagate out
-                            var leftNullTest = isBoolTest(binary.Left);
-                            return leftNullTest is null ? null :
-                                leftNullTest != isBoolTest(binary.Right) ? null :
-                                leftNullTest;
+                            if (currentBinary.Disjunction)
+                            {
+                                // `(a != null && a.b(out x)) is true or true` matches `true`
+                                // `(a != null && a.b(out x)) is true or false` matches any boolean
+                                // both subpatterns must have the same bool test for the test to propagate out
+                                var leftNullTest = currentBoolTest;
+                                currentBoolTest = leftNullTest is null ? null :
+                                    leftNullTest != isBoolTest(binary.Right) ? null :
+                                    leftNullTest;
+                            }
+
+                            // `(a != null && a.b(out x)) is true and true` matches `true`
+                            // `(a != null && a.b(out x)) is true and var x` matches `true`
+                            // `(a != null && a.b(out x)) is true and false` never matches and is a compile error
+                            currentBoolTest ??= isBoolTest(binary.Right);
                         }
 
-                        // `(a != null && a.b(out x)) is true and true` matches `true`
-                        // `(a != null && a.b(out x)) is true and var x` matches `true`
-                        // `(a != null && a.b(out x)) is true and false` never matches and is a compile error
-                        return isBoolTest(binary.Left) ?? isBoolTest(binary.Right);
+                        binaryPatterns.Free();
+                        return currentBoolTest;
                     case BoundConstantPattern { ConstantValue: { IsBoolean: false } }:
                     case BoundDiscardPattern:
                     case BoundTypePattern:
@@ -1055,6 +1074,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     default:
                         throw ExceptionUtilities.UnexpectedValue(pattern.Kind);
                 }
+            }
+
+            static ArrayBuilder<BoundBinaryPattern> getBinaryPatterns(BoundBinaryPattern binaryPattern)
+            {
+                // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
+
+                var stack = ArrayBuilder<BoundBinaryPattern>.GetInstance();
+
+                while (true)
+                {
+                    stack.Push(binaryPattern);
+                    if (binaryPattern.Left is BoundBinaryPattern leftBinaryPattern)
+                    {
+                        binaryPattern = leftBinaryPattern;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                return stack;
             }
         }
 

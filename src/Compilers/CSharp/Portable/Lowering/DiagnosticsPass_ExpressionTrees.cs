@@ -676,6 +676,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitBinaryPattern(BoundBinaryPattern node)
+        {
+            // Do not use left recursion because we can have many nested binary patterns.
+
+            BoundBinaryPattern current = node;
+            while (true)
+            {
+                Visit(current.Right);
+                if (current.Left is BoundBinaryPattern left)
+                {
+                    current = left;
+                }
+                else
+                {
+                    Visit(current.Left);
+                    break;
+                }
+            }
+
+            return null;
+        }
+
         public override BoundNode VisitUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node)
         {
             CheckLiftedUserDefinedConditionalLogicalOperator(node);

@@ -2063,10 +2063,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     case BoundKind.BinaryPattern:
                         {
+                            // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
+
                             var pat = (BoundBinaryPattern)pattern;
-                            bool def = definitely && !pat.Disjunction;
-                            assignPatternVariablesAndMarkReadFields(pat.Left, def);
-                            assignPatternVariablesAndMarkReadFields(pat.Right, def);
+
+                            while (true)
+                            {
+                                definitely = definitely && !pat.Disjunction;
+                                assignPatternVariablesAndMarkReadFields(pat.Right, definitely);
+
+                                if (pat.Left is BoundBinaryPattern left)
+                                {
+                                    pat = left;
+                                }
+                                else
+                                {
+                                    assignPatternVariablesAndMarkReadFields(pat.Left, definitely);
+                                    break;
+                                }
+                            }
                             break;
                         }
                     default:

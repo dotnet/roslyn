@@ -111,8 +111,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBinaryPattern(BoundBinaryPattern node)
         {
-            Visit(node.Left);
-            Visit(node.Right);
+            // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
+
+            var stack = ArrayBuilder<BoundBinaryPattern>.GetInstance();
+            BoundBinaryPattern current = node;
+            do
+            {
+                TakeIncrementalSnapshot(current);
+                stack.Push(current);
+                current = current.Left as BoundBinaryPattern;
+            } while (current != null);
+
+            Debug.Assert(stack.Peek().Left is not BoundBinaryPattern);
+            Visit(stack.Peek().Left);
+
+            while (stack.TryPop(out current))
+            {
+                Visit(current.Right);
+            }
+
+            stack.Free();
             return null;
         }
 
@@ -199,8 +217,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LearnFromAnyNullPatterns(inputSlot, inputType, p.Negated);
                     break;
                 case BoundBinaryPattern p:
-                    LearnFromAnyNullPatterns(inputSlot, inputType, p.Left);
-                    LearnFromAnyNullPatterns(inputSlot, inputType, p.Right);
+                    // Do not use left recursion because we can have many nested binary patterns.
+                    var current = p;
+                    while (true)
+                    {
+                        LearnFromAnyNullPatterns(inputSlot, inputType, current.Right);
+                        if (current.Left is BoundBinaryPattern left)
+                        {
+                            current = left;
+                        }
+                        else
+                        {
+                            LearnFromAnyNullPatterns(inputSlot, inputType, current.Left);
+                            break;
+                        }
+                    }
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(pattern);

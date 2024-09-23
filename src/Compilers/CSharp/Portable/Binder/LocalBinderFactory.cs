@@ -796,6 +796,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override void VisitBinaryPattern(BinaryPatternSyntax node)
+        {
+            // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
+            PatternSyntax currentPattern = node;
+
+            var rightPatternStack = ArrayBuilder<PatternSyntax>.GetInstance();
+
+            while (currentPattern is BinaryPatternSyntax binaryPattern)
+            {
+                rightPatternStack.Push(binaryPattern.Right);
+                currentPattern = binaryPattern.Left;
+            }
+
+            do
+            {
+                Visit(currentPattern);
+            } while (rightPatternStack.TryPop(out currentPattern));
+
+            rightPatternStack.Free();
+        }
+
         public override void VisitIfStatement(IfStatementSyntax node)
         {
             Visit(node.Condition, _enclosing);

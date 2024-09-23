@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public sealed override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)
         {
-            if (node.Left.Kind != BoundKind.BinaryOperator)
+            if (node.Left is not BoundBinaryOperator binary)
             {
                 return base.VisitBinaryOperator(node);
             }
@@ -112,12 +112,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             rightOperands.Push(node.Right);
 
-            var binary = (BoundBinaryOperator)node.Left;
-
             BeforeVisitingSkippedBoundBinaryOperatorChildren(binary);
             rightOperands.Push(binary.Right);
 
-            BoundExpression current = binary.Left;
+            BoundExpression? current = binary.Left;
 
             while (current.Kind == BoundKind.BinaryOperator)
             {
@@ -129,9 +127,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.Visit(current);
 
-            while (rightOperands.Count > 0)
+            while (rightOperands.TryPop(out current))
             {
-                this.Visit(rightOperands.Pop());
+                this.Visit(current);
             }
 
             rightOperands.Free();
@@ -139,6 +137,44 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected virtual void BeforeVisitingSkippedBoundBinaryOperatorChildren(BoundBinaryOperator node)
+        {
+        }
+
+        public sealed override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
+        {
+            if (node.Left is not BoundBinaryPattern binary)
+            {
+                return base.VisitBinaryPattern(node);
+            }
+
+            var rightOperands = ArrayBuilder<BoundPattern>.GetInstance();
+
+            rightOperands.Push(node.Right);
+            BeforeVisitingSkippedBoundBinaryPatternChildren(binary);
+            rightOperands.Push(binary.Right);
+
+            BoundPattern? current = binary.Left;
+
+            while (current.Kind == BoundKind.BinaryPattern)
+            {
+                binary = (BoundBinaryPattern)current;
+                BeforeVisitingSkippedBoundBinaryPatternChildren(binary);
+                rightOperands.Push(binary.Right);
+                current = binary.Left;
+            }
+
+            Visit(current);
+
+            while (rightOperands.TryPop(out current))
+            {
+                Visit(current);
+            }
+
+            rightOperands.Free();
+            return null;
+        }
+
+        protected virtual void BeforeVisitingSkippedBoundBinaryPatternChildren(BoundBinaryPattern node)
         {
         }
 

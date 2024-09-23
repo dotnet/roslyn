@@ -645,32 +645,70 @@ namespace Microsoft.CodeAnalysis.CSharp
             out BoundDagTemp output,
             ArrayBuilder<BoundPatternBinding> bindings)
         {
-            var builder = ArrayBuilder<Tests>.GetInstance(2);
-            if (bin.Disjunction)
+            // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
+
+            var binaryPatternStack = ArrayBuilder<BoundBinaryPattern>.GetInstance();
+            var currentNode = bin;
+
+            do
             {
-                builder.Add(MakeTestsAndBindings(input, bin.Left, bindings));
-                builder.Add(MakeTestsAndBindings(input, bin.Right, bindings));
-                var result = Tests.OrSequence.Create(builder);
-                if (bin.InputType.Equals(bin.NarrowedType))
+                binaryPatternStack.Push(currentNode);
+                currentNode = currentNode.Left as BoundBinaryPattern;
+            } while (currentNode != null);
+
+            Tests? result = null;
+            BoundDagTemp? currentOutput = null;
+
+            while (binaryPatternStack.TryPop(out currentNode))
+            {
+                if (result == null)
                 {
-                    output = input;
-                    return result;
+                    Debug.Assert(currentNode.Left is not BoundBinaryPattern);
+                    Debug.Assert(currentOutput == null);
+                    result = MakeTestsAndBindings(input, currentNode.Left, out currentOutput, bindings);
+                }
+
+                Debug.Assert(currentOutput != null);
+                result = makeTestsAndBindingsForBinaryPattern(this, result, currentOutput, input, currentNode, out currentOutput, bindings);
+            }
+
+            Debug.Assert(result != null);
+            Debug.Assert(currentOutput != null);
+            output = currentOutput;
+
+            binaryPatternStack.Free();
+
+            return result;
+
+            static Tests makeTestsAndBindingsForBinaryPattern(DecisionDagBuilder @this, Tests leftTests, BoundDagTemp leftOutput, BoundDagTemp input, BoundBinaryPattern bin, out BoundDagTemp output, ArrayBuilder<BoundPatternBinding> bindings)
+            {
+                var builder = ArrayBuilder<Tests>.GetInstance(2);
+                if (bin.Disjunction)
+                {
+                    builder.Add(leftTests);
+                    builder.Add(@this.MakeTestsAndBindings(input, bin.Right, bindings));
+                    var result = Tests.OrSequence.Create(builder);
+                    if (bin.InputType.Equals(bin.NarrowedType))
+                    {
+                        output = input;
+                        return result;
+                    }
+                    else
+                    {
+                        builder = ArrayBuilder<Tests>.GetInstance(2);
+                        builder.Add(result);
+                        output = @this.MakeConvertToType(input: input, syntax: bin.Syntax, type: bin.NarrowedType, isExplicitTest: false, tests: builder);
+                        return Tests.AndSequence.Create(builder);
+                    }
                 }
                 else
                 {
-                    builder = ArrayBuilder<Tests>.GetInstance(2);
-                    builder.Add(result);
-                    output = MakeConvertToType(input: input, syntax: bin.Syntax, type: bin.NarrowedType, isExplicitTest: false, tests: builder);
+                    builder.Add(leftTests);
+                    builder.Add(@this.MakeTestsAndBindings(leftOutput, bin.Right, out var rightOutput, bindings));
+                    output = rightOutput;
+                    Debug.Assert(bin.HasErrors || output.Type.Equals(bin.NarrowedType, TypeCompareKind.AllIgnoreOptions));
                     return Tests.AndSequence.Create(builder);
                 }
-            }
-            else
-            {
-                builder.Add(MakeTestsAndBindings(input, bin.Left, out var leftOutput, bindings));
-                builder.Add(MakeTestsAndBindings(leftOutput, bin.Right, out var rightOutput, bindings));
-                output = rightOutput;
-                Debug.Assert(bin.HasErrors || output.Type.Equals(bin.NarrowedType, TypeCompareKind.AllIgnoreOptions));
-                return Tests.AndSequence.Create(builder);
             }
         }
 

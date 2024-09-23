@@ -339,6 +339,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             operands.Free();
         }
 
+        public override void VisitBinaryPattern(BinaryPatternSyntax node)
+        {
+            // Like binary expressions, binary patterns are left-associative, and can be deeply nested (even in our own code).
+            // Handle this with manual recursion.
+            PatternSyntax currentPattern = node;
+
+            var rightPatternStack = ArrayBuilder<PatternSyntax>.GetInstance();
+
+            while (currentPattern is BinaryPatternSyntax binaryPattern)
+            {
+                rightPatternStack.Push(binaryPattern.Right);
+                currentPattern = binaryPattern.Left;
+            }
+
+            do
+            {
+                Visit(currentPattern);
+            } while (rightPatternStack.TryPop(out currentPattern));
+
+            rightPatternStack.Free();
+        }
+
         public override void VisitInvocationExpression(InvocationExpressionSyntax node)
         {
             if (receiverIsInvocation(node, out InvocationExpressionSyntax nested))
