@@ -3,14 +3,18 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.LanguageServer.Protocol;
 
@@ -63,8 +67,58 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (info == null)
                 return null;
 
-            var hoverService = document.Project.Solution.Services.GetRequiredService<ILspHoverResultCreationService>();
-            return await hoverService.CreateHoverAsync(document, info, clientCapabilities, cancellationToken).ConfigureAwait(false);
+            var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
+
+            return supportsVSExtensions
+                ? await CreateVsHoverAsync(document, info, options, cancellationToken).ConfigureAwait(false)
+                : await CreateDefaultHoverAsync(document, info, clientCapabilities, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<VSInternalHover> CreateVsHoverAsync(
+            Document document, QuickInfoItem info, SymbolDescriptionOptions options, CancellationToken cancellationToken)
+        {
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+
+            var context = document is not null
+                ? new QuickInfoContentBuilderContext(
+                    document,
+                    options.ClassificationOptions,
+                    await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(false),
+                    // Build the classified text without navigation actions - they are not serializable.
+                    navigationActionFactory: null)
+                : null;
+
+            var content = await QuickInfoContentBuilder.BuildInteractiveContentAsync(info, context, cancellationToken).ConfigureAwait(false);
+
+            return new VSInternalHover
+            {
+                Range = ProtocolConversions.TextSpanToRange(info.Span, text),
+                Contents = new SumType<string, MarkedString, SumType<string, MarkedString>[], MarkupContent>(string.Empty),
+
+                // TODO - Switch to markup content once it supports classifications.
+                // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138
+                RawContent = content.ToLSPElement(),
+            };
+        }
+
+        private static async Task<Hover> CreateDefaultHoverAsync(
+            TextDocument document, QuickInfoItem info, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+        {
+            var clientSupportsMarkdown = clientCapabilities?.TextDocument?.Hover?.ContentFormat?.Contains(MarkupKind.Markdown) == true;
+
+            // Insert line breaks in between sections to ensure we get double spacing between sections.
+            ImmutableArray<TaggedText> tags = [
+                .. info.Sections.SelectMany(static s => s.TaggedParts.Add(new TaggedText(TextTags.LineBreak, Environment.NewLine)))
+            ];
+
+            var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var language = document.Project.Language;
+
+            return new Hover
+            {
+                Range = ProtocolConversions.TextSpanToRange(info.Span, text),
+                Contents = ProtocolConversions.GetDocumentationMarkupContent(tags, language, clientSupportsMarkdown),
+            };
         }
     }
 }
