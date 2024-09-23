@@ -10,18 +10,22 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.InlineRename;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal class RenameDashboardViewModel : INotifyPropertyChanged, IDisposable
     {
+        private readonly IThreadingContext _threadingContext;
         private RenameDashboardSeverity _severity = RenameDashboardSeverity.None;
         private int _resolvableConflictCount;
         private int _unresolvableConflictCount;
         private bool _isReplacementTextValid;
+        private bool _commitNotStart;
 
-        public RenameDashboardViewModel(InlineRenameSession session)
+        public RenameDashboardViewModel(InlineRenameSession session, IThreadingContext threadingContext)
         {
             Session = session;
             SearchText = EditorFeaturesResources.Searching;
@@ -29,10 +33,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             Session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             Session.ReplacementsComputed += OnReplacementsComputed;
             Session.ReplacementTextChanged += OnReplacementTextChanged;
+            Session.CommitStateChange += CommitStateChange;
 
             // Set the flag to true by default if we're showing the option.
             _isReplacementTextValid = true;
+            _commitNotStart = true;
+            _threadingContext = threadingContext;
         }
+
+        private void CommitStateChange(object sender, bool commitStart)
+            => CommitNotStart = !commitStart;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -144,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public RenameDashboardSeverity Severity => _severity;
 
-        public bool AllowFileRename => Session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid;
+        public bool AllowFileRename => Session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid && _commitNotStart;
         public bool ShowFileRename => Session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
         public string FileRenameString => Session.FileRenameInfo switch
         {
@@ -152,6 +162,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             InlineRenameFileRenameInfo.TypeWithMultipleLocations => EditorFeaturesResources.Rename_file_partial_type,
             _ => EditorFeaturesResources.Rename_symbols_file
         };
+
+        public bool CommitNotStart
+        {
+            get
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                return _commitNotStart;
+            }
+            set
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                if (_commitNotStart != value)
+                {
+                    _commitNotStart = value;
+                    // Disable/Enable these checkbox in UI based on if commit is in-progress or not
+                    NotifyPropertyChanged();
+                    NotifyPropertyChanged(nameof(IsRenameOverloadsEditable));
+                    NotifyPropertyChanged(nameof(AllowFileRename));
+                }
+            }
+        }
 
         public string HeaderText
         {
@@ -226,7 +257,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             => Session.HasRenameOverloads ? Visibility.Visible : Visibility.Collapsed;
 
         public bool IsRenameOverloadsEditable
-            => !Session.MustRenameOverloads;
+            => !Session.MustRenameOverloads && CommitNotStart;
 
         public bool DefaultRenameOverloadFlag
         {
@@ -292,6 +323,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             Session.ReplacementTextChanged -= OnReplacementTextChanged;
             Session.ReferenceLocationsChanged -= OnReferenceLocationsChanged;
             Session.ReplacementsComputed -= OnReplacementsComputed;
+            Session.CommitStateChange -= CommitStateChange;
         }
     }
 }

@@ -836,7 +836,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         }
         finally
         {
-            this.CommitStateChange.Invoke(this, false);
+            this.CommitStateChange?.Invoke(this, false);
         }
 
         return true;
