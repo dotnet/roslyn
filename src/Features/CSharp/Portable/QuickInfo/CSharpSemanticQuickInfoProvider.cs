@@ -183,6 +183,7 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             if (await copilotService.IsFileExcludedAsync(symbolFilePath, cancellationToken).ConfigureAwait(false))
             {
                 hasContentExcluded = true;
+                break;
             }
         }
 

@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -39,7 +40,6 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
     protected abstract Task<ImmutableArray<Diagnostic>> GetCachedDiagnosticsCoreAsync(Document document, string promptTitle, CancellationToken cancellationToken);
     protected abstract Task StartRefinementSessionCoreAsync(Document oldDocument, Document newDocument, Diagnostic? primaryDiagnostic, CancellationToken cancellationToken);
     protected abstract Task<string> GetOnTheFlyDocsCoreAsync(string symbolSignature, ImmutableArray<string> declarationCode, string language, CancellationToken cancellationToken);
-    protected abstract Task<bool> IsAnyExclusionCoreAsync(CancellationToken cancellationToken);
     protected abstract Task<bool> IsFileExcludedCoreAsync(string filePath, CancellationToken cancellationToken);
 
     public Task<bool> IsAvailableAsync(CancellationToken cancellationToken)
@@ -179,14 +179,6 @@ internal abstract class AbstractCopilotCodeAnalysisService(IDiagnosticsRefresher
             return string.Empty;
 
         return await GetOnTheFlyDocsCoreAsync(symbolSignature, declarationCode, language, cancellationToken).ConfigureAwait(false);
-    }
-
-    public async Task<bool> IsAnyExclusionAsync(CancellationToken cancellationToken)
-    {
-        if (!await IsAvailableAsync(cancellationToken).ConfigureAwait(false))
-            return false;
-
-        return await IsAnyExclusionCoreAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<bool> IsFileExcludedAsync(string filePath, CancellationToken cancellationToken)
