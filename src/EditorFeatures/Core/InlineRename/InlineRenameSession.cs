@@ -340,6 +340,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     public bool HasRenameOverloads => RenameInfo.HasOverloads;
     public bool MustRenameOverloads => RenameInfo.MustRenameOverloads;
     public IInlineRenameUndoManager UndoManager { get; }
+    public bool IsCommitInProgress { get; private set; } = false;
 
     public event EventHandler<ImmutableArray<InlineRenameLocation>> ReferenceLocationsChanged;
     public event EventHandler<IInlineRenameReplacementInfo> ReplacementsComputed;
@@ -348,7 +349,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     /// <summary>
     /// True if commit operation starts, False if commit operation ends.
     /// </summary>
-    public event EventHandler<bool> CommitStateChange;
+    public event EventHandler CommitStateChange;
 
     internal OpenTextBufferManager GetBufferManager(ITextBuffer buffer)
         => _openTextBuffers[buffer];
@@ -797,7 +798,8 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         try
         {
             // Notify the UI commit starts.
-            this.CommitStateChange?.Invoke(this, true);
+            this.IsCommitInProgress = true;
+            this.CommitStateChange?.Invoke(this, EventArgs.Empty);
 
             if (canUseBackgroundWorkIndicator)
             {
@@ -836,7 +838,8 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         }
         finally
         {
-            this.CommitStateChange?.Invoke(this, false);
+            this.IsCommitInProgress = true;
+            this.CommitStateChange?.Invoke(this, EventArgs.Empty);
         }
 
         return true;

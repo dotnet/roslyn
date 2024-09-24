@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             RegisterOleComponent();
         }
 
-        private void CommitStateChange(object sender, bool commitStarts)
-            => Visibility = commitStarts ? Visibility.Collapsed : Visibility.Visible;
+        private void CommitStateChange(object sender, EventArgs args)
+            => Visibility = this.Session.IsCommitInProgress ? Visibility.Collapsed : Visibility.Visible;
 
         public SmartRenameViewModel? SmartRenameViewModel { get; }
 
