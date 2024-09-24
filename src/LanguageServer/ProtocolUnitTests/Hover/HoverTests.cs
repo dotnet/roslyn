@@ -424,7 +424,7 @@ void A.AMethod(int i)
             Assert.Equal(expectedMarkdown, results.Contents.Fourth.Value);
         }
 
-        [Theory, CombinatorialData]
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/75181")]
         public async Task TestGetHoverAsync_UsingMarkupContentDoesNotEscapeCodeBlock(bool mutatingLspWorkspace)
         {
             var markup =
