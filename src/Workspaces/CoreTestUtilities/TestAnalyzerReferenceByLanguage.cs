@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -17,11 +18,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             _analyzersMap = analyzersMap;
             FullPath = fullPath;
+
+            // Make up a checksum so we can calculate Project checksums containing these references
+            var checksumArray = Guid.NewGuid().ToByteArray();
+            Array.Resize(ref checksumArray, Checksum.HashSize);
+            this.Checksum = Checksum.From(checksumArray);
         }
 
         public override string? FullPath { get; }
         public override string Display => nameof(TestAnalyzerReferenceByLanguage);
         public override object Id => Display;
+
+        public Checksum Checksum;
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
             => _analyzersMap.SelectManyAsArray(kvp => kvp.Value);

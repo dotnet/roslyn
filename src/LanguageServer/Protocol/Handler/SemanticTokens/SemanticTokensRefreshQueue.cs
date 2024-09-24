@@ -7,23 +7,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.LanguageServer.Protocol;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 
 /// <summary>
 /// Batches requests to refresh the semantic tokens to optimize user experience.
 /// </summary>
-/// <remarks>This implements <see cref="IOnInitialized"/> to avoid race conditions related to creating the queue on the
-/// first request.</remarks>
-internal class SemanticTokensRefreshQueue :
-    IOnInitialized,
-    ILspService,
-    IDisposable
+internal class SemanticTokensRefreshQueue : AbstractRefreshQueue
 {
     /// <summary>
     /// Lock over the mutable state that follows.
@@ -36,108 +29,38 @@ internal class SemanticTokensRefreshQueue :
     /// </summary>
     private readonly Dictionary<ProjectId, Checksum> _projectIdToLastComputedChecksum = [];
 
-    private readonly LspWorkspaceManager _lspWorkspaceManager;
-    private readonly IClientLanguageServerManager _notificationManager;
-    private readonly ICapabilitiesProvider _capabilitiesProvider;
-
-    private readonly IAsynchronousOperationListener _asyncListener;
-    private readonly CancellationTokenSource _disposalTokenSource = new();
-
-    /// <summary>
-    /// Debouncing queue so that we don't attempt to issue a semantic tokens refresh notification too often.
-    /// <para/>
-    /// <see langword="null"/> when the client does not support sending refresh notifications.
-    /// </summary>
-    private AsyncBatchingWorkQueue<Uri?>? _semanticTokenRefreshQueue;
-
-    private readonly LspWorkspaceRegistrationService _lspWorkspaceRegistrationService;
-
     public SemanticTokensRefreshQueue(
         IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider,
         LspWorkspaceRegistrationService lspWorkspaceRegistrationService,
         LspWorkspaceManager lspWorkspaceManager,
-        IClientLanguageServerManager notificationManager,
-        ICapabilitiesProvider capabilitiesProvider)
+        IClientLanguageServerManager notificationManager) : base(asynchronousOperationListenerProvider, lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager)
     {
-        _asyncListener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Classification);
-
-        _lspWorkspaceRegistrationService = lspWorkspaceRegistrationService;
-        _lspWorkspaceManager = lspWorkspaceManager;
-        _notificationManager = notificationManager;
-        _capabilitiesProvider = capabilitiesProvider;
-    }
-
-    public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken _)
-    {
-        if (_capabilitiesProvider.GetCapabilities(clientCapabilities).SemanticTokensOptions is not null)
-        {
-            Initialize(clientCapabilities);
-        }
-
-        return Task.CompletedTask;
-    }
-
-    public void Initialize(ClientCapabilities clientCapabilities)
-    {
-        if (_semanticTokenRefreshQueue is null
-            && clientCapabilities.Workspace?.SemanticTokens?.RefreshSupport is true)
-        {
-            // Only send a refresh notification to the client every 2s (if needed) in order to avoid sending too many
-            // notifications at once.  This ensures we batch up workspace notifications, but also means we send soon
-            // enough after a compilation-computation to not make the user wait an enormous amount of time.
-            _semanticTokenRefreshQueue = new AsyncBatchingWorkQueue<Uri?>(
-                delay: TimeSpan.FromMilliseconds(2000),
-                processBatchAsync: FilterLspTrackedDocumentsAsync,
-                equalityComparer: EqualityComparer<Uri?>.Default,
-                asyncListener: _asyncListener,
-                _disposalTokenSource.Token);
-
-            _lspWorkspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
-        }
     }
 
     public async Task TryEnqueueRefreshComputationAsync(Project project, CancellationToken cancellationToken)
     {
-        if (_semanticTokenRefreshQueue is not null)
+        // Determine the checksum for this project cone.  Note: this should be fast in practice because this is the
+        // same project-cone-checksum we used to even call into OOP above when we computed semantic tokens.
+        var projectChecksum = await project.Solution.CompilationState.GetChecksumAsync(project.Id, cancellationToken).ConfigureAwait(false);
+
+        lock (_gate)
         {
-            // Determine the checksum for this project cone.  Note: this should be fast in practice because this is the
-            // same project-cone-checksum we used to even call into OOP above when we computed semantic tokens.
-            var projectChecksum = await project.Solution.CompilationState.GetChecksumAsync(project.Id, cancellationToken).ConfigureAwait(false);
+            // If this checksum is the same as the last computed result, no need to continue, we would not produce a
+            // different compilation.
+            if (_projectIdToLastComputedChecksum.TryGetValue(project.Id, out var lastChecksum) && lastChecksum == projectChecksum)
+                return;
 
-            lock (_gate)
-            {
-                // If this checksum is the same as the last computed result, no need to continue, we would not produce a
-                // different compilation.
-                if (_projectIdToLastComputedChecksum.TryGetValue(project.Id, out var lastChecksum) && lastChecksum == projectChecksum)
-                    return;
+            // keep track of this checksum.  That way we don't get into a loop where we send a refresh notification,
+            // then we get called back into, causing us to compute the compilation, causing us to send the refresh
+            // notification, etc. etc.
+            _projectIdToLastComputedChecksum[project.Id] = projectChecksum;
 
-                // keep track of this checksum.  That way we don't get into a loop where we send a refresh notification,
-                // then we get called back into, causing us to compute the compilation, causing us to send the refresh
-                // notification, etc. etc.
-                _projectIdToLastComputedChecksum[project.Id] = projectChecksum;
-
-            }
-
-            EnqueueSemanticTokenRefreshNotification(documentUri: null);
-        }
-    }
-
-    private ValueTask FilterLspTrackedDocumentsAsync(
-        ImmutableSegmentedList<Uri?> documentUris,
-        CancellationToken cancellationToken)
-    {
-        var trackedDocuments = _lspWorkspaceManager.GetTrackedLspText();
-        foreach (var documentUri in documentUris)
-        {
-            if (documentUri is null || !trackedDocuments.ContainsKey(documentUri))
-                return _notificationManager.SendRequestAsync(Methods.WorkspaceSemanticTokensRefreshName, cancellationToken);
         }
 
-        // LSP is already tracking all changed documents so we don't need to send a refresh request.
-        return ValueTaskFactory.CompletedTask;
+        EnqueueRefreshNotification(documentUri: null);
     }
 
-    private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
+    protected override void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
     {
         Uri? documentUri = null;
 
@@ -173,7 +96,7 @@ internal class SemanticTokensRefreshQueue :
             }
         }
 
-        EnqueueSemanticTokenRefreshNotification(documentUri);
+        EnqueueRefreshNotification(documentUri);
     }
 
     // Duplicated from Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.LoadedProject.TreatAsIsDynamicFile
@@ -183,21 +106,9 @@ internal class SemanticTokensRefreshQueue :
         return extension is ".cshtml" or ".razor";
     }
 
-    private void EnqueueSemanticTokenRefreshNotification(Uri? documentUri)
-    {
-        // We should have only gotten here if semantic tokens refresh is supported and initialized.
-        Contract.ThrowIfNull(_semanticTokenRefreshQueue);
-        _semanticTokenRefreshQueue.AddWork(documentUri);
-    }
+    protected override string GetFeatureAttribute() => FeatureAttribute.Classification;
 
-    public void Dispose()
-    {
-        lock (_gate)
-        {
-            _lspWorkspaceRegistrationService.LspSolutionChanged -= OnLspSolutionChanged;
-        }
+    protected override bool? GetRefreshSupport(ClientCapabilities clientCapabilities) => clientCapabilities.Workspace?.SemanticTokens?.RefreshSupport;
 
-        _disposalTokenSource.Cancel();
-        _disposalTokenSource.Dispose();
-    }
+    protected override string GetWorkspaceRefreshName() => Methods.WorkspaceSemanticTokensRefreshName;
 }

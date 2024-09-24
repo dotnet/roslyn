@@ -42819,5 +42819,46 @@ class Program
 }
 ");
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75194")]
+        public void LinqSpread()
+        {
+            string source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Collections.Generic;
+
+                CustomizedCollection c = [.. from element in returnArray() select element / 9];
+
+                foreach (var i in c.Array)
+                {
+                    System.Console.Write(i);
+                }
+
+
+                static int[] returnArray() => null;
+
+                [CollectionBuilder(typeof(CustomizedCollection), nameof(Create))]
+                struct CustomizedCollection
+                {
+                    public void Add(int variable) => throw null;
+                    public IEnumerator<int> GetEnumerator() => throw null;
+                    public static CustomizedCollection Create(ReadOnlySpan<int> values) => new CustomizedCollection { Array = values.ToArray() };
+
+                    public int[] Array;
+                }
+
+                static class Extensions
+                {
+                    public static ReadOnlySpan<TResult> Select<T, TResult>(this T[] array, Func<T, TResult> selector)
+                        => (TResult[])[(TResult)(object)1, (TResult)(object)2, (TResult)(object)3];
+                }
+                """;
+
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+
+            CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("123"), verify: Verification.Skipped).VerifyDiagnostics();
+        }
     }
 }

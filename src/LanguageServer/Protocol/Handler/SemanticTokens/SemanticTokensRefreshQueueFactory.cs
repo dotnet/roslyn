@@ -29,9 +29,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         {
             var notificationManager = lspServices.GetRequiredService<IClientLanguageServerManager>();
             var lspWorkspaceManager = lspServices.GetRequiredService<LspWorkspaceManager>();
-            var capabilitiesProvider = lspServices.GetRequiredService<ICapabilitiesProvider>();
 
-            return new SemanticTokensRefreshQueue(_asyncListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager, capabilitiesProvider);
+            return new SemanticTokensRefreshQueue(_asyncListenerProvider, _lspWorkspaceRegistrationService, lspWorkspaceManager, notificationManager);
         }
     }
 }
