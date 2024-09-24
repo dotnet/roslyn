@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Operations;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -65,8 +66,9 @@ namespace Microsoft.CodeAnalysis
                 if (!operation.IsImplicit)
                 {
                     // IOperation invariant is that all there is at most 1 non-implicit node per syntax node.
-                    Debug.Assert(!argument.ContainsKey(operation.Syntax),
-                        $"Duplicate operation node for {operation.Syntax}. Existing node is {(argument.TryGetValue(operation.Syntax, out var original) ? original.Kind : null)}, new node is {operation.Kind}.");
+                    RoslynDebug.Assert(
+                        !argument.ContainsKey(operation.Syntax),
+                        $"Duplicate operation node for {operation.Syntax}. Existing node is {(argument.TryGetValue(operation.Syntax, out var original) ? (OperationKind?)original.Kind : null)}, new node is {operation.Kind}.");
                     argument.Add(operation.Syntax, operation);
                 }
             }

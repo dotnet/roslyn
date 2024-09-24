@@ -339,7 +339,9 @@ if [[ "$restore" == true || "$test_core_clr" == true ]]; then
   install=true
 fi
 InitializeDotNetCli $install
-if [[ "$restore" == true && "$source_build" != true ]]; then
+# Check the dev switch --source-build as well as ensure that source only switches were not passed in via extra properties
+# Source only builds would not have 'dotnet' ambiently available.
+if [[ "$restore" == true && "$source_build" != true && $properties != *"DotNetBuildSourceOnly=true"* ]]; then
   dotnet tool restore
 fi
 

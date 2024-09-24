@@ -468,11 +468,6 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         using var testWorkspace = CreateWorkspace(options: null, workspaceKind: null, mutatingLspWorkspace);
         testWorkspace.InitializeDocuments(XElement.Parse(workspaceXml));
 
-        // Wait for workspace creation operations to complete.
-        await WaitForWorkspaceOperationsAsync(testWorkspace);
-
-        var documentUri = testWorkspace.CurrentSolution.Projects.First().Documents.First().GetURI();
-
         await using var testLspServerOne = await TestLspServer.CreateAsync(testWorkspace, new InitializationOptions(), TestOutputLspLogger);
         await using var testLspServerTwo = await TestLspServer.CreateAsync(testWorkspace, new InitializationOptions(), TestOutputLspLogger);
 
@@ -483,6 +478,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         Assert.True(IsWorkspaceRegistered(testWorkspace, testLspServerTwo));
 
         // Verify that the LSP solution uses the correct text for each server.
+        var documentUri = testWorkspace.CurrentSolution.Projects.First().Documents.First().GetURI();
         var documentServerOne = await OpenDocumentAndVerifyLspTextAsync(documentUri, testLspServerOne, "Server one text");
 
         var (_, documentServerTwo) = await GetLspWorkspaceAndDocumentAsync(documentUri, testLspServerTwo).ConfigureAwait(false);
