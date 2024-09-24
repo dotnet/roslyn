@@ -730,7 +730,7 @@ $@"        if (F({i}))
         public void ManyBinaryPatterns()
         {
             const string Preamble = $"""
-                int i = 1;
+                int i = 2;
 
                 System.Console.Write(i is
                 """;
@@ -754,7 +754,8 @@ $@"        if (F({i}))
             for (int i = 1; i < NumBinaryExpressions; i++)
             {
                 builder.Append(Append);
-                builder.Append(i);
+                // Make sure the emitter has to handle lots of nodes
+                builder.Append(i * 2);
             }
 
             builder.AppendLine(Postscript);
@@ -763,34 +764,7 @@ $@"        if (F({i}))
             RunInThread(() =>
             {
                 var comp = CreateCompilation(source, options: TestOptions.DebugExe.WithConcurrentBuild(false));
-                var verifier = CompileAndVerify(comp, expectedOutput: "1");
-                verifier.VerifyIL("<top-level-statements-entry-point>", """
-                        {
-                          // Code size       32 (0x20)
-                          .maxstack  2
-                          .locals init (int V_0, //i
-                                        bool V_1)
-                          IL_0000:  ldc.i4.1
-                          IL_0001:  stloc.0
-                          IL_0002:  ldloc.0
-                          IL_0003:  ldc.i4     0x2edf
-                          IL_0008:  ble.un.s   IL_000c
-                          IL_000a:  br.s       IL_0010
-                          IL_000c:  ldc.i4.1
-                          IL_000d:  stloc.1
-                          IL_000e:  br.s       IL_0012
-                          IL_0010:  ldc.i4.0
-                          IL_0011:  stloc.1
-                          IL_0012:  ldloc.1
-                          IL_0013:  brtrue.s   IL_0018
-                          IL_0015:  ldc.i4.0
-                          IL_0016:  br.s       IL_0019
-                          IL_0018:  ldc.i4.1
-                          IL_0019:  call       "void System.Console.Write(int)"
-                          IL_001e:  nop
-                          IL_001f:  ret
-                        }
-                        """);
+                CompileAndVerify(comp, expectedOutput: "1");
 
                 var tree = comp.SyntaxTrees[0];
                 var isPattern = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
