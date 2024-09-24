@@ -855,7 +855,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!IsStatic &&
                 ContainingType.IsInterface &&
-                IsSetOnEitherPart(Flags.RequiresBackingField))
+                IsSetOnEitherPart(Flags.RequiresBackingField) &&
+                // Should probably ignore initializer (and report ERR_InterfacesCantContainFields) if the
+                // property uses 'field' or has an auto-implemented accessor.
+                !IsSetOnEitherPart(Flags.HasInitializer))
             {
                 diagnostics.Add(ErrorCode.ERR_InterfacesCantContainFields, Location);
             }

@@ -1557,57 +1557,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (4,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P1 { get; } = 1;
                 Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithLocation(4, 16),
-                // (4,16): error CS0525: Interfaces cannot contain instance fields
-                //     public int P1 { get; } = 1;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 16),
                 // (5,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P2 { get => field; } = 2;
                 Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P2").WithLocation(5, 16),
-                // (5,16): error CS0525: Interfaces cannot contain instance fields
-                //     public int P2 { get => field; } = 2;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P2").WithLocation(5, 16),
                 // (6,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P3 { get => field; set; } = 3;
                 Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P3").WithLocation(6, 16),
-                // (6,16): error CS0525: Interfaces cannot contain instance fields
-                //     public int P3 { get => field; set; } = 3;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P3").WithLocation(6, 16),
                 // (7,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P4 { get => field; set { } } = 4;
                 Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P4").WithLocation(7, 16),
-                // (7,16): error CS0525: Interfaces cannot contain instance fields
-                //     public int P4 { get => field; set { } } = 4;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P4").WithLocation(7, 16),
                 // (8,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P5 { get => 0; set; } = 5;
                 Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P5").WithLocation(8, 16),
-                // (8,16): error CS0525: Interfaces cannot contain instance fields
-                //     public int P5 { get => 0; set; } = 5;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P5").WithLocation(8, 16),
                 // (9,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P6 { get; set; } = 6;
                 Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P6").WithLocation(9, 16),
-                // (9,16): error CS0525: Interfaces cannot contain instance fields
-                //     public int P6 { get; set; } = 6;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P6").WithLocation(9, 16),
                 // (10,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P7 { get; set { } } = 7;
                 Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P7").WithLocation(10, 16),
-                // (10,16): error CS0525: Interfaces cannot contain instance fields
-                //     public int P7 { get; set { } } = 7;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P7").WithLocation(10, 16),
                 // (11,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P8 { set { field = value; } } = 8;
                 Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P8").WithLocation(11, 16),
-                // (11,16): error CS0525: Interfaces cannot contain instance fields
-                //     public int P8 { set { field = value; } } = 8;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P8").WithLocation(11, 16),
                 // (12,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P9 { get { return field; } set { field = value; } } = 9;
-                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P9").WithLocation(12, 16),
-                // (12,16): error CS0525: Interfaces cannot contain instance fields
-                //     public int P9 { get { return field; } set { field = value; } } = 9;
-                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P9").WithLocation(12, 16));
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P9").WithLocation(12, 16));
 
             var containingType = comp.GetMember<NamedTypeSymbol>("I");
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
@@ -6255,6 +6228,155 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(2, actualProperties.Length);
             Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PartialProperty_Interface_04A(bool reverseOrder, bool useStatic)
+        {
+            string modifier = useStatic ? "static" : "      ";
+            string sourceA = $$"""
+                partial interface I
+                {
+                    {{modifier}} partial object P1 { get; } = 1;
+                    {{modifier}} partial object P2 { set; }
+                    {{modifier}} partial object P3 { get; set; } = 3;
+                    {{modifier}} partial object P4 { get; set; }
+                }
+                """;
+            string sourceB = $$"""
+                partial interface I
+                {
+                    {{modifier}} partial object P1 { get => null; }
+                    {{modifier}} partial object P2 { set { } } = 2;
+                    {{modifier}} partial object P3 { get => null; set { } }
+                    {{modifier}} partial object P4 { get => null; set { } } = 4;
+                }
+                """;
+            var comp = CreateCompilation(
+                reverseOrder ? [sourceB, sourceA] : [sourceA, sourceB],
+                targetFramework: TargetFramework.Net80);
+            if (useStatic)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                    //     static partial object P1 { get; } = 1;
+                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 27),
+                    // (4,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                    //     static partial object P2 { set { } } = 2;
+                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(4, 27),
+                    // (5,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                    //     static partial object P3 { get; set; } = 3;
+                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(5, 27),
+                    // (6,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                    //     static partial object P4 { get => null; set { } } = 4;
+                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P4").WithLocation(6, 27));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,27): error CS8053: Instance properties in interfaces cannot have initializers.
+                    //            partial object P1 { get; } = 1;
+                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithLocation(3, 27),
+                    // (4,27): error CS8053: Instance properties in interfaces cannot have initializers.
+                    //            partial object P2 { set { } } = 2;
+                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P2").WithLocation(4, 27),
+                    // (5,27): error CS8053: Instance properties in interfaces cannot have initializers.
+                    //            partial object P3 { get; set; } = 3;
+                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P3").WithLocation(5, 27),
+                    // (6,27): error CS8053: Instance properties in interfaces cannot have initializers.
+                    //            partial object P4 { get => null; set { } } = 4;
+                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P4").WithLocation(6, 27));
+            }
+
+            var containingType = comp.GetMember<NamedTypeSymbol>("I");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().OrderBy(f => f.Name).ToImmutableArray();
+            var expectedFields = new[]
+            {
+                "System.Object I.<P1>k__BackingField",
+                "System.Object I.<P2>k__BackingField",
+                "System.Object I.<P3>k__BackingField",
+                "System.Object I.<P4>k__BackingField",
+            };
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
+            Assert.Equal(4, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
+        }
+
+        // As above, but using field.
+        [Theory]
+        [CombinatorialData]
+        public void PartialProperty_Interface_04B(bool reverseOrder, bool useStatic)
+        {
+            string modifier = useStatic ? "static" : "      ";
+            string sourceA = $$"""
+                partial interface I
+                {
+                    {{modifier}} partial object P1 { get; } = 1;
+                    {{modifier}} partial object P2 { set; }
+                    {{modifier}} partial object P3 { get; set; } = 3;
+                    {{modifier}} partial object P4 { get; set; }
+                }
+                """;
+            string sourceB = $$"""
+                partial interface I
+                {
+                    {{modifier}} partial object P1 { get => field; }
+                    {{modifier}} partial object P2 { set { field = value; } } = 2;
+                    {{modifier}} partial object P3 { get => field; set { } }
+                    {{modifier}} partial object P4 { get => null; set { field = value; } } = 4;
+                }
+                """;
+            var comp = CreateCompilation(
+                reverseOrder ? [sourceB, sourceA] : [sourceA, sourceB],
+                targetFramework: TargetFramework.Net80);
+            if (useStatic)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,27): error CS8053: Instance properties in interfaces cannot have initializers.
+                    //            partial object P1 { get; } = 1;
+                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithLocation(3, 27),
+                    // (4,27): error CS8053: Instance properties in interfaces cannot have initializers.
+                    //            partial object P2 { set { field = value; } } = 2;
+                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P2").WithLocation(4, 27),
+                    // (5,27): error CS8053: Instance properties in interfaces cannot have initializers.
+                    //            partial object P3 { get; set; } = 3;
+                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P3").WithLocation(5, 27),
+                    // (6,27): error CS8053: Instance properties in interfaces cannot have initializers.
+                    //            partial object P4 { get => null; set { field = value; } } = 4;
+                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P4").WithLocation(6, 27));
+            }
+
+            var containingType = comp.GetMember<NamedTypeSymbol>("I");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().OrderBy(f => f.Name).ToImmutableArray();
+            var expectedFields = new[]
+            {
+                "System.Object I.<P1>k__BackingField",
+                "System.Object I.<P2>k__BackingField",
+                "System.Object I.<P3>k__BackingField",
+                "System.Object I.<P4>k__BackingField",
+            };
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
+            Assert.Equal(4, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
 
             VerifyMergedProperties(actualProperties, actualFields);
         }
