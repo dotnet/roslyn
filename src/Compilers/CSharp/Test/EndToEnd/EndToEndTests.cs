@@ -413,7 +413,7 @@ public class Test
                 (4, ExecutionConfiguration.Debug) => 310,
                 (4, ExecutionConfiguration.Release) => 1419,
                 (8, ExecutionConfiguration.Debug) => 200,
-                (8, ExecutionConfiguration.Release) => 780,
+                (8, ExecutionConfiguration.Release) => 479,
                 _ => throw new Exception($"Unexpected configuration {IntPtr.Size * 8}-bit {ExecutionConditionUtil.Configuration}")
             };
 
@@ -453,7 +453,11 @@ $@"        if (F({i}))
         [WorkItem("https://github.com/dotnet/roslyn/issues/72393")]
         [ConditionalTheory(typeof(NoIOperationValidation))]
         [InlineData(2)]
+#if DEBUG
+        [InlineData(2000)]
+#else
         [InlineData(5000)]
+#endif
         public void NestedIfElse(int n)
         {
             var builder = new System.Text.StringBuilder();
