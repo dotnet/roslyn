@@ -230,6 +230,7 @@ public class VisualStudioOptionStorageTests
             "dotnet_lsp_using_devkit",                                                      // VSCode internal only option.  Does not need any UI.
             "dotnet_enable_references_code_lens",                                           // VSCode only option.  Does not apply to VS.
             "dotnet_enable_tests_code_lens",                                                // VSCode only option.  Does not apply to VS.
+            "dotnet_enable_on_auto_insert",                                                 // VSCode only option.  Does not apply to VS.
             "end_of_line",                                                                  // persisted by the editor
             "ExtensionManagerOptions_DisableCrashingExtensions",                            // TODO: remove? https://github.com/dotnet/roslyn/issues/66063
             "FeatureOnOffOptions_RefactoringVerification",                                  // TODO: remove? https://github.com/dotnet/roslyn/issues/66063 
