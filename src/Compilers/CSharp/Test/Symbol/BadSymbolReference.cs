@@ -740,8 +740,8 @@ public interface CL3_I1 : CL2_I1
             var references = new[]
             {
                 MscorlibRef,
-                TestMetadata.Net451.SystemData,
-                TestMetadata.Net451.System,
+                NetFramework.SystemData,
+                NetFramework.System,
                 cl2,
                 cl3
             };

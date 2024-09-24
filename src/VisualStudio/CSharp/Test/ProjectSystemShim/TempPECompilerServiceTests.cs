@@ -34,7 +34,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 fileContents: [],
                 optionCount: 1,
                 optionNames: ["r"],
-                optionValues: new[] { Path.Combine(directory.Path, "MissingReference.dll") });
+                optionValues: [Path.Combine(directory.Path, "MissingReference.dll")]);
 
             Assert.Equal(VSConstants.S_FALSE, hr);
         }

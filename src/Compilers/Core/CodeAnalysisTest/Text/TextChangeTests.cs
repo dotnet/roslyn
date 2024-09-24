@@ -320,14 +320,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestOptimizedSourceTextLinesBrakeCrLf()
+        public void TestOptimizedSourceTextLinesBreakCrLf()
         {
             AssertChangedTextLinesHelper("Test\r\nMessage",
                 new TextChange(new TextSpan(5, 0), "aaaaaa"));
         }
 
         [Fact]
-        public void TestOptimizedSourceTextLinesBrakeCrLfWithLfPrefixedAndCrSuffixed()
+        public void TestOptimizedSourceTextLinesBreakCrLfWithLfPrefixedAndCrSuffixed()
         {
             AssertChangedTextLinesHelper("Test\r\nMessage",
                 new TextChange(new TextSpan(5, 0), "\naaaaaa\r"));

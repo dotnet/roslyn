@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
         {
         }
 
-#if NETCOREAPP
+#if NET
 
         internal DefaultAnalyzerAssemblyLoader(System.Runtime.Loader.AssemblyLoadContext? compilerLoadContext = null, AnalyzerLoadOption loadOption = AnalyzerLoadOption.LoadFromDisk, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
             : base(compilerLoadContext, loadOption, externalResolvers ?? [])
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
         /// will be the base directory where shadow copy assemblies are stored. </param>
         internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(string windowsShadowPath, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
         {
-#if NETCOREAPP
+#if NET
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 return new DefaultAnalyzerAssemblyLoader(loadOption: AnalyzerLoadOption.LoadFromStream, externalResolvers: externalResolvers);

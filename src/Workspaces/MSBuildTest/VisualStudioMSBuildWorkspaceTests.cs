@@ -1838,15 +1838,15 @@ class C1
             var imports = options.GlobalImports;
 
             AssertEx.Equal(
-                expected: new[]
-                {
-                        "Microsoft.VisualBasic",
-                        "System",
-                        "System.Collections",
-                        "System.Collections.Generic",
-                        "System.Diagnostics",
-                        "System.Linq",
-                },
+                expected:
+                [
+                    "Microsoft.VisualBasic",
+                    "System",
+                    "System.Collections",
+                    "System.Collections.Generic",
+                    "System.Diagnostics",
+                    "System.Linq",
+                ],
                 actual: imports.Select(i => i.Name));
         }
 
@@ -1865,21 +1865,21 @@ class C1
             defines.Sort((x, y) => x.Key.CompareTo(y.Key));
 
             AssertEx.Equal(
-                expected: new[]
-                {
-                        new KeyValuePair<string, object>("_MyType", "Windows"),
-                        new KeyValuePair<string, object>("CONFIG", "Debug"),
-                        new KeyValuePair<string, object>("DEBUG", -1),
-                        new KeyValuePair<string, object>("F", false),
-                        new KeyValuePair<string, object>("PLATFORM", "AnyCPU"),
-                        new KeyValuePair<string, object>("T", -1),
-                        new KeyValuePair<string, object>("TARGET", "library"),
-                        new KeyValuePair<string, object>("TRACE", -1),
-                        new KeyValuePair<string, object>("VBC_VER", 123),
-                        new KeyValuePair<string, object>("X", 1),
-                        new KeyValuePair<string, object>("Y", 2),
-                        new KeyValuePair<string, object>("Z", true),
-                },
+                expected:
+                [
+                    new KeyValuePair<string, object>("_MyType", "Windows"),
+                    new KeyValuePair<string, object>("CONFIG", "Debug"),
+                    new KeyValuePair<string, object>("DEBUG", -1),
+                    new KeyValuePair<string, object>("F", false),
+                    new KeyValuePair<string, object>("PLATFORM", "AnyCPU"),
+                    new KeyValuePair<string, object>("T", -1),
+                    new KeyValuePair<string, object>("TARGET", "library"),
+                    new KeyValuePair<string, object>("TRACE", -1),
+                    new KeyValuePair<string, object>("VBC_VER", 123),
+                    new KeyValuePair<string, object>("X", 1),
+                    new KeyValuePair<string, object>("Y", 2),
+                    new KeyValuePair<string, object>("Z", true),
+                ],
                 actual: defines);
         }
 
@@ -1900,7 +1900,7 @@ class C1
             var compilation = await project.GetCompilationAsync();
             var metadataBytes = compilation.EmitToArray();
             var mtref = MetadataReference.CreateFromImage(metadataBytes);
-            var mtcomp = CS.CSharpCompilation.Create("MT", references: new MetadataReference[] { mtref });
+            var mtcomp = CS.CSharpCompilation.Create("MT", references: [mtref]);
             var sym = (IAssemblySymbol)mtcomp.GetAssemblyOrModuleSymbol(mtref);
             var attrs = sym.GetAttributes();
 
@@ -1923,7 +1923,7 @@ class C1
             var compilation = await project.GetCompilationAsync();
             var metadataBytes = compilation.EmitToArray();
             var mtref = MetadataReference.CreateFromImage(metadataBytes);
-            var mtcomp = CS.CSharpCompilation.Create("MT", references: new MetadataReference[] { mtref });
+            var mtcomp = CS.CSharpCompilation.Create("MT", references: [mtref]);
             var sym = (IAssemblySymbol)mtcomp.GetAssemblyOrModuleSymbol(mtref);
             var attrs = sym.GetAttributes();
 
@@ -1947,7 +1947,7 @@ class C1
             var compilation = await project.GetCompilationAsync();
             var metadataBytes = compilation.EmitToArray();
             var mtref = MetadataReference.CreateFromImage(metadataBytes);
-            var mtcomp = CS.CSharpCompilation.Create("MT", references: new MetadataReference[] { mtref });
+            var mtcomp = CS.CSharpCompilation.Create("MT", references: [mtref]);
             var sym = (IAssemblySymbol)mtcomp.GetAssemblyOrModuleSymbol(mtref);
             var attrs = sym.GetAttributes();
 
@@ -1970,7 +1970,7 @@ class C1
             var compilation = await project.GetCompilationAsync();
             var metadataBytes = compilation.EmitToArray();
             var mtref = MetadataReference.CreateFromImage(metadataBytes);
-            var mtcomp = CS.CSharpCompilation.Create("MT", references: new MetadataReference[] { mtref });
+            var mtcomp = CS.CSharpCompilation.Create("MT", references: [mtref]);
             var sym = (IAssemblySymbol)mtcomp.GetAssemblyOrModuleSymbol(mtref);
             var attrs = sym.GetAttributes();
 
@@ -2012,7 +2012,7 @@ class C1
             var project = solution.GetProjectsByName("CSharpProject").FirstOrDefault();
 
             var newText = SourceText.From("public class Bar { }");
-            workspace.AddDocument(project.Id, new string[] { "NewFolder" }, "Bar.cs", newText);
+            workspace.AddDocument(project.Id, ["NewFolder"], "Bar.cs", newText);
 
             // check workspace current solution
             var solution2 = workspace.CurrentSolution;
@@ -3215,7 +3215,7 @@ class C { }";
             Assert.Single(project.ProjectReferences);
 
             AssertEx.Equal(
-                new[] { "EmptyLibrary.dll", "System.Core.dll", "mscorlib.dll" },
+                ["EmptyLibrary.dll", "System.Core.dll", "mscorlib.dll"],
                 project.MetadataReferences.Select(r => Path.GetFileName(((PortableExecutableReference)r).FilePath)).OrderBy(StringComparer.Ordinal));
 
             var compilation = await project.GetCompilationAsync();

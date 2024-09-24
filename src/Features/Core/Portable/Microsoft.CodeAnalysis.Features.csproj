@@ -84,6 +84,8 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CodeLens" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests" />
+    <!-- This assembly is shipped and versioned alongside Roslyn in the C# extension, fine to give it full IVTs -->
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.DevKit" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" WorkItem="https://github.com/dotnet/roslyn/issues/35085" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.LiveShare" />
@@ -113,15 +115,10 @@
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServerClient.Razor.Test" Partner="Razor" Key="$(RazorKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Partner="Razor" Key="$(RazorKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.Test" Partner="Razor" Key="$(RazorKey)" />
-    <!--
-      Only allow C# DevKit to use types from Contracts namespace. The contracts should not introduce breaking changes between versions,
-      because the versions of C# DevKit and C# Extension might not be aligned.
-    -->
-    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.DevKit" Namespace="Microsoft.CodeAnalysis.Contracts" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.TestWindow.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Remove="SymbolSearch\Windows\**\*.cs" Condition="'$(DotNetBuildFromSource)' == 'true'" />
+    <Compile Remove="SymbolSearch\Windows\**\*.cs" Condition="'$(DotNetBuildSourceOnly)' == 'true'" />
     <Compile Include="..\..\..\Compilers\Core\Portable\PEWriter\CompilationOptionNames.cs" Link="PdbSourceDocument\CompilationOptionNames.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Text\TextUtilities.cs" Link="Shared\Utilities\TextUtilities.cs" />
   </ItemGroup>
@@ -140,14 +137,10 @@
       WARNING: All package references must have an OSS license since this assembly is shipped with dotnet-watch and dotnet-format.
     -->
     <PackageReference Include="Microsoft.CodeAnalysis.AnalyzerUtilities" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Condition="'$(DotNetBuildFromSource)' != 'true'" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Elfie" Condition="'$(DotNetBuildSourceOnly)' != 'true'" />
     <PackageReference Include="Microsoft.DiaSymReader" />
     <PackageReference Include="System.Text.Json" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="DocumentationComments\CodeFixes\" />
-    <Folder Include="GenerateMember\" />
   </ItemGroup>
   <Import Project="..\..\..\Analyzers\Core\Analyzers\Analyzers.projitems" Label="Shared" />
   <Import Project="..\..\..\Analyzers\Core\CodeFixes\CodeFixes.projitems" Label="Shared" />

@@ -396,7 +396,7 @@ using System;
         public void UnusedUsingScript()
         {
             var tree = Parse("using System;", options: TestOptions.Script);
-            var comp = CreateCompilationWithMscorlib45(new[] { tree });
+            var comp = CreateCompilationWithMscorlib461(new[] { tree });
 
             comp.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.

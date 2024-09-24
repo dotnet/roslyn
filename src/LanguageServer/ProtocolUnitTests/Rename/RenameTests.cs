@@ -182,8 +182,8 @@ $@"<Workspace>
 
             var documentEdit = results.DocumentChanges.Value.First.Single();
             Assert.Equal(expectedMappedDocument, documentEdit.TextDocument.Uri);
-            Assert.Equal(expectedMappedRanges, documentEdit.Edits.Select(edit => edit.Range));
-            Assert.True(documentEdit.Edits.All(edit => edit.NewText == renameText));
+            Assert.Equal(expectedMappedRanges, documentEdit.Edits.Select(edit => edit.Unify().Range));
+            Assert.True(documentEdit.Edits.All(edit => edit.Unify().NewText == renameText));
         }
 
         private static LSP.RenameParams CreateRenameParams(LSP.Location location, string newName)

@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -91,7 +92,13 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         }
     }
 
-    public bool IsSuggestionsPanelExpanded => HasSuggestions;
+    /// <summary>
+    /// IsSuggestionsPanelExpanded is used to control the visibility of the suggestions panel.
+    /// SupportsAutomaticSuggestions the flag to determine whether the SmartRename will generate suggestion automatically.
+    /// When SupportsAutomaticSuggestions disenabled, the suggestions panel is supposed to always expanded once it's shown, thus users can see the suggestions.
+    /// When SupportsAutomaticSuggestions enabled, the suggestions panel is supposed to react to the smart rename button click. If the button is clicked, IsAutomaticSuggestionsEnabled will be true, the panel will be expanded, Otherwise, it will be collapsed.
+    /// </summary>
+    public bool IsSuggestionsPanelExpanded => HasSuggestions && (!SupportsAutomaticSuggestions || IsAutomaticSuggestionsEnabled);
 
     public string GetSuggestionsTooltip
         => SupportsAutomaticSuggestions
@@ -170,15 +177,22 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
         if (IsUsingSemanticContext)
         {
             var document = this.BaseViewModel.Session.TriggerDocument;
-            var smartRenameContext = ImmutableDictionary<string, string[]>.Empty;
-            var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
-            var renameLocations = await this.BaseViewModel.Session.AllRenameLocationsTask.JoinAsync(cancellationToken)
-                .ConfigureAwait(false);
-            var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session.RenameInfo, renameLocations, cancellationToken)
-                .ConfigureAwait(false);
-            smartRenameContext = ImmutableDictionary.CreateRange<string, string[]>(
-                context
-                .Select(n => new KeyValuePair<string, string[]>(n.Key, n.Value.ToArray())));
+            var smartRenameContext = ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>.Empty;
+            try
+            {
+                var editorRenameService = document.GetRequiredLanguageService<IEditorInlineRenameService>();
+                var renameLocations = await this.BaseViewModel.Session.AllRenameLocationsTask.JoinAsync(cancellationToken)
+                    .ConfigureAwait(false);
+                var context = await editorRenameService.GetRenameContextAsync(this.BaseViewModel.Session.RenameInfo, renameLocations, cancellationToken)
+                    .ConfigureAwait(false);
+                smartRenameContext = ImmutableDictionary.CreateRange<string, ImmutableArray<(string filePath, string content)>>(
+                    context
+                    .Select(n => new KeyValuePair<string, ImmutableArray<(string filePath, string content)>>(n.Key, n.Value)));
+            }
+            catch (Exception e) when (FatalError.ReportAndCatch(e, ErrorSeverity.Diagnostic))
+            {
+                // use empty smartRenameContext
+            }
             _ = await _smartRenameSession.GetSuggestionsAsync(smartRenameContext, cancellationToken)
                 .ConfigureAwait(false);
         }
@@ -278,7 +292,7 @@ internal sealed partial class SmartRenameViewModel : INotifyPropertyChanged, IDi
             {
                 this.FetchSuggestions(isAutomaticOnInitialization: false);
             }
-
+            NotifyPropertyChanged(nameof(IsSuggestionsPanelExpanded));
             NotifyPropertyChanged(nameof(IsAutomaticSuggestionsEnabled));
             // Use existing "CollapseSuggestionsPanel" option (true if user does not wish to get suggestions automatically) to honor user's choice.
             _globalOptionService.SetGlobalOption(InlineRenameUIOptionsStorage.CollapseSuggestionsPanel, !IsAutomaticSuggestionsEnabled);

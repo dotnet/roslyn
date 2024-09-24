@@ -252,8 +252,8 @@ function BuildSolution() {
   # Workaround for some machines in the AzDO pool not allowing long paths
   $ibcDir = $RepoRoot
 
-  # Set DotNetBuildFromSource to 'true' if we're simulating building for source-build.
-  $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildFromSource=true" } else { "" }
+  # Set DotNetBuildSourceOnly to 'true' if we're simulating building for source-build.
+  $buildFromSource = if ($sourceBuild) { "/p:DotNetBuildSourceOnly=true" } else { "" }
 
   $generateDocumentationFile = if ($skipDocumentation) { "/p:GenerateDocumentationFile=false" } else { "" }
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
@@ -632,6 +632,13 @@ function Deploy-VsixViaTool() {
   # Configure RemoteHostOptions.OOP64Bit for testing
   $oop64bitValue = [int]$oop64bit.ToBool()
   &$vsRegEdit set "$vsDir" $hive HKCU "Roslyn\Internal\OnOff\Features" OOP64Bit dword $oop64bitValue
+
+  # Disable targeted notifications
+  if ($ci) {
+    # Currently does not work via vsregedit, so only apply this setting in CI
+    #&$vsRegEdit set "$vsDir" $hive HKCU "RemoteSettings" TurnOffSwitch dword 1
+    reg add hkcu\Software\Microsoft\VisualStudio\RemoteSettings /f /t REG_DWORD /v TurnOffSwitch /d 1
+  }
 }
 
 # Ensure that procdump is available on the machine.  Returns the path to the directory that contains

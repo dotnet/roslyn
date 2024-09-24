@@ -287,11 +287,6 @@
         <target state="translated">Le membre d'enregistrement '{0}' doit être une propriété d'instance our champ lisible de type '{1}' pour correspondre au paramètre positionnel '{2}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
-        <target state="translated">L’instruction foreach ne peut pas fonctionner sur les énumérateurs de type « {0} » dans les méthodes asynchrones ou les méthodes d’itérateurs, car « {0} » est un type ref struct.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
         <target state="translated">Les paramètres de type « {0} » ne peuvent pas être déclarés dans des méthodes asynchrones ou des expressions lambda asynchrones.</target>
@@ -505,6 +500,11 @@
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
         <target state="translated">Désolé... Nous ne pouvons pas initialiser le type « {0} » avec une expression de collection, car le type n’est pas constructible.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
+        <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
+        <target state="new">Collection initializer results in an infinite chain of instantiations of collection '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -1148,8 +1148,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="translated">La fonctionnalité expérimentale « intercepteurs » n'est pas activée dans cet espace de noms. Ajoutez « {0} » à votre projet.</target>
+        <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="needs-review-translation">La fonctionnalité expérimentale « intercepteurs » n'est pas activée dans cet espace de noms. Ajoutez « {0} » à votre projet.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">

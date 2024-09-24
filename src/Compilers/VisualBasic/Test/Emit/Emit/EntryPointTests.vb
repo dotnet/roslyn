@@ -5,7 +5,7 @@
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 
@@ -990,7 +990,7 @@ End Class
         End Module
     </file>
 </compilation>
-            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.SystemCore}, options:=TestOptions.ReleaseExe).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}, options:=TestOptions.ReleaseExe).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_InValidSubMainsFound1).WithArguments("a"))
         End Sub
 
@@ -1009,7 +1009,7 @@ End Class
         End Module
     </file>
 </compilation>
-            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.SystemCore}, options:=TestOptions.ReleaseExe).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}, options:=TestOptions.ReleaseExe).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_InValidSubMainsFound1).WithArguments("a"))
         End Sub
 
@@ -1028,7 +1028,7 @@ End Class
         End Module
     </file>
 </compilation>
-            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.SystemCore}, options:=TestOptions.ReleaseExe).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}, options:=TestOptions.ReleaseExe).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_InValidSubMainsFound1).WithArguments("a"))
         End Sub
 
@@ -1281,10 +1281,10 @@ End Class
         End Module
     </file>
 </compilation>
-            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.SystemCore}, options:=TestOptions.ReleaseExe.WithMainTypeName("B")).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}, options:=TestOptions.ReleaseExe.WithMainTypeName("B")).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("B"))
 
-            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.SystemCore}, options:=TestOptions.ReleaseExe.WithMainTypeName("Extension")).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}, options:=TestOptions.ReleaseExe.WithMainTypeName("Extension")).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_InValidSubMainsFound1).WithArguments("Extension"))
         End Sub
 
@@ -1302,13 +1302,13 @@ End Class
         Delegate Sub mydelegate(args As String()) 
     </file>
 </compilation>
-            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.SystemCore}, options:=TestOptions.ReleaseExe.WithMainTypeName("I1")).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}, options:=TestOptions.ReleaseExe.WithMainTypeName("I1")).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("i1"))
 
-            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.SystemCore}, options:=TestOptions.ReleaseExe.WithMainTypeName("COLOR")).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}, options:=TestOptions.ReleaseExe.WithMainTypeName("COLOR")).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("color"))
 
-            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.SystemCore}, options:=TestOptions.ReleaseExe.WithMainTypeName("mydelegate")).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, {Net40.References.SystemCore}, options:=TestOptions.ReleaseExe.WithMainTypeName("mydelegate")).VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_StartupCodeNotFound1).WithArguments("mydelegate"))
         End Sub
 

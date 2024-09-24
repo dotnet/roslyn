@@ -2,17 +2,24 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Text.Json.Serialization;
+
 namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
-/// Interface representing the text document registration options.
-///
-/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocumentRegistrationOptions">Language Server Protocol specification</see> for additional information.
+/// Interface for registration options that can be scoped to particular text documents.
+/// <para>
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentRegistrationOptions">Language Server Protocol specification</see> for additional information.
+/// </para>
 /// </summary>
 internal interface ITextDocumentRegistrationOptions
 {
     /// <summary>
-    /// Gets or sets the document filters for this registration option.
+    /// A document selector to identify the scope of the registration. If set to
+    /// <see langword="null"/> the document selector provided on the client side will be used.
     /// </summary>
+    // NOTE: these JSON attributes are not inherited, they are here as a reference for implementations
+    [JsonPropertyName("documentSelector")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public DocumentFilter[]? DocumentSelector { get; set; }
 }

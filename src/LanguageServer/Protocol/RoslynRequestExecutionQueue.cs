@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Globalization;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Roslyn.Utilities;
 
@@ -13,27 +16,44 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     internal sealed class RoslynRequestExecutionQueue : RequestExecutionQueue<RequestContext>
     {
         private readonly IInitializeManager _initializeManager;
+        private readonly IAsynchronousOperationListener _listener;
 
         /// <summary>
         /// Serial access is guaranteed by the queue.
         /// </summary>
         private CultureInfo? _cultureInfo;
 
-        public RoslynRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider)
+        public RoslynRequestExecutionQueue(AbstractLanguageServer<RequestContext> languageServer, ILspLogger logger, AbstractHandlerProvider handlerProvider, IAsynchronousOperationListenerProvider provider)
             : base(languageServer, logger, handlerProvider)
         {
             _initializeManager = languageServer.GetLspServices().GetRequiredService<IInitializeManager>();
+            _listener = provider.GetListener(FeatureAttribute.LanguageServer);
         }
 
-        public override Task WrapStartRequestTaskAsync(Task nonMutatingRequestTask, bool rethrowExceptions)
+        public override async Task WrapStartRequestTaskAsync(Task nonMutatingRequestTask, bool rethrowExceptions)
         {
+            using var token = _listener.BeginAsyncOperation(nameof(WrapStartRequestTaskAsync));
             if (rethrowExceptions)
             {
-                return nonMutatingRequestTask;
+                try
+                {
+                    await nonMutatingRequestTask.ConfigureAwait(false);
+                }
+                catch (StreamJsonRpc.LocalRpcException localRpcException) when (localRpcException.ErrorCode == LspErrorCodes.ContentModified)
+                {
+                    // Content modified exceptions are expected and should not be reported as NFWs.
+                    throw;
+                }
+                // If we had an exception, we want to record a NFW for it AND propogate it out to the queue so it can be handled appropriately.
+                catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex, ErrorSeverity.Critical))
+                {
+                    throw ExceptionUtilities.Unreachable();
+                }
             }
             else
             {
-                return nonMutatingRequestTask.ReportNonFatalErrorAsync();
+                // The caller has asked us to not rethrow, so record a NFW and swallow.
+                await nonMutatingRequestTask.ReportNonFatalErrorAsync().ConfigureAwait(false);
             }
         }
 

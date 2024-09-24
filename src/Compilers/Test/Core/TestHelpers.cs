@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
@@ -145,6 +146,31 @@ namespace Roslyn.Test.Utilities
             }
 
             return data.Value;
+        }
+
+        public static ImmutableArray<byte> HexToByte(ReadOnlySpan<char> input)
+        {
+            if (input.Length % 2 != 0)
+            {
+                throw new ArgumentException("Length of the input string must be even", nameof(input));
+            }
+
+            var bytes = new byte[input.Length >> 1];
+            for (var i = 0; i < bytes.Length; i++)
+            {
+                bytes[i] = parseByte(input.Slice(i << 1, 2), NumberStyles.HexNumber);
+            }
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(bytes);
+
+            byte parseByte(ReadOnlySpan<char> input, NumberStyles numberStyle)
+            {
+#if NET
+                return byte.Parse(input, numberStyle);
+#else
+                return byte.Parse(input.ToString(), numberStyle);
+#endif
+            }
         }
     }
 }

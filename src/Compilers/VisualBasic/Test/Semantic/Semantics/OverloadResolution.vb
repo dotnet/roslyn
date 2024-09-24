@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OverloadResolutionTestHelpers
-
+Imports Basic.Reference.Assemblies
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -3054,7 +3054,7 @@ End Class
 
             Dim c1 = VisualBasicCompilation.Create("Test1",
                 syntaxTrees:={Parse(SemanticResourceUtil.OverloadResolutionTestSource), optionStrictOffTree},
-                references:={TestMetadata.Net40.mscorlib},
+                references:={Net40.References.mscorlib},
                 options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)

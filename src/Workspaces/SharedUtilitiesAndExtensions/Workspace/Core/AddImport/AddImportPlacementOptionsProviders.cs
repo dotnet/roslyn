@@ -18,7 +18,7 @@ internal static class AddImportPlacementOptionsProviders
 #if CODE_STYLE
         => AddImportPlacementOptions.Default.AllowInHiddenRegions;
 #else
-        => document.Services.GetService<Host.ISpanMappingService>()?.SupportsMappingImportDirectives == true;
+        => document.DocumentServiceProvider.GetService<Host.ISpanMappingService>()?.SupportsMappingImportDirectives == true;
 #endif
 
     public static AddImportPlacementOptions GetAddImportPlacementOptions(this IOptionsReader options, Host.LanguageServices languageServices, bool? allowInHiddenRegions)
