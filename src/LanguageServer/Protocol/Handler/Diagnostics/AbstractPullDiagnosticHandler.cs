@@ -247,7 +247,7 @@ internal abstract partial class AbstractPullDiagnosticHandler<TDiagnosticsParams
 
         static async Task<ProjectOrDocumentId?> GetIdForPreviousResultAsync(TextDocumentIdentifier textDocumentIdentifier, Solution solution, CancellationToken cancellationToken)
         {
-            var document = await solution.GetDocumentAsync(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
+            var document = await solution.GetTextDocumentAsync(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
             if (document != null)
             {
                 return new ProjectOrDocumentId(document.Id);

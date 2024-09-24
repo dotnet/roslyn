@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
                 var textDocument = previousResult.TextDocument;
                 if (textDocument != null)
                 {
-                    var document = await context.Solution.GetDocumentAsync(textDocument, cancellationToken).ConfigureAwait(false);
+                    var document = await context.Solution.GetTextDocumentAsync(textDocument, cancellationToken).ConfigureAwait(false);
                     if (document == null)
                     {
                         context.TraceInformation($"Clearing spans for removed document: {textDocument.Uri}");

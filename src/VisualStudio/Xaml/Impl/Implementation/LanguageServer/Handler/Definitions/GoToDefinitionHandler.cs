@@ -115,7 +115,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             if (sourceDefinition.Span != null)
             {
                 // If the Span is not null, use the span.
-                var document = await solution.GetDocumentAsync(new TextDocumentIdentifier { Uri = ProtocolConversions.CreateAbsoluteUri(sourceDefinition.FilePath) }, cancellationToken).ConfigureAwait(false);
+                var document = await solution.GetTextDocumentAsync(new TextDocumentIdentifier { Uri = ProtocolConversions.CreateAbsoluteUri(sourceDefinition.FilePath) }, cancellationToken).ConfigureAwait(false);
                 if (document != null)
                 {
                     return await ProtocolConversions.TextSpanToLocationAsync(
