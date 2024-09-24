@@ -6,6 +6,7 @@ using System;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Snippets;
@@ -22,6 +23,9 @@ internal sealed class CSharpWhileLoopSnippetProvider() : AbstractWhileLoopSnippe
     public override string Identifier => CSharpSnippetIdentifiers.While;
 
     public override string Description => FeaturesResources.while_loop;
+
+    protected override bool CanInsertStatementAfterToken(SyntaxToken token)
+        => token.IsBeginningOfStatementContext() || token.IsBeginningOfGlobalStatementContext();
 
     protected override ExpressionSyntax GetCondition(WhileStatementSyntax node)
         => node.Condition;

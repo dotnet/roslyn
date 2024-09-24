@@ -22,4 +22,7 @@ internal static class SyntaxFormattingOptionsProviders
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         return formatting.GetFormattingOptions(configOptions);
     }
+
+    public static SyntaxFormattingOptions GetDefault(Host.LanguageServices languageServices)
+        => languageServices.GetRequiredService<ISyntaxFormattingService>().DefaultOptions;
 }
