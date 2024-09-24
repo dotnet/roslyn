@@ -261,6 +261,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             return 0;
         }
 
+        public static VSImageId ToVSImageId(this Glyph glyph)
+        {
+            var (guid, id) = glyph.GetVsImageData();
+
+            return new() { Guid = guid, Id = id };
+        }
+
         public static ImageId ToLSPImageId(this Glyph glyph)
         {
             var (guid, id) = glyph.GetVsImageData();
