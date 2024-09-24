@@ -450,6 +450,91 @@ $@"        if (F({i}))
             }
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72393")]
+        [Theory]
+        [InlineData(2)]
+        [InlineData(5000)]
+        public void NestedIfElse(int n)
+        {
+            var builder = new System.Text.StringBuilder();
+            builder.AppendLine("""
+                #nullable enable
+                class Program
+                {
+                    static void F(int i)
+                    {
+                        if (i == 0) { }
+                """);
+            for (int i = 0; i < n; i++)
+            {
+                builder.AppendLine($$"""
+                            else if (i == {{i}}) { }
+                    """);
+            }
+            builder.AppendLine("""
+                    }
+                }
+                """);
+
+            var source = builder.ToString();
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+
+            // Avoid using ControlFlowGraphVerifier.GetControlFlowGraph() since that calls
+            // TestOperationVisitor.VerifySubTree() which has quadratic behavior using
+            // MemberSemanticModel.GetEnclosingBinderInternalWithinRoot().
+            var operation = (Microsoft.CodeAnalysis.Operations.IMethodBodyOperation)model.GetOperation(node);
+            var graph = Microsoft.CodeAnalysis.FlowAnalysis.ControlFlowGraph.Create(operation);
+
+            if (n == 2)
+            {
+                var symbol = model.GetDeclaredSymbol(node);
+                ControlFlowGraphVerifier.VerifyGraph(comp, """
+                    Block[B0] - Entry
+                        Statements (0)
+                        Next (Regular) Block[B1]
+                    Block[B1] - Block
+                        Predecessors: [B0]
+                        Statements (0)
+                        Jump if False (Regular) to Block[B2]
+                            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i == 0')
+                              Left:
+                                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+                              Right:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                        Next (Regular) Block[B4]
+                    Block[B2] - Block
+                        Predecessors: [B1]
+                        Statements (0)
+                        Jump if False (Regular) to Block[B3]
+                            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i == 0')
+                              Left:
+                                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+                              Right:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
+                        Next (Regular) Block[B4]
+                    Block[B3] - Block
+                        Predecessors: [B2]
+                        Statements (0)
+                        Jump if False (Regular) to Block[B4]
+                            IBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.Binary, Type: System.Boolean) (Syntax: 'i == 1')
+                              Left:
+                                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
+                              Right:
+                                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                        Next (Regular) Block[B4]
+                    Block[B4] - Exit
+                        Predecessors: [B1] [B2] [B3*2]
+                        Statements (0)
+                    """,
+                    graph, symbol);
+            }
+        }
+
         [WorkItem(42361, "https://github.com/dotnet/roslyn/issues/42361")]
         [ConditionalFact(typeof(WindowsOrLinuxOnly))]
         public void Constraints()
