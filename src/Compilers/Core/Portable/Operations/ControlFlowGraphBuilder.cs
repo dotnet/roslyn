@@ -1545,7 +1545,6 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
                 // consequence;
                 // afterif:
 
-
                 // if (condition)
                 //     consequence;
                 // else
