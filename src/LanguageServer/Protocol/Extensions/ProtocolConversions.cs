@@ -936,29 +936,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                         codeFence = null;
 
                         break;
-                    case TextTags.Text when taggedText.Style.HasFlag(TaggedTextStyle.Code):
-                        // This represents `<code></code>` in doc comments. It can be a block or it can be inline.
+                    case TextTags.Text when taggedText.Style == (TaggedTextStyle.Code | TaggedTextStyle.PreserveWhitespace):
+                        // This represents a block of code (`<code></code>`) in doc comments.
                         // Since code elements optionally support a `lang` attribute and we do not have access to the
                         // language which was specified at this point, we tell the client to render it as plain text.
 
-                        if (markdownBuilder.IsLineEmpty())
-                        {
-                            // If the current line is empty, we can append a code block.
-                            markdownBuilder.AppendLine($"{BlockCodeFence}text");
-                            markdownBuilder.AppendLine(taggedText.Text);
-                            markdownBuilder.AppendLine(BlockCodeFence);
-                        }
-                        else
-                        {
-                            // There is text on the line already - we should append an in-line code block.
-                            markdownBuilder.Append($"`{taggedText.Text}`");
-                        }
+                        if (!markdownBuilder.IsLineEmpty())
+                            AppendLineBreak(markdownBuilder);
+
+                        // The current line is empty, we can append a code block.
+                        markdownBuilder.AppendLine($"{BlockCodeFence}text");
+                        markdownBuilder.AppendLine(taggedText.Text);
+                        markdownBuilder.AppendLine(BlockCodeFence);
+
                         break;
                     case TextTags.LineBreak:
-                        // A line ending with double space and a new line indicates to markdown
-                        // to render a single-spaced line break.
-                        markdownBuilder.Append("  ");
-                        markdownBuilder.AppendLine();
+                        AppendLineBreak(markdownBuilder);
                         break;
                     default:
                         var styledText = GetStyledText(taggedText, codeFence != null);
@@ -974,6 +967,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Kind = LSP.MarkupKind.Markdown,
                 Value = content,
             };
+
+            static void AppendLineBreak(MarkdownContentBuilder markdownBuilder)
+            {
+                // A line ending with double space and a new line indicates to markdown
+                // to render a single-spaced line break.
+                markdownBuilder.Append("  ");
+                markdownBuilder.AppendLine();
+            }
 
             static string GetCodeBlockLanguageName(string language)
             {
