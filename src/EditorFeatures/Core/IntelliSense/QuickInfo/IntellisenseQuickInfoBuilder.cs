@@ -5,11 +5,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Adornments;
 using CodeAnalysisQuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem;
 using IntellisenseQuickInfoItem = Microsoft.VisualStudio.Language.Intellisense.QuickInfoItem;
 
@@ -30,21 +28,5 @@ internal static class IntellisenseQuickInfoBuilder
         var content = await QuickInfoContentBuilder.BuildInteractiveContentAsync(quickInfoItem, context, cancellationToken).ConfigureAwait(false);
 
         return new IntellisenseQuickInfoItem(trackingSpan, content.ToVsElement());
-    }
-
-    /// <summary>
-    /// Builds the classified hover content without navigation actions and requiring
-    /// an instance of <see cref="IStreamingFindUsagesPresenter"/>
-    /// TODO - This can be removed once LSP supports colorization in markupcontent
-    /// https://devdiv.visualstudio.com/DevDiv/_workitems/edit/918138
-    /// </summary>
-    internal static async Task<ContainerElement> BuildContentWithoutNavigationActionsAsync(
-        CodeAnalysisQuickInfoItem quickInfoItem,
-        QuickInfoContentBuilderContext? context,
-        CancellationToken cancellationToken)
-    {
-        var content = await QuickInfoContentBuilder.BuildInteractiveContentAsync(quickInfoItem, context, cancellationToken).ConfigureAwait(false);
-
-        return content.ToVsElement();
     }
 }

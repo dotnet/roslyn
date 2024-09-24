@@ -31,7 +31,7 @@ internal static class QuickInfoContentBuilder
 
     public static async Task<QuickInfoContainerElement> BuildInteractiveContentAsync(
         QuickInfoItem quickInfoItem,
-        QuickInfoContentBuilderContext? context,
+        QuickInfoContentBuilderContext context,
         CancellationToken cancellationToken)
     {
         var (symbolGlyph, addWarningGlyph) = ComputeGlyphs(quickInfoItem);
@@ -60,7 +60,7 @@ internal static class QuickInfoContentBuilder
                 firstLineElements.Add(s_glyphToElementMap[Glyph.CompletionWarning]);
             }
 
-            var navigationActionFactory = context?.NavigationActionFactory;
+            var navigationActionFactory = context.NavigationActionFactory;
 
             if (descriptionSection is not null)
             {
@@ -124,57 +124,54 @@ internal static class QuickInfoContentBuilder
                 }
             }
 
-            if (context is not null)
+            // build text for RelatedSpan
+            if (quickInfoItem.RelatedSpans.Length > 0)
             {
-                // build text for RelatedSpan
-                if (quickInfoItem.RelatedSpans.Length > 0)
+                using var textRuns = TemporaryArray<QuickInfoClassifiedTextRun>.Empty;
+                var document = context.Document;
+                var tabSize = context.LineFormattingOptions.TabSize;
+                var spanSeparatorNeededBefore = false;
+
+                var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+
+                foreach (var relatedSpan in quickInfoItem.RelatedSpans)
                 {
-                    using var textRuns = TemporaryArray<QuickInfoClassifiedTextRun>.Empty;
-                    var document = context.Document;
-                    var tabSize = context.LineFormattingOptions.TabSize;
-                    var spanSeparatorNeededBefore = false;
+                    // We don't present additive-spans (like static/reassigned-variable) any differently, so strip them
+                    // out of the classifications we get back.
+                    var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(
+                        document, relatedSpan, context.ClassificationOptions, includeAdditiveSpans: false, cancellationToken).ConfigureAwait(false);
 
-                    var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-
-                    foreach (var relatedSpan in quickInfoItem.RelatedSpans)
+                    foreach (var span in IndentationHelper.GetSpansWithAlignedIndentation(text, classifiedSpans, tabSize))
                     {
-                        // We don't present additive-spans (like static/reassigned-variable) any differently, so strip them
-                        // out of the classifications we get back.
-                        var classifiedSpans = await ClassifierHelper.GetClassifiedSpansAsync(
-                            document, relatedSpan, context.ClassificationOptions, includeAdditiveSpans: false, cancellationToken).ConfigureAwait(false);
-
-                        foreach (var span in IndentationHelper.GetSpansWithAlignedIndentation(text, classifiedSpans, tabSize))
+                        if (spanSeparatorNeededBefore)
                         {
-                            if (spanSeparatorNeededBefore)
-                            {
-                                textRuns.Add(new QuickInfoClassifiedTextRun(
-                                    ClassificationTypeNames.WhiteSpace,
-                                    "\r\n",
-                                    QuickInfoClassifiedTextStyle.UseClassificationFont));
-
-                                spanSeparatorNeededBefore = false;
-                            }
-
                             textRuns.Add(new QuickInfoClassifiedTextRun(
-                                span.ClassificationType,
-                                text.ToString(span.TextSpan),
+                                ClassificationTypeNames.WhiteSpace,
+                                "\r\n",
                                 QuickInfoClassifiedTextStyle.UseClassificationFont));
+
+                            spanSeparatorNeededBefore = false;
                         }
 
-                        spanSeparatorNeededBefore = true;
+                        textRuns.Add(new QuickInfoClassifiedTextRun(
+                            span.ClassificationType,
+                            text.ToString(span.TextSpan),
+                            QuickInfoClassifiedTextStyle.UseClassificationFont));
                     }
 
-                    if (textRuns.Count > 0)
-                    {
-                        elements.Add(new QuickInfoClassifiedTextElement(textRuns.ToImmutableAndClear()));
-                    }
+                    spanSeparatorNeededBefore = true;
                 }
 
-                // Add on-the-fly documentation
-                if (quickInfoItem.OnTheFlyDocsInfo is not null)
+                if (textRuns.Count > 0)
                 {
-                    elements.Add(new QuickInfoOnTheFlyDocsElement(context.Document, quickInfoItem.OnTheFlyDocsInfo));
+                    elements.Add(new QuickInfoClassifiedTextElement(textRuns.ToImmutableAndClear()));
                 }
+            }
+
+            // Add on-the-fly documentation
+            if (quickInfoItem.OnTheFlyDocsInfo is not null)
+            {
+                elements.Add(new QuickInfoOnTheFlyDocsElement(context.Document, quickInfoItem.OnTheFlyDocsInfo));
             }
 
             return new QuickInfoContainerElement(

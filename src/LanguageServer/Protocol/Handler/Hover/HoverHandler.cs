@@ -16,15 +16,11 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
-    /// <summary>
-    /// TODO - This must be moved to the MS.CA.LanguageServer.Protocol project once it
-    /// no longer references VS icon or classified text run types.
-    /// See https://github.com/dotnet/roslyn/issues/55142
-    /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(HoverHandler)), Shared]
     [Method(Methods.TextDocumentHoverName)]
     internal sealed class HoverHandler : ILspServiceDocumentRequestHandler<TextDocumentPositionParams, Hover?>
@@ -48,16 +44,49 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var document = context.GetRequiredDocument();
             var clientCapabilities = context.GetRequiredClientCapabilities();
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var position = await document
+                .GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken)
+                .ConfigureAwait(false);
+
             var options = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
+
             return await GetHoverAsync(document, position, options, clientCapabilities, cancellationToken).ConfigureAwait(false);
+        }
+
+        internal static Task<Hover?> GetHoverAsync(
+            Document document,
+            int position,
+            SymbolDescriptionOptions options,
+            ClientCapabilities clientCapabilities,
+            CancellationToken cancellationToken)
+        {
+            var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
+            var supportsMarkdown = clientCapabilities?.TextDocument?.Hover?.ContentFormat?.Contains(MarkupKind.Markdown) == true;
+
+            return GetHoverAsync(document, position, options, supportsVSExtensions, supportsMarkdown, cancellationToken);
+        }
+
+        internal static async Task<Hover?> GetHoverAsync(
+            Document document,
+            LinePosition linePosition,
+            SymbolDescriptionOptions options,
+            bool supportsVSExtensions,
+            bool supportsMarkdown,
+            CancellationToken cancellationToken)
+        {
+            var position = await document
+                .GetPositionFromLinePositionAsync(linePosition, cancellationToken)
+                .ConfigureAwait(false);
+
+            return await GetHoverAsync(document, position, options, supportsVSExtensions, supportsMarkdown, cancellationToken).ConfigureAwait(false);
         }
 
         internal static async Task<Hover?> GetHoverAsync(
             Document document,
             int position,
             SymbolDescriptionOptions options,
-            ClientCapabilities clientCapabilities,
+            bool supportsVSExtensions,
+            bool supportsMarkdown,
             CancellationToken cancellationToken)
         {
             // Get the quick info service to compute quick info.
@@ -67,26 +96,23 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (info == null)
                 return null;
 
-            var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
-
             return supportsVSExtensions
                 ? await CreateVsHoverAsync(document, info, options, cancellationToken).ConfigureAwait(false)
-                : await CreateDefaultHoverAsync(document, info, clientCapabilities, cancellationToken).ConfigureAwait(false);
+                : await CreateDefaultHoverAsync(document, info, supportsMarkdown, cancellationToken).ConfigureAwait(false);
         }
 
         private static async Task<VSInternalHover> CreateVsHoverAsync(
             Document document, QuickInfoItem info, SymbolDescriptionOptions options, CancellationToken cancellationToken)
         {
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var context = document is not null
-                ? new QuickInfoContentBuilderContext(
-                    document,
-                    options.ClassificationOptions,
-                    await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(false),
-                    // Build the classified text without navigation actions - they are not serializable.
-                    navigationActionFactory: null)
-                : null;
+            var context = new QuickInfoContentBuilderContext(
+                document,
+                options.ClassificationOptions,
+                formattingOptions,
+                // Build the classified text without navigation actions - they are not serializable.
+                navigationActionFactory: null);
 
             var content = await QuickInfoContentBuilder.BuildInteractiveContentAsync(info, context, cancellationToken).ConfigureAwait(false);
 
@@ -102,10 +128,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         private static async Task<Hover> CreateDefaultHoverAsync(
-            TextDocument document, QuickInfoItem info, ClientCapabilities clientCapabilities, CancellationToken cancellationToken)
+            TextDocument document, QuickInfoItem info, bool supportsMarkdown, CancellationToken cancellationToken)
         {
-            var clientSupportsMarkdown = clientCapabilities?.TextDocument?.Hover?.ContentFormat?.Contains(MarkupKind.Markdown) == true;
-
             // Insert line breaks in between sections to ensure we get double spacing between sections.
             ImmutableArray<TaggedText> tags = [
                 .. info.Sections.SelectMany(static s => s.TaggedParts.Add(new TaggedText(TextTags.LineBreak, Environment.NewLine)))
@@ -117,7 +141,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return new Hover
             {
                 Range = ProtocolConversions.TextSpanToRange(info.Span, text),
-                Contents = ProtocolConversions.GetDocumentationMarkupContent(tags, language, clientSupportsMarkdown),
+                Contents = ProtocolConversions.GetDocumentationMarkupContent(tags, language, supportsMarkdown),
             };
         }
     }
