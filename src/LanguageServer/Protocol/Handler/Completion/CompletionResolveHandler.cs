@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionItem request)
-            => CompletionResolveHandler.GetTextDocumentCacheEntry(request);
+            => GetTextDocumentCacheEntry(request);
 
         public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
@@ -62,8 +62,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             if (selectedItem is not null)
             {
-                var creationService = document.Project.Solution.Services.GetRequiredService<ILspCompletionResultCreationService>();
-                await creationService.ResolveAsync(
+                await CompletionResultFactory.ResolveAsync(
                     completionItem,
                     selectedItem,
                     ProtocolConversions.DocumentToTextDocumentIdentifier(document),
