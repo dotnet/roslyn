@@ -7938,9 +7938,9 @@ done:;
         /// Those will instead be parsed out as script-fields/methods.</param>
         private StatementSyntax ParseStatementCore(SyntaxList<AttributeListSyntax> attributes, bool isGlobal)
         {
-            if (canReuseStatement(attributes, isGlobal))
+            if (TryReuseStatement(attributes, isGlobal) is { } reused)
             {
-                return (StatementSyntax)this.EatNode();
+                return reused;
             }
 
             ResetPoint resetPointBeforeStatement = this.GetResetPoint();
@@ -8016,6 +8016,16 @@ done:;
                 _recursionDepth--;
                 this.Release(ref resetPointBeforeStatement);
             }
+        }
+
+        private StatementSyntax TryReuseStatement(SyntaxList<AttributeListSyntax> attributes, bool isGlobal)
+        {
+            if (canReuseStatement(attributes, isGlobal))
+            {
+                return (StatementSyntax)this.EatNode();
+            }
+
+            return null;
 
             bool canReuseStatement(SyntaxList<AttributeListSyntax> attributes, bool isGlobal)
             {
@@ -9537,7 +9547,7 @@ done:;
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword);
 
-            var stack = ArrayBuilder<(SyntaxList<AttributeListSyntax>, SyntaxToken, SyntaxToken, ExpressionSyntax, SyntaxToken, StatementSyntax, SyntaxToken)>.GetInstance();
+            var stack = ArrayBuilder<(SyntaxToken, SyntaxToken, ExpressionSyntax, SyntaxToken, StatementSyntax, SyntaxToken)>.GetInstance();
 
             StatementSyntax alternative = null;
             while (true)
@@ -9551,7 +9561,7 @@ done:;
                 var elseKeyword = this.CurrentToken.Kind != SyntaxKind.ElseKeyword ?
                     null :
                     this.EatToken(SyntaxKind.ElseKeyword);
-                stack.Push((attributes, ifKeyword, openParen, condition, closeParen, consequence, elseKeyword));
+                stack.Push((ifKeyword, openParen, condition, closeParen, consequence, elseKeyword));
 
                 if (elseKeyword is null)
                 {
@@ -9565,20 +9575,24 @@ done:;
                     break;
                 }
 
-                attributes = default;
+                alternative = TryReuseStatement(attributes: default, isGlobal: false);
+                if (alternative is not null)
+                {
+                    break;
+                }
             }
 
             IfStatementSyntax ifStatement;
             do
             {
-                var (attr, ifKeyword, openParen, condition, closeParen, consequence, elseKeyword) = stack.Pop();
+                var (ifKeyword, openParen, condition, closeParen, consequence, elseKeyword) = stack.Pop();
                 var elseClause = alternative is null ?
                     null :
                     _syntaxFactory.ElseClause(
                         elseKeyword,
                         alternative);
                 ifStatement = _syntaxFactory.IfStatement(
-                    attr,
+                    attributeLists: stack.Any() ? default : attributes,
                     ifKeyword,
                     openParen,
                     condition,
