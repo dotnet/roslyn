@@ -111,22 +111,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return null;
             }
 
-            public bool OnProjectRemoved(IEnumerable<StateSet> stateSets, ProjectId projectId)
-            {
-                var removed = false;
-                foreach (var stateSet in stateSets)
-                {
-                    removed |= stateSet.OnProjectRemoved(projectId);
-                }
-
-                lock (_projectAnalyzerStateMap)
-                {
-                    _projectAnalyzerStateMap = _projectAnalyzerStateMap.Remove(projectId);
-                }
-
-                return removed;
-            }
-
             private void RaiseProjectAnalyzerReferenceChanged(ProjectAnalyzerReferenceChangedEventArgs args)
                 => ProjectAnalyzerReferenceChanged?.Invoke(this, args);
 

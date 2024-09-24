@@ -241,68 +241,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 AddToInMemoryStorage(serializerVersion, project, document: null, result.ProjectId, NonLocalStateName, result.GetOtherDiagnostics());
             }
 
-            public void ResetVersion()
-            {
-                // reset version of cached data so that we can recalculate new data (ex, OnDocumentReset)
-                _lastResult = _lastResult.Reset();
-            }
-
-            public async ValueTask MergeAsync(ActiveFileState state, TextDocument document, IGlobalOptionService globalOptions)
-            {
-                Contract.ThrowIfFalse(state.DocumentId == document.Id);
-
-                // merge active file state to project state
-                var lastResult = _lastResult;
-
-                var syntax = state.GetAnalysisData(AnalysisKind.Syntax);
-                var semantic = state.GetAnalysisData(AnalysisKind.Semantic);
-
-                var project = document.Project;
-
-                // if project didn't successfully loaded, then it is same as FSA off
-                var fullAnalysis = _owner.Analyzer.IsFullSolutionAnalysisEnabled(globalOptions, project.Language) &&
-                                   await project.HasSuccessfullyLoadedAsync(CancellationToken.None).ConfigureAwait(false);
-
-                // keep from build flag if full analysis is off
-                var fromBuild = fullAnalysis ? false : lastResult.FromBuild;
-
-                // if it is allowed to keep project state, check versions and if they are same, bail out.
-                // if full solution analysis is off or we are asked to reset document state, we always merge.
-                if (fullAnalysis &&
-                    syntax.Version != VersionStamp.Default &&
-                    syntax.Version == semantic.Version &&
-                    syntax.Version == lastResult.Version)
-                {
-                    // all data is in sync already.
-                    return;
-                }
-
-                // we have mixed versions or full analysis is off, set it to default so that it can be re-calculated next time so data can be in sync.
-                var version = VersionStamp.Default;
-
-                // serialization can't be canceled.
-                var serializerVersion = version;
-
-                // save active file diagnostics back to project state
-                AddToInMemoryStorage(serializerVersion, project, document, document.Id, SyntaxStateName, syntax.Items);
-                AddToInMemoryStorage(serializerVersion, project, document, document.Id, SemanticStateName, semantic.Items);
-
-                // save last aggregated form of analysis result
-                _lastResult = _lastResult.UpdateAggregatedResult(version, state.DocumentId, fromBuild);
-            }
-
-            public bool OnDocumentRemoved(DocumentId id)
-            {
-                RemoveInMemoryCacheEntries(id);
-                return !IsEmpty(id);
-            }
-
-            public bool OnProjectRemoved(ProjectId id)
-            {
-                RemoveInMemoryCacheEntry(id, NonLocalStateName);
-                return !IsEmpty();
-            }
-
             private async Task<DiagnosticAnalysisResult> LoadInitialAnalysisDataAsync(Project project, CancellationToken cancellationToken)
             {
                 // loading data can be canceled any time.

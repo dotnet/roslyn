@@ -160,9 +160,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // active file diagnostics:
-                if (documentId != null && kind != AnalysisKind.NonLocal && stateSet.TryGetActiveFileState(documentId, out var state))
+                if (documentId != null && kind != AnalysisKind.NonLocal && stateSet.IsActive(documentId))
                 {
-                    return state.GetAnalysisData(kind).Items;
+                    return [];
                 }
 
                 // project diagnostics:

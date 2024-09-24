@@ -1078,7 +1078,6 @@ class C
         await diagnosticIncrementalAnalyzer.GetDiagnosticsForIdsAsync(
             sourceDocument.Project.Solution, sourceDocument.Project.Id, sourceDocument.Id, diagnosticIds: null, shouldIncludeAnalyzer: null, getDocuments: null,
             includeSuppressedDiagnostics: true, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: true, CancellationToken.None);
-        await diagnosticIncrementalAnalyzer.GetTestAccessor().TextDocumentOpenAsync(sourceDocument);
 
         var lowPriorityAnalyzerData = new SuggestedActionPriorityProvider.LowPriorityAnalyzersAndDiagnosticIds();
         var priorityProvider = new SuggestedActionPriorityProvider(CodeActionRequestPriority.Default, lowPriorityAnalyzerData);
