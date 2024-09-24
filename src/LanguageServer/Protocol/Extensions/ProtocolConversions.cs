@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SpellCheck;
 using Microsoft.CodeAnalysis.Tags;
@@ -936,6 +935,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
                         codeFence = null;
 
+                        break;
+                    case TextTags.Text when taggedText.Style.HasFlag(TaggedTextStyle.Code):
+                        // This represents `<code></code>` in doc comments. It can be a block or it can be inline.
+                        // Since code elements optionally support a `lang` attribute and we do not have access to the
+                        // language which was specified at this point, we tell the client to render it as plain text.
+
+                        if (markdownBuilder.IsLineEmpty())
+                        {
+                            // If the current line is empty, we can append a code block.
+                            markdownBuilder.AppendLine($"{BlockCodeFence}text");
+                            markdownBuilder.AppendLine(taggedText.Text);
+                            markdownBuilder.AppendLine(BlockCodeFence);
+                        }
+                        else
+                        {
+                            // There is text on the line already - we should append an in-line code block.
+                            markdownBuilder.Append($"`{taggedText.Text}`");
+                        }
                         break;
                     case TextTags.LineBreak:
                         // A line ending with double space and a new line indicates to markdown
