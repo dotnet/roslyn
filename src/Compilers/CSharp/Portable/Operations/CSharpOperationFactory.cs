@@ -2607,15 +2607,42 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IOperation CreateBoundBinaryPatternOperation(BoundBinaryPattern boundBinaryPattern)
         {
-            return new BinaryPatternOperation(
-                boundBinaryPattern.Disjunction ? BinaryOperatorKind.Or : BinaryOperatorKind.And,
-                (IPatternOperation)Create(boundBinaryPattern.Left),
-                (IPatternOperation)Create(boundBinaryPattern.Right),
-                boundBinaryPattern.InputType.GetPublicSymbol(),
-                boundBinaryPattern.NarrowedType.GetPublicSymbol(),
-                _semanticModel,
-                boundBinaryPattern.Syntax,
-                isImplicit: boundBinaryPattern.WasCompilerGenerated);
+            if (boundBinaryPattern.Left is not BoundBinaryPattern)
+            {
+                return createOperation(this, boundBinaryPattern, left: (IPatternOperation)Create(boundBinaryPattern.Left));
+            }
+
+            // Use a manual stack to avoid overflowing on deeply-nested binary patterns
+            var stack = ArrayBuilder<BoundBinaryPattern>.GetInstance();
+            BoundBinaryPattern? current = boundBinaryPattern;
+
+            do
+            {
+                stack.Push(current);
+                current = current.Left as BoundBinaryPattern;
+            } while (current != null);
+
+            var result = (IPatternOperation)Create(stack.Peek().Left);
+            while (stack.TryPop(out current))
+            {
+                result = createOperation(this, current, result);
+            }
+
+            stack.Free();
+            return result;
+
+            static BinaryPatternOperation createOperation(CSharpOperationFactory @this, BoundBinaryPattern boundBinaryPattern, IPatternOperation left)
+            {
+                return new BinaryPatternOperation(
+                            boundBinaryPattern.Disjunction ? BinaryOperatorKind.Or : BinaryOperatorKind.And,
+                            left,
+                            (IPatternOperation)@this.Create(boundBinaryPattern.Right),
+                            boundBinaryPattern.InputType.GetPublicSymbol(),
+                            boundBinaryPattern.NarrowedType.GetPublicSymbol(),
+                            @this._semanticModel,
+                            boundBinaryPattern.Syntax,
+                            isImplicit: boundBinaryPattern.WasCompilerGenerated);
+            }
         }
 
         private ISwitchOperation CreateBoundSwitchStatementOperation(BoundSwitchStatement boundSwitchStatement)

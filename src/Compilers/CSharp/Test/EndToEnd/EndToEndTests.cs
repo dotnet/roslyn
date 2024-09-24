@@ -19,6 +19,8 @@ using System.Threading;
 using System.Diagnostics;
 using Roslyn.Test.Utilities.TestGenerators;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.FlowAnalysis;
+using Microsoft.CodeAnalysis.Operations;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
 {
@@ -789,6 +791,16 @@ $@"        if (F({i}))
                           IL_001f:  ret
                         }
                         """);
+
+                var tree = comp.SyntaxTrees[0];
+                var isPattern = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();
+                var model = comp.GetSemanticModel(tree);
+                var operation = model.GetOperation(isPattern);
+                Assert.NotNull(operation);
+
+                for (; operation.Parent is not null; operation = operation.Parent) { }
+
+                Assert.NotNull(ControlFlowGraph.Create((IMethodBodyOperation)operation));
             });
         }
     }
