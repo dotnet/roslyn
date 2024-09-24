@@ -13,36 +13,52 @@ using System.Windows;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.InlineRename;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal class RenameDashboardViewModel : INotifyPropertyChanged, IDisposable
     {
         private readonly IThreadingContext _threadingContext;
+        private readonly IWpfTextView _textView;
         private RenameDashboardSeverity _severity = RenameDashboardSeverity.None;
         private int _resolvableConflictCount;
         private int _unresolvableConflictCount;
         private bool _isReplacementTextValid;
-        private bool _commitNotStart;
+        private Visibility _visibility;
 
-        public RenameDashboardViewModel(InlineRenameSession session, IThreadingContext threadingContext)
+        public RenameDashboardViewModel(InlineRenameSession session, IThreadingContext threadingContext, IWpfTextView wpfTextView)
         {
             Session = session;
             SearchText = EditorFeaturesResources.Searching;
+            _textView = wpfTextView;
 
             Session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             Session.ReplacementsComputed += OnReplacementsComputed;
             Session.ReplacementTextChanged += OnReplacementTextChanged;
             Session.CommitStateChange += CommitStateChange;
 
+            _textView.GotAggregateFocus += GotAggregateFocus;
+            _textView.LostAggregateFocus += LostAggregateFocus;
+
             // Set the flag to true by default if we're showing the option.
             _isReplacementTextValid = true;
-            _commitNotStart = true;
             _threadingContext = threadingContext;
+            RefreshVisibility();
         }
 
-        private void CommitStateChange(object sender, bool commitStart)
-            => CommitNotStart = !commitStart;
+        private void LostAggregateFocus(object sender, EventArgs _)
+            => RefreshVisibility();
+
+        private void GotAggregateFocus(object sender, EventArgs _)
+            => RefreshVisibility();
+
+        private void CommitStateChange(object sender, EventArgs _)
+            => RefreshVisibility();
+
+        private void RefreshVisibility()
+            => Visibility = !Session.IsCommitInProgress && _textView.HasAggregateFocus
+            ? Visibility.Visible : Visibility.Collapsed;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -154,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public RenameDashboardSeverity Severity => _severity;
 
-        public bool AllowFileRename => Session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid && _commitNotStart;
+        public bool AllowFileRename => Session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid;
         public bool ShowFileRename => Session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
         public string FileRenameString => Session.FileRenameInfo switch
         {
@@ -163,23 +179,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _ => EditorFeaturesResources.Rename_symbols_file
         };
 
-        public bool CommitNotStart
+        public Visibility Visibility
         {
             get
             {
                 _threadingContext.ThrowIfNotOnUIThread();
-                return _commitNotStart;
+                return _visibility;
             }
             set
             {
                 _threadingContext.ThrowIfNotOnUIThread();
-                if (_commitNotStart != value)
+                if (_visibility != value)
                 {
-                    _commitNotStart = value;
-                    // Disable/Enable these checkbox in UI based on if commit is in-progress or not
+                    _visibility = value;
                     NotifyPropertyChanged();
-                    NotifyPropertyChanged(nameof(IsRenameOverloadsEditable));
-                    NotifyPropertyChanged(nameof(AllowFileRename));
                 }
             }
         }
@@ -257,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             => Session.HasRenameOverloads ? Visibility.Visible : Visibility.Collapsed;
 
         public bool IsRenameOverloadsEditable
-            => !Session.MustRenameOverloads && CommitNotStart;
+            => !Session.MustRenameOverloads;
 
         public bool DefaultRenameOverloadFlag
         {
@@ -324,6 +337,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             Session.ReferenceLocationsChanged -= OnReferenceLocationsChanged;
             Session.ReplacementsComputed -= OnReplacementsComputed;
             Session.CommitStateChange -= CommitStateChange;
+            _textView.GotAggregateFocus -= GotAggregateFocus;
+            _textView.LostAggregateFocus -= LostAggregateFocus;
         }
     }
 }

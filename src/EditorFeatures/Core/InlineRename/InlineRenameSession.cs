@@ -345,10 +345,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     public event EventHandler<ImmutableArray<InlineRenameLocation>> ReferenceLocationsChanged;
     public event EventHandler<IInlineRenameReplacementInfo> ReplacementsComputed;
     public event EventHandler ReplacementTextChanged;
-
-    /// <summary>
-    /// True if commit operation starts, False if commit operation ends.
-    /// </summary>
     public event EventHandler CommitStateChange;
 
     internal OpenTextBufferManager GetBufferManager(ITextBuffer buffer)
@@ -838,7 +834,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         }
         finally
         {
-            this.IsCommitInProgress = true;
+            this.IsCommitInProgress = false;
             this.CommitStateChange?.Invoke(this, EventArgs.Empty);
         }
 

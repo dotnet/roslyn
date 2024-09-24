@@ -587,8 +587,9 @@ class D : B
 
                 Dim threadingContext = workspace.ExportProvider.GetExport(Of IThreadingContext)().Value
 
+                Dim textView = cursorDocument.GetTextView()
                 Using dashboard = New RenameDashboard(
-                    New RenameDashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), threadingContext),
+                    New RenameDashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), threadingContext, textView),
                     editorFormatMapService:=Nothing,
                     textView:=cursorDocument.GetTextView())
 
