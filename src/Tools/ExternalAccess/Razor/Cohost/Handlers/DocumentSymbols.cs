@@ -22,6 +22,6 @@ internal static class DocumentSymbols
 
     [Obsolete("Update to call overload that takes 'supportsVSExtensions' argument.")]
     public static Task<SumType<DocumentSymbol[], SymbolInformation[]>> GetDocumentSymbolsAsync(
-        Document document, bool useHierarchicalSymbols, CancellationToken cancellationToken) 
+        Document document, bool useHierarchicalSymbols, CancellationToken cancellationToken)
         => GetDocumentSymbolsAsync(document, useHierarchicalSymbols, supportsVSExtensions: false, cancellationToken);
 }
