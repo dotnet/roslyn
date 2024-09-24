@@ -451,7 +451,7 @@ $@"        if (F({i}))
         }
 
         [WorkItem("https://github.com/dotnet/roslyn/issues/72393")]
-        [Theory]
+        [ConditionalTheory(typeof(NoIOperationValidation))]
         [InlineData(2)]
         [InlineData(5000)]
         public void NestedIfElse(int n)
