@@ -78,10 +78,12 @@ public partial class GeneratedClass : IInterface { }
         Private Class GeneratorThatImplementsInterfaceMethod
             Implements ISourceGenerator
 
+#Disable Warning BC40000
             Public Sub Initialize(context As GeneratorInitializationContext) Implements ISourceGenerator.Initialize
             End Sub
 
             Public Sub Execute(context As GeneratorExecutionContext) Implements ISourceGenerator.Execute
+#Enable Warning BC40000
                 Dim [interface] = context.Compilation.GetTypeByMetadataName("IInterface")
                 Dim memberName = [interface].MemberNames.Single()
 

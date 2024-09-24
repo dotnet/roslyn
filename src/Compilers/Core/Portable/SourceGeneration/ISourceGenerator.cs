@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -19,6 +20,7 @@ namespace Microsoft.CodeAnalysis
     /// is no guarantee that the same instance will be used on a 
     /// subsequent generation pass.
     /// </remarks>
+    [ImplementationObsolete(url: "https://github.com/dotnet/roslyn/blob/main/docs/features/incremental-generators.md")]
     public interface ISourceGenerator
     {
         /// <summary>
@@ -26,6 +28,7 @@ namespace Microsoft.CodeAnalysis
         /// to register callbacks required to perform generation.
         /// </summary>
         /// <param name="context">The <see cref="GeneratorInitializationContext"/> to register callbacks on</param>
+        [Obsolete("ISourceGenerator is deprecated and should not be implemented. Please implement IIncrementalGenerator instead. See https://github.com/dotnet/roslyn/blob/main/docs/features/incremental-generators.md.")]
         void Initialize(GeneratorInitializationContext context);
 
         /// <summary>
@@ -42,6 +45,7 @@ namespace Microsoft.CodeAnalysis
         /// discover information about the users compilation and make decisions on what source to 
         /// provide. 
         /// </remarks>
+        [Obsolete("ISourceGenerator is deprecated and should not be implemented. Please implement IIncrementalGenerator instead. See https://github.com/dotnet/roslyn/blob/main/docs/features/incremental-generators.md.")]
         void Execute(GeneratorExecutionContext context);
     }
 }
