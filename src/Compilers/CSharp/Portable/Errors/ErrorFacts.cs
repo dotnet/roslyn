@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static partial class ErrorFacts
     {
-        private const string s_titleSuffix = "_Title";
-        private const string s_descriptionSuffix = "_Description";
         private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> s_categoriesMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateCategoriesMap);
         public static readonly ImmutableHashSet<string> NullableWarnings;
 
@@ -140,24 +138,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>Don't call this during a parse--it loads resources</remarks>
         public static string GetMessage(ErrorCode code, CultureInfo culture)
         {
-            string message = ResourceManager.GetString(code.ToString(), culture);
+            string message = ResourceManager.GetString(ToString(code), culture);
             RoslynDebug.Assert(!string.IsNullOrEmpty(message), $"{code}");
             return message;
         }
 
         public static LocalizableResourceString GetMessageFormat(ErrorCode code)
         {
-            return new LocalizableResourceString(code.ToString(), ResourceManager, typeof(ErrorFacts));
+            return new LocalizableResourceString(ToString(code), ResourceManager, typeof(ErrorFacts));
         }
 
         public static LocalizableResourceString GetTitle(ErrorCode code)
         {
-            return new LocalizableResourceString(code.ToString() + s_titleSuffix, ResourceManager, typeof(ErrorFacts));
+            return new LocalizableResourceString(ToStringWithTitle(code), ResourceManager, typeof(ErrorFacts));
         }
 
         public static LocalizableResourceString GetDescription(ErrorCode code)
         {
-            return new LocalizableResourceString(code.ToString() + s_descriptionSuffix, ResourceManager, typeof(ErrorFacts));
+            return new LocalizableResourceString(ToStringWithDescription(code), ResourceManager, typeof(ErrorFacts));
         }
 
         public static string GetHelpLink(ErrorCode code)

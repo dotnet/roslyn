@@ -24,6 +24,7 @@
       "src\\Compilers\\Core\\Portable\\Microsoft.CodeAnalysis.csproj",
       "src\\Compilers\\Core\\RebuildTest\\Microsoft.CodeAnalysis.Rebuild.UnitTests.csproj",
       "src\\Compilers\\Core\\Rebuild\\Microsoft.CodeAnalysis.Rebuild.csproj",
+      "src\\Compilers\\Core\\CompilerBenchmarks\\CompilerBenchmarks.csproj",
       "src\\Compilers\\Extension\\Roslyn.Compilers.Extension.csproj",
       "src\\Compilers\\Server\\VBCSCompilerTests\\VBCSCompiler.UnitTests.csproj",
       "src\\Compilers\\Server\\VBCSCompiler\\AnyCpu\\VBCSCompiler.csproj",
