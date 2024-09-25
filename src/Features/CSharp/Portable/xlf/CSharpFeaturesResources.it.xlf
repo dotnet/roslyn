@@ -267,6 +267,11 @@
         <target state="translated">dichiarazione using asincrona</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
       </trans-unit>
+      <trans-unit id="do_while_loop">
+        <source>do-while loop</source>
+        <target state="translated">ciclo do-while</target>
+        <note>{Locked="do"}{Locked="while"} "do" and "while" are C# keywords and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
         <target state="translated">alias extern</target>

@@ -378,6 +378,9 @@
   <data name="Changing_name_or_signature_of_0_that_contains_an_active_statement_requires_restarting_the_application" xml:space="preserve">
     <value>Changing attribute '{0}' requires restarting the application.</value>
   </data>
+  <data name="Changing_0_might_not_have_any_effect_until_the_application_is_restarted" xml:space="preserve">
+    <value>Changing '{0}' might not have any effect until the application is restarted.</value>
+  </data>
   <data name="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application" xml:space="preserve">
     <value>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</value>
   </data>
@@ -3230,5 +3233,35 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Dismiss" xml:space="preserve">
     <value>Dismiss</value>
+  </data>
+  <data name="Symbols" xml:space="preserve">
+    <value>Symbols</value>
+  </data>
+  <data name="SemanticSearch" xml:space="preserve">
+    <value>Semantic Search</value>
+  </data>
+  <data name="Query" xml:space="preserve">
+    <value>Query</value>
+  </data>
+  <data name="Semantic_search_only_supported_on_net_core" xml:space="preserve">
+    <value>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools > Options > Text Editor > C# > Advanced).</value>
+  </data>
+  <data name="Semantic_search_query_terminated_with_exception" xml:space="preserve">
+    <value>Semantic search query terminated with exception</value>
+  </data>
+  <data name="Semantic_search_query_failed_to_compile" xml:space="preserve">
+    <value>Semantic search query failed to compile</value>
+  </data>
+  <data name="The_query_does_not_specify_0_method_or_top_level_function" xml:space="preserve">
+    <value>The query does not specify '{0}' method or top-level function</value>
+  </data>
+  <data name="Method_0_must_be_static_and_non_generic" xml:space="preserve">
+    <value>Method '{0}' must be static and non-generic</value>
+  </data>
+  <data name="Method_0_must_have_a_single_parameter_of_type_1_and_return_2" xml:space="preserve">
+    <value>Method '{0}' must have a single parameter of type '{1}' and return '{2}'</value>
+  </data>
+  <data name="Unable_to_load_type_0_1" xml:space="preserve">
+    <value>Unable to load type '{0}': '{1}'</value>
   </data>
 </root>

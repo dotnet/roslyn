@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.NavigationBar;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem;
 
 namespace Microsoft.CodeAnalysis.CSharp.NavigationBar;
@@ -74,16 +73,25 @@ internal class CSharpNavigationBarItemService : AbstractNavigationBarItemService
                         continue;
                     }
 
-                    var method = member as IMethodSymbol;
-                    if (method != null && method.PartialImplementationPart != null)
+                    if (member is IMethodSymbol { PartialImplementationPart: { } } methodSymbol)
                     {
-                        memberItems.AddIfNotNull(CreateItemForMember(solution, method, tree, cancellationToken));
-                        memberItems.AddIfNotNull(CreateItemForMember(solution, method.PartialImplementationPart, tree, cancellationToken));
+                        memberItems.AddIfNotNull(CreateItemForMember(solution, methodSymbol, tree, cancellationToken));
+                        memberItems.AddIfNotNull(CreateItemForMember(solution, methodSymbol.PartialImplementationPart, tree, cancellationToken));
+                    }
+                    else if (member is IPropertySymbol { PartialImplementationPart: { } } propertySymbol)
+                    {
+                        memberItems.AddIfNotNull(CreateItemForMember(solution, propertySymbol, tree, cancellationToken));
+                        memberItems.AddIfNotNull(CreateItemForMember(solution, propertySymbol.PartialImplementationPart, tree, cancellationToken));
+                    }
+                    else if (member is IMethodSymbol or IPropertySymbol)
+                    {
+                        Debug.Assert(member is IMethodSymbol { PartialDefinitionPart: null } or IPropertySymbol { PartialDefinitionPart: null },
+                            $"NavBar expected GetMembers to return partial method/property definition parts but the implementation part was returned.");
+
+                        memberItems.AddIfNotNull(CreateItemForMember(solution, member, tree, cancellationToken));
                     }
                     else
                     {
-                        Debug.Assert(method == null || method.PartialDefinitionPart == null, "NavBar expected GetMembers to return partial method definition parts but the implementation part was returned.");
-
                         memberItems.AddIfNotNull(CreateItemForMember(solution, member, tree, cancellationToken));
                     }
                 }
@@ -108,7 +116,7 @@ internal class CSharpNavigationBarItemService : AbstractNavigationBarItemService
             }
 
             items.Sort((x1, x2) => x1.Text.CompareTo(x2.Text));
-            return items.ToImmutable();
+            return items.ToImmutableAndClear();
         }
     }
 
@@ -124,18 +132,15 @@ internal class CSharpNavigationBarItemService : AbstractNavigationBarItemService
         using (Logger.LogBlock(FunctionId.NavigationBar_ItemService_GetTypesInFile_CSharp, cancellationToken))
         {
             var types = new HashSet<INamedTypeSymbol>();
-            var nodesToVisit = new Stack<SyntaxNode>();
+            using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var nodesToVisit);
 
             nodesToVisit.Push(semanticModel.SyntaxTree.GetRoot(cancellationToken));
 
-            while (!nodesToVisit.IsEmpty())
+            while (nodesToVisit.TryPop(out var node))
             {
                 if (cancellationToken.IsCancellationRequested)
-                {
-                    return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
-                }
+                    return [];
 
-                var node = nodesToVisit.Pop();
                 var type = GetType(semanticModel, node, cancellationToken);
 
                 if (type != null)

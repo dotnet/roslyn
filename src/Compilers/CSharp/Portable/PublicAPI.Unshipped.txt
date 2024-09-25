@@ -1,1 +1,52 @@
-
+[RSEXPERIMENTAL002]Microsoft.CodeAnalysis.CSharp.InterceptableLocation
+[RSEXPERIMENTAL002]abstract Microsoft.CodeAnalysis.CSharp.InterceptableLocation.Data.get -> string!
+[RSEXPERIMENTAL002]abstract Microsoft.CodeAnalysis.CSharp.InterceptableLocation.GetDisplayLocation() -> string!
+[RSEXPERIMENTAL002]abstract Microsoft.CodeAnalysis.CSharp.InterceptableLocation.Version.get -> int
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.RazorContentToken = 8523 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+[RSEXPERIMENTAL002]override abstract Microsoft.CodeAnalysis.CSharp.InterceptableLocation.Equals(object? obj) -> bool
+[RSEXPERIMENTAL002]override abstract Microsoft.CodeAnalysis.CSharp.InterceptableLocation.GetHashCode() -> int
+[RSEXPERIMENTAL002]static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetInterceptableLocation(this Microsoft.CodeAnalysis.SemanticModel? semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax! node, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.CSharp.InterceptableLocation?
+[RSEXPERIMENTAL002]static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetInterceptsLocationAttributeSyntax(this Microsoft.CodeAnalysis.CSharp.InterceptableLocation! location) -> string!
+[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser
+[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Dispose() -> void
+[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.ParseLeadingTrivia() -> Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result
+[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.ParseNextToken() -> Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result
+[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.ParseTrailingTrivia() -> Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result
+[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.ResetTo(Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result result) -> void
+[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result
+[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result.ContextualKind.get -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result.Result() -> void
+[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result.Token.get -> Microsoft.CodeAnalysis.SyntaxToken
+[RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.SkipForwardTo(int position) -> void
+[RSEXPERIMENTAL003]static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CreateTokenParser(Microsoft.CodeAnalysis.Text.SourceText! sourceText, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions? options = null) -> Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser!
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.AllowsConstraintClause = 8879 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.AllowsKeyword = 8450 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.RefStructConstraint = 8880 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitAllowsConstraintClause(Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitRefStructConstraint(Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
+Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax.AddConstraints(params Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintSyntax![]! items) -> Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax.AllowsKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax.Constraints.get -> Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintSyntax!>
+Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken allowsKeyword, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintSyntax!> constraints) -> Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax.WithAllowsKeyword(Microsoft.CodeAnalysis.SyntaxToken allowsKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax.WithConstraints(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintSyntax!> constraints) -> Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax!
+override Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor! visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>! visitor) -> TResult?
+Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax.RefKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax.StructKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
+Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.SyntaxToken structKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax.WithRefKeyword(Microsoft.CodeAnalysis.SyntaxToken refKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax.WithStructKeyword(Microsoft.CodeAnalysis.SyntaxToken structKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax!
+override Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor! visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>! visitor) -> TResult?
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AllowsConstraintClause(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintSyntax!> constraints = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintSyntax!>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax!
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AllowsConstraintClause(Microsoft.CodeAnalysis.SyntaxToken allowsKeyword, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintSyntax!> constraints) -> Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax!
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RefStructConstraint() -> Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax!
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.RefStructConstraint(Microsoft.CodeAnalysis.SyntaxToken refKeyword, Microsoft.CodeAnalysis.SyntaxToken structKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax!
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitAllowsConstraintClause(Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax! node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitRefStructConstraint(Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax! node) -> void
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitAllowsConstraintClause(Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax! node) -> TResult?
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitRefStructConstraint(Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax! node) -> TResult?

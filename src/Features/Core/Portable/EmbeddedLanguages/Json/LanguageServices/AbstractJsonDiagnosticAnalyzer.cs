@@ -6,6 +6,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
@@ -63,9 +64,9 @@ internal abstract class AbstractJsonDiagnosticAnalyzer : AbstractBuiltInCodeStyl
             if (!context.ShouldAnalyzeSpan(child.FullSpan))
                 continue;
 
-            if (child.IsNode)
+            if (child.AsNode(out var childNode))
             {
-                Analyze(context, detector, child.AsNode()!, cancellationToken);
+                Analyze(context, detector, childNode, cancellationToken);
             }
             else
             {

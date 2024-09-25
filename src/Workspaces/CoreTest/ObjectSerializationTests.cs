@@ -246,8 +246,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentException>(() => TestRoundTripCompressedUint(0xC0000000u)); // both high bits set not allowed
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void TestByteSpan([CombinatorialValues(0, 1, 2, 3, 1000, 1000000)] int size)
         {
             var data = new byte[size];
@@ -597,7 +596,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestRoundTripGuid()
         {
-            void test(Guid guid)
+            static void test(Guid guid)
             {
                 TestRoundTrip(guid, (w, v) => w.WriteGuid(v), r => r.ReadGuid());
             }
@@ -666,6 +665,78 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotNull(reader);
             var deserialized = reader.ReadEncoding();
             EncodingTestHelpers.AssertEncodingsEqual(original, deserialized);
+        }
+
+        [Fact]
+        public void TestMultipleAssetWritingAndReader()
+        {
+            using var stream = new MemoryStream();
+
+            const string GooString = "Goo";
+            const string BarString = "Bar";
+            var largeString = new string('a', 1024);
+
+            // Write out some initial bytes, to demonstrate the reader not throwing, even if we don't have the right
+            // validation bytes at the start.
+            stream.WriteByte(1);
+            stream.WriteByte(2);
+
+            using (var writer = new ObjectWriter(stream, leaveOpen: true, writeValidationBytes: false))
+            {
+                writer.WriteValidationBytes();
+                writer.WriteString(GooString);
+                writer.WriteString("Bar");
+                writer.WriteString(largeString);
+
+                // Random data, not going through the writer.
+                stream.WriteByte(3);
+                stream.WriteByte(4);
+
+                // We should be able to write out a new object, using strings we've already seen.
+                writer.WriteValidationBytes();
+                writer.WriteString(largeString);
+                writer.WriteString("Bar");
+                writer.WriteString(GooString);
+            }
+
+            stream.Position = 0;
+
+            using var reader = ObjectReader.GetReader(stream, leaveOpen: true, checkValidationBytes: false);
+
+            Assert.Equal(1, reader.ReadByte());
+            Assert.Equal(2, reader.ReadByte());
+
+            reader.CheckValidationBytes();
+
+            var string1 = reader.ReadString();
+            var string2 = reader.ReadString();
+            var string3 = reader.ReadString();
+            Assert.Equal(GooString, string1);
+            Assert.Equal(BarString, string2);
+            Assert.Equal(largeString, string3);
+            Assert.NotSame(GooString, string1);
+            Assert.NotSame(BarString, string2);
+            Assert.NotSame(largeString, string3);
+
+            Assert.Equal(3, stream.ReadByte());
+            Assert.Equal(4, stream.ReadByte());
+
+            reader.CheckValidationBytes();
+            var string4 = reader.ReadString();
+            var string5 = reader.ReadString();
+            var string6 = reader.ReadString();
+            Assert.Equal(largeString, string4);
+            Assert.Equal(BarString, string5);
+            Assert.Equal(GooString, string6);
+            Assert.NotSame(largeString, string4);
+            Assert.NotSame(BarString, string5);
+            Assert.NotSame(GooString, string6);
+
+            // These should be references to the same strings in the format string and should return the values already
+            // returned.
+            Assert.Same(string1, string6);
+            Assert.Same(string2, string5);
+            Assert.Same(string3, string4);
         }
 
         // keep these around for analyzing perf issues

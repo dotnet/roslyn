@@ -65,6 +65,11 @@ internal partial class SymbolSearchUpdateEngine : ISymbolSearchUpdateEngine
         _reportAndSwallowExceptionUnlessCanceled = reportAndSwallowExceptionUnlessCanceled;
     }
 
+    public void Dispose()
+    {
+        // Nothing to do for the core symbol search engine.
+    }
+
     public ValueTask<ImmutableArray<PackageWithTypeResult>> FindPackagesWithTypeAsync(
         string source, string name, int arity, CancellationToken cancellationToken)
     {

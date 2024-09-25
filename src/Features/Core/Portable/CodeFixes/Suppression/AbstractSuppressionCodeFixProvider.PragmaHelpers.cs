@@ -164,11 +164,11 @@ internal partial class AbstractSuppressionCodeFixProvider
             var isEOF = fixer.IsEndOfFileToken(endToken);
             if (isEOF)
             {
-                trivia = endToken.LeadingTrivia.ToImmutableArray();
+                trivia = [.. endToken.LeadingTrivia];
             }
             else
             {
-                trivia = endToken.TrailingTrivia.ToImmutableArray();
+                trivia = [.. endToken.TrailingTrivia];
             }
 
             var index = GetPositionForPragmaInsertion(trivia, currentDiagnosticSpan, fixer, isStartToken: false, triviaAtIndex: out var insertBeforeTrivia);

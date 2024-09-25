@@ -3420,15 +3420,6 @@ Microsoft.CodeAnalysis.CSharp.SyntaxKind.XmlTextLiteralToken = 8513 -> Microsoft
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.YieldBreakStatement = 8807 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.YieldKeyword = 8405 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.YieldReturnStatement = 8806 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser
-Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Dispose() -> void
-Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.ParseNextToken() -> Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result
-Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.ResetTo(Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result result) -> void
-Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result
-Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result.ContextualKind.get -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result.Result() -> void
-Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.Result.Token.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser.SkipForwardTo(int position) -> void
 Microsoft.CodeAnalysis.CSharp.TypedConstantExtensions
 Microsoft.CodeAnalysis.CSharpExtensions
 override abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseFieldDeclarationSyntax.AttributeLists.get -> Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax!>
@@ -4824,7 +4815,6 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ConversionOperatorMemberCref(
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ConversionOperatorMemberCref(Microsoft.CodeAnalysis.SyntaxToken implicitOrExplicitKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type, Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterListSyntax? parameters) -> Microsoft.CodeAnalysis.CSharp.Syntax.ConversionOperatorMemberCrefSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ConversionOperatorMemberCref(Microsoft.CodeAnalysis.SyntaxToken implicitOrExplicitKeyword, Microsoft.CodeAnalysis.SyntaxToken operatorKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type, Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterListSyntax? parameters) -> Microsoft.CodeAnalysis.CSharp.Syntax.ConversionOperatorMemberCrefSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.ConversionOperatorMemberCref(Microsoft.CodeAnalysis.SyntaxToken implicitOrExplicitKeyword, Microsoft.CodeAnalysis.SyntaxToken operatorKeyword, Microsoft.CodeAnalysis.SyntaxToken checkedKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type, Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterListSyntax? parameters) -> Microsoft.CodeAnalysis.CSharp.Syntax.ConversionOperatorMemberCrefSyntax!
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CreateTokenParser(Microsoft.CodeAnalysis.Text.SourceText! sourceText, Microsoft.CodeAnalysis.CSharp.CSharpParseOptions? options = null) -> Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CrefBracketedParameterList(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!> parameters = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!>)) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefBracketedParameterListSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CrefBracketedParameterList(Microsoft.CodeAnalysis.SyntaxToken openBracketToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!> parameters, Microsoft.CodeAnalysis.SyntaxToken closeBracketToken) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefBracketedParameterListSyntax!
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CrefParameter(Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!

@@ -33,7 +33,7 @@ internal partial struct SymbolKey
             foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
                 result.Add(syntaxRef.GetSyntax(cancellationToken).GetLocation());
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         public static void Create(ISymbol symbol, SymbolKeyWriter visitor)

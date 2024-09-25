@@ -62,6 +62,7 @@ variables:
   # To retrieve OptProf data we need to authenticate to the VS drop storage.
   # Get access token with $dn-bot-devdiv-drop-rw-code-rw and dn-bot-dnceng-build-rw-code-rw from DotNet-VSTS-Infra-Access
   # Get $AccessToken-dotnet-build-bot-public-repo from DotNet-Versions-Publish
+  - group: DotNet-Versions-Publish
   - group: DotNet-VSTS-Infra-Access
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
   - group: AzureDevOps-Artifact-Feeds-Pats
@@ -70,6 +71,7 @@ variables:
   - name: ArtifactServices.Drop.PAT
     value: $(dn-bot-devdiv-drop-rw-code-rw)
   - group: DotNet-Roslyn-Insertion-Variables
+  - group: AzureDevOps-Artifact-Feeds-Pats
 
   - name: BuildConfiguration
     value: release
@@ -115,11 +117,11 @@ extends:
       displayName: Build and Test
 
       jobs:
-      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.11') }}:
+      - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/release/dev17.12') }}:
         - template: /eng/common/templates-official/job/onelocbuild.yml@self
           parameters:
             MirrorRepo: roslyn
-            MirrorBranch: release/dev17.11
+            MirrorBranch: release/dev17.12
             LclSource: lclFilesfromPackage
             LclPackageId: 'LCL-JUNO-PROD-ROSLYN'
 
@@ -161,6 +163,7 @@ extends:
             dropFolder: 'artifacts\VSSetup\$(BuildConfiguration)\Insertion'
             dropName: $(VisualStudio.DropName)
             accessToken: $(_DevDivDropAccessToken)
+            dropRetentionDays: 90
 
           # Publish insertion packages to CoreXT store.
           - output: nuget

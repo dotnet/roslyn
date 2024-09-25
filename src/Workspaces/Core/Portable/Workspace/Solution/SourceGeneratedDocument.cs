@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis;
@@ -22,6 +23,8 @@ public sealed class SourceGeneratedDocument : Document
 
     // TODO: make this public. Tracked by https://github.com/dotnet/roslyn/issues/50546
     internal SourceGeneratedDocumentIdentity Identity => State.Identity;
+
+    internal DateTime GenerationDateTime => State.GenerationDateTime;
 
     internal override Document WithFrozenPartialSemantics(CancellationToken cancellationToken)
     {

@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynNext);net472</TargetFrameworks>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -14,7 +14,29 @@
     <ProjectReference Include="..\TestUtilities\Microsoft.CodeAnalysis.Features.Test.Utilities.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <!--
+      Not using ProjectReference since it does not execute the specified targets when building in VS.
+      See https://github.com/microsoft/msbuild/issues/5434.
+    -->
+
+    <CopyPublishedOutputProjectReference Include="..\..\Tools\SemanticSearch\ReferenceAssemblies\SemanticSearch.ReferenceAssemblies.csproj">
+      <OutputItemType>SemanticSearch_RefAssemblies</OutputItemType>
+      <SetTargetFramework>TargetFramework=$(NetRoslyn)</SetTargetFramework>
+    </CopyPublishedOutputProjectReference>
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Basic.Reference.Assemblies.Net60" />
   </ItemGroup>
   <Import Project="..\..\Analyzers\CSharp\Tests\CSharpAnalyzers.UnitTests.projitems" Label="Shared" />
+
+  <Target Name="_DeploySemanticSearchRefAssemblies" AfterTargets="ResolveProjectReferences" Condition="'$(DesignTimeBuild)' != 'true'">
+
+    <MSBuild Projects="@(CopyPublishedOutputProjectReference)" Targets="PublishProjectOutputGroup" BuildInParallel="$(BuildInParallel)" Properties="%(CopyPublishedOutputProjectReference.SetTargetFramework)">
+      <Output TaskParameter="TargetOutputs" ItemName="%(CopyPublishedOutputProjectReference.OutputItemType)" />
+    </MSBuild>
+
+    <ItemGroup>
+      <Content Include="@(SemanticSearch_RefAssemblies)" Link="SemanticSearchRefs\%(FileName)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
 </Project>

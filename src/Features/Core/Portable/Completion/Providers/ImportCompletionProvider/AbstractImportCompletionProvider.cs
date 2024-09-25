@@ -114,7 +114,7 @@ internal abstract class AbstractImportCompletionProvider : LSPCompletionProvider
             }
         }
 
-        return usingsBuilder.ToImmutable();
+        return usingsBuilder.ToImmutableAndClear();
     }
 
     public override async Task<CompletionChange> GetChangeAsync(

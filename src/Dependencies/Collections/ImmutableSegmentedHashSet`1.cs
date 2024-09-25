@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (array is null)
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.array);
             if (index < 0)
-                ThrowHelper.ThrowArgumentOutOfRange_IndexException();
+                ThrowHelper.ThrowIndexArgumentOutOfRange_NeedNonNegNumException();
             if (array.Length < index + Count)
                 ThrowHelper.ThrowArgumentOutOfRangeException(ExceptionArgument.index);
 

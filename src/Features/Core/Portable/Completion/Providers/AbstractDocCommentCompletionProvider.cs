@@ -207,7 +207,7 @@ internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : LSPCompl
             return s_listTypeValues.Select(CreateCompletionItem);
         }
 
-        return SpecializedCollections.EmptyEnumerable<CompletionItem>();
+        return [];
     }
 
     protected ImmutableArray<CompletionItem> GetTopLevelItems(ISymbol? symbol, TSyntax syntax)
@@ -246,7 +246,7 @@ internal abstract class AbstractDocCommentCompletionProvider<TSyntax> : LSPCompl
             }
         }
 
-        return items.ToImmutable();
+        return items.ToImmutableAndClear();
     }
 
     protected IEnumerable<CompletionItem> GetItemTagItems()

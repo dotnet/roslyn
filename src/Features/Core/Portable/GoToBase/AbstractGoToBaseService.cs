@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -44,7 +43,7 @@ internal abstract class AbstractGoToBaseService : IGoToBaseService
         var (symbol, project) = symbolAndProjectOpt.Value;
 
         var solution = project.Solution;
-        var bases = await FindBaseHelpers.FindBasesAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+        var bases = FindBaseHelpers.FindBases(symbol, solution, cancellationToken);
         if (bases.Length == 0 && symbol is IMethodSymbol { MethodKind: MethodKind.Constructor } constructor)
         {
             var nextConstructor = await FindNextConstructorInChainAsync(solution, constructor, cancellationToken).ConfigureAwait(false);

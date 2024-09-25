@@ -95,24 +95,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<ImmutableArray<DocumentId>> BreakStateOrCapabilitiesChangedAsync(DebuggingSessionId sessionId, bool? inBreakState, CancellationToken cancellationToken)
+        public ValueTask BreakStateOrCapabilitiesChangedAsync(DebuggingSessionId sessionId, bool? inBreakState, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
-                GetService().BreakStateOrCapabilitiesChanged(sessionId, inBreakState, out var documentsToReanalyze);
-                return new ValueTask<ImmutableArray<DocumentId>>(documentsToReanalyze);
+                GetService().BreakStateOrCapabilitiesChanged(sessionId, inBreakState);
+                return ValueTaskFactory.CompletedTask;
             }, cancellationToken);
         }
 
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<ImmutableArray<DocumentId>> EndDebuggingSessionAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken)
+        public ValueTask EndDebuggingSessionAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
-                GetService().EndDebuggingSession(sessionId, out var documentsToReanalyze);
-                return new ValueTask<ImmutableArray<DocumentId>>(documentsToReanalyze);
+                GetService().EndDebuggingSession(sessionId);
+                return ValueTaskFactory.CompletedTask;
             }, cancellationToken);
         }
 
@@ -175,12 +175,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<ImmutableArray<DocumentId>> CommitSolutionUpdateAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken)
+        public ValueTask CommitSolutionUpdateAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
-                GetService().CommitSolutionUpdate(sessionId, out var documentsToReanalyze);
-                return new ValueTask<ImmutableArray<DocumentId>>(documentsToReanalyze);
+                GetService().CommitSolutionUpdate(sessionId);
+                return ValueTaskFactory.CompletedTask;
             }, cancellationToken);
         }
 

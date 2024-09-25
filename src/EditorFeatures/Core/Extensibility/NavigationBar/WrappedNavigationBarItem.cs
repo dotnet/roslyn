@@ -39,7 +39,7 @@ internal sealed class WrappedNavigationBarItem : NavigationBarItem, IEquatable<W
         using var _ = ArrayBuilder<TextSpan>.GetInstance(out var spans);
         AddSpans(underlyingItem, spans);
         spans.SortAndRemoveDuplicates(Comparer<TextSpan>.Default);
-        return spans.ToImmutable();
+        return spans.ToImmutableAndClear();
 
         static void AddSpans(RoslynNavigationBarItem underlyingItem, ArrayBuilder<TextSpan> spans)
         {

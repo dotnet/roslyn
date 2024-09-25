@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
                 public bool HasKeyName()
                 {
-                    return Index >= 0 && Name != null && Name.Length >= 2 && Name[0] == '[' && Name[Name.Length - 1] == ']';
+                    return Index >= 0 && Name != null && Name.Length >= 2 && Name[0] == '[' && Name[^1] == ']';
                 }
 
                 public bool AppendAsCollectionEntry(Builder result)

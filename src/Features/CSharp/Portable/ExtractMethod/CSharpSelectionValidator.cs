@@ -290,7 +290,7 @@ internal partial class CSharpSelectionValidator(
                     break;
                 }
 
-            case GlobalStatementSyntax _:
+            case GlobalStatementSyntax:
                 return true;
             case ConstructorInitializerSyntax constructorInitializer:
                 return constructorInitializer.ContainsInArgument(span);
@@ -453,9 +453,7 @@ internal partial class CSharpSelectionValidator(
 
         var container = commonRoot.GetAncestorsOrThis<SyntaxNode>().Where(a => a.IsReturnableConstruct()).FirstOrDefault();
         if (container == null)
-        {
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-        }
+            return [];
 
         var returnableConstructPairs = returnStatements.Select(r => (r, r.GetAncestors<SyntaxNode>().Where(a => a.IsReturnableConstruct()).FirstOrDefault()))
                                                        .Where(p => p.Item2 != null);

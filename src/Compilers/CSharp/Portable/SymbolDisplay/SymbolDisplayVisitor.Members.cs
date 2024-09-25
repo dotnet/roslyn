@@ -829,7 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (symbol.ScopedKind == ScopedKind.ScopedValue &&
                         symbol.RefKind == RefKind.None &&
-                        !(symbol.IsParams && symbol.Type.IsRefLikeType))
+                        !(symbol.IsParams && symbol.Type is { IsRefLikeType: true } or ITypeParameterSymbol { AllowsRefLikeType: true }))
                     {
                         AddKeyword(SyntaxKind.ScopedKeyword);
                         AddSpace();

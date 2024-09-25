@@ -27,6 +27,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseSimpleUsingStatement;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseSimpleUsingStatement), Shared]
@@ -103,7 +104,7 @@ internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFix
         for (int i = 0, n = result.Count; i < n; i++)
             result[i] = result[i].WithAdditionalAnnotations(Formatter.Annotation);
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static SyntaxTriviaList Expand(ArrayBuilder<StatementSyntax> result, UsingStatementSyntax usingStatement)
@@ -177,6 +178,6 @@ internal class UseSimpleUsingStatementCodeFixProvider : SyntaxEditorBasedCodeFix
             usingStatement.UsingKeyword.WithAppendedTrailingTrivia(ElasticMarker),
             modifiers: default,
             usingStatement.Declaration,
-            Token(SyntaxKind.SemicolonToken)).WithTrailingTrivia(usingStatement.CloseParenToken.TrailingTrivia);
+            SemicolonToken).WithTrailingTrivia(usingStatement.CloseParenToken.TrailingTrivia);
     }
 }

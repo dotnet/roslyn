@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp.Dialog;
 using Microsoft.CodeAnalysis.PullMemberUp;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.PullMemberUp;
 
@@ -49,7 +48,7 @@ internal abstract partial class AbstractPullMemberUpRefactoringProvider
             else
             {
                 // If user click cancel button, options will be null and hit this branch
-                return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
+                return [];
             }
         }
     }

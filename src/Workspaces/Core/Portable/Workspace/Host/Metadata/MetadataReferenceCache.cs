@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host;
@@ -36,7 +37,7 @@ internal class MetadataReferenceCache(Func<string, MetadataReferenceProperties, 
     /// </summary>
     private class ReferenceSet(MetadataReferenceCache cache)
     {
-        private readonly NonReentrantLock _gate = new();
+        private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
         // metadata references are held weakly, so even though this is a cache that enables reuse, it does not control lifetime.
         private readonly Dictionary<MetadataReferenceProperties, WeakReference<MetadataReference>> _references = [];

@@ -87,7 +87,7 @@ internal partial class NavigateToHighlightReferenceCommandHandler(
             tags.AddRange(tag.Span.GetSpans(span.Snapshot.TextBuffer));
 
         tags.Sort(static (ss1, ss2) => ss1.Start - ss2.Start);
-        return tags.ToImmutable();
+        return tags.ToImmutableAndClear();
     }
 
     private static SnapshotSpan GetDestinationTag(

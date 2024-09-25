@@ -769,11 +769,21 @@ internal class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
                 return true;
             }
 
-            // Similar to above, it's fine for a collection expression to have a a 'null' direct type (as long as a
+            // Similar to above, it's fine for a collection expression to have a 'null' direct type (as long as a
             // target-typed collection-expression conversion happened).  Note: unlike above, we don't have to check
             // a language version since collection expressions always supported collection-expression-conversions.
             if (newExpression.IsKind(SyntaxKind.CollectionExpression) &&
                 this.SpeculativeSemanticModel.GetConversion(newExpression).IsCollectionExpression)
+            {
+                return true;
+            }
+
+            // Similar to above, it's fine for a tuple expression to have a 'null' direct type (as long as a
+            // target-typed tuple-expression conversion happened).  Note: unlike above, we don't have to check
+            // a language version since tuple expressions always supported tuple-expression-conversions.
+            if (newExpression.IsKind(SyntaxKind.TupleExpression) &&
+                this.SpeculativeSemanticModel.GetConversion(newExpression).IsTupleLiteralConversion &&
+                SymbolsAreCompatible(originalTypeInfo.Type, newTypeInfo.ConvertedType))
             {
                 return true;
             }

@@ -33,13 +33,12 @@ using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Utilities;
-using static Microsoft.VisualStudio.VSConstants;
 using IVsContainedLanguageHost = Microsoft.VisualStudio.TextManager.Interop.IVsContainedLanguageHost;
 using IVsTextBufferCoordinator = Microsoft.VisualStudio.TextManager.Interop.IVsTextBufferCoordinator;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
 
-internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObject, IContainedDocument
+internal sealed partial class ContainedDocument : IContainedDocument
 {
     private const string ReturnReplacementString = @"{|r|}";
     private const string NewLineReplacementString = @"{|n|}";
@@ -99,7 +98,6 @@ internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObj
     public IVsContainedLanguageHost ContainedLanguageHost { get; set; }
 
     public ContainedDocument(
-        IThreadingContext threadingContext,
         DocumentId documentId,
         ITextBuffer subjectBuffer,
         ITextBuffer dataBuffer,
@@ -108,7 +106,6 @@ internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObj
         ProjectSystemProject project,
         IComponentModel componentModel,
         AbstractFormattingRule vbHelperFormattingRule)
-        : base(threadingContext)
     {
         _componentModel = componentModel;
         _workspace = workspace;
@@ -714,7 +711,7 @@ internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObj
         }
         else
         {
-            return SpecializedCollections.EmptyEnumerable<TextSpan>();
+            return [];
         }
     }
 
@@ -807,13 +804,13 @@ internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObj
         venusFormattingRules.Add(baseIndentationRule);
         venusFormattingRules.Add(ContainedDocumentPreserveFormattingRule.Instance);
 
-        var formattingRules = venusFormattingRules.Concat(Formatter.GetDefaultFormattingRules(document));
-
         var services = document.Project.Solution.Services;
         var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
         var changes = formatter.GetFormattingResult(
             root, new TextSpan[] { CommonFormattingHelpers.GetFormattingSpan(root, visibleSpan) },
-            options, formattingRules, CancellationToken.None).GetTextChanges(CancellationToken.None);
+            options,
+            [.. venusFormattingRules, .. Formatter.GetDefaultFormattingRules(document)],
+            CancellationToken.None).GetTextChanges(CancellationToken.None);
 
         visibleSpans.Add(visibleSpan);
         var newChanges = FilterTextChanges(document.GetTextSynchronously(CancellationToken.None), visibleSpans, changes.ToReadOnlyCollection()).Where(t => visibleSpan.Contains(t.Span));
@@ -1073,7 +1070,7 @@ internal sealed partial class ContainedDocument : ForegroundThreadAffinitizedObj
 
     private static bool CheckCode(ITextSnapshot snapshot, int position, char ch, string tag, bool checkAt = true)
     {
-        if (ch != tag[tag.Length - 1] || position < tag.Length)
+        if (ch != tag[^1] || position < tag.Length)
         {
             return false;
         }

@@ -29,6 +29,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertPrimaryToRegularConstructor;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertPrimaryToRegularConstructor), Shared]
@@ -239,7 +240,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                 }
             }
 
-            return result.ToImmutableHashSet();
+            return [.. result];
         }
 
         void RemovePrimaryConstructorParameterList()
@@ -470,7 +471,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
 
             var constructorDeclaration = ConstructorDeclaration(
                 [.. methodTargetingAttributes.Select(a => a.WithTarget(null).WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation))],
-                [Token(SyntaxKind.PublicKeyword).WithAppendedTrailingTrivia(Space)],
+                [PublicKeyword.WithAppendedTrailingTrivia(Space)],
                 typeDeclaration.Identifier.WithoutTrivia(),
                 rewrittenParameters.WithoutTrivia(),
                 baseType?.ArgumentList is null ? null : ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, baseType.ArgumentList),

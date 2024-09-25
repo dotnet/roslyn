@@ -218,74 +218,79 @@ internal partial class SolutionCompilationState
         private static SkeletonReferenceSet? CreateSkeletonSet(
             SolutionServices services, Compilation compilation, CancellationToken cancellationToken)
         {
-            var storage = TryCreateMetadataStorage(services, compilation, cancellationToken);
-            if (storage == null)
+            var (metadata, storageHandle) = TryCreateMetadataAndHandle();
+            if (metadata == null)
                 return null;
-
-            var metadata = AssemblyMetadata.CreateFromStream(storage.ReadStream(cancellationToken), leaveOpen: false);
 
             // read in the stream and pass ownership of it to the metadata object.  When it is disposed it will dispose
             // the stream as well.
             return new SkeletonReferenceSet(
                 metadata,
+                storageHandle,
                 compilation.AssemblyName,
                 new DeferredDocumentationProvider(compilation));
-        }
 
-        private static ITemporaryStreamStorageInternal? TryCreateMetadataStorage(SolutionServices services, Compilation compilation, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var logger = services.GetService<IWorkspaceTestLogger>();
-
-            try
+            (AssemblyMetadata? metadata, ITemporaryStorageStreamHandle storageHandle) TryCreateMetadataAndHandle()
             {
-                logger?.Log($"Beginning to create a skeleton assembly for {compilation.AssemblyName}...");
+                cancellationToken.ThrowIfCancellationRequested();
 
-                using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
+                var logger = services.GetService<IWorkspaceTestLogger>();
+
+                try
                 {
-                    using var stream = SerializableBytes.CreateWritableStream();
+                    logger?.Log($"Beginning to create a skeleton assembly for {compilation.AssemblyName}...");
 
-                    var emitResult = compilation.Emit(stream, options: s_metadataOnlyEmitOptions, cancellationToken: cancellationToken);
-
-                    if (emitResult.Success)
+                    using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_EmitMetadataOnlyImage, cancellationToken))
                     {
-                        logger?.Log($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
+                        // First, emit the data to an in-memory stream.
+                        using var stream = SerializableBytes.CreateWritableStream();
+                        var emitResult = compilation.Emit(stream, options: s_metadataOnlyEmitOptions, cancellationToken: cancellationToken);
 
-                        var temporaryStorageService = services.GetRequiredService<ITemporaryStorageServiceInternal>();
-                        var storage = temporaryStorageService.CreateTemporaryStreamStorage();
-
-                        stream.Position = 0;
-                        storage.WriteStream(stream, cancellationToken);
-
-                        return storage;
-                    }
-
-                    if (logger != null)
-                    {
-                        logger.Log($"Failed to create a skeleton assembly for {compilation.AssemblyName}:");
-
-                        foreach (var diagnostic in emitResult.Diagnostics)
+                        if (emitResult.Success)
                         {
-                            logger.Log("  " + diagnostic.GetMessage());
+                            logger?.Log($"Successfully emitted a skeleton assembly for {compilation.AssemblyName}");
+
+                            var temporaryStorageService = services.GetRequiredService<ITemporaryStorageServiceInternal>();
+
+                            // Then, dump that in-memory-stream to a memory-mapped file.  Doing this allows us to have the
+                            // assembly-metadata point directly to that pointer in memory, instead of it having to make its
+                            // own copy it needs to own the lifetime of.
+                            var handle = temporaryStorageService.WriteToTemporaryStorage(stream, cancellationToken);
+
+                            // Now read the data back from the stream from the memory mapped file.  This will come back as an
+                            // UnmanagedMemoryStream, which our assembly/metadata subsystem is optimized around. 
+                            var result = AssemblyMetadata.CreateFromStream(
+                                handle.ReadFromTemporaryStorage(cancellationToken), leaveOpen: false);
+
+                            return (result, handle);
                         }
+
+                        if (logger != null)
+                        {
+                            logger.Log($"Failed to create a skeleton assembly for {compilation.AssemblyName}:");
+
+                            foreach (var diagnostic in emitResult.Diagnostics)
+                            {
+                                logger.Log("  " + diagnostic.GetMessage());
+                            }
+                        }
+
+                        // log emit failures so that we can improve most common cases
+                        Logger.Log(FunctionId.MetadataOnlyImage_EmitFailure, KeyValueLogMessage.Create(m =>
+                        {
+                            // log errors in the format of
+                            // CS0001:1;CS002:10;...
+                            var groups = emitResult.Diagnostics.GroupBy(d => d.Id).Select(g => $"{g.Key}:{g.Count()}");
+                            m["Errors"] = string.Join(";", groups);
+                        }));
+
+                        return (null, null!);
                     }
-
-                    // log emit failures so that we can improve most common cases
-                    Logger.Log(FunctionId.MetadataOnlyImage_EmitFailure, KeyValueLogMessage.Create(m =>
-                    {
-                        // log errors in the format of
-                        // CS0001:1;CS002:10;...
-                        var groups = emitResult.Diagnostics.GroupBy(d => d.Id).Select(g => $"{g.Key}:{g.Count()}");
-                        m["Errors"] = string.Join(";", groups);
-                    }));
-
-                    return null;
                 }
-            }
-            finally
-            {
-                logger?.Log($"Done trying to create a skeleton assembly for {compilation.AssemblyName}");
+                finally
+                {
+                    logger?.Log($"Done trying to create a skeleton assembly for {compilation.AssemblyName}");
+                }
             }
         }
     }

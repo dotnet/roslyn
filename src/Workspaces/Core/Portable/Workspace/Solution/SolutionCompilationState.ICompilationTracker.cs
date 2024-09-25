@@ -30,19 +30,31 @@ internal partial class SolutionCompilationState
         /// of the symbols returned by <see cref="Compilation.GetAssemblyOrModuleSymbol(MetadataReference)"/> for
         /// any of the references of the <see cref="Compilation.References"/>.
         /// </remarks>
-        bool ContainsAssemblyOrModuleOrDynamic(ISymbol symbol, bool primary, out MetadataReferenceInfo? referencedThrough);
+        bool ContainsAssemblyOrModuleOrDynamic(
+            ISymbol symbol, bool primary,
+            [NotNullWhen(true)] out Compilation? compilation,
+            out MetadataReferenceInfo? referencedThrough);
 
         ICompilationTracker Fork(ProjectState newProject, TranslationAction? translate);
 
         Task<Compilation> GetCompilationAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
 
-        ICompilationTracker FreezePartialState(CancellationToken cancellationToken);
+        /// <summary>
+        /// Updates the creation policy for this tracker.  Setting it to <see cref="CreationPolicy.Create"/>.
+        /// </summary>
+        /// <param name="forceRegeneration">Forces source generated documents to be created by dumping any existing <see
+        /// cref="GeneratorDriver"/> and rerunning generators from scratch for this tracker.</param>
+        ICompilationTracker WithCreateCreationPolicy(bool forceRegeneration);
+
+        /// <summary>
+        /// Updates the creation policy for this tracker.  Setting it to <see cref="CreationPolicy.DoNotCreate"/>.
+        /// </summary>
+        ICompilationTracker WithDoNotCreateCreationPolicy();
 
         Task<VersionStamp> GetDependentVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
         Task<VersionStamp> GetDependentSemanticVersionAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
         Task<Checksum> GetDependentChecksumAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
 
-        MetadataReference? GetPartialMetadataReference(ProjectState fromProject, ProjectReference projectReference);
         ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
         ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(SolutionCompilationState compilationState, CancellationToken cancellationToken);
         ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(SolutionCompilationState solution, CancellationToken cancellationToken);

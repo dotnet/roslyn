@@ -127,6 +127,11 @@
         <target state="translated">Sémantická klasifikace</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_SemanticSearch">
+        <source>Semantic search</source>
+        <target state="translated">Sémantické vyhledávání</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">Poskytovatel prostředků</target>

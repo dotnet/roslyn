@@ -29,12 +29,14 @@ static ReplayOptions ParseOptions(string[] args)
     string? outputDirectory = null;
     string? binlogPath = null;
     int maxParallel = 6;
+    bool wait = false;
 
     var options = new Mono.Options.OptionSet()
     {
         { "b|binlogPath=", "The binary log to relpay", v => binlogPath = v },
         { "o|outputDirectory=", "The directory to output the build results", v => outputDirectory = v },
         { "m|maxParallel=", "The maximum number of parallel builds", (int v) => maxParallel = v },
+        { "w|wait", "Wait for a key press after starting the server", o => wait = o is object },
     };
 
     var rest = options.Parse(args);
@@ -44,7 +46,7 @@ static ReplayOptions ParseOptions(string[] args)
     }
     else if (rest.Count > 1)
     {
-        throw new Exception("Too many arguments");
+        throw new Exception($"Too many arguments: {string.Join(" ", rest)}");
     }
 
     if (string.IsNullOrEmpty(binlogPath))
@@ -54,7 +56,7 @@ static ReplayOptions ParseOptions(string[] args)
 
     if (string.IsNullOrEmpty(outputDirectory))
     {
-        outputDirectory = Path.Combine(Environment.CurrentDirectory, "output");
+        outputDirectory = Path.Combine(Path.GetTempPath(), "replay");
     }
 
     return new ReplayOptions(
@@ -62,7 +64,8 @@ static ReplayOptions ParseOptions(string[] args)
         clientDirectory: AppDomain.CurrentDomain.BaseDirectory!,
         outputDirectory: outputDirectory,
         binlogPath: binlogPath,
-        maxParallel: maxParallel);
+        maxParallel: maxParallel,
+        wait: wait);
 }
 
 static async Task<int> RunAsync(ReplayOptions options)
@@ -76,10 +79,18 @@ static async Task<int> RunAsync(ReplayOptions options)
     Console.WriteLine("Starting server");
 
     using var compilerServerLogger = new CompilerServerLogger("replay", Path.Combine(options.OutputDirectory, "server.log"));
-    if (!BuildServerConnection.TryCreateServer(options.ClientDirectory, options.PipeName, compilerServerLogger))
+    if (!BuildServerConnection.TryCreateServer(options.ClientDirectory, options.PipeName, compilerServerLogger, out int serverProcessId))
     {
         Console.WriteLine("Failed to start server");
         return 1;
+    }
+
+    Console.WriteLine($"Process Id: {serverProcessId}");
+    if (options.Wait)
+    {
+        Console.WriteLine("Press any key to continue");
+        Console.ReadKey(intercept: true);
+        Console.WriteLine("Continuing");
     }
 
     try
@@ -147,7 +158,7 @@ static async IAsyncEnumerable<BuildData> BuildAllAsync(
 
         var buildData = await completedTask.ConfigureAwait(false);
         yield return buildData;
-    } while (tasks.Count > 0);
+    } while (index < compilerCalls.Count);
 
     string GetOutputName(CompilerCall compilerCall)
     {
@@ -257,7 +268,8 @@ internal sealed class ReplayOptions(
     string clientDirectory,
     string outputDirectory,
     string binlogPath,
-    int maxParallel)
+    int maxParallel,
+    bool wait)
 {
     internal string PipeName { get; } = pipeName;
     internal string ClientDirectory { get; } = clientDirectory;
@@ -265,6 +277,7 @@ internal sealed class ReplayOptions(
     internal string BinlogPath { get; } = binlogPath;
     internal int MaxParallel { get; } = maxParallel;
     internal string TempDirectory { get; } = Path.Combine(outputDirectory, "temp");
+    internal bool Wait { get; } = wait;
 }
 
 internal readonly struct BuildData(CompilerCall compilerCall, BuildResponse response)

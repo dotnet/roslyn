@@ -91,6 +91,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             => New(text, ClassificationTypeNames.EventName);
 
         [DebuggerStepThrough]
+        public static FormattedClassification Obsolete(string text)
+            => New(text, ClassificationTypeNames.ObsoleteSymbol);
+
+        [DebuggerStepThrough]
         public static FormattedClassification Static(string text)
             => New(text, ClassificationTypeNames.StaticSymbol);
 

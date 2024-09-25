@@ -164,7 +164,7 @@ internal sealed class ReplaceMethodWithPropertyCodeRefactoringProvider() : CodeR
         var getMethodReferences = await SymbolFinder.FindReferencesAsync(
             getMethod, originalSolution, cancellationToken).ConfigureAwait(false);
         var setMethodReferences = setMethod == null
-            ? SpecializedCollections.EmptyEnumerable<ReferencedSymbol>()
+            ? []
             : await SymbolFinder.FindReferencesAsync(
                 setMethod, originalSolution, cancellationToken).ConfigureAwait(false);
 
@@ -424,7 +424,7 @@ internal sealed class ReplaceMethodWithPropertyCodeRefactoringProvider() : CodeR
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static TSymbol? GetSymbolInCurrentCompilation<TSymbol>(Compilation compilation, TSymbol originalDefinition, CancellationToken cancellationToken)

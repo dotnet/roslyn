@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
@@ -78,10 +77,9 @@ internal sealed partial class RenameTrackingTaggerProvider(
                 if (textBuffer == null)
                 {
                     var ex = new InvalidOperationException(string.Format(
-                        "document with name {0} is open but textBuffer is null. Textcontainer is of type {1}. SourceText is: {2}",
+                        "document with name {0} is open but textBuffer is null. Textcontainer is of type {1}.",
                         document.Name,
-                        text.Container.GetType().FullName,
-                        text.ToString()));
+                        text.Container.GetType().FullName));
                     FatalError.ReportAndCatch(ex);
                     return false;
                 }

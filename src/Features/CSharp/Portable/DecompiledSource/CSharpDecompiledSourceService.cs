@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +16,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.DecompiledSource;
 
@@ -61,9 +59,9 @@ internal class CSharpDecompiledSourceService : IDecompiledSourceService
         // Apply formatting rules
         var formattedDoc = await Formatter.FormatAsync(
              document,
-             SpecializedCollections.SingletonEnumerable(node.FullSpan),
+             [node.FullSpan],
              options,
-             CSharpDecompiledSourceFormattingRule.Instance.Concat(Formatter.GetDefaultFormattingRules(document)),
+             [CSharpDecompiledSourceFormattingRule.Instance, .. Formatter.GetDefaultFormattingRules(document)],
              cancellationToken).ConfigureAwait(false);
 
         return formattedDoc;

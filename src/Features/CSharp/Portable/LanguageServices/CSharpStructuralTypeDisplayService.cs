@@ -57,6 +57,6 @@ internal class CSharpStructuralTypeDisplayService : AbstractStructuralTypeDispla
         members.AddRange(Space());
         members.Add(Punctuation(SyntaxFacts.GetText(SyntaxKind.CloseBraceToken)));
 
-        return members.ToImmutable();
+        return members.ToImmutableAndClear();
     }
 }

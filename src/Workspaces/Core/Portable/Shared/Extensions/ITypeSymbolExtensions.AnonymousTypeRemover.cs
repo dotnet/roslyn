@@ -47,7 +47,7 @@ internal partial class ITypeSymbolExtensions
             if (arguments.SequenceEqual(symbol.TypeArguments))
                 return symbol;
 
-            return symbol.ConstructedFrom.Construct(arguments.ToArray());
+            return symbol.ConstructedFrom.Construct([.. arguments]);
         }
 
         public override ITypeSymbol VisitPointerType(IPointerTypeSymbol symbol)

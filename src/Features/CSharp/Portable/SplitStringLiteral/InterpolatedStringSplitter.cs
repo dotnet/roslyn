@@ -8,11 +8,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.SplitStringLiteral;
+
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
 internal abstract partial class StringSplitter
 {
@@ -58,18 +60,18 @@ internal abstract partial class StringSplitter
                 }
             }
 
-            var leftExpression = SyntaxFactory.InterpolatedStringExpression(
+            var leftExpression = InterpolatedStringExpression(
                 _interpolatedStringExpression.StringStartToken,
                 [.. beforeSplitContents],
-                SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken)
-                             .WithTrailingTrivia(SyntaxFactory.ElasticSpace));
+                InterpolatedStringEndToken
+                             .WithTrailingTrivia(ElasticSpace));
 
-            var rightExpression = SyntaxFactory.InterpolatedStringExpression(
-                SyntaxFactory.Token(SyntaxKind.InterpolatedStringStartToken),
+            var rightExpression = InterpolatedStringExpression(
+                InterpolatedStringStartToken,
                 [.. afterSplitContents],
                 _interpolatedStringExpression.StringEndToken);
 
-            return SyntaxFactory.BinaryExpression(
+            return BinaryExpression(
                 SyntaxKind.AddExpression,
                 leftExpression,
                 PlusNewLineToken,
@@ -79,8 +81,8 @@ internal abstract partial class StringSplitter
         private InterpolatedStringTextSyntax CreateInterpolatedStringText(int start, int end)
         {
             var content = Document.Text.ToString(TextSpan.FromBounds(start, end));
-            return SyntaxFactory.InterpolatedStringText(
-                SyntaxFactory.Token(
+            return InterpolatedStringText(
+                Token(
                     leading: default,
                     kind: SyntaxKind.InterpolatedStringTextToken,
                     text: content,

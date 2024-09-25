@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Snippets;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
@@ -33,23 +34,24 @@ internal sealed class SnippetCompletionProvider : LSPCompletionProvider
 {
     private static readonly HashSet<string> s_snippetsWithReplacements =
     [
-        "class",
-        "cw",
-        "ctor",
-        "else",
-        "enum",
-        "for",
-        "forr",
-        "foreach",
-        "if",
-        "interface",
-        "lock",
-        "prop",
-        "propg",
-        "sim",
-        "struct",
-        "svm",
-        "while"
+        CSharpSnippetIdentifiers.Class,
+        CommonSnippetIdentifiers.ConsoleWriteLine,
+        CommonSnippetIdentifiers.Constructor,
+        CSharpSnippetIdentifiers.Do,
+        CSharpSnippetIdentifiers.Else,
+        CSharpSnippetIdentifiers.Enum,
+        CSharpSnippetIdentifiers.For,
+        CSharpSnippetIdentifiers.ReversedFor,
+        CSharpSnippetIdentifiers.ForEach,
+        CSharpSnippetIdentifiers.If,
+        CSharpSnippetIdentifiers.Interface,
+        CSharpSnippetIdentifiers.Lock,
+        CommonSnippetIdentifiers.Property,
+        CommonSnippetIdentifiers.GetOnlyProperty,
+        CSharpSnippetIdentifiers.StaticIntMain,
+        CSharpSnippetIdentifiers.Struct,
+        CSharpSnippetIdentifiers.StaticVoidMain,
+        CSharpSnippetIdentifiers.While
     ];
 
     internal override bool IsSnippetProvider => true;

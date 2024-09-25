@@ -8,14 +8,14 @@ using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatements
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatements;
+
+public sealed partial class MergeNestedIfStatementsTests
 {
-    public sealed partial class MergeNestedIfStatementsTests
+    [Fact]
+    public async Task MergedOnOuterIf()
     {
-        [Fact]
-        public async Task MergedOnOuterIf()
-        {
-            await TestInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -37,12 +37,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitOrMergeIfStatement
         }
     }
 }");
-        }
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55563")]
-        public async Task MergedOnOuterIf_TopLevelStatements()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/55563")]
+    public async Task MergedOnOuterIf_TopLevelStatements()
+    {
+        await TestInRegularAndScriptAsync(
 @"var a = true;
 var b = true;
 
@@ -60,23 +60,23 @@ if (a && b)
 {
 }
 ");
-        }
+    }
 
-        [Theory]
-        [InlineData("[||]else if (a)")]
-        [InlineData("el[||]se if (a)")]
-        [InlineData("else[||] if (a)")]
-        [InlineData("else [||]if (a)")]
-        [InlineData("else i[||]f (a)")]
-        [InlineData("else if[||] (a)")]
-        [InlineData("else if [||](a)")]
-        [InlineData("else if (a)[||]")]
-        [InlineData("else [|if|] (a)")]
-        [InlineData("else [|if (a)|]")]
-        [InlineData("[|else if (a)|]")]
-        public async Task MergedOnOuterElseIfSpans(string elseIfLine)
-        {
-            await TestInRegularAndScriptAsync(
+    [Theory]
+    [InlineData("[||]else if (a)")]
+    [InlineData("el[||]se if (a)")]
+    [InlineData("else[||] if (a)")]
+    [InlineData("else [||]if (a)")]
+    [InlineData("else i[||]f (a)")]
+    [InlineData("else if[||] (a)")]
+    [InlineData("else if [||](a)")]
+    [InlineData("else if (a)[||]")]
+    [InlineData("else [|if|] (a)")]
+    [InlineData("else [|if (a)|]")]
+    [InlineData("[|else if (a)|]")]
+    public async Task MergedOnOuterElseIfSpans(string elseIfLine)
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -104,12 +104,12 @@ if (a && b)
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task MergedOnOuterElseIfExtendedHeaderSelection()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task MergedOnOuterElseIfExtendedHeaderSelection()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -137,12 +137,12 @@ if (a && b)
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task MergedOnOuterElseIfFullSelection()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task MergedOnOuterElseIfFullSelection()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -170,12 +170,12 @@ if (a && b)
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task MergedOnOuterElseIfFullSelectionWithElseClause()
-        {
-            await TestInRegularAndScriptAsync(
+    [Fact]
+    public async Task MergedOnOuterElseIfFullSelectionWithElseClause()
+    {
+        await TestInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -212,12 +212,12 @@ if (a && b)
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotMergedOnOuterElseIfFullSelectionWithoutElseClause()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotMergedOnOuterElseIfFullSelectionWithoutElseClause()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -239,12 +239,12 @@ if (a && b)
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotMergedOnOuterElseIfFullSelectionWithParentIf()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotMergedOnOuterElseIfFullSelectionWithParentIf()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -266,22 +266,22 @@ if (a && b)
         }|]
     }
 }");
-        }
+    }
 
-        [Theory]
-        [InlineData("else if ([||]a)")]
-        [InlineData("[|el|]se if (a)")]
-        [InlineData("[|else|] if (a)")]
-        [InlineData("[|else if|] (a)")]
-        [InlineData("else [|i|]f (a)")]
-        [InlineData("else [|if (|]a)")]
-        [InlineData("else if [|(|]a)")]
-        [InlineData("else if (a[|)|]")]
-        [InlineData("else if ([|a|])")]
-        [InlineData("else if [|(a)|]")]
-        public async Task NotMergedOnOuterElseIfSpans(string elseIfLine)
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Theory]
+    [InlineData("else if ([||]a)")]
+    [InlineData("[|el|]se if (a)")]
+    [InlineData("[|else|] if (a)")]
+    [InlineData("[|else if|] (a)")]
+    [InlineData("else [|i|]f (a)")]
+    [InlineData("else [|if (|]a)")]
+    [InlineData("else if [|(|]a)")]
+    [InlineData("else if (a[|)|]")]
+    [InlineData("else if ([|a|])")]
+    [InlineData("else if [|(a)|]")]
+    public async Task NotMergedOnOuterElseIfSpans(string elseIfLine)
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -297,12 +297,12 @@ if (a && b)
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotMergedOnOuterElseIfOverreachingSelection1()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotMergedOnOuterElseIfOverreachingSelection1()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -318,12 +318,12 @@ if (a && b)
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotMergedOnOuterElseIfOverreachingSelection2()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotMergedOnOuterElseIfOverreachingSelection2()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -339,12 +339,12 @@ if (a && b)
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotMergedOnOuterElseIfBodySelection()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotMergedOnOuterElseIfBodySelection()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -360,12 +360,12 @@ if (a && b)
         }|]
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotMergedOnOuterElseIfBodyCaret1()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotMergedOnOuterElseIfBodyCaret1()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -381,12 +381,12 @@ if (a && b)
         }
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task NotMergedOnOuterElseIfBodyCaret2()
-        {
-            await TestMissingInRegularAndScriptAsync(
+    [Fact]
+    public async Task NotMergedOnOuterElseIfBodyCaret2()
+    {
+        await TestMissingInRegularAndScriptAsync(
 @"class C
 {
     void M(bool a, bool b)
@@ -402,12 +402,12 @@ if (a && b)
         }[||]
     }
 }");
-        }
+    }
 
-        [Fact]
-        public async Task MergedOnMiddleIfMergableWithNestedOnly()
-        {
-            const string Initial =
+    [Fact]
+    public async Task MergedOnMiddleIfMergableWithNestedOnly()
+    {
+        const string Initial =
 @"class C
 {
     void M(bool a, bool b, bool c)
@@ -426,7 +426,7 @@ if (a && b)
         }
     }
 }";
-            const string Expected =
+        const string Expected =
 @"class C
 {
     void M(bool a, bool b, bool c)
@@ -443,14 +443,14 @@ if (a && b)
     }
 }";
 
-            await TestActionCountAsync(Initial, 1);
-            await TestInRegularAndScriptAsync(Initial, Expected);
-        }
+        await TestActionCountAsync(Initial, 1);
+        await TestInRegularAndScriptAsync(Initial, Expected);
+    }
 
-        [Fact]
-        public async Task MergedOnMiddleIfMergableWithOuterOnly()
-        {
-            const string Initial =
+    [Fact]
+    public async Task MergedOnMiddleIfMergableWithOuterOnly()
+    {
+        const string Initial =
 @"class C
 {
     void M(bool a, bool b, bool c)
@@ -469,7 +469,7 @@ if (a && b)
         }
     }
 }";
-            const string Expected =
+        const string Expected =
 @"class C
 {
     void M(bool a, bool b, bool c)
@@ -486,14 +486,14 @@ if (a && b)
     }
 }";
 
-            await TestActionCountAsync(Initial, 1);
-            await TestInRegularAndScriptAsync(Initial, Expected);
-        }
+        await TestActionCountAsync(Initial, 1);
+        await TestInRegularAndScriptAsync(Initial, Expected);
+    }
 
-        [Fact]
-        public async Task MergedOnMiddleIfMergableWithBoth()
-        {
-            const string Initial =
+    [Fact]
+    public async Task MergedOnMiddleIfMergableWithBoth()
+    {
+        const string Initial =
 @"class C
 {
     void M(bool a, bool b, bool c)
@@ -510,7 +510,7 @@ if (a && b)
         }
     }
 }";
-            const string Expected1 =
+        const string Expected1 =
 @"class C
 {
     void M(bool a, bool b, bool c)
@@ -524,7 +524,7 @@ if (a && b)
         }
     }
 }";
-            const string Expected2 =
+        const string Expected2 =
 @"class C
 {
     void M(bool a, bool b, bool c)
@@ -539,9 +539,8 @@ if (a && b)
     }
 }";
 
-            await TestActionCountAsync(Initial, 2);
-            await TestInRegularAndScriptAsync(Initial, Expected1, index: 0);
-            await TestInRegularAndScriptAsync(Initial, Expected2, index: 1);
-        }
+        await TestActionCountAsync(Initial, 2);
+        await TestInRegularAndScriptAsync(Initial, Expected1, index: 0);
+        await TestInRegularAndScriptAsync(Initial, Expected2, index: 1);
     }
 }

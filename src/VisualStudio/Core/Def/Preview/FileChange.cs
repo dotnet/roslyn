@@ -6,15 +6,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
@@ -33,7 +30,6 @@ internal class FileChange : AbstractChange
     private readonly IComponentModel _componentModel;
     public readonly DocumentId Id;
     private readonly ITextBuffer _buffer;
-    private readonly Encoding _encoding;
     private readonly IVsImageService2 _imageService;
 
     public FileChange(TextDocument left,
@@ -52,11 +48,12 @@ internal class FileChange : AbstractChange
 
         _componentModel = componentModel;
         var bufferFactory = componentModel.GetService<ITextBufferFactoryService>();
+        var bufferCloneService = componentModel.GetService<ITextBufferCloneService>();
         var bufferText = left != null
             ? left.GetTextSynchronously(CancellationToken.None)
             : right.GetTextSynchronously(CancellationToken.None);
-        _buffer = bufferFactory.CreateTextBuffer(bufferText.ToString(), bufferFactory.InertContentType);
-        _encoding = bufferText.Encoding;
+
+        _buffer = bufferCloneService.Clone(bufferText, bufferFactory.InertContentType);
 
         this.Children = ComputeChildren(left, right, CancellationToken.None);
         this.parent = parent;
@@ -135,7 +132,7 @@ internal class FileChange : AbstractChange
             var split = excerpt.Split(new[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
             if (split.Length > 1)
             {
-                return string.Format("{0} ... {1}", split[0].Trim(), split[split.Length - 1].Trim());
+                return string.Format("{0} ... {1}", split[0].Trim(), split[^1].Trim());
             }
         }
 
@@ -191,7 +188,7 @@ internal class FileChange : AbstractChange
             edit.ApplyAndLogExceptions();
         }
 
-        return SourceText.From(_buffer.CurrentSnapshot.GetText(), _encoding);
+        return _buffer.CurrentSnapshot.AsText();
     }
 
     public TextDocument GetOldDocument()

@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
@@ -103,7 +102,7 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
         {
             if (commitUpdates)
             {
-                _encService.CommitSolutionUpdate(sessionId, out _);
+                _encService.CommitSolutionUpdate(sessionId);
             }
             else
             {
@@ -135,7 +134,7 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
     public void EndSession()
     {
         Contract.ThrowIfFalse(_sessionId != default, "Session has not started");
-        _encService.EndDebuggingSession(_sessionId, out _);
+        _encService.EndDebuggingSession(_sessionId);
     }
 
     internal TestAccessor GetTestAccessor()

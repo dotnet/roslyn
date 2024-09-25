@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -79,18 +80,23 @@ namespace Microsoft.CodeAnalysis.Remote
             var changes = newSolution.GetChangedDocuments(oldSolution);
             var final = newSolution;
 
-            foreach (var docId in changes)
-            {
-                var document = newSolution.GetRequiredDocument(docId);
+            var changedDocuments = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
+                source: changes,
+                produceItems: static async (docId, callback, args, cancellationToken) =>
+                {
+                    var (newSolution, fallbackOptions) = args;
+                    var document = newSolution.GetRequiredDocument(docId);
 
-                var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-                var cleaned = await CodeAction.CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
+                    var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    var cleaned = await CodeAction.CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
 
-                var cleanedRoot = await cleaned.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                final = final.WithDocumentSyntaxRoot(docId, cleanedRoot);
-            }
+                    var cleanedRoot = await cleaned.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    callback((docId, cleanedRoot));
+                },
+                args: (newSolution, fallbackOptions),
+                cancellationToken).ConfigureAwait(false);
 
-            return final;
+            return newSolution.WithDocumentSyntaxRoots(changedDocuments);
         }
     }
 }

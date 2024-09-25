@@ -42,7 +42,7 @@ internal abstract class MemberBody : DeclarationBody
     public SyntaxNode FindStatement(TextSpan span, out int statementPart)
         => FindStatementAndPartner(span, partnerDeclarationBody: null, out _, out statementPart);
 
-    public IEnumerable<int> GetOverlappingActiveStatements(ImmutableArray<UnmappedActiveStatement> statements)
+    public IEnumerable<int> GetOverlappingActiveStatementIndices(ImmutableArray<UnmappedActiveStatement> statements)
     {
         var envelope = Envelope;
 

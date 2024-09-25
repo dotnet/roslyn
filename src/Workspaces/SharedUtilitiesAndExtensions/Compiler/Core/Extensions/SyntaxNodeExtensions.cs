@@ -178,12 +178,18 @@ internal static partial class SyntaxNodeExtensions
     {
         Contract.ThrowIfTrue(node1.RawKind == 0 || node2.RawKind == 0);
 
-        // find common starting node from two nodes.
-        // as long as two nodes belong to same tree, there must be at least one common root (Ex, compilation unit)
-        var ancestors = node1.GetAncestorsOrThis<SyntaxNode>();
-        var set = new HashSet<SyntaxNode>(node2.GetAncestorsOrThis<SyntaxNode>());
+        // find common starting node from two nodes. as long as two nodes belong to same tree, there must be at least
+        // one common root (Ex, compilation unit)
+        using var _ = PooledHashSet<SyntaxNode>.GetInstance(out var set);
+        set.AddRange(node2.GetAncestorsOrThis<SyntaxNode>());
 
-        return ancestors.First(set.Contains);
+        foreach (var ancestor in node1.AncestorsAndSelf())
+        {
+            if (set.Contains(ancestor))
+                return ancestor;
+        }
+
+        throw ExceptionUtilities.Unreachable();
     }
 
     public static int Width(this SyntaxNode node)
@@ -855,11 +861,8 @@ internal static partial class SyntaxNodeExtensions
             var conditionalMap = new Dictionary<TDirectiveTriviaSyntax, ImmutableArray<TDirectiveTriviaSyntax>>(
                 DirectiveSyntaxEqualityComparer.Instance);
 
-            using var pooledRegionStack = s_stackPool.GetPooledObject();
-            using var pooledIfStack = s_stackPool.GetPooledObject();
-
-            var regionStack = pooledRegionStack.Object;
-            var ifStack = pooledIfStack.Object;
+            using var _1 = s_stackPool.GetPooledObject(out var regionStack);
+            using var _2 = s_stackPool.GetPooledObject(out var ifStack);
 
             foreach (var token in root.DescendantTokens(descendIntoChildren: static node => node.ContainsDirectives))
             {
@@ -913,9 +916,8 @@ internal static partial class SyntaxNodeExtensions
                 if (directive != null)
                     condDirectivesBuilder.Add(directive);
 
-                while (ifStack.Count > 0)
+                while (ifStack.TryPop(out var poppedDirective))
                 {
-                    var poppedDirective = ifStack.Pop();
                     condDirectivesBuilder.Add(poppedDirective);
                     if (poppedDirective.RawKind == syntaxKinds.IfDirectiveTrivia)
                         break;

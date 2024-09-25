@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -76,7 +77,6 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
     {
         var cancellationToken = fixAllContext.CancellationToken;
         var fixAllState = fixAllContext.State;
-        var fixesBag = new ConcurrentBag<(Diagnostic diagnostic, CodeAction action)>();
 
         using (Logger.LogBlock(
             FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Fixes,
@@ -86,73 +86,49 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
             cancellationToken.ThrowIfCancellationRequested();
             var progressTracker = fixAllContext.Progress;
 
-            using var _1 = ArrayBuilder<Task>.GetInstance(out var tasks);
-            using var _2 = ArrayBuilder<Document>.GetInstance(out var documentsToFix);
-
             // Determine the set of documents to actually fix.  We can also use this to update the progress bar with
             // the amount of remaining work to perform.  We'll update the progress bar as we compute each fix in
             // AddDocumentFixesAsync.
-            foreach (var (document, diagnosticsToFix) in documentsAndDiagnosticsToFixMap)
-            {
-                if (!diagnosticsToFix.IsDefaultOrEmpty)
-                    documentsToFix.Add(document);
-            }
+            var source = documentsAndDiagnosticsToFixMap.WhereAsArray(static (kvp, _) => !kvp.Value.IsDefaultOrEmpty, state: false);
+            progressTracker.AddItems(source.Length);
 
-            progressTracker.AddItems(documentsToFix.Count);
+            return await ProducerConsumer<(Diagnostic diagnostic, CodeAction action)>.RunParallelAsync(
+                source,
+                produceItems: static async (tuple, callback, args, cancellationToken) =>
+                {
+                    var (@this, fixAllState, progressTracker) = args;
+                    using var _ = progressTracker.ItemCompletedScope();
 
-            foreach (var document in documentsToFix)
-            {
-                var diagnosticsToFix = documentsAndDiagnosticsToFixMap[document];
-                tasks.Add(AddDocumentFixesAsync(
-                    document, diagnosticsToFix, fixesBag, fixAllState, progressTracker, cancellationToken));
-            }
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
-        }
-
-        return fixesBag.ToImmutableArray();
-    }
-
-    private async Task AddDocumentFixesAsync(
-        Document document, ImmutableArray<Diagnostic> diagnostics,
-        ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
-        FixAllState fixAllState, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
-    {
-        try
-        {
-            await this.AddDocumentFixesAsync(document, diagnostics, fixes, fixAllState, cancellationToken).ConfigureAwait(false);
-        }
-        finally
-        {
-            progressTracker.ItemCompleted();
+                    var (document, diagnosticsToFix) = tuple;
+                    await @this.AddDocumentFixesAsync(
+                        document, diagnosticsToFix, callback, fixAllState, cancellationToken).ConfigureAwait(false);
+                },
+                args: (@this: this, fixAllState, progressTracker),
+                cancellationToken).ConfigureAwait(false);
         }
     }
 
     protected virtual async Task AddDocumentFixesAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> fixes,
+        Action<(Diagnostic diagnostic, CodeAction action)> onItemFound,
         FixAllState fixAllState, CancellationToken cancellationToken)
     {
         Debug.Assert(!diagnostics.IsDefault);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var registerCodeFix = GetRegisterCodeFixAction(fixAllState, fixes);
-
-        var fixerTasks = new List<Task>();
-        foreach (var diagnostic in diagnostics)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            fixerTasks.Add(Task.Run(() =>
+        var registerCodeFix = GetRegisterCodeFixAction(fixAllState, onItemFound);
+        await RoslynParallel.ForEachAsync(
+            source: diagnostics,
+            cancellationToken,
+            async (diagnostic, cancellationToken) =>
             {
                 var context = new CodeFixContext(document, diagnostic, registerCodeFix, cancellationToken);
 
-                // TODO: Wrap call to ComputeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
+                // TODO: Wrap call to RegisterCodeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
                 // a buggy extension that throws can't bring down the host?
-                return fixAllState.Provider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
-            }, cancellationToken));
-        }
-
-        await Task.WhenAll(fixerTasks).ConfigureAwait(false);
+                if (fixAllState.Provider.RegisterCodeFixesAsync(context) is Task task)
+                    await task.ConfigureAwait(false);
+            }).ConfigureAwait(false);
     }
 
     private async Task<CodeAction?> GetFixAsync(
@@ -198,24 +174,23 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
 
     private static Action<CodeAction, ImmutableArray<Diagnostic>> GetRegisterCodeFixAction(
         FixAllState fixAllState,
-        ConcurrentBag<(Diagnostic diagnostic, CodeAction action)> result)
+        Action<(Diagnostic diagnostic, CodeAction action)> onItemFound)
     {
         return (action, diagnostics) =>
         {
-            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var builder);
-            builder.Push(action);
-            while (builder.Count > 0)
+            using var _ = ArrayBuilder<CodeAction>.GetInstance(out var stack);
+            stack.Push(action);
+            while (stack.TryPop(out var currentAction))
             {
-                var currentAction = builder.Pop();
                 if (currentAction is { EquivalenceKey: var equivalenceKey }
                     && equivalenceKey == fixAllState.CodeActionEquivalenceKey)
                 {
-                    result.Add((diagnostics.First(), currentAction));
+                    onItemFound((diagnostics.First(), currentAction));
                 }
 
                 foreach (var nestedAction in currentAction.NestedActions)
                 {
-                    builder.Push(nestedAction);
+                    stack.Push(nestedAction);
                 }
             }
         };
@@ -266,11 +241,8 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
 
         // Finally, apply the changes to each document to the solution, producing the
         // new solution.
-        var currentSolution = oldSolution;
-        foreach (var (documentId, finalText) in documentIdToFinalText)
-            currentSolution = currentSolution.WithDocumentText(documentId, finalText);
-
-        return currentSolution;
+        var finalSolution = oldSolution.WithDocumentTexts(documentIdToFinalText);
+        return finalSolution;
     }
 
     private static async Task<IReadOnlyDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>>> GetDocumentIdToChangedDocumentsAsync(
@@ -295,7 +267,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
         return documentIdToChangedDocuments;
     }
 
-    private static async Task<IReadOnlyDictionary<DocumentId, SourceText>> GetDocumentIdToFinalTextAsync(
+    private static async Task<ImmutableArray<(DocumentId documentId, SourceText newText)>> GetDocumentIdToFinalTextAsync(
         Solution oldSolution,
         IReadOnlyDictionary<DocumentId, ConcurrentBag<(CodeAction, Document)>> documentIdToChangedDocuments,
         ImmutableArray<(Diagnostic diagnostic, CodeAction action)> diagnosticsAndCodeActions,
@@ -317,7 +289,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
         }
 
         await Task.WhenAll(getFinalDocumentTasks).ConfigureAwait(false);
-        return documentIdToFinalText;
+        return documentIdToFinalText.SelectAsArray(kvp => (kvp.Key, kvp.Value));
     }
 
     private static async Task GetFinalDocumentTextAsync(

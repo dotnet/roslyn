@@ -164,7 +164,7 @@ internal partial struct SymbolKey
 
             var containingType = reader.ReadSymbolKey(contextualSymbol?.ContainingSymbol, out var containingTypeFailureReason);
             var arity = reader.ReadInteger();
-            var isPartialMethodImplementationPart = reader.ReadBoolean();
+            var isPartialImplementationPart = reader.ReadBoolean();
             using var parameterRefKinds = reader.ReadRefKindArray();
 
             // For each method that we look at, we'll have to resolve the parameter list and
@@ -195,7 +195,7 @@ internal partial struct SymbolKey
                 // resolving this method. 
                 using (reader.PushMethod(candidate))
                 {
-                    method = Resolve(reader, isPartialMethodImplementationPart, candidate);
+                    method = Resolve(reader, isPartialImplementationPart, candidate);
                 }
 
                 // Note: after finding the first method that matches we stop.  That's necessary as we cache results
@@ -242,7 +242,7 @@ internal partial struct SymbolKey
         }
 
         private static IMethodSymbol? Resolve(
-            SymbolKeyReader reader, bool isPartialMethodImplementationPart, IMethodSymbol method)
+            SymbolKeyReader reader, bool isPartialImplementationPart, IMethodSymbol method)
         {
             var returnType = (ITypeSymbol?)reader.ReadSymbolKey(contextualSymbol: method.ReturnType, out _).GetAnySymbol();
             if (returnType != null &&
@@ -257,10 +257,8 @@ internal partial struct SymbolKey
                     getContextualType: static (method, i) => SafeGet(method.Parameters, i)?.Type,
                     method.OriginalDefinition.Parameters))
             {
-                if (isPartialMethodImplementationPart)
-                {
+                if (isPartialImplementationPart)
                     method = method.PartialImplementationPart ?? method;
-                }
 
                 Debug.Assert(method != null);
                 return method;

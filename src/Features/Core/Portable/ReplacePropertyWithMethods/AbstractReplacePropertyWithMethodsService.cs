@@ -399,7 +399,7 @@ internal abstract class AbstractReplacePropertyWithMethodsService<TIdentifierNam
             var updatedExpression = _expression.ReplaceNode(_identifierName, newIdentifierName);
 
             var arguments = argument == null
-                ? SpecializedCollections.EmptyEnumerable<SyntaxNode>()
+                ? []
                 : SpecializedCollections.SingletonEnumerable(argument);
 
             var invocation = Generator.InvocationExpression(updatedExpression, arguments);

@@ -191,7 +191,7 @@ internal sealed class FilterSet(bool supportExpander)
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     /// <summary>
@@ -218,7 +218,7 @@ internal sealed class FilterSet(bool supportExpander)
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
 
         void AddFilterState(ImmutableArray<CompletionFilterWithState> filterStates)
         {

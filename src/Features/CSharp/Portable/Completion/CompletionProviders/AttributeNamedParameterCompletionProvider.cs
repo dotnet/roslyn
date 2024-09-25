@@ -228,7 +228,7 @@ internal class AttributeNamedParameterCompletionProvider : LSPCompletionProvider
                                                      .Select(c => c.Parameters);
         }
 
-        return SpecializedCollections.EmptyEnumerable<ImmutableArray<IParameterSymbol>>();
+        return [];
     }
 
     private static IEnumerable<ISymbol> GetAttributeNamedParameters(

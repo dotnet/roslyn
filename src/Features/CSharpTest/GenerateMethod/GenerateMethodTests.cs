@@ -8508,6 +8508,8 @@ new TestParameters(Options.Regular));
             }
             """,
             """
+            using System;
+
             class Class
             {
                 void M(nint i, nuint i2)
@@ -8517,7 +8519,7 @@ new TestParameters(Options.Regular));
 
                 private (nint, nuint) NewMethod(nint i, nuint i2)
                 {
-                    throw new System.NotImplementedException();
+                    throw new NotImplementedException();
                 }
             }
             """);

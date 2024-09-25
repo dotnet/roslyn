@@ -14,9 +14,11 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.MakeMethodAsynchronous;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeMethodAsynchronous;
+
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddAsync), Shared]
 internal class CSharpMakeMethodAsynchronousCodeFixProvider : AbstractMakeMethodAsynchronousCodeFixProvider
@@ -26,7 +28,7 @@ internal class CSharpMakeMethodAsynchronousCodeFixProvider : AbstractMakeMethodA
     private const string CS4034 = nameof(CS4034); // The 'await' operator can only be used within an async lambda expression. Consider marking this method with the 'async' modifier.
     private const string CS0246 = nameof(CS0246); // The type or namespace name 'await' could not be found
 
-    private static readonly SyntaxToken s_asyncToken = SyntaxFactory.Token(SyntaxKind.AsyncKeyword);
+    private static readonly SyntaxToken s_asyncKeywordWithSpace = AsyncKeyword.WithoutTrivia().WithTrailingTrivia(Space);
 
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -92,7 +94,7 @@ internal class CSharpMakeMethodAsynchronousCodeFixProvider : AbstractMakeMethodA
         CancellationToken cancellationToken)
     {
         var newReturnType = FixMethodReturnType(keepVoid, methodSymbol, method.ReturnType, knownTypes, cancellationToken);
-        var newModifiers = AddAsyncModifierWithCorrectedTrivia(method.Modifiers, ref newReturnType);
+        (var newModifiers, newReturnType) = AddAsyncModifierWithCorrectedTrivia(method.Modifiers, newReturnType);
         return method.WithReturnType(newReturnType).WithModifiers(newModifiers);
     }
 
@@ -104,7 +106,7 @@ internal class CSharpMakeMethodAsynchronousCodeFixProvider : AbstractMakeMethodA
         CancellationToken cancellationToken)
     {
         var newReturnType = FixMethodReturnType(keepVoid, methodSymbol, localFunction.ReturnType, knownTypes, cancellationToken);
-        var newModifiers = AddAsyncModifierWithCorrectedTrivia(localFunction.Modifiers, ref newReturnType);
+        (var newModifiers, newReturnType) = AddAsyncModifierWithCorrectedTrivia(localFunction.Modifiers, newReturnType);
         return localFunction.WithReturnType(newReturnType).WithModifiers(newModifiers);
     }
 
@@ -155,9 +157,9 @@ internal class CSharpMakeMethodAsynchronousCodeFixProvider : AbstractMakeMethodA
 
         static TypeSyntax MakeGenericType(string type, ITypeSymbol typeArgumentFrom)
         {
-            var result = SyntaxFactory.GenericName(
-                SyntaxFactory.Identifier(type),
-                SyntaxFactory.TypeArgumentList([typeArgumentFrom.GetTypeArguments()[0].GenerateTypeSyntax()]));
+            var result = GenericName(
+                Identifier(type),
+                TypeArgumentList([typeArgumentFrom.GetTypeArguments()[0].GenerateTypeSyntax()]));
 
             return result.WithAdditionalAnnotations(Simplifier.Annotation);
         }
@@ -176,19 +178,19 @@ internal class CSharpMakeMethodAsynchronousCodeFixProvider : AbstractMakeMethodA
     private static bool IsIEnumerator(ITypeSymbol returnType, KnownTaskTypes knownTypes)
         => returnType.OriginalDefinition.Equals(knownTypes.IEnumeratorOfTType);
 
-    private static SyntaxTokenList AddAsyncModifierWithCorrectedTrivia(SyntaxTokenList modifiers, ref TypeSyntax newReturnType)
+    private static (SyntaxTokenList newModifiers, TypeSyntax newReturnType) AddAsyncModifierWithCorrectedTrivia(SyntaxTokenList modifiers, TypeSyntax returnType)
     {
         if (modifiers.Any())
-            return modifiers.Add(s_asyncToken);
+            return (modifiers.Add(s_asyncKeywordWithSpace), returnType);
 
         // Move the leading trivia from the return type to the new modifiers list.
-        var result = SyntaxFactory.TokenList(s_asyncToken.WithLeadingTrivia(newReturnType.GetLeadingTrivia()));
-        newReturnType = newReturnType.WithoutLeadingTrivia();
-        return result;
+        var newModifiers = TokenList(s_asyncKeywordWithSpace.WithLeadingTrivia(returnType.GetLeadingTrivia()));
+        var newReturnType = returnType.WithoutLeadingTrivia();
+        return (newModifiers, newReturnType);
     }
 
     private static AnonymousFunctionExpressionSyntax FixAnonymousFunction(AnonymousFunctionExpressionSyntax anonymous)
         => anonymous
             .WithoutLeadingTrivia()
-            .WithAsyncKeyword(s_asyncToken.WithPrependedLeadingTrivia(anonymous.GetLeadingTrivia()));
+            .WithAsyncKeyword(AsyncKeyword.WithPrependedLeadingTrivia(anonymous.GetLeadingTrivia()));
 }

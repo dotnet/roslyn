@@ -13,8 +13,11 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable;
+
+using static CSharpSyntaxTokens;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.EnableNullable), Shared]
 internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringProvider
@@ -65,14 +68,21 @@ internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringPr
         Project project, CodeActionPurpose purpose, CodeActionOptionsProvider fallbackOptions, IProgress<CodeAnalysisProgress> _, CancellationToken cancellationToken)
     {
         var solution = project.Solution;
-        foreach (var document in project.Documents)
-        {
-            if (await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
-                continue;
+        var updatedDocumentRoots = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
+            source: project.Documents,
+            produceItems: static async (document, callback, fallbackOptions, cancellationToken) =>
+            {
+                if (await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
+                    return;
 
-            var updatedDocumentRoot = await EnableNullableReferenceTypesAsync(document, fallbackOptions, cancellationToken).ConfigureAwait(false);
-            solution = solution.WithDocumentSyntaxRoot(document.Id, updatedDocumentRoot);
-        }
+                var updatedDocumentRoot = await EnableNullableReferenceTypesAsync(
+                    document, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                callback((document.Id, updatedDocumentRoot));
+            },
+            args: fallbackOptions,
+            cancellationToken).ConfigureAwait(false);
+
+        solution = solution.WithDocumentSyntaxRoots(updatedDocumentRoots);
 
         if (purpose is CodeActionPurpose.Apply)
         {
@@ -133,12 +143,12 @@ internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringPr
 
                 if (originalNode.SettingToken.IsKind(SyntaxKind.RestoreKeyword))
                 {
-                    return rewrittenNode.WithSettingToken(SyntaxFactory.Token(SyntaxKind.DisableKeyword).WithTriviaFrom(rewrittenNode.SettingToken));
+                    return rewrittenNode.WithSettingToken(DisableKeyword.WithTriviaFrom(rewrittenNode.SettingToken));
                 }
 
                 if (originalNode.SettingToken.IsKind(SyntaxKind.EnableKeyword))
                 {
-                    return rewrittenNode.WithSettingToken(SyntaxFactory.Token(SyntaxKind.RestoreKeyword).WithTriviaFrom(rewrittenNode.SettingToken));
+                    return rewrittenNode.WithSettingToken(RestoreKeyword.WithTriviaFrom(rewrittenNode.SettingToken));
                 }
 
                 Debug.Fail("Unexpected state?");
@@ -156,7 +166,7 @@ internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringPr
         // Add a new '#nullable disable' to the top of each file
         if (!HasLeadingNullableDirective(root, out var leadingDirective))
         {
-            var nullableDisableTrivia = SyntaxFactory.Trivia(SyntaxFactory.NullableDirectiveTrivia(SyntaxFactory.Token(SyntaxKind.DisableKeyword).WithPrependedLeadingTrivia(SyntaxFactory.ElasticSpace), isActive: true));
+            var nullableDisableTrivia = SyntaxFactory.Trivia(SyntaxFactory.NullableDirectiveTrivia(DisableKeyword.WithPrependedLeadingTrivia(SyntaxFactory.ElasticSpace), isActive: true));
 
             var existingTriviaList = firstToken.LeadingTrivia;
             var insertionIndex = GetInsertionPoint(existingTriviaList);
