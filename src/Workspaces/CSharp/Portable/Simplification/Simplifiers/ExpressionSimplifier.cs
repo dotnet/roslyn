@@ -428,7 +428,7 @@ internal sealed partial class ExpressionSimplifier : AbstractCSharpSimplifier<Ex
                         // Don't simplify to a base type if it has the EditorBrowsable attribute on it.  This is
                         // occasionally done in some APIs to have a 'pseudo internal' base type that has functionality,
                         // which a user is supposed to only access through some 'pseudo public' derived type instead.
-                        if (!containingType.IsEditorBrowsable(hideAdvancedMembers: true, semanticModel.Compilation))
+                        if (!containingType.IsEditorBrowsable(hideAdvancedMembers: true, semanticModel.Compilation, includingSourceSymbols: true))
                             return false;
 
                         // We have a static member access or a nested type member access using a more derived type.
