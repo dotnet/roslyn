@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
@@ -77,8 +78,15 @@ internal abstract partial class AbstractRenameCommandHandler(
         {
             // It's in a read-only area that is open, so let's commit the rename 
             // and then let the character go through
-
-            CommitIfActiveAndCallNextHandler(args, nextHandler, operationContext);
+            if (globalOptionService.GetOption(InlineRenameSessionOptionsStorage.OnlyCommitRenameOnEnter))
+            {
+                renameService.ActiveSession?.Cancel();
+                nextHandler();
+            }
+            else
+            {
+                CommitIfActiveAndCallNextHandler(args, nextHandler, operationContext);
+            }
         }
         else
         {
