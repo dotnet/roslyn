@@ -286,6 +286,7 @@ namespace N1
                 "",
                 "Class",
                 "DefOnlyPartialProp",
+                "get_DefOnlyPartialProp",
                 "get_ImplOnlyPartialProp",
                 "get_NonPartialProp1",
                 "get_PartialProp",
@@ -293,6 +294,7 @@ namespace N1
                 "N1",
                 "NonPartialProp1",
                 "PartialProp",
+                "set_DefOnlyPartialProp",
                 "set_ImplOnlyPartialProp",
                 "set_NonPartialProp1",
                 "set_PartialProp"

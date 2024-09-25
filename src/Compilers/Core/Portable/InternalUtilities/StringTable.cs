@@ -727,7 +727,7 @@ foundIdx:
 #if DEBUG
             for (var i = 0; i < ascii.Length; i++)
             {
-                Debug.Assert((ascii[i] & 0x80) == 0, $"The {nameof(ascii)} input to this method must be valid ASCII.");
+                RoslynDebug.Assert((ascii[i] & 0x80) == 0, $"The {nameof(ascii)} input to this method must be valid ASCII.");
             }
 #endif
 

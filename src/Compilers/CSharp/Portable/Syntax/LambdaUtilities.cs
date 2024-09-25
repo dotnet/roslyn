@@ -396,6 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ForEachStatement:
                 case SyntaxKind.ForEachVariableStatement:
                 case SyntaxKind.UsingStatement:
+                case SyntaxKind.TryStatement:
 
                 // ctor parameter captured by a lambda in a ctor initializer
                 case SyntaxKind.ConstructorDeclaration:

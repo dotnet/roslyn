@@ -287,11 +287,6 @@
         <target state="translated">O membro do registro '{0}' precisa ser uma propriedade de instância legível ou campo do tipo '{1}' para corresponder ao parâmetro posicional '{2}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
-        <target state="translated">A instrução foreach não pode operar em enumeradores do tipo "{0}" em métodos assíncronos ou iteradores porque "{0}" é um ref struct ou um parâmetro de tipo que permite o ref struct.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
         <target state="translated">Parâmetros do tipo "{0}" não podem ser declarados em métodos assíncronos ou expressões lambda assíncronas.</target>
@@ -505,6 +500,11 @@
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
         <target state="translated">Não é possível inicializar o tipo '{0}' com uma expressão de coleção porque o tipo não é construível.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
+        <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
+        <target state="new">Collection initializer results in an infinite chain of instantiations of collection '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">

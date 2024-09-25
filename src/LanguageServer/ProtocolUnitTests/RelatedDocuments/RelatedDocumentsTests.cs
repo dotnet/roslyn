@@ -21,7 +21,6 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
     private static async Task<VSInternalRelatedDocumentReport[]> RunGetRelatedDocumentsAsync(
         TestLspServer testLspServer,
         Uri uri,
-        string? previousResultId = null,
         bool useProgress = false)
     {
         BufferedProgress<VSInternalRelatedDocumentReport[]>? progress = useProgress ? BufferedProgress.Create<VSInternalRelatedDocumentReport[]>(null) : null;
@@ -30,7 +29,6 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
             new VSInternalRelatedDocumentParams
             {
                 TextDocument = new TextDocumentIdentifier { Uri = uri },
-                PreviousResultId = previousResultId,
                 PartialResultToken = progress,
             },
             CancellationToken.None).ConfigureAwait(false);
@@ -135,7 +133,7 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
     }
 
     [Theory, CombinatorialData]
-    public async Task TestResultIds(bool mutatingLspWorkspace, bool useProgress)
+    public async Task TestRepeatInvocations(bool mutatingLspWorkspace, bool useProgress)
     {
         var markup1 = """
             class X
@@ -158,29 +156,22 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
             project.Documents.First().GetURI(),
             useProgress: useProgress);
 
-        AssertJsonEquals(results1, new VSInternalRelatedDocumentReport[]
+        var expectedResult = new VSInternalRelatedDocumentReport[]
         {
             new()
             {
-                ResultId = "RelatedDocumentsHandler:0",
                 FilePaths = [project.Documents.Last().FilePath!],
             }
-        });
+        };
+
+        AssertJsonEquals(results1, expectedResult);
 
         // Calling again, without a change, should return the old result id and no filepaths.
         var results2 = await RunGetRelatedDocumentsAsync(
             testLspServer,
             project.Documents.First().GetURI(),
-            previousResultId: results1.Single().ResultId,
             useProgress: useProgress);
 
-        AssertJsonEquals(results2, new VSInternalRelatedDocumentReport[]
-        {
-            new()
-            {
-                ResultId = "RelatedDocumentsHandler:0",
-                FilePaths = null,
-            }
-        });
+        AssertJsonEquals(results2, expectedResult);
     }
 }
