@@ -11,6 +11,10 @@ namespace Roslyn.Utilities
     {
         public static ImmutableArray<T> ToImmutableArray<T>(this HashSet<T> set)
         {
+            // [.. set] currently allocates, even for the empty case.  Workaround that until that is solved by the compiler.
+            if (set.Count == 0)
+                return [];
+
             return [.. set];
         }
 
