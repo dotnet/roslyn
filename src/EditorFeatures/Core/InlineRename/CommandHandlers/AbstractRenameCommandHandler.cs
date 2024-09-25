@@ -76,15 +76,15 @@ internal abstract partial class AbstractRenameCommandHandler(
         }
         else if (renameService.ActiveSession.IsInOpenTextBuffer(singleSpan.Start))
         {
-            // It's in a read-only area that is open, so let's commit the rename 
-            // and then let the character go through
-            if (globalOptionService.GetOption(InlineRenameSessionOptionsStorage.OnlyCommitRenameOnEnter))
+            if (globalOptionService.ShouldCommitAsynchronously())
             {
                 renameService.ActiveSession?.Cancel();
                 nextHandler();
             }
             else
             {
+                // It's in a read-only area that is open, so let's commit the rename 
+                // and then let the character go through
                 CommitIfActiveAndCallNextHandler(args, nextHandler, operationContext);
             }
         }
