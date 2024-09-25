@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 
-internal partial class ExpressionSimplifier : AbstractCSharpSimplifier<ExpressionSyntax, ExpressionSyntax>
+internal sealed partial class ExpressionSimplifier : AbstractCSharpSimplifier<ExpressionSyntax, ExpressionSyntax>
 {
     public static readonly ExpressionSimplifier Instance = new();
 
@@ -40,7 +40,7 @@ internal partial class ExpressionSimplifier : AbstractCSharpSimplifier<Expressio
         replacementNode = null;
         issueSpan = default;
 
-        if (expression is MemberAccessExpressionSyntax { Expression.RawKind: (int)SyntaxKind.ThisExpression } memberAccessExpression)
+        if (expression is MemberAccessExpressionSyntax(SyntaxKind.ThisExpression) memberAccessExpression)
         {
             if (!MemberAccessExpressionSimplifier.Instance.ShouldSimplifyThisMemberAccessExpression(
                     memberAccessExpression, semanticModel, options, out _, out _, cancellationToken))
@@ -152,12 +152,12 @@ internal partial class ExpressionSimplifier : AbstractCSharpSimplifier<Expressio
                 }
 
                 replacementNode = SyntaxFactory.IdentifierName(
-                                    memberAccess.Name.Identifier.CopyAnnotationsTo(SyntaxFactory.Identifier(
-                                        memberAccess.GetLeadingTrivia(),
-                                        SyntaxKind.IdentifierToken,
-                                        text,
-                                        aliasReplacement.Name,
-                                        memberAccess.GetTrailingTrivia())));
+                    memberAccess.Name.Identifier.CopyAnnotationsTo(SyntaxFactory.Identifier(
+                        memberAccess.GetLeadingTrivia(),
+                        SyntaxKind.IdentifierToken,
+                        text,
+                        aliasReplacement.Name,
+                        memberAccess.GetTrailingTrivia())));
 
                 replacementNode = memberAccess.CopyAnnotationsTo(replacementNode);
                 replacementNode = memberAccess.Name.CopyAnnotationsTo(replacementNode);
@@ -245,9 +245,7 @@ internal partial class ExpressionSimplifier : AbstractCSharpSimplifier<Expressio
     private static bool IsReplacementCandidate(ISymbol actualSymbol, ImmutableArray<ISymbol> speculativeSymbols, ImmutableArray<ISymbol> speculativeNamespacesAndTypes)
     {
         if (speculativeSymbols.IsEmpty && speculativeNamespacesAndTypes.IsEmpty)
-        {
             return false;
-        }
 
         if (actualSymbol is object)
         {
@@ -265,50 +263,54 @@ internal partial class ExpressionSimplifier : AbstractCSharpSimplifier<Expressio
         out TextSpan issueSpan,
         CancellationToken cancellationToken)
     {
-        replacementNode = null;
-        issueSpan = default;
+        if (!TrySimplifyWorker(expression, semanticModel, out replacementNode, out issueSpan, cancellationToken))
+            return false;
 
-        switch (expression.Kind())
+        // Ensure that replacement doesn't change semantics.
+        var speculationAnalyzer = new SpeculationAnalyzer(expression, replacementNode, semanticModel, cancellationToken);
+        return !speculationAnalyzer.ReplacementChangesSemantics();
+
+        static bool TrySimplifyWorker(
+            ExpressionSyntax expression,
+            SemanticModel semanticModel,
+            out ExpressionSyntax replacementNode,
+            out TextSpan issueSpan,
+            CancellationToken cancellationToken)
         {
-            case SyntaxKind.SimpleMemberAccessExpression:
-                {
-                    var memberAccess = (MemberAccessExpressionSyntax)expression;
-                    if (IsNonRemovablePartOfDynamicMethodInvocation(semanticModel, memberAccess, cancellationToken))
-                    {
-                        return false;
-                    }
+            replacementNode = null;
+            issueSpan = default;
 
-                    if (TrySimplifyMemberAccessOrQualifiedName(memberAccess.Expression, memberAccess.Name, semanticModel, out var newLeft, out issueSpan))
+            switch (expression)
+            {
+                case MemberAccessExpressionSyntax(SyntaxKind.SimpleMemberAccessExpression) memberAccess:
                     {
+                        if (IsNonRemovablePartOfDynamicMethodInvocation(semanticModel, memberAccess, cancellationToken))
+                            return false;
+
+                        if (!TrySimplifyMemberAccessOrQualifiedName(memberAccess.Expression, memberAccess.Name, semanticModel, out var newLeft, out issueSpan))
+                            return false;
+
                         // replacement node might not be in it's simplest form, so add simplify annotation to it.
                         replacementNode = memberAccess.Update(newLeft, memberAccess.OperatorToken, memberAccess.Name)
                             .WithAdditionalAnnotations(Simplifier.Annotation);
-
-                        // Ensure that replacement doesn't change semantics.
-                        return !ReplacementChangesSemantics(memberAccess, replacementNode, semanticModel);
+                        return true;
                     }
 
-                    return false;
-                }
-
-            case SyntaxKind.QualifiedName:
-                {
-                    var qualifiedName = (QualifiedNameSyntax)expression;
-                    if (TrySimplifyMemberAccessOrQualifiedName(qualifiedName.Left, qualifiedName.Right, semanticModel, out var newLeft, out issueSpan))
+                case QualifiedNameSyntax qualifiedName:
                     {
+                        if (!TrySimplifyMemberAccessOrQualifiedName(qualifiedName.Left, qualifiedName.Right, semanticModel, out var newLeft, out issueSpan))
+                            return false;
+
                         // replacement node might not be in it's simplest form, so add simplify annotation to it.
                         replacementNode = qualifiedName.Update((NameSyntax)newLeft, qualifiedName.DotToken, qualifiedName.Right)
                             .WithAdditionalAnnotations(Simplifier.Annotation);
 
-                        // Ensure that replacement doesn't change semantics.
-                        return !ReplacementChangesSemantics(qualifiedName, replacementNode, semanticModel);
+                        return true;
                     }
+            }
 
-                    return false;
-                }
+            return false;
         }
-
-        return false;
     }
 
     private static bool CanReplaceWithMemberAccessName(
@@ -414,51 +416,25 @@ internal partial class ExpressionSimplifier : AbstractCSharpSimplifier<Expressio
         if (left != null && right != null)
         {
             var leftSymbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, left);
-            if (leftSymbol != null && leftSymbol.Kind == SymbolKind.NamedType)
+            if (leftSymbol is INamedTypeSymbol)
             {
                 var rightSymbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, right);
                 if (rightSymbol != null && (rightSymbol.IsStatic || rightSymbol.Kind == SymbolKind.NamedType))
                 {
                     // Static member access or nested type member access.
-                    var containingType = rightSymbol.ContainingType;
-
-                    var enclosingSymbol = semanticModel.GetEnclosingSymbol(left.SpanStart);
-                    var enclosingTypeParametersInsideOut = new List<ISymbol>();
-
-                    while (enclosingSymbol != null)
+                    if (rightSymbol.ContainingType is { TypeArguments.Length: 0 } containingType &&
+                        !containingType.Equals(leftSymbol))
                     {
-                        if (enclosingSymbol is IMethodSymbol methodSymbol)
-                        {
-                            if (methodSymbol.TypeArguments.Length != 0)
-                            {
-                                enclosingTypeParametersInsideOut.AddRange(methodSymbol.TypeArguments);
-                            }
-                        }
-
-                        if (enclosingSymbol is INamedTypeSymbol namedTypeSymbol)
-                        {
-                            if (namedTypeSymbol.TypeArguments.Length != 0)
-                            {
-                                enclosingTypeParametersInsideOut.AddRange(namedTypeSymbol.TypeArguments);
-                            }
-                        }
-
-                        enclosingSymbol = enclosingSymbol.ContainingSymbol;
-                    }
-
-                    if (containingType != null && !containingType.Equals(leftSymbol))
-                    {
-                        if (leftSymbol is INamedTypeSymbol &&
-                            containingType.TypeArguments.Length != 0)
-                        {
+                        // Don't simplify to a base type if it has the EditorBrowsable attribute on it.  This is
+                        // occasionally done in some APIs to have a 'pseudo internal' base type that has functionality,
+                        // which a user is supposed to only access through some 'pseudo public' derived type instead.
+                        if (!containingType.IsEditorBrowsable(hideAdvancedMembers: true, semanticModel.Compilation))
                             return false;
-                        }
 
                         // We have a static member access or a nested type member access using a more derived type.
-                        // Simplify syntax so as to use accessed member's most immediate containing type instead of the derived type.
-                        replacementNode = containingType.GenerateTypeSyntax()
-                            .WithLeadingTrivia(left.GetLeadingTrivia())
-                            .WithTrailingTrivia(left.GetTrailingTrivia());
+                        // Simplify syntax so as to use accessed member's most immediate containing type instead of the
+                        // derived type.
+                        replacementNode = containingType.GenerateTypeSyntax().WithTriviaFrom(left);
                         issueSpan = left.Span;
                         return true;
                     }
@@ -467,11 +443,5 @@ internal partial class ExpressionSimplifier : AbstractCSharpSimplifier<Expressio
         }
 
         return false;
-    }
-
-    protected static bool ReplacementChangesSemantics(ExpressionSyntax originalExpression, ExpressionSyntax replacedExpression, SemanticModel semanticModel)
-    {
-        var speculationAnalyzer = new SpeculationAnalyzer(originalExpression, replacedExpression, semanticModel, CancellationToken.None);
-        return speculationAnalyzer.ReplacementChangesSemantics();
     }
 }
