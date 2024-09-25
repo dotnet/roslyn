@@ -5274,7 +5274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Nullability_13_AllowNullProp_AutoSetter()
         {
             // AllowNull only on the property
-            // TODO2: Should auto accessor bodies be nullable analyzed?
+            // https://github.com/dotnet/roslyn/issues/50244: Should auto accessor bodies be nullable analyzed?
             var source = """
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
@@ -5511,7 +5511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             // NotNull property auto-implemented
             // This does not warn in the shipped impl
-            // TODO2: should auto-accessor bodies be nullable analyzed?
+            // https://github.com/dotnet/roslyn/issues/50244: should auto-accessor bodies be nullable analyzed?
             var source = """
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
