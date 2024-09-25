@@ -2063,25 +2063,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     case BoundKind.BinaryPattern:
                         {
-                            // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
-
                             var pat = (BoundBinaryPattern)pattern;
 
-                            while (true)
+                            if (pat.Left is not BoundBinaryPattern)
+                            {
+                                bool def = definitely && !pat.Disjunction;
+                                assignPatternVariablesAndMarkReadFields(pat.Left, def);
+                                assignPatternVariablesAndMarkReadFields(pat.Right, def);
+                                break;
+                            }
+
+                            // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
+                            var stack = ArrayBuilder<(BoundBinaryPattern pattern, bool def)>.GetInstance();
+
+                            do
                             {
                                 definitely = definitely && !pat.Disjunction;
-                                assignPatternVariablesAndMarkReadFields(pat.Right, definitely);
+                                stack.Push((pat, definitely));
+                                pat = pat.Left as BoundBinaryPattern;
+                            } while (pat is not null);
 
-                                if (pat.Left is BoundBinaryPattern left)
-                                {
-                                    pat = left;
-                                }
-                                else
-                                {
-                                    assignPatternVariablesAndMarkReadFields(pat.Left, definitely);
-                                    break;
-                                }
+                            Debug.Assert(stack.Count > 0);
+                            (pat, definitely) = stack.Peek();
+                            assignPatternVariablesAndMarkReadFields(pat.Left, definitely);
+
+                            while (stack.TryPop(out var patAndDef))
+                            {
+                                assignPatternVariablesAndMarkReadFields(patAndDef.pattern.Right, patAndDef.def);
                             }
+
+                            stack.Free();
                             break;
                         }
                     default:

@@ -1002,16 +1002,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         while (binaryPatterns.TryPop(out var currentBinary))
                         {
-                            if (binary.Disjunction)
+                            if (currentBinary.Disjunction)
                             {
                                 // `a?.b(out x) is null or C`
                                 // pattern matches null if either subpattern matches null
-                                currentPatternMatchesNull = currentPatternMatchesNull || patternMatchesNull(binary.Right);
+                                currentPatternMatchesNull = currentPatternMatchesNull || patternMatchesNull(currentBinary.Right);
+                                continue;
                             }
 
                             // `a?.b out x is not null and var c`
                             // pattern matches null only if both subpatterns match null
-                            currentPatternMatchesNull = currentPatternMatchesNull && patternMatchesNull(binary.Right);
+                            currentPatternMatchesNull = currentPatternMatchesNull && patternMatchesNull(currentBinary.Right);
                         }
 
                         binaryPatterns.Free();
@@ -1049,14 +1050,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // both subpatterns must have the same bool test for the test to propagate out
                                 var leftNullTest = currentBoolTest;
                                 currentBoolTest = leftNullTest is null ? null :
-                                    leftNullTest != isBoolTest(binary.Right) ? null :
+                                    leftNullTest != isBoolTest(currentBinary.Right) ? null :
                                     leftNullTest;
+                                continue;
                             }
 
                             // `(a != null && a.b(out x)) is true and true` matches `true`
                             // `(a != null && a.b(out x)) is true and var x` matches `true`
                             // `(a != null && a.b(out x)) is true and false` never matches and is a compile error
-                            currentBoolTest ??= isBoolTest(binary.Right);
+                            currentBoolTest ??= isBoolTest(currentBinary.Right);
                         }
 
                         binaryPatterns.Free();

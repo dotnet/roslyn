@@ -1736,12 +1736,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
 
-            var binaryPatternStack = ArrayBuilder<BinaryPatternSyntax>.GetInstance();
+            var binaryPatternStack = ArrayBuilder<(BinaryPatternSyntax pat, bool permitDesignations)>.GetInstance();
             BinaryPatternSyntax? currentNode = node;
 
             do
             {
-                binaryPatternStack.Push(currentNode);
+                permitDesignations = permitDesignations && currentNode.IsKind(SyntaxKind.AndPattern);
+                binaryPatternStack.Push((currentNode, permitDesignations));
                 currentNode = currentNode.Left as BinaryPatternSyntax;
             } while (currentNode != null);
 
@@ -1749,8 +1750,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundPattern? result = null;
 
-            while (binaryPatternStack.TryPop(out var binaryPattern))
+            while (binaryPatternStack.TryPop(out var binaryPatternAndPermitDesignations))
             {
+                (var binaryPattern, permitDesignations) = binaryPatternAndPermitDesignations;
                 if (result == null)
                 {
                     Debug.Assert(binaryPattern.Left is not BinaryPatternSyntax);
@@ -1776,9 +1778,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isDisjunction = node.Kind() == SyntaxKind.OrPattern;
                 if (isDisjunction)
                 {
+                    Debug.Assert(!permitDesignations);
                     MessageID.IDS_FeatureOrPattern.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
-                    permitDesignations = false; // prevent designators under 'or'
                     var right = binder.BindPattern(node.Right, inputType, permitDesignations, hasErrors, diagnostics);
 
                     // Compute the common type. This algorithm is quadratic, but disjunctive patterns are unlikely to be huge

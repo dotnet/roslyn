@@ -54,6 +54,28 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
+            public override object? VisitBinaryPattern(IBinaryPatternOperation operation, Dictionary<SyntaxNode, IOperation> argument)
+            {
+                // In order to handle very large nested patterns, we implement manual iteration here. Our operations are not order sensitive,
+                // so we don't need to maintain a stack, just iterate through every level.
+                while (true)
+                {
+                    RecordOperation(operation, argument);
+                    Visit(operation.RightPattern, argument);
+                    if (operation.LeftPattern is IBinaryPatternOperation nested)
+                    {
+                        operation = nested;
+                    }
+                    else
+                    {
+                        Visit(operation.LeftPattern, argument);
+                        break;
+                    }
+                }
+
+                return null;
+            }
+
             internal override object? VisitNoneOperation(IOperation operation, Dictionary<SyntaxNode, IOperation> argument)
             {
                 // OperationWalker skips these nodes by default, to avoid having public consumers deal with NoneOperation.
