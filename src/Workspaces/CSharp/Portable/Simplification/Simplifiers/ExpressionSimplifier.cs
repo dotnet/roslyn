@@ -40,7 +40,7 @@ internal sealed partial class ExpressionSimplifier : AbstractCSharpSimplifier<Ex
         replacementNode = null;
         issueSpan = default;
 
-        if (expression is MemberAccessExpressionSyntax(SyntaxKind.ThisExpression) memberAccessExpression)
+        if (expression is MemberAccessExpressionSyntax { Expression.RawKind: (int)SyntaxKind.ThisExpression } memberAccessExpression)
         {
             if (!MemberAccessExpressionSimplifier.Instance.ShouldSimplifyThisMemberAccessExpression(
                     memberAccessExpression, semanticModel, options, out _, out _, cancellationToken))
