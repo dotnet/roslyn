@@ -151,7 +151,10 @@ dotnet_public_api_analyzer.require_api_files = true
 # Workaround for https://github.com/dotnet/roslyn/issues/70570
 dotnet_diagnostic.IDE0055.severity = warning
 
-# Enable the xUnit analyzer rules
+# These xUnit analyzers were disabled temporarily to let us move to the 
+# new xUnit and get past several component governance issues. The
+# following issue tracks enabling them
+#
 # https://github.com/dotnet/roslyn/issues/75093
 dotnet_diagnostic.xUnit1012.severity = none
 dotnet_diagnostic.xUnit1030.severity = none
