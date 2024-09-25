@@ -14,7 +14,7 @@
   </PropertyGroup>
 
   <!-- do not restore or use the 8.0 app host in source-build -->
-  <PropertyGroup Condition="'$(DotNetBuildFromSource)' == 'true'">
+  <PropertyGroup Condition="'$(DotNetBuildSourceOnly)' == 'true'">
     <UseAppHost>false</UseAppHost>
   </PropertyGroup>
 

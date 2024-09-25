@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 // just use the hex value of the data hash.  For other alignments, tack on a '2', '4', or '8'
                 // accordingly.  As every byte will yield two chars, the odd number of chars used for 2/4/8
                 // alignments will never produce a name that conflicts with names for an alignment of 1.
-                Debug.Assert(alignment is 1 or 2 or 4 or 8, $"Unexpected alignment: {alignment}");
+                RoslynDebug.Assert(alignment is 1 or 2 or 4 or 8, $"Unexpected alignment: {alignment}");
                 string hex = DataToHex(key.Data);
                 string name = alignment switch
                 {
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal ExplicitSizeStruct(uint size, ushort alignment, PrivateImplementationDetails containingType, Cci.ITypeReference sysValueType)
         {
-            Debug.Assert(alignment is 1 or 2 or 4 or 8, $"Unexpected alignment: {alignment}");
+            RoslynDebug.Assert(alignment is 1 or 2 or 4 or 8, $"Unexpected alignment: {alignment}");
 
             _size = size;
             _alignment = alignment;

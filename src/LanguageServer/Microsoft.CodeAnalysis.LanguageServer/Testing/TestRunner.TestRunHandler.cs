@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Text;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Testing;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.Client;
@@ -137,11 +140,7 @@ internal partial class TestRunner
             var results = testRunChangedEventArgs.NewTestResults.Select(result =>
             {
                 var messageBuilder = new StringBuilder();
-                messageBuilder.Append($"[{result.Outcome}] {result.TestCase.DisplayName}");
-                if (result.ErrorMessage != null || result.ErrorStackTrace != null)
-                {
-                    messageBuilder.AppendLine();
-                }
+                messageBuilder.AppendLine($"[{result.Outcome}] {result.TestCase.DisplayName}");
 
                 if (!string.IsNullOrWhiteSpace(result.ErrorMessage))
                 {
@@ -155,14 +154,64 @@ internal partial class TestRunner
                     messageBuilder.AppendLine(IndentString(result.ErrorStackTrace, 8));
                 }
 
+                var standardOutputMessages = GetTestMessages(result.Messages, TestResultMessage.StandardOutCategory);
+                if (standardOutputMessages.Length > 0)
+                {
+                    messageBuilder.AppendLine(value: IndentString($"{LanguageServerResources.Standard_Output_Messages}:", 4));
+                    messageBuilder.AppendLine(FormatMessages(standardOutputMessages, 8));
+                }
+
+                var standardErrorMessages = GetTestMessages(result.Messages, TestResultMessage.StandardErrorCategory);
+                if (standardErrorMessages.Length > 0)
+                {
+                    messageBuilder.AppendLine(value: IndentString($"{LanguageServerResources.Standard_Error_Messages}:", 4));
+                    messageBuilder.AppendLine(FormatMessages(standardErrorMessages, 8));
+                }
+
+                var debugTraceMessages = GetTestMessages(result.Messages, TestResultMessage.DebugTraceCategory);
+                if (debugTraceMessages.Length > 0)
+                {
+                    messageBuilder.AppendLine(value: IndentString($"{LanguageServerResources.Debug_Trace_Messages}:", 4));
+                    messageBuilder.AppendLine(FormatMessages(debugTraceMessages, 8));
+                }
+
+                var additionalInfoMessages = GetTestMessages(result.Messages, TestResultMessage.AdditionalInfoCategory);
+                if (additionalInfoMessages.Length > 0)
+                {
+                    messageBuilder.AppendLine(value: IndentString($"{LanguageServerResources.Additional_Info_Messages}:", 4));
+                    messageBuilder.AppendLine(FormatMessages(additionalInfoMessages, 8));
+                }
+
                 return messageBuilder.ToString();
             });
 
-            return string.Join(Environment.NewLine, results);
+            return string.Join("", results);
 
             static string IndentString(string text, int count)
             {
-                return text.Replace(Environment.NewLine, $"{Environment.NewLine}        ").TrimEnd().Insert(0, new string(' ', count));
+                var indentation = new string(' ', count);
+                return text.Replace(Environment.NewLine, $"{Environment.NewLine}{indentation}").TrimEnd().Insert(0, indentation);
+            }
+
+            static ImmutableArray<TestResultMessage> GetTestMessages(Collection<TestResultMessage> messages, string requiredCategory)
+            {
+                return messages.WhereAsArray(static (msg, category) => msg.Category.Equals(category, StringComparison.OrdinalIgnoreCase), requiredCategory);
+            }
+
+            static string FormatMessages(ImmutableArray<TestResultMessage> messages, int indentation)
+            {
+                var builder = new StringBuilder();
+                foreach (var message in messages)
+                {
+                    if (message.Text is null)
+                        continue;
+
+                    var indentedMessage = IndentString(message.Text, indentation);
+                    if (!string.IsNullOrWhiteSpace(indentedMessage))
+                        builder.Append(indentedMessage);
+                }
+
+                return builder.ToString();
             }
         }
     }
