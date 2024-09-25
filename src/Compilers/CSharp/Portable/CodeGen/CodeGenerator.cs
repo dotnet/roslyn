@@ -140,9 +140,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     debugFriendly: _ilEmitStyle != ILEmitStyle.Release,
                     stackLocals: out _stackLocals);
             }
-            catch (BoundTreeVisitor.CancelledByStackGuardException)
+            catch (BoundTreeVisitor.CancelledByStackGuardException ex)
             {
-                //ex.AddAnError(diagnostics); // PROTOTYPE: Revert the changes to CodeGenerator and Optimizer and instead change VisitStatementList().
+                ex.AddAnError(diagnostics);
                 _boundBody = boundBody;
             }
 

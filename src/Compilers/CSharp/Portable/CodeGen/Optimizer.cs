@@ -566,30 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public BoundNode VisitStatement(BoundNode node)
         {
             Debug.Assert(node == null || EvalStackIsEmpty());
-
-            _recursionDepth++;
-
-            BoundNode result;
-            if (_recursionDepth > 1)
-            {
-                StackGuard.EnsureSufficientExecutionStack(_recursionDepth);
-
-                result = VisitSideEffect(node);
-            }
-            else
-            {
-                try
-                {
-                    result = VisitSideEffect(node);
-                }
-                catch (InsufficientExecutionStackException ex)
-                {
-                    throw new CancelledByStackGuardException(ex, node);
-                }
-            }
-
-            _recursionDepth--;
-            return result;
+            return VisitSideEffect(node);
         }
 
         public BoundNode VisitSideEffect(BoundNode node)
