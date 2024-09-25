@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.QuickInfo.Presentation;
 
 internal static class QuickInfoContentBuilder
 {
-    private static readonly FrozenDictionary<Glyph, QuickInfoGlyphElement> s_glyphToElementMap = CreateGlyphToElementMap().ToFrozenDictionary();
+    private static readonly FrozenDictionary<Glyph, QuickInfoGlyphElement> s_glyphToElementMap = CreateGlyphToElementMap();
 
-    private static Dictionary<Glyph, QuickInfoGlyphElement> CreateGlyphToElementMap()
+    private static FrozenDictionary<Glyph, QuickInfoGlyphElement> CreateGlyphToElementMap()
     {
         var glyphs = (Glyph[])Enum.GetValues(typeof(Glyph));
         var result = new Dictionary<Glyph, QuickInfoGlyphElement>(capacity: glyphs.Length);
@@ -26,7 +26,7 @@ internal static class QuickInfoContentBuilder
             result.Add(glyph, new QuickInfoGlyphElement(glyph));
         }
 
-        return result;
+        return result.ToFrozenDictionary();
     }
 
     public static async Task<QuickInfoContainerElement> BuildInteractiveContentAsync(
