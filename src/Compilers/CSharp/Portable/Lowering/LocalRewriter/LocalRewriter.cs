@@ -1146,6 +1146,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private sealed class LocalRewritingValidator : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
+            public override BoundNode? Visit(BoundNode? node)
+            {
+                if (node is BoundIfStatement)
+                {
+                    Fail(node);
+                    return null;
+                }
+
+                return base.Visit(node);
+            }
+
             /// <summary>
             /// Asserts that no unexpected nodes survived local rewriting.
             /// </summary>
@@ -1168,12 +1179,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             public override BoundNode? VisitUsingStatement(BoundUsingStatement node)
-            {
-                Fail(node);
-                return null;
-            }
-
-            public override BoundNode? VisitIfStatement(BoundIfStatement node)
             {
                 Fail(node);
                 return null;

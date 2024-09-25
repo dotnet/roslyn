@@ -654,30 +654,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            public override BoundNode? VisitIfStatement(BoundIfStatement node)
-            {
-                while (true)
-                {
-                    Visit(node.Condition);
-                    Visit(node.Consequence);
-                    var alternative = node.AlternativeOpt;
-                    if (alternative is null)
-                    {
-                        break;
-                    }
-                    if (alternative is BoundIfStatement elseIfStatement)
-                    {
-                        node = elseIfStatement;
-                    }
-                    else
-                    {
-                        Visit(alternative);
-                        break;
-                    }
-                }
-                return null;
-            }
-
             public override BoundNode? VisitFixedStatement(BoundFixedStatement node)
             {
                 AddAll(node.Locals);
