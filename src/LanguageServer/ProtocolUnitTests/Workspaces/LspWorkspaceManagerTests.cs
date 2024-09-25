@@ -703,6 +703,11 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
         var sourceGeneratedDocumentIdentity = sourceGeneratedDocuments.Single().Identity;
         var sourceGeneratorDocumentUri = SourceGeneratedDocumentUri.Create(sourceGeneratedDocumentIdentity);
 
+        // The workspace manager calls WithFrozenSourceGeneratedDocuments with the current DateTime.  If that date time
+        // is the same as the generation date time, it does not fork.  To ensure that it is not the same in tests, we explicitly
+        // wait a second to ensure the request datetime does not match the generated datetime.
+        await Task.Delay(TimeSpan.FromSeconds(1));
+
         var sourceGeneratedDocument = await OpenDocumentAndVerifyLspTextAsync(sourceGeneratorDocumentUri, testLspServer, generatorText) as SourceGeneratedDocument;
         AssertEx.NotNull(sourceGeneratedDocument);
         Assert.NotSame(testLspServer.TestWorkspace.CurrentSolution, sourceGeneratedDocument.Project.Solution);
