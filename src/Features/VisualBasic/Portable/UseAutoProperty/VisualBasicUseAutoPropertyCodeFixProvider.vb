@@ -9,12 +9,13 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.UseAutoProperty
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseAutoProperty), [Shared]>
-    Friend Class VisualBasicUseAutoPropertyCodeFixProvider
+    Friend NotInheritable Class VisualBasicUseAutoPropertyCodeFixProvider
         Inherits AbstractUseAutoPropertyCodeFixProvider(Of TypeBlockSyntax, PropertyBlockSyntax, ModifiedIdentifierSyntax, ConstructorBlockSyntax, ExpressionSyntax)
 
         <ImportingConstructor>
@@ -34,17 +35,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return Utilities.GetNodeToRemove(identifier)
         End Function
 
-        Protected Overrides Function GetFormattingRules(document As Document) As ImmutableArray(Of AbstractFormattingRule)
+        Protected Overrides Function GetFormattingRules(document As Document, finalProperty As SyntaxNode) As ImmutableArray(Of AbstractFormattingRule)
             Return Nothing
         End Function
 
-        Protected Overrides Async Function UpdatePropertyAsync(propertyDocument As Document,
-                                                         compilation As Compilation,
-                                                         fieldSymbol As IFieldSymbol,
-                                                         propertySymbol As IPropertySymbol,
-                                                         propertyDeclaration As PropertyBlockSyntax,
-                                                         isWrittenToOutsideOfConstructor As Boolean,
-                                                         cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+        Protected Overrides Function RewriteFieldReferencesInProperty([property] As PropertyBlockSyntax, fieldLocations As LightweightRenameLocations, cancellationToken As CancellationToken) As PropertyBlockSyntax
+            ' Only called to rewrite to `field` (which VB does not support).
+            Return [property]
+        End Function
+
+        Protected Overrides Async Function UpdatePropertyAsync(
+                propertyDocument As Document,
+                compilation As Compilation,
+                fieldSymbol As IFieldSymbol,
+                propertySymbol As IPropertySymbol,
+                fieldDeclarator As ModifiedIdentifierSyntax,
+                propertyDeclaration As PropertyBlockSyntax,
+                isWrittenToOutsideOfConstructor As Boolean,
+                isTrivialGetAccessor As Boolean,
+                isTrivialSetAccessor As Boolean,
+                cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Dim statement = propertyDeclaration.PropertyStatement
 
             Dim generator = SyntaxGenerator.GetGenerator(propertyDocument.Project)

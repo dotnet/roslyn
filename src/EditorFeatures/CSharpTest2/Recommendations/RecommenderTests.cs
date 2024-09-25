@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -158,7 +159,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         private Task VerifyAtEndOfFile_KeywordPartiallyWrittenAsync(string text, int position, bool absent, CSharpParseOptions? options, int? matchPriority)
             => VerifyAtEndOfFileAsync(text, position, absent, KeywordText[..1], options: options, matchPriority: matchPriority);
 
-        internal async Task VerifyKeywordAsync(string text, CSharpParseOptions? options = null, CSharpParseOptions? scriptOptions = null)
+        internal async Task VerifyKeywordAsync(
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string text,
+            CSharpParseOptions? options = null,
+            CSharpParseOptions? scriptOptions = null)
         {
             // run the verification in both context(normal and script)
             await VerifyWorkerAsync(text, absent: false, options: options);
@@ -179,14 +183,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             }
         }
 
-        protected async Task VerifyAbsenceAsync(string text, CSharpParseOptions? options = null, CSharpParseOptions? scriptOptions = null)
+        protected async Task VerifyAbsenceAsync(
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string text,
+            CSharpParseOptions? options = null,
+            CSharpParseOptions? scriptOptions = null)
         {
             // run the verification in both context(normal and script)
             await VerifyWorkerAsync(text, absent: true, options: options);
             await VerifyWorkerAsync(text, absent: true, options: scriptOptions ?? Options.Script);
         }
 
-        protected async Task VerifyAbsenceAsync(SourceCodeKind kind, string text)
+        protected async Task VerifyAbsenceAsync(
+            SourceCodeKind kind,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string text)
         {
             switch (kind)
             {

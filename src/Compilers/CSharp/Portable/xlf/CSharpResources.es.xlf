@@ -1737,6 +1737,11 @@
         <target state="translated">Una propiedad parcial no puede tener varias declaraciones de implementación</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateInitializer">
+        <source>A partial property cannot have an initializer on both the definition and implementation.</source>
+        <target state="new">A partial property cannot have an initializer on both the definition and implementation.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialPropertyInitMismatch">
         <source>Property accessor '{0}' must be '{1}' to match the definition part</source>
         <target state="translated">El descriptor de acceso de propiedad '{0}' debe ser '{1}' para que coincida con la parte de definición</target>
@@ -2632,11 +2637,6 @@
         <target state="translated">puntero</target>
         <note />
       </trans-unit>
-      <trans-unit id="INF_IdentifierConflictWithContextualKeyword">
-        <source>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</source>
-        <target state="translated">'{0}' es una palabra clave contextual en descriptores de acceso de propiedad a partir de la versión de idioma {1}. Use '@{0}' en su lugar.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
         <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
         <target state="translated">El identificador es una palabra clave contextual, con un significado específico, en una versión posterior del lenguaje.</target>
@@ -2925,6 +2925,16 @@
       <trans-unit id="WRN_EscapeVariable_Title">
         <source>Use of variable in this context may expose referenced variables outside of their declaration scope</source>
         <target state="translated">Usar la variable en este contexto puede exponer variables a las que se hace referencia fuera de su ámbito de declaración</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous">
+        <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</source>
+        <target state="new">In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous_Title">
+        <source>The 'field' keyword binds to a synthesized backing field for the property.</source>
+        <target state="new">The 'field' keyword binds to a synthesized backing field for the property.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
@@ -12155,8 +12165,8 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
-        <source>Only auto-implemented properties can have initializers.</source>
-        <target state="translated">Solo las propiedades implementadas automáticamente pueden tener inicializadores.</target>
+        <source>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</source>
+        <target state="needs-review-translation">Solo las propiedades implementadas automáticamente pueden tener inicializadores.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyMustHaveGetAccessor">

@@ -1737,6 +1737,11 @@
         <target state="translated">部分屬性不可具有多個實作的宣告</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateInitializer">
+        <source>A partial property cannot have an initializer on both the definition and implementation.</source>
+        <target state="new">A partial property cannot have an initializer on both the definition and implementation.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_PartialPropertyInitMismatch">
         <source>Property accessor '{0}' must be '{1}' to match the definition part</source>
         <target state="translated">屬性存取子 '{0}' 必須是 '{1}' 以符合定義部分</target>
@@ -2632,11 +2637,6 @@
         <target state="translated">指標</target>
         <note />
       </trans-unit>
-      <trans-unit id="INF_IdentifierConflictWithContextualKeyword">
-        <source>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</source>
-        <target state="translated">'{0}' 是從語言版本 {1} 開始之屬性存取子中的內容相關關鍵字。請改用 '@{0}'。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
         <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
         <target state="translated">識別碼是在較新語言版本中具有特定意義的內容相關關鍵字。</target>
@@ -2925,6 +2925,16 @@
       <trans-unit id="WRN_EscapeVariable_Title">
         <source>Use of variable in this context may expose referenced variables outside of their declaration scope</source>
         <target state="translated">在此內容中使用變數，可能會將參考的變數公開在其宣告範圍外</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous">
+        <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</source>
+        <target state="new">In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous_Title">
+        <source>The 'field' keyword binds to a synthesized backing field for the property.</source>
+        <target state="new">The 'field' keyword binds to a synthesized backing field for the property.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
@@ -12155,8 +12165,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
-        <source>Only auto-implemented properties can have initializers.</source>
-        <target state="translated">只有自動實作的屬性可以有初始設定式。</target>
+        <source>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</source>
+        <target state="needs-review-translation">只有自動實作的屬性可以有初始設定式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyMustHaveGetAccessor">
