@@ -700,14 +700,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void ImplicitAccessorBody_03(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion, bool useInit)
         {
-            string source = """
+            string setter = useInit ? "init" : "set ";
+            string source = $$"""
                 interface I
                 {
-                    object Q1 { get; set { _ = field; } }
-                    object Q2 { get { return field; } set; }
-                    object Q3 { get { return field; } init; }
+                    object Q1 { get; {{setter}} { _ = field; } }
+                    object Q2 { get { return field; } {{setter}}; }
+                    object Q3 { get; {{setter}} { } }
+                    object Q4 { get { return null; } {{setter}}; }
                 }
                 """;
 
@@ -719,75 +721,77 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,17): error CS0501: 'I.Q1.get' must declare a body because it is not marked abstract, extern, or partial
-                    //     object Q1 { get; set { _ = field; } }
-                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I.Q1.get").WithLocation(3, 17),
-                    // (3,32): error CS0103: The name 'field' does not exist in the current context
-                    //     object Q1 { get; set { _ = field; } }
-                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 32),
+                    // (3,12): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     object Q1 { get; set  { _ = field; } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q1").WithArguments("field keyword").WithLocation(3, 12),
+                    // (3,12): error CS0525: Interfaces cannot contain instance fields
+                    //     object Q1 { get; set  { _ = field; } }
+                    Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Q1").WithLocation(3, 12),
+                    // (3,33): error CS0103: The name 'field' does not exist in the current context
+                    //     object Q1 { get; set  { _ = field; } }
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 33),
+                    // (4,12): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     object Q2 { get { return field; } set ; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q2").WithArguments("field keyword").WithLocation(4, 12),
+                    // (4,12): error CS0525: Interfaces cannot contain instance fields
+                    //     object Q2 { get { return field; } set ; }
+                    Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Q2").WithLocation(4, 12),
                     // (4,30): error CS0103: The name 'field' does not exist in the current context
-                    //     object Q2 { get { return field; } set; }
+                    //     object Q2 { get { return field; } set ; }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(4, 30),
-                    // (4,39): error CS0501: 'I.Q2.set' must declare a body because it is not marked abstract, extern, or partial
-                    //     object Q2 { get { return field; } set; }
-                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I.Q2.set").WithLocation(4, 39),
-                    // (5,30): error CS0103: The name 'field' does not exist in the current context
-                    //     object Q3 { get { return field; } init; }
-                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(5, 30),
-                    // (5,39): error CS0501: 'I.Q3.init' must declare a body because it is not marked abstract, extern, or partial
-                    //     object Q3 { get { return field; } init; }
-                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "init").WithArguments("I.Q3.init").WithLocation(5, 39));
+                    // (5,12): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     object Q3 { get; set  { } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q3").WithArguments("field keyword").WithLocation(5, 12),
+                    // (5,12): error CS0525: Interfaces cannot contain instance fields
+                    //     object Q3 { get; set  { } }
+                    Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Q3").WithLocation(5, 12),
+                    // (6,12): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     object Q4 { get { return null; } set ; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q4").WithArguments("field keyword").WithLocation(6, 12),
+                    // (6,12): error CS0525: Interfaces cannot contain instance fields
+                    //     object Q4 { get { return null; } set ; }
+                    Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Q4").WithLocation(6, 12));
             }
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,17): error CS0501: 'I.Q1.get' must declare a body because it is not marked abstract, extern, or partial
-                    //     object Q1 { get; set { _ = field; } }
-                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I.Q1.get").WithLocation(3, 17),
-                    // (4,39): error CS0501: 'I.Q2.set' must declare a body because it is not marked abstract, extern, or partial
-                    //     object Q2 { get { return field; } set; }
-                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I.Q2.set").WithLocation(4, 39),
-                    // (5,39): error CS0501: 'I.Q3.init' must declare a body because it is not marked abstract, extern, or partial
-                    //     object Q3 { get { return field; } init; }
-                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "init").WithArguments("I.Q3.init").WithLocation(5, 39));
+                    // (3,12): error CS0525: Interfaces cannot contain instance fields
+                    //     object Q1 { get; set  { _ = field; } }
+                    Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Q1").WithLocation(3, 12),
+                    // (4,12): error CS0525: Interfaces cannot contain instance fields
+                    //     object Q2 { get { return field; } set ; }
+                    Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Q2").WithLocation(4, 12),
+                    // (5,12): error CS0525: Interfaces cannot contain instance fields
+                    //     object Q3 { get; set  { } }
+                    Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Q3").WithLocation(5, 12),
+                    // (6,12): error CS0525: Interfaces cannot contain instance fields
+                    //     object Q4 { get { return null; } set ; }
+                    Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Q4").WithLocation(6, 12));
             }
 
-            var actualMembers = comp.GetMember<NamedTypeSymbol>("I").GetMembers().ToTestDisplayStrings();
-            string[] expectedMembers;
-            if (languageVersion == LanguageVersion.CSharp13)
+            var containingType = comp.GetMember<NamedTypeSymbol>("I");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
+            var expectedFields = new[]
             {
-                expectedMembers = new[]
-                    {
-                        "System.Object I.Q1 { get; set; }",
-                        "System.Object I.Q1.get",
-                        "void I.Q1.set",
-                        "System.Object I.Q2 { get; set; }",
-                        "System.Object I.Q2.get",
-                        "void I.Q2.set",
-                        "System.Object I.Q3 { get; init; }",
-                        "System.Object I.Q3.get",
-                        "void modreq(System.Runtime.CompilerServices.IsExternalInit) I.Q3.init",
-                    };
-            }
-            else
-            {
-                expectedMembers = new[]
-                    {
-                        "System.Object I.<Q1>k__BackingField",
-                        "System.Object I.Q1 { get; set; }",
-                        "System.Object I.Q1.get",
-                        "void I.Q1.set",
-                        "System.Object I.<Q2>k__BackingField",
-                        "System.Object I.Q2 { get; set; }",
-                        "System.Object I.Q2.get",
-                        "void I.Q2.set",
-                        "System.Object I.<Q3>k__BackingField",
-                        "System.Object I.Q3 { get; init; }",
-                        "System.Object I.Q3.get",
-                        "void modreq(System.Runtime.CompilerServices.IsExternalInit) I.Q3.init",
-                    };
-            }
-            AssertEx.Equal(expectedMembers, actualMembers);
+                "System.Object I.<Q1>k__BackingField",
+                "System.Object I.<Q2>k__BackingField",
+                "System.Object I.<Q3>k__BackingField",
+                "System.Object I.<Q4>k__BackingField",
+            };
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
+            Assert.Equal(4, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "Q1", IsAutoProperty: true, BackingField: { } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "Q2", IsAutoProperty: true, BackingField: { } });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "Q3", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "Q4", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+            Assert.Equal(languageVersion > LanguageVersion.CSharp13, ((SourcePropertySymbol)actualProperties[0]).UsesFieldKeyword);
+            Assert.Equal(languageVersion > LanguageVersion.CSharp13, ((SourcePropertySymbol)actualProperties[1]).UsesFieldKeyword);
+            Assert.False(((SourcePropertySymbol)actualProperties[2]).UsesFieldKeyword);
+            Assert.False(((SourcePropertySymbol)actualProperties[3]).UsesFieldKeyword);
+
+            VerifyMergedProperties(actualProperties, actualFields);
         }
 
         [Theory]
@@ -1231,6 +1235,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0037:  ret
                 }
                 """);
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var containingType = comp.GetMember<NamedTypeSymbol>("C");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
+            var expectedFields = new[]
+            {
+                "System.Int32 C.<P1>k__BackingField",
+                "System.Int32 C.<P2>k__BackingField",
+                "System.Int32 C.<P3>k__BackingField",
+                "System.Int32 C.<P4>k__BackingField",
+                "System.Int32 C.<P5>k__BackingField",
+                "System.Int32 C.<P6>k__BackingField",
+                "System.Int32 C.<P7>k__BackingField",
+                "System.Int32 C.<P8>k__BackingField",
+                "System.Int32 C.<P9>k__BackingField",
+            };
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
+            Assert.Equal(9, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[4] is SourcePropertySymbol { Name: "P5", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[5] is SourcePropertySymbol { Name: "P6", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[6] is SourcePropertySymbol { Name: "P7", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[7] is SourcePropertySymbol { Name: "P8", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[8] is SourcePropertySymbol { Name: "P9", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
         }
 
         [Fact]
@@ -1361,6 +1396,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0046:  ret
                 }
                 """);
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var containingType = comp.GetMember<NamedTypeSymbol>("C");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
+            var expectedFields = new[]
+            {
+                "System.Int32 C.<P1>k__BackingField",
+                "System.Int32 C.<P2>k__BackingField",
+                "System.Int32 C.<P3>k__BackingField",
+                "System.Int32 C.<P4>k__BackingField",
+                "System.Int32 C.<P5>k__BackingField",
+                "System.Int32 C.<P6>k__BackingField",
+                "System.Int32 C.<P7>k__BackingField",
+                "System.Int32 C.<P8>k__BackingField",
+                "System.Int32 C.<P9>k__BackingField",
+            };
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
+            Assert.Equal(9, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[4] is SourcePropertySymbol { Name: "P5", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[5] is SourcePropertySymbol { Name: "P6", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[6] is SourcePropertySymbol { Name: "P7", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[7] is SourcePropertySymbol { Name: "P8", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[8] is SourcePropertySymbol { Name: "P9", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
         }
 
         [Theory]
@@ -1433,6 +1499,37 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0040:  ret
                 }
                 """);
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var containingType = comp.GetMember<NamedTypeSymbol>("C");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
+            var expectedFields = new[]
+            {
+                "System.Int32 C.<P1>k__BackingField",
+                "System.Int32 C.<P2>k__BackingField",
+                "System.Int32 C.<P3>k__BackingField",
+                "System.Int32 C.<P4>k__BackingField",
+                "System.Int32 C.<P5>k__BackingField",
+                "System.Int32 C.<P6>k__BackingField",
+                "System.Int32 C.<P7>k__BackingField",
+                "System.Int32 C.<P8>k__BackingField",
+                "System.Int32 C.<P9>k__BackingField",
+            };
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
+            Assert.Equal(9, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[4] is SourcePropertySymbol { Name: "P5", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[5] is SourcePropertySymbol { Name: "P6", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[6] is SourcePropertySymbol { Name: "P7", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[7] is SourcePropertySymbol { Name: "P8", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[8] is SourcePropertySymbol { Name: "P9", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
         }
 
         [Theory]
@@ -1442,7 +1539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string setter = useInit ? "init" : "set";
             string source = $$"""
                 using System;
-                interface C
+                interface I
                 {
                     public int P1 { get; } = 1;
                     public int P2 { get => field; } = 2;
@@ -1466,33 +1563,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P3 { get => field; set; } = 3;
                 Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P3").WithLocation(6, 16),
-                // (6,35): error CS0501: 'C.P3.set' must declare a body because it is not marked abstract, extern, or partial
-                //     public int P3 { get => field; set; } = 3;
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, setter).WithArguments($"C.P3.{setter}").WithLocation(6, 35),
                 // (7,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P4 { get => field; set { } } = 4;
                 Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P4").WithLocation(7, 16),
                 // (8,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P5 { get => 0; set; } = 5;
                 Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P5").WithLocation(8, 16),
-                // (8,31): error CS0501: 'C.P5.set' must declare a body because it is not marked abstract, extern, or partial
-                //     public int P5 { get => 0; set; } = 5;
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, setter).WithArguments($"C.P5.{setter}").WithLocation(8, 31),
                 // (9,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P6 { get; set; } = 6;
                 Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P6").WithLocation(9, 16),
                 // (10,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P7 { get; set { } } = 7;
                 Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P7").WithLocation(10, 16),
-                // (10,21): error CS0501: 'C.P7.get' must declare a body because it is not marked abstract, extern, or partial
-                //     public int P7 { get; set { } } = 7;
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("C.P7.get").WithLocation(10, 21),
                 // (11,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P8 { set { field = value; } } = 8;
                 Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P8").WithLocation(11, 16),
                 // (12,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P9 { get { return field; } set { field = value; } } = 9;
                 Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P9").WithLocation(12, 16));
+
+            var containingType = comp.GetMember<NamedTypeSymbol>("I");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
+            var expectedFields = new[]
+            {
+                "System.Int32 I.<P1>k__BackingField",
+                "System.Int32 I.<P2>k__BackingField",
+                "System.Int32 I.<P3>k__BackingField",
+                "System.Int32 I.<P4>k__BackingField",
+                "System.Int32 I.<P5>k__BackingField",
+                "System.Int32 I.<P6>k__BackingField",
+                "System.Int32 I.<P7>k__BackingField",
+                "System.Int32 I.<P8>k__BackingField",
+                "System.Int32 I.<P9>k__BackingField",
+            };
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
+            Assert.Equal(9, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[4] is SourcePropertySymbol { Name: "P5", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[5] is SourcePropertySymbol { Name: "P6", IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[6] is SourcePropertySymbol { Name: "P7", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[7] is SourcePropertySymbol { Name: "P8", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[8] is SourcePropertySymbol { Name: "P9", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
         }
 
         [Theory]
@@ -1533,6 +1651,151 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (13,12): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 //     struct S6
                 Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S6").WithLocation(13, 12));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Interfaces_01(bool includeAccessibility)
+        {
+            string accessibility = includeAccessibility ? "public" : "      ";
+            string source = $$"""
+                using System;
+                interface I
+                {
+                    {{accessibility}} static int P1 { get; }
+                    {{accessibility}} static int P2 { get => field; }
+                    {{accessibility}} static int P3 { get => field; set; }
+                    {{accessibility}} static int P4 { get => field; set { } }
+                    {{accessibility}} static int P5 { get => 0; set; }
+                    {{accessibility}} static int P6 { get; set; }
+                    {{accessibility}} static int P7 { get; set { } }
+                    {{accessibility}} static int P8 { set { field = value; } }
+                    {{accessibility}} static int P9 { get { return field; } set { field = value; } }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        I.P3 = 3;
+                        I.P4 = 4;
+                        I.P5 = 5;
+                        I.P6 = 6;
+                        I.P7 = 7;
+                        I.P9 = 9;
+                        Console.WriteLine((I.P1, I.P2, I.P3, I.P4, I.P5, I.P6, I.P7, I.P9));
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("(0, 0, 3, 0, 0, 6, 0, 9)"));
+            verifier.VerifyDiagnostics();
+
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var containingType = comp.GetMember<NamedTypeSymbol>("I");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
+            var expectedFields = new[]
+            {
+                "System.Int32 I.<P1>k__BackingField",
+                "System.Int32 I.<P2>k__BackingField",
+                "System.Int32 I.<P3>k__BackingField",
+                "System.Int32 I.<P4>k__BackingField",
+                "System.Int32 I.<P5>k__BackingField",
+                "System.Int32 I.<P6>k__BackingField",
+                "System.Int32 I.<P7>k__BackingField",
+                "System.Int32 I.<P8>k__BackingField",
+                "System.Int32 I.<P9>k__BackingField",
+            };
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
+            Assert.Equal(9, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[4] is SourcePropertySymbol { Name: "P5", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[5] is SourcePropertySymbol { Name: "P6", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[6] is SourcePropertySymbol { Name: "P7", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[7] is SourcePropertySymbol { Name: "P8", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[8] is SourcePropertySymbol { Name: "P9", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Interfaces_02(bool includeAccessibility, bool useInit)
+        {
+            string accessibility = includeAccessibility ? "public" : "      ";
+            string setter = useInit ? "init" : "set";
+            string source = $$"""
+                interface I
+                {
+                    {{accessibility}} int P1 { get; }
+                    {{accessibility}} int P2 { get => field; }
+                    {{accessibility}} int P3 { get => field; {{setter}}; }
+                    {{accessibility}} int P4 { get => field; {{setter}} { } }
+                    {{accessibility}} int P5 { get => 0; {{setter}}; }
+                    {{accessibility}} int P6 { get; {{setter}}; }
+                    {{accessibility}} int P7 { get; {{setter}} { } }
+                    {{accessibility}} int P8 { {{setter}} { field = value; } }
+                    {{accessibility}} int P9 { get { return field; } {{setter}} { field = value; } }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (4,16): error CS0525: Interfaces cannot contain instance fields
+                //            int P2 { get => field; }
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P2").WithLocation(4, 16),
+                // (5,16): error CS0525: Interfaces cannot contain instance fields
+                //            int P3 { get => field; set; }
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P3").WithLocation(5, 16),
+                // (6,16): error CS0525: Interfaces cannot contain instance fields
+                //            int P4 { get => field; set { } }
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P4").WithLocation(6, 16),
+                // (7,16): error CS0525: Interfaces cannot contain instance fields
+                //            int P5 { get => 0; set; }
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P5").WithLocation(7, 16),
+                // (9,16): error CS0525: Interfaces cannot contain instance fields
+                //            int P7 { get; set { } }
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P7").WithLocation(9, 16),
+                // (10,16): error CS0525: Interfaces cannot contain instance fields
+                //            int P8 { set { field = value; } }
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P8").WithLocation(10, 16),
+                // (11,16): error CS0525: Interfaces cannot contain instance fields
+                //            int P9 { get { return field; } set { field = value; } }
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P9").WithLocation(11, 16));
+
+            var containingType = comp.GetMember<NamedTypeSymbol>("I");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
+            var expectedFields = new[]
+            {
+                "System.Int32 I.<P2>k__BackingField",
+                "System.Int32 I.<P3>k__BackingField",
+                "System.Int32 I.<P4>k__BackingField",
+                "System.Int32 I.<P5>k__BackingField",
+                "System.Int32 I.<P7>k__BackingField",
+                "System.Int32 I.<P8>k__BackingField",
+                "System.Int32 I.<P9>k__BackingField",
+            };
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
+            Assert.Equal(9, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[4] is SourcePropertySymbol { Name: "P5", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[5] is SourcePropertySymbol { Name: "P6", IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
+            Assert.True(actualProperties[6] is SourcePropertySymbol { Name: "P7", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[7] is SourcePropertySymbol { Name: "P8", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[8] is SourcePropertySymbol { Name: "P9", IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
         }
 
         [Fact]
@@ -5536,9 +5799,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (10,5): error CS8345: Field or auto-implemented property cannot be of type 'R' unless it is an instance member of a ref struct.
                 //     R Q2 { get => field; }
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(10, 5),
+                // (10,7): error CS0525: Interfaces cannot contain instance fields
+                //     R Q2 { get => field; }
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Q2").WithLocation(10, 7),
                 // (11,5): error CS8345: Field or auto-implemented property cannot be of type 'R' unless it is an instance member of a ref struct.
                 //     R Q3 { set { _ = field; } }
-                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(11, 5));
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(11, 5),
+                // (11,7): error CS0525: Interfaces cannot contain instance fields
+                //     R Q3 { set { _ = field; } }
+                Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Q3").WithLocation(11, 7));
         }
 
         [Theory]
@@ -5689,6 +5958,425 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: true, BackingField: { } });
             Assert.True(actualProperties[4] is SourcePropertySymbol { Name: "P5", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PartialProperty_Interface_01(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.CSharp13)] LanguageVersion languageVersion,
+            bool reverseOrder,
+            bool includeRuntimeSupport)
+        {
+            string sourceA = $$"""
+                partial interface I
+                {
+                    partial object P1 { get; }
+                    partial object P2 { set; }
+                }
+                """;
+            string sourceB = $$"""
+                partial interface I
+                {
+                    partial object P1 { get => null; }
+                    partial object P2 { set { } }
+                }
+                """;
+            var comp = CreateCompilation(
+                reverseOrder ? [sourceB, sourceA] : [sourceA, sourceB],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                targetFramework: includeRuntimeSupport ? TargetFramework.Net80 : TargetFramework.Standard);
+
+            Assert.Equal(includeRuntimeSupport, comp.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            switch (languageVersion, includeRuntimeSupport)
+            {
+                case (LanguageVersion.CSharp12, false):
+                    comp.VerifyEmitDiagnostics(
+                        // (3,20): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version '13.0' or greater.
+                        //     partial object P1 { get; }
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("partial", "12.0", "13.0").WithLocation(3, 20),
+                        // (3,20): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version '13.0' or greater.
+                        //     partial object P1 { get => null; }
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("partial", "12.0", "13.0").WithLocation(3, 20),
+                        // (3,25): error CS8701: Target runtime doesn't support default interface implementation.
+                        //     partial object P1 { get => null; }
+                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(3, 25),
+                        // (4,20): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version '13.0' or greater.
+                        //     partial object P2 { set; }
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P2").WithArguments("partial", "12.0", "13.0").WithLocation(4, 20),
+                        // (4,20): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version '13.0' or greater.
+                        //     partial object P2 { set { } }
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P2").WithArguments("partial", "12.0", "13.0").WithLocation(4, 20),
+                        // (4,25): error CS8701: Target runtime doesn't support default interface implementation.
+                        //     partial object P2 { set { } }
+                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(4, 25));
+                    break;
+                case (LanguageVersion.CSharp12, true):
+                    comp.VerifyEmitDiagnostics(
+                        // (3,20): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version '13.0' or greater.
+                        //     partial object P1 { get; }
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("partial", "12.0", "13.0").WithLocation(3, 20),
+                        // (3,20): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version '13.0' or greater.
+                        //     partial object P1 { get => null; }
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("partial", "12.0", "13.0").WithLocation(3, 20),
+                        // (4,20): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version '13.0' or greater.
+                        //     partial object P2 { set; }
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P2").WithArguments("partial", "12.0", "13.0").WithLocation(4, 20),
+                        // (4,20): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version '13.0' or greater.
+                        //     partial object P2 { set { } }
+                        Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P2").WithArguments("partial", "12.0", "13.0").WithLocation(4, 20));
+                    break;
+                case (LanguageVersion.CSharp13, false):
+                    comp.VerifyEmitDiagnostics(
+                        // (3,25): error CS8701: Target runtime doesn't support default interface implementation.
+                        //     partial object P1 { get => null; }
+                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "get").WithLocation(3, 25),
+                        // (4,25): error CS8701: Target runtime doesn't support default interface implementation.
+                        //     partial object P2 { set { } }
+                        Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementation, "set").WithLocation(4, 25));
+                    break;
+                case (LanguageVersion.CSharp13, true):
+                    comp.VerifyEmitDiagnostics();
+                    break;
+                default:
+                    Assert.True(false);
+                    break;
+            }
+
+            var containingType = comp.GetMember<NamedTypeSymbol>("I");
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
+            Assert.Equal(2, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: null });
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PartialProperty_Interface_02A(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            bool reverseOrder)
+        {
+            string sourceA = $$"""
+                partial interface I
+                {
+                    partial object P1 { get; set; }
+                    partial object P2 { get; init; }
+                }
+                """;
+            string sourceB = $$"""
+                partial interface I
+                {
+                    partial object P1 { get; set { } }
+                    partial object P2 { get => null; init; }
+                }
+                """;
+            var comp = CreateCompilation(
+                reverseOrder ? [sourceB, sourceA] : [sourceA, sourceB],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                targetFramework: TargetFramework.Net80);
+
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,20): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     partial object P1 { get; set { } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(3, 20),
+                    // (3,20): error CS0525: Interfaces cannot contain instance fields
+                    //     partial object P1 { get; set; }
+                    Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(3, 20),
+                    // (4,20): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     partial object P2 { get => null; init; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P2").WithArguments("field keyword").WithLocation(4, 20),
+                    // (4,20): error CS0525: Interfaces cannot contain instance fields
+                    //     partial object P2 { get; init; }
+                    Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P2").WithLocation(4, 20));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,20): error CS0525: Interfaces cannot contain instance fields
+                    //     partial object P1 { get; set; }
+                    Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(3, 20),
+                    // (4,20): error CS0525: Interfaces cannot contain instance fields
+                    //     partial object P2 { get; init; }
+                    Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P2").WithLocation(4, 20));
+            }
+
+            var containingType = comp.GetMember<NamedTypeSymbol>("I");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
+            var expectedFields = new[]
+            {
+                "System.Object I.<P1>k__BackingField",
+                "System.Object I.<P2>k__BackingField",
+            };
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
+            Assert.Equal(2, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PartialProperty_Interface_02B(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            bool reverseOrder)
+        {
+            string sourceA = $$"""
+                partial interface I
+                {
+                    static partial object P1 { get; set; }
+                    static partial object P2 { get; set; }
+                }
+                """;
+            string sourceB = $$"""
+                partial interface I
+                {
+                    static partial object P1 { get; set { } }
+                    static partial object P2 { get => null; set; }
+                }
+                """;
+            var comp = CreateCompilation(
+                reverseOrder ? [sourceB, sourceA] : [sourceA, sourceB],
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                targetFramework: TargetFramework.Net80);
+
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,27): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static partial object P1 { get; set { } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(3, 27),
+                    // (4,27): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static partial object P2 { get => null; set; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P2").WithArguments("field keyword").WithLocation(4, 27));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+
+            var containingType = comp.GetMember<NamedTypeSymbol>("I");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
+            var expectedFields = new[]
+            {
+                "System.Object I.<P1>k__BackingField",
+                "System.Object I.<P2>k__BackingField",
+            };
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
+            Assert.Equal(2, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PartialProperty_Interface_03(bool reverseOrder, bool useStatic)
+        {
+            string modifier = useStatic ? "static" : "      ";
+            string sourceA = $$"""
+                partial interface I
+                {
+                    {{modifier}} partial object P1 { get; }
+                    {{modifier}} partial object P2 { set; }
+                }
+                """;
+            string sourceB = $$"""
+                partial interface I
+                {
+                    {{modifier}} partial object P1 { get => field; }
+                    {{modifier}} partial object P2 { set { field = value; } }
+                }
+                """;
+            var comp = CreateCompilation(
+                reverseOrder ? [sourceB, sourceA] : [sourceA, sourceB],
+                targetFramework: TargetFramework.Net80);
+            if (useStatic)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,27): error CS0525: Interfaces cannot contain instance fields
+                    //            partial object P1 { get; }
+                    Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(3, 27),
+                    // (4,27): error CS0525: Interfaces cannot contain instance fields
+                    //            partial object P2 { set; }
+                    Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P2").WithLocation(4, 27));
+            }
+
+            var containingType = comp.GetMember<NamedTypeSymbol>("I");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
+            var expectedFields = new[]
+            {
+                "System.Object I.<P1>k__BackingField",
+                "System.Object I.<P2>k__BackingField",
+            };
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
+            Assert.Equal(2, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PartialProperty_Interface_04A(bool reverseOrder, bool useStatic)
+        {
+            string modifier = useStatic ? "static" : "      ";
+            string sourceA = $$"""
+                partial interface I
+                {
+                    {{modifier}} partial object P1 { get; } = 1;
+                    {{modifier}} partial object P2 { set; }
+                    {{modifier}} partial object P3 { get; set; } = 3;
+                    {{modifier}} partial object P4 { get; set; }
+                }
+                """;
+            string sourceB = $$"""
+                partial interface I
+                {
+                    {{modifier}} partial object P1 { get => null; }
+                    {{modifier}} partial object P2 { set { } } = 2;
+                    {{modifier}} partial object P3 { get => null; set { } }
+                    {{modifier}} partial object P4 { get => null; set { } } = 4;
+                }
+                """;
+            var comp = CreateCompilation(
+                reverseOrder ? [sourceB, sourceA] : [sourceA, sourceB],
+                targetFramework: TargetFramework.Net80);
+            if (useStatic)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                    //     static partial object P1 { get; } = 1;
+                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 27),
+                    // (4,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                    //     static partial object P2 { set { } } = 2;
+                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(4, 27),
+                    // (5,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                    //     static partial object P3 { get; set; } = 3;
+                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(5, 27),
+                    // (6,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
+                    //     static partial object P4 { get => null; set { } } = 4;
+                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P4").WithLocation(6, 27));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,27): error CS8053: Instance properties in interfaces cannot have initializers.
+                    //            partial object P1 { get; } = 1;
+                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithLocation(3, 27),
+                    // (4,27): error CS8053: Instance properties in interfaces cannot have initializers.
+                    //            partial object P2 { set { } } = 2;
+                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P2").WithLocation(4, 27),
+                    // (5,27): error CS8053: Instance properties in interfaces cannot have initializers.
+                    //            partial object P3 { get; set; } = 3;
+                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P3").WithLocation(5, 27),
+                    // (6,27): error CS8053: Instance properties in interfaces cannot have initializers.
+                    //            partial object P4 { get => null; set { } } = 4;
+                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P4").WithLocation(6, 27));
+            }
+
+            var containingType = comp.GetMember<NamedTypeSymbol>("I");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().OrderBy(f => f.Name).ToImmutableArray();
+            var expectedFields = new[]
+            {
+                "System.Object I.<P1>k__BackingField",
+                "System.Object I.<P2>k__BackingField",
+                "System.Object I.<P3>k__BackingField",
+                "System.Object I.<P4>k__BackingField",
+            };
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
+            Assert.Equal(4, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: false, BackingField: { HasInitializer: true } });
+
+            VerifyMergedProperties(actualProperties, actualFields);
+        }
+
+        // As above, but using field.
+        [Theory]
+        [CombinatorialData]
+        public void PartialProperty_Interface_04B(bool reverseOrder, bool useStatic)
+        {
+            string modifier = useStatic ? "static" : "      ";
+            string sourceA = $$"""
+                partial interface I
+                {
+                    {{modifier}} partial object P1 { get; } = 1;
+                    {{modifier}} partial object P2 { set; }
+                    {{modifier}} partial object P3 { get; set; } = 3;
+                    {{modifier}} partial object P4 { get; set; }
+                }
+                """;
+            string sourceB = $$"""
+                partial interface I
+                {
+                    {{modifier}} partial object P1 { get => field; }
+                    {{modifier}} partial object P2 { set { field = value; } } = 2;
+                    {{modifier}} partial object P3 { get => field; set { } }
+                    {{modifier}} partial object P4 { get => null; set { field = value; } } = 4;
+                }
+                """;
+            var comp = CreateCompilation(
+                reverseOrder ? [sourceB, sourceA] : [sourceA, sourceB],
+                targetFramework: TargetFramework.Net80);
+            if (useStatic)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,27): error CS8053: Instance properties in interfaces cannot have initializers.
+                    //            partial object P1 { get; } = 1;
+                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithLocation(3, 27),
+                    // (4,27): error CS8053: Instance properties in interfaces cannot have initializers.
+                    //            partial object P2 { set { field = value; } } = 2;
+                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P2").WithLocation(4, 27),
+                    // (5,27): error CS8053: Instance properties in interfaces cannot have initializers.
+                    //            partial object P3 { get; set; } = 3;
+                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P3").WithLocation(5, 27),
+                    // (6,27): error CS8053: Instance properties in interfaces cannot have initializers.
+                    //            partial object P4 { get => null; set { field = value; } } = 4;
+                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P4").WithLocation(6, 27));
+            }
+
+            var containingType = comp.GetMember<NamedTypeSymbol>("I");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().OrderBy(f => f.Name).ToImmutableArray();
+            var expectedFields = new[]
+            {
+                "System.Object I.<P1>k__BackingField",
+                "System.Object I.<P2>k__BackingField",
+                "System.Object I.<P3>k__BackingField",
+                "System.Object I.<P4>k__BackingField",
+            };
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
+            Assert.Equal(4, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
+            Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsPartialDefinition: true, IsAutoProperty: false, UsesFieldKeyword: true, BackingField: { HasInitializer: true } });
 
             VerifyMergedProperties(actualProperties, actualFields);
         }
