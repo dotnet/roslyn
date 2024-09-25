@@ -1804,7 +1804,6 @@ public sealed partial class UseCollectionInitializerTests
                     {
                         foreach (var (value, sort) in (list1 ?? [|new|] List<int>()).Select((val, i) => (val, i)))
                         {
-
                         }
                     }
                 }
@@ -1821,7 +1820,6 @@ public sealed partial class UseCollectionInitializerTests
                     {
                         foreach (var (value, sort) in (list1 ?? []).Select((val, i) => (val, i)))
                         {
-                
                         }
                     }
                 }
