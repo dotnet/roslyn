@@ -393,29 +393,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitSequencePointStatementBegin(BoundSequencePointWithSpan node)
+        private void EmitSequencePointStatement(BoundSequencePointWithSpan node)
         {
             TextSpan span = node.Span;
             if (span != default(TextSpan) && _emitPdbSequencePoints)
             {
                 this.EmitSequencePoint(node.SyntaxTree, span);
             }
-        }
-
-        private void EmitSequencePointStatementEnd(BoundSequencePointWithSpan node, int instructionsEmitted)
-        {
-            TextSpan span = node.Span;
-            if (instructionsEmitted == 0 && span != default(TextSpan) && _ilEmitStyle == ILEmitStyle.Debug)
-            {
-                // if there was no code emitted, then emit nop 
-                // otherwise this point could get associated with some random statement, possibly in a wrong scope
-                _builder.EmitOpCode(ILOpCode.Nop);
-            }
-        }
-
-        private void EmitSequencePointStatement(BoundSequencePointWithSpan node)
-        {
-            EmitSequencePointStatementBegin(node);
 
             BoundStatement statement = node.StatementOpt;
             int instructionsEmitted = 0;
@@ -424,7 +408,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 instructionsEmitted = this.EmitStatementAndCountInstructions(statement);
             }
 
-            EmitSequencePointStatementEnd(node, instructionsEmitted);
+            if (instructionsEmitted == 0 && span != default(TextSpan) && _ilEmitStyle == ILEmitStyle.Debug)
+            {
+                // if there was no code emitted, then emit nop 
+                // otherwise this point could get associated with some random statement, possibly in a wrong scope
+                _builder.EmitOpCode(ILOpCode.Nop);
+            }
         }
 
         private void EmitSavePreviousSequencePoint(BoundSavePreviousSequencePoint statement)
