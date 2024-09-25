@@ -3094,7 +3094,79 @@ Method1: x > 0
 Method1: x = 0
 " + checker.ExpectedOutput;
 
-            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(source, expectedOutput: null, options: TestOptions.ReleaseExe);
+            verifier.VerifyIL("Class1<T>.Method1<U>",
+@"
+{
+  // Code size      138 (0x8a)
+  .maxstack  5
+  .locals init (bool[] V_0)
+  IL_0000:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0005:  ldtoken    ""void Class1<T>.Method1<U>(int)""
+  IL_000a:  ldelem.ref
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  brtrue.s   IL_0034
+  IL_000f:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
+  IL_0014:  ldtoken    ""void Class1<T>.Method1<U>(int)""
+  IL_0019:  ldtoken    Source Document 0
+  IL_001e:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0023:  ldtoken    ""void Class1<T>.Method1<U>(int)""
+  IL_0028:  ldelema    ""bool[]""
+  IL_002d:  ldc.i4.7
+  IL_002e:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, int, ref bool[], int)""
+  IL_0033:  stloc.0
+  IL_0034:  ldloc.0
+  IL_0035:  ldc.i4.0
+  IL_0036:  ldc.i4.1
+  IL_0037:  stelem.i1
+  IL_0038:  ldloc.0
+  IL_0039:  ldc.i4.1
+  IL_003a:  ldc.i4.1
+  IL_003b:  stelem.i1
+  IL_003c:  ldstr      ""Method1: x = {0}""
+  IL_0041:  ldarg.1
+  IL_0042:  box        ""int""
+  IL_0047:  call       ""string string.Format(string, object)""
+  IL_004c:  call       ""void System.Console.WriteLine(string)""
+  IL_0051:  ldloc.0
+  IL_0052:  ldc.i4.6
+  IL_0053:  ldc.i4.1
+  IL_0054:  stelem.i1
+  IL_0055:  ldarg.1
+  IL_0056:  ldc.i4.0
+  IL_0057:  ble.s      IL_0073
+  IL_0059:  ldloc.0
+  IL_005a:  ldc.i4.2
+  IL_005b:  ldc.i4.1
+  IL_005c:  stelem.i1
+  IL_005d:  ldstr      ""Method1: x > 0""
+  IL_0062:  call       ""void System.Console.WriteLine(string)""
+  IL_0067:  ldloc.0
+  IL_0068:  ldc.i4.3
+  IL_0069:  ldc.i4.1
+  IL_006a:  stelem.i1
+  IL_006b:  ldarg.0
+  IL_006c:  ldc.i4.0
+  IL_006d:  call       ""void Class1<T>.Method1<U>(int)""
+  IL_0072:  ret
+  IL_0073:  ldloc.0
+  IL_0074:  ldc.i4.5
+  IL_0075:  ldc.i4.1
+  IL_0076:  stelem.i1
+  IL_0077:  ldarg.1
+  IL_0078:  ldc.i4.0
+  IL_0079:  bge.s      IL_0089
+  IL_007b:  ldloc.0
+  IL_007c:  ldc.i4.4
+  IL_007d:  ldc.i4.1
+  IL_007e:  stelem.i1
+  IL_007f:  ldstr      ""Method1: x < 0""
+  IL_0084:  call       ""void System.Console.WriteLine(string)""
+  IL_0089:  ret
+}
+");
+
             checker.CompleteCheck(verifier.Compilation, source);
             verifier.VerifyDiagnostics();
 
