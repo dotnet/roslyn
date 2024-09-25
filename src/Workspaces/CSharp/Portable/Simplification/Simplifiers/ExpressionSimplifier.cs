@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -33,7 +31,7 @@ internal sealed partial class ExpressionSimplifier : AbstractCSharpSimplifier<Ex
         ExpressionSyntax expression,
         SemanticModel semanticModel,
         CSharpSimplifierOptions options,
-        out ExpressionSyntax replacementNode,
+        [NotNullWhen(true)] out ExpressionSyntax? replacementNode,
         out TextSpan issueSpan,
         CancellationToken cancellationToken)
     {
@@ -65,7 +63,7 @@ internal sealed partial class ExpressionSimplifier : AbstractCSharpSimplifier<Ex
     private static bool TryReduceExplicitName(
         ExpressionSyntax expression,
         SemanticModel semanticModel,
-        out TypeSyntax replacementNode,
+        [NotNullWhen(true)] out TypeSyntax? replacementNode,
         out TextSpan issueSpan,
         CSharpSimplifierOptions options,
         CancellationToken cancellationToken)
@@ -88,7 +86,7 @@ internal sealed partial class ExpressionSimplifier : AbstractCSharpSimplifier<Ex
     private static bool TryReduceMemberAccessExpression(
         MemberAccessExpressionSyntax memberAccess,
         SemanticModel semanticModel,
-        out TypeSyntax replacementNode,
+        [NotNullWhen(true)] out TypeSyntax? replacementNode,
         out TextSpan issueSpan,
         CSharpSimplifierOptions options,
         CancellationToken cancellationToken)
@@ -147,7 +145,7 @@ internal sealed partial class ExpressionSimplifier : AbstractCSharpSimplifier<Ex
 
                 if (syntaxRef != null)
                 {
-                    var declIdentifier = ((UsingDirectiveSyntax)syntaxRef.GetSyntax(cancellationToken)).Alias.Name.Identifier;
+                    var declIdentifier = ((UsingDirectiveSyntax)syntaxRef.GetSyntax(cancellationToken)).Alias!.Name.Identifier;
                     text = declIdentifier.IsVerbatimIdentifier() ? declIdentifier.ToString()[1..] : declIdentifier.ToString();
                 }
 
@@ -259,7 +257,7 @@ internal sealed partial class ExpressionSimplifier : AbstractCSharpSimplifier<Ex
     private static bool TrySimplify(
         ExpressionSyntax expression,
         SemanticModel semanticModel,
-        out ExpressionSyntax replacementNode,
+        [NotNullWhen(true)] out ExpressionSyntax? replacementNode,
         out TextSpan issueSpan,
         CancellationToken cancellationToken)
     {
@@ -273,7 +271,7 @@ internal sealed partial class ExpressionSimplifier : AbstractCSharpSimplifier<Ex
         static bool TrySimplifyWorker(
             ExpressionSyntax expression,
             SemanticModel semanticModel,
-            out ExpressionSyntax replacementNode,
+            [NotNullWhen(true)] out ExpressionSyntax? replacementNode,
             out TextSpan issueSpan,
             CancellationToken cancellationToken)
         {
@@ -374,7 +372,7 @@ internal sealed partial class ExpressionSimplifier : AbstractCSharpSimplifier<Ex
             var leftSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken).GetAnySymbol();
             if (leftSymbol is INamedTypeSymbol)
             {
-                var type = semanticModel.GetTypeInfo(memberAccess.Parent, cancellationToken).Type;
+                var type = semanticModel.GetTypeInfo(memberAccess.GetRequiredParent(), cancellationToken).Type;
                 if (type?.Kind == SymbolKind.DynamicType)
                 {
                     return true;
@@ -394,7 +392,7 @@ internal sealed partial class ExpressionSimplifier : AbstractCSharpSimplifier<Ex
     {
         var constructor = memberAccess.Ancestors().OfType<ConstructorDeclarationSyntax>().SingleOrDefault();
 
-        if (constructor == null || constructor.Parent.Kind() is not (SyntaxKind.StructDeclaration or SyntaxKind.RecordStructDeclaration))
+        if (constructor == null || constructor.GetRequiredParent().Kind() is not (SyntaxKind.StructDeclaration or SyntaxKind.RecordStructDeclaration))
         {
             return false;
         }
@@ -407,7 +405,7 @@ internal sealed partial class ExpressionSimplifier : AbstractCSharpSimplifier<Ex
         ExpressionSyntax left,
         ExpressionSyntax right,
         SemanticModel semanticModel,
-        out ExpressionSyntax replacementNode,
+        [NotNullWhen(true)] out ExpressionSyntax? replacementNode,
         out TextSpan issueSpan)
     {
         replacementNode = null;
