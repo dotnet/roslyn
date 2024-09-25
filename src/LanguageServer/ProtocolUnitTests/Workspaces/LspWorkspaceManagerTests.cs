@@ -693,7 +693,7 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
     }
 
     [Theory, CombinatorialData]
-    public async Task TestUsesForkForUnchangedGeneratedFileAsync(bool mutatingLspWorkspace)
+    public async Task TestDoesNotUseForkForUnchangedGeneratedFileAsync(bool mutatingLspWorkspace)
     {
         var generatorText = "// Hello World!";
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
@@ -710,6 +710,47 @@ public class LspWorkspaceManagerTests : AbstractLanguageServerProtocolTests
 
         var sourceGeneratedDocument = await OpenDocumentAndVerifyLspTextAsync(sourceGeneratorDocumentUri, testLspServer, generatorText) as SourceGeneratedDocument;
         AssertEx.NotNull(sourceGeneratedDocument);
+        Assert.Same(testLspServer.TestWorkspace.CurrentSolution, sourceGeneratedDocument.Project.Solution);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestForksWithDifferentGeneratedContentsAsync(bool mutatingLspWorkspace)
+    {
+        var workspaceGeneratedText = "// Hello World!";
+        var lspGeneratedText = "// Hello LSP!";
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
+        await AddGeneratorAsync(new SingleFileTestGenerator(workspaceGeneratedText), testLspServer.TestWorkspace);
+
+        var sourceGeneratedDocuments = await testLspServer.GetCurrentSolution().Projects.Single().GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocumentIdentity = sourceGeneratedDocuments.Single().Identity;
+        var sourceGeneratorDocumentUri = SourceGeneratedDocumentUri.Create(sourceGeneratedDocumentIdentity);
+
+        var sourceGeneratedDocument = await OpenDocumentAndVerifyLspTextAsync(sourceGeneratorDocumentUri, testLspServer, lspGeneratedText) as SourceGeneratedDocument;
+        AssertEx.NotNull(sourceGeneratedDocument);
+        Assert.NotSame(testLspServer.TestWorkspace.CurrentSolution, sourceGeneratedDocument.Project.Solution);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestForksWithRemovedGeneratorAsync(bool mutatingLspWorkspace)
+    {
+        var generatorText = "// Hello World!";
+        await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace);
+        var generatorReference = await AddGeneratorAsync(new SingleFileTestGenerator(generatorText), testLspServer.TestWorkspace);
+
+        var sourceGeneratedDocuments = await testLspServer.GetCurrentSolution().Projects.Single().GetSourceGeneratedDocumentsAsync();
+        var sourceGeneratedDocumentIdentity = sourceGeneratedDocuments.Single().Identity;
+        var sourceGeneratorDocumentUri = SourceGeneratedDocumentUri.Create(sourceGeneratedDocumentIdentity);
+
+        var sourceGeneratedDocument = await OpenDocumentAndVerifyLspTextAsync(sourceGeneratorDocumentUri, testLspServer, generatorText) as SourceGeneratedDocument;
+        AssertEx.NotNull(sourceGeneratedDocument);
+        Assert.Same(testLspServer.TestWorkspace.CurrentSolution, sourceGeneratedDocument.Project.Solution);
+
+        // Remove the generator and verify the document is forked.
+        await RemoveGeneratorAsync(generatorReference, testLspServer.TestWorkspace);
+
+        var (_, removedSourceGeneratorDocument) = await GetLspWorkspaceAndDocumentAsync(sourceGeneratorDocumentUri, testLspServer).ConfigureAwait(false);
+        AssertEx.NotNull(sourceGeneratedDocument as SourceGeneratedDocument);
+        Assert.Equal(generatorText, (await sourceGeneratedDocument.GetTextAsync(CancellationToken.None)).ToString());
         Assert.NotSame(testLspServer.TestWorkspace.CurrentSolution, sourceGeneratedDocument.Project.Solution);
     }
 

@@ -427,7 +427,7 @@ namespace Roslyn.Test.Utilities
             workspace.TryApplyChanges(newSolution);
         }
 
-        protected static async Task AddGeneratorAsync(ISourceGenerator generator, EditorTestWorkspace workspace)
+        protected static async Task<AnalyzerReference> AddGeneratorAsync(ISourceGenerator generator, EditorTestWorkspace workspace)
         {
             var analyzerReference = new TestGeneratorReference(generator);
 
@@ -438,7 +438,18 @@ namespace Roslyn.Test.Utilities
 
             await workspace.ChangeSolutionAsync(solution);
             await WaitForWorkspaceOperationsAsync(workspace);
+            return analyzerReference;
+        }
 
+        protected static async Task RemoveGeneratorAsync(AnalyzerReference reference, EditorTestWorkspace workspace)
+        {
+            var solution = workspace.CurrentSolution
+                .Projects.Single()
+                .RemoveAnalyzerReference(reference)
+                .Solution;
+
+            await workspace.ChangeSolutionAsync(solution);
+            await WaitForWorkspaceOperationsAsync(workspace);
         }
 
         internal static async Task<Dictionary<string, IList<LSP.Location>>> GetAnnotatedLocationsAsync(EditorTestWorkspace workspace, Solution solution)

@@ -389,6 +389,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             workspaceCurrentSolution = workspace.CurrentSolution;
 
             // Step 3: Check to see if the LSP text matches the workspace text.
+
             var documentsInWorkspace = GetDocumentsForUris(_trackedDocuments.Keys.ToImmutableArray(), workspaceCurrentSolution);
             var sourceGeneratedDocuments =
                 _trackedDocuments.Keys.Where(static uri => uri.Scheme == SourceGeneratedDocumentUri.Scheme)
@@ -396,10 +397,15 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                     .Where(tuple => tuple.identity.HasValue)
                     .SelectAsArray(tuple => (tuple.identity!.Value, DateTime.Now, tuple.Text));
 
-            // We don't want to check if the source generated document text matches the workspace text because that
-            // will trigger generators to run.  We don't want that to happen in the queue dispatch as it could be quite slow.
+            // First we check if normal document text matches the workspace solution.
+            // This does not look at source generated documents.
             var doesAllTextMatch = await DoesAllTextMatchWorkspaceSolutionAsync(documentsInWorkspace, cancellationToken).ConfigureAwait(false);
-            if (doesAllTextMatch && !sourceGeneratedDocuments.Any())
+
+            // Then we check if source generated document text matches the workspace solution.
+            // This is intentionally done differently from normal documents because the normal method will cause
+            // source generators to run which we do not want to do in queue dispatch.
+            var doesAllSourceGeneratedTextMatch = DoesAllSourceGeneratedTextMatchWorkspaceSolution(sourceGeneratedDocuments, workspaceCurrentSolution);
+            if (doesAllTextMatch && doesAllSourceGeneratedTextMatch)
             {
                 // Remember that the current LSP text matches the text in this workspace solution.
                 _cachedLspSolutions[workspace] = (forkedFromVersion: null, workspaceCurrentSolution);
@@ -412,30 +418,22 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
             // Step 5: Fork a new solution from the workspace with the LSP text applied.
             var lspSolution = workspaceCurrentSolution;
-            // If the workspace text matched but we have source generated documents open, we can
-            // leave the normal documents as-is (the text matched) and just fork with the frozen sg docs.
+            // If the workspace text matched we can leave the normal documents as-is
             if (!doesAllTextMatch)
             {
                 foreach (var (uri, workspaceDocuments) in documentsInWorkspace)
                     lspSolution = lspSolution.WithDocumentText(workspaceDocuments.Select(d => d.Id), _trackedDocuments[uri].Text);
             }
 
-            lspSolution = lspSolution.WithFrozenSourceGeneratedDocuments(sourceGeneratedDocuments);
+            // If the source generated documents matched we can leave the source generated documents as-is
+            if (!doesAllSourceGeneratedTextMatch)
+            {
+                lspSolution = lspSolution.WithFrozenSourceGeneratedDocuments(sourceGeneratedDocuments);
+            }
 
-            // Did we actually have to fork anything? WithFrozenSourceGeneratedDocuments will return the same instance if we were able to
-            // immediately determine we already had the same generated contents
-            if (lspSolution == workspaceCurrentSolution)
-            {
-                // Remember that the current LSP text matches the text in this workspace solution.
-                _cachedLspSolutions[workspace] = (forkedFromVersion: null, workspaceCurrentSolution);
-                return (workspaceCurrentSolution, IsForked: false);
-            }
-            else
-            {
-                // Remember this forked solution and the workspace version it was forked from.
-                _cachedLspSolutions[workspace] = (workspaceCurrentSolution.WorkspaceVersion, lspSolution);
-                return (lspSolution, IsForked: true);
-            }
+            // Remember this forked solution and the workspace version it was forked from.
+            _cachedLspSolutions[workspace] = (workspaceCurrentSolution.WorkspaceVersion, lspSolution);
+            return (lspSolution, IsForked: true);
         }
 
         async ValueTask TryOpenAndEditDocumentsInMutatingWorkspaceAsync(Workspace workspace)
@@ -469,6 +467,34 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 }).ConfigureAwait(false);
             }
         }
+    }
+
+    /// <summary>
+    /// Checks if the open source generator document contents matches the contents of the workspace solution.
+    /// This looks at the source generator state explicitly to avoid actually running source generators
+    /// </summary>
+    private static bool DoesAllSourceGeneratedTextMatchWorkspaceSolution(
+        ImmutableArray<(SourceGeneratedDocumentIdentity Identity, DateTime Generated, SourceText Text)> sourceGenereatedDocuments,
+        Solution workspaceSolution)
+    {
+        var compilationState = workspaceSolution.CompilationState;
+        foreach (var (identity, _, text) in sourceGenereatedDocuments)
+        {
+            var existingState = compilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(identity.DocumentId);
+            if (existingState is null)
+            {
+                // We don't have existing state for at least one of the documents, so the text does cannot match.
+                return false;
+            }
+
+            var newState = existingState.WithText(text);
+            if (newState != existingState)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
