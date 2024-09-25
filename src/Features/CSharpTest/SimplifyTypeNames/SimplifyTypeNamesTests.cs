@@ -7304,7 +7304,7 @@ namespace N
             """, new TestParameters(options: featureOptions));
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75162")]
     public async Task TestEditorBrowsable1()
     {
         await TestMissingInRegularAndScriptAsync("""
