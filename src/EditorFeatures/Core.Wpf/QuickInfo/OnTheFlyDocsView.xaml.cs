@@ -69,6 +69,9 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         _document = editorFeaturesOnTheFlyDocsElement.Document;
 
         var sparkle = new ImageElement(new VisualStudio.Core.Imaging.ImageId(CopilotConstants.CopilotIconMonikerGuid, CopilotConstants.CopilotIconSparkleId));
+        object onDemandLinkText = _onTheFlyDocsElement.IsContentExcluded
+            ? ToUIElement(new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement([new ClassifiedTextRun(ClassificationTypeNames.Text, EditorFeaturesResources.Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization)])))
+            : ClassifiedTextElement.CreateHyperlink(EditorFeaturesResources.Describe_with_Copilot, EditorFeaturesResources.Generate_summary_with_Copilot, () => RequestResults());
 
         OnDemandLinkContent = ToUIElement(
             new ContainerElement(
@@ -76,8 +79,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
                 new object[]
                 {
                     sparkle,
-                    ClassifiedTextElement.CreateHyperlink(EditorFeaturesResources.Describe_with_Copilot, EditorFeaturesResources.Generate_summary_with_Copilot, () =>
-                    RequestResults()),
+                    onDemandLinkText,
                 }));
 
         LoadingContent = ToUIElement(
@@ -137,14 +139,13 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
 
         try
         {
-            if (_onTheFlyDocsElement.IsContentExcluded)
-            {
-                SetResultText(EditorFeaturesResources.Your_organization_excluded_a_referenced_file_from_Copilot);
-                CurrentState = OnTheFlyDocsState.Finished;
-                Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Content_Excluded, logLevel: LogLevel.Information);
-                return;
-
-            }
+            //if (_onTheFlyDocsElement.IsContentExcluded)
+            //{
+            //    SetResultText(EditorFeaturesResources.Your_organization_excluded_a_referenced_file_from_Copilot);
+            //    CurrentState = OnTheFlyDocsState.Finished;
+            //    Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Content_Excluded, logLevel: LogLevel.Information);
+            //    return;
+            //}
 
             var response = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsElement.SymbolSignature, _onTheFlyDocsElement.DeclarationCode, _onTheFlyDocsElement.Language, cancellationToken).ConfigureAwait(false);
             var copilotRequestTime = stopwatch.Elapsed;
