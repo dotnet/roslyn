@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             if (document == null)
                 return SpecializedTasks.Null<LSP.VSInternalDocumentOnAutoInsertResponseItem>();
 
-            var onAutoInsertEnabled = _globalOptions.GetOption(LspOptionsStorage.LspEnableOnAutoInsert, document.Project.Language);
+            var onAutoInsertEnabled = _globalOptions.GetOption(LspOptionsStorage.LspEnableAutoInsert, document.Project.Language);
             if (!onAutoInsertEnabled)
                 return SpecializedTasks.Null<LSP.VSInternalDocumentOnAutoInsertResponseItem>();
 
