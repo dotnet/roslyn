@@ -41,8 +41,8 @@ internal enum RudeEditKind : ushort
     // InsertNonPublicConstructor = 27,
     // InsertGenericMethod = 28,
     InsertDllImport = 29,
-    InsertIntoStruct = 30,
-    InsertIntoClassWithLayout = 31,
+    InsertOrMoveStructMember = 30,
+    InsertOrMoveTypeWithLayoutMember = 31,
     Move = 32,
     Delete = 33,
     // MethodBodyAdd = 34,
@@ -144,4 +144,5 @@ internal enum RudeEditKind : ushort
     ChangingNameOrSignatureOfActiveMember = 117,
     UpdateMightNotHaveAnyEffect = 118,
     TypeUpdateAroundActiveStatement = 119,
+    InsertOrMoveComInterfaceMember = 120,
 }

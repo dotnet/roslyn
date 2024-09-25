@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var arg2 = new HashSet<RudeEditKind>()
             {
-                RudeEditKind.InsertIntoStruct,
-                RudeEditKind.InsertIntoStruct,
+                RudeEditKind.InsertOrMoveStructMember,
+                RudeEditKind.InsertOrMoveStructMember,
                 RudeEditKind.ChangingCapturedVariableType,
                 RudeEditKind.RenamingCapturedVariable,
                 RudeEditKind.ChangingStateMachineShape,
