@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 
@@ -18,7 +17,7 @@ internal abstract class AbstractSimplifier<TSyntax, TSimplifiedSyntax, TSimplifi
         TSyntax syntax,
         SemanticModel semanticModel,
         TSimplifierOptions options,
-        out TSimplifiedSyntax replacementNode,
+        [NotNullWhen(true)] out TSimplifiedSyntax? replacementNode,
         out TextSpan issueSpan,
         CancellationToken cancellationToken);
 }
