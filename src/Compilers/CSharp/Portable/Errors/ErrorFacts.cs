@@ -82,6 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor));
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor));
 
+            nullableWarnings.Add(GetId(ErrorCode.WRN_UninitializedNonNullableBackingField));
+
             NullableWarnings = nullableWarnings.ToImmutable();
         }
 
@@ -556,6 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ConvertingLock:
                 case ErrorCode.WRN_PartialPropertySignatureDifference:
                 case ErrorCode.WRN_FieldIsAmbiguous:
+                case ErrorCode.WRN_UninitializedNonNullableBackingField:
                     return 1;
                 default:
                     return 0;
