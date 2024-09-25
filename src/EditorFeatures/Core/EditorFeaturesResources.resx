@@ -954,6 +954,6 @@ Do you want to proceed?</value>
     <value>An error occurred while generating documentation for this code.</value>
   </data>
   <data name="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization" xml:space="preserve">
-    <value>Describe with Copilot is unavailable since the referenced document is excluded by your organization</value>
+    <value>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</value>
   </data>
 </root>
