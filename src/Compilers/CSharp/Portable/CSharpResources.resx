@@ -7995,4 +7995,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InlineArrayAttributeOnRecord" xml:space="preserve">
     <value>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</value>
   </data>
+  <data name="WRN_UninitializedNonNullableBackingField" xml:space="preserve">
+    <value>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</value>
+    <comment>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</comment>
+  </data>
 </root>

@@ -5283,6 +5283,11 @@
         <target state="translated">Składowa iteratora asynchronicznego ma co najmniej jeden parametr typu „CancellationToken”, ale żaden z nich nie ma atrybutu „EnumeratorCancellation” i dlatego zostanie wykorzystany parametr tokenu anulowania z wygenerowanego elementu „IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator”</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableBackingField">
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</target>
+        <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
+      </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</source>
         <target state="translated">Niedopuszczający wartości null element {0} „{1}” musi zawierać wartość inną niż null podczas kończenia działania konstruktora. Rozważ dodanie modyfikatora „required” lub zadeklarowanie {0} jako dopuszczającego wartość null.</target>
