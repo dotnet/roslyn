@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -20,13 +19,13 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.EncapsulateField;
 
 [Trait(Traits.Feature, Traits.Features.EncapsulateField)]
-public class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEditor
 {
     protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new EncapsulateFieldRefactoringProvider();
 
     private OptionsCollection AllOptionsOff
-        => new OptionsCollection(GetLanguage())
+        => new(GetLanguage())
         {
             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
             { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
@@ -34,12 +33,12 @@ public class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEditor
 
     internal Task TestAllOptionsOffAsync(
         TestHost host,
-        string initialMarkup,
-        string expectedMarkup,
-        ParseOptions parseOptions = null,
-        CompilationOptions compilationOptions = null,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string initialMarkup,
+        [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string expectedMarkup,
+        ParseOptions? parseOptions = null,
+        CompilationOptions? compilationOptions = null,
         int index = 0,
-        OptionsCollection options = null)
+        OptionsCollection? options = null)
     {
         options ??= new OptionsCollection(GetLanguage());
         options.AddRange(AllOptionsOff);
@@ -1648,5 +1647,54 @@ public class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEditor
             }
             """;
         await TestAllOptionsOffAsync(host, text, expected, index: 1);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task PrimaryConstructor1(TestHost host)
+    {
+        await TestAllOptionsOffAsync(host, """
+            public class C(object o)
+            {
+                public readonly int [|A|] = 1;
+            }
+            """, """
+            public class C(object o)
+            {
+                private readonly int a = 1;
+
+                public int A
+                {
+                    get
+                    {
+                        return a;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task PrimaryConstructor2(TestHost host)
+    {
+        await TestAllOptionsOffAsync(host, """
+            public class C(object o)
+            {
+                public readonly int [|A|] = 1;
+            }
+            """, """
+            public class C(object o)
+            {
+                private readonly int a = 1;
+
+                public int A
+                {
+                    get
+                    {
+                        return a;
+                    }
+                }
+            }
+            """,
+            index: 1);
     }
 }
