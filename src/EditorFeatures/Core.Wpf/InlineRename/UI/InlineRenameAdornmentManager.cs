@@ -164,7 +164,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 var newAdornment = new RenameDashboard(
                     (RenameDashboardViewModel)s_createdViewModels.GetValue(_renameService.ActiveSession, session => new RenameDashboardViewModel(session)),
                     _editorFormatMapService,
-                    _textView);
+                    _textView,
+                    _globalOptionService);
 
                 return newAdornment;
             }

@@ -14,7 +14,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -32,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private UIElement _focusedElement = null;
         private readonly List<UIElement> _tabNavigableChildren;
         private readonly IEditorFormatMap _textFormattingMap;
+        private readonly IGlobalOptionService _globalOptionService;
 
         internal bool ShouldReceiveKeyboardNavigation { get; set; }
 
@@ -47,9 +50,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public RenameDashboard(
             RenameDashboardViewModel model,
             IEditorFormatMapService editorFormatMapService,
-            IWpfTextView textView)
+            IWpfTextView textView,
+            IGlobalOptionService globalOptionService)
         {
             _model = model;
+            _globalOptionService = globalOptionService;
             InitializeComponent();
 
             _tabNavigableChildren = [this.OverloadsCheckbox, this.CommentsCheckbox, this.StringsCheckbox, this.FileRenameCheckbox, this.PreviewChangesCheckbox, this.ApplyButton, this.CloseButton];
@@ -331,8 +336,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             try
             {
-                _model.Session.Commit();
-                _textView.VisualElement.Focus();
+                if (_globalOptionService.ShouldCommitAsynchronously())
+                {
+                    _ = _model.Session.CommitAsync(previewChanges: false);
+                }
+                else
+                {
+                    _model.Session.Commit();
+                    _textView.VisualElement.Focus();
+                }
+
             }
             catch (NotSupportedException ex)
             {
