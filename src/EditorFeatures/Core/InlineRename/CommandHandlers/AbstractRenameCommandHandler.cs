@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
+using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -76,17 +77,8 @@ internal abstract partial class AbstractRenameCommandHandler(
         }
         else if (renameService.ActiveSession.IsInOpenTextBuffer(singleSpan.Start))
         {
-            if (globalOptionService.ShouldCommitAsynchronously())
-            {
-                renameService.ActiveSession?.Cancel();
-                nextHandler();
-            }
-            else
-            {
-                // It's in a read-only area that is open, so let's commit the rename 
-                // and then let the character go through
-                CommitIfActiveAndCallNextHandler(args, nextHandler, operationContext);
-            }
+            // It's in a read-only area that is open. Cancel or commit the session.
+            CompleteActionSessionAndCallNextHandler(args, nextHandler, operationContext, invalidEditCommandInvoked: true);
         }
         else
         {
@@ -95,13 +87,13 @@ internal abstract partial class AbstractRenameCommandHandler(
         }
     }
 
-    private void CommitIfActive(EditorCommandArgs args, IUIThreadOperationContext operationContext)
+    private void CompleteActiveSessionAndMoveCaret(EditorCommandArgs args, IUIThreadOperationContext operationContext, bool invalidEditCommandInvoked)
     {
         if (renameService.ActiveSession != null)
         {
             var selection = args.TextView.Selection.VirtualSelectedSpans.First();
 
-            Commit(operationContext);
+            CompleteActiveSession(operationContext, invalidEditCommandInvoked);
 
             var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
             args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
@@ -109,15 +101,26 @@ internal abstract partial class AbstractRenameCommandHandler(
         }
     }
 
-    private void CommitIfActiveAndCallNextHandler(EditorCommandArgs args, Action nextHandler, IUIThreadOperationContext operationContext)
+    private void CompleteActionSessionAndCallNextHandler(EditorCommandArgs args, Action nextHandler, IUIThreadOperationContext operationContext, bool invalidEditCommandInvoked)
     {
-        CommitIfActive(args, operationContext);
+        CompleteActiveSessionAndMoveCaret(args, operationContext, invalidEditCommandInvoked);
         nextHandler();
     }
 
-    private void Commit(IUIThreadOperationContext operationContext)
+    private void CompleteActiveSession(IUIThreadOperationContext operationContext, bool invalidEditCommandInvoked)
     {
         RoslynDebug.AssertNotNull(renameService.ActiveSession);
-        renameService.ActiveSession.Commit(previewChanges: false, operationContext);
+        if (invalidEditCommandInvoked && globalOptionService.ShouldCommitAsynchronously())
+        {
+            // When rename is async, and an invalid edit command is invoked.
+            // Both rename and this edit command could change the workspace. We can't make sure the order of these commands.
+            // So in this case we cancel the rename session.
+            renameService.ActiveSession.Cancel();
+        }
+        else
+        {
+            // In legacy mode when commit is sync, we can make sure the rename operation finishes first. So commit the session.
+            renameService.ActiveSession.Commit(previewChanges: false, operationContext);
+        }
     }
 }

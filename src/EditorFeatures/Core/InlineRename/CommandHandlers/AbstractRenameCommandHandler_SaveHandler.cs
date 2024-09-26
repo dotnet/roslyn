@@ -15,13 +15,12 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<S
 
     public bool ExecuteCommand(SaveCommandArgs args, CommandExecutionContext context)
     {
-        if (renameService.ActiveSession != null)
+        // Commit the session if commit is sync, because we can make sure rename complete before the save command finish.
+        // No-op if commit is async, because when rename complete after the save command finish, workspace could still be dirty.
+        if (renameService.ActiveSession != null && !globalOptionService.ShouldCommitAsynchronously())
         {
-            if (!globalOptionService.ShouldCommitAsynchronously())
-            {
-                Commit(context.OperationContext);
-                SetFocusToTextView(args.TextView);
-            }
+            CompleteActiveSession(context.OperationContext, invalidEditCommandInvoked: false);
+            SetFocusToTextView(args.TextView);
         }
 
         return false;
