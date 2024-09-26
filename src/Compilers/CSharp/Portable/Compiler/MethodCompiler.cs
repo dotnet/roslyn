@@ -2180,13 +2180,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private sealed class EmptyRewriter : BoundTreeRewriterWithStackGuard
+        private sealed class EmptyRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
         {
-            // PROTOTYPE: This override shouldn't be necessary. The base class should use a stack.
-            public override BoundNode? VisitIfStatement(BoundIfStatement node)
-            {
-                return node; // PROTOTYPE: Not implemented.
-            }
         }
 
         private sealed class UnboundLambdaFinder : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator

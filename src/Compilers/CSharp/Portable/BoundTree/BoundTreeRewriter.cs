@@ -152,5 +152,48 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return left;
         }
+
+        public sealed override BoundNode? VisitIfStatement(BoundIfStatement node)
+        {
+            if (node.AlternativeOpt is not BoundIfStatement ifStatement)
+            {
+                return base.VisitIfStatement(node);
+            }
+
+            var stack = ArrayBuilder<BoundIfStatement>.GetInstance();
+            stack.Push(node);
+
+            BoundStatement? alternative;
+            while (true)
+            {
+                stack.Push(ifStatement);
+
+                alternative = ifStatement.AlternativeOpt;
+                if (alternative is not BoundIfStatement nextIfStatement)
+                {
+                    break;
+                }
+
+                ifStatement = nextIfStatement;
+            }
+
+            alternative = (BoundStatement?)this.Visit(alternative);
+
+            do
+            {
+                ifStatement = stack.Pop();
+
+                BoundExpression condition = (BoundExpression)this.Visit(ifStatement.Condition);
+                BoundStatement consequence = (BoundStatement)this.Visit(ifStatement.Consequence);
+
+                alternative = ifStatement.Update(condition, consequence, alternative);
+            }
+            while (stack.Count > 0);
+
+            Debug.Assert((object)ifStatement == node);
+            stack.Free();
+
+            return alternative;
+        }
     }
 }
