@@ -1589,4 +1589,122 @@ public partial class UseCollectionExpressionForBuilderTests
                 """
         }.RunAsync();
     }
+
+    [Theory, MemberData(nameof(SuccessCreationPatterns))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74208")]
+    public async Task TestLeadingComment(string pattern)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        //Leading
+                        {{pattern}}
+                        [|builder.Add(|]0);
+                        ImmutableArray<int> array = builder.ToImmutable();
+                    }
+                }
+                """ + s_arrayBuilderApi,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        //Leading
+                        ImmutableArray<int> array = [0];
+                    }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, MemberData(nameof(SuccessCreationPatterns))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74208")]
+    public async Task TestLeadingCommentWithAdditionalTrivia1(string pattern)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        //Leading
+                        {{pattern}}
+                        [|builder.Add(|]0);
+                        //comment
+                        ImmutableArray<int> array = builder.ToImmutable();
+                    }
+                }
+                """ + s_arrayBuilderApi,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        //Leading
+                        //comment
+                        ImmutableArray<int> array = [0];
+                    }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, MemberData(nameof(SuccessCreationPatterns))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74208")]
+    public async Task TestLeadingCommentWithAdditionalTrivia2(string pattern)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        //Leading 1
+                        {{pattern}}
+                        //Leading 2
+                        [|builder.Add(|]0); //Trailing
+                        ImmutableArray<int> array = builder.ToImmutable();
+                    }
+                }
+                """ + s_arrayBuilderApi,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M()
+                    {
+                        //Leading 1
+                        ImmutableArray<int> array =
+                        [
+                            //Leading 2
+                            0, //Trailing
+                        ];
+                    }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
 }

@@ -165,11 +165,11 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         using var enumerator = state.GetSubsequentStatements().GetEnumerator();
         while (enumerator.MoveNext())
         {
-            var subseqeuntStatement = enumerator.Current;
+            var subsequentStatement = enumerator.Current;
 
             // See if it's one of the statement forms that can become a collection expression element.
             var match = state.TryAnalyzeStatementForCollectionExpression(
-                CSharpUpdateExpressionSyntaxHelper.Instance, subseqeuntStatement, cancellationToken);
+                CSharpUpdateExpressionSyntaxHelper.Instance, subsequentStatement, cancellationToken);
             if (match != null)
             {
                 matches.Add(match.Value);
@@ -182,7 +182,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
 
             // Now, look for something in the current statement (like `builder.ToImmutable()`) indicating we're
             // converting the builder to the final form.
-            var creationExpression = TryFindCreationExpression(identifier, subseqeuntStatement);
+            var creationExpression = TryFindCreationExpression(identifier, subsequentStatement);
             if (creationExpression is null)
                 return null;
 
