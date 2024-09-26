@@ -27,7 +27,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         TObjectCreationExpressionSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
-        Match<TStatementSyntax>, TAnalyzer>
+        Match, TAnalyzer>
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
     where TObjectCreationExpressionSyntax : TExpressionSyntax
@@ -49,11 +49,11 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
 {
     protected abstract bool IsComplexElementInitializer(SyntaxNode expression);
     protected abstract bool HasExistingInvalidInitializerForCollection();
-    protected abstract bool AnalyzeMatchesAndCollectionConstructorForCollectionExpression(ArrayBuilder<Match<TStatementSyntax>> matches, CancellationToken cancellationToken);
+    protected abstract bool AnalyzeMatchesAndCollectionConstructorForCollectionExpression(ArrayBuilder<Match> matches, CancellationToken cancellationToken);
 
     protected abstract IUpdateExpressionSyntaxHelper<TExpressionSyntax, TStatementSyntax> SyntaxHelper { get; }
 
-    public ImmutableArray<Match<TStatementSyntax>> Analyze(
+    public ImmutableArray<Match> Analyze(
         SemanticModel semanticModel,
         ISyntaxFacts syntaxFacts,
         TObjectCreationExpressionSyntax objectCreationExpression,
@@ -87,7 +87,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
     }
 
     protected sealed override bool TryAddMatches(
-        ArrayBuilder<Match<TStatementSyntax>> matches, CancellationToken cancellationToken)
+        ArrayBuilder<Match> matches, CancellationToken cancellationToken)
     {
         var seenInvocation = false;
         var seenIndexAssignment = false;
@@ -131,7 +131,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         return true;
     }
 
-    private Match<TStatementSyntax>? TryAnalyzeStatement(
+    private Match? TryAnalyzeStatement(
         TStatementSyntax statement, ref bool seenInvocation, ref bool seenIndexAssignment, CancellationToken cancellationToken)
     {
         return _analyzeForCollectionExpression
@@ -139,7 +139,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
             : TryAnalyzeStatementForCollectionInitializer(statement, ref seenInvocation, ref seenIndexAssignment, cancellationToken);
     }
 
-    private Match<TStatementSyntax>? TryAnalyzeStatementForCollectionInitializer(
+    private Match? TryAnalyzeStatementForCollectionInitializer(
         TStatementSyntax statement, ref bool seenInvocation, ref bool seenIndexAssignment, CancellationToken cancellationToken)
     {
         // At least one of these has to be false.
@@ -161,7 +161,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
                 this.State.ValuePatternMatches(instance))
             {
                 seenInvocation = true;
-                return new(Statement: expressionStatement, UseSpread: false);
+                return new(expressionStatement, UseSpread: false);
             }
         }
 
@@ -171,7 +171,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
                 this.State.ValuePatternMatches(instance))
             {
                 seenIndexAssignment = true;
-                return new(Statement: expressionStatement, UseSpread: false);
+                return new(expressionStatement, UseSpread: false);
             }
         }
 

@@ -19,33 +19,18 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider
     /// Creates the final collection-expression <c>[...]</c> that will replace the given <paramref
     /// name="objectCreation"/> expression.
     /// </summary>
-    private static async Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync(
+    private static Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync(
         Document document,
         BaseObjectCreationExpressionSyntax objectCreation,
-        ImmutableArray<Match<StatementSyntax>> matches,
+        ImmutableArray<Match> matches,
         CancellationToken cancellationToken)
     {
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-        using var finalMatches = TemporaryArray<CollectionExpressionMatch<SyntaxNode>>.Empty;
-
-        // If we have an argument to the constructor (that is not the 'capacity' argument), then include that as a
-        // spreaded value to the final collection expression before all the other elements we're adding.
-        if (objectCreation.ArgumentList?.Arguments is [{ Expression: var expression }])
-        {
-            var type = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
-            if (type?.SpecialType is not SpecialType.System_Int32)
-                finalMatches.Add(new(expression, UseSpread: true));
-        }
-
-        finalMatches.AddRange(matches.SelectAsArray(m => new CollectionExpressionMatch<SyntaxNode>(m.Statement, m.UseSpread)));
-
-        return await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
+        return CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
             document,
             objectCreation,
-            finalMatches.ToImmutableAndClear(),
+            matches.SelectAsArray(m => new CollectionExpressionMatch<SyntaxNode>(m.StatementOrExpression, m.UseSpread)),
             static objectCreation => objectCreation.Initializer,
             static (objectCreation, initializer) => objectCreation.WithInitializer(initializer),
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
     }
 }

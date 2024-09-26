@@ -45,7 +45,7 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
     }
 
     protected override bool AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
-        ArrayBuilder<Match<StatementSyntax>> matches, CancellationToken cancellationToken)
+        ArrayBuilder<Match> matches, CancellationToken cancellationToken)
     {
         // Constructor wasn't called with any arguments.  Nothing to validate.
         var argumentList = _objectCreationExpression.ArgumentList;
@@ -73,6 +73,7 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
         {
             // Took a single argument that implements IEnumerable<T>.  We handle this by spreading that argument as the
             // first thing added to the collection.
+            matches.Insert(0, new(argumentList.Arguments[0].Expression, UseSpread: true));
             return true;
         }
         else if (firstParameter is { Type.SpecialType: SpecialType.System_Int32, Name: "capacity" })
@@ -89,7 +90,7 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
             using var _1 = ArrayBuilder<ExpressionSyntax>.GetInstance(out var spreadElements);
             foreach (var match in matches)
             {
-                switch (match.Statement)
+                switch (match.StatementOrExpression)
                 {
                     case ExpressionStatementSyntax { Expression: InvocationExpressionSyntax invocation } expressionStatement:
                         // x.AddRange(y).  Have to make sure we see y.Count in the capacity list.

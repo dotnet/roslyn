@@ -54,7 +54,7 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
     protected abstract TAnalyzer GetAnalyzer();
 
     protected abstract Task<(SyntaxNode oldNode, SyntaxNode newNode)> GetReplacementNodesAsync(
-        Document document, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression, ImmutableArray<Match<TStatementSyntax>> matches, CancellationToken cancellationToken);
+        Document document, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression, ImmutableArray<Match> matches, CancellationToken cancellationToken);
 
     protected sealed override async Task FixAsync(
         Document document,
@@ -86,6 +86,9 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
 
         editor.ReplaceNode(oldNode, newNode);
         foreach (var match in matches)
-            editor.RemoveNode(match.Statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+        {
+            if (match.StatementOrExpression is TStatementSyntax statement)
+                editor.RemoveNode(statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
+        }
     }
 }
