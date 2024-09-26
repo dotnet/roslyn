@@ -196,13 +196,19 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     [Fact]
     public async Task TestInField4()
     {
-        await TestMissingInRegularAndScriptAsync(
-            """
+        await TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
 
             class C
             {
                 List<int> c = new List<int>(new[] { 1, 2, 3 });
+            }
+            """, """
+            using System.Collections.Generic;
+
+            class C
+            {
+                List<int> c = [.. new[] { 1, 2, 3 }]);
             }
             """);
     }
@@ -4934,7 +4940,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c = [|new|] List<int>(x);
                     [|c.Add(|]0);
-                    c.AddRange(y);
+                    [|c.AddRange|](y);
                 }
             }
             """,
