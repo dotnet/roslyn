@@ -1767,7 +1767,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             binaryPatternStack.Free();
             narrowedTypeCandidates.Free();
-            Debug.Assert(result != null);
             return result;
 
             static BoundPattern bindBinaryPattern(
