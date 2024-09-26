@@ -1188,7 +1188,7 @@ class A {
         encSessionState.IsSessionActive = true;
 
         var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics: false, category: PullDiagnosticCategories.EditAndContinue);
-        Assert.Empty(results.Single().Diagnostics);
+        AssertEx.Empty(results.Single().Diagnostics);
     }
 
     [Theory, CombinatorialData]
