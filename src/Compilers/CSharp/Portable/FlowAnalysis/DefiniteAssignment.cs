@@ -2083,14 +2083,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 pat = pat.Left as BoundBinaryPattern;
                             } while (pat is not null);
 
-                            Debug.Assert(stack.Count > 0);
-                            (pat, definitely) = stack.Peek();
-                            assignPatternVariablesAndMarkReadFields(pat.Left, definitely);
+                            var patAndDef = stack.Pop();
+                            assignPatternVariablesAndMarkReadFields(patAndDef.pattern.Left, patAndDef.def);
 
-                            while (stack.TryPop(out var patAndDef))
+                            do
                             {
                                 assignPatternVariablesAndMarkReadFields(patAndDef.pattern.Right, patAndDef.def);
-                            }
+                            } while (stack.TryPop(out patAndDef));
 
                             stack.Free();
                             break;
