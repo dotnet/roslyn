@@ -195,13 +195,44 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
                 Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
                     "Project", LanguageNames.CSharp, CancellationToken.None)
 
-                ' add Razor source generator and a couple more other analyzer filess:
+                ' add Razor source generator and a couple more other analyzer files:
                 Dim path1 = Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk.Razor", "source-generators", "Microsoft.NET.Sdk.Razor.SourceGenerators.dll")
                 Dim path2 = Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk.Razor", "source-generators", "SdkDependency1.dll")
                 project.AddAnalyzerReference(path1)
                 project.AddAnalyzerReference(path2)
 
                 AssertEx.Equal({path1, path2}, environment.Workspace.CurrentSolution.Projects.Single().AnalyzerReferences.Select(Function(r) r.FullPath))
+            End Using
+        End Function
+
+        <WpfFact>
+        Public Async Function CodeStyleAnalyzers_FromSdk() As Task
+            Using environment = New TestEnvironment()
+                Dim providerFactory = DirectCast(environment.ExportProvider.GetExportedValue(Of IVisualStudioDiagnosticAnalyzerProviderFactory), MockVisualStudioDiagnosticAnalyzerProviderFactory)
+                providerFactory.Extensions =
+                {
+                     ({
+                        Path.Combine(TempRoot.Root, "File.dll")
+                     },
+                     "AnotherExtension")
+                }
+
+                Dim project = Await environment.ProjectFactory.CreateAndAddToWorkspaceAsync(
+                    "Project", LanguageNames.CSharp, CancellationToken.None)
+
+                project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "codestyle", "cs", "Microsoft.CodeAnalysis.CodeStyle.dll"))
+                project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "codestyle", "cs", "Microsoft.CodeAnalysis.CodeStyle.Fixes.dll"))
+                project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "codestyle", "cs", "Microsoft.CodeAnalysis.CSharp.CodeStyle.dll"))
+                project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Sdks", "Microsoft.NET.Sdk", "codestyle", "cs", "Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.dll"))
+
+                Assert.Empty(environment.Workspace.CurrentSolution.Projects.Single().AnalyzerReferences)
+
+                project.AddAnalyzerReference(Path.Combine(TempRoot.Root, "Dir", "File.dll"))
+
+                AssertEx.Equal(
+                {
+                    Path.Combine(TempRoot.Root, "Dir", "File.dll")
+                }, environment.Workspace.CurrentSolution.Projects.Single().AnalyzerReferences.Select(Function(r) r.FullPath))
             End Using
         End Function
     End Class
