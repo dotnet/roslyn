@@ -23,7 +23,7 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider
 {
     private static BaseObjectCreationExpressionSyntax CreateObjectInitializerExpression(
         BaseObjectCreationExpressionSyntax objectCreation,
-        ImmutableArray<Match<StatementSyntax>> matches)
+        ImmutableArray<Match> matches)
     {
         var expressions = CreateCollectionInitializerExpressions();
         var withLineBreaks = AddLineBreaks(expressions);
@@ -35,13 +35,13 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider
         {
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 
-            UseInitializerHelpers.AddExistingItems<Match<StatementSyntax>, ExpressionSyntax>(
+            UseInitializerHelpers.AddExistingItems<Match, ExpressionSyntax>(
                 objectCreation, nodesAndTokens, addTrailingComma: matches.Length > 0, static (_, expression) => expression);
 
             for (var i = 0; i < matches.Length; i++)
             {
                 var match = matches[i];
-                var statement = (ExpressionStatementSyntax)match.Statement;
+                var statement = (ExpressionStatementSyntax)match.StatementOrExpression;
 
                 var trivia = statement.GetLeadingTrivia();
                 var leadingTrivia = i == 0 ? trivia.WithoutLeadingBlankLines() : trivia;

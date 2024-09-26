@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
 /// collection-initializer/expression elements.
 /// </summary>
 /// <param name="StatementOrExpression">The statement that follows that contains the values to add to the new
-/// collection-initializer or collection-expression. Or the expression directly to add</param>
+/// collection-initializer or collection-expression. Or the expression directly to add.</param>
 /// <param name="UseSpread">Whether or not a spread (<c>.. x</c>) element should be created for this statement. This
 /// is needed as the statement could be cases like <c>expr.Add(x)</c> vs. <c>expr.AddRange(x)</c>. This property
 /// indicates that the latter should become a spread, without the consumer having to reexamine the statement to see

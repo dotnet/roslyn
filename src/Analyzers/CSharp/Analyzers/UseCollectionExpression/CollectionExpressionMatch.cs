@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
-/// <inheritdoc cref="Match{TStatementSyntax}"/>
+/// <inheritdoc cref="Match"/>
 internal readonly record struct CollectionExpressionMatch<TMatchNode>(
     TMatchNode Node,
     bool UseSpread) where TMatchNode : SyntaxNode;

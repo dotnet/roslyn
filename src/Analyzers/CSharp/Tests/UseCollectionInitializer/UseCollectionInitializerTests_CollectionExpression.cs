@@ -201,7 +201,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
 
             class C
             {
-                List<int> c = new List<int>(new[] { 1, 2, 3 });
+                List<int> c = [|new|] List<int>(new[] { 1, 2, 3 });
             }
             """, """
             using System.Collections.Generic;
@@ -4940,7 +4940,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 {
                     List<int> c = [|new|] List<int>(x);
                     [|c.Add(|]0);
-                    [|c.AddRange|](y);
+                    [|c.AddRange(|]y);
                 }
             }
             """,

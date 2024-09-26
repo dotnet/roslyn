@@ -37,7 +37,7 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider() :
         Document document,
         BaseObjectCreationExpressionSyntax objectCreation,
         bool useCollectionExpression,
-        ImmutableArray<Match<StatementSyntax>> matches,
+        ImmutableArray<Match> matches,
         CancellationToken cancellationToken)
     {
         var newObjectCreation = await GetNewObjectCreationAsync(
@@ -49,7 +49,7 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider() :
         Document document,
         BaseObjectCreationExpressionSyntax objectCreation,
         bool useCollectionExpression,
-        ImmutableArray<Match<StatementSyntax>> matches,
+        ImmutableArray<Match> matches,
         CancellationToken cancellationToken)
     {
         return useCollectionExpression

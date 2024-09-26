@@ -8,7 +8,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -66,7 +65,7 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider()
         var collectionExpression = await CreateCollectionExpressionAsync(
             newDocument,
             dummyObjectCreation,
-            analysisResult.Matches.SelectAsArray(m => new CollectionExpressionMatch<StatementSyntax>(m.Statement, m.UseSpread)),
+            analysisResult.Matches.SelectAsArray(m => new CollectionExpressionMatch<SyntaxNode>(m.StatementOrExpression, m.UseSpread)),
             static o => o.Initializer,
             static (o, i) => o.WithInitializer(i),
             cancellationToken).ConfigureAwait(false);
@@ -92,7 +91,7 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider()
             => new(analysisResult.DiagnosticLocation,
                    root.GetCurrentNode(analysisResult.LocalDeclarationStatement)!,
                    root.GetCurrentNode(analysisResult.CreationExpression)!,
-                   analysisResult.Matches.SelectAsArray(m => new Match<StatementSyntax>(root.GetCurrentNode(m.Statement)!, m.UseSpread)),
+                   analysisResult.Matches.SelectAsArray(m => new Match(root.GetCurrentNode(m.StatementOrExpression)!, m.UseSpread)),
                    analysisResult.ChangesSemantics);
 
         // Creates a new document with all of the relevant nodes in analysisResult tracked so that we can find them

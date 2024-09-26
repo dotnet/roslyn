@@ -159,7 +159,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
             identifier,
             initializedSymbol: semanticModel.GetDeclaredSymbol(declarator, cancellationToken));
 
-        using var _ = ArrayBuilder<Match<StatementSyntax>>.GetInstance(out var matches);
+        using var _ = ArrayBuilder<Match>.GetInstance(out var matches);
 
         // Now walk all the statement after the local declaration.
         using var enumerator = state.GetSubsequentStatements().GetEnumerator();
@@ -249,6 +249,6 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         Location DiagnosticLocation,
         LocalDeclarationStatementSyntax LocalDeclarationStatement,
         InvocationExpressionSyntax CreationExpression,
-        ImmutableArray<Match<StatementSyntax>> Matches,
+        ImmutableArray<Match> Matches,
         bool ChangesSemantics);
 }
