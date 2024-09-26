@@ -636,6 +636,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static object P1 { get; set { _ = field; } }
                     static object P2 { get { return field; } set; }
+                    static object P3 { get; set { } }
+                    static object P4 { get { return null; } set; }
+                    static object P5 { get; }
+                    static object P6 { get; set; }
                 }
                 """;
 
@@ -658,43 +662,78 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_FeatureInPreview, "P2").WithArguments("field keyword").WithLocation(4, 19),
                     // (4,37): error CS0103: The name 'field' does not exist in the current context
                     //     static object P2 { get { return field; } set; }
-                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(4, 37));
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(4, 37),
+                    // (5,19): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static object P3 { get; set { } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P3").WithArguments("field keyword").WithLocation(5, 19),
+                    // (6,19): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static object P4 { get { return null; } set; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P4").WithArguments("field keyword").WithLocation(6, 19));
             }
             else
             {
                 var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
                 verifier.VerifyIL("I.P1.get", """
-                {
-                  // Code size        6 (0x6)
-                  .maxstack  1
-                  IL_0000:  ldsfld     "object I.<P1>k__BackingField"
-                  IL_0005:  ret
-                }
-                """);
+                    {
+                      // Code size        6 (0x6)
+                      .maxstack  1
+                      IL_0000:  ldsfld     "object I.<P1>k__BackingField"
+                      IL_0005:  ret
+                    }
+                    """);
                 verifier.VerifyIL("I.P2.set", """
-                {
-                  // Code size        7 (0x7)
-                  .maxstack  1
-                  IL_0000:  ldarg.0
-                  IL_0001:  stsfld     "object I.<P2>k__BackingField"
-                  IL_0006:  ret
-                }
-                """);
+                    {
+                      // Code size        7 (0x7)
+                      .maxstack  1
+                      IL_0000:  ldarg.0
+                      IL_0001:  stsfld     "object I.<P2>k__BackingField"
+                      IL_0006:  ret
+                    }
+                    """);
+                verifier.VerifyIL("I.P5.get", """
+                    {
+                      // Code size        6 (0x6)
+                      .maxstack  1
+                      IL_0000:  ldsfld     "object I.<P5>k__BackingField"
+                      IL_0005:  ret
+                    }
+                    """);
+                verifier.VerifyIL("I.P6.set", """
+                    {
+                      // Code size        7 (0x7)
+                      .maxstack  1
+                      IL_0000:  ldarg.0
+                      IL_0001:  stsfld     "object I.<P6>k__BackingField"
+                      IL_0006:  ret
+                    }
+                    """);
             }
 
-            var actualMembers = comp.GetMember<NamedTypeSymbol>("I").GetMembers().ToTestDisplayStrings();
-            var expectedMembers = new[]
-                {
-                    "System.Object I.<P1>k__BackingField",
-                    "System.Object I.P1 { get; set; }",
-                    "System.Object I.P1.get",
-                    "void I.P1.set",
-                    "System.Object I.<P2>k__BackingField",
-                    "System.Object I.P2 { get; set; }",
-                    "System.Object I.P2.get",
-                    "void I.P2.set",
-                };
-            AssertEx.Equal(expectedMembers, actualMembers);
+            var containingType = comp.GetMember<NamedTypeSymbol>("I");
+            var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();
+            var expectedFields = new[]
+            {
+                "System.Object I.<P1>k__BackingField",
+                "System.Object I.<P2>k__BackingField",
+                "System.Object I.<P3>k__BackingField",
+                "System.Object I.<P4>k__BackingField",
+                "System.Object I.<P5>k__BackingField",
+                "System.Object I.<P6>k__BackingField",
+            };
+            AssertEx.Equal(expectedFields, actualFields.ToTestDisplayStrings());
+
+            var actualProperties = containingType.GetMembers().OfType<PropertySymbol>().ToImmutableArray();
+            Assert.Equal(6, actualProperties.Length);
+            Assert.True(actualProperties[0] is SourcePropertySymbol { Name: "P1", IsAutoProperty: true, BackingField: { } });
+            Assert.True(actualProperties[1] is SourcePropertySymbol { Name: "P2", IsAutoProperty: true, BackingField: { } });
+            Assert.True(actualProperties[2] is SourcePropertySymbol { Name: "P3", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "P4", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[4] is SourcePropertySymbol { Name: "P5", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+            Assert.True(actualProperties[5] is SourcePropertySymbol { Name: "P6", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
+            Assert.Equal(languageVersion > LanguageVersion.CSharp13, ((SourcePropertySymbol)actualProperties[0]).UsesFieldKeyword);
+            Assert.Equal(languageVersion > LanguageVersion.CSharp13, ((SourcePropertySymbol)actualProperties[1]).UsesFieldKeyword);
+
+            VerifyMergedProperties(actualProperties, actualFields);
         }
 
         [Theory]
@@ -788,8 +827,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(actualProperties[3] is SourcePropertySymbol { Name: "Q4", IsAutoProperty: true, UsesFieldKeyword: false, BackingField: { } });
             Assert.Equal(languageVersion > LanguageVersion.CSharp13, ((SourcePropertySymbol)actualProperties[0]).UsesFieldKeyword);
             Assert.Equal(languageVersion > LanguageVersion.CSharp13, ((SourcePropertySymbol)actualProperties[1]).UsesFieldKeyword);
-            Assert.False(((SourcePropertySymbol)actualProperties[2]).UsesFieldKeyword);
-            Assert.False(((SourcePropertySymbol)actualProperties[3]).UsesFieldKeyword);
 
             VerifyMergedProperties(actualProperties, actualFields);
         }
@@ -1133,14 +1170,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     static void Main()
                     {
+                        foreach (var property in typeof(B).GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
+                            ReportMember(property);
                         foreach (var field in typeof(B).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
-                            ReportField(field);
+                            ReportMember(field);
                     }
 
-                    static void ReportField(FieldInfo field)
+                    static void ReportMember(MemberInfo member)
                     {
-                        Console.Write("{0}.{1}:", field.DeclaringType.Name, field.Name);
-                        foreach (var obj in field.GetCustomAttributes())
+                        Console.Write("{0}.{1}:", member.DeclaringType.Name, member.Name);
+                        foreach (var obj in member.GetCustomAttributes())
                             Console.Write(" {0},", obj.ToString());
                         Console.WriteLine();
                     }
@@ -1163,6 +1202,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, param, return").WithLocation(23, 54));
 
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("""
+                B.P1: A(0),
+                B.P2:
+                B.P3:
+                B.P4:
+                B.P5:
+                B.Q1: A(0),
+                B.Q2:
+                B.Q3:
+                B.Q4:
+                B.Q5:
+                B.Q6:
+                B.Q7:
                 B.<P1>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(1),
                 B.<P3>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(3),
                 B.<P4>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
@@ -1176,6 +1227,73 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 B.<Q5>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
                 B.<Q6>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(6),
                 """));
+        }
+
+        [Fact]
+        public void ObsoleteAttribute()
+        {
+            string source = $$"""
+                using System;
+                using System.Reflection;
+                class C
+                {
+                    [Obsolete]        public static object P1 { get => field; set { } }
+                    [field: Obsolete] public static object P2 { get => field; set { } }
+                    [Obsolete]        public object P3 { get => field; set { } }
+                    [field: Obsolete] public object P4 { get => field; set { } }
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        _ = C.P1;
+                        _ = C.P2;
+                        C.P1 = 1;
+                        C.P2 = 2;
+                        var c = new C();
+                        _ = c.P3;
+                        _ = c.P4;
+                        c.P3 = 3;
+                        c.P4 = 4;
+                        foreach (var property in typeof(C).GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
+                            ReportMember(property);
+                        foreach (var field in typeof(C).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
+                            ReportMember(field);
+                    }
+
+                    static void ReportMember(MemberInfo member)
+                    {
+                        Console.Write("{0}.{1}:", member.DeclaringType.Name, member.Name);
+                        foreach (var obj in member.GetCustomAttributes())
+                            Console.Write(" {0},", obj.ToString());
+                        Console.WriteLine();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped, expectedOutput: """
+                C.P1: System.ObsoleteAttribute,
+                C.P2:
+                C.P3: System.ObsoleteAttribute,
+                C.P4:
+                C.<P3>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
+                C.<P4>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, System.ObsoleteAttribute,
+                C.<P1>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
+                C.<P2>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, System.ObsoleteAttribute,
+                """);
+            verifier.VerifyDiagnostics(
+                // (15,13): warning CS0612: 'C.P1' is obsolete
+                //         _ = C.P1;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C.P1").WithArguments("C.P1").WithLocation(15, 13),
+                // (17,9): warning CS0612: 'C.P1' is obsolete
+                //         C.P1 = 1;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C.P1").WithArguments("C.P1").WithLocation(17, 9),
+                // (20,13): warning CS0612: 'C.P3' is obsolete
+                //         _ = c.P3;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "c.P3").WithArguments("C.P3").WithLocation(20, 13),
+                // (22,9): warning CS0612: 'C.P3' is obsolete
+                //         c.P3 = 3;
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "c.P3").WithArguments("C.P3").WithLocation(22, 9));
         }
 
         [Theory]
@@ -4805,6 +4923,124 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PI").WithLocation(12, 32));
         }
 
+        [Fact]
+        public void PassByReference_01()
+        {
+            string source = $$"""
+                struct S
+                {
+                    object P1 => F(ref field);
+                    readonly object P2 => F(ref field);
+                    object P3 { readonly get { return F(ref field); } set { } }
+                    readonly object P4 { init { F(ref field); } }
+                    static object F(ref object o) => o;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (4,33): error CS0192: A readonly field cannot be used as a ref or out value (except in a constructor)
+                //     readonly object P2 => F(ref field);
+                Diagnostic(ErrorCode.ERR_RefReadonly, "field").WithLocation(4, 33),
+                // (5,45): error CS1605: Cannot use 'field' as a ref or out value because it is read-only
+                //     object P3 { readonly get { return F(ref field); } set { } }
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "field").WithArguments("field").WithLocation(5, 45));
+        }
+
+        [Fact]
+        public void PassByReference_02()
+        {
+            string source = $$"""
+                struct S
+                {
+                    object P1 => F(in field);
+                    readonly object P2 => F(in field);
+                    object P3 { readonly get { return F(in field); } set { } }
+                    readonly object P4 { init { F(in field); } }
+                    static object F(in object o) => o;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void PassByReference_03()
+        {
+            string source = $$"""
+                struct S
+                {
+                    object P1 => F(field);
+                    readonly object P2 => F(field);
+                    object P3 { readonly get { return F(field); } set { } }
+                    readonly object P4 { init { F(field); } }
+                    static object F(in object o) => o;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void PassByReference_04()
+        {
+            string source = $$"""
+                struct S
+                {
+                    object P1 => field;
+                    readonly object P2 => field;
+                    object P3 { readonly get => field; set { } }
+                    readonly object P4 { init { field = value; } }
+                    S(bool unused)
+                    {
+                        F(ref P1);
+                        F(ref P2);
+                        F(ref P3);
+                        F(ref P4);
+                    }
+                    static object F(ref object o) => o;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (9,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                //         F(ref P1);
+                Diagnostic(ErrorCode.ERR_RefProperty, "P1").WithLocation(9, 15),
+                // (10,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                //         F(ref P2);
+                Diagnostic(ErrorCode.ERR_RefProperty, "P2").WithLocation(10, 15),
+                // (11,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                //         F(ref P3);
+                Diagnostic(ErrorCode.ERR_RefProperty, "P3").WithLocation(11, 15),
+                // (12,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
+                //         F(ref P4);
+                Diagnostic(ErrorCode.ERR_RefProperty, "P4").WithLocation(12, 15));
+        }
+
+        [Fact]
+        public void PassByReference_05()
+        {
+            string source = $$"""
+                struct S1
+                {
+                    ref object P1 => ref F1(ref field);
+                    static ref object F1(ref object o) => ref o;
+                }
+                readonly struct S2
+                {
+                    ref readonly object P2 => ref F2(in field);
+                    static ref readonly object F2(in object o) => ref o;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,16): error CS8145: Auto-implemented properties cannot return by reference
+                //     ref object P1 => ref F1(ref field);
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P1").WithLocation(3, 16),
+                // (8,25): error CS8145: Auto-implemented properties cannot return by reference
+                //     ref readonly object P2 => ref F2(in field);
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P2").WithLocation(8, 25));
+        }
+
         [Theory]
         [CombinatorialData]
         public void Nullability_01(bool useNullableAnnotation)
@@ -7443,6 +7679,61 @@ class C<T>
                 // (11,7): error CS0525: Interfaces cannot contain instance fields
                 //     R Q3 { set { _ = field; } }
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "Q3").WithLocation(11, 7));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RefAssembly(bool useStatic, bool includePrivateMembers)
+        {
+            string modifier = useStatic ? "static" : "      ";
+            string sourceA = $$"""
+                using System;
+                public struct S0
+                {
+                    public {{modifier}} object P0 { get; set; }
+                }
+                public struct S1
+                {
+                    public {{modifier}} object P1 { get => null; set { } }
+                }
+                public struct S2
+                {
+                    public {{modifier}} object P2 { get => field; set { field = value; } }
+                }
+                """;
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference(
+                Microsoft.CodeAnalysis.Emit.EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(includePrivateMembers));
+
+            string sourceB = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        S0 s0;
+                        _ = s0.ToString();
+                        S1 s1;
+                        _ = s1.ToString();
+                        S2 s2;
+                        _ = s2.ToString();
+                    }
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: [refA]);
+            if (useStatic)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,13): warning CS8887: Use of unassigned local variable 's0'
+                    //         _ = s0.ToString();
+                    Diagnostic(ErrorCode.WRN_UseDefViolation, "s0").WithArguments("s0").WithLocation(6, 13),
+                    // (10,13): warning CS8887: Use of unassigned local variable 's2'
+                    //         _ = s2.ToString();
+                    Diagnostic(ErrorCode.WRN_UseDefViolation, "s2").WithArguments("s2").WithLocation(10, 13));
+            }
         }
 
         [Theory]
