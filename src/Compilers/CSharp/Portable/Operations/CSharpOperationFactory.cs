@@ -1801,15 +1801,12 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IConditionalOperation CreateBoundIfStatementOperation(BoundIfStatement boundIfStatement)
         {
-            var stack = ArrayBuilder<(BoundIfStatement, IOperation, IOperation)>.GetInstance();
+            var stack = ArrayBuilder<BoundIfStatement>.GetInstance();
 
             IOperation? whenFalse;
             while (true)
             {
-                IOperation condition = Create(boundIfStatement.Condition);
-                IOperation whenTrue = Create(boundIfStatement.Consequence);
-                Debug.Assert(whenTrue is { });
-                stack.Push((boundIfStatement, condition, whenTrue));
+                stack.Push(boundIfStatement);
 
                 var alternative = boundIfStatement.AlternativeOpt;
                 if (alternative is null)
@@ -1832,12 +1829,14 @@ namespace Microsoft.CodeAnalysis.Operations
             ConditionalOperation result;
             do
             {
-                var (ifStatement, condition, whenTrue) = stack.Pop();
+                boundIfStatement = stack.Pop();
+                IOperation condition = Create(boundIfStatement.Condition);
+                IOperation whenTrue = Create(boundIfStatement.Consequence);
                 bool isRef = false;
-                SyntaxNode syntax = ifStatement.Syntax;
+                SyntaxNode syntax = boundIfStatement.Syntax;
                 ITypeSymbol? type = null;
                 ConstantValue? constantValue = null;
-                bool isImplicit = ifStatement.WasCompilerGenerated;
+                bool isImplicit = boundIfStatement.WasCompilerGenerated;
                 result = new ConditionalOperation(condition, whenTrue, whenFalse, isRef, _semanticModel, syntax, type, constantValue, isImplicit);
                 whenFalse = result;
             }
