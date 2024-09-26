@@ -55,6 +55,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
     private bool _dismissed;
     private bool _isApplyingEdit;
+    private bool _applyingChangeToWorkspace;
     private string _replacementText;
     private readonly Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = [];
 
@@ -651,6 +652,13 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
+        // This mean commit starts, and it's applying text change to the workspace.
+        // At this stage, it's not cancellable.
+        if (_applyingChangeToWorkspace)
+        {
+            return;
+        }
+
         DismissUIAndRollbackEditsAndEndRenameSession_MustBeCalledOnUIThread(
             RenameLogMessage.UserActionOutcome.Canceled, previewChanges: false);
     }
@@ -875,6 +883,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
             // We're about to make irrevocable changes to the workspace and UI.  We're no longer cancellable at this point.
             using var _2 = operationContext.AddScope(allowCancellation: false, EditorFeaturesResources.Updating_files);
+            _applyingChangeToWorkspace = true;
             cancellationToken = CancellationToken.None;
 
             // Dismiss the rename UI and rollback any linked edits made.
