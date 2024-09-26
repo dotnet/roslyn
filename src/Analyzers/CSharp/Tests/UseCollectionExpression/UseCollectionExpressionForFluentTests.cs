@@ -2931,7 +2931,7 @@ public class UseCollectionExpressionForFluentTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
     public async Task TestObjectCreationArgument1()
     {
         await new VerifyCS.Test
@@ -2965,7 +2965,7 @@ public class UseCollectionExpressionForFluentTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
     public async Task TestObjectCreationArgument2()
     {
         await new VerifyCS.Test
@@ -2999,7 +2999,7 @@ public class UseCollectionExpressionForFluentTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
     public async Task TestObjectCreationArgument3()
     {
         await new VerifyCS.Test
@@ -3033,7 +3033,7 @@ public class UseCollectionExpressionForFluentTests
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
     public async Task TestObjectCreationArgument4()
     {
         await new VerifyCS.Test
