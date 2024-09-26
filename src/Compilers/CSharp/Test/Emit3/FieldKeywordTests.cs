@@ -6111,6 +6111,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "E").WithLocation(11, 13));
         }
 
+        [Fact]
+        public void Nullability_LazyInitialized()
+        {
+            // property is initialized upon access
+            var source = $$"""
+                #nullable enable
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    public string Prop1 => field ??= "a"; // 1
+
+                    [field: MaybeNull, AllowNull]
+                    public string Prop2 => field ??= "a";
+                }
+                """;
+
+            var comp = CreateCompilation([source, MaybeNullAttributeDefinition, AllowNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics(
+                // (6,19): warning CS9264: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' 
+attributes.
+                //     public string Prop1 => field ??= "a"; // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop1").WithArguments("property", "Prop1").WithLocation(6, 19));
+        }
+
         // Based on NullableReferenceTypesTests.NotNull_Property_WithAssignment
         [Fact]
         public void NotNull_Property_WithAssignment()
