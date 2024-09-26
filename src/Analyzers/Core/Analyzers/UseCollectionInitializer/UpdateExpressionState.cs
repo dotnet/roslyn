@@ -337,7 +337,7 @@ internal readonly struct UpdateExpressionState<
     /// includes calls to <c>.Add</c> and <c>.AddRange</c>, as well as <c>foreach</c> statements that update the
     /// collection, and <c>if</c> statements that conditionally add items to the collection-expression.
     /// </summary>
-    public Match<TStatementSyntax, TExpressionSyntax>? TryAnalyzeStatementForCollectionExpression(
+    public Match<TStatementSyntax>? TryAnalyzeStatementForCollectionExpression(
         IUpdateExpressionSyntaxHelper<TExpressionSyntax, TStatementSyntax> syntaxHelper,
         TStatementSyntax statement,
         CancellationToken cancellationToken)
@@ -355,7 +355,7 @@ internal readonly struct UpdateExpressionState<
 
         return null;
 
-        Match<TStatementSyntax, TExpressionSyntax>? TryAnalyzeExpressionStatement(TStatementSyntax expressionStatement)
+        Match<TStatementSyntax>? TryAnalyzeExpressionStatement(TStatementSyntax expressionStatement)
         {
             var expression = (TExpressionSyntax)@this.SyntaxFacts.GetExpressionOfExpressionStatement(expressionStatement);
 
@@ -363,13 +363,13 @@ internal readonly struct UpdateExpressionState<
             if (@this.TryAnalyzeInvocationForCollectionExpression(expression, allowLinq: false, cancellationToken, out var instance, out var useSpread) &&
                 @this.ValuePatternMatches(instance))
             {
-                return new(Statement: expressionStatement, Sxpression: null, useSpread);
+                return new(Statement: expressionStatement, useSpread);
             }
 
             return null;
         }
 
-        Match<TStatementSyntax, TExpressionSyntax>? TryAnalyzeForeachStatement(TStatementSyntax foreachStatement)
+        Match<TStatementSyntax>? TryAnalyzeForeachStatement(TStatementSyntax foreachStatement)
         {
             syntaxHelper.GetPartsOfForeachStatement(foreachStatement, out var awaitKeyword, out var identifier, out _, out var foreachStatements);
             if (awaitKeyword != default)
@@ -393,13 +393,13 @@ internal readonly struct UpdateExpressionState<
                 @this.ValuePatternMatches(instance))
             {
                 // `foreach` will become `..expr` when we make it into a collection expression.
-                return new(Statement: foreachStatement, Expression: null, UseSpread: true);
+                return new(Statement: foreachStatement, UseSpread: true);
             }
 
             return null;
         }
 
-        Match<TStatementSyntax, TExpressionSyntax>? TryAnalyzeIfStatement(TStatementSyntax ifStatement)
+        Match<TStatementSyntax>? TryAnalyzeIfStatement(TStatementSyntax ifStatement)
         {
             // look for the form:
             //
@@ -430,7 +430,7 @@ internal readonly struct UpdateExpressionState<
                 {
                     // add the form `.. x ? [y] : []` to the result
                     return @this.SyntaxFacts.SupportsCollectionExpressionNaturalType(ifStatement.SyntaxTree.Options)
-                        ? new(Statement: ifStatement, Expression: null, UseSpread: true)
+                        ? new(Statement: ifStatement, UseSpread: true)
                         : null;
                 }
 
@@ -446,7 +446,7 @@ internal readonly struct UpdateExpressionState<
                     @this.ValuePatternMatches(instance))
                 {
                     // add the form `x ? y : z` to the result
-                    return new(Statement: ifStatement, Expression, UseSpread: false);
+                    return new(Statement: ifStatement, UseSpread: false);
                 }
             }
 

@@ -245,8 +245,11 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                     if (argumentType is null)
                         return false;
 
-                    if (!argumentType.AllInterfaces.Any(i => Equals(i.OriginalDefinition, ienumerableOfTType)))
+                    if (!Equals(argumentType.OriginalDefinition, ienumerableOfTType) &&
+                        !argumentType.AllInterfaces.Any(i => Equals(i.OriginalDefinition, ienumerableOfTType)))
+                    {
                         return false;
+                    }
 
                     if (matchesInReverse != null)
                     {

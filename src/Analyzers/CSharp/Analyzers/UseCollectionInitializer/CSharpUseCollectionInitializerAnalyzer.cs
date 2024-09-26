@@ -67,14 +67,15 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
         }
 
         var ienumerableOfTType = this.SemanticModel.Compilation.IEnumerableOfTType();
-        if (constructor.Parameters[0].Type.AllInterfaces.Any(i => Equals(i.OriginalDefinition, ienumerableOfTType)))
+        var firstParameter = constructor.Parameters[0];
+        if (Equals(firstParameter.Type.OriginalDefinition, ienumerableOfTType) ||
+            firstParameter.Type.AllInterfaces.Any(i => Equals(i.OriginalDefinition, ienumerableOfTType)))
         {
             // Took a single argument that implements IEnumerable<T>.  We handle this by spreading that argument as the
             // first thing added to the collection.
-            matches.Insert(0, new(Statement: null, Expression: argumentList.Arguments[0].Expression, UseSpread: true));
             return true;
         }
-        else if (constructor.Parameters[0] is { Type.SpecialType: SpecialType.System_Int32, Name: "capacity" })
+        else if (firstParameter is { Type.SpecialType: SpecialType.System_Int32, Name: "capacity" })
         {
             // is a single `int capacity` constructor.
 

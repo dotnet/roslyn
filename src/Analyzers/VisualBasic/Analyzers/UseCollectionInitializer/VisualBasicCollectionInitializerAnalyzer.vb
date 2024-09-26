@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             Return TypeOf _objectCreationExpression.Initializer Is ObjectMemberInitializerSyntax
         End Function
 
-        Protected Overrides Function ValidateMatchesForCollectionExpression(matches As ArrayBuilder(Of Match(Of StatementSyntax)), cancellationToken As CancellationToken) As Boolean
+        Protected Overrides Function AnalyzeMatchesAndCollectionConstructorForCollectionExpression(matches As ArrayBuilder(Of Match(Of StatementSyntax)), cancellationToken As CancellationToken) As Boolean
             ' Only called for collection expressions, which VB does not support
             Throw ExceptionUtilities.Unreachable()
         End Function
