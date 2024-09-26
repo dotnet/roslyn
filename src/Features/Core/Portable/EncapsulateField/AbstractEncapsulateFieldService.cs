@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -59,14 +60,12 @@ internal abstract partial class AbstractEncapsulateFieldService<
         if (fields.IsDefaultOrEmpty)
             return [];
 
+        // there is only one field
         if (fields.Length == 1)
-        {
-            // there is only one field
             return EncapsulateOneField(document, fields[0]);
-        }
 
         // there are multiple fields.
-        using var _ = ArrayBuilder<CodeAction>.GetInstance(out var builder);
+        using var builder = TemporaryArray<CodeAction>.Empty;
 
         if (span.IsEmpty)
         {

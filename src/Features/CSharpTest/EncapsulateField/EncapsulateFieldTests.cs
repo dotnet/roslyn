@@ -1649,32 +1649,8 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
         await TestAllOptionsOffAsync(host, text, expected, index: 1);
     }
 
-    [Theory, CombinatorialData]
-    public async Task PrimaryConstructor1(TestHost host)
-    {
-        await TestAllOptionsOffAsync(host, """
-            public class C(object o)
-            {
-                public readonly int [|A|] = 1;
-            }
-            """, """
-            public class C(object o)
-            {
-                private readonly int a = 1;
-
-                public int A
-                {
-                    get
-                    {
-                        return a;
-                    }
-                }
-            }
-            """);
-    }
-
-    [Theory, CombinatorialData]
-    public async Task PrimaryConstructor2(TestHost host)
+    [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/75210")]
+    public async Task PrimaryConstructor(TestHost host, bool andUseProperty)
     {
         await TestAllOptionsOffAsync(host, """
             public class C(object o)
@@ -1695,6 +1671,6 @@ public sealed class EncapsulateFieldTests : AbstractCSharpCodeActionTest_NoEdito
                 }
             }
             """,
-            index: 1);
+            index: andUseProperty ? 0 : 1);
     }
 }
