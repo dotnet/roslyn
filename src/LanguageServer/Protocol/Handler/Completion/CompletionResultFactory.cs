@@ -334,7 +334,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Completion
 
             if (item.IsComplexTextEdit)
             {
-                //await completionService.GetChangeAsync(document, item, cancellationToken: cancellationToken).ConfigureAwait(false);
                 // For unimported item, we use display text (type or method name) as the text edit text, and rely on resolve handler to add missing import as additional edit.
                 // For other complex edit item, we return a no-op edit and rely on resolve handler to compute the actual change and provide the command to apply it.
                 var completionChangeNewText = item.Flags.IsExpanded() ? item.DisplayText : typedText;
