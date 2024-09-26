@@ -145,8 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 statement.CheckLocalsDefined();
                 var loweredStatement = localRewriter.VisitStatement(statement);
                 Debug.Assert(loweredStatement is { });
-                // PROTOTYPE: Add _recursionDepth to LocalsScanner and avoid recursing in the same way we're currently doing in StackOptimizerPass1.
-                //loweredStatement.CheckLocalsDefined();
+                loweredStatement.CheckLocalsDefined();
                 sawLambdas = localRewriter._sawLambdas;
                 sawLocalFunctions = localRewriter._availableLocalFunctionOrdinal != 0;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
@@ -155,15 +154,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Move spill sequences to a top-level statement. This handles "lifting" await and the switch expression.
                     var spilledStatement = SpillSequenceSpiller.Rewrite(loweredStatement, method, compilationState, diagnostics);
-                    // PROTOTYPE: Same comment as above.
-                    //spilledStatement.CheckLocalsDefined();
+                    spilledStatement.CheckLocalsDefined();
                     loweredStatement = spilledStatement;
                 }
 
                 codeCoverageSpans = codeCoverageInstrumenter?.DynamicAnalysisSpans ?? ImmutableArray<SourceSpan>.Empty;
 #if DEBUG
-                // PROTOTYPE: Same comment as above.
-                //LocalRewritingValidator.Validate(loweredStatement);
+                LocalRewritingValidator.Validate(loweredStatement);
                 localRewriter.AssertNoPlaceholderReplacements();
 #endif
                 return loweredStatement;
