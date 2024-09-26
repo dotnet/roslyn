@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody;
@@ -209,7 +210,7 @@ public sealed class UseExpressionBodyForLambdasRefactoringTests : AbstractCSharp
             """, parameters: new TestParameters(options: UseExpressionBody));
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74137")]
     public async Task TestNotWithPreprocessorDirectives()
     {
         await TestMissingAsync(
