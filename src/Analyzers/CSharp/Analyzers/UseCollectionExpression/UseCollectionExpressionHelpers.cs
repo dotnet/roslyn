@@ -26,7 +26,7 @@ using static SyntaxFactory;
 
 internal static class UseCollectionExpressionHelpers
 {
-    private static readonly CollectionExpressionSyntax s_emptyCollectionExpression = CollectionExpression();
+    public static readonly CollectionExpressionSyntax s_emptyCollectionExpression = CollectionExpression();
 
     private static readonly SymbolEquivalenceComparer s_tupleNamesCanDifferComparer = SymbolEquivalenceComparer.Create(
         // Not relevant.  We are not comparing method signatures.

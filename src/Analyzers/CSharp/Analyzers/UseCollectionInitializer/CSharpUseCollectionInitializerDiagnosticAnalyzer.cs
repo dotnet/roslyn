@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
@@ -13,6 +14,8 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
+
+using static SyntaxFactory;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
@@ -41,5 +44,12 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
         => compilation.LanguageVersion().SupportsCollectionExpressions();
 
     protected override bool CanUseCollectionExpression(SemanticModel semanticModel, BaseObjectCreationExpressionSyntax objectCreationExpression, INamedTypeSymbol? expressionType, bool allowSemanticsChange, CancellationToken cancellationToken, out bool changesSemantics)
-        => UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(semanticModel, objectCreationExpression, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics);
+    {
+        // Synthesize the final collection expression we would replace this object-creation with.  That will allow us to
+        // determine if we end up calling the right overload in cases of overloaded methods.
+        var replacement = UseCollectionExpressionHelpers.CreateReplacementCollectionExpressionForAnalysis(objectCreationExpression.Initializer);
+
+        return UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
+            semanticModel, objectCreationExpression, replacement, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics);
+    }
 }
