@@ -4565,16 +4565,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,13): error CS9264: Non-nullable property 'P1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                    // (4,13): warning CS9264: Non-nullable property 'P1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                     //     object  P1 => field;
                     Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "P1").WithArguments("property", "P1").WithLocation(4, 13),
-                    // (5,13): error CS9264: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                    // (5,13): warning CS9264: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                     //     object  P2 { get => field; }
                     Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "P2").WithArguments("property", "P2").WithLocation(5, 13),
-                    // (6,13): error CS9264: Non-nullable property 'P3' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                    // (6,13): warning CS9264: Non-nullable property 'P3' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                     //     object  P3 { set { field = value; } }
                     Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "P3").WithArguments("property", "P3").WithLocation(6, 13),
-                    // (7,13): error CS9264: Non-nullable property 'P4' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                    // (7,13): warning CS9264: Non-nullable property 'P4' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                     //     object  P4 { get => field; set { field = value; } }
                     Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "P4").WithArguments("property", "P4").WithLocation(7, 13));
             }
@@ -4596,7 +4596,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (4,19): warning CS8602: Dereference of a possibly null reference.
                 //     string? P1 => field.ToString(); // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "field").WithLocation(4, 19),
-                // (5,12): error CS9264: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                // (5,12): warning CS9264: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                 //     string P2 => field.ToString();
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "P2").WithArguments("property", "P2").WithLocation(5, 12));
         }
@@ -4809,7 +4809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,12): error CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                // (6,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                 //     public C() { }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(6, 12));
         }
@@ -4829,7 +4829,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,12): error CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                // (6,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                 //     public C() { }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(6, 12));
         }
@@ -4891,7 +4891,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,12): error CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                // (6,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                 //     static C() { }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(6, 12));
         }
@@ -4911,7 +4911,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,12): error CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                // (6,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                 //     static C() { }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(6, 12));
         }
@@ -5170,7 +5170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (10,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         set => field = null; // 1
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 24),
-                // (12,12): error CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                // (12,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                 //     public C() // 2
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(12, 12));
         }
@@ -5203,7 +5203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (10,24): warning CS8625: Cannot convert null literal to non-nullable reference type.
                 //         set => field = null; // 1
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 24),
-                // (12,12): error CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                // (12,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                 //     public C() // 2
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(12, 12));
         }
@@ -5265,7 +5265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (10,24): warning CS8601: Possible null reference assignment.
                 //         set => field = value; // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "value").WithLocation(10, 24),
-                // (12,12): error CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                // (12,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                 //     public C() // 2
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(12, 12));
         }
@@ -5294,7 +5294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
             comp.VerifyEmitDiagnostics(
-                // (11,12): error CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                // (11,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                 //     public C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(11, 12));
         }
@@ -5322,7 +5322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation([source, AllowNullAttributeDefinition]);
             comp.VerifyEmitDiagnostics(
-                // (11,12): error CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                // (11,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                 //     public C() // 1
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(11, 12));
         }
@@ -5421,7 +5421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (10,24): warning CS8601: Possible null reference assignment.
                 //         set => field = value;
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "value").WithLocation(10, 24),
-                // (12,12): error CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                // (12,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                 //     public C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(12, 12));
         }
@@ -5585,7 +5585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation([source, NotNullAttributeDefinition]);
             comp.VerifyEmitDiagnostics(
-                // (7,20): error CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                // (7,20): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                 //     public string? Prop { get; set => field = value; }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(7, 20));
         }
@@ -5607,7 +5607,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation([source, NotNullAttributeDefinition]);
             comp.VerifyEmitDiagnostics(
-                // (7,20): error CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                // (7,20): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                 //     public string? Prop { get; set => field = value; }
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop").WithArguments("property", "Prop").WithLocation(7, 20));
         }
@@ -5893,7 +5893,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation([source, RequiredMemberAttribute, CompilerFeatureRequiredAttribute, SetsRequiredMembersAttribute]);
             comp.VerifyEmitDiagnostics(
-                // (9,12): error CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                // (9,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                 //     public C()
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(9, 12));
         }
@@ -5992,6 +5992,123 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (16,9): warning CS8602: Dereference of a possibly null reference.
                     //         Prop.ToString();
                     Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "Prop").WithLocation(16, 9));
+        }
+
+        [Theory]
+        [InlineData("""
+            #nullable enable
+            #nullable disable warnings
+            """)]
+        [InlineData("#nullable enable annotations")]
+        public void Nullability_Suppression(string nullableDirective)
+        {
+            // new initialization warning is suppressed by nullable directives
+            var source = $$"""
+                {{nullableDirective}}
+
+                class C
+                {
+                    public string Prop1 { get => field; set => field = value; }
+                    public string Prop2 { get; set; }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Nullability_StaticMismatch_01()
+        {
+            // instance constructors do not share a slot between static property and backing field
+            var source = $$"""
+                #nullable enable
+
+                class C
+                {
+                    public static string Prop1 { get; set; } = null; // 1
+                    public static string Prop2 { get => field; set => field = value; } = null; // 2
+
+                    public C()
+                    {
+                        Prop1.ToString();
+                        Prop2.ToString();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,48): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     public static string Prop1 { get; set; } = null; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 48),
+                // (6,74): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     public static string Prop2 { get => field; set => field = value; } = null; // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(6, 74));
+        }
+
+        [Fact]
+        public void Nullability_StaticMismatch_02()
+        {
+            // instance constructors do not share a slot between field-like event and event field
+            var source = $$"""
+                #nullable enable
+
+                class C
+                {
+                    public static event System.Action E = null; // 1
+                    public C()
+                    {
+                        E.Invoke();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,43): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //     public static event System.Action E = null;
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(5, 43));
+        }
+
+        [Fact]
+        public void Nullability_StaticMismatch_03()
+        {
+            // instance constructors do not share a slot between field-like event and event field
+            var source = $$"""
+                #nullable enable
+
+                class C
+                {
+                    public static event System.Action E; // 1
+                    public C(bool b)
+                    {
+                        if (b)
+                        {
+                            E = null; // 2
+                            E.Invoke(); // 3
+                        }
+
+                        if (b)
+                        {
+                            E = () => { };
+                            E.Invoke();
+                        }
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (5,39): warning CS8618: Non-nullable event 'E' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the event as nullable.
+                //     public static event System.Action E; // 1
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "E").WithArguments("event", "E").WithLocation(5, 39),
+                // (10,17): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //             E = null; // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 17),
+                // (11,13): warning CS8602: Dereference of a possibly null reference.
+                //             E.Invoke(); // 3
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "E").WithLocation(11, 13));
         }
 
         // Based on NullableReferenceTypesTests.NotNull_Property_WithAssignment
@@ -6270,7 +6387,7 @@ class C<T>
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (8,5): error CS9264: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                    // (8,5): warning CS9264: Non-nullable property 'P2' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                     //     C(bool unused) { }
                     Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "P2").WithLocation(8, 5),
                     // (8,5): warning CS8618: Non-nullable property 'P1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
@@ -6325,10 +6442,10 @@ class C<T>
             else
             {
                 comp.VerifyEmitDiagnostics(
-                    // (9,5): error CS9264: Non-nullable property 'P5' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                    // (9,5): warning CS9264: Non-nullable property 'P5' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                     //     C(bool unused) { }
                     Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "P5").WithLocation(9, 5),
-                    // (9,5): error CS9264: Non-nullable property 'P6' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
+                    // (9,5): warning CS9264: Non-nullable property 'P6' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                     //     C(bool unused) { }
                     Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "P6").WithLocation(9, 5),
                     // (9,5): warning CS8618: Non-nullable property 'P4' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
