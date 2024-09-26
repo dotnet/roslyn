@@ -3452,12 +3452,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected override BoundExpression? VisitExpressionWithoutStackGuard(BoundExpression node)
+        protected override BoundNode? VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
         {
+            Debug.Assert(node is BoundExpression or BoundPattern);
             Debug.Assert(!IsConditionalState);
             SetInvalidResult();
-            _ = base.VisitExpressionWithoutStackGuard(node);
-            VisitExpressionWithoutStackGuardEpilogue(node);
+            _ = base.VisitExpressionOrPatternWithoutStackGuard(node);
+            if (node is BoundExpression expr)
+            {
+                VisitExpressionWithoutStackGuardEpilogue(expr);
+            }
+
             return null;
         }
 

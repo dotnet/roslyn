@@ -1749,7 +1749,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(binaryPatternStack.Count > 0);
 
             var binaryPatternAndPermitDesignations = binaryPatternStack.Pop();
-            BoundPattern? result = BindPattern(binaryPatternAndPermitDesignations.pat.Left, inputType, binaryPatternAndPermitDesignations.permitDesignations, hasErrors, diagnostics);
+            BoundPattern result = BindPattern(binaryPatternAndPermitDesignations.pat.Left, inputType, binaryPatternAndPermitDesignations.permitDesignations, hasErrors, diagnostics);
+            var narrowedTypeCandidates = ArrayBuilder<TypeSymbol>.GetInstance(2);
+            collectCandidates(result, narrowedTypeCandidates);
 
             do
             {
@@ -1758,11 +1760,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this,
                     binaryPatternAndPermitDesignations,
                     inputType,
+                    narrowedTypeCandidates,
                     hasErrors,
                     diagnostics);
             } while (binaryPatternStack.TryPop(out binaryPatternAndPermitDesignations));
 
             binaryPatternStack.Free();
+            narrowedTypeCandidates.Free();
             Debug.Assert(result != null);
             return result;
 
@@ -1771,6 +1775,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Binder binder,
                 (BinaryPatternSyntax pat, bool permitDesignations) patternAndPermitDesignations,
                 TypeSymbol inputType,
+                ArrayBuilder<TypeSymbol> narrowedTypeCandidates,
                 bool hasErrors,
                 BindingDiagnosticBag diagnostics)
             {
@@ -1784,26 +1789,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var right = binder.BindPattern(node.Right, inputType, permitDesignations, hasErrors, diagnostics);
 
                     // Compute the common type. This algorithm is quadratic, but disjunctive patterns are unlikely to be huge
-                    var narrowedTypeCandidates = ArrayBuilder<TypeSymbol>.GetInstance(2);
-                    collectCandidates(preboundLeft, narrowedTypeCandidates);
                     collectCandidates(right, narrowedTypeCandidates);
                     var narrowedType = leastSpecificType(node, narrowedTypeCandidates, diagnostics) ?? inputType;
-                    narrowedTypeCandidates.Free();
 
                     return new BoundBinaryPattern(node, disjunction: isDisjunction, preboundLeft, right, inputType: inputType, narrowedType: narrowedType, hasErrors);
-
-                    static void collectCandidates(BoundPattern pat, ArrayBuilder<TypeSymbol> candidates)
-                    {
-                        if (pat is BoundBinaryPattern { Disjunction: true } p)
-                        {
-                            collectCandidates(p.Left, candidates);
-                            collectCandidates(p.Right, candidates);
-                        }
-                        else
-                        {
-                            candidates.Add(pat.NarrowedType);
-                        }
-                    }
 
                     TypeSymbol? leastSpecificType(SyntaxNode node, ArrayBuilder<TypeSymbol> candidates, BindingDiagnosticBag diagnostics)
                     {
@@ -1865,9 +1854,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MessageID.IDS_FeatureAndPattern.CheckFeatureAvailability(diagnostics, node.OperatorToken);
 
                     var right = binder.BindPattern(node.Right, preboundLeft.NarrowedType, permitDesignations, hasErrors, diagnostics);
+                    narrowedTypeCandidates.Clear();
+                    narrowedTypeCandidates.Add(right.NarrowedType);
                     return new BoundBinaryPattern(node, disjunction: isDisjunction, preboundLeft, right, inputType: inputType, narrowedType: right.NarrowedType, hasErrors);
                 }
             }
+
+            static void collectCandidates(BoundPattern pat, ArrayBuilder<TypeSymbol> candidates)
+            {
+                if (pat is BoundBinaryPattern { Disjunction: true } p)
+                {
+                    collectCandidates(p.Left, candidates);
+                    collectCandidates(p.Right, candidates);
+                }
+                else
+                {
+                    candidates.Add(pat.NarrowedType);
+                }
+            }
+
         }
     }
 }

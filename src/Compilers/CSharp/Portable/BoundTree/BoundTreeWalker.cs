@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -69,23 +70,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode? Visit(BoundNode? node)
         {
-            var expression = node as BoundExpression;
-            if (expression != null)
+            if (node is BoundExpression or BoundPattern)
             {
-                return VisitExpressionWithStackGuard(ref _recursionDepth, expression);
+                return VisitExpressionOrPatternWithStackGuard(ref _recursionDepth, node);
             }
 
             return base.Visit(node);
         }
 
-        protected BoundExpression VisitExpressionWithStackGuard(BoundExpression node)
+        protected BoundNode VisitExpressionOrPatternWithStackGuard(BoundNode node)
         {
-            return VisitExpressionWithStackGuard(ref _recursionDepth, node);
+            return VisitExpressionOrPatternWithStackGuard(ref _recursionDepth, node);
         }
 
-        protected sealed override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+        protected sealed override BoundNode VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
         {
-            return (BoundExpression)base.Visit(node);
+            Debug.Assert(node is BoundExpression or BoundPattern);
+            return base.Visit(node);
         }
     }
 
@@ -151,7 +152,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rightOperands = ArrayBuilder<BoundPattern>.GetInstance();
 
             rightOperands.Push(node.Right);
-            BeforeVisitingSkippedBoundBinaryPatternChildren(binary);
             rightOperands.Push(binary.Right);
 
             BoundPattern? current = binary.Left;
@@ -159,7 +159,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (current.Kind == BoundKind.BinaryPattern)
             {
                 binary = (BoundBinaryPattern)current;
-                BeforeVisitingSkippedBoundBinaryPatternChildren(binary);
                 rightOperands.Push(binary.Right);
                 current = binary.Left;
             }
@@ -175,10 +174,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             rightOperands.Free();
             return null;
-        }
-
-        protected virtual void BeforeVisitingSkippedBoundBinaryPatternChildren(BoundBinaryPattern node)
-        {
         }
 
         public sealed override BoundNode? VisitCall(BoundCall node)

@@ -78,23 +78,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         [return: NotNullIfNotNull(nameof(node))]
         public override BoundNode? Visit(BoundNode? node)
         {
-            var expression = node as BoundExpression;
-            if (expression != null)
+            if (node is BoundExpression or BoundPattern)
             {
-                return VisitExpressionWithStackGuard(ref _recursionDepth, expression);
+                return VisitExpressionOrPatternWithStackGuard(ref _recursionDepth, node);
             }
 
             return base.Visit(node);
         }
 
-        protected BoundExpression VisitExpressionWithStackGuard(BoundExpression node)
+        protected BoundNode VisitExpressionOrPatternWithStackGuard(BoundNode node)
         {
-            return VisitExpressionWithStackGuard(ref _recursionDepth, node);
+            return VisitExpressionOrPatternWithStackGuard(ref _recursionDepth, node);
         }
 
-        protected sealed override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+        protected sealed override BoundNode VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
         {
-            return (BoundExpression)base.Visit(node);
+            return base.Visit(node);
         }
     }
 

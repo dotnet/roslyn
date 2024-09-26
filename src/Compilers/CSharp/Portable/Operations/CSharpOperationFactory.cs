@@ -2622,11 +2622,12 @@ namespace Microsoft.CodeAnalysis.Operations
                 current = current.Left as BoundBinaryPattern;
             } while (current != null);
 
-            var result = (IPatternOperation)Create(stack.Peek().Left);
-            while (stack.TryPop(out current))
+            current = stack.Pop();
+            var result = (IPatternOperation)Create(current.Left);
+            do
             {
                 result = createOperation(this, current, result);
-            }
+            } while (stack.TryPop(out current));
 
             stack.Free();
             return result;

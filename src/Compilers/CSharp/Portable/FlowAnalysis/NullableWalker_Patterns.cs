@@ -122,13 +122,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 current = current.Left as BoundBinaryPattern;
             } while (current != null);
 
-            Debug.Assert(stack.Peek().Left is not BoundBinaryPattern);
-            Visit(stack.Peek().Left);
+            current = stack.Pop();
+            Debug.Assert(current.Left is not BoundBinaryPattern);
+            Visit(current.Left);
 
-            while (stack.TryPop(out current))
+            do
             {
                 Visit(current.Right);
-            }
+            } while (stack.TryPop(out current));
 
             stack.Free();
             return null;
@@ -221,10 +222,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var current = p;
                     while (true)
                     {
+                        // We don't need to visit in order here because we're only moving analysis in one direction:
+                        // towards MaybeNull. Visiting the right or left first has no impact on the final state.
                         LearnFromAnyNullPatterns(inputSlot, inputType, current.Right);
                         if (current.Left is BoundBinaryPattern left)
                         {
                             current = left;
+                            VisitForRewriting(current);
                         }
                         else
                         {

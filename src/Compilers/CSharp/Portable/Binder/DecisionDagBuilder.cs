@@ -657,7 +657,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             } while (currentNode != null);
 
             currentNode = binaryPatternStack.Pop();
-            Tests? result = MakeTestsAndBindings(input, currentNode.Left, out output, bindings);
+            Tests result = MakeTestsAndBindings(input, currentNode.Left, out output, bindings);
 
             do
             {

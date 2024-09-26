@@ -361,19 +361,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         private BoundNode VisitWithStackGuard(BoundNode node)
         {
-            var expression = node as BoundExpression;
-            if (expression != null)
+            if (node is BoundExpression or BoundPattern)
             {
-                return VisitExpressionWithStackGuard(ref _recursionDepth, expression);
+                return VisitExpressionOrPatternWithStackGuard(ref _recursionDepth, node);
             }
 
             return base.Visit(node);
         }
 
         [DebuggerStepThrough]
-        protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+        protected override BoundNode VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
         {
-            return (BoundExpression)base.Visit(node);
+            return base.Visit(node);
         }
 
         protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()
@@ -1107,6 +1106,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode VisitConstantPattern(BoundConstantPattern node)
+        {
+            // All patterns are handled by VisitPattern
+            throw ExceptionUtilities.Unreachable();
+        }
+
+        public override BoundNode VisitBinaryPattern(BoundBinaryPattern node)
         {
             // All patterns are handled by VisitPattern
             throw ExceptionUtilities.Unreachable();

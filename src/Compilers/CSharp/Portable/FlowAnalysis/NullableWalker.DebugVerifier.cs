@@ -77,10 +77,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            protected override BoundExpression? VisitExpressionWithoutStackGuard(BoundExpression node)
+            protected override BoundNode? VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
             {
-                VerifyExpression(node);
-                return (BoundExpression)base.Visit(node);
+                if (node is BoundExpression expr)
+                {
+                    VerifyExpression(expr);
+                }
+                return base.Visit(node);
             }
 
             public override BoundNode? Visit(BoundNode? node)
@@ -92,9 +95,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //    _snapshotManager.VerifyNode(node);
                 //}
 
-                if (node is BoundExpression expr)
+                if (node is BoundExpression or BoundPattern)
                 {
-                    return VisitExpressionWithStackGuard(ref _recursionDepth, expr);
+                    return VisitExpressionOrPatternWithStackGuard(ref _recursionDepth, node);
                 }
                 return base.Visit(node);
             }
