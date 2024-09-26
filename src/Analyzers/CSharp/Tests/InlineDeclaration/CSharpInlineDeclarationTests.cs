@@ -18,13 +18,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineDeclaration;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsInlineDeclaration)]
-public partial class CSharpInlineDeclarationTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed partial class CSharpInlineDeclarationTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public CSharpInlineDeclarationTests(ITestOutputHelper logger)
-      : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpInlineDeclarationDiagnosticAnalyzer(), new CSharpInlineDeclarationCodeFixProvider());
 
@@ -2433,15 +2429,21 @@ public partial class CSharpInlineDeclarationTests : AbstractCSharpDiagnosticProv
             """);
     }
 
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44429")]
+    [Fact]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/44429")]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/74736")]
     public async Task TopLevelStatement()
     {
-        await TestMissingAsync("""
+        await TestAsync("""
             [|int|] i;
             if (int.TryParse(v, out i))
             {
             }
-            """, new TestParameters(TestOptions.Regular));
+            """, """
+            if (int.TryParse(v, out int i))
+            {
+            }
+            """, CSharpParseOptions.Default);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/47041")]
@@ -2508,6 +2510,43 @@ public partial class CSharpInlineDeclarationTests : AbstractCSharpDiagnosticProv
 
                 private void TestMethod(out int hello)
                 {
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestInSwitchSection()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class C
+            {
+                void M(object o)
+                {
+                    switch (o)
+                    {
+                        case string s:
+                            [|int|] i;
+                            if (int.TryParse(v, out i))
+                            {
+                            }
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M(object o)
+                {
+                    switch (o)
+                    {
+                        case string s:
+                            if (int.TryParse(v, out int i))
+                            {
+                            }
+                    }
                 }
             }
             """);
