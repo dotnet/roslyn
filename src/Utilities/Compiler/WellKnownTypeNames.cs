@@ -111,6 +111,7 @@ namespace Analyzer.Utilities
         public const string NUnitFrameworkTearDownAttribute = "NUnit.Framework.TearDownAttribute";
         public const string NUnitFrameworkTestAttribute = "NUnit.Framework.TestAttribute";
         public const string RoslynUtilitiesNonDefaultableAttribute = "Roslyn.Utilities.NonDefaultableAttribute";
+        public const string RoslynDebug = "Roslyn.Utilities.RoslynDebug";
         public const string SystemActivator = "System.Activator";
         public const string SystemAppContext = "System.AppContext";
         public const string SystemAppDomain = "System.AppDomain";

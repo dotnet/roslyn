@@ -403,4 +403,16 @@
   <data name="DoNotCapturePrimaryConstructorParametersDescription" xml:space="preserve">
     <value>Primary constructor parameters should not be implicitly captured. Manually assign them to fields at the start of the type.</value>
   </data>
+  <data name="DoNotUseInterpolatedStringsWithDebugAssertTitle" xml:space="preserve">
+    <value>Do not use interpolated strings with 'Debug.Assert'</value>
+  </data>
+  <data name="DoNotUseInterpolatedStringsWithDebugAssertMessage" xml:space="preserve">
+    <value>Do not use interpolated strings with 'Debug.Assert'. Use 'RoslynDebug.Assert' instead.</value>
+  </data>
+  <data name="DoNotUseInterpolatedStringsWithDebugAssertDescription" xml:space="preserve">
+    <value>'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.</value>
+  </data>
+  <data name="DoNotUseInterpolatedStringsWithDebugAssertCodeFix" xml:space="preserve">
+    <value>Use 'RoslynDebug.Assert'.</value>
+  </data>
 </root>

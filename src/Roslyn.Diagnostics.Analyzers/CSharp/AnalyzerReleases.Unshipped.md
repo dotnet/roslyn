@@ -5,3 +5,4 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS0062 | RoslynDiagnosticsMaintainability | Disabled | DoNotCapturePrimaryConstructorParametersAnalyzer
+RS0063 | RoslynDiagnosticsPerformance | Disabled | CSharpDoNotUseDebugAssertForInterpolatedStrings

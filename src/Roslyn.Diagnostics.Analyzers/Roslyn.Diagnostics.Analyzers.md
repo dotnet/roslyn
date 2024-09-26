@@ -191,3 +191,15 @@ Primary constructor parameters should not be implicitly captured. Manually assig
 |Severity|Error|
 |CodeFix|False|
 ---
+
+## RS0063: Do not use interpolated strings with 'Debug.Assert'
+
+'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.
+
+|Item|Value|
+|-|-|
+|Category|RoslynDiagnosticsPerformance|
+|Enabled|False|
+|Severity|Warning|
+|CodeFix|True|
+---

@@ -187,6 +187,26 @@
         <target state="translated">Uso no admitido del tipo "{0}" que no se puede copiar en la operación "{1}"</target>
         <note />
       </trans-unit>
+      <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertCodeFix">
+        <source>Use 'RoslynDebug.Assert'.</source>
+        <target state="new">Use 'RoslynDebug.Assert'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertDescription">
+        <source>'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.</source>
+        <target state="new">'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertMessage">
+        <source>Do not use interpolated strings with 'Debug.Assert'. Use 'RoslynDebug.Assert' instead.</source>
+        <target state="new">Do not use interpolated strings with 'Debug.Assert'. Use 'RoslynDebug.Assert' instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="DoNotUseInterpolatedStringsWithDebugAssertTitle">
+        <source>Do not use interpolated strings with 'Debug.Assert'</source>
+        <target state="new">Do not use interpolated strings with 'Debug.Assert'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ExportedPartsShouldHaveImportingConstructorCodeFix_ImplicitConstructor">
         <source>Explicitly define the importing constructor</source>
         <target state="translated">Definir explícitamente el constructor de importación</target>

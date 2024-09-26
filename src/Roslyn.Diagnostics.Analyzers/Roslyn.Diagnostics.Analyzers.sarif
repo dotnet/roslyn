@@ -277,6 +277,23 @@
               "C#"
             ]
           }
+        },
+        "RS0063": {
+          "id": "RS0063",
+          "shortDescription": "Do not use interpolated strings with 'Debug.Assert'",
+          "fullDescription": "'Debug.Assert' on .NET Framework eagerly creates the string value. This can cause OOMs in tests, particularly for strings that involve syntax nodes. Use 'RoslynDebug.Assert' instead, which will only create the string if required.",
+          "defaultLevel": "warning",
+          "properties": {
+            "category": "RoslynDiagnosticsPerformance",
+            "isEnabledByDefault": false,
+            "typeName": "CSharpDoNotUseDebugAssertForInterpolatedStrings",
+            "languages": [
+              "C#"
+            ],
+            "tags": [
+              "Telemetry"
+            ]
+          }
         }
       }
     },

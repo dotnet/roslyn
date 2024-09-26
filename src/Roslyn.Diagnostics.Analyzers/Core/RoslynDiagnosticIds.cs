@@ -68,6 +68,7 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string OverloadWithOptionalParametersShouldHaveMostParametersInternal = "RS0060";
         public const string ExposedNoninstantiableTypeRuleIdInternal = "RS0061";
         public const string DoNotCapturePrimaryConstructorParametersRuleId = "RS0062";
+        public const string DoNotUseInterpolatedStringsWithDebugAssertRuleId = "RS0063";
 
         //public const string WrapStatementsRuleId = "RS0100"; // Now ported to dotnet/roslyn https://github.com/dotnet/roslyn/pull/50358
         //public const string BlankLinesRuleId = "RS0101"; // Now ported to dotnet/roslyn https://github.com/dotnet/roslyn/pull/50358
