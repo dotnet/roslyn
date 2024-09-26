@@ -2,7 +2,7 @@
 
 Before submitting a feature or substantial code contribution, please discuss it with the team and ensure it follows the product [roadmap](Roadmap.md). The team rigorously reviews and tests all code submissions. The submissions must meet an extremely high bar for quality, design, and roadmap appropriateness.
 
-The Roslyn project is a member of the [.NET Foundation](https://github.com/orgs/dotnet) and follows the same [developer guide](https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/coding-style.md).  The team enforces this by regularly running the [.NET code formatter tool](https://github.com/dotnet/codeformatter) on the code base.  Contributors should ensure they follow these guidelines when making submissions.  
+The Roslyn project is a member of the [.NET Foundation](https://github.com/orgs/dotnet) and follows the same [developer guide](https://github.com/dotnet/runtime/blob/main/docs/coding-guidelines/coding-style.md).  The team enforces this by regularly running the [.NET code formatter tool](https://github.com/dotnet/format) on the code base.  Contributors should ensure they follow these guidelines when making submissions.  
 
 For now, the team has set the following limits on pull requests:
 
@@ -60,7 +60,7 @@ Please follow these guidelines when creating new issues in the issue tracker:
 
 ### Code Formatter
 
-The Roslyn team regularly uses the [.NET code formatter tool](https://github.com/dotnet/codeformatter) to ensure the code base maintains a consistent style over time.  The specific options we pass to this tool are the following:
+The Roslyn team regularly uses the [.NET code formatter tool](https://github.com/dotnet/format) to ensure the code base maintains a consistent style over time.  The specific options we pass to this tool are the following:
 
 - `/nounicode`: In general we follow this rule of not having unicode characters embedded in string literals. However there are a few cases where this is needed to verify compiler behavior hence this option is disabled for now. 
 - `/copyright`: The default copyright is MIT.  Roslyn is released under Apache2 hence we need to override this option. 
