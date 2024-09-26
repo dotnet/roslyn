@@ -1051,30 +1051,18 @@ internal sealed partial class ProjectSystemProject
         return OneOrMany.Create(fullPath);
     }
 
-    private static readonly string s_csharpCodeStyleAnalyzerSdkDirectory = Path.Combine("Sdks", "Microsoft.NET.Sdk", "codestyle", "cs") + PathUtilities.DirectorySeparatorStr;
-    private static readonly string s_visualBasicCodeStyleAnalyzerSdkDirectory = Path.Combine("Sdks", "Microsoft.NET.Sdk", "codestyle", "vb") + PathUtilities.DirectorySeparatorStr;
+    private static readonly string s_csharpCodeStyleAnalyzerSdkDirectory = CreateDirectoryPathFragment("Sdks", "Microsoft.NET.Sdk", "codestyle", "cs");
+    private static readonly string s_visualBasicCodeStyleAnalyzerSdkDirectory = CreateDirectoryPathFragment("Sdks", "Microsoft.NET.Sdk", "codestyle", "vb");
 
-    private bool IsSdkCodeStyleAnalyzer(string fullPath)
+    private bool IsSdkCodeStyleAnalyzer(string fullPath) => Language switch
     {
-        if (Language == LanguageNames.CSharp &&
-            fullPath.LastIndexOf(s_csharpCodeStyleAnalyzerSdkDirectory, StringComparison.OrdinalIgnoreCase) + s_csharpCodeStyleAnalyzerSdkDirectory.Length - 1 ==
-            fullPath.LastIndexOf(Path.DirectorySeparatorChar))
-        {
-            return true;
-        }
-
-        if (Language == LanguageNames.VisualBasic &&
-            fullPath.LastIndexOf(s_visualBasicCodeStyleAnalyzerSdkDirectory, StringComparison.OrdinalIgnoreCase) + s_visualBasicCodeStyleAnalyzerSdkDirectory.Length - 1 ==
-            fullPath.LastIndexOf(Path.DirectorySeparatorChar))
-        {
-            return true;
-        }
-
-        return false;
-    }
+        LanguageNames.CSharp => DirectoryNameEndsWith(fullPath, s_csharpCodeStyleAnalyzerSdkDirectory),
+        LanguageNames.VisualBasic => DirectoryNameEndsWith(fullPath, s_visualBasicCodeStyleAnalyzerSdkDirectory),
+        _ => false,
+    };
 
     internal const string RazorVsixExtensionId = "Microsoft.VisualStudio.RazorExtension";
-    private static readonly string s_razorSourceGeneratorSdkDirectory = Path.Combine("Sdks", "Microsoft.NET.Sdk.Razor", "source-generators") + PathUtilities.DirectorySeparatorStr;
+    private static readonly string s_razorSourceGeneratorSdkDirectory = CreateDirectoryPathFragment("Sdks", "Microsoft.NET.Sdk.Razor", "source-generators");
     private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames =
     [
         "Microsoft.NET.Sdk.Razor.SourceGenerators",
@@ -1084,11 +1072,7 @@ internal sealed partial class ProjectSystemProject
     private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyRootedFileNames = s_razorSourceGeneratorAssemblyNames.SelectAsArray(
         assemblyName => PathUtilities.DirectorySeparatorStr + assemblyName + ".dll");
 
-    private static bool IsSdkRazorSourceGenerator(string fullPath)
-    {
-        return fullPath.LastIndexOf(s_razorSourceGeneratorSdkDirectory, StringComparison.OrdinalIgnoreCase) + s_razorSourceGeneratorSdkDirectory.Length - 1 ==
-            fullPath.LastIndexOf(Path.DirectorySeparatorChar);
-    }
+    private static bool IsSdkRazorSourceGenerator(string fullPath) => DirectoryNameEndsWith(fullPath, s_razorSourceGeneratorSdkDirectory);
 
     private OneOrMany<string> GetMappedRazorSourceGenerator(string fullPath)
     {
@@ -1109,6 +1093,11 @@ internal sealed partial class ProjectSystemProject
 
         return OneOrMany.Create(fullPath);
     }
+
+    private static string CreateDirectoryPathFragment(params string[] paths) => Path.Combine([" ", .. paths, " "]).Trim();
+
+    private static bool DirectoryNameEndsWith(string fullPath, string ending) => fullPath.LastIndexOf(ending, StringComparison.OrdinalIgnoreCase) + ending.Length - 1 ==
+        fullPath.LastIndexOf(Path.DirectorySeparatorChar);
 
     #endregion
 
