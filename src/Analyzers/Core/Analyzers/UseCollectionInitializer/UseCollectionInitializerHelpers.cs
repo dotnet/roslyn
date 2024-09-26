@@ -18,12 +18,13 @@ internal static class UseCollectionInitializerHelpers
     public static readonly ImmutableDictionary<string, string?> UseCollectionExpressionProperties =
         ImmutableDictionary<string, string?>.Empty.Add(UseCollectionExpressionName, UseCollectionExpressionName);
 
-    public static ImmutableArray<Location> GetLocationsToFade<TStatementSyntax>(
+    public static ImmutableArray<Location> GetLocationsToFade<TStatementSyntax, TExpressionSyntax>(
         ISyntaxFacts syntaxFacts,
-        Match<TStatementSyntax> matchInfo)
+        Match<TStatementSyntax, TExpressionSyntax> matchInfo)
         where TStatementSyntax : SyntaxNode
+        where TExpressionSyntax : SyntaxNode
     {
-        var match = matchInfo.Statement;
+        var match = matchInfo.Statement ?? (SyntaxNode)matchInfo.Expression!;
         var syntaxTree = match.SyntaxTree;
         if (syntaxFacts.IsExpressionStatement(match))
         {

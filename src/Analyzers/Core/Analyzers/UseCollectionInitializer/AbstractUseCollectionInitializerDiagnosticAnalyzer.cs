@@ -24,9 +24,12 @@ namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
 /// is needed as the statement could be cases like <c>expr.Add(x)</c> vs. <c>expr.AddRange(x)</c>. This property
 /// indicates that the latter should become a spread, without the consumer having to reexamine the statement to see
 /// what form it is.</param>
-internal readonly record struct Match<TStatementSyntax>(
-    TStatementSyntax Statement,
-    bool UseSpread) where TStatementSyntax : SyntaxNode;
+internal readonly record struct Match<TStatementSyntax, TExpressionSyntax>(
+    TStatementSyntax? Statement,
+    TExpressionSyntax? Expression,
+    bool UseSpread)
+        where TStatementSyntax : SyntaxNode
+        where TExpressionSyntax : SyntaxNode;
 
 internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyzer<
     TSyntaxKind,
@@ -182,7 +185,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         var nodes = containingStatement is null
             ? ImmutableArray<SyntaxNode>.Empty
             : [containingStatement];
-        nodes = nodes.AddRange(matches.Select(static m => m.Statement));
+        nodes = nodes.AddRange(matches.Select(static m => m.Statement ?? (SyntaxNode)m.Expression!));
         if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
             return;
 
@@ -205,7 +208,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
         return;
 
-        (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionInitializerMatches()
+        (ImmutableArray<Match<TStatementSyntax, TExpressionSyntax>> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionInitializerMatches()
         {
             if (containingStatement is null)
                 return null;
@@ -222,7 +225,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             return (matches, shouldUseCollectionExpression: false, changesSemantics: false);
         }
 
-        (ImmutableArray<Match<TStatementSyntax>> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionExpressionMatches()
+        (ImmutableArray<Match<TStatementSyntax, TExpressionSyntax>> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionExpressionMatches()
         {
             if (preferExpressionOption.Value == CollectionExpressionPreference.Never)
                 return null;
@@ -248,7 +251,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
     private void FadeOutCode(
         SyntaxNodeAnalysisContext context,
-        ImmutableArray<Match<TStatementSyntax>> matches,
+        ImmutableArray<Match<TStatementSyntax, TExpressionSyntax>> matches,
         ImmutableArray<Location> locations,
         ImmutableDictionary<string, string?>? properties)
     {

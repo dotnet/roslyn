@@ -3968,7 +3968,7 @@ End Class")
             Dim compilation1 = compilation0.WithSource(source1.Tree)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0, symbolValidator:=Sub([module] As ModuleSymbol)
-                                                                                      Assert.Equal(
+                                                                                      AssertEx.Equal(
                                                                                       {
                                                                                         "$State: System.Int32",
                                                                                         "$Current: System.Int32",
@@ -3981,7 +3981,7 @@ End Class")
                                                                                   End Sub)
 
             Dim v1 = CompileAndVerify(compilation:=compilation1, symbolValidator:=Sub([module] As ModuleSymbol)
-                                                                                      Assert.Equal(
+                                                                                      AssertEx.Equal(
                                                                                       {
                                                                                         "$State: System.Int32",
                                                                                         "$Current: System.Int32",
@@ -7027,7 +7027,7 @@ End Class")
             Dim h3 = compilation3.GetMember(Of MethodSymbol)("C.H")
 
             Dim v0 = CompileAndVerify(compilation:=compilation0, symbolValidator:=Sub([module] As ModuleSymbol)
-                                                                                      Assert.Equal(
+                                                                                      AssertEx.Equal(
                                                                                       {
                                                                                         "$State: System.Int32",
                                                                                         "$Builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of System.Int32)",
@@ -7374,7 +7374,7 @@ End Class
             Dim compilation0 = CreateEmptyCompilationWithReferences(source0, references:=LatestVbReferences, options:=ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All))
 
             CompileAndVerify(compilation:=compilation0, symbolValidator:=Sub([module] As ModuleSymbol)
-                                                                             Assert.Equal(
+                                                                             AssertEx.Equal(
                                                                                       {
                                                                                         "$State: System.Int32",
                                                                                         "$Builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of System.Int32)",
@@ -7383,7 +7383,7 @@ End Class
                                                                                         "$A1: System.Runtime.CompilerServices.TaskAwaiter(Of System.Int32)"
                                                                                       }, [module].GetFieldNamesAndTypes("C.VB$StateMachine_4_F"))
 
-                                                                             Assert.Equal(
+                                                                             AssertEx.Equal(
                                                                                       {
                                                                                         "$State: System.Int32",
                                                                                         "$Builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of System.Int32)",
@@ -7528,7 +7528,7 @@ End Class")
 
             Dim v0 = CompileAndVerify(compilation:=compilation0, symbolValidator:=
                 Sub([module] As ModuleSymbol)
-                    Assert.Equal(
+                    AssertEx.Equal(
                     {
                         "$State: System.Int32",
                         "$Builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of System.Int32)",
@@ -8132,7 +8132,7 @@ End Class")
 
             Dim v0 = CompileAndVerify(compilation0, symbolValidator:=
                 Sub([module])
-                    Assert.Equal(
+                    AssertEx.Equal(
                     {
                          "$State: System.Int32",
                          "$Builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder",

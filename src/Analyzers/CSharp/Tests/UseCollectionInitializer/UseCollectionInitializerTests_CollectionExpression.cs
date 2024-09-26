@@ -5780,6 +5780,57 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         List<int> list = [.. values, 1, 2, 3];
                     }
                 }
+                """
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73362")]
+    public async Task TestWithOverloadResolution1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public void Test(Class1 param1, Class1 param2)
+                    {
+                        MethodTakingEnumerable([|new|] List<Class1> { param1, param2 });
+                    }
+
+                    public void MethodTakingEnumerable(IEnumerable<Class1> param)
+                    {
+                    }
+
+                    public void MethodTakingEnumerable(IEnumerable<Class2> param)
+                    {
+                    }
+
+                    public class Class1 { }
+                    public class Class2 { }
+                }
+                """,
+            FixedCode = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    public void Test(Class1 param1, Class1 param2)
+                    {
+                        MethodTakingEnumerable([param1, param2]);
+                    }
+                
+                    public void MethodTakingEnumerable(IEnumerable<Class1> param)
+                    {
+                    }
+                
+                    public void MethodTakingEnumerable(IEnumerable<Class2> param)
+                    {
+                    }
+                
+                    public class Class1 { }
+                    public class Class2 { }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
