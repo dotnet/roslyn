@@ -3094,7 +3094,7 @@ Method1: x > 0
 Method1: x = 0
 " + checker.ExpectedOutput;
 
-            var verifier = CompileAndVerify(source, expectedOutput: null, options: TestOptions.ReleaseExe);
+            var verifier = CompileAndVerify(source, expectedOutput, options: TestOptions.ReleaseExe);
             verifier.VerifyIL("Class1<T>.Method1<U>",
 @"
 {
