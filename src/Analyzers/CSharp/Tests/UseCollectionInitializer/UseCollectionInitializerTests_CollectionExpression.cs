@@ -208,7 +208,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
 
             class C
             {
-                List<int> c = [.. new[] { 1, 2, 3 }]);
+                List<int> c = [.. new[] { 1, 2, 3 }];
             }
             """);
     }
@@ -4951,11 +4951,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M(int[] x, int[] y)
                 {
-                    List<int> c = new List<int>(x)
-                    {
-                        0
-                    };
-                    c.AddRange(y);
+                    List<int> c = [.. x, 0, .. y];
                 }
             }
             """);
@@ -5786,7 +5782,9 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                         List<int> list = [.. values, 1, 2, 3];
                     }
                 }
-                """
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
 
@@ -5837,6 +5835,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 
                     public class Class1 { }
                     public class Class2 { }
+                }
                 """,
             LanguageVersion = LanguageVersion.CSharp12,
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
