@@ -5670,10 +5670,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     [MaybeNull, AllowNull]
                     public string Prop
                     {
-                        get => field.ToString(); // 1
-                        set => field = value;
+                        get => field.ToString();
+                        set => field = value; // 1
                     }
-                    public C()
+                    public C() // 2
                     {
                     }
                 }
@@ -5682,10 +5682,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation([source, MaybeNullAttributeDefinition, AllowNullAttributeDefinition]);
             comp.VerifyEmitDiagnostics(
                 // (10,24): warning CS8601: Possible null reference assignment.
-                //         set => field = value;
+                //         set => field = value; // 1
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "value").WithLocation(10, 24),
                 // (12,12): warning CS9264: Non-nullable property 'Prop' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
-                //     public C()
+                //     public C() // 2
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "C").WithArguments("property", "Prop").WithLocation(12, 12));
         }
 
@@ -5915,9 +5915,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Nullability_20_ManualGetter_AutoSetter_NullTest()
+        public void Nullability_20_ManualGetter_AutoSetter_NotNullInitializer_NullTest()
         {
-            // NotNull on field with manual getter and auto-setter and non-null initializer
+            // NotNull on field with manual getter and auto-setter and non-null initializer and null test+throw in constructor
             var source = """
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
@@ -5926,6 +5926,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     [field: NotNull]
                     public string? Prop { get => field; set; } = "a";
+
+                    public C()
+                    {
+                        if (Prop is null)
+                            throw null!;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([source, NotNullAttributeDefinition]);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Nullability_20_ManualGetter_AutoSetter_NullTest()
+        {
+            // NotNull on field with manual getter and auto-setter and null test+throw in constructor
+            var source = """
+                #nullable enable
+                using System.Diagnostics.CodeAnalysis;
+
+                class C
+                {
+                    [field: NotNull]
+                    public string? Prop { get => field; set; }
 
                     public C()
                     {
@@ -6394,8 +6419,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation([source, MaybeNullAttributeDefinition, AllowNullAttributeDefinition]);
             comp.VerifyEmitDiagnostics(
-                // (6,19): warning CS9264: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]'
-attributes.
+                // (6,19): warning CS9264: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.
                 //     public string Prop1 => field ??= "a"; // 1
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop1").WithArguments("property", "Prop1").WithLocation(6, 19));
         }
