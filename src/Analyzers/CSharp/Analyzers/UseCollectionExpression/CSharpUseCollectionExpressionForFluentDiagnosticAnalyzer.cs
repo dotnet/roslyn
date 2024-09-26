@@ -248,23 +248,27 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                     if (!argumentType.AllInterfaces.Any(i => Equals(i.OriginalDefinition, ienumerableOfTType)))
                         return false;
 
-                    // Need to push any initializer values to the matchesInReverse first, as they need to execute prior
-                    // to the argument to the object creation itself executing.
+                    if (matchesInReverse != null)
+                    {
+                        // Need to push any initializer values to the matchesInReverse first, as they need to execute prior
+                        // to the argument to the object creation itself executing.
 
-                    var synthesizedArgumentList = objectCreation.Initializer is null
-                        ? ArgumentList()
-                        : ArgumentList(SeparatedList(objectCreation.Initializer.Expressions.Select(Argument)));
+                        if (objectCreation.Initializer != null)
+                            AddArgumentsInReverse(matchesInReverse, ArgumentList(SeparatedList(objectCreation.Initializer.Expressions.Select(Argument))).Arguments, useSpread: false);
 
-                    AddArgumentsInReverse(matchesInReverse, synthesizedArgumentList.Arguments, useSpread: false);
-                    AddArgumentsInReverse(matchesInReverse, objectCreation.ArgumentList.Arguments, useSpread: true);
+                        AddArgumentsInReverse(matchesInReverse, objectCreation.ArgumentList.Arguments, useSpread: true);
+                    }
+
+                    return true;
                 }
-                else if (objectCreation.ArgumentList is not null or { Arguments.Count: 0 })
+                else if (objectCreation.ArgumentList is null or { Arguments.Count: 0 })
                 {
                     // Otherwise, we have to have an empty argument list.
-                    return false;
+                    existingInitializer = objectCreation.Initializer;
+                    return true;
                 }
 
-                return true;
+                return false;
             }
 
             // Forms like `ImmutableArray.Create(...)` or `ImmutableArray.CreateRange(...)` are fine base cases.

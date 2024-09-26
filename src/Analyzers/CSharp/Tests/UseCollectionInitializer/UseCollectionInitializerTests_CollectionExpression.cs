@@ -5718,7 +5718,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
     public async Task TestObjectCreationArgument1()
     {
         await new VerifyCS.Test
@@ -5752,7 +5752,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
         }.RunAsync();
     }
 
-    [Fact]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72699")]
     public async Task TestObjectCreationArgument2()
     {
         await new VerifyCS.Test
