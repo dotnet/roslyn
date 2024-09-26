@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.CodeGen;
 using System.Reflection;
 using System.Collections.Concurrent;
 using static TestReferences;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Roslyn.Test.Utilities
 {
@@ -114,16 +113,26 @@ namespace Roslyn.Test.Utilities
     /// </summary>
     public static class NetFramework
     {
+        private static ImmutableArray<MetadataReference> s_references;
+
         /// <summary>
         /// This is the full set of references provided by default on the .NET Framework TFM
         /// </summary>
         /// <remarks>
         /// Need to special case tuples until we move to net472
         /// </remarks>
-        public static ImmutableArray<MetadataReference> References { get; } =
-            ImmutableArray
-                .CreateRange<MetadataReference>(Net461.References.All)
-                .Add(NetFx.ValueTuple.tuplelib);
+        public static ImmutableArray<MetadataReference> References
+        {
+            get
+            {
+                if (s_references.IsDefault)
+                {
+                    s_references = [.. Net461.References.All, Net461.ExtraReferences.SystemValueTuple];
+                }
+
+                return s_references;
+            }
+        }
 
         /// <summary>
         /// This is a limited set of references on this .NET Framework TFM. This should be avoided in new code 
@@ -133,13 +142,14 @@ namespace Roslyn.Test.Utilities
         /// Need to special case tuples until we move to net472
         /// </remarks>
         public static ImmutableArray<MetadataReference> Standard { get; } =
-            ImmutableArray.Create<MetadataReference>(
+            [
                 Net461.References.mscorlib,
                 Net461.References.System,
                 Net461.References.SystemCore,
                 Net461.References.SystemData,
-                NetFx.ValueTuple.tuplelib,
-                Net461.References.SystemRuntime);
+                Net461.References.SystemRuntime,
+                Net461.ExtraReferences.SystemValueTuple
+            ];
 
         public static PortableExecutableReference mscorlib { get; } = Net461.References.mscorlib;
         public static PortableExecutableReference System { get; } = Net461.References.System;
@@ -148,6 +158,7 @@ namespace Roslyn.Test.Utilities
         public static PortableExecutableReference SystemData { get; } = Net461.References.SystemData;
         public static PortableExecutableReference SystemThreadingTasks { get; } = Net461.References.SystemThreadingTasks;
         public static PortableExecutableReference SystemXml { get; } = Net461.References.SystemXml;
+        public static PortableExecutableReference SystemValueTuple { get; } = Net461.ExtraReferences.SystemValueTuple;
         public static PortableExecutableReference MicrosoftCSharp { get; } = Net461.References.MicrosoftCSharp;
         public static PortableExecutableReference MicrosoftVisualBasic { get; } = Net461.References.MicrosoftVisualBasic;
     }
@@ -158,8 +169,8 @@ namespace Roslyn.Test.Utilities
 
         public static ImmutableArray<MetadataReference> NetLatest => RuntimeUtilities.IsCoreClrRuntime ? NetCoreApp.References : NetFramework.References;
         public static ImmutableArray<MetadataReference> StandardReferences => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20References : NetFramework.Standard;
-        public static MetadataReference StandardCSharpReference => RuntimeUtilities.IsCoreClrRuntime ? MicrosoftCSharp.Netstandard13Lib : NetFramework.MicrosoftCSharp;
-        public static MetadataReference StandardVisualBasicReference => RuntimeUtilities.IsCoreClrRuntime ? MicrosoftVisualBasic.Netstandard11 : NetFramework.MicrosoftVisualBasic;
+        public static MetadataReference StandardCSharpReference => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20.ExtraReferences.MicrosoftCSharp : NetFramework.MicrosoftCSharp;
+        public static MetadataReference StandardVisualBasicReference => RuntimeUtilities.IsCoreClrRuntime ? NetStandard20.ExtraReferences.MicrosoftVisualBasic : NetFramework.MicrosoftVisualBasic;
         public static ImmutableArray<MetadataReference> StandardAndCSharpReferences => StandardReferences.Add(StandardCSharpReference);
         public static ImmutableArray<MetadataReference> StandardAndVBRuntimeReferences => StandardReferences.Add(StandardVisualBasicReference);
 
@@ -181,26 +192,27 @@ namespace Roslyn.Test.Utilities
         [
             TestBase.MinAsyncCorlibRef
         ];
-        public static ImmutableArray<MetadataReference> Mscorlib45ExtendedReferences =>
-        [
-            NetFramework.mscorlib,
-            NetFramework.System,
-            NetFramework.SystemCore,
-            TestBase.ValueTupleRef,
-            NetFramework.SystemRuntime
-        ];
-        public static ImmutableArray<MetadataReference> Mscorlib46ExtendedReferences =>
-        [
-            Net461.References.mscorlib,
-            Net461.References.System,
-            Net461.References.SystemCore,
-            TestBase.ValueTupleRef,
-            Net461.References.SystemRuntime
-        ];
+
         /*
          * ⚠ Dev note ⚠: TestBase properties end here.
          */
 
+        public static ImmutableArray<MetadataReference> Mscorlib45ExtendedReferences { get; } =
+        [
+            NetFramework.mscorlib,
+            NetFramework.System,
+            NetFramework.SystemCore,
+            NetFramework.SystemRuntime,
+            NetFramework.SystemValueTuple,
+        ];
+        public static ImmutableArray<MetadataReference> Mscorlib46ExtendedReferences { get; } =
+        [
+            Net461.References.mscorlib,
+            Net461.References.System,
+            Net461.References.SystemCore,
+            Net461.References.SystemRuntime,
+            Net461.ExtraReferences.SystemValueTuple,
+        ];
         public static ImmutableArray<MetadataReference> Mscorlib40References { get; } =
         [
             Net40.References.mscorlib
@@ -239,8 +251,8 @@ namespace Roslyn.Test.Utilities
             Net461.References.mscorlib,
             Net461.References.System,
             Net461.References.SystemCore,
-            NetFx.ValueTuple.tuplelib,
-            Net461.References.SystemRuntime
+            Net461.References.SystemRuntime,
+            Net461.ExtraReferences.SystemValueTuple,
         ];
         public static ImmutableArray<MetadataReference> Mscorlib461AndCSharpReferences { get; } =
         [

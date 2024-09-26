@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var forwardingMethods = ArrayBuilder<SynthesizedExplicitImplementationForwardingMethod>.GetInstance();
             var methodImpls = ArrayBuilder<(MethodSymbol Body, MethodSymbol Implemented)>.GetInstance();
 
-            // NOTE: We can't iterator over this collection directly, since it is not ordered.  Instead we
+            // NOTE: We can't iterate over this collection directly, since it is not ordered.  Instead we
             // iterate over AllInterfaces and filter out the interfaces that are not in this set.  This is
             // preferable to doing the DFS ourselves because both AllInterfaces and
             // InterfacesAndTheirBaseInterfaces are cached and used in multiple places.
@@ -1838,7 +1838,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             needSynthesizedImplementation = false;
                         }
                     }
-                    else if (implementingMethod.IsMetadataVirtual(ignoreInterfaceImplementationChanges: true))
+                    else if (implementingMethod.IsMetadataVirtual(MethodSymbol.IsMetadataVirtualOption.IgnoreInterfaceImplementationChanges))
                     {
                         // If the signatures match and the implementation method is definitely virtual, then we're set.
                         needSynthesizedImplementation = false;

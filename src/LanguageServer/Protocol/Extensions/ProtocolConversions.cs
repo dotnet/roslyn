@@ -19,8 +19,8 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.NavigateTo;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.SpellCheck;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Text.Adornments;
@@ -309,13 +309,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         }
 
         public static LSP.TextDocumentIdentifier DocumentToTextDocumentIdentifier(TextDocument document)
-            => new LSP.TextDocumentIdentifier { Uri = document.GetURI() };
+            => new() { Uri = document.GetURI() };
 
         public static LSP.VersionedTextDocumentIdentifier DocumentToVersionedTextDocumentIdentifier(Document document)
-            => new LSP.VersionedTextDocumentIdentifier { Uri = document.GetURI() };
+            => new() { Uri = document.GetURI() };
 
         public static LinePosition PositionToLinePosition(LSP.Position position)
-            => new LinePosition(position.Line, position.Character);
+            => new(position.Line, position.Character);
+
         public static LinePositionSpan RangeToLinePositionSpan(LSP.Range range)
             => new(PositionToLinePosition(range.Start), PositionToLinePosition(range.End));
 
@@ -581,6 +582,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                     return LSP.DocumentHighlightKind.Text;
             }
         }
+
+        public static LSP.VSInternalSpellCheckableRangeKind SpellCheckSpanKindToSpellCheckableRangeKind(SpellCheckKind kind)
+            => kind switch
+            {
+                SpellCheckKind.Identifier => LSP.VSInternalSpellCheckableRangeKind.Identifier,
+                SpellCheckKind.Comment => LSP.VSInternalSpellCheckableRangeKind.Comment,
+                SpellCheckKind.String => LSP.VSInternalSpellCheckableRangeKind.String,
+                _ => throw ExceptionUtilities.UnexpectedValue(kind),
+            };
 
         public static Glyph SymbolKindToGlyph(LSP.SymbolKind kind)
         {
@@ -926,11 +936,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                         codeFence = null;
 
                         break;
+                    case TextTags.Text when taggedText.Style == (TaggedTextStyle.Code | TaggedTextStyle.PreserveWhitespace):
+                        // This represents a block of code (`<code></code>`) in doc comments.
+                        // Since code elements optionally support a `lang` attribute and we do not have access to the
+                        // language which was specified at this point, we tell the client to render it as plain text.
+
+                        if (!markdownBuilder.IsLineEmpty())
+                            AppendLineBreak(markdownBuilder);
+
+                        // The current line is empty, we can append a code block.
+                        markdownBuilder.AppendLine($"{BlockCodeFence}text");
+                        markdownBuilder.AppendLine(taggedText.Text);
+                        markdownBuilder.AppendLine(BlockCodeFence);
+
+                        break;
                     case TextTags.LineBreak:
-                        // A line ending with double space and a new line indicates to markdown
-                        // to render a single-spaced line break.
-                        markdownBuilder.Append("  ");
-                        markdownBuilder.AppendLine();
+                        AppendLineBreak(markdownBuilder);
                         break;
                     default:
                         var styledText = GetStyledText(taggedText, codeFence != null);
@@ -946,6 +967,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 Kind = LSP.MarkupKind.Markdown,
                 Value = content,
             };
+
+            static void AppendLineBreak(MarkdownContentBuilder markdownBuilder)
+            {
+                // A line ending with double space and a new line indicates to markdown
+                // to render a single-spaced line break.
+                markdownBuilder.Append("  ");
+                markdownBuilder.AppendLine();
+            }
 
             static string GetCodeBlockLanguageName(string language)
             {

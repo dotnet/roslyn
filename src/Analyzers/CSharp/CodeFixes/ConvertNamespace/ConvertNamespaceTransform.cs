@@ -291,9 +291,9 @@ internal static class ConvertNamespaceTransform
         }
 
         return document.Root.ReplaceSyntax(
-            new SyntaxNode[] { namespaceDeclaration },
+            [namespaceDeclaration],
             (_, _) => converted.WithAdditionalAnnotations(annotation),
-            new SyntaxToken[] { tokenAfterNamespace },
+            [tokenAfterNamespace],
             (_, _) => tokenAfterNamespace.WithLeadingTrivia(triviaAfterSplit),
             [],
             (_, _) => throw ExceptionUtilities.Unreachable());

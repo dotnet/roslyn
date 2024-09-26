@@ -1046,7 +1046,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
                 return await Formatter.FormatAsync(
                     document,
-                    new TextSpan[] { formattingSpan },
+                    [formattingSpan],
                     options,
                     formattingRules,
                     cancellationToken).ConfigureAwait(false);

@@ -204,13 +204,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 memberSet ??= new HashSet<ISymbol>();
                                 memberSet.Add(member);
 
-                                // Ensure that we include symbols for both parts of partial methods.
-                                // https://github.com/dotnet/roslyn/issues/73772: also cascade to partial property implementation part
-                                if (member is IMethodSymbol method &&
-                                    !(method.PartialImplementationPart is null))
-                                {
-                                    memberSet.Add(method.PartialImplementationPart);
-                                }
+                                if (member is IMethodSymbol { PartialImplementationPart: { } methodImplementation })
+                                    memberSet.Add(methodImplementation);
+                                else if (member is IPropertySymbol { PartialImplementationPart: { } propertyImplementation })
+                                    memberSet.Add(propertyImplementation);
                             }
 
                             if (member is INamedTypeSymbol typeMember)
@@ -225,18 +222,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             [Conditional("DEBUG")]
             private void VerifyNewEntryForPendingMemberSymbolsMap(ISymbol symbol, HashSet<ISymbol>? dependentSymbols)
             {
-                Debug.Assert(_lazyPendingMemberSymbolsMap != null, $"{nameof(_lazyPendingMemberSymbolsMap)} was expected to be a non-null value.");
+                RoslynDebug.Assert(_lazyPendingMemberSymbolsMap != null, $"{nameof(_lazyPendingMemberSymbolsMap)} was expected to be a non-null value.");
 
                 if (_lazyPendingMemberSymbolsMap.TryGetValue(symbol, out var existingDependentSymbols))
                 {
                     if (existingDependentSymbols == null)
                     {
-                        Debug.Assert(dependentSymbols == null, $"{nameof(dependentSymbols)} was expected to be null.");
+                        RoslynDebug.Assert(dependentSymbols == null, $"{nameof(dependentSymbols)} was expected to be null.");
                     }
                     else
                     {
-                        Debug.Assert(dependentSymbols != null, $"{nameof(dependentSymbols)} was expected to be a non-null value.");
-                        Debug.Assert(existingDependentSymbols.IsSubsetOf(dependentSymbols), $"{nameof(existingDependentSymbols)} was expected to be a subset of {nameof(dependentSymbols)}");
+                        RoslynDebug.Assert(dependentSymbols != null, $"{nameof(dependentSymbols)} was expected to be a non-null value.");
+                        RoslynDebug.Assert(existingDependentSymbols.IsSubsetOf(dependentSymbols), $"{nameof(existingDependentSymbols)} was expected to be a subset of {nameof(dependentSymbols)}");
                     }
                 }
             }

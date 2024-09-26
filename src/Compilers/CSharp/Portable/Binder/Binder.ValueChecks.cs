@@ -388,6 +388,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return AccessorKind.Get;
             }
 
+            return GetAccessorKind(valueKind);
+        }
+
+        private static AccessorKind GetAccessorKind(BindValueKind valueKind)
+        {
             var coreValueKind = valueKind & ValueKindSignificantBitsMask;
             return coreValueKind switch
             {
@@ -522,6 +527,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.DiscardExpression:
                     Debug.Assert(valueKind is (BindValueKind.Assignable or BindValueKind.RefOrOut or BindValueKind.RefAssignable) || diagnostics.DiagnosticBag is null || diagnostics.HasAnyResolvedErrors());
                     return expr;
+
+                case BoundKind.PropertyAccess:
+                    if (!InAttributeArgument)
+                    {
+                        // If the property has a synthesized backing field, record the accessor kind of the property
+                        // access for determining whether the property access can use the backing field directly.
+                        var propertyAccess = (BoundPropertyAccess)expr;
+                        if (HasSynthesizedBackingField(propertyAccess.PropertySymbol, out _))
+                        {
+                            expr = propertyAccess.Update(
+                                propertyAccess.ReceiverOpt,
+                                propertyAccess.InitialBindingReceiverIsSubjectToCloning,
+                                propertyAccess.PropertySymbol,
+                                autoPropertyAccessorKind: GetAccessorKind(valueKind),
+                                propertyAccess.ResultKind,
+                                propertyAccess.Type);
+                        }
+                    }
+#if DEBUG
+                    expr.WasPropertyBackingFieldAccessChecked = true;
+#endif
+                    break;
 
                 case BoundKind.IndexerAccess:
                     expr = BindIndexerDefaultArgumentsAndParamsCollection((BoundIndexerAccess)expr, valueKind, diagnostics);
@@ -898,6 +925,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.ConditionalOperator:
+                    if (RequiresRefAssignableVariable(valueKind))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                        return false;
+                    }
+
                     var conditional = (BoundConditionalOperator)expr;
 
                     // byref conditional defers to its operands
@@ -918,6 +951,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.AssignmentOperator:
+                    // Cannot ref-assign to a ref assignment.
+                    if (RequiresRefAssignableVariable(valueKind))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                        return false;
+                    }
+
                     var assignment = (BoundAssignmentOperator)expr;
                     return CheckSimpleAssignmentValueKind(node, assignment, valueKind, diagnostics);
 
@@ -926,7 +966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 default:
-                    Debug.Assert(expr is not BoundValuePlaceholderBase, $"Placeholder kind {expr.Kind} should be explicitly handled");
+                    RoslynDebug.Assert(expr is not BoundValuePlaceholderBase, $"Placeholder kind {expr.Kind} should be explicitly handled");
                     break;
             }
 
@@ -1694,7 +1734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (setMethod is null)
                 {
                     var containing = this.ContainingMemberOrLambda;
-                    if (!AccessingAutoPropertyFromConstructor(receiver, propertySymbol, containing)
+                    if (!AccessingAutoPropertyFromConstructor(receiver, propertySymbol, containing, AccessorKind.Set)
                         && !isAllowedDespiteReadonly(receiver))
                     {
                         Error(diagnostics, ErrorCode.ERR_AssgReadonlyProp, node, propertySymbol);
@@ -4479,7 +4519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // in error situations some unexpected nodes could make here
                     // returning "scopeOfTheContainingExpression" seems safer than throwing.
                     // we will still assert to make sure that all nodes are accounted for. 
-                    Debug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
+                    RoslynDebug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
                     return scopeOfTheContainingExpression;
             }
         }
@@ -5274,7 +5314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // in error situations some unexpected nodes could make here
                     // returning "false" seems safer than throwing.
                     // we will still assert to make sure that all nodes are accounted for.
-                    Debug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
+                    RoslynDebug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
                     diagnostics.Add(ErrorCode.ERR_InternalError, node.Location);
                     return false;
 

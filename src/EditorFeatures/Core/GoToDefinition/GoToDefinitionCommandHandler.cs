@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Threading;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
@@ -117,6 +118,10 @@ internal class GoToDefinitionCommandHandler(
             EditorFeaturesResources.Navigating_to_definition))
         {
             var cancellationToken = backgroundIndicator.UserCancellationToken;
+
+            // Switch to a background thread before continuing. We don't want synchronous work before the first yield to
+            // prevent the background work indicator from functioning properly.
+            await TaskScheduler.Default;
 
             // determine the location first.
             var definitionLocation = await service.GetDefinitionLocationAsync(

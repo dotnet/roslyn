@@ -287,11 +287,6 @@
         <target state="translated">Элемент записи "{0}" должен быть доступным для чтения свойством экземпляра или полем типа "{1}", чтобы соответствовать позиционному параметру "{2}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
-        <target state="translated">Утверждение foreach не может работать с перечислителями типа "{0}" в асинхронных методах или методах итератора, поскольку "{0}" является ссылочной структурой или параметром типа, допускающим структуру ref.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
         <target state="translated">Параметры типа "{0}" не могут быть объявлены в асинхронных методах или асинхронных лямбда-выражениях.</target>
@@ -505,6 +500,11 @@
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
         <target state="translated">Не удается инициализировать тип "{0}" с выражением коллекции, так как тип не является конструируемым.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
+        <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
+        <target state="new">Collection initializer results in an infinite chain of instantiations of collection '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -1148,8 +1148,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="translated">Экспериментальная функция "перехватчики" не включена в этом пространстве имен. Добавьте "{0}" в свой проект.</target>
+        <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="needs-review-translation">Экспериментальная функция "перехватчики" не включена в этом пространстве имен. Добавьте "{0}" в свой проект.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
@@ -1735,6 +1735,11 @@
       <trans-unit id="ERR_PartialPropertyDuplicateImplementation">
         <source>A partial property may not have multiple implementing declarations</source>
         <target state="translated">У частичного свойства не может быть нескольких реализующих объявлений</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateInitializer">
+        <source>A partial property cannot have an initializer on both the definition and implementation.</source>
+        <target state="new">A partial property cannot have an initializer on both the definition and implementation.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyInitMismatch">
@@ -2632,11 +2637,6 @@
         <target state="translated">указатель</target>
         <note />
       </trans-unit>
-      <trans-unit id="INF_IdentifierConflictWithContextualKeyword">
-        <source>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</source>
-        <target state="translated">"{0}" — контекстное ключевое слово в методах доступа, начиная с версии языка {1}". Вместо этого используйте "@{0}".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
         <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
         <target state="translated">Идентификатор — это контекстное ключевое слово с определенным значением в более поздней версии языка.</target>
@@ -2925,6 +2925,16 @@
       <trans-unit id="WRN_EscapeVariable_Title">
         <source>Use of variable in this context may expose referenced variables outside of their declaration scope</source>
         <target state="translated">Использование переменной в этом контексте может представить ссылочные переменные за пределами области их объявления.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous">
+        <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</source>
+        <target state="new">In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous_Title">
+        <source>The 'field' keyword binds to a synthesized backing field for the property.</source>
+        <target state="new">The 'field' keyword binds to a synthesized backing field for the property.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
@@ -3623,164 +3633,164 @@
                               accessibility errors with what assembly they came from.
 </source>
         <target state="translated">
-                             Параметры компилятора Visual C# 
+                             Параметры компилятора Visual C#
 
-                       - ВЫХОДНЫЕ ФАЙЛЫ - 
--out:&lt;file&gt;                   Укажите имя выходного файла (по умолчанию: базовое имя 
-                              файл с основным классом или первый файл) 
--target:exe                   Создать исполняемый файл консоли (по умолчанию) (сокращение 
-                              форма: -t:exe) 
--target:winexe                Создать исполняемый файл Windows (краткая форма: 
-                              -t:winexe) 
--target:library               Создать библиотеку (краткая форма: -t:library) 
--target:module                Создать модуль, который можно добавить к другому 
-                              сборка (краткая форма: -t:модуль) 
--target:appcontainerexe       Создать исполняемый файл Appcontainer (краткая форма: 
-                              -t:appcontainerexe) 
--target:winmdobj              Создать промежуточный файл среды выполнения Windows, который 
-                              потребляется WinMDExp (краткая форма: -t:winmdobj) 
--doc:&lt;file&gt;                   Файл XML-документации для создания 
--refout:&lt;file&gt;                Ссылка на выходные данные сборки для создания 
--platform:&lt;string&gt;            Ограничить платформы, на которых может работать этот код: x86, 
-                              Itanium, x64, arm, arm64, anycpu32bitpreferred или 
-                              любой процессор. По умолчанию используется любой процессор. 
+                       - ВЫХОДНЫЕ ФАЙЛЫ -
+-out:&lt;file&gt;                   Укажите имя выходного файла (по умолчанию: базовое имя
+                              файл с основным классом или первый файл)
+-target:exe                   Создать исполняемый файл консоли (по умолчанию) (сокращение
+                              форма: -t:exe)
+-target:winexe                Создать исполняемый файл Windows (краткая форма:
+                              -t:winexe)
+-target:library               Создать библиотеку (краткая форма: -t:library)
+-target:module                Создать модуль, который можно добавить к другому
+                              сборка (краткая форма: -t:модуль)
+-target:appcontainerexe       Создать исполняемый файл Appcontainer (краткая форма:
+                              -t:appcontainerexe)
+-target:winmdobj              Создать промежуточный файл среды выполнения Windows, который
+                              потребляется WinMDExp (краткая форма: -t:winmdobj)
+-doc:&lt;file&gt;                   Файл XML-документации для создания
+-refout:&lt;file&gt;                Ссылка на выходные данные сборки для создания
+-platform:&lt;string&gt;            Ограничить платформы, на которых может работать этот код: x86,
+                              Itanium, x64, arm, arm64, anycpu32bitpreferred или
+                              любой процессор. По умолчанию используется любой процессор.
 
-                       - ВХОДНЫЕ ФАЙЛЫ - 
---recurse:&lt;wildcard&gt;           Включить все файлы в текущем каталоге и 
-                              подкаталогах в соответствии с подстановочными 
-                              знаками 
--reference:&lt;alias&gt;=&lt;file&gt;     Ссылка на метаданные из указанного файла сборки 
-                              с использованием заданного псевдонима (краткая форма: -r) 
--reference:&lt;file list&gt;        Ссылочные метаданные из указанных файлов 
+                       - ВХОДНЫЕ ФАЙЛЫ -
+--recurse:&lt;wildcard&gt;           Включить все файлы в текущем каталоге и
+                              подкаталогах в соответствии с подстановочными
+                              знаками
+-reference:&lt;alias&gt;=&lt;file&gt;     Ссылка на метаданные из указанного файла сборки
+                              с использованием заданного псевдонима (краткая форма: -r)
+-reference:&lt;file list&gt;        Ссылочные метаданные из указанных файлов
                               сборки (краткая форма: -r)
--addmodule:&lt;file list&gt;        Связать указанные модули с этой сборкой 
--link:&lt;file list&gt;             Внедрить метаданные из указанных файлов 
-                              сборки взаимодействия (краткая форма: -l) 
--analyzer:&lt;file list&gt;         Запустить анализаторы из этой сборки 
-                              (Краткая форма: -а) 
--additionalfile:&lt;file list&gt; Дополнительные файлы, не влияющие напрямую на генерацию 
+-addmodule:&lt;file list&gt;        Связать указанные модули с этой сборкой
+-link:&lt;file list&gt;             Внедрить метаданные из указанных файлов
+                              сборки взаимодействия (краткая форма: -l)
+-analyzer:&lt;file list&gt;         Запустить анализаторы из этой сборки
+                              (Краткая форма: -а)
+-additionalfile:&lt;file list&gt; Дополнительные файлы, не влияющие напрямую на генерацию
                               кода, но которые могут использоваться анализаторами для создания
                               ошибок и предупреждений.
--embed                        Встроить все исходные файлы в PDB. 
--embed:&lt;file list&gt;            Встроить определенные файлы в PDB. 
+-embed                        Встроить все исходные файлы в PDB.
+-embed:&lt;file list&gt;            Встроить определенные файлы в PDB.
 
-                       - РЕСУРСЫ - 
--win32res:&lt;file&gt;              Укажите файл ресурсов Win32 (.res) 
--win32icon:&lt;file&gt;             Использовать этот значок для вывода 
--win32manifest:&lt;file&gt;         Укажите файл манифеста Win32 (.xml) 
--nowin32manifest              Не включать манифест Win32 по умолчанию 
--resource:&lt;resinfo&gt;           Встроить указанный ресурс (краткая форма: -res) 
--linkresource:&lt;resinfo&gt;       Связать указанный ресурс с этой сборкой 
+                       - РЕСУРСЫ -
+-win32res:&lt;file&gt;              Укажите файл ресурсов Win32 (.res)
+-win32icon:&lt;file&gt;             Использовать этот значок для вывода
+-win32manifest:&lt;file&gt;         Укажите файл манифеста Win32 (.xml)
+-nowin32manifest              Не включать манифест Win32 по умолчанию
+-resource:&lt;resinfo&gt;           Встроить указанный ресурс (краткая форма: -res)
+-linkresource:&lt;resinfo&gt;       Связать указанный ресурс с этой сборкой
                               (Короткая форма: -linkres) Где формат resinfo
-                              равен &lt;file&gt;[,&lt;string name&gt;[,public|private]] 
+                              равен &lt;file&gt;[,&lt;string name&gt;[,public|private]]
 
-                       - ГЕНЕРАЦИЯ КОДА - 
--debug[+|-]                   Выдать отладочную информацию 
+                       - ГЕНЕРАЦИЯ КОДА -
+-debug[+|-]                   Выдать отладочную информацию
 -debug:{full|pdbonly|portable|embedded}
-                              Укажите тип отладки («полный» по умолчанию, 
-                              «портативный» — это кроссплатформенный формат, 
-                              'встроенный' – это кроссплатформенный формат, встроенный в 
-                              целевой файл .dll или .exe) 
--optimize[+|-]                Включить оптимизацию (краткая форма: -o) 
--optimize[+|-]                Производство детерминированной сборки 
-                              (включая GUID версии модуля и метку времени) 
--refonly                      Изготовить эталонную сборку вместо основной продукции 
--instrument:TestCoverage      Создать сборку, предназначенную для сбора 
+                              Укажите тип отладки («полный» по умолчанию,
+                              «портативный» — это кроссплатформенный формат,
+                              'встроенный' – это кроссплатформенный формат, встроенный в
+                              целевой файл .dll или .exe)
+-optimize[+|-]                Включить оптимизацию (краткая форма: -o)
+-optimize[+|-]                Производство детерминированной сборки
+                              (включая GUID версии модуля и метку времени)
+-refonly                      Изготовить эталонную сборку вместо основной продукции
+-instrument:TestCoverage      Создать сборку, предназначенную для сбора
                               сведений об охвате
--sourcelink:&lt;file&gt;            Информация об исходной ссылке для встраивания в PDB. 
+-sourcelink:&lt;file&gt;            Информация об исходной ссылке для встраивания в PDB.
 
-                       - ОШИБКИ И ПРЕДУПРЕЖДЕНИЯ - 
--warnaserror[+|-]             Сообщить обо всех предупреждениях как об ошибках 
--warnaserror[+|-]:&lt;warn list&gt; Сообщать об определенных предупреждениях как об ошибках 
-                              (используйте "nullable" для всех предупреждений об отсутствии значений) 
--warn:&lt;n&gt;                     Установить уровень предупреждения (0 или выше) (краткая форма: -w) 
--nowarn:&lt;warn list&gt;           Отключить определенные предупреждающие сообщения 
-                              (используйте "nullable" для всех предупреждений об отсутствии значений) 
--ruleset:&lt;file&gt;               Укажите файл набора правил, который отключает определенную 
-                              диагностики. 
--errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;] 
-                              Укажите файл для регистрации всего компилятора и анализатора 
-                              диагностики. 
-                              sarif_version:{1|2|2.1} По умолчанию 1. 2 и 2.1 
-                              оба означают SARIF версии 2.1.0. 
--reportanalyzer               Сообщать дополнительную информацию об анализаторе, такую как 
+                       - ОШИБКИ И ПРЕДУПРЕЖДЕНИЯ -
+-warnaserror[+|-]             Сообщить обо всех предупреждениях как об ошибках
+-warnaserror[+|-]:&lt;warn list&gt; Сообщать об определенных предупреждениях как об ошибках
+                              (используйте "nullable" для всех предупреждений об отсутствии значений)
+-warn:&lt;n&gt;                     Установить уровень предупреждения (0 или выше) (краткая форма: -w)
+-nowarn:&lt;warn list&gt;           Отключить определенные предупреждающие сообщения
+                              (используйте "nullable" для всех предупреждений об отсутствии значений)
+-ruleset:&lt;file&gt;               Укажите файл набора правил, который отключает определенную
+                              диагностики.
+-errorlog:&lt;file&gt;[,version=&lt;sarif_version&gt;]
+                              Укажите файл для регистрации всего компилятора и анализатора
+                              диагностики.
+                              sarif_version:{1|2|2.1} По умолчанию 1. 2 и 2.1
+                              оба означают SARIF версии 2.1.0.
+-reportanalyzer               Сообщать дополнительную информацию об анализаторе, такую как
                               время выполнения.
--skipanalyzers[+|-]           Пропустить выполнение диагностических анализаторов. 
+-skipanalyzers[+|-]           Пропустить выполнение диагностических анализаторов.
 
-                       - ЯЗЫК - 
--checked[+|-]                 Генерировать проверки переполнения 
--unsafe[+|-]                  Разрешить «небезопасный» код 
--define:&lt;symbol list&gt;         Определить символ(ы) условной компиляции (краткая 
+                       - ЯЗЫК -
+-checked[+|-]                 Генерировать проверки переполнения
+-unsafe[+|-]                  Разрешить «небезопасный» код
+-define:&lt;symbol list&gt;         Определить символ(ы) условной компиляции (краткая
                               форма: -d)
--langversion:?                Показать допустимые значения для языковой версии 
--langversion:&lt;string&gt;         Укажите языковую версию, например 
-                              `latest` (последняя версия, включая дополнительные версии), 
-                              `default` (то же, что и `последняя`), 
-                              `latestmajor` (последняя версия, исключая дополнительные версии), 
-                              `preview` (последняя версия, включая функции в неподдерживаемой предварительной версии), 
-                              или специальные версии, такие как «6» или «7.1» 
--nullable[+|-]                Указать параметр контекста, допускающий значение null, enable|disable. 
+-langversion:?                Показать допустимые значения для языковой версии
+-langversion:&lt;string&gt;         Укажите языковую версию, например
+                              `latest` (последняя версия, включая дополнительные версии),
+                              `default` (то же, что и `последняя`),
+                              `latestmajor` (последняя версия, исключая дополнительные версии),
+                              `preview` (последняя версия, включая функции в неподдерживаемой предварительной версии),
+                              или специальные версии, такие как «6» или «7.1»
+-nullable[+|-]                Указать параметр контекста, допускающий значение null, enable|disable.
 -nullable:{enable|disable|warnings|annotations}
                               Укажите параметр контекста, допускающий значение NULL, enable|disable|warnings|annotations.
 
-                       - БЕЗОПАСНОСТЬ - 
--delaysign[+|-]               Отложить подписание сборки, используя только открытый 
-                              части ключа строгого имени 
--publicsign[+|-]              Общедоступная подпись сборки с использованием только общедоступной 
-                              части ключа строгого имени 
--keyfile:&lt;file&gt;               Укажите файл ключа со строгим именем 
--keycontainer:&lt;string&gt;        Укажите контейнер ключей строгого имени 
--highentropyva[+|-]           Включить высокоэнтропийный ASLR 
+                       - БЕЗОПАСНОСТЬ -
+-delaysign[+|-]               Отложить подписание сборки, используя только открытый
+                              части ключа строгого имени
+-publicsign[+|-]              Общедоступная подпись сборки с использованием только общедоступной
+                              части ключа строгого имени
+-keyfile:&lt;file&gt;               Укажите файл ключа со строгим именем
+-keycontainer:&lt;string&gt;        Укажите контейнер ключей строгого имени
+-highentropyva[+|-]           Включить высокоэнтропийный ASLR
 
-                       - РАЗНОЕ - 
-@&lt;file&gt;                       Прочтите файл ответов, чтобы узнать о дополнительных параметрах 
--help                         Показать это сообщение об использовании (краткая форма: -?) 
--nologo                       Подавить сообщение об авторских правах компилятора 
--nologo                       Не включать автоматически файл CSC.RSP 
--parallel[+|-]                Параллельная сборка. 
--version                      Показать номер версии компилятора и выйти. 
+                       - РАЗНОЕ -
+@&lt;file&gt;                       Прочтите файл ответов, чтобы узнать о дополнительных параметрах
+-help                         Показать это сообщение об использовании (краткая форма: -?)
+-nologo                       Подавить сообщение об авторских правах компилятора
+-nologo                       Не включать автоматически файл CSC.RSP
+-parallel[+|-]                Параллельная сборка.
+-version                      Показать номер версии компилятора и выйти.
 
-                       - РАСШИРЕННЫЙ - 
--baseaddress:&lt;address&gt;        Базовый адрес для создаваемой библиотеки 
+                       - РАСШИРЕННЫЙ -
+-baseaddress:&lt;address&gt;        Базовый адрес для создаваемой библиотеки
 -checksumalgorithm:&lt;alg&gt;      Указать алгоритм вычисления контрольной суммы исходного файла,
-                              хранящегося в PDB. Поддерживаемые значения: 
-                              SHA1 или SHA256 (по умолчанию). 
--codepage:&lt;n&gt;                 Укажите кодовую страницу для использования при открытии исходных 
-                              файлов 
--utf8output                   Выводить сообщения компилятора в кодировке UTF-8 
--main:&lt;type&gt;                  Укажите тип, который содержит точку входа 
-                              (игнорировать все другие возможные точки входа) (короткая 
-                              форма: -m) 
--fullpaths                    Компилятор создает полные пути 
--filealign:&lt;n&gt;                Укажите выравнивание, используемое для разделов 
-                              выходного файла 
--pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,... 
-                              Укажите сопоставление для имен исходных путей, выводимых с помощью 
+                              хранящегося в PDB. Поддерживаемые значения:
+                              SHA1 или SHA256 (по умолчанию).
+-codepage:&lt;n&gt;                 Укажите кодовую страницу для использования при открытии исходных
+                              файлов
+-utf8output                   Выводить сообщения компилятора в кодировке UTF-8
+-main:&lt;type&gt;                  Укажите тип, который содержит точку входа
+                              (игнорировать все другие возможные точки входа) (короткая
+                              форма: -m)
+-fullpaths                    Компилятор создает полные пути
+-filealign:&lt;n&gt;                Укажите выравнивание, используемое для разделов
+                              выходного файла
+-pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                              Укажите сопоставление для имен исходных путей, выводимых с помощью
 .
-                              компилятора. 
--pdb:&lt;file&gt;                   Указать имя файла отладочной информации (по умолчанию: 
-                              имя выходного файла с расширением .pdb) 
--errorendlocation             Строка вывода и столбец конечного местоположения 
+                              компилятора.
+-pdb:&lt;file&gt;                   Указать имя файла отладочной информации (по умолчанию:
+                              имя выходного файла с расширением .pdb)
+-errorendlocation             Строка вывода и столбец конечного местоположения
                               каждой ошибки
--preferreduilang              Укажите предпочтительное имя языка вывода. 
--nosdkpath                    Отключить поиск стандартных библиотечных сборок по пути SDK по умолчанию. 
--nostdlib[+|-]                Не ссылаться на стандартную библиотеку (mscorlib.dll) 
--subsystemversion:&lt;string&gt;    Укажите версию подсистемы этой сборки 
--lib:&lt;file list&gt;              Указать дополнительные каталоги для поиска 
-                              ссылок 
--errorreport:&lt;string&gt;         Укажите, как обрабатывать внутренние ошибки компилятора: 
+-preferreduilang              Укажите предпочтительное имя языка вывода.
+-nosdkpath                    Отключить поиск стандартных библиотечных сборок по пути SDK по умолчанию.
+-nostdlib[+|-]                Не ссылаться на стандартную библиотеку (mscorlib.dll)
+-subsystemversion:&lt;string&gt;    Укажите версию подсистемы этой сборки
+-lib:&lt;file list&gt;              Указать дополнительные каталоги для поиска
+                              ссылок
+-errorreport:&lt;string&gt;         Укажите, как обрабатывать внутренние ошибки компилятора:
                               запросить, отправить, поставить в очередь или никаких действий. Значение по умолчанию
-                              очередь. 
--appconfig:&lt;file&gt;             Указать файл конфигурации приложения 
-                              содержащий параметры привязки сборки 
--moduleassemblyname:&lt;string&gt; Название сборки, частью которой будет 
-                              этот модуль 
--modulename:&lt;string&gt;          Укажите имя исходного модуля 
--generatedfilesout:&lt;dir&gt;      Поместить файлы, сгенерированные во время компиляции, в 
-                              указанный каталог. 
--reportivts[+|-]                    Вывести информацию обо всех IVT, предоставленных этой 
-                              сборке по всем зависимостям и аннотировать ошибки доступности 
-                              сторонних сборок с указанием того, из какой сборки они произошли.. 
+                              очередь.
+-appconfig:&lt;file&gt;             Указать файл конфигурации приложения
+                              содержащий параметры привязки сборки
+-moduleassemblyname:&lt;string&gt; Название сборки, частью которой будет
+                              этот модуль
+-modulename:&lt;string&gt;          Укажите имя исходного модуля
+-generatedfilesout:&lt;dir&gt;      Поместить файлы, сгенерированные во время компиляции, в
+                              указанный каталог.
+-reportivts[+|-]                    Вывести информацию обо всех IVT, предоставленных этой
+                              сборке по всем зависимостям и аннотировать ошибки доступности
+                              сторонних сборок с указанием того, из какой сборки они произошли..
 </target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
@@ -12156,8 +12166,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
-        <source>Only auto-implemented properties can have initializers.</source>
-        <target state="translated">Инициализаторы могут иметь только автоматически реализованные свойства.</target>
+        <source>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</source>
+        <target state="needs-review-translation">Инициализаторы могут иметь только автоматически реализованные свойства.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyMustHaveGetAccessor">

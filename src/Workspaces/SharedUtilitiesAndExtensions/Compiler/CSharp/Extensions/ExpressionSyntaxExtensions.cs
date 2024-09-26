@@ -243,21 +243,15 @@ internal static partial class ExpressionSyntaxExtensions
         if (expression != null)
         {
             if (expression.IsInOutContext())
-            {
                 return true;
-            }
 
             if (expression.Parent != null)
             {
                 if (expression.IsLeftSideOfAssignExpression())
-                {
                     return true;
-                }
 
                 if (expression.IsAttributeNamedArgumentIdentifier())
-                {
                     return true;
-                }
             }
 
             if (IsExpressionOfArgumentInDeconstruction(expression))

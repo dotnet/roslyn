@@ -352,15 +352,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
             var solutionInfo = SolutionInfo.Create(
                 SolutionId.CreateNewId(), VersionStamp.Create(), "",
-                new[]
-                {
-                        ProjectInfo.Create(
-                            p1, VersionStamp.Create(), "p1", "p1", LanguageNames.CSharp, outputFilePath: file.Path,
-                            projectReferences: new [] { new ProjectReference(p2) }),
-                        ProjectInfo.Create(
-                            p2, VersionStamp.Create(), "p2", "p2", LanguageNames.CSharp,
-                            metadataReferences: new [] { MetadataReference.CreateFromFile(file.Path) })
-                });
+                [
+                    ProjectInfo.Create(
+                        p1, VersionStamp.Create(), "p1", "p1", LanguageNames.CSharp, outputFilePath: file.Path,
+                        projectReferences: [new ProjectReference(p2)]),
+                    ProjectInfo.Create(
+                        p2, VersionStamp.Create(), "p2", "p2", LanguageNames.CSharp,
+                        metadataReferences: [MetadataReference.CreateFromFile(file.Path)])
+                ]);
 
             using var remoteWorkspace = new RemoteWorkspace(FeaturesTestCompositions.RemoteHost.GetHostServices());
 

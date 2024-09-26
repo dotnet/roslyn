@@ -290,7 +290,7 @@ public class SolutionServiceTests
     {
         var code = @"class Test { void Method() { } }";
 
-        await VerifySolutionUpdate(code, s => s.WithDocumentFolders(s.Projects.First().Documents.First().Id, new[] { "test" }));
+        await VerifySolutionUpdate(code, s => s.WithDocumentFolders(s.Projects.First().Documents.First().Id, ["test"]));
     }
 
     [Fact]

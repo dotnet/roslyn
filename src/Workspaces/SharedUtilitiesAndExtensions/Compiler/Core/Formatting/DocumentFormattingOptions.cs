@@ -18,21 +18,3 @@ internal sealed record class DocumentFormattingOptions
     [DataMember] public string FileHeaderTemplate { get; init; } = "";
     [DataMember] public bool InsertFinalNewLine { get; init; } = false;
 }
-
-internal static class DocumentFormattingOptionsProviders
-{
-    public static DocumentFormattingOptions GetDocumentFormattingOptions(this IOptionsReader options)
-        => new()
-        {
-            FileHeaderTemplate = options.GetOption(CodeStyleOptions2.FileHeaderTemplate),
-            InsertFinalNewLine = options.GetOption(FormattingOptions2.InsertFinalNewLine)
-        };
-
-#if !CODE_STYLE
-    public static async ValueTask<DocumentFormattingOptions> GetDocumentFormattingOptionsAsync(this Document document, CancellationToken cancellationToken)
-    {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetDocumentFormattingOptions();
-    }
-#endif
-}

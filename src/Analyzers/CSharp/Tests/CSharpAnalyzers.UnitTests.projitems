@@ -108,6 +108,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)SimplifyInterpolation\SimplifyInterpolationTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UpdateProjectToAllowUnsafe\UpdateProjectToAllowUnsafeTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UpgradeProject\UpgradeProjectTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\UseAutoPropertyTests_Field.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseAutoProperty\UseAutoPropertyTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForIfNullStatementCheckTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionForNullableTernaryConditionalCheckTests.cs" />

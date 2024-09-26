@@ -184,8 +184,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             // Active Statements
 
             var statements = baseActiveStatementsMap.InstructionMap.Values.OrderBy(v => v.Id.Ordinal).ToArray();
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"0: {document1.FilePath}: (9,14)-(9,35) flags=[LeafFrame, MethodUpToDate] mvid=11111111-1111-1111-1111-111111111111 0x06000001 v1 IL_0001",
                 $"1: {document1.FilePath}: (4,32)-(4,37) flags=[MethodUpToDate, NonLeafFrame] mvid=11111111-1111-1111-1111-111111111111 0x06000002 v1 IL_0001",
                 $"2: {document2.FilePath}: (21,14)-(21,24) flags=[MethodUpToDate, NonLeafFrame] mvid=22222222-2222-2222-2222-222222222222 0x06000003 v1 IL_0001",   // [|Test1.M1()|] in F2
@@ -193,53 +193,53 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 $"4: {document2.FilePath}: (26,20)-(26,25) flags=[MethodUpToDate, NonLeafFrame] mvid=22222222-2222-2222-2222-222222222222 0x06000005 v1 IL_0003",   // [|M2();|] in Main
                 $"5: NonRoslynDocument.mcpp: (1,1)-(1,10) flags=[MethodUpToDate, NonLeafFrame] mvid={module3} 0x06000005 v1 IL_000A",
                 $"6: a.dummy: (2,1)-(2,10) flags=[MethodUpToDate, NonLeafFrame] mvid={module4} 0x06000005 v1 IL_000A"
-            }, statements.Select(InspectActiveStatementAndInstruction));
+            ], statements.Select(InspectActiveStatementAndInstruction));
 
             // Active Statements per document
 
             Assert.Equal(4, baseActiveStatementsMap.DocumentPathMap.Count);
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"1: {document1.FilePath}: (4,32)-(4,37) flags=[MethodUpToDate, NonLeafFrame]",
                 $"0: {document1.FilePath}: (9,14)-(9,35) flags=[LeafFrame, MethodUpToDate]"
-            }, baseActiveStatementsMap.DocumentPathMap[document1.FilePath].Select(InspectActiveStatement));
+            ], baseActiveStatementsMap.DocumentPathMap[document1.FilePath].Select(InspectActiveStatement));
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"3: {document2.FilePath}: (8,20)-(8,25) flags=[MethodUpToDate, NonLeafFrame]",            // [|F2();|] in M2
                 $"2: {document2.FilePath}: (21,14)-(21,24) flags=[MethodUpToDate, NonLeafFrame]",          // [|Test1.M1()|] in F2
                 $"4: {document2.FilePath}: (26,20)-(26,25) flags=[MethodUpToDate, NonLeafFrame]"           // [|M2();|] in Main
-            }, baseActiveStatementsMap.DocumentPathMap[document2.FilePath].Select(InspectActiveStatement));
+            ], baseActiveStatementsMap.DocumentPathMap[document2.FilePath].Select(InspectActiveStatement));
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"5: NonRoslynDocument.mcpp: (1,1)-(1,10) flags=[MethodUpToDate, NonLeafFrame]",
-            }, baseActiveStatementsMap.DocumentPathMap["NonRoslynDocument.mcpp"].Select(InspectActiveStatement));
+            ], baseActiveStatementsMap.DocumentPathMap["NonRoslynDocument.mcpp"].Select(InspectActiveStatement));
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"6: a.dummy: (2,1)-(2,10) flags=[MethodUpToDate, NonLeafFrame]",
-            }, baseActiveStatementsMap.DocumentPathMap["a.dummy"].Select(InspectActiveStatement));
+            ], baseActiveStatementsMap.DocumentPathMap["a.dummy"].Select(InspectActiveStatement));
 
             // Exception Regions
 
             var analyzer = solution.GetProject(projectId).Services.GetRequiredService<IEditAndContinueAnalyzer>();
             var oldActiveStatements1 = await baseActiveStatementsMap.GetOldActiveStatementsAsync(analyzer, document1, CancellationToken.None).ConfigureAwait(false);
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"[{document1.FilePath}: (4,8)-(4,46)]",
                 "[]",
-            }, oldActiveStatements1.Select(s => "[" + string.Join(", ", s.ExceptionRegions.Spans) + "]"));
+            ], oldActiveStatements1.Select(s => "[" + string.Join(", ", s.ExceptionRegions.Spans) + "]"));
 
             var oldActiveStatements2 = await baseActiveStatementsMap.GetOldActiveStatementsAsync(analyzer, document2, CancellationToken.None).ConfigureAwait(false);
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"[{document2.FilePath}: (14,8)-(16,9), {document2.FilePath}: (10,10)-(12,11)]",
                 "[]",
                 $"[{document2.FilePath}: (26,35)-(26,46)]",
-            }, oldActiveStatements2.Select(s => "[" + string.Join(", ", s.ExceptionRegions.Spans) + "]"));
+            ], oldActiveStatements2.Select(s => "[" + string.Join(", ", s.ExceptionRegions.Spans) + "]"));
 
             // GetActiveStatementAndExceptionRegionSpans
 
@@ -269,25 +269,25 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 out var nonRemappableRegions,
                 out var exceptionRegionUpdates);
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"0x06000004 v1 | AS {document2.FilePath}: (8,20)-(8,25) => (9,20)-(9,25)",
                 $"0x06000004 v1 | ER {document2.FilePath}: (14,8)-(16,9) => (15,8)-(17,9)",
                 $"0x06000004 v1 | ER {document2.FilePath}: (10,10)-(12,11) => (11,10)-(13,11)",
                 $"0x06000003 v1 | AS {document2.FilePath}: (21,14)-(21,24) => (21,14)-(21,24)",
                 $"0x06000005 v1 | AS {document2.FilePath}: (26,20)-(26,25) => (26,20)-(26,25)"
-            }, nonRemappableRegions.Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
+            ], nonRemappableRegions.Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"0x06000004 v1 | (15,8)-(17,9) Delta=-1",
                 $"0x06000004 v1 | (11,10)-(13,11) Delta=-1"
-            }, exceptionRegionUpdates.Select(InspectExceptionRegionUpdate));
+            ], exceptionRegionUpdates.Select(InspectExceptionRegionUpdate));
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"0x06000004 v1 IL_0002: (9,20)-(9,25)"
-            }, activeStatementsInUpdatedMethods.Select(InspectActiveStatementUpdate));
+            ], activeStatementsInUpdatedMethods.Select(InspectActiveStatementUpdate));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/24439")]
@@ -343,11 +343,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var baseActiveStatements = baseActiveStatementMap.InstructionMap.Values.OrderBy(v => v.Id.Ordinal).ToArray();
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"0: {document.FilePath}: (6,18)-(6,23) flags=[MethodUpToDate, NonLeafFrame] mvid=11111111-1111-1111-1111-111111111111 0x06000001 v1 IL_0000 '<AS:0>F2();</AS:0>'",
                 $"1: {document.FilePath}: (18,14)-(18,36) flags=[LeafFrame, MethodUpToDate] mvid=11111111-1111-1111-1111-111111111111 0x06000002 v1 IL_0000 '<AS:1>throw new Exception();</AS:1>'"
-            }, baseActiveStatements.Select(s => InspectActiveStatementAndInstruction(s, baseText)));
+            ], baseActiveStatements.Select(s => InspectActiveStatementAndInstruction(s, baseText)));
 
             // Exception Regions
 
@@ -355,11 +355,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var oldActiveStatements = await baseActiveStatementMap.GetOldActiveStatementsAsync(analyzer, document, CancellationToken.None).ConfigureAwait(false);
 
             // Note that the spans correspond to the base snapshot (V2). 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"[{document.FilePath}: (8,8)-(12,9) 'catch (Exception) {{']",
                 "[]",
-            }, oldActiveStatements.Select(s => "[" + string.Join(", ", s.ExceptionRegions.Spans.Select(span => $"{span} '{GetFirstLineText(span.Span, baseText)}'")) + "]"));
+            ], oldActiveStatements.Select(s => "[" + string.Join(", ", s.ExceptionRegions.Spans.Select(span => $"{span} '{GetFirstLineText(span.Span, baseText)}'")) + "]"));
 
             // GetActiveStatementAndExceptionRegionSpans
 
@@ -384,22 +384,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 out var nonRemappableRegions,
                 out var exceptionRegionUpdates);
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"0x06000001 v1 | AS {document.FilePath}: (6,18)-(6,23) => (6,18)-(6,23)",
                 $"0x06000001 v1 | ER {document.FilePath}: (8,8)-(12,9) => (8,8)-(12,9)",
                 $"0x06000002 v1 | AS {document.FilePath}: (18,14)-(18,36) => (18,14)-(18,36)",
-            }, nonRemappableRegions.OrderBy(r => r.Region.OldSpan.Span.Start.Line).Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
+            ], nonRemappableRegions.OrderBy(r => r.Region.OldSpan.Span.Start.Line).Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 "0x06000001 v1 | (8,8)-(12,9) Delta=0",
-            }, exceptionRegionUpdates.Select(InspectExceptionRegionUpdate));
+            ], exceptionRegionUpdates.Select(InspectExceptionRegionUpdate));
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 "0x06000001 v1 IL_0000: (6,18)-(6,23) '<AS:0>F2();</AS:0>'"
-            }, activeStatementsInUpdatedMethods.Select(update => $"{InspectActiveStatementUpdate(update)} '{GetFirstLineText(update.NewSpan.ToLinePositionSpan(), updatedText)}'"));
+            ], activeStatementsInUpdatedMethods.Select(update => $"{InspectActiveStatementUpdate(update)} '{GetFirstLineText(update.NewSpan.ToLinePositionSpan(), updatedText)}'"));
         }
 
         [Fact]
@@ -526,13 +526,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var baseActiveStatements = baseActiveStatementMap.InstructionMap.Values.OrderBy(v => v.Id.Ordinal).ToArray();
 
             // Note that the spans of AS:2 and AS:3 correspond to the base snapshot (V2).
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"0: {document.FilePath}: (6,18)-(6,22) flags=[MethodUpToDate, NonLeafFrame] mvid=11111111-1111-1111-1111-111111111111 0x06000001 v2 IL_0000 '<AS:0>M();</AS:0>'",
                 $"1: {document.FilePath}: (20,18)-(20,22) flags=[MethodUpToDate, NonLeafFrame] mvid=11111111-1111-1111-1111-111111111111 0x06000002 v2 IL_0000 '<AS:1>M();</AS:1>'",
                 $"2: {document.FilePath}: (29,22)-(29,26) flags=[NonLeafFrame] mvid=11111111-1111-1111-1111-111111111111 0x06000003 v1 IL_0000 '{{   <AS:2>M();</AS:2>'",
                 $"3: {document.FilePath}: (53,22)-(53,26) flags=[NonLeafFrame] mvid=11111111-1111-1111-1111-111111111111 0x06000004 v1 IL_0000 '<AS:3>M();</AS:3>'"
-            }, baseActiveStatements.Select(s => InspectActiveStatementAndInstruction(s, sourceTextV2)));
+            ], baseActiveStatements.Select(s => InspectActiveStatementAndInstruction(s, sourceTextV2)));
 
             // Exception Regions
 
@@ -540,13 +540,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var oldActiveStatements = await baseActiveStatementMap.GetOldActiveStatementsAsync(analyzer, document, CancellationToken.None).ConfigureAwait(false);
 
             // Note that the spans correspond to the base snapshot (V2). 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"[{document.FilePath}: (8,16)-(10,9) '<ER:0.0>catch']",
                 $"[{document.FilePath}: (18,16)-(21,9) '<ER:1.0>catch']",
                 $"[{document.FilePath}: (38,16)-(40,9) '<ER:2.1>catch', {document.FilePath}: (34,20)-(36,13) '<ER:2.0>finally']",
                 $"[{document.FilePath}: (56,16)-(58,9) '<ER:3.1>catch', {document.FilePath}: (51,20)-(54,13) '<ER:3.0>catch']",
-            }, oldActiveStatements.Select(s => "[" + string.Join(", ", s.ExceptionRegions.Spans.Select(span => $"{span} '{GetFirstLineText(span.Span, sourceTextV2)}'")) + "]"));
+            ], oldActiveStatements.Select(s => "[" + string.Join(", ", s.ExceptionRegions.Spans.Select(span => $"{span} '{GetFirstLineText(span.Span, sourceTextV2)}'")) + "]"));
 
             // GetActiveStatementAndExceptionRegionSpans
 
@@ -578,8 +578,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 out var exceptionRegionUpdates);
 
             // Note: Since no method have been remapped yet all the following spans are in their pre-remap locations: 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"0x06000001 v2 | AS {document.FilePath}: (6,18)-(6,22) => (6,18)-(6,22)",
                 $"0x06000002 v2 | ER {document.FilePath}: (18,16)-(21,9) => (17,16)-(20,9)",
                 $"0x06000002 v2 | AS {document.FilePath}: (20,18)-(20,22) => (19,18)-(19,22)",
@@ -589,22 +589,22 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 $"0x06000004 v1 | ER {document.FilePath}: (50,20)-(53,13) => (53,20)-(56,13)",  // ER:3.0 moved +1 in first edit, +2 in second              
                 $"0x06000004 v1 | AS {document.FilePath}: (52,22)-(52,26) => (55,22)-(55,26)",  // AS:3 moved +1 in first edit, +2 in second
                 $"0x06000004 v1 | ER {document.FilePath}: (55,16)-(57,9) => (58,16)-(60,9)",    // ER:3.1 moved +1 in first edit, +2 in second     
-            }, nonRemappableRegions.OrderBy(r => r.Region.OldSpan.Span.Start.Line).Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
+            ], nonRemappableRegions.OrderBy(r => r.Region.OldSpan.Span.Start.Line).Select(r => $"{r.Method.GetDebuggerDisplay()} | {r.Region.GetDebuggerDisplay()}"));
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"0x06000002 v2 | (17,16)-(20,9) Delta=1",
                 $"0x06000003 v1 | (34,20)-(36,13) Delta=-2",
                 $"0x06000003 v1 | (38,16)-(40,9) Delta=-2",
                 $"0x06000004 v1 | (53,20)-(56,13) Delta=-3",
                 $"0x06000004 v1 | (58,16)-(60,9) Delta=-3",
-            }, exceptionRegionUpdates.OrderBy(r => r.NewSpan.StartLine).Select(InspectExceptionRegionUpdate));
+            ], exceptionRegionUpdates.OrderBy(r => r.NewSpan.StartLine).Select(InspectExceptionRegionUpdate));
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"0x06000002 v2 IL_0000: (19,18)-(19,22) '<AS:1>M();</AS:1>'",
                 $"0x06000004 v1 IL_0000: (55,22)-(55,26) '<AS:3>M();</AS:3>'"
-            }, activeStatementsInUpdatedMethods.Select(update => $"{InspectActiveStatementUpdate(update)} '{GetFirstLineText(update.NewSpan.ToLinePositionSpan(), sourceTextV3)}'"));
+            ], activeStatementsInUpdatedMethods.Select(update => $"{InspectActiveStatementUpdate(update)} '{GetFirstLineText(update.NewSpan.ToLinePositionSpan(), sourceTextV3)}'"));
         }
 
         [Fact]
@@ -660,11 +660,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             Assert.Equal(1, baseActiveStatementMap.DocumentPathMap.Count);
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"1: {document.FilePath}: (6,18)-(6,22) flags=[LeafFrame, MethodUpToDate, NonLeafFrame]",
                 $"0: {document.FilePath}: (15,14)-(15,18) flags=[PartiallyExecuted, NonUserCode, MethodUpToDate, NonLeafFrame]",
-            }, baseActiveStatementMap.DocumentPathMap[document.FilePath].Select(InspectActiveStatement));
+            ], baseActiveStatementMap.DocumentPathMap[document.FilePath].Select(InspectActiveStatement));
 
             Assert.Equal(2, baseActiveStatementMap.InstructionMap.Count);
 
@@ -685,11 +685,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var analyzer = solution.GetProject(project.Id).Services.GetRequiredService<IEditAndContinueAnalyzer>();
             var oldActiveStatements = await baseActiveStatementMap.GetOldActiveStatementsAsync(analyzer, document, CancellationToken.None).ConfigureAwait(false);
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"[{document.FilePath}: (8,8)-(10,9)]",
                 "[]"
-            }, oldActiveStatements.Select(s => "[" + string.Join(",", s.ExceptionRegions.Spans) + "]"));
+            ], oldActiveStatements.Select(s => "[" + string.Join(",", s.ExceptionRegions.Spans) + "]"));
         }
     }
 }

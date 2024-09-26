@@ -2411,13 +2411,13 @@ Use la lista desplegable para ver y cambiar a otros proyectos a los que puede pe
       </trans-unit>
       <trans-unit id="example">
         <source>example</source>
-        <target state="translated">ejemplo de</target>
-        <note>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
+        <target state="needs-review-translation">ejemplo</target>
+        <note>{Locked} IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
       </trans-unit>
       <trans-unit id="identifier">
         <source>identifier</source>
-        <target state="translated">identificador</target>
-        <note>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
+        <target state="needs-review-translation">identificador</target>
+        <note>{Locked} IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
       </trans-unit>
       <trans-unit id="Install_0">
         <source>Install '{0}'</source>

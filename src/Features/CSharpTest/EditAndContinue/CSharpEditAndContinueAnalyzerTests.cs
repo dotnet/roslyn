@@ -316,15 +316,15 @@ class C
         var oldStatementSyntax = oldSyntaxRoot.FindNode(oldStatementTextSpan);
 
         var baseActiveStatements = new ActiveStatementsMap(
-            ImmutableDictionary.CreateRange(new[]
-            {
+            ImmutableDictionary.CreateRange(
+            [
                 KeyValuePairUtil.Create(newDocument.FilePath, ImmutableArray.Create(
                     new ActiveStatement(
                         new ActiveStatementId(0),
                         ActiveStatementFlags.LeafFrame,
                         new SourceFileSpan(newDocument.FilePath, oldStatementSpan),
                         instructionId: default)))
-            }),
+            ]),
             ActiveStatementsMap.Empty.InstructionMap);
 
         var result = await AnalyzeDocumentAsync(oldProject, newDocument, baseActiveStatements);
@@ -765,7 +765,7 @@ class D
             // here so that any trailing punctuation is removed from the translated template string.
             : $"ENC0080: {string.Format(FeaturesResources.Modifying_source_file_0_requires_restarting_the_application_due_to_internal_error_1, filePath, "System.NullReferenceException: NullRef!\n")}".Split('\n').First();
 
-        AssertEx.Equal(new[] { expectedDiagnostic }, result.RudeEdits.Select(d => d.ToDiagnostic(newSyntaxTree))
+        AssertEx.Equal([expectedDiagnostic], result.RudeEdits.Select(d => d.ToDiagnostic(newSyntaxTree))
             .Select(d => $"{d.Id}: {d.GetMessage().Split(new[] { Environment.NewLine }, StringSplitOptions.None).First()}"));
     }
 
