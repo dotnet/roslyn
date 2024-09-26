@@ -59,6 +59,8 @@
     <Compile Include="..\Portable\InternalUtilities\ReflectionUtilities.cs" />
     <Compile Include="..\Portable\InternalUtilities\RoslynString.cs" />
     <Compile Include="..\Portable\InternalUtilities\UnicodeCharacterUtilities.cs" />
+    <Compile Include="..\Portable\InternalUtilities\InterpolatedStringHandlerAttribute.cs" />
+    <Compile Include="..\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="ErrorString.resx" GenerateSource="true" />

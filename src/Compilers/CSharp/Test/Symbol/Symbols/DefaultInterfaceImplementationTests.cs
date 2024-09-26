@@ -3373,26 +3373,34 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            if (isStatic && useCSharp13)
+            switch (isStatic, useCSharp13)
             {
-                compilation1.VerifyDiagnostics(
-                    // (4,24): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static virtual int P1 
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 24));
-            }
-            else if (isStatic)
-            {
-                compilation1.VerifyDiagnostics();
-            }
-            else
-            {
-                // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
-                // we don't want to allow only one accessor to have an implementation.
-                compilation1.VerifyDiagnostics(
-                    // (11,9): error CS0501: 'I1.P1.set' must declare a body because it is not marked abstract, extern, or partial
-                    //         set;
-                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P1.set").WithLocation(11, 9)
-                    );
+                case (true, true):
+                    compilation1.VerifyDiagnostics(
+                        // (4,24): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     static virtual int P1 
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 24));
+                    break;
+                case (true, false):
+                    compilation1.VerifyDiagnostics();
+                    break;
+                case (false, true):
+                    compilation1.VerifyDiagnostics(
+                        // (4,9): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     int P1 
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 9),
+                        // (4,9): error CS0525: Interfaces cannot contain instance fields
+                        //     int P1 
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9));
+                    break;
+                case (false, false):
+                    // See also earlier LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
+                    // we don't want to allow only one accessor to have an implementation.
+                    compilation1.VerifyDiagnostics(
+                        // (4,9): error CS0525: Interfaces cannot contain instance fields
+                        //     int P1 
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9));
+                    break;
             }
 
             var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
@@ -3402,7 +3410,7 @@ class Test1 : I1
             Assert.False(p1.IsWriteOnly);
 
             var field1 = ((SourcePropertySymbolBase)p1).BackingField;
-            Assert.Equal(isStatic ? "System.Int32 I1.<P1>k__BackingField" : null, field1?.ToTestDisplayString());
+            Assert.Equal("System.Int32 I1.<P1>k__BackingField", field1?.ToTestDisplayString());
 
             Assert.False(p1.IsAbstract);
             Assert.True(p1.IsVirtual);
@@ -3511,26 +3519,34 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            if (isStatic && useCSharp13)
+            switch (isStatic, useCSharp13)
             {
-                compilation1.VerifyDiagnostics(
-                    // (4,24): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     static virtual int P1 
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 24));
-            }
-            else if (isStatic)
-            {
-                compilation1.VerifyDiagnostics();
-            }
-            else
-            {
-                // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
-                // we don't want to allow only one accessor to have an implementation.
-                compilation1.VerifyDiagnostics(
-                    // (6,9): error CS0501: 'I1.P1.get' must declare a body because it is not marked abstract, extern, or partial
-                    //         get;
-                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P1.get").WithLocation(6, 9)
-                    );
+                case (true, true):
+                    compilation1.VerifyDiagnostics(
+                        // (4,24): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     static virtual int P1 
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 24));
+                    break;
+                case (true, false):
+                    compilation1.VerifyDiagnostics();
+                    break;
+                case (false, true):
+                    compilation1.VerifyDiagnostics(
+                        // (4,9): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                        //     int P1 
+                        Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 9),
+                        // (4,9): error CS0525: Interfaces cannot contain instance fields
+                        //     int P1 
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9));
+                    break;
+                case (false, false):
+                    // See also earlier LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
+                    // we don't want to allow only one accessor to have an implementation.
+                    compilation1.VerifyDiagnostics(
+                        // (4,9): error CS0525: Interfaces cannot contain instance fields
+                        //     int P1 
+                        Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P1").WithLocation(4, 9));
+                    break;
             }
 
             var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
@@ -3540,7 +3556,7 @@ class Test1 : I1
             Assert.False(p1.IsWriteOnly);
 
             var field1 = ((SourcePropertySymbolBase)p1).BackingField;
-            Assert.Equal(isStatic ? "System.Int32 I1.<P1>k__BackingField" : null, field1?.ToTestDisplayString());
+            Assert.Equal("System.Int32 I1.<P1>k__BackingField", field1?.ToTestDisplayString());
 
             Assert.False(p1.IsAbstract);
             Assert.True(p1.IsVirtual);

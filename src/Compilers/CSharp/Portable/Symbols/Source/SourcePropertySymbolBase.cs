@@ -853,6 +853,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (!IsStatic &&
+                ContainingType.IsInterface &&
+                IsSetOnEitherPart(Flags.RequiresBackingField) &&
+                // Should probably ignore initializer (and report ERR_InterfacesCantContainFields) if the
+                // property uses 'field' or has an auto-implemented accessor.
+                !IsSetOnEitherPart(Flags.HasInitializer))
+            {
+                diagnostics.Add(ErrorCode.ERR_InterfacesCantContainFields, Location);
+            }
+
             if (!IsExpressionBodied)
             {
                 bool hasGetAccessor = GetMethod is object;
@@ -1709,6 +1719,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 }
 
                                 DeclaringCompilation.SymbolDeclaredEvent(this);
+                                if (this.IsPartialDefinition())
+                                {
+                                    if (_getMethod is not null)
+                                        DeclaringCompilation.SymbolDeclaredEvent(_getMethod);
+
+                                    if (_setMethod is not null)
+                                        DeclaringCompilation.SymbolDeclaredEvent(_setMethod);
+                                }
+
                                 var completedOnThisThread = _state.NotePartComplete(CompletionPart.FinishPropertyParameters);
                                 Debug.Assert(completedOnThisThread);
                             }

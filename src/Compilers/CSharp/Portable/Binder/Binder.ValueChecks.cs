@@ -925,6 +925,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.ConditionalOperator:
+                    if (RequiresRefAssignableVariable(valueKind))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                        return false;
+                    }
+
                     var conditional = (BoundConditionalOperator)expr;
 
                     // byref conditional defers to its operands
@@ -945,6 +951,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case BoundKind.AssignmentOperator:
+                    // Cannot ref-assign to a ref assignment.
+                    if (RequiresRefAssignableVariable(valueKind))
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RefLocalOrParamExpected, node);
+                        return false;
+                    }
+
                     var assignment = (BoundAssignmentOperator)expr;
                     return CheckSimpleAssignmentValueKind(node, assignment, valueKind, diagnostics);
 
@@ -953,7 +966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 default:
-                    Debug.Assert(expr is not BoundValuePlaceholderBase, $"Placeholder kind {expr.Kind} should be explicitly handled");
+                    RoslynDebug.Assert(expr is not BoundValuePlaceholderBase, $"Placeholder kind {expr.Kind} should be explicitly handled");
                     break;
             }
 
@@ -4506,7 +4519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // in error situations some unexpected nodes could make here
                     // returning "scopeOfTheContainingExpression" seems safer than throwing.
                     // we will still assert to make sure that all nodes are accounted for. 
-                    Debug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
+                    RoslynDebug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
                     return scopeOfTheContainingExpression;
             }
         }
@@ -5301,7 +5314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // in error situations some unexpected nodes could make here
                     // returning "false" seems safer than throwing.
                     // we will still assert to make sure that all nodes are accounted for.
-                    Debug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
+                    RoslynDebug.Assert(false, $"{expr.Kind} expression of {expr.Type} type");
                     diagnostics.Add(ErrorCode.ERR_InternalError, node.Location);
                     return false;
 

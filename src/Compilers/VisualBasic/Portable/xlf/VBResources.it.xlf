@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
         <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
-        <target state="new">The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</target>
+        <target state="translated">La stringa di versione specificata contiene caratteri jolly e questo non è compatibile con il determinismo. Rimuovere i caratteri jolly dalla stringa di versione o disabilitare il determinismo per questa compilazione</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LockTypeUnsupported">
@@ -7699,7 +7699,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
         <source>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</source>
-        <target state="needs-review-translation">La stringa di versione specificata non è conforme al formato consigliato: principale.secondaria.build.revisione</target>
+        <target state="translated">La stringa di versione specificata non è conforme al formato consigliato: principale.secondaria.build.revisione (senza caratteri jolly)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyCultureForExe">

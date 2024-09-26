@@ -120,8 +120,10 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
     /// Represents an anonymous function operation in context of a <see cref="ControlFlowGraph" />.
     /// <para>
     /// Current usage:
-    ///  (1) C# lambda expression.
-    ///  (2) VB anonymous delegate expression.
+    /// <list type="number">
+    ///   <item><description>C# lambda expression</description></item>
+    ///   <item><description>VB anonymous delegate expression</description></item>
+    /// </list>
     /// </para>
     /// A <see cref="ControlFlowGraph" /> for the body of the anonymous function is available from
     /// the enclosing <see cref="ControlFlowGraph" />.

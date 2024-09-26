@@ -6822,5 +6822,206 @@ select t";
                 EOF();
             }
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75074")]
+        public void LinqQueryInConditionalExpression1()
+        {
+            var text = "x is X ? from item in collection select item : null";
+
+            UsingExpression(text);
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "X");
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.QueryExpression);
+                {
+                    N(SyntaxKind.FromClause);
+                    {
+                        N(SyntaxKind.FromKeyword);
+                        N(SyntaxKind.IdentifierToken, "item");
+                        N(SyntaxKind.InKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "collection");
+                        }
+                    }
+                    N(SyntaxKind.QueryBody);
+                    {
+                        N(SyntaxKind.SelectClause);
+                        {
+                            N(SyntaxKind.SelectKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "item");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NullLiteralExpression);
+                {
+                    N(SyntaxKind.NullKeyword);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75074")]
+        public void LinqQueryInConditionalExpression2()
+        {
+            var text = "x is X.Y ? from item in collection select item : null";
+
+            UsingExpression(text);
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.QueryExpression);
+                {
+                    N(SyntaxKind.FromClause);
+                    {
+                        N(SyntaxKind.FromKeyword);
+                        N(SyntaxKind.IdentifierToken, "item");
+                        N(SyntaxKind.InKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "collection");
+                        }
+                    }
+                    N(SyntaxKind.QueryBody);
+                    {
+                        N(SyntaxKind.SelectClause);
+                        {
+                            N(SyntaxKind.SelectKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "item");
+                            }
+                        }
+                    }
+                }
+                N(SyntaxKind.ColonToken);
+                N(SyntaxKind.NullLiteralExpression);
+                {
+                    N(SyntaxKind.NullKeyword);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75074")]
+        public void LinqQueryInConditionalExpression_Incomplete()
+        {
+            var text = "x is X.Y ? from item";
+
+            UsingExpression(text,
+                // (1,21): error CS1001: Identifier expected
+                // x is X.Y ? from item
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(1, 21),
+                // (1,21): error CS1003: Syntax error, 'in' expected
+                // x is X.Y ? from item
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("in").WithLocation(1, 21),
+                // (1,21): error CS1733: Expected expression
+                // x is X.Y ? from item
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 21),
+                // (1,21): error CS0742: A query body must end with a select clause or a group clause
+                // x is X.Y ? from item
+                Diagnostic(ErrorCode.ERR_ExpectedSelectOrGroup, "").WithLocation(1, 21),
+                // (1,21): error CS1003: Syntax error, ':' expected
+                // x is X.Y ? from item
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(":").WithLocation(1, 21),
+                // (1,21): error CS1733: Expected expression
+                // x is X.Y ? from item
+                Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(1, 21));
+
+            N(SyntaxKind.ConditionalExpression);
+            {
+                N(SyntaxKind.IsExpression);
+                {
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "x");
+                    }
+                    N(SyntaxKind.IsKeyword);
+                    N(SyntaxKind.QualifiedName);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "X");
+                        }
+                        N(SyntaxKind.DotToken);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "Y");
+                        }
+                    }
+                }
+                N(SyntaxKind.QuestionToken);
+                N(SyntaxKind.QueryExpression);
+                {
+                    N(SyntaxKind.FromClause);
+                    {
+                        N(SyntaxKind.FromKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "item");
+                        }
+                        M(SyntaxKind.IdentifierToken);
+                        M(SyntaxKind.InKeyword);
+                        M(SyntaxKind.IdentifierName);
+                        {
+                            M(SyntaxKind.IdentifierToken);
+                        }
+                    }
+                    M(SyntaxKind.QueryBody);
+                    {
+                        M(SyntaxKind.SelectClause);
+                        {
+                            M(SyntaxKind.SelectKeyword);
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                    }
+                }
+                M(SyntaxKind.ColonToken);
+                M(SyntaxKind.IdentifierName);
+                {
+                    M(SyntaxKind.IdentifierToken);
+                }
+            }
+            EOF();
+        }
     }
 }

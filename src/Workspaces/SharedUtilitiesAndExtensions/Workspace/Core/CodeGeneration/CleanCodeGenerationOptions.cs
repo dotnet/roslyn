@@ -6,11 +6,7 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
-
-#if !CODE_STYLE
 using Microsoft.CodeAnalysis.Host;
-#endif
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
@@ -23,26 +19,23 @@ internal readonly record struct CleanCodeGenerationOptions
     [DataMember]
     public required CodeCleanupOptions CleanupOptions { get; init; }
 
-#if !CODE_STYLE
-    public static CleanCodeGenerationOptions GetDefault(LanguageServices languageServices)
-        => new()
-        {
-            GenerationOptions = CodeGenerationOptions.GetDefault(languageServices),
-            CleanupOptions = CodeCleanupOptions.GetDefault(languageServices)
-        };
-
     public CodeAndImportGenerationOptions CodeAndImportGenerationOptions
         => new()
         {
             GenerationOptions = GenerationOptions,
             AddImportOptions = CleanupOptions.AddImportOptions
         };
-#endif
 }
 
-#if !CODE_STYLE
 internal static class CleanCodeGenerationOptionsProviders
 {
+    public static CleanCodeGenerationOptions GetDefault(LanguageServices languageServices)
+        => new()
+        {
+            GenerationOptions = CodeGenerationOptionsProviders.GetDefault(languageServices),
+            CleanupOptions = CodeCleanupOptionsProviders.GetDefault(languageServices)
+        };
+
     public static async ValueTask<CleanCodeGenerationOptions> GetCleanCodeGenerationOptionsAsync(this Document document, CancellationToken cancellationToken)
         => new()
         {
@@ -50,4 +43,3 @@ internal static class CleanCodeGenerationOptionsProviders
             CleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false)
         };
 }
-#endif

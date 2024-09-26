@@ -1839,7 +1839,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
             Debug.Assert(node is object);
-            Debug.Assert(AreCloseEnough(originalSymbol, updatedSymbol), $"Attempting to set {node.Syntax} from {originalSymbol.ToDisplayString()} to {updatedSymbol.ToDisplayString()}");
+            RoslynDebug.Assert(AreCloseEnough(originalSymbol, updatedSymbol), $"Attempting to set {node.Syntax} from {originalSymbol.ToDisplayString()} to {updatedSymbol.ToDisplayString()}");
 #endif
 
             if (lambdaIsExactMatch || Symbol.Equals(originalSymbol, updatedSymbol, TypeCompareKind.ConsiderEverything))
@@ -2789,10 +2789,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
             }
-
-            // The partial definition part may include optional parameters whose default values we want to simulate assigning at the beginning of the method
-            // https://github.com/dotnet/roslyn/issues/73772: is this actually used/meaningful?
-            methodSymbol = methodSymbol.PartialDefinitionPart ?? methodSymbol;
 
             var methodParameters = methodSymbol.Parameters;
             var signatureParameters = (_useDelegateInvokeParameterTypes ? _delegateInvokeMethod! : methodSymbol).Parameters;
@@ -5799,6 +5795,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isRef)
             {
+                Debug.Assert(node is not BoundConditionalOperator { WasTargetTyped: true }, """
+                    Unexpected ref target typed conditional operator.
+                    Should not do type inference below in this case.
+                    """);
+
                 TypeWithAnnotations consequenceLValue;
                 TypeWithAnnotations alternativeLValue;
 
@@ -5807,19 +5808,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (alternativeLValue, alternativeRValue) = visitConditionalRefOperand(alternativeState, originalAlternative);
                 Join(ref this.State, ref consequenceState);
 
+                var lValueAnnotation = consequenceLValue.NullableAnnotation.EnsureCompatible(alternativeLValue.NullableAnnotation);
+                var rValueState = consequenceRValue.State.Join(alternativeRValue.State);
+
                 TypeSymbol? refResultType = node.Type?.SetUnknownNullabilityForReferenceTypes();
                 if (IsNullabilityMismatch(consequenceLValue, alternativeLValue))
                 {
-                    // l-value types must match
-                    ReportNullabilityMismatchInAssignment(node.Syntax, consequenceLValue, alternativeLValue);
+                    // If there is a mismatch between the operands, use type inference to determine the target type.
+                    BoundExpression consequencePlaceholder = CreatePlaceholderIfNecessary(originalConsequence, consequenceLValue);
+                    BoundExpression alternativePlaceholder = CreatePlaceholderIfNecessary(originalAlternative, alternativeLValue);
+                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                    refResultType = BestTypeInferrer.InferBestTypeForConditionalOperator(consequencePlaceholder, alternativePlaceholder, _conversions, out _, ref discardedUseSiteInfo);
+
+                    // Report warning for each operand that is not convertible to the target type.
+                    var refResultTypeWithAnnotations = TypeWithAnnotations.Create(refResultType, lValueAnnotation);
+                    reportMismatchIfNecessary(originalConsequence, consequenceLValue, refResultTypeWithAnnotations);
+                    reportMismatchIfNecessary(originalAlternative, alternativeLValue, refResultTypeWithAnnotations);
                 }
                 else if (!node.HasErrors)
                 {
                     refResultType = consequenceRValue.Type!.MergeEquivalentTypes(alternativeRValue.Type, VarianceKind.None);
                 }
-
-                var lValueAnnotation = consequenceLValue.NullableAnnotation.EnsureCompatible(alternativeLValue.NullableAnnotation);
-                var rValueState = consequenceRValue.State.Join(alternativeRValue.State);
 
                 SetResult(node, TypeWithState.Create(refResultType, rValueState), TypeWithAnnotations.Create(refResultType, lValueAnnotation));
                 return null;
@@ -5991,6 +6000,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(isRef);
                 TypeWithAnnotations lValueType = VisitLvalueWithAnnotations(operand);
                 return (lValueType, ResultType);
+            }
+
+            void reportMismatchIfNecessary(BoundExpression node, TypeWithAnnotations source, TypeWithAnnotations destination)
+            {
+                if (!node.IsSuppressed && IsNullabilityMismatch(source, destination))
+                {
+                    ReportNullabilityMismatchInAssignment(node.Syntax, source, destination);
+                }
             }
         }
 
@@ -10916,7 +10933,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (iterationVariable.IsRef)
                         {
                             // foreach (ref DestinationType variable in collection)
-                            if (IsNullabilityMismatch(sourceType, destinationType))
+                            if (node.Expression is not BoundConversion { Operand.IsSuppressed: true } &&
+                                IsNullabilityMismatch(sourceType, destinationType))
                             {
                                 var foreachSyntax = (ForEachStatementSyntax)node.Syntax;
                                 ReportNullabilityMismatchInAssignment(foreachSyntax.Type, sourceType, destinationType);

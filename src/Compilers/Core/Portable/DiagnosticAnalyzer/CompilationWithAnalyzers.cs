@@ -1117,10 +1117,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             return true;
                         }
                     }
-
-                    // https://github.com/dotnet/roslyn/issues/73772: should we also check IPropertySymbol?
-                    // there is no interface IPropertySymbolInternal
-                    // where are tests for this?
+                    else if (symbol is IPropertySymbolInternal propertySymbol)
+                    {
+                        if (propertySymbol.PartialDefinitionPart?.IsDefinedInSourceTree(tree, definedWithinSpan: null, cancellationToken) == true
+                            || propertySymbol.PartialImplementationPart?.IsDefinedInSourceTree(tree, definedWithinSpan: null, cancellationToken) == true)
+                        {
+                            return true;
+                        }
+                    }
 
                     return false;
                 }

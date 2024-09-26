@@ -287,11 +287,6 @@
         <target state="translated">El miembro de registro '{0}' debe ser una propiedad de instancia legible o un campo de tipo '{1}' para coincidir con el parámetro posicional '{2}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
-        <target state="translated">La instrucción foreach no puede funcionar en enumeradores de tipo "{0}" en métodos asincrónicos o iteradores porque "{0}" es un valor ref struct o un parámetro de tipo que permite ref struct.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
         <target state="translated">Los parámetros de tipo "{0}" no pueden declararse en expresiones lambda o métodos asincrónicos.</target>
@@ -334,12 +329,12 @@
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
         <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
-        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on this member.</target>
+        <target state="translated">No se puede usar "OverloadResolutionPriorityAttribute" en este miembro.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
         <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
-        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</target>
+        <target state="translated">No se puede usar "OverloadResolutionPriorityAttribute" en un miembro de reemplazo.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUtf8">
@@ -505,6 +500,11 @@
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
         <target state="translated">No se puede inicializar el tipo "{0}" con una expresión de colección porque el tipo no se puede construir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
+        <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
+        <target state="new">Collection initializer results in an infinite chain of instantiations of collection '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -784,7 +784,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion13">
         <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</target>
+        <target state="translated">La característica "{0}" no está disponible en C# 13.0. Use la versión de lenguaje {1} u otra superior.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -1464,12 +1464,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="needs-review-translation">"{0}": el tipo usado en una instrucción using asincrónica debe poder convertirse de forma implícita en "System.IAsyncDisposable" o implementar un método "DisposeAsync" adecuado. ¿Quiso decir "using" en lugar de "await using"?</target>
+        <target state="translated">"{0}": el tipo usado en una instrucción using asincrónica debe implementar "System.IAsyncDisposable" o un método "DisposeAsync" adecuado. ¿Ha querido decir "using" en lugar de "await using"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
-        <target state="needs-review-translation">"{0}": el tipo usado en una instrucción using debe poder convertirse implícitamente en "System.IDisposable". ¿Quiso decir "await using" en lugar de "using"?</target>
+        <target state="translated">"{0}": el tipo usado en una instrucción using debe implementar "System.IDisposable". ¿Ha querido decir "await using" en lugar de "using"?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForCallerArgumentExpressionParam">
@@ -2404,7 +2404,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
         <source>field keyword</source>
-        <target state="new">field keyword</target>
+        <target state="translated">palabra clave field</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFileScopedNamespace">
@@ -2609,7 +2609,7 @@
       </trans-unit>
       <trans-unit id="IDS_OverloadResolutionPriority">
         <source>overload resolution priority</source>
-        <target state="new">overload resolution priority</target>
+        <target state="translated">prioridad de resolución de sobrecarga</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
@@ -9598,7 +9598,7 @@ Un bloque catch() después de un bloque catch (System.Exception e) puede abarcar
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
         <source>'{0}': type used in a using statement must implement 'System.IDisposable'.</source>
-        <target state="needs-review-translation">"{0}": el tipo usado en una instrucción using debe poder convertirse implícitamente en "System.IDisposable".</target>
+        <target state="translated">"{0}": el tipo usado en una instrucción using debe implementar "System.IDisposable".</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -13126,7 +13126,7 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="needs-review-translation">"{0}": el tipo usado en una instrucción using asincrónica debe poder convertirse de forma implícita en "System.IAsyncDisposable" o implementar un método "DisposeAsync" adecuado.</target>
+        <target state="translated">"{0}": el tipo usado en una instrucción using asincrónica debe implementar "System.IAsyncDisposable" o un método "DisposeAsync" adecuado.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

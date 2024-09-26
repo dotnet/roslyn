@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             protected set
             {
-                Debug.Assert((_attributes & BoundNodeAttributes.ParamsArrayOrCollection) == 0, $"{nameof(BoundNodeAttributes.ParamsArrayOrCollection)} flag should not be set twice or reset");
+                RoslynDebug.Assert((_attributes & BoundNodeAttributes.ParamsArrayOrCollection) == 0, $"{nameof(BoundNodeAttributes.ParamsArrayOrCollection)} flag should not be set twice or reset");
                 Debug.Assert(value || !IsParamsArrayOrCollection);
                 Debug.Assert(!value ||
                              this is BoundArrayCreation { Bounds: [BoundLiteral { WasCompilerGenerated: true }], InitializerOpt: BoundArrayInitialization { WasCompilerGenerated: true }, WasCompilerGenerated: true } or

@@ -287,11 +287,6 @@
         <target state="translated">Składowa rekordu "{0}" musi być możliwą do odczytu właściwością wystąpienia typu "{1}", aby dopasować parametr pozycyjny "{2}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
-        <target state="translated">Instrukcja foreach nie może działać na modułach wyliczeniowych typu „{0}” w metodach asynchronicznych lub iteracyjnych, ponieważ „{0}” jest strukturą ref lub parametrem typu, który zezwala na strukturę ref.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
         <target state="translated">Parametry typu „{0}” nie mogą być deklarowane w metodach asynchronicznych ani asynchronicznych wyrażeniach lambda.</target>
@@ -334,12 +329,12 @@
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
         <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
-        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on this member.</target>
+        <target state="translated">Nie można użyć atrybutu "OverloadResolutionPriorityAttribute" w tej składowej.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
         <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
-        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</target>
+        <target state="translated">Nie można użyć atrybutu „OverloadResolutionPriorityAttribute” w zastępującej składowej.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUtf8">
@@ -505,6 +500,11 @@
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
         <target state="translated">Nie można zainicjować typu „{0}” z wyrażeniem kolekcji, ponieważ nie można go skonstruować.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
+        <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
+        <target state="new">Collection initializer results in an infinite chain of instantiations of collection '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -784,7 +784,7 @@
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion13">
         <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
-        <target state="new">Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</target>
+        <target state="translated">Funkcja „{0}” nie jest dostępna w wersji języka C# 13.0. Użyj języka w wersji {1} lub nowszej.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
@@ -989,7 +989,7 @@
       </trans-unit>
       <trans-unit id="ERR_InlineArrayAttributeOnRecord">
         <source>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</source>
-        <target state="new">Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</target>
+        <target state="translated">Atrybut „System.Runtime.CompilerServices.InlineArray” nie może być zastosowany do struktury rekordu.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayBadIndex">
@@ -1464,12 +1464,12 @@
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
         <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="needs-review-translation">„{0}”: Typ użyty w asynchronicznej instrukcji using musi być jawnie konwertowalny na typ „System.IAsyncDisposable” lub musi implementować odpowiednią metodę „DisposeAsync”. Czy chodziło Ci o użycie instrukcji „using”, a nie „await using”?</target>
+        <target state="translated">„{0}”: typ użyty w asynchronicznej instrukcji using musi implementować typ „System.IAsyncDisposable” lub odpowiednią metodę „DisposeAsync”. Czy chodzi Ci o instrukcję „using” zamiast „await using”?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
         <source>'{0}': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
-        <target state="needs-review-translation">„{0}”: typ użyty w instrukcji using musi umożliwiać niejawną konwersję na interfejs „System.IDisposable”. Czy chodziło Ci o instrukcję „await using”, a nie „using”?</target>
+        <target state="translated">„{0}”: typ użyty w instrukcji using musi implementować typ „System.IDisposable”. Czy chodzi Ci o instrukcję „await using” zamiast „using”?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForCallerArgumentExpressionParam">
@@ -1659,47 +1659,47 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberAccessibilityDifference">
         <source>Both partial member declarations must have identical accessibility modifiers.</source>
-        <target state="new">Both partial member declarations must have identical accessibility modifiers.</target>
+        <target state="translated">Obie częściowe deklaracje elementów członkowskich muszą mieć identyczne modyfikatory dostępności.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberCannotBeAbstract">
         <source>A partial member cannot have the 'abstract' modifier</source>
-        <target state="new">A partial member cannot have the 'abstract' modifier</target>
+        <target state="translated">Częściowy element członkowski nie może mieć modyfikatora „abstract”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
         <source>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</source>
-        <target state="new">Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</target>
+        <target state="translated">Obie deklaracje częściowych elementów członkowskich, „{0}” i „{1}”, muszą korzystać z tych samych nazw elementów krotki.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
         <source>A partial member must be declared within a partial type</source>
-        <target state="new">A partial member must be declared within a partial type</target>
+        <target state="translated">Częściowy element członkowski musi być zadeklarowany w ramach częściowego typu</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberParamsDifference">
         <source>Both partial member declarations must use a params parameter or neither may use a params parameter</source>
-        <target state="new">Both partial member declarations must use a params parameter or neither may use a params parameter</target>
+        <target state="translated">Obie częściowe deklaracje elementów członkowskich muszą używać parametru params lub żadna z nich nie może używać parametru params</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberReadOnlyDifference">
         <source>Both partial member declarations must be readonly or neither may be readonly</source>
-        <target state="new">Both partial member declarations must be readonly or neither may be readonly</target>
+        <target state="translated">Obie deklaracje częściowych elementów członkowskich muszą być tylko do odczytu lub żadna z nich nie może być tylko do odczytu</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberExtendedModDifference">
         <source>Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
-        <target state="new">Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</target>
+        <target state="translated">Obie deklaracje częściowych elementów członkowskich muszą mieć identyczne kombinacje modyfikatorów „virtual”, „override”, „sealed” i „new”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberRefReturnDifference">
         <source>Partial member declarations must have matching ref return values.</source>
-        <target state="new">Partial member declarations must have matching ref return values.</target>
+        <target state="translated">Deklaracje częściowych elementów członkowskich muszą mieć pasujące wartości zwracane ref.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberUnsafeDifference">
         <source>Both partial member declarations must be unsafe or neither may be unsafe</source>
-        <target state="new">Both partial member declarations must be unsafe or neither may be unsafe</target>
+        <target state="translated">Obie częściowe deklaracje elementów członkowskich muszą być niebezpieczne lub żadna z nich nie może być niebezpieczna</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodReturnTypeDifference">
@@ -1729,12 +1729,12 @@
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyDuplicateDefinition">
         <source>A partial property may not have multiple defining declarations, and cannot be an auto-property.</source>
-        <target state="new">A partial property may not have multiple defining declarations, and cannot be an auto-property.</target>
+        <target state="translated">Właściwość częściowa nie może mieć wielu deklaracji definiujących i nie może być właściwością automatyczną.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyDuplicateImplementation">
         <source>A partial property may not have multiple implementing declarations</source>
-        <target state="new">A partial property may not have multiple implementing declarations</target>
+        <target state="translated">Właściwość częściowa nie może mieć wielu deklaracji implementujących</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyDuplicateInitializer">
@@ -1744,37 +1744,37 @@
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyInitMismatch">
         <source>Property accessor '{0}' must be '{1}' to match the definition part</source>
-        <target state="new">Property accessor '{0}' must be '{1}' to match the definition part</target>
+        <target state="translated">Metoda dostępu właściwości „{0}” musi mieć wartość „{1}”, aby dopasować część definicji</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyMissingAccessor">
         <source>Property accessor '{0}' must be implemented because it is declared on the definition part</source>
-        <target state="new">Property accessor '{0}' must be implemented because it is declared on the definition part</target>
+        <target state="translated">Właściwość accessor „{0}” musi zostać zaimplementowana, ponieważ jest zadeklarowana w części definicji</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyMissingDefinition">
         <source>Partial property '{0}' must have a definition part.</source>
-        <target state="new">Partial property '{0}' must have a definition part.</target>
+        <target state="translated">Właściwość częściowa „{0}” musi mieć część definicji.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyMissingImplementation">
         <source>Partial property '{0}' must have an implementation part.</source>
-        <target state="new">Partial property '{0}' must have an implementation part.</target>
+        <target state="translated">Właściwość częściowa „{0}” musi mieć część implementacji.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyRequiredDifference">
         <source>Both partial property declarations must be required or neither may be required</source>
-        <target state="new">Both partial property declarations must be required or neither may be required</target>
+        <target state="translated">Obie deklaracje właściwości częściowych muszą być wymagane lub żadna z nich nie może być wymagana</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyTypeDifference">
         <source>Both partial property declarations must have the same type.</source>
-        <target state="new">Both partial property declarations must have the same type.</target>
+        <target state="translated">Obie deklaracje właściwości częściowych muszą mieć ten sam typ.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyUnexpectedAccessor">
         <source>Property accessor '{0}' does not implement any accessor declared on the definition part</source>
-        <target state="new">Property accessor '{0}' does not implement any accessor declared on the definition part</target>
+        <target state="translated">Właściwość accessor „{0}” nie implementuje żadnego accessora zadeklarowanego w części definiującej</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
@@ -2044,7 +2044,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</source>
-        <target state="new">The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</target>
+        <target state="translated">Modyfikator „scoped” parametru „{0}” nie jest zgodny z częściową definicją.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
@@ -2364,7 +2364,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
         <source>allows ref struct constraint</source>
-        <target state="new">allows ref struct constraint</target>
+        <target state="translated">zezwala na ograniczenie ref struct</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureAutoDefaultStructs">
@@ -2404,7 +2404,7 @@
       </trans-unit>
       <trans-unit id="IDS_FeatureFieldKeyword">
         <source>field keyword</source>
-        <target state="new">field keyword</target>
+        <target state="translated">słowo kluczowe pola</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFileScopedNamespace">
@@ -2609,7 +2609,7 @@
       </trans-unit>
       <trans-unit id="IDS_OverloadResolutionPriority">
         <source>overload resolution priority</source>
-        <target state="new">overload resolution priority</target>
+        <target state="translated">priorytet rozwiązywania przeciążenia</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
@@ -2639,7 +2639,7 @@
       </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
         <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
-        <target state="new">Identifier is a contextual keyword, with a specific meaning, in a later language version.</target>
+        <target state="translated">Identyfikator jest kontekstowym słowem kluczowym o określonym znaczeniu w późniejszej wersji językowej.</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_TooManyBoundLambdas">
@@ -3129,12 +3129,12 @@
       </trans-unit>
       <trans-unit id="WRN_PartialPropertySignatureDifference">
         <source>Partial property declarations '{0}' and '{1}' have signature differences.</source>
-        <target state="new">Partial property declarations '{0}' and '{1}' have signature differences.</target>
+        <target state="translated">Deklaracje właściwości częściowych „{0}” i „{1}” mają różnice w sygnaturach.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PartialPropertySignatureDifference_Title">
         <source>Partial property declarations have signature differences.</source>
-        <target state="new">Partial property declarations have signature differences.</target>
+        <target state="translated">Deklaracje właściwości częściowych różnią się sygnaturami.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
@@ -3635,7 +3635,7 @@
         <target state="translated">
                              Opcje kompilatora języka Visual C#
 
-                       - PLIKI WYJŚCIOWE - 
+                       - PLIKI WYJŚCIOWE -
 -out:&lt;file&gt;                   Określanie nazwy pliku wyjściowego (domyślnie: nazwa podstawowa
                               pliku z klasą główną lub pierwszym plikiem)
 -target:exe                   Kompiluj plik wykonywalny konsoli (domyślnie) (skrócona
@@ -6625,7 +6625,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
-        <target state="new">The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</target>
+        <target state="translated">Modyfikator „partial” może pojawić się tylko bezpośrednio przed słowem kluczowym „class”, „record” „struct”, „interface” lub zwracanym typem metody lub właściwości.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -8234,7 +8234,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_PartialMemberNotExplicit">
         <source>A partial member may not explicitly implement an interface member</source>
-        <target state="new">A partial member may not explicitly implement an interface member</target>
+        <target state="translated">Częściowy element członkowski nie może wyraźnie implementować elementu członkowskiego interfejsu</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodExtensionDifference">
@@ -8269,7 +8269,7 @@ Jeśli taka klasa zostanie użyta jako klasa bazowa i klasa pochodna definiuje d
       </trans-unit>
       <trans-unit id="ERR_PartialMemberStaticDifference">
         <source>Both partial member declarations must be static or neither may be static</source>
-        <target state="new">Both partial member declarations must be static or neither may be static</target>
+        <target state="translated">Obie deklaracje częściowych elementów członkowskich muszą być statyczne lub żadna z nich nie może być statyczna</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInExpressionTree">
@@ -9598,7 +9598,7 @@ Blok catch() po bloku catch (System.Exception e) może przechwytywać wyjątki n
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
         <source>'{0}': type used in a using statement must implement 'System.IDisposable'.</source>
-        <target state="needs-review-translation">„{0}”: typ użyty w instrukcji using musi umożliwiać niejawną konwersję na interfejs „System.IDisposable”.</target>
+        <target state="translated">„{0}”: typ użyty w instrukcji using musi implementować typ „System.IDisposable”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -13126,7 +13126,7 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
         <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="needs-review-translation">„{0}”: Typ użyty w asynchronicznej instrukcji using musi być jawnie konwertowalny na typ „System.IAsyncDisposable” lub musi implementować odpowiednią metodę „DisposeAsync”.</target>
+        <target state="translated">„{0}”: typ użyty w asynchronicznej instrukcji using musi implementować typ „System.IAsyncDisposable” lub odpowiednią metodę „DisposeAsync”.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

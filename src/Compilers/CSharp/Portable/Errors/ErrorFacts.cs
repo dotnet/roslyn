@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -134,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static string GetMessage(MessageID code, CultureInfo culture)
         {
             string message = ResourceManager.GetString(code.ToString(), culture);
-            Debug.Assert(!string.IsNullOrEmpty(message), code.ToString());
+            RoslynDebug.Assert(!string.IsNullOrEmpty(message), $"{code}");
             return message;
         }
 
@@ -142,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static string GetMessage(ErrorCode code, CultureInfo culture)
         {
             string message = ResourceManager.GetString(code.ToString(), culture);
-            Debug.Assert(!string.IsNullOrEmpty(message), code.ToString());
+            RoslynDebug.Assert(!string.IsNullOrEmpty(message), $"{code}");
             return message;
         }
 
@@ -1840,7 +1841,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_FieldsInRoStruct
                 or ErrorCode.ERR_AutoPropsInRoStruct
                 or ErrorCode.ERR_FieldlikeEventsInRoStruct
-                or ErrorCode.ERR_BadSpecialByRefIterator
                 or ErrorCode.ERR_FieldAutoPropCantBeByRefLike
                 or ErrorCode.ERR_StackAllocConversionNotPossible
                 or ErrorCode.ERR_EscapeCall
@@ -2418,6 +2418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CollectionExpressionMissingAdd
                 or ErrorCode.WRN_ConvertingLock
                 or ErrorCode.ERR_DynamicDispatchToParamsCollection
+                or ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls
                 or ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls
                 or ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember
                 or ErrorCode.ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember
