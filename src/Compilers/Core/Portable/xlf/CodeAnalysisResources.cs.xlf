@@ -273,7 +273,7 @@
         <target state="translated">Pokud jsou zadané anotace prvků řazené kolekce členů s možnou hodnotou null, musí se počet anotací shodovat s kardinalitou této řazené kolekce členů.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Type_0_does_not_have_expected_constructor">
+      <trans-unit id="Type0DoesNotHaveExpectedConstructor">
         <source>'{0}' type does not have the expected constructor</source>
         <target state="new">'{0}' type does not have the expected constructor</target>
         <note />

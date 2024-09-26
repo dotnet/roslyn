@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         ''' <summary>
-        ''' Returns true if the correct constructor is found or if the type Is Not defined at all, in which case it can be synthesized.
+        ''' Returns true if the correct constructor is found or if the type is not defined at all, in which case it can be synthesized.
         ''' </summary>
         Private Function GetPredefinedHotReloadExceptionTypeConstructor(compilation As VisualBasicCompilation, diagnostics As DiagnosticBag, <Out> ByRef constructor As MethodSymbol) As Boolean
             constructor = TryCast(compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_HotReloadException__ctorStringInt32), MethodSymbol)
@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Dim type = compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_HotReloadException)
             If type.Kind = SymbolKind.ErrorType Then
-                ' type is missing And will be synthesized
+                ' type is missing and will be synthesized
                 Return True
             End If
 
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 ERRID.ERR_ModuleEmitFailure,
                 NoLocation.Singleton,
                 compilation.AssemblyName,
-                String.Format(CodeAnalysisResources.Type_0_does_not_have_expected_constructor, type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)))
+                String.Format(CodeAnalysisResources.Type0DoesNotHaveExpectedConstructor, type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)))
 
             Return False
         End Function

@@ -9,18 +9,20 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Xunit.Abstractions;
 using Public = Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests;
 
 internal sealed class EditAndContinueTest(
+    ITestOutputHelper? output = null,
     CSharpCompilationOptions? options = null,
     CSharpParseOptions? parseOptions = null,
     TargetFramework targetFramework = TargetFramework.Standard,
     IEnumerable<MetadataReference>? references = null,
     string assemblyName = "",
     Verification? verification = null)
-    : EditAndContinueTest<EditAndContinueTest>(verification)
+    : EditAndContinueTest<EditAndContinueTest>(output, verification)
 {
     private readonly CSharpCompilationOptions _compilationOptions = (options ?? TestOptions.DebugDll).WithConcurrentBuild(false);
     private readonly CSharpParseOptions _parseOptions = parseOptions ?? TestOptions.Regular.WithNoRefSafetyRulesAttribute();

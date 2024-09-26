@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class ResumableStateMachineStateAllocator
         Private ReadOnly _slotAllocator As VariableSlotAllocator
         Private ReadOnly _increasing As Boolean
-        Private ReadOnly _firstState As Integer
+        Private ReadOnly _firstState As StateMachineState
 
         ''' <summary>
         ''' The number of the next generated resumable state (i.e. state that resumes execution of the state machine after await expression or yield return).

@@ -9,11 +9,18 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class EditAndContinueStateMachineTests
         Inherits EditAndContinueTestBase
+
+        ReadOnly _logger As ITestOutputHelper
+
+        Sub New(logger As ITestOutputHelper)
+            _logger = logger
+        End Sub
 
         <ConditionalFact(GetType(WindowsOnly), Reason:=ConditionalSkipReason.NativePdbRequiresDesktop)>
         Public Sub AddIteratorMethod()
@@ -977,7 +984,7 @@ End Class
 
         <Fact>
         Public Sub AsyncMethodOverloads()
-            Using New EditAndContinueTest().
+            Using New EditAndContinueTest(_logger).
                 AddBaseline(
                     source:="
 Imports System.Threading.Tasks
@@ -995,19 +1002,52 @@ End Class
 ",
                     validator:=
                     Sub(g)
+                        g.VerifyPdb("C.F", "
+<symbols>
+  <files>
+    <file id=""1"" name="""" language=""VB"" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""F"" parameterNames=""a"">
+      <customDebugInfo>
+        <forwardIterator name=""VB$StateMachine_1_F"" />
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""7"" />
+        </encStateMachineStateMap>
+      </customDebugInfo>
+    </method>
+    <method containingType=""C"" name=""F"" parameterNames=""a"">
+      <customDebugInfo>
+        <forwardIterator name=""VB$StateMachine_2_F"" />
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""7"" />
+        </encStateMachineStateMap>
+      </customDebugInfo>
+    </method>
+    <method containingType=""C"" name=""F"" parameterNames=""a"">
+      <customDebugInfo>
+        <forwardIterator name=""VB$StateMachine_3_F"" />
+        <encStateMachineStateMap>
+          <state number=""0"" offset=""7"" />
+        </encStateMachineStateMap>
+      </customDebugInfo>
+    </method>
+  </methods>
+</symbols>
+")
                     End Sub).
                 AddGeneration(
                     source:="
 Imports System.Threading.Tasks
 Class C
-    Async Function F(a As Long) As Task(Of Integer)
-        Return Await Task.FromResult(2)
-    End Function
     Async Function F(a As Integer) As Task(Of Integer)
         Return Await Task.FromResult(3)
     End Function
     Async Function F(a As Short) As Task(Of Integer)
         Return Await Task.FromResult(4)
+    End Function
+    Async Function F(a As Long) As Task(Of Integer)
+        Return Await Task.FromResult(2)
     End Function
 End Class
 ",
@@ -1019,7 +1059,9 @@ End Class
                     },
                     validator:=
                     Sub(g)
-                        ' notice no TypeDefs, FieldDefs
+                        g.VerifyTypeDefNames("HotReloadException")
+                        g.VerifyFieldDefNames("Code")
+
                         g.VerifyEncLogDefinitions(
                         {
                             Row(7, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
@@ -1028,12 +1070,17 @@ End Class
                             Row(10, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(11, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(12, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(16, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(14, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(1, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(2, TableIndex.Param, EditAndContinueOperation.Default),
                             Row(3, TableIndex.Param, EditAndContinueOperation.Default),

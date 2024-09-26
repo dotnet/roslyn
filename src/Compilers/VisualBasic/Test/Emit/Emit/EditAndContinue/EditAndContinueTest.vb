@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
 
@@ -19,14 +20,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
         Private ReadOnly _references As IEnumerable(Of MetadataReference)
         Private ReadOnly _assemblyName As String
 
-        Sub New(Optional options As VisualBasicCompilationOptions = Nothing,
+        Sub New(Optional output As ITestOutputHelper = Nothing,
+                Optional options As VisualBasicCompilationOptions = Nothing,
                 Optional parseOptions As VisualBasicParseOptions = Nothing,
                 Optional targetFramework As TargetFramework = TargetFramework.StandardAndVBRuntime,
                 Optional references As IEnumerable(Of MetadataReference) = Nothing,
                 Optional assemblyName As String = "",
                 Optional verification As Verification? = Nothing)
 
-            MyBase.New(verification)
+            MyBase.New(output, verification)
 
             _options = If(options, TestOptions.DebugDll).WithConcurrentBuild(False)
             _parseOptions = If(parseOptions, TestOptions.Regular)

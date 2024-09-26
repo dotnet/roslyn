@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 ErrorCode.ERR_ModuleEmitFailure,
                 NoLocation.Singleton,
                 compilation.AssemblyName,
-                string.Format(CodeAnalysisResources.Type_0_does_not_have_expected_constructor, type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)));
+                string.Format(CodeAnalysisResources.Type0DoesNotHaveExpectedConstructor, type.ToDisplayString(SymbolDisplayFormat.CSharpErrorMessageFormat)));
 
             return false;
         }

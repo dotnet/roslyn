@@ -273,7 +273,7 @@
         <target state="translated">Demet öğelerine yönelik boş değer atanabilir ek açıklamalar belirtildiyse, ek açıklamaların sayısı demetin kardinalitesiyle eşleşmelidir.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Type_0_does_not_have_expected_constructor">
+      <trans-unit id="Type0DoesNotHaveExpectedConstructor">
         <source>'{0}' type does not have the expected constructor</source>
         <target state="new">'{0}' type does not have the expected constructor</target>
         <note />

@@ -273,7 +273,7 @@
         <target state="translated">如果已指定元组元素可以为 null 的注释，则注释的数量必须与元组基数相匹配。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Type_0_does_not_have_expected_constructor">
+      <trans-unit id="Type0DoesNotHaveExpectedConstructor">
         <source>'{0}' type does not have the expected constructor</source>
         <target state="new">'{0}' type does not have the expected constructor</target>
         <note />

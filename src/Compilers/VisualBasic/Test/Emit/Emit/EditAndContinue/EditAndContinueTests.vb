@@ -7391,7 +7391,7 @@ End Class",
                     expectedErrors:=
                     {
                         Diagnostic(ERRID.ERR_ModuleEmitFailure).
-                            WithArguments("TestAssembly", String.Format(CodeAnalysisResources.Type_0_does_not_have_expected_constructor, "System.Runtime.CompilerServices.HotReloadException"))
+                            WithArguments("TestAssembly", String.Format(CodeAnalysisResources.Type0DoesNotHaveExpectedConstructor, "System.Runtime.CompilerServices.HotReloadException"))
                     }).
                 Verify()
             End Using

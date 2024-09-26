@@ -273,7 +273,7 @@
         <target state="translated">タプル要素の Null 許容の注釈を指定する場合、注釈の数はタプルの基数と一致する必要があります。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Type_0_does_not_have_expected_constructor">
+      <trans-unit id="Type0DoesNotHaveExpectedConstructor">
         <source>'{0}' type does not have the expected constructor</source>
         <target state="new">'{0}' type does not have the expected constructor</target>
         <note />

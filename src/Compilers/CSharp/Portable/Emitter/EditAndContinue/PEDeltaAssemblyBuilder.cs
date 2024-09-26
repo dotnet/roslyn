@@ -36,12 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// <summary>
         /// True if usage of HotReloadException type symbol has been observed and shouldn't be changed anymore.
         /// </summary>
-        private bool _freezeHotReloadExceptionTypeUsage;
+        private volatile bool _freezeHotReloadExceptionTypeUsage;
 
         /// <summary>
         /// True if HotReloadException type is actually used in the delta.
         /// </summary>
-        private bool _isHotReloadExceptionTypeUsed;
+        private volatile bool _isHotReloadExceptionTypeUsed;
 
         public PEDeltaAssemblyBuilder(
             SourceAssemblySymbol sourceAssembly,

@@ -43,6 +43,13 @@ namespace Microsoft.CodeAnalysis
     public abstract partial class Compilation
     {
         /// <summary>
+        /// Optional data collected during testing only.
+        /// Used for instance for nullable analysis (NullableWalker.NullableAnalysisData)
+        /// and inferred delegate types (InferredDelegateTypeData).
+        /// </summary>
+        internal object? TestOnlyCompilationData;
+
+        /// <summary>
         /// Returns true if this is a case sensitive compilation, false otherwise.  Case sensitivity
         /// affects compilation features such as name lookup as well as choosing what names to emit
         /// when there are multiple different choices (for example between a virtual method and an

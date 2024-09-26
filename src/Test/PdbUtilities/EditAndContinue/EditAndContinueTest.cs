@@ -10,14 +10,17 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    internal abstract partial class EditAndContinueTest<TSelf>(Verification? verification = null) : IDisposable
+    internal abstract partial class EditAndContinueTest<TSelf>(ITestOutputHelper? output = null, Verification ? verification = null) : IDisposable
         where TSelf : EditAndContinueTest<TSelf>
     {
         private readonly Verification _verification = verification ?? Verification.Passes;
@@ -45,7 +48,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var verifier = new CompilationVerifier(compilation);
 
-            Debug.WriteLine($"Emitting baseline");
+            output?.WriteLine($"Emitting baseline");
 
             verifier.Emit(
                 expectedOutput: null,
@@ -53,7 +56,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 expectedReturnCode: null,
                 args: null,
                 manifestResources: null,
-                emitOptions: EmitOptions.Default,
+                emitOptions: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 peVerify: _verification,
                 expectedSignatures: null);
 
@@ -93,7 +96,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var semanticEdits = GetSemanticEdits(edits(markedSource), previousGeneration.Compilation, previousSource, compilation, markedSource, unmappedNodes);
 
-            Debug.WriteLine($"Emitting generation #{_generations.Count}");
+            output?.WriteLine($"Emitting generation #{_generations.Count}");
 
             CompilationDifference diff = compilation.EmitDifference(previousGeneration.Baseline, semanticEdits);
 

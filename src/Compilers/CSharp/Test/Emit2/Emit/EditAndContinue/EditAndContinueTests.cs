@@ -16453,7 +16453,7 @@ class C
                     [
                         // error CS7038: Failed to emit module 'TestAssembly': 'System.Runtime.CompilerServices.HotReloadException' type does not have the expected constructor
                         Diagnostic(ErrorCode.ERR_ModuleEmitFailure)
-                            .WithArguments("TestAssembly", string.Format(CodeAnalysisResources.Type_0_does_not_have_expected_constructor, "System.Runtime.CompilerServices.HotReloadException"))
+                            .WithArguments("TestAssembly", string.Format(CodeAnalysisResources.Type0DoesNotHaveExpectedConstructor, "System.Runtime.CompilerServices.HotReloadException"))
                     ])
                 .Verify();
         }

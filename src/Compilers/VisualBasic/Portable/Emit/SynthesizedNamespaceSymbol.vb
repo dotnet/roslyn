@@ -3,9 +3,14 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.PooledObjects
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
+    ''' <summary>
+    ''' Synthesized namespace that contains synthesized types or subnamespaces.
+    ''' All its members are stored in a table on <see cref="CommonPEModuleBuilder"/>.
+    ''' </summary>
     Friend NotInheritable Class SynthesizedNamespaceSymbol
         Inherits NamespaceSymbol
 

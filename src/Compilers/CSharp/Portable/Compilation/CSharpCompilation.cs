@@ -142,13 +142,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private ImmutableHashSet<SyntaxTree>? _usageOfUsingsRecordedInTrees = ImmutableHashSet<SyntaxTree>.Empty;
 
-        /// <summary>
-        /// Optional data collected during testing only.
-        /// Used for instance for nullable analysis (<see cref="NullableWalker.NullableAnalysisData"/>)
-        /// and inferred delegate types (<see cref="InferredDelegateTypeData"/>).
-        /// </summary>
-        internal object? TestOnlyCompilationData;
-
         internal ImmutableHashSet<SyntaxTree>? UsageOfUsingsRecordedInTrees => Volatile.Read(ref _usageOfUsingsRecordedInTrees);
 
         /// <summary>

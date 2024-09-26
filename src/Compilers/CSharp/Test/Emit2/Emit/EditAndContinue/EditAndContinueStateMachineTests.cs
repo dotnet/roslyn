@@ -4,11 +4,10 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
@@ -16,12 +15,14 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Basic.Reference.Assemblies;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
-    public class EditAndContinueStateMachineTests : EditAndContinueTestBase
+    public class EditAndContinueStateMachineTests(ITestOutputHelper logger) : EditAndContinueTestBase
     {
+        private readonly ITestOutputHelper _logger = logger;
+
         [Fact]
         [WorkItem(1068894, "DevDiv"), WorkItem(1137300, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1137300")]
         public void AddIteratorMethod()
@@ -2388,7 +2389,7 @@ class C
   </methods>
 </symbols>
 ");
-            diff2.VerifyIL("C.<F>d__4.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", """
+            diff2.VerifyIL("C.<F>d__4.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", $$"""
             {
               // Code size      285 (0x11d)
               .maxstack  3
@@ -2414,7 +2415,7 @@ class C
                 IL_0019:  ldloc.0
                 IL_001a:  ldc.i4.0
                 IL_001b:  blt.s      IL_002a
-                IL_001d:  ldstr      "Edit and Continue can't resume suspended asynchronous method since the corresponding await expression has been deleted"
+                IL_001d:  ldstr      "{{CodeAnalysisResources.EncCannotResumeSuspendedAsyncMethod}}"
                 IL_0022:  ldc.i4.s   -4
                 IL_0024:  newobj     "System.Runtime.CompilerServices.HotReloadException..ctor(string, int)"
                 IL_0029:  throw
@@ -7887,7 +7888,7 @@ class C
         [Fact]
         public void HoistedVariables_Dynamic2()
         {
-            using var _ = new EditAndContinueTest(references: [CSharpRef])
+            using var _ = new EditAndContinueTest(_logger, references: [CSharpRef])
                 .AddBaseline(
                     source: """
                     using System;
@@ -7926,6 +7927,7 @@ class C
                     validator: v =>
                     {
                         v.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<>o__0#1, <F>d__0}",
                             "C.<>o__0#1: {<>p__0, <>p__1}",
                             "C.<F>d__0: {<>1__state, <>2__current, <>l__initialThreadId, <d>5__1, System.IDisposable.Dispose, MoveNext, System.Collections.Generic.IEnumerator<System.String>.get_Current, System.Collections.IEnumerator.Reset, System.Collections.IEnumerator.get_Current, System.Collections.Generic.IEnumerable<System.String>.GetEnumerator, System.Collections.IEnumerable.GetEnumerator, System.Collections.Generic.IEnumerator<System.String>.Current, System.Collections.IEnumerator.Current}");
