@@ -9608,7 +9608,6 @@ done:;
             return ifStatement;
         }
 
-        // PROTOTYPE: This method is similar to the original implementation of ParseIfStatement. Can we share code?
         private IfStatementSyntax ParseMisplacedElse(SyntaxList<AttributeListSyntax> attributes)
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.ElseKeyword);
