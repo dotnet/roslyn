@@ -1704,7 +1704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        public override BoundNode VisitIfStatement(BoundIfStatement node)
+        public sealed override BoundNode VisitIfStatement(BoundIfStatement node)
         {
             // 5.3.3.5 If statements
 
