@@ -39,20 +39,19 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(TextDocumentPositionParams request) => request.TextDocument;
 
-        public async Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+        public Task<Hover?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.GetRequiredDocument();
             var clientCapabilities = context.GetRequiredClientCapabilities();
 
-            var position = await document
-                .GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken)
-                .ConfigureAwait(false);
+            var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
+            var supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
+            var supportsMarkdown = clientCapabilities?.TextDocument?.Hover?.ContentFormat?.Contains(MarkupKind.Markdown) == true;
 
-            var options = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
-
-            return await GetHoverAsync(document, position, options, clientCapabilities, cancellationToken).ConfigureAwait(false);
+            return GetHoverAsync(document, linePosition, _globalOptions, supportsVSExtensions, supportsMarkdown, cancellationToken);
         }
 
+        // Used by the LSIF Generator
         internal static Task<Hover?> GetHoverAsync(
             Document document,
             int position,
@@ -69,7 +68,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         internal static async Task<Hover?> GetHoverAsync(
             Document document,
             LinePosition linePosition,
-            SymbolDescriptionOptions options,
+            IGlobalOptionService globalOptions,
             bool supportsVSExtensions,
             bool supportsMarkdown,
             CancellationToken cancellationToken)
@@ -78,10 +77,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 .GetPositionFromLinePositionAsync(linePosition, cancellationToken)
                 .ConfigureAwait(false);
 
-            return await GetHoverAsync(document, position, options, supportsVSExtensions, supportsMarkdown, cancellationToken).ConfigureAwait(false);
+            var options = globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
+
+            return await GetHoverAsync(
+                document, position, options, supportsVSExtensions, supportsMarkdown, cancellationToken).ConfigureAwait(false);
         }
 
-        internal static async Task<Hover?> GetHoverAsync(
+        private static async Task<Hover?> GetHoverAsync(
             Document document,
             int position,
             SymbolDescriptionOptions options,

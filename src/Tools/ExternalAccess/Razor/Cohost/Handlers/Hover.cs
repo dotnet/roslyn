@@ -5,7 +5,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using LSP = Roslyn.LanguageServer.Protocol;
@@ -22,8 +21,8 @@ internal static class Hover
         CancellationToken cancellationToken)
     {
         var globalOptions = document.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
-        var options = globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
 
-        return HoverHandler.GetHoverAsync(document, linePosition, options, supportsVSExtensions, supportsMarkdown, cancellationToken);
+        return HoverHandler.GetHoverAsync(
+            document, linePosition, globalOptions, supportsVSExtensions, supportsMarkdown, cancellationToken);
     }
 }

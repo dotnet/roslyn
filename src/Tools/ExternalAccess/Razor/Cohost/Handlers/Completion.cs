@@ -4,11 +4,9 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -39,17 +37,14 @@ internal static class Completion
 
         var globalOptions = document.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
         var capabilityHelper = new CompletionCapabilityHelper(supportsVSExtensions, completionCapabilities);
-        var completionOptions = globalOptions.GetCompletionOptionsForLsp(document.Project.Language, capabilityHelper);
-        var completionListMaxSize = globalOptions.GetOption(LspOptionsStorage.MaxCompletionListSize);
 
         return await CompletionHandler.GetCompletionListAsync(
             document,
             position,
-            completionOptions,
             completionContext,
+            globalOptions,
             capabilityHelper,
             cache,
-            completionListMaxSize,
             cancellationToken).ConfigureAwait(false);
     }
 
@@ -64,10 +59,8 @@ internal static class Completion
 
         var globalOptions = document.Project.Solution.Services.ExportProvider.GetService<IGlobalOptionService>();
         var capabilityHelper = new CompletionCapabilityHelper(supportsVSExtensions, completionCapabilities);
-        var completionOptions = globalOptions.GetCompletionOptions(document.Project.Language);
-        var symbolDescriptionOptions = globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
 
         return CompletionResolveHandler.ResolveCompletionItemAsync(
-            completionItem, document, completionOptions, symbolDescriptionOptions, capabilityHelper, cache, cancellationToken);
+            completionItem, document, globalOptions, capabilityHelper, cache, cancellationToken);
     }
 }

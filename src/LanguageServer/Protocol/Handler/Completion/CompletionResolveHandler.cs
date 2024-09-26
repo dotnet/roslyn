@@ -56,19 +56,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             var document = context.GetRequiredDocument();
-            var completionOptions = _globalOptions.GetCompletionOptions(document.Project.Language);
-            var symbolDescriptionOptions = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
             var capabilityHelper = new CompletionCapabilityHelper(context.GetRequiredClientCapabilities());
 
             return ResolveCompletionItemAsync(
-                completionItem, cacheEntry.CompletionList, document, completionOptions, symbolDescriptionOptions, capabilityHelper, cancellationToken);
+                completionItem, cacheEntry.CompletionList, document, _globalOptions, capabilityHelper, cancellationToken);
         }
 
         public static Task<LSP.CompletionItem> ResolveCompletionItemAsync(
             LSP.CompletionItem completionItem,
             Document document,
-            CompletionOptions completionOptions,
-            SymbolDescriptionOptions symbolDescriptionOptions,
+            IGlobalOptionService globalOptions,
             CompletionCapabilityHelper capabilityHelper,
             CompletionListCache completionListCache,
             CancellationToken cancellationToken)
@@ -80,15 +77,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             return ResolveCompletionItemAsync(
-                completionItem, cacheEntry.CompletionList, document, completionOptions, symbolDescriptionOptions, capabilityHelper, cancellationToken);
+                completionItem, cacheEntry.CompletionList, document, globalOptions, capabilityHelper, cancellationToken);
         }
 
         private static async Task<LSP.CompletionItem> ResolveCompletionItemAsync(
             LSP.CompletionItem completionItem,
             CompletionList cachedCompletionList,
             Document document,
-            CompletionOptions completionOptions,
-            SymbolDescriptionOptions symbolDescriptionOptions,
+            IGlobalOptionService globalOptions,
             CompletionCapabilityHelper capabilityHelper,
             CancellationToken cancellationToken)
         {
@@ -101,6 +97,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 return completionItem;
             }
 
+            var completionOptions = globalOptions.GetCompletionOptions(document.Project.Language);
+            var symbolDescriptionOptions = globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
             var completionService = document.Project.Services.GetRequiredService<CompletionService>();
 
             return await CompletionResultFactory.ResolveAsync(

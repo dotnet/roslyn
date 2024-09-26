@@ -54,31 +54,30 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 .ConfigureAwait(false);
 
             var capabilityHelper = new CompletionCapabilityHelper(context.GetRequiredClientCapabilities());
-            var completionOptions = _globalOptions.GetCompletionOptionsForLsp(document.Project.Language, capabilityHelper);
-            var completionListMaxSize = _globalOptions.GetOption(LspOptionsStorage.MaxCompletionListSize);
             var completionListCache = context.GetRequiredLspService<CompletionListCache>();
 
             return await GetCompletionListAsync(
                 document,
                 position,
-                completionOptions,
                 request.Context,
+                _globalOptions,
                 capabilityHelper,
                 completionListCache,
-                completionListMaxSize,
                 cancellationToken).ConfigureAwait(false);
         }
 
         public static async Task<LSP.CompletionList?> GetCompletionListAsync(
             Document document,
             int position,
-            CompletionOptions completionOptions,
             LSP.CompletionContext? completionContext,
+            IGlobalOptionService globalOptions,
             CompletionCapabilityHelper capabilityHelper,
             CompletionListCache completionListCache,
-            int completionListMaxSize,
             CancellationToken cancellationToken)
         {
+            var completionOptions = globalOptions.GetCompletionOptionsForLsp(document.Project.Language, capabilityHelper);
+            var completionListMaxSize = globalOptions.GetOption(LspOptionsStorage.MaxCompletionListSize);
+
             var documentText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var completionTrigger = await ProtocolConversions
                 .LSPToRoslynCompletionTriggerAsync(completionContext, document, position, cancellationToken)
