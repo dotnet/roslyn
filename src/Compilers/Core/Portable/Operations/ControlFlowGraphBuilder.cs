@@ -7574,11 +7574,12 @@ oneMoreTime:
                 current = current.LeftPattern as IBinaryPatternOperation;
             } while (current != null);
 
-            var result = (IPatternOperation)VisitRequired(stack.Peek().LeftPattern);
-            while (stack.TryPop(out current))
+            current = stack.Pop();
+            var result = (IPatternOperation)VisitRequired(current.LeftPattern);
+            do
             {
                 result = createOperation(this, current, result);
-            }
+            } while (stack.TryPop(out current));
 
             stack.Free();
             return result;

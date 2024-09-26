@@ -1748,19 +1748,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(binaryPatternStack.Count > 0);
 
-            BoundPattern? result = null;
+            var binaryPatternAndPermitDesignations = binaryPatternStack.Pop();
+            BoundPattern? result = BindPattern(binaryPatternAndPermitDesignations.pat.Left, inputType, binaryPatternAndPermitDesignations.permitDesignations, hasErrors, diagnostics);
 
-            while (binaryPatternStack.TryPop(out var binaryPatternAndPermitDesignations))
+            do
             {
-                (var binaryPattern, permitDesignations) = binaryPatternAndPermitDesignations;
-                if (result == null)
-                {
-                    Debug.Assert(binaryPattern.Left is not BinaryPatternSyntax);
-                    result = BindPattern(binaryPattern.Left, inputType, permitDesignations, hasErrors, diagnostics);
-                }
-
-                result = bindBinaryPattern(result, this, binaryPattern, inputType, permitDesignations, hasErrors, diagnostics);
-            }
+                result = bindBinaryPattern(
+                    result,
+                    this,
+                    binaryPatternAndPermitDesignations,
+                    inputType,
+                    hasErrors,
+                    diagnostics);
+            } while (binaryPatternStack.TryPop(out binaryPatternAndPermitDesignations));
 
             binaryPatternStack.Free();
             Debug.Assert(result != null);
@@ -1769,12 +1769,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             static BoundPattern bindBinaryPattern(
                 BoundPattern preboundLeft,
                 Binder binder,
-                BinaryPatternSyntax node,
+                (BinaryPatternSyntax pat, bool permitDesignations) patternAndPermitDesignations,
                 TypeSymbol inputType,
-                bool permitDesignations,
                 bool hasErrors,
                 BindingDiagnosticBag diagnostics)
             {
+                (BinaryPatternSyntax node, bool permitDesignations) = patternAndPermitDesignations;
                 bool isDisjunction = node.Kind() == SyntaxKind.OrPattern;
                 if (isDisjunction)
                 {

@@ -189,12 +189,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _map.Add(current.Syntax, current);
                 }
 
-                // In machine-generated code we frequently end up with binary operator trees that are deep on the left,
+                // In machine-generated code we frequently end up with binary operator or pattern trees that are deep on the left,
                 // such as a + b + c + d ...
                 // To avoid blowing the call stack, we build an explicit stack to handle the left-hand recursion.
-                var binOp = current as BoundBinaryOperator;
 
-                if (binOp != null)
+                if (current is BoundBinaryOperator binOp)
                 {
                     var stack = ArrayBuilder<BoundExpression>.GetInstance();
 
@@ -220,6 +219,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Visit(stack.Pop());
                     }
+
+                    stack.Free();
+                }
+                else if (current is BoundBinaryPattern binaryPattern)
+                {
+                    var stack = ArrayBuilder<BoundPattern>.GetInstance();
+
+                    stack.Push(binaryPattern.Right);
+                    BoundPattern currentPattern = binaryPattern.Left;
+                    binaryPattern = currentPattern as BoundBinaryPattern;
+
+                    while (binaryPattern != null)
+                    {
+                        if (ShouldAddNode(binaryPattern))
+                        {
+                            _map.Add(binaryPattern.Syntax, binaryPattern);
+                        }
+
+                        stack.Push(binaryPattern.Right);
+                        currentPattern = binaryPattern.Left;
+                        binaryPattern = currentPattern as BoundBinaryPattern;
+                    }
+
+                    do
+                    {
+                        Visit(currentPattern);
+                    } while (stack.TryPop(out currentPattern));
 
                     stack.Free();
                 }

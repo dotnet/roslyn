@@ -729,36 +729,36 @@ $@"        if (F({i}))
         [Fact]
         public void ManyBinaryPatterns()
         {
-            const string Preamble = $"""
+            const string preamble = $"""
                 int i = 2;
 
                 System.Console.Write(i is
                 """;
-            const string Append = $"""
+            const string append = $"""
 
                 or 
                 """;
-            const string Postscript = """
+            const string postscript = """
 
                 ? 1 : 0);
                 """;
 
-            const int NumBinaryExpressions = 12_000;
+            const int numBinaryExpressions = 12_000;
 
-            var builder = new StringBuilder(Preamble.Length + Postscript.Length + Append.Length * NumBinaryExpressions + 5 /* Max num digit characters */ * NumBinaryExpressions);
+            var builder = new StringBuilder(preamble.Length + postscript.Length + append.Length * numBinaryExpressions + 5 /* Max num digit characters */ * numBinaryExpressions);
 
-            builder.AppendLine(Preamble);
+            builder.AppendLine(preamble);
 
             builder.Append(0);
 
-            for (int i = 1; i < NumBinaryExpressions; i++)
+            for (int i = 1; i < numBinaryExpressions; i++)
             {
-                builder.Append(Append);
+                builder.Append(append);
                 // Make sure the emitter has to handle lots of nodes
                 builder.Append(i * 2);
             }
 
-            builder.AppendLine(Postscript);
+            builder.AppendLine(postscript);
 
             var source = builder.ToString();
             RunInThread(() =>

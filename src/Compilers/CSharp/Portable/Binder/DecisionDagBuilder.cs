@@ -656,25 +656,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 currentNode = currentNode.Left as BoundBinaryPattern;
             } while (currentNode != null);
 
-            Tests? result = null;
-            BoundDagTemp? currentOutput = null;
+            currentNode = binaryPatternStack.Pop();
+            Tests? result = MakeTestsAndBindings(input, currentNode.Left, out output, bindings);
 
-            while (binaryPatternStack.TryPop(out currentNode))
+            do
             {
-                if (result == null)
-                {
-                    Debug.Assert(currentNode.Left is not BoundBinaryPattern);
-                    Debug.Assert(currentOutput == null);
-                    result = MakeTestsAndBindings(input, currentNode.Left, out currentOutput, bindings);
-                }
-
-                Debug.Assert(currentOutput != null);
-                result = makeTestsAndBindingsForBinaryPattern(this, result, currentOutput, input, currentNode, out currentOutput, bindings);
-            }
-
-            Debug.Assert(result != null);
-            Debug.Assert(currentOutput != null);
-            output = currentOutput;
+                result = makeTestsAndBindingsForBinaryPattern(this, result, output, input, currentNode, out output, bindings);
+            } while (binaryPatternStack.TryPop(out currentNode));
 
             binaryPatternStack.Free();
 

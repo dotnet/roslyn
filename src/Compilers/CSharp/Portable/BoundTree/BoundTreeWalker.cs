@@ -127,10 +127,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.Visit(current);
 
-            while (rightOperands.TryPop(out current))
+            current = rightOperands.Pop();
+            do
             {
                 this.Visit(current);
-            }
+            } while (rightOperands.TryPop(out current));
 
             rightOperands.Free();
             return null;
@@ -165,10 +166,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Visit(current);
 
-            while (rightOperands.TryPop(out current))
+            current = rightOperands.Pop();
+
+            do
             {
                 Visit(current);
-            }
+            } while (rightOperands.TryPop(out current));
 
             rightOperands.Free();
             return null;
