@@ -1095,30 +1095,30 @@ internal static partial class SyntaxTreeExtensions
 
         if (token.IsKind(SyntaxKind.CloseBracketToken) &&
             token.Parent.IsKind(SyntaxKind.AttributeList) &&
-            token.Parent.Parent is ParameterSyntax parameter2 &&
-            parameter2.Parent is ParameterListSyntax parameterList3 &&
+            token.Parent.Parent is ParameterSyntax parameter3 &&
+            parameter3.Parent is ParameterListSyntax parameterList3 &&
             IsSuitableParameterList(parameterList3, includeOperators))
         {
-            parameterIndex = parameterList3.Parameters.IndexOf(parameter2);
+            parameterIndex = parameterList3.Parameters.IndexOf(parameter3);
             return true;
         }
 
-        ParameterSyntax? parameter3 = null;
+        ParameterSyntax? parameter4 = null;
         if (token.Kind() is SyntaxKind.RefKeyword or SyntaxKind.InKeyword or SyntaxKind.ReadOnlyKeyword or SyntaxKind.OutKeyword or SyntaxKind.ThisKeyword or SyntaxKind.ParamsKeyword or SyntaxKind.ScopedKeyword)
         {
-            parameter3 = token.Parent as ParameterSyntax;
+            parameter4 = token.Parent as ParameterSyntax;
             previousModifier = token.Kind();
         }
         else if (token.IsKind(SyntaxKind.IdentifierToken) && token.Text == "scoped" && token.Parent is IdentifierNameSyntax scopedIdentifierName)
         {
-            parameter3 = scopedIdentifierName.Parent as ParameterSyntax;
+            parameter4 = scopedIdentifierName.Parent as ParameterSyntax;
             previousModifier = SyntaxKind.ScopedKeyword;
         }
 
-        if (parameter3 is { Parent: ParameterListSyntax parameterList4 } &&
+        if (parameter4 is { Parent: ParameterListSyntax parameterList4 } &&
             IsSuitableParameterList(parameterList4, includeOperators))
         {
-            parameterIndex = parameterList4.Parameters.IndexOf(parameter3);
+            parameterIndex = parameterList4.Parameters.IndexOf(parameter4);
             return true;
         }
 
