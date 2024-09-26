@@ -5616,6 +5616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Nullability_20_ManualGetter_AutoSetter_NullInitializer()
         {
             // NotNull on field with manual getter and auto-setter and null initializer
+            // No diagnostic is expected here as the field's nullability+attrs is equivalent to `[AllowNull] string`--so, assigning null to it actually puts it into a non-null state.
             var source = """
                 #nullable enable
                 using System.Diagnostics.CodeAnalysis;
@@ -5623,7 +5624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class C
                 {
                     [field: NotNull]
-                    public string? Prop { get => field; set; } = null; // 1, 2
+                    public string? Prop { get => field; set; } = null;
                 }
                 """;
 
@@ -5808,7 +5809,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     [field: AllowNull]
                     public string Prop { get => field; set; }
-                    
+
                     public C() { }
                     public C(bool ignored)
                     {
@@ -5839,7 +5840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     [field: DisallowNull]
                     public string? Prop { get => field; } = null; // 1
-                    
+
                     public C() { }
                 }
                 """;
@@ -5863,7 +5864,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     [field: DisallowNull]
                     public string? Prop { get; } = null;
-                    
+
                     public C() { }
                 }
                 """;
@@ -5883,7 +5884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class C
                 {
                     public required string Prop { get => field; set => field = value; }
-                    
+
                     [SetsRequiredMembers]
                     public C()
                     {
@@ -5914,7 +5915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         get => field;
                         set => field = value;
                     }
-                    
+
                     [SetsRequiredMembers]
                     public C()
                     {
@@ -5943,7 +5944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         get => field;
                         set => field = value;
                     }
-                    
+
                     public C(bool ignored) { }
                     public C() : this(false)
                     {
@@ -5975,7 +5976,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         get => field;
                         set => field = value;
                     }
-                    
+
                     public C(bool ignored) { }
                     public C() : this(false)
                     {
@@ -6130,7 +6131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation([source, MaybeNullAttributeDefinition, AllowNullAttributeDefinition]);
             comp.VerifyEmitDiagnostics(
-                // (6,19): warning CS9264: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' 
+                // (6,19): warning CS9264: Non-nullable property 'Prop1' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]'
 attributes.
                 //     public string Prop1 => field ??= "a"; // 1
                 Diagnostic(ErrorCode.WRN_UninitializedNonNullableBackingField, "Prop1").WithArguments("property", "Prop1").WithLocation(6, 19));
