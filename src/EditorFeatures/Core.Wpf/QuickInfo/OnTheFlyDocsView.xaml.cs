@@ -69,6 +69,9 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         _document = onTheFlyDocsElement.Document;
 
         var sparkle = new ImageElement(new VisualStudio.Core.Imaging.ImageId(CopilotConstants.CopilotIconMonikerGuid, CopilotConstants.CopilotIconSparkleId));
+        object onDemandLinkText = _onTheFlyDocsInfo.IsContentExcluded
+            ? ToUIElement(new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement([new ClassifiedTextRun(ClassificationTypeNames.Text, EditorFeaturesResources.Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization)])))
+            : ClassifiedTextElement.CreateHyperlink(EditorFeaturesResources.Describe_with_Copilot, EditorFeaturesResources.Generate_summary_with_Copilot, () => RequestResults());
 
         OnDemandLinkContent = ToUIElement(
             new ContainerElement(
@@ -76,8 +79,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
                 new object[]
                 {
                     sparkle,
-                    ClassifiedTextElement.CreateHyperlink(EditorFeaturesResources.Describe_with_Copilot, EditorFeaturesResources.Generate_summary_with_Copilot, () =>
-                    RequestResults()),
+                    onDemandLinkText,
                 }));
 
         LoadingContent = ToUIElement(
@@ -202,7 +204,6 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         CurrentState = OnTheFlyDocsState.Loading;
         Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Loading_State_Entered, KeyValueLogMessage.Create(m =>
         {
-            m["SymbolHeaderText"] = _onTheFlyDocsInfo.SymbolSignature;
             m["HasDocumentationComments"] = _onTheFlyDocsInfo.HasComments;
         }, LogLevel.Information));
 

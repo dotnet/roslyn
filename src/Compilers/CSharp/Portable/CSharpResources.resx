@@ -4888,7 +4888,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Expected identifier or numeric literal</value>
   </data>
   <data name="ERR_InitializerOnNonAutoProperty" xml:space="preserve">
-    <value>Only auto-implemented properties can have initializers.</value>
+    <value>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</value>
   </data>
   <data name="ERR_InstancePropertyInitializerInInterface" xml:space="preserve">
     <value>Instance properties in interfaces cannot have initializers.</value>
@@ -6865,8 +6865,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="INF_TooManyBoundLambdas_Title" xml:space="preserve">
     <value>Compiling requires binding the lambda expression many times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</value>
   </data>
-  <data name="INF_IdentifierConflictWithContextualKeyword" xml:space="preserve">
-    <value>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</value>
+  <data name="WRN_FieldIsAmbiguous" xml:space="preserve">
+    <value>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</value>
+  </data>
+  <data name="WRN_FieldIsAmbiguous_Title" xml:space="preserve">
+    <value>The 'field' keyword binds to a synthesized backing field for the property.</value>
   </data>
   <data name="INF_IdentifierConflictWithContextualKeyword_Title" xml:space="preserve">
     <value>Identifier is a contextual keyword, with a specific meaning, in a later language version.</value>
@@ -7973,6 +7976,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PartialPropertyRequiredDifference" xml:space="preserve">
     <value>Both partial property declarations must be required or neither may be required</value>
+  </data>
+  <data name="ERR_PartialPropertyDuplicateInitializer" xml:space="preserve">
+    <value>A partial property cannot have an initializer on both the definition and implementation.</value>
   </data>
   <data name="IDS_FeatureAllowsRefStructConstraint" xml:space="preserve">
     <value>allows ref struct constraint</value>

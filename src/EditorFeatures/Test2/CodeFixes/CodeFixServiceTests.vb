@@ -355,7 +355,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Return Task.FromResult("")
             End Function
 
-            Public Function IsAnyExclusionAsync(cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsAnyExclusionAsync
+            Public Function IsFileExcludedAsync(filePath As String, cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsFileExcludedAsync
                 Return Task.FromResult(False)
             End Function
         End Class

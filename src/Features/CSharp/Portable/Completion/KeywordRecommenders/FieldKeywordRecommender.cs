@@ -5,10 +5,12 @@
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
 
-internal class FieldKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+internal sealed class FieldKeywordRecommender()
+    : AbstractSyntacticSingleKeywordRecommender(SyntaxKind.FieldKeyword)
 {
     // interfaces don't have members that you can put a [field:] attribute on
     private static readonly ISet<SyntaxKind> s_validTypeDeclarations = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer)
@@ -20,11 +22,36 @@ internal class FieldKeywordRecommender : AbstractSyntacticSingleKeywordRecommend
         SyntaxKind.EnumDeclaration,
     };
 
-    public FieldKeywordRecommender()
-        : base(SyntaxKind.FieldKeyword)
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
+        // `[field:` is legal in an attribute within a type.
+        if (context.IsMemberAttributeContext(s_validTypeDeclarations, cancellationToken))
+            return true;
+
+        // Check if we're within a property accessor where the `field` keyword is legal.  Note: we do not do a lang
+        // version check here.  We do not want to interfere with users trying to use/learn this feature.  The user will
+        // get a clear message if they're not on the right lang version telling them about the issue, and offering to
+        // upgrade their project if they way.
+        if (context.IsAnyExpressionContext || context.IsStatementContext)
+        {
+            if (!context.IsNameOfContext && IsInPropertyAccessor(context.TargetToken))
+                return true;
+        }
+
+        return false;
     }
 
-    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
-        => context.IsMemberAttributeContext(s_validTypeDeclarations, cancellationToken);
+    private static bool IsInPropertyAccessor(SyntaxToken targetToken)
+    {
+        for (var node = targetToken.Parent; node != null; node = node.Parent)
+        {
+            if (node is ArrowExpressionClauseSyntax { Parent: PropertyDeclarationSyntax })
+                return true;
+
+            if (node is AccessorDeclarationSyntax { Parent: AccessorListSyntax { Parent: PropertyDeclarationSyntax } })
+                return true;
+        }
+
+        return false;
+    }
 }
