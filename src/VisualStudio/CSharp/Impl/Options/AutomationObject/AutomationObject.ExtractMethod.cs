@@ -13,11 +13,5 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             get { return GetBooleanOption(ExtractMethodPresentationOptionsStorage.AllowBestEffort); }
             set { SetBooleanOption(ExtractMethodPresentationOptionsStorage.AllowBestEffort, value); }
         }
-
-        public int ExtractMethod_DoNotPutOutOrRefOnStruct
-        {
-            get { return GetBooleanOption(ExtractMethodOptionsStorage.DoNotPutOutOrRefOnStruct); }
-            set { SetBooleanOption(ExtractMethodOptionsStorage.DoNotPutOutOrRefOnStruct, value); }
-        }
     }
 }

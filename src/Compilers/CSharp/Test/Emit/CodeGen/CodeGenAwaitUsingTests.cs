@@ -324,6 +324,26 @@ class C : System.IAsyncDisposable
                 //         await using (var x = new C())
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "var x = new C()").WithArguments("C.DisposeAsync()").WithLocation(6, 22)
                 );
+
+            comp = CreateCompilationWithTasksExtensions([source, IAsyncDisposableDefinition], parseOptions: TestOptions.Regular7);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8107: Feature 'asynchronous using' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         await using (var x = new C())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "await").WithArguments("asynchronous using", "8.0").WithLocation(6, 9),
+                // (6,22): warning CS0612: 'C.DisposeAsync()' is obsolete
+                //         await using (var x = new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "var x = new C()").WithArguments("C.DisposeAsync()").WithLocation(6, 22),
+                // (6,22): error CS8107: Feature 'pattern-based disposal' is not available in C# 7.0. Please use language version 8.0 or greater.
+                //         await using (var x = new C())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "var x = new C()").WithArguments("pattern-based disposal", "8.0").WithLocation(6, 22)
+                );
+
+            comp = CreateCompilationWithTasksExtensions([source, IAsyncDisposableDefinition], parseOptions: TestOptions.Regular8, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // 0.cs(6,22): warning CS0612: 'C.DisposeAsync()' is obsolete
+                //         await using (var x = new C())
+                Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "var x = new C()").WithArguments("C.DisposeAsync()").WithLocation(6, 22)
+                );
         }
 
         [Fact]
@@ -581,10 +601,10 @@ class C
 ";
             var comp = CreateCompilationWithTasksExtensions(source);
             comp.VerifyDiagnostics(
-                // (6,22): error CS8410: 'C': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+                // (6,22): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new C()").WithArguments("C").WithLocation(6, 22),
-                // (9,22): error CS8410: 'C': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+                // (9,22): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (var x = new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(9, 22)
                 );
@@ -614,13 +634,13 @@ class C
                 // (6,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task<int>>'.
                 //         await using (new C())
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(6, 9),
-                // (6,22): error CS8410: 'C': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+                // (6,22): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "new C()").WithArguments("C").WithLocation(6, 22),
                 // (9,9): error CS4032: The 'await' operator can only be used within an async method. Consider marking this method with the 'async' modifier and changing its return type to 'Task<Task<int>>'.
                 //         await using (var x = new C())
                 Diagnostic(ErrorCode.ERR_BadAwaitWithoutAsyncMethod, "await").WithArguments("System.Threading.Tasks.Task<int>").WithLocation(9, 9),
-                // (9,22): error CS8410: 'C': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+                // (9,22): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (var x = new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(9, 22),
                 // (11,20): error CS0029: Cannot implicitly convert type 'int' to 'System.Threading.Tasks.Task<int>'
@@ -650,10 +670,10 @@ class C
             var comp = CreateCompilationWithMscorlib46(source);
             comp.MakeTypeMissing(SpecialType.System_IDisposable);
             comp.VerifyEmitDiagnostics(
-                // (6,16): error CS1674: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (6,16): error CS1674: 'C': type used in a using statement must implement 'System.IDisposable'.
                 //         using (new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new C()").WithArguments("C").WithLocation(6, 16),
-                // (9,16): error CS1674: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (9,16): error CS1674: 'C': type used in a using statement must implement 'System.IDisposable'.
                 //         using (var x = new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var x = new C()").WithArguments("C").WithLocation(9, 16)
                 );
@@ -910,7 +930,7 @@ class C : System.IAsyncDisposable
 ";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
-                // (6,16): error CS8418: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?
+                // (6,16): error CS8418: 'C': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?
                 //         using (var x = new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIDispWrongAsync, "var x = new C()").WithArguments("C").WithLocation(6, 16)
                 );
@@ -935,7 +955,7 @@ class C : System.IAsyncDisposable
 ";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
-                // (6,16): error CS8418: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using'?
+                // (6,16): error CS8418: 'C': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using'?
                 //         using (new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIDispWrongAsync, "new C()").WithArguments("C").WithLocation(6, 16)
                 );
@@ -2645,13 +2665,9 @@ public class C
 ";
             var comp = CreateCompilationWithTasksExtensions(new[] { source, IAsyncDisposableDefinition });
             comp.VerifyDiagnostics(
-                // (6,22): error CS0122: 'C.DisposeAsync()' is inaccessible due to its protection level
+                // 0.cs(6,22): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_BadAccess, "var x = new C()").WithArguments("C.DisposeAsync()").WithLocation(6, 22),
-                // (6,22): error CS8410: 'C': type used in an async using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
-                //         await using (var x = new C())
-                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(6, 22)
-                );
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "var x = new C()").WithArguments("C").WithLocation(6, 22));
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
@@ -3059,7 +3075,7 @@ class C
             var comp = CreateCompilation(source);
             comp.MakeTypeMissing(SpecialType.System_IDisposable);
             comp.VerifyDiagnostics(
-                // source(2,8): error CS1674: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // source(2,8): error CS1674: 'C': type used in a using statement must implement 'System.IDisposable'.
                 // using (new C()) { }
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new C()").WithArguments("C").WithLocation(2, 8)
                 );
@@ -3107,9 +3123,9 @@ ref struct C
                 """;
             // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (6,16): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,16): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         using (new R())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new R()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 16));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 16));
 
             var expectedDiagnostics = new[]
             {
@@ -3118,7 +3134,7 @@ ref struct C
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new R()").WithArguments("R").WithLocation(6, 16)
             };
 
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
@@ -3151,7 +3167,7 @@ ref struct C
             };
 
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics(expectedDiagnostics);
-            CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
@@ -3189,7 +3205,7 @@ ref struct C
             var expectedOutput = "123CD 123CD456";
 
             CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
-            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
@@ -3226,13 +3242,13 @@ ref struct C
                 }
                 """;
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (8,16): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,16): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         using ((await GetC()).GetR())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "(await GetC()).GetR()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 16));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "(await GetC()).GetR()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 16));
 
             var expectedOutput = "1GaGbC2D3";
 
-            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext, verify: Verification.FailsILVerify).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13, verify: Verification.FailsILVerify).VerifyDiagnostics();
             CompileAndVerify(source, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
         }
 
@@ -3265,13 +3281,13 @@ ref struct C
                 }
                 """;
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (10,16): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (10,16): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         using (new R())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new R()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(10, 16));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(10, 16));
 
             var expectedOutput = "12C3D45";
 
-            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
@@ -3314,7 +3330,7 @@ ref struct C
             var expectedOutput = "1a2C3D4b5";
 
             CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12).VerifyDiagnostics();
-            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
             CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
@@ -3347,13 +3363,13 @@ ref struct C
                 }
                 """;
             CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (8,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (8,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (new R())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new R()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(8, 22));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 22));
 
             var expectedOutput = "1C2D3";
 
-            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
@@ -3382,9 +3398,9 @@ ref struct C
                 """;
             // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
             CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (6,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (new R())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new R()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(6, 22));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 22));
 
             var expectedDiagnostics = new[]
             {
@@ -3393,7 +3409,7 @@ ref struct C
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new R()").WithArguments("R").WithLocation(6, 22)
             };
 
-            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilationWithTasksExtensions(source).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
@@ -3420,9 +3436,9 @@ ref struct C
                 """ + AsyncStreamsTypes;
             // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
             CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (7,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (new R())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new R()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 22));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 22));
 
             var expectedDiagnostics = new[]
             {
@@ -3431,7 +3447,7 @@ ref struct C
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "new R()").WithArguments("R").WithLocation(7, 22)
             };
 
-            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilationWithTasksExtensions(source).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
@@ -3456,9 +3472,9 @@ ref struct C
                 """ + AsyncStreamsTypes;
             // https://github.com/dotnet/roslyn/issues/73280 - should not be a langversion error since this remains an error in C# 13
             CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (7,21): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (7,21): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using var _ = new R();
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var").WithArguments("ref and unsafe in async and iterator methods").WithLocation(7, 21));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 21));
 
             var expectedDiagnostics = new[]
             {
@@ -3467,7 +3483,7 @@ ref struct C
                 Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "_ = new R()").WithArguments("R").WithLocation(7, 25)
             };
 
-            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilationWithTasksExtensions(source).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
@@ -3507,17 +3523,233 @@ ref struct C
                 }
                 """ + AsyncStreamsTypes;
             CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (15,22): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (15,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (new R())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new R()").WithArguments("ref and unsafe in async and iterator methods").WithLocation(15, 22));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new R()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(15, 22));
 
             var expectedOutput = "1CD 1CD2";
 
-            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.RegularNext, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
             comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73691")]
+        public void PatternBasedFails_WithInterfaceImplementation()
+        {
+            var source = """
+using System;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+await using var x = new Class1();
+
+internal class Class1 : IAsyncDisposable
+{
+    async ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        System.Console.Write("DISPOSED");
+        await Task.Yield();
+    }
+}
+
+internal static class EnumerableExtensions
+{
+    public static ValueTask DisposeAsync(this IEnumerable<object> objects)
+    {
+        throw null;
+    }
+}
+""";
+            var comp = CreateCompilationWithTasksExtensions([source, IAsyncDisposableDefinition]);
+            CompileAndVerify(comp, expectedOutput: "DISPOSED").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73691")]
+        public void PatternBasedFails_NoInterfaceImplementation()
+        {
+            var source = """
+using System;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+await using var x = new Class1();
+
+internal class Class1 { }
+
+internal static class EnumerableExtensions
+{
+    public static ValueTask DisposeAsync(this IEnumerable<object> objects)
+    {
+        throw null;
+    }
+}
+""";
+            var comp = CreateCompilationWithTasksExtensions([source, IAsyncDisposableDefinition]);
+            comp.VerifyEmitDiagnostics(
+                // (5,1): error CS8410: 'Class1': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+                // await using var x = new Class1();
+                Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "await using var x = new Class1();").WithArguments("Class1").WithLocation(5, 1));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73691")]
+        public void PatternBasedFails_WithInterfaceImplementation_UseSite()
+        {
+            // We attempt to bind pattern-based disposal (and collect diagnostics)
+            // then we bind to the IAsyncDisposable interface, which reports a use-site error
+            // and so we add the collected diagnostics
+            var source = """
+using System;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+internal class Class1 : IAsyncDisposable
+{
+    ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        throw null;
+    }
+
+    public async Task MethodWithCompilerError()
+    {
+        await using var x = new Class1();
+    }
+}
+
+internal static class EnumerableExtensions
+{
+    public static ValueTask DisposeAsync(this IEnumerable<object> objects)
+    {
+        throw null;
+    }
+}
+
+namespace System.Threading.Tasks
+{
+    public struct ValueTask
+    {
+        public Awaiter GetAwaiter() => null;
+        public class Awaiter : System.Runtime.CompilerServices.INotifyCompletion
+        {
+            public void OnCompleted(Action a) { }
+            public bool IsCompleted => true;
+            public void GetResult() { }
+        }
+    }
+}
+""";
+
+            var ilSrc = """
+.class interface public auto ansi abstract beforefieldinit System.IAsyncDisposable
+{
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerFeatureRequiredAttribute::.ctor(string) = ( 01 00 02 68 69 00 00 )
+    .method public hidebysig newslot abstract virtual instance valuetype [mscorlib]System.Threading.Tasks.ValueTask DisposeAsync () cil managed 
+    {
+    }
+}
+""";
+            var comp = CreateCompilationWithIL(source, ilSrc);
+            comp.VerifyEmitDiagnostics(
+                // (5,16): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+                // internal class Class1 : IAsyncDisposable
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "Class1").WithArguments("System.IAsyncDisposable", "hi").WithLocation(5, 16),
+                // (5,25): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+                // internal class Class1 : IAsyncDisposable
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "IAsyncDisposable").WithArguments("System.IAsyncDisposable", "hi").WithLocation(5, 25),
+                // (7,15): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+                //     ValueTask IAsyncDisposable.DisposeAsync()
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "IAsyncDisposable").WithArguments("System.IAsyncDisposable", "hi").WithLocation(7, 15),
+                // (7,32): error CS0539: 'Class1.DisposeAsync()' in explicit interface declaration is not found among members of the interface that can be implemented
+                //     ValueTask IAsyncDisposable.DisposeAsync()
+                Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "DisposeAsync").WithArguments("Class1.DisposeAsync()").WithLocation(7, 32),
+                // (14,9): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+                //         await using var x = new Class1();
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "await using var x = new Class1();").WithArguments("System.IAsyncDisposable", "hi").WithLocation(14, 9),
+                // (14,9): error CS9041: 'IAsyncDisposable' requires compiler feature 'hi', which is not supported by this version of the C# compiler.
+                //         await using var x = new Class1();
+                Diagnostic(ErrorCode.ERR_UnsupportedCompilerFeature, "await").WithArguments("System.IAsyncDisposable", "hi").WithLocation(14, 9));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72819")]
+        public void PatternBasedFails_AwaitUsing_08()
+        {
+            var src = """
+using System;
+using System.Threading.Tasks;
+
+interface IMyAsyncDisposable1
+{
+    ValueTask DisposeAsync();
+}
+
+interface IMyAsyncDisposable2
+{
+    ValueTask DisposeAsync();
+}
+
+struct S2 : IMyAsyncDisposable1, IMyAsyncDisposable2, IAsyncDisposable
+{
+    ValueTask IMyAsyncDisposable1.DisposeAsync() => throw null;
+    ValueTask IMyAsyncDisposable2.DisposeAsync() => throw null;
+
+    public ValueTask DisposeAsync()
+    {
+        System.Console.Write('D');
+        return ValueTask.CompletedTask;
+    }
+}
+
+class C
+{
+    static async Task Main()
+    {
+        await Test<S2>();
+    }
+
+    static async Task Test<T>() where T : IMyAsyncDisposable1, IMyAsyncDisposable2, IAsyncDisposable, new()
+    {
+        await using (new T())
+        {
+            System.Console.Write(123);
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "123D" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2066463")]
+        public void PatternBasedFails_AwaitUsing_Private()
+        {
+            var src = """
+using System;
+using System.Threading.Tasks;
+
+await using var service = new Service1();
+
+public sealed class Service1 : IAsyncDisposable
+{
+    private Task DisposeAsync()
+    {
+        return Task.CompletedTask;
+    }
+
+    ValueTask IAsyncDisposable.DisposeAsync()
+    {
+        System.Console.Write("ran");
+        return new ValueTask(DisposeAsync());
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "ran" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
         }
     }
 }

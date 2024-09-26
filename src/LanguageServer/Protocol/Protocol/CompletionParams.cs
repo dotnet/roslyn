@@ -9,13 +9,15 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing the parameters for the textDocument/completion request.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#completionParams">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
-    internal class CompletionParams : TextDocumentPositionParams, IPartialResultParams<SumType<CompletionItem[], CompletionList>?>
+    internal class CompletionParams : TextDocumentPositionParams, IPartialResultParams<SumType<CompletionItem[], CompletionList>?>, IWorkDoneProgressOptions
     {
         /// <summary>
-        /// Gets or sets the completion context.
+        /// The completion context. This is only available if the client specifies the
+        /// client capability <see cref="CompletionSetting.ContextSupport"/>.
         /// </summary>
         [JsonPropertyName("context")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -25,9 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
             set;
         }
 
-        /// <summary>
-        /// Gets or sets the value of the PartialResultToken instance.
-        /// </summary>
+        /// <inheritdoc/>
         [JsonPropertyName(Methods.PartialResultTokenName)]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public IProgress<SumType<CompletionItem[], CompletionList>?>? PartialResultToken
@@ -35,5 +35,10 @@ namespace Roslyn.LanguageServer.Protocol
             get;
             set;
         }
+
+        /// <inheritdoc/>
+        [JsonPropertyName("workDoneProgress")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+        public bool WorkDoneProgress { get; init; }
     }
 }

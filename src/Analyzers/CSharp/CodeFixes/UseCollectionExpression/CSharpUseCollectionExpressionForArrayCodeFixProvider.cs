@@ -36,7 +36,6 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider()
     protected sealed override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         ExpressionSyntax arrayCreationExpression,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
@@ -72,7 +71,6 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider()
 
             var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
                 document,
-                fallbackOptions,
                 arrayCreationExpression,
                 matches,
                 static e => e switch
@@ -105,11 +103,11 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider()
             {
                 ImplicitArrayCreationExpressionSyntax arrayCreation
                     => CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(
-                        semanticModel, arrayCreation, expressionType, allowSemanticsChange: true, cancellationToken, out _),
+                        semanticModel, arrayCreation, CreateReplacementCollectionExpressionForAnalysis(arrayCreation.Initializer), expressionType, allowSemanticsChange: true, cancellationToken, out _),
 
                 ArrayCreationExpressionSyntax arrayCreation
                     => CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(
-                        semanticModel, arrayCreation, expressionType, allowSemanticsChange: true, cancellationToken, out _),
+                        semanticModel, arrayCreation, CreateReplacementCollectionExpressionForAnalysis(arrayCreation.Initializer), expressionType, allowSemanticsChange: true, cancellationToken, out _),
 
                 // We validated this is unreachable in the caller.
                 _ => throw ExceptionUtilities.Unreachable(),

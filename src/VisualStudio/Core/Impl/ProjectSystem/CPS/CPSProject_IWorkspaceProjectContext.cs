@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                     _ => null
                 };
 
-                return (prefix != null) ? new ProjectExternalErrorReporter(projectSystemProject.Id, prefix, projectSystemProject.Language, visualStudioWorkspace) : null;
+                return (prefix != null) ? new ProjectExternalErrorReporter(projectSystemProject.Id, projectGuid, prefix, projectSystemProject.Language, visualStudioWorkspace) : null;
             });
 
             _projectCodeModel = projectCodeModelFactory.CreateProjectCodeModel(projectSystemProject.Id, new CPSCodeModelInstanceFactory(this));

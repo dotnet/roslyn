@@ -224,7 +224,7 @@ End Namespace
 
             Dim c1 = VisualBasicCompilation.Create("Test1",
                 syntaxTrees:={VisualBasicSyntaxTree.ParseText(source1.Value)},
-                references:={TestMetadata.Net40.mscorlib})
+                references:={Net40.References.mscorlib})
 
             Assert.Null(c1.GetTypeByMetadataName("DoesntExist"))
             Assert.Null(c1.GetTypeByMetadataName("DoesntExist`1"))
@@ -239,14 +239,14 @@ End Namespace
             Dim c2 = VisualBasicCompilation.Create("Test2",
                         syntaxTrees:={VisualBasicSyntaxTree.ParseText(source2.Value)},
                         references:={New VisualBasicCompilationReference(c1),
-                                        TestMetadata.Net40.mscorlib})
+                                        Net40.References.mscorlib})
 
             Dim c2TestClass As NamedTypeSymbol = c2.GetTypeByMetadataName("System.TestClass")
             Assert.Same(c2.Assembly, c2TestClass.ContainingAssembly)
 
             Dim c3 = VisualBasicCompilation.Create("Test3",
                         references:={New VisualBasicCompilationReference(c2),
-                                    TestMetadata.Net40.mscorlib})
+                                    Net40.References.mscorlib})
 
             Dim c3TestClass As NamedTypeSymbol = c3.GetTypeByMetadataName("System.TestClass")
             Assert.NotSame(c2TestClass, c3TestClass)
@@ -256,7 +256,7 @@ End Namespace
 
             Dim c4 = VisualBasicCompilation.Create("Test4",
                         references:={New VisualBasicCompilationReference(c1), New VisualBasicCompilationReference(c2),
-                                    TestMetadata.Net40.mscorlib})
+                                    Net40.References.mscorlib})
 
             Dim c4TestClass As NamedTypeSymbol = c4.GetTypeByMetadataName("System.TestClass")
             Assert.Null(c4TestClass)

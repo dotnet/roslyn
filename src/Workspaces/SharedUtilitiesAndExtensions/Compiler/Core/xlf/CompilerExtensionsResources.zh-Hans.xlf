@@ -52,6 +52,11 @@
         <target state="translated">字段首选项</target>
         <note />
       </trans-unit>
+      <trans-unit id="Instantiated_parts_threw_exceptions_from_IDisposable_Dispose">
+        <source>Instantiated part(s) threw exception(s) from IDisposable.Dispose().</source>
+        <target state="translated">实例化的部件从 IDisposable.Dispose() 中引发异常。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Interface">
         <source>Interface</source>
         <target state="new">Interface</target>

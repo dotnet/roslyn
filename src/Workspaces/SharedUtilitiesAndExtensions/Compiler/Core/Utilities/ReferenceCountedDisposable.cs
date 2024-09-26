@@ -186,10 +186,8 @@ internal sealed class ReferenceCountedDisposable<T> : IReferenceCountedDisposabl
         if (instanceToDispose == null)
             return ValueTaskFactory.CompletedTask;
 
-#if !CODE_STYLE
         if (instanceToDispose is IAsyncDisposable asyncDisposable)
             return asyncDisposable.DisposeAsync();
-#endif
 
         instanceToDispose.Dispose();
         return ValueTaskFactory.CompletedTask;

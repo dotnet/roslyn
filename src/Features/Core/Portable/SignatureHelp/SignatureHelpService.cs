@@ -43,7 +43,6 @@ internal sealed class SignatureHelpService([ImportMany] IEnumerable<Lazy<ISignat
         Document document,
         int position,
         SignatureHelpTriggerInfo triggerInfo,
-        SignatureHelpOptions options,
         CancellationToken cancellationToken)
     {
         return GetSignatureHelpAsync(
@@ -51,7 +50,6 @@ internal sealed class SignatureHelpService([ImportMany] IEnumerable<Lazy<ISignat
             document,
             position,
             triggerInfo,
-            options,
             cancellationToken);
     }
 
@@ -64,10 +62,11 @@ internal sealed class SignatureHelpService([ImportMany] IEnumerable<Lazy<ISignat
         Document document,
         int position,
         SignatureHelpTriggerInfo triggerInfo,
-        SignatureHelpOptions options,
         CancellationToken cancellationToken)
     {
         var extensionManager = document.Project.Solution.Services.GetRequiredService<IExtensionManager>();
+
+        var options = await document.GetMemberDisplayOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         ISignatureHelpProvider? bestProvider = null;
         SignatureHelpItems? bestItems = null;

@@ -48,16 +48,20 @@ internal sealed class OnTheFlyDocsViewFactory : IViewElementFactory
 
         var editorFeaturesOnTheFlyDocsElement = (EditorFeaturesOnTheFlyDocsElement)model;
 
-        Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Showed_Link, KeyValueLogMessage.Create(m =>
-        {
-            m["SymbolHeaderText"] = editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsElement.SymbolSignature;
-        }, LogLevel.Information));
+        Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Showed_Link, logLevel: LogLevel.Information);
 
         var quickInfoSession = _asyncQuickInfoBroker.GetSession(textView);
 
         if (quickInfoSession is null)
         {
             throw new InvalidOperationException("QuickInfoSession is null");
+        }
+
+        OnTheFlyDocsLogger.LogShowedOnTheFlyDocsLink();
+
+        if (editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsElement.HasComments)
+        {
+            OnTheFlyDocsLogger.LogShowedOnTheFlyDocsLinkWithDocComments();
         }
 
         return new OnTheFlyDocsView(textView, _factoryService, _listenerProvider, quickInfoSession, _threadingContext, editorFeaturesOnTheFlyDocsElement) as TView;

@@ -14,7 +14,7 @@
       </trans-unit>
       <trans-unit id="Anonymous_function_can_be_made_static">
         <source>Anonymous function can be made static</source>
-        <target state="new">Anonymous function can be made static</target>
+        <target state="translated">La función anónima se puede hacer estática</target>
         <note />
       </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_arrow_expression_clause_token">
@@ -99,7 +99,7 @@
       </trans-unit>
       <trans-unit id="Make_anonymous_function_static">
         <source>Make anonymous function static</source>
-        <target state="new">Make anonymous function static</target>
+        <target state="translated">Hacer que la función anónima sea estática</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_member_readonly">
@@ -236,6 +236,11 @@
         <source>Unreachable code detected</source>
         <target state="translated">Se detectó código inaccesible</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Use_System_Threading_Lock">
+        <source>Use 'System.Threading.Lock'</source>
+        <target state="translated">Usar "System.Threading.Lock"</target>
+        <note>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>

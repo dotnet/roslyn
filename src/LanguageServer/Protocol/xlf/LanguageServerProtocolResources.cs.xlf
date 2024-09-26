@@ -7,6 +7,21 @@
         <target state="translated">Nejde deserializovat identifikátor Uri. Zjistila se neočekávaná hodnota: {0}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="FormattingOptionsEncounteredInvalidToken">
+        <source>Unable to deserialize FormattingOptions. Invalid token: {0}</source>
+        <target state="translated">Nejde deserializovat rozhraní FormattingOptions. Neplatný token: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FormattingOptionsEndedUnexpectedly">
+        <source>Unable to deserialize FormattingOptions as it ended unexpectedly</source>
+        <target state="translated">Nejde deserializovat rozhraní FormattingOptions, protože skončilo neočekávaně.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FormattingOptionsMissingRequiredProperty">
+        <source>Unable to deserialize FormattingOptions. Missing required property: {0}</source>
+        <target state="translated">Nejde deserializovat rozhraní FormattingOptions. Chybí požadovaná vlastnost: {0}.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MarkupContentSerializationError">
         <source>Unable to deserialize MarkupContent. Unexpected value encountered: {0}</source>
         <target state="translated">Nejde deserializovat MarkupContent. Zjistila se neočekávaná hodnota: {0}.</target>

@@ -59,12 +59,12 @@
       </trans-unit>
       <trans-unit id="CancelQuery">
         <source>Cancel Query</source>
-        <target state="new">Cancel Query</target>
+        <target state="translated">取消查询</target>
         <note />
       </trans-unit>
       <trans-unit id="CancelQueryCommandToolTip">
         <source>Cancel (Escape)</source>
-        <target state="new">Cancel (Escape)</target>
+        <target state="translated">取消 (Escape)</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">
@@ -184,17 +184,17 @@
       </trans-unit>
       <trans-unit id="RunQuery">
         <source>Run Query</source>
-        <target state="new">Run Query</target>
+        <target state="translated">运行查询</target>
         <note />
       </trans-unit>
       <trans-unit id="RunQueryCommandToolTip">
         <source>Run (Ctrl+Enter)</source>
-        <target state="new">Run (Ctrl+Enter)</target>
+        <target state="translated">运行 (Ctrl+Enter)</target>
         <note />
       </trans-unit>
       <trans-unit id="SemanticSearch">
         <source>Semantic Search</source>
-        <target state="new">Semantic Search</target>
+        <target state="translated">语义搜索</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
@@ -759,7 +759,7 @@
       </trans-unit>
       <trans-unit id="Always_add_new_line_on_enter">
         <source>_Always add new line on enter</source>
-        <target state="translated">按下 Enter 时始终添加新行(_A)</target>
+        <target state="translated">始终在按下 Enter 时添加新行(_A)</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_add_new_line_on_enter">

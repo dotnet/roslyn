@@ -56,8 +56,8 @@ internal partial class VisualStudioDiagnosticAnalyzerProvider : IHostDiagnosticA
 
             // var enabledExtensions = extensionManager.GetEnabledExtensions(AnalyzerContentTypeName);
             var extensionManagerType = _extensionManager.GetType();
-            var extensionManager_GetEnabledExtensionsMethod = extensionManagerType.GetRuntimeMethod("GetEnabledExtensions", new Type[] { typeof(string) });
-            var enabledExtensions = (IEnumerable<object>)extensionManager_GetEnabledExtensionsMethod.Invoke(_extensionManager, new object[] { AnalyzerContentTypeName });
+            var extensionManager_GetEnabledExtensionsMethod = extensionManagerType.GetRuntimeMethod("GetEnabledExtensions", [typeof(string)]);
+            var enabledExtensions = (IEnumerable<object>)extensionManager_GetEnabledExtensionsMethod.Invoke(_extensionManager, [AnalyzerContentTypeName]);
 
             foreach (var extension in enabledExtensions)
             {
@@ -78,8 +78,8 @@ internal partial class VisualStudioDiagnosticAnalyzerProvider : IHostDiagnosticA
                         continue;
                     }
 
-                    var extensionType_GetContentMethod = extensionType.GetRuntimeMethod("GetContentLocation", new Type[] { _typeIExtensionContent });
-                    if (extensionType_GetContentMethod?.Invoke(extension, new object[] { content }) is not string assemblyPath ||
+                    var extensionType_GetContentMethod = extensionType.GetRuntimeMethod("GetContentLocation", [_typeIExtensionContent]);
+                    if (extensionType_GetContentMethod?.Invoke(extension, [content]) is not string assemblyPath ||
                         string.IsNullOrEmpty(assemblyPath))
                     {
                         continue;

@@ -44,37 +44,37 @@
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\..\Tools\ExternalAccess\Apex\Microsoft.CodeAnalysis.ExternalAccess.Apex.csproj">
+    <ProjectReference Include="..\ExternalAccess\Apex\Microsoft.CodeAnalysis.ExternalAccess.Apex.csproj">
       <Name>Microsoft.CodeAnalysis.ExternalAccess.Apex</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\..\Tools\ExternalAccess\Copilot\Microsoft.CodeAnalysis.ExternalAccess.Copilot.csproj">
+    <ProjectReference Include="..\..\EditorFeatures\ExternalAccess\Copilot\Microsoft.CodeAnalysis.ExternalAccess.Copilot.csproj">
       <Name>Microsoft.CodeAnalysis.ExternalAccess.Copilot</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\..\Tools\ExternalAccess\Debugger\Microsoft.CodeAnalysis.ExternalAccess.Debugger.csproj">
+    <ProjectReference Include="..\..\EditorFeatures\ExternalAccess\Debugger\Microsoft.CodeAnalysis.ExternalAccess.Debugger.csproj">
       <Name>Microsoft.CodeAnalysis.ExternalAccess.Debugger</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\..\Tools\ExternalAccess\EditorConfigGenerator\Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.csproj">
+    <ProjectReference Include="..\ExternalAccess\EditorConfigGenerator\Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator.csproj">
       <Name>Microsoft.CodeAnalysis.ExternalAccess.EditorConfigGenerator</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\..\Tools\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj">
+    <ProjectReference Include="..\..\Features\ExternalAccess\AspNetCore\Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.csproj">
       <Name>Microsoft.CodeAnalysis.ExternalAccess.AspNetCore</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
-    <ProjectReference Include="..\..\Tools\ExternalAccess\FSharp\Microsoft.CodeAnalysis.ExternalAccess.FSharp.csproj">
+    <ProjectReference Include="..\ExternalAccess\FSharp\Microsoft.CodeAnalysis.ExternalAccess.FSharp.csproj">
       <Name>Microsoft.CodeAnalysis.ExternalAccess.FSharp</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
@@ -82,6 +82,12 @@
     </ProjectReference>
     <ProjectReference Include="..\..\Tools\ExternalAccess\Razor\Microsoft.CodeAnalysis.ExternalAccess.Razor.csproj">
       <Name>Microsoft.CodeAnalysis.ExternalAccess.Razor</Name>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
+      <PkgDefEntry>BindingRedirect</PkgDefEntry>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj">
+      <Name>Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
@@ -200,7 +206,7 @@
     </ProjectReference>
     <ProjectReference Include="..\CSharp\Impl\Microsoft.VisualStudio.LanguageServices.CSharp.csproj">
       <Name>CSharpVisualStudio</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup;ContentFilesProjectOutputGroup;SatelliteDllsProjectOutputGroup;ExtensionJsonOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;PkgDefProjectOutputGroup;ContentFilesProjectOutputGroup;SatelliteDllsProjectOutputGroup;ExtensionJsonOutputGroupFixed</IncludeOutputGroupsInVSIX>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
     </ProjectReference>
@@ -272,7 +278,7 @@
 
       <Private>false</Private>
       <VSIXSubPath>InteractiveHost\Core</VSIXSubPath>
-      <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>PublishedProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
 
       <!-- Disable NGEN. Core assemblies are crossgened. -->
@@ -287,7 +293,7 @@
 
       <Private>false</Private>
       <VSIXSubPath>InteractiveHost\Desktop</VSIXSubPath>
-      <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>PublishedProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\..\Interactive\HostProcess\x86\InteractiveHost32.csproj">
@@ -302,7 +308,7 @@
 
       <Private>false</Private>
       <VSIXSubPath>InteractiveHost\Desktop</VSIXSubPath>
-      <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>PublishedProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\..\Tools\SemanticSearch\ReferenceAssemblies\SemanticSearch.ReferenceAssemblies.csproj">
@@ -311,7 +317,7 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <VSIXSubPath>SemanticSearchRefs</VSIXSubPath>
-      <IncludeOutputGroupsInVSIX>PublishProjectOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>PublishedProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
       <Ngen>false</Ngen>
     </ProjectReference>

@@ -75,7 +75,7 @@ catch {
   Write-Host $_
   Write-Host $_.Exception
   Write-Host $_.ScriptStackTrace
-  Write-Host "##vso[task.logissue type=error]How to investigate bootstrap failures: https://github.com/dotnet/roslyn/blob/main/docs/compilers/Bootstrap%20Builds.md#Investigating"
+  Write-Host "##vso[task.logissue type=error]How to investigate bootstrap failures: https://github.com/dotnet/roslyn/blob/main/docs/contributing/Bootstrap%20Builds.md#Investigating"
   ExitWithExitCode 1
 }
 finally {

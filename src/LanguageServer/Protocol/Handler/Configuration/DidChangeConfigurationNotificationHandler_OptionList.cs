@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             CompletionOptionsStorage.ShowNameSuggestions,
             CompletionOptionsStorage.ProvideRegexCompletions,
             CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces,
+            CompletionOptionsStorage.TriggerInArgumentLists,
             QuickInfoOptionsStorage.ShowRemarksInQuickInfo,
             MetadataAsSourceOptionsStorage.NavigateToDecompiledSources,
             HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor,
@@ -43,6 +44,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             InlineHintsOptionsStorage.ForImplicitVariableTypes,
             InlineHintsOptionsStorage.ForLambdaParameterTypes,
             InlineHintsOptionsStorage.ForImplicitObjectCreation,
+            InlineHintsOptionsStorage.ForCollectionExpressions,
             FormattingOptions2.TabSize,
             FormattingOptions2.IndentationSize,
             FormattingOptions2.UseTabs,
@@ -54,6 +56,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             LspOptionsStorage.LspEnableTestsCodeLens,
             LanguageServerProjectSystemOptionsStorage.BinaryLogPath,
             LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore,
+            MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources,
         ];
     }
 }

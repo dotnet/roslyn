@@ -2,8 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared;
 
@@ -17,7 +18,7 @@ internal sealed record class CompletionOptions
     public bool TriggerInArgumentLists { get; init; } = true;
     public EnterKeyRule EnterKeyBehavior { get; init; } = EnterKeyRule.Default;
     public SnippetsRule SnippetsBehavior { get; init; } = SnippetsRule.Default;
-    public bool HideAdvancedMembers { get; init; } = false;
+    public MemberDisplayOptions MemberDisplayOptions { get; init; } = MemberDisplayOptions.Default;
     public bool ShowNameSuggestions { get; init; } = true;
     public bool? ShowItemsFromUnimportedNamespaces { get; init; } = true;
     public bool UnnamedSymbolCompletionDisabled { get; init; } = false;
@@ -51,7 +52,6 @@ internal sealed record class CompletionOptions
     public bool? ShowNewSnippetExperienceUserOption { get; init; } = null;
     public bool ShowNewSnippetExperienceFeatureFlag { get; init; } = true;
     public ExpandedCompletionMode ExpandedCompletionBehavior { get; init; } = ExpandedCompletionMode.AllItems;
-    public NamingStylePreferences? NamingStyleFallbackOptions { get; init; } = null;
 
     public static readonly CompletionOptions Default = new();
 
@@ -59,7 +59,7 @@ internal sealed record class CompletionOptions
         => new()
         {
             FilterOutOfScopeLocals = FilterOutOfScopeLocals,
-            HideAdvancedMembers = HideAdvancedMembers
+            HideAdvancedMembers = MemberDisplayOptions.HideAdvancedMembers
         };
 
     /// <summary>

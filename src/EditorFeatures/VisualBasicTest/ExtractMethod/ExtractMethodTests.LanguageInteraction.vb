@@ -3248,36 +3248,6 @@ End Module
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
-            Public Async Function TestDoNotPutOutOrRefOnStructOff() As Task
-                Dim code =
-<text>
-Imports System.Threading.Tasks
-
-Namespace ClassLibrary9
-    Public Structure S
-        Public I As Integer
-    End Structure
-
-    Public Class Class1
-        Public Async Function Test() As Task(Of Integer)
-            Dim s = New S()
-            s.I = 10
-
-            [|Dim i = Await Task.Run(Function()
-                                       Dim i2 = s.I
-                                       Return Test()
-                                   End Function)|]
-
-            Return i
-        End Function
-    End Class
-End Namespace
-</text>
-
-                Await ExpectExtractMethodToFailAsync(code, dontPutOutOrRefOnStruct:=False)
-            End Function
-
-            <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>
             Public Async Function TestDoNotPutOutOrRefOnStructOn() As Task
                 Dim code =
 <text>
@@ -3332,7 +3302,7 @@ Namespace ClassLibrary9
     End Class
 End Namespace
 </text>
-                Await TestExtractMethodAsync(code, expected, dontPutOutOrRefOnStruct:=True)
+                Await TestExtractMethodAsync(code, expected)
             End Function
 
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>

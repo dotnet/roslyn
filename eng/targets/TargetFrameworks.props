@@ -35,7 +35,7 @@
         bootstrap toolset in other repos doing (1). Those can be using a NetPrevious runtime hence 
         the toolset must support that.
     -->
-    <When Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' != 'Product'">
+    <When Condition="'$(DotNetBuildSourceOnly)' == 'true' AND '$(DotNetBuildOrchestrator)' != 'true'">
       <PropertyGroup>
         <!-- TODO until we figure out what is up with NetPrevious -->
         <NetPrevious>$(NetMinimum)</NetPrevious>
@@ -50,7 +50,7 @@
     <!--
       2. Source build the product: this is the all up build of the product which needs only NetCurrent
     -->
-    <When Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' == 'Product'">
+    <When Condition="'$(DotNetBuildSourceOnly)' == 'true' AND '$(DotNetBuildOrchestrator)' == 'true'">
       <PropertyGroup>
         <NetRoslyn>$(NetCurrent)</NetRoslyn>
         <NetRoslynSourceBuild>$(NetCurrent);$(NetPrevious)</NetRoslynSourceBuild>

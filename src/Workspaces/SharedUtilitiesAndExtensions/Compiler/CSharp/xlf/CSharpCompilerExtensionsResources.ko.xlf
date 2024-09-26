@@ -7,6 +7,11 @@
         <target state="translated">코드 블록 기본 설정</target>
         <note />
       </trans-unit>
+      <trans-unit id="EditorConfig_option_0_contains_unrecognized_value_1">
+        <source>EditorConfig option '{0}' contains unrecognized value '{1}'</source>
+        <target state="translated">EditorConfig 옵션 '{0}'에 인식할 수 없는 값 '{1}'이(가) 있습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expected_string_or_char_literal">
         <source>Expected string or char literal</source>
         <target state="translated">문자열 또는 문자 리터럴이 필요합니다.</target>

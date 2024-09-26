@@ -1529,7 +1529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AutoPropsInRoStruct = 8341,
         ERR_FieldlikeEventsInRoStruct = 8342,
         // ERR_RefStructInterfaceImpl = 8343,
-        ERR_BadSpecialByRefIterator = 8344,
+        // ERR_BadSpecialByRefIterator = 8344,
         ERR_FieldAutoPropCantBeByRefLike = 8345,
         ERR_StackAllocConversionNotPossible = 8346,
 
@@ -2289,10 +2289,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefLocalAcrossAwait = 9217,
 
         ERR_DynamicDispatchToParamsCollection = 9218,
-        ERR_ParamsCollectionAmbiguousDynamicArgument = 9219,
-        WRN_DynamicDispatchToParamsCollectionMethod = 9220,
-        WRN_DynamicDispatchToParamsCollectionIndexer = 9221,
-        WRN_DynamicDispatchToParamsCollectionConstructor = 9222,
+        // available 9219,
+        // available 9220,
+        // available 9221,
+        ERR_CollectionInitializerInfiniteChainOfAddCalls = 9222,
         ERR_ParamsCollectionInfiniteChainOfConstructorCalls = 9223,
         ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember = 9224,
         ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember = 9225,
@@ -2312,7 +2312,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        WRN_BadYieldInLock = 9237,
+        // available 9237
         ERR_BadYieldInUnsafe = 9238,
         ERR_AddressOfInIterator = 9239,
 
@@ -2336,7 +2336,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_PartialPropertySignatureDifference = 9256,
         ERR_PartialPropertyRequiredDifference = 9257,
 
-        INF_IdentifierConflictWithContextualKeyword = 9258,
+        WRN_FieldIsAmbiguous = 9258,
+
+        ERR_InlineArrayAttributeOnRecord = 9259,
+        ERR_FeatureNotAvailableInVersion13 = 9260,
+
+        ERR_CannotApplyOverloadResolutionPriorityToOverride = 9261,
+        ERR_CannotApplyOverloadResolutionPriorityToMember = 9262,
+        ERR_PartialPropertyDuplicateInitializer = 9263,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

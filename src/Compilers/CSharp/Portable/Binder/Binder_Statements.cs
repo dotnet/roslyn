@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -270,11 +271,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Error(diagnostics, ErrorCode.ERR_BadYieldInUnsafe, node.YieldKeyword);
             }
-            // NOTE: Error conditions should be checked above this point; only warning conditions below.
-            else if (this.Flags.Includes(BinderFlags.InLockBody))
-            {
-                Error(diagnostics, ErrorCode.WRN_BadYieldInLock, node.YieldKeyword);
-            }
 
             CheckRequiredLangVersionForIteratorMethods(node, diagnostics);
             return new BoundYieldReturnStatement(node, argument);
@@ -479,8 +475,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
             var binder = this.LookupSymbolsWithFallback(result, node.Identifier.ValueText, arity: 0, useSiteInfo: ref useSiteInfo, options: LookupOptions.LabelsOnly);
 
-            ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
-
             // result.Symbols can be empty in some malformed code, e.g. when a labeled statement is used an embedded statement in an if or foreach statement
             // In this case we create new label symbol on the fly, and an error is reported by parser
             var symbol = result.Symbols.Count > 0 && result.IsMultiViable ?
@@ -560,8 +554,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement BindLocalFunctionStatement(LocalFunctionStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
             MessageID.IDS_FeatureLocalFunctions.CheckFeatureAvailability(diagnostics, node.Identifier);
-
-            ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
 
             // already defined symbol in containing block
             var localSymbol = this.LookupLocalFunction(node.Identifier);
@@ -783,13 +775,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if ((!hasAwait && disposeMethod?.ReturnsVoid == false)
                 || result == PatternLookupResult.NotAMethod)
             {
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                if (this.IsAccessible(disposeMethod, ref useSiteInfo))
-                {
-                    diagnostics.Add(ErrorCode.WRN_PatternBadSignature, syntaxNode.Location, expr.Type, MessageID.IDS_Disposable.Localize(), disposeMethod);
-                }
-
-                diagnostics.Add(syntaxNode, useSiteInfo);
                 disposeMethod = null;
             }
 
@@ -972,7 +957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(declarator != null);
 
-            return BindVariableDeclaration(LocateDeclaredVariableSymbol(declarator, typeSyntax, kind, diagnostics),
+            return BindVariableDeclaration(LocateDeclaredVariableSymbol(declarator, typeSyntax, kind),
                                            kind,
                                            isVar,
                                            declarator,
@@ -1206,10 +1191,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return arguments;
         }
 
-        private SourceLocalSymbol LocateDeclaredVariableSymbol(VariableDeclaratorSyntax declarator, TypeSyntax typeSyntax, LocalDeclarationKind outerKind, BindingDiagnosticBag diagnostics)
+        private SourceLocalSymbol LocateDeclaredVariableSymbol(VariableDeclaratorSyntax declarator, TypeSyntax typeSyntax, LocalDeclarationKind outerKind)
         {
-            ReportFieldOrValueContextualKeywordConflictIfAny(declarator, declarator.Identifier, diagnostics);
-
             LocalDeclarationKind kind = outerKind == LocalDeclarationKind.UsingVariable ? LocalDeclarationKind.UsingVariable : LocalDeclarationKind.RegularVariable;
             return LocateDeclaredVariableSymbol(declarator.Identifier, typeSyntax, declarator.Initializer, kind);
         }
@@ -1767,26 +1750,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new CSDiagnosticInfo(ErrorCode.ERR_BadEventUsageNoField, leastOverridden);
         }
 
+#nullable enable
         internal static bool AccessingAutoPropertyFromConstructor(BoundPropertyAccess propertyAccess, Symbol fromMember)
         {
-            return AccessingAutoPropertyFromConstructor(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember);
+            return AccessingAutoPropertyFromConstructor(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember, propertyAccess.AutoPropertyAccessorKind);
         }
 
-        private static bool AccessingAutoPropertyFromConstructor(BoundExpression receiver, PropertySymbol propertySymbol, Symbol fromMember)
+        private static bool AccessingAutoPropertyFromConstructor(BoundExpression? receiver, PropertySymbol propertySymbol, Symbol fromMember, AccessorKind accessorKind)
+        {
+            if (!HasSynthesizedBackingField(propertySymbol, out var sourceProperty))
+            {
+                return false;
+            }
+
+            var propertyIsStatic = propertySymbol.IsStatic;
+
+            return sourceProperty is { } &&
+                sourceProperty.CanUseBackingFieldDirectlyInConstructor(useAsLvalue: accessorKind != AccessorKind.Get) &&
+                TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.AllIgnoreOptions) &&
+                IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
+                (propertyIsStatic || receiver?.Kind == BoundKind.ThisReference);
+        }
+
+        private static bool HasSynthesizedBackingField(PropertySymbol propertySymbol, [NotNullWhen(true)] out SourcePropertySymbolBase? sourcePropertyDefinition)
         {
             if (!propertySymbol.IsDefinition && propertySymbol.ContainingType.Equals(propertySymbol.ContainingType.OriginalDefinition, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 propertySymbol = propertySymbol.OriginalDefinition;
             }
 
-            var sourceProperty = propertySymbol as SourcePropertySymbolBase;
-            var propertyIsStatic = propertySymbol.IsStatic;
+            if (propertySymbol is SourcePropertySymbolBase { BackingField: { } } sourceProperty)
+            {
+                sourcePropertyDefinition = sourceProperty;
+                return true;
+            }
 
-            return (object)sourceProperty != null &&
-                    sourceProperty.IsAutoPropertyWithGetAccessor &&
-                    TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.AllIgnoreOptions) &&
-                    IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
-                    (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);
+            sourcePropertyDefinition = null;
+            return false;
         }
 
         private static bool IsConstructorOrField(Symbol member, bool isStatic)
@@ -1796,6 +1796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                 MethodKind.Constructor) ||
                     (member as FieldSymbol)?.IsStatic == isStatic;
         }
+#nullable disable
 
         private TypeSymbol GetAccessThroughType(BoundExpression receiver)
         {
@@ -3164,8 +3165,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var declaration = node.Declaration;
             if (declaration != null)
             {
-                ReportFieldOrValueContextualKeywordConflictIfAny(declaration, declaration.Identifier, diagnostics);
-
                 // Note: The type is being bound twice: here and in LocalSymbol.Type. Currently,
                 // LocalSymbol.Type ignores diagnostics so it seems cleaner to bind the type here
                 // as well. However, if LocalSymbol.Type is changed to report diagnostics, we'll
@@ -3601,7 +3600,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode BindPrimaryConstructorBody(TypeDeclarationSyntax typeDecl, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(typeDecl.ParameterList is object);
-            Debug.Assert(typeDecl.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.ClassDeclaration);
+            Debug.Assert(typeDecl.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.ClassDeclaration or SyntaxKind.RecordStructDeclaration or SyntaxKind.StructDeclaration);
 
             BoundExpressionStatement initializer;
             ImmutableArray<LocalSymbol> constructorLocals;

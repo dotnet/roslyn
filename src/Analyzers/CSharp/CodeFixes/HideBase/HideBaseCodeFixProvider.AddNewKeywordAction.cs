@@ -6,8 +6,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.OrderModifiers;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.OrderModifiers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -18,20 +20,19 @@ using static CSharpSyntaxTokens;
 
 internal partial class HideBaseCodeFixProvider
 {
-    private class AddNewKeywordAction(Document document, SyntaxNode node, CodeActionOptionsProvider fallbackOptions) : CodeAction
+    private class AddNewKeywordAction(Document document, SyntaxNode node) : CodeAction
     {
         private readonly Document _document = document;
         private readonly SyntaxNode _node = node;
-        private readonly CodeActionOptionsProvider _fallbackOptions = fallbackOptions;
 
         public override string Title => CSharpCodeFixesResources.Hide_base_member;
 
         protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
         {
             var root = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var options = await _document.GetCSharpCodeFixOptionsProviderAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var configOptions = await _document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var newNode = GetNewNode(_node, options.PreferredModifierOrder.Value);
+            var newNode = GetNewNode(_node, configOptions.GetOption(CSharpCodeStyleOptions.PreferredModifierOrder).Value);
             var newRoot = root.ReplaceNode(_node, newNode);
 
             return _document.WithSyntaxRoot(newRoot);

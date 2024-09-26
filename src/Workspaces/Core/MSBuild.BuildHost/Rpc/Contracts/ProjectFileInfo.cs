@@ -131,6 +131,15 @@ namespace Microsoft.CodeAnalysis.MSBuild
         [DataMember(Order = 17)]
         public ImmutableArray<PackageReference> PackageReferences { get; }
 
+        /// <summary>
+        /// Target framework version (for .net framework projects)
+        /// </summary>
+        [DataMember(Order = 18)]
+        public string? TargetFrameworkVersion { get; }
+
+        [DataMember(Order = 19)]
+        public ImmutableArray<FileGlobs> FileGlobs { get; }
+
         public override string ToString()
             => RoslynString.IsNullOrWhiteSpace(TargetFramework)
                 ? FilePath ?? string.Empty
@@ -146,6 +155,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string? defaultNamespace,
             string? targetFramework,
             string? targetFrameworkIdentifier,
+            string? targetFrameworkVersion,
             string? projectAssetsFilePath,
             ImmutableArray<string> commandLineArgs,
             ImmutableArray<DocumentFileInfo> documents,
@@ -154,7 +164,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ImmutableArray<ProjectFileReference> projectReferences,
             ImmutableArray<PackageReference> packageReferences,
             ImmutableArray<string> projectCapabilities,
-            ImmutableArray<string> contentFilePaths)
+            ImmutableArray<string> contentFilePaths,
+            ImmutableArray<FileGlobs> fileGlobs)
         {
             RoslynDebug.Assert(filePath != null);
 
@@ -167,6 +178,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.DefaultNamespace = defaultNamespace;
             this.TargetFramework = targetFramework;
             this.TargetFrameworkIdentifier = targetFrameworkIdentifier;
+            this.TargetFrameworkVersion = targetFrameworkVersion;
             this.ProjectAssetsFilePath = projectAssetsFilePath;
             this.CommandLineArgs = commandLineArgs;
             this.Documents = documents;
@@ -176,6 +188,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.PackageReferences = packageReferences;
             this.ProjectCapabilities = projectCapabilities;
             this.ContentFilePaths = contentFilePaths;
+            this.FileGlobs = fileGlobs;
         }
 
         public static ProjectFileInfo Create(
@@ -187,6 +200,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string? defaultNamespace,
             string? targetFramework,
             string? targetFrameworkIdentifier,
+            string? targetFrameworkVersion,
             string? projectAssetsFilePath,
             ImmutableArray<string> commandLineArgs,
             ImmutableArray<DocumentFileInfo> documents,
@@ -195,7 +209,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ImmutableArray<ProjectFileReference> projectReferences,
             ImmutableArray<PackageReference> packageReferences,
             ImmutableArray<string> projectCapabilities,
-            ImmutableArray<string> contentFilePaths)
+            ImmutableArray<string> contentFilePaths,
+            ImmutableArray<FileGlobs> fileGlobs)
             => new(
                 isEmpty: false,
                 language,
@@ -206,6 +221,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 defaultNamespace,
                 targetFramework,
                 targetFrameworkIdentifier,
+                targetFrameworkVersion,
                 projectAssetsFilePath,
                 commandLineArgs,
                 documents,
@@ -214,7 +230,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 projectReferences,
                 packageReferences,
                 projectCapabilities,
-                contentFilePaths);
+                contentFilePaths,
+                fileGlobs);
 
         public static ProjectFileInfo CreateEmpty(string language, string? filePath)
             => new(
@@ -227,6 +244,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 defaultNamespace: null,
                 targetFramework: null,
                 targetFrameworkIdentifier: null,
+                targetFrameworkVersion: null,
                 projectAssetsFilePath: null,
                 commandLineArgs: [],
                 documents: [],
@@ -235,6 +253,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 projectReferences: [],
                 packageReferences: [],
                 projectCapabilities: [],
-                contentFilePaths: []);
+                contentFilePaths: [],
+                fileGlobs: []);
     }
 }

@@ -26,7 +26,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.DiaSymReader;
@@ -39,13 +38,12 @@ using Xunit;
 using Basic.Reference.Assemblies;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
     public class CommandLineTests : CommandLineTestBase
     {
-#if NETCOREAPP
+#if NET
         private static readonly string s_CSharpCompilerExecutable;
         private static readonly string s_DotnetCscRun;
 #else
@@ -60,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 
         static CommandLineTests()
         {
-#if NETCOREAPP
+#if NET
             var cscDllPath = Path.Combine(
                 Path.GetDirectoryName(typeof(CommandLineTests).GetTypeInfo().Assembly.Location),
                 Path.Combine("dependency", "csc.dll"));
@@ -1675,7 +1673,7 @@ class C
         [InlineData("iso1")]
         [InlineData("8.1")]
         [InlineData("10.1")]
-        [InlineData("13")]
+        [InlineData("14")]
         [InlineData("1000")]
         public void LangVersion_BadVersion(string value)
         {
@@ -1731,7 +1729,7 @@ class C
             // - update all the tests that call this canary
             // - update MaxSupportedLangVersion (a relevant test should break when new version is introduced)
             // - email release management to add to the release notes (see old example: https://github.com/dotnet/core/pull/1454)
-            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "10.0", "11.0", "12.0", "latest", "latestmajor", "preview" },
+            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "10.0", "11.0", "12.0", "13.0", "latest", "latestmajor", "preview" },
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
             // For minor versions and new major versions, the format should be "x.y", such as "7.1"
         }
@@ -1766,6 +1764,7 @@ class C
                 ErrorCode.ERR_FeatureNotAvailableInVersion10,
                 ErrorCode.ERR_FeatureNotAvailableInVersion11,
                 ErrorCode.ERR_FeatureNotAvailableInVersion12,
+                ErrorCode.ERR_FeatureNotAvailableInVersion13,
             };
 
             AssertEx.SetEqual(versions, errorCodes);
@@ -1790,9 +1789,10 @@ class C
             InlineData(LanguageVersion.CSharp10, LanguageVersion.CSharp10),
             InlineData(LanguageVersion.CSharp11, LanguageVersion.CSharp11),
             InlineData(LanguageVersion.CSharp12, LanguageVersion.CSharp12),
-            InlineData(LanguageVersion.CSharp12, LanguageVersion.LatestMajor),
-            InlineData(LanguageVersion.CSharp12, LanguageVersion.Latest),
-            InlineData(LanguageVersion.CSharp12, LanguageVersion.Default),
+            InlineData(LanguageVersion.CSharp13, LanguageVersion.CSharp13),
+            InlineData(LanguageVersion.CSharp13, LanguageVersion.LatestMajor),
+            InlineData(LanguageVersion.CSharp13, LanguageVersion.Latest),
+            InlineData(LanguageVersion.CSharp13, LanguageVersion.Default),
             InlineData(LanguageVersion.Preview, LanguageVersion.Preview),
             ]
         public void LanguageVersion_MapSpecifiedToEffectiveVersion(LanguageVersion expectedMappedVersion, LanguageVersion input)
@@ -1837,6 +1837,8 @@ class C
             InlineData("11.0", true, LanguageVersion.CSharp11),
             InlineData("12", true, LanguageVersion.CSharp12),
             InlineData("12.0", true, LanguageVersion.CSharp12),
+            InlineData("13", true, LanguageVersion.CSharp13),
+            InlineData("13.0", true, LanguageVersion.CSharp13),
             InlineData("08", false, LanguageVersion.Default),
             InlineData("07.1", false, LanguageVersion.Default),
             InlineData("default", true, LanguageVersion.Default),
@@ -4336,8 +4338,8 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
   </runtime>
 </configuration>");
 
-            var silverlight = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
-            var net4_0dll = Temp.CreateFile().WriteAllBytes(ResourcesNet451.System).Path;
+            var silverlight = Temp.CreateFile().WriteAllBytes(Silverlight.System).Path;
+            var net4_0dll = Temp.CreateFile().WriteAllBytes(Net461.Resources.System).Path;
 
             // Test linking two appconfig dlls with simple src
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -6306,7 +6308,7 @@ public class CS1698_a {}
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30926")]
         public void BinaryFileErrorTest()
         {
-            var binaryPath = Temp.CreateFile().WriteAllBytes(ResourcesNet451.mscorlib).Path;
+            var binaryPath = Temp.CreateFile().WriteAllBytes(Net461.Resources.mscorlib).Path;
             var csc = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/preferreduilang:en", binaryPath });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = csc.Run(outWriter);
@@ -10459,6 +10461,44 @@ class C
             void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
 
+        [Fact]
+        public void Compiler_DoesNot_RunHostOutputs()
+        {
+            var dir = Temp.CreateDirectory();
+            var src = dir.CreateFile("temp.cs").WriteAllText(@"
+class C
+{
+}");
+            bool hostOutputRan = false;
+            bool sourceOutputRan = false;
+
+            var generator = new PipelineCallbackGenerator((ctx) =>
+            {
+#pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+                ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, value) =>
+                {
+                    hostOutputRan = true;
+                    hostCtx.AddOutput("output", "value");
+                });
+#pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, po) =>
+                {
+                    sourceOutputRan = true;
+                    spc.AddSource("output.cs", "//value");
+                });
+            });
+
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview" }, generators: new[] { generator.AsSourceGenerator() }, analyzers: null);
+
+            Assert.False(hostOutputRan);
+            Assert.True(sourceOutputRan);
+
+            // Clean up temp files
+            CleanupAllGeneratedFiles(src.Path);
+            Directory.Delete(dir.Path, true);
+        }
+
         private static int OccurrenceCount(string source, string word)
         {
             var n = 0;
@@ -12246,9 +12286,9 @@ public class TestAnalyzer : DiagnosticAnalyzer
         }
 
         [Theory]
-        [InlineData(@"/features:InterceptorsPreviewNamespaces=NS1.NS2;NS3.NS4")]
-        [InlineData(@"/features:""InterceptorsPreviewNamespaces=NS1.NS2;NS3.NS4""")]
-        public void FeaturesInterceptorsPreviewNamespaces_OptionParsing(string features)
+        [InlineData(@"/features:InterceptorsNamespaces=NS1.NS2;NS3.NS4")]
+        [InlineData(@"/features:""InterceptorsNamespaces=NS1.NS2;NS3.NS4""")]
+        public void FeaturesInterceptorsNamespaces_OptionParsing(string features)
         {
             var tempDir = Temp.CreateDirectory();
             var workingDir = Temp.CreateDirectory();
@@ -12259,31 +12299,52 @@ public class TestAnalyzer : DiagnosticAnalyzer
             var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             var options = comp.SyntaxTrees[0].Options;
             Assert.Equal(1, options.Features.Count);
-            Assert.Equal("NS1.NS2;NS3.NS4", options.Features["InterceptorsPreviewNamespaces"]);
+            Assert.Equal("NS1.NS2;NS3.NS4", options.Features["InterceptorsNamespaces"]);
 
-            var previewNamespaces = ((CSharpParseOptions)options).InterceptorsPreviewNamespaces;
+            var previewNamespaces = ((CSharpParseOptions)options).InterceptorsNamespaces;
             Assert.Equal(2, previewNamespaces.Length);
             Assert.Equal(new[] { "NS1", "NS2" }, previewNamespaces[0]);
             Assert.Equal(new[] { "NS3", "NS4" }, previewNamespaces[1]);
         }
 
         [Fact]
-        public void FeaturesInterceptorsPreviewNamespaces_Duplicate()
+        public void FeaturesInterceptorsNamespaces_Duplicate()
         {
             var tempDir = Temp.CreateDirectory();
             var workingDir = Temp.CreateDirectory();
             workingDir.CreateFile("a.cs");
 
             var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
-            var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { @"/features:InterceptorsPreviewNamespaces=NS1.NS2", @"/features:InterceptorsPreviewNamespaces=NS3.NS4", "a.cs" });
+            var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { @"/features:InterceptorsNamespaces=NS1.NS2", @"/features:InterceptorsNamespaces=NS3.NS4", "a.cs" });
             var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
             var options = comp.SyntaxTrees[0].Options;
             Assert.Equal(1, options.Features.Count);
-            Assert.Equal("NS3.NS4", options.Features["InterceptorsPreviewNamespaces"]);
+            Assert.Equal("NS3.NS4", options.Features["InterceptorsNamespaces"]);
 
-            var previewNamespaces = ((CSharpParseOptions)options).InterceptorsPreviewNamespaces;
+            var previewNamespaces = ((CSharpParseOptions)options).InterceptorsNamespaces;
             Assert.Equal(1, previewNamespaces.Length);
             Assert.Equal(new[] { "NS3", "NS4" }, previewNamespaces[0]);
+        }
+
+        [Fact]
+        public void FeaturesInterceptorsPreviewNamespaces_NotRecognizedInCommandLine()
+        {
+            // '<InterceptorsPreviewNamespaces>' is recognized in the build task and passed through as a '/features:InterceptorsNamespaces=...' argument.
+            // '/features:InterceptorsPreviewNamespaces=...' is included in the Features dictionary but does not enable the interceptors feature.
+            var tempDir = Temp.CreateDirectory();
+            var workingDir = Temp.CreateDirectory();
+            workingDir.CreateFile("a.cs");
+
+            var buildPaths = new BuildPaths(clientDir: "", workingDir: workingDir.Path, sdkDir: null, tempDir: tempDir.Path);
+            var csc = new MockCSharpCompiler(null, buildPaths, args: new[] { @"/features:InterceptorsPreviewNamespaces=NS1.NS2", "a.cs" });
+            var comp = (CSharpCompilation)csc.CreateCompilation(new StringWriter(), new TouchedFileLogger(), errorLogger: null);
+            var options = comp.SyntaxTrees[0].Options;
+
+            Assert.Equal(1, options.Features.Count);
+            Assert.Equal("NS1.NS2", options.Features["InterceptorsPreviewNamespaces"]);
+
+            Assert.False(options.Features.ContainsKey("InterceptorsNamespaces"));
+            Assert.Empty(((CSharpParseOptions)options).InterceptorsNamespaces);
         }
 
         public class QuotedArgumentTests : CommandLineTestBase
@@ -14369,7 +14430,7 @@ class C
                 """;
             var generator = new SingleFileTestGenerator(generatedSource, "Generated.cs");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", "/out:embed.exe", "/features:InterceptorsPreviewNamespaces=Generated"], generators: [generator], analyzers: null);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", "/out:embed.exe", "/features:InterceptorsNamespaces=Generated"], generators: [generator], analyzers: null);
             ValidateWrittenSources([]);
 
             // Clean up temp files
@@ -14428,7 +14489,7 @@ class C
             var generator = new SingleFileTestGenerator(generatedSource, "Generated.cs");
             var objDir = dir.CreateDirectory("obj");
 
-            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", $"/out:{objDir.Path}/embed.exe", "/features:InterceptorsPreviewNamespaces=Generated"], generators: [generator], analyzers: null);
+            VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: ["/langversion:preview", $"/out:{objDir.Path}/embed.exe", "/features:InterceptorsNamespaces=Generated"], generators: [generator], analyzers: null);
             ValidateWrittenSources([]);
 
             // Clean up temp files
@@ -14498,7 +14559,7 @@ class C
                     "/generatedfilesout:" + objDir.Path,
                     "/langversion:preview",
                     "/out:embed.exe",
-                    "/features:InterceptorsPreviewNamespaces=Generated",
+                    "/features:InterceptorsNamespaces=Generated",
                     .. string.IsNullOrEmpty(pathMapArgument) ? default(Span<string>) : [pathMapArgument]
                     ],
                 generators: [generator],

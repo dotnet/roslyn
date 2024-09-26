@@ -37,6 +37,12 @@
     <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\ReflectionUtilities.cs">
       <Link>Compiler\InternalUtilities\ReflectionUtilities.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerAttribute.cs">
+      <Link>Compilers\InternalUtilities\InterpolatedStringHandlerAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\..\..\Compilers\Core\Portable\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs">
+      <Link>Compilers\InternalUtilities\InterpolatedStringHandlerArgumentAttribute.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\..\..\Dependencies\PooledObjects\ObjectPool`1.cs">
       <Link>Compiler\InternalUtilities\ObjectPool`1.cs</Link>
     </Compile>

@@ -20,7 +20,7 @@ using Xunit;
 using Xunit.Abstractions;
 using Microsoft.CodeAnalysis.VisualBasic;
 
-#if NETCOREAPP
+#if NET
 using Roslyn.Test.Utilities.CoreClr;
 using System.Runtime.Loader;
 #else
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     {
         LoadDirect,
         ShadowLoad,
-#if NETCOREAPP
+#if NET
         LoadStream,
 #endif
     }
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestFixture = testFixture;
         }
 
-#if NETCOREAPP
+#if NET
 
         private void Run(AnalyzerTestKind kind, Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture> testAction, IAnalyzerAssemblyResolver[]? externalResolvers = null, [CallerMemberName] string? memberName = null) =>
             Run(
@@ -359,7 +359,7 @@ Delta: Gamma: Beta: Test B
 
             string getExpectedLoadPath(string path)
             {
-#if NETCOREAPP
+#if NET
                 if (loader is AnalyzerAssemblyLoader { AnalyzerLoadOption: AnalyzerLoadOption.LoadFromStream })
                 {
                     return "";
@@ -418,7 +418,7 @@ Delta: Gamma: Beta: Test B
         {
             IEnumerable<Assembly> loadedAssemblies;
 
-#if NETCOREAPP
+#if NET
             // This verify only works where there is a single load context.
             var alcs = loader.GetDirectoryLoadContextsSnapshot();
             Assert.Equal(1, alcs.Length);
@@ -521,6 +521,80 @@ Delta: Gamma: Beta: Test B
                     gammaFile);
             });
         }
+
+#if NET472
+        /// <summary>
+        /// Verify that MS.CA.EA.RazorCompiler will be loaded from the compiler directory not the 
+        /// analyzer directory.
+        /// </summary>
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_RazorCompiler1(AnalyzerTestKind kind)
+        {
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                using var temp = new TempRoot();
+                var tempDir = temp.CreateDirectory();
+
+                var externalAccessRazorPath = typeof(Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.GeneratorExtensions).Assembly.Location;
+                var alternatePath = tempDir.CreateDirectory("a").CreateFile("Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.dll").CopyContentFrom(externalAccessRazorPath).Path;
+
+                loader.AddDependencyLocation(alternatePath);
+                Assembly assembly = loader.LoadFromPath(alternatePath);
+
+                Assert.Equal(externalAccessRazorPath, assembly.Location);
+
+                // Even though EA.RazorCompiler is loaded from the compiler directory the shadow copy loader
+                // still does a defensive copy.
+                var copyCount = loader is ShadowCopyAnalyzerAssemblyLoader
+                    ? 1
+                    : (int?)null;
+
+                VerifyDependencyAssemblies(
+                    loader,
+                    copyCount: copyCount,
+                    []);
+            });
+        }
+
+        /// <summary>
+        /// Verify that MS.CA.EA.RazorCompiler will be loaded from the compiler directory not the 
+        /// analyzer directory.
+        /// </summary>
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_RazorCompiler2(AnalyzerTestKind kind)
+        {
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                using var temp = new TempRoot();
+                var tempDir = temp.CreateDirectory();
+
+                var externalAccessRazorPath = typeof(Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.GeneratorExtensions).Assembly.Location;
+                var dir = tempDir.CreateDirectory("a");
+                var alternatePath = dir.CreateFile("Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.dll").CopyContentFrom(externalAccessRazorPath).Path;
+                var deltaFile = dir.CreateFile("Delta.dll").CopyContentFrom(testFixture.Delta1).Path;
+
+                loader.AddDependencyLocation(alternatePath);
+                loader.AddDependencyLocation(deltaFile);
+                Assembly razorAssembly = loader.LoadFromPath(alternatePath);
+                _ = loader.LoadFromPath(deltaFile);
+
+                Assert.Equal(externalAccessRazorPath, razorAssembly.Location);
+
+                // Even though EA.RazorCompiler is loaded from the compiler directory the shadow copy loader
+                // still does a defensive copy.
+                var copyCount = loader is ShadowCopyAnalyzerAssemblyLoader
+                    ? 2
+                    : (int?)null;
+                VerifyDependencyAssemblies(
+                    loader,
+                    copyCount: copyCount,
+                    deltaFile);
+            });
+        }
+
+#endif
 
         /// <summary>
         /// Similar to <see cref="AssemblyLoading_DependencyInDifferentDirectory"/> except want to validate
@@ -666,7 +740,7 @@ Delta: Gamma: Beta: Test B
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
                 var actual = sb.ToString();
 
-#if NETCOREAPP
+#if NET
                 var alcs = loader.GetDirectoryLoadContextsSnapshot();
                 Assert.Equal(2, alcs.Length);
 
@@ -826,7 +900,7 @@ Delta: Epsilon: Test E
 
                 // 2B or not 2B? That is the question...that depends on whether we're on .NET Core or not.
 
-#if NETCOREAPP
+#if NET
 
                 // On Core, we're able to load both of these into separate AssemblyLoadContexts.
                 if (loader.AnalyzerLoadOption == AnalyzerLoadOption.LoadFromDisk)
@@ -981,7 +1055,7 @@ Delta: Epsilon: Test E
                 var e = epsilon.CreateInstance("Epsilon.E")!;
                 e.GetType().GetMethod("Write")!.Invoke(e, new object[] { sb, "Test E" });
 
-#if NETCOREAPP
+#if NET
                 var alcs1 = loader1.GetDirectoryLoadContextsSnapshot();
                 Assert.Equal(1, alcs1.Length);
 
@@ -1394,7 +1468,7 @@ Delta.2: Test D2
             });
         }
 
-#if NETCOREAPP
+#if NET
 
         [Theory]
         [CombinatorialData]

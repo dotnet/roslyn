@@ -246,18 +246,26 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return last;
         }
 
-        public readonly bool Contains(T value)
-        {
-            if (_builder != null)
-                return _builder.Contains(value);
+        public readonly bool Contains(T value, IEqualityComparer<T>? equalityComparer = null)
+            => IndexOf(value, equalityComparer) >= 0;
 
+        public readonly int IndexOf(T value, IEqualityComparer<T>? equalityComparer = null)
+        {
+            equalityComparer ??= EqualityComparer<T>.Default;
+
+            if (_builder != null)
+                return _builder.IndexOf(value, equalityComparer);
+
+            var index = 0;
             foreach (var v in this)
             {
-                if (EqualityComparer<T>.Default.Equals(v, value))
-                    return true;
+                if (equalityComparer.Equals(v, value))
+                    return index;
+
+                index++;
             }
 
-            return false;
+            return -1;
         }
 
         public readonly Enumerator GetEnumerator()
@@ -329,7 +337,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             {
                 builder.Add(this[i]);
 
-#if NETCOREAPP
+#if NET
                 if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
 #endif
                 {

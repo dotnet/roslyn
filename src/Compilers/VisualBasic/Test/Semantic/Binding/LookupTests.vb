@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class LookupTests
@@ -941,7 +941,7 @@ P.Q.R.S
             ' We need to be careful about metadata references we use here.
             ' The test checks that fields of namespace symbols are initialized in certain order.
             ' If we used a shared Mscorlib reference then other tests might have already initialized it's shared AssemblySymbol.
-            Dim nonSharedMscorlibReference = AssemblyMetadata.CreateFromImage(ResourcesNet451.mscorlib).GetReference(display:="mscorlib.v4_0_30319.dll")
+            Dim nonSharedMscorlibReference = AssemblyMetadata.CreateFromImage(Net461.Resources.mscorlib).GetReference(display:="mscorlib.v4_0_30319.dll")
 
             Dim c = VisualBasicCompilation.Create("DoNotLoadTypesForAccessibilityOfMostAccessibleTypeWithinANamespace",
                                                      syntaxTrees:={Parse(<text>
@@ -1606,7 +1606,7 @@ Module Module1
     End Sub
 End Module
     </file>
-</compilation>, references:={Net451.mscorlib, Net451.System, Net451.MicrosoftVisualBasic, Net451.SystemWindowsForms})
+</compilation>, references:={Net461.References.mscorlib, Net461.References.System, Net461.References.MicrosoftVisualBasic, Net461.References.SystemWindowsForms})
 
             CompilationUtils.AssertNoDiagnostics(compilation)
 

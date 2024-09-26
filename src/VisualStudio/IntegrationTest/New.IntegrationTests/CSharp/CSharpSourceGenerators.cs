@@ -101,9 +101,6 @@ internal static class Program
             var configurationService = (WorkspaceConfigurationService)workspace.Services.GetRequiredService<IWorkspaceConfigurationService>();
             configurationService.Clear();
 
-            var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
-            globalOptions.SetGlobalOption(WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace, true);
-
             await TestServices.Editor.GoToDefinitionAsync(HangMitigatingCancellationToken);
             Assert.Equal($"{HelloWorldGenerator.GeneratedEnglishClassName}.cs {ServicesVSResources.generated_suffix}", await TestServices.Shell.GetActiveWindowCaptionAsync(HangMitigatingCancellationToken));
         }
@@ -114,8 +111,7 @@ internal static class Program
 
         Assert.Collection(
             results,
-            new Action<ITableEntryHandle2>[]
-            {
+            [
                 reference =>
                 {
                     Assert.Equal(expected: "/// <summary><see cref=\"HelloWorld\" /> is a simple class to fetch the classic message.</summary>", actual: reference.GetText());
@@ -134,7 +130,7 @@ internal static class Program
                     Assert.Equal(expected: 5, actual: reference.GetLine());
                     Assert.Equal(expected: 26, actual: reference.GetColumn());
                 },
-            });
+            ]);
     }
 
     [IdeTheory, CombinatorialData]

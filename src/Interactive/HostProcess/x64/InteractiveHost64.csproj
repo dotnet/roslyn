@@ -8,11 +8,12 @@
     <TargetFrameworks>net472;$(NetVS)-windows</TargetFrameworks>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <UseWindowsForms>true</UseWindowsForms>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
 
     <!-- Publishing (only precompile binaries when building Release) -->
-    <PublishReadyToRun Condition="'$(Configuration)' == 'Release'">true</PublishReadyToRun>
+    <!-- Temporarily disable R2R until APIScan supports them https://github.com/dotnet/roslyn/issues/74135 -->
+    <!-- <PublishReadyToRun Condition="'$(Configuration)' == 'Release'">true</PublishReadyToRun> -->
     <SelfContained>false</SelfContained>    
     <PublishDocumentationFiles>false</PublishDocumentationFiles>
   </PropertyGroup>
@@ -22,34 +23,46 @@
     <ProjectReference Include="..\..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
     <ProjectReference Include="..\..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
     <ProjectReference Include="..\..\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
-    <Content Include="..\App.config" />
+    <Content Include="..\App.config" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
     <Compile Include="..\InteractiveHostEntryPoint.cs" />
   </ItemGroup>
+  
+  <Target Name="PublishedProjectOutputGroup" DependsOnTargets="PublishItemsOutputGroup" Returns="@(_VsixItem)">
+    <!-- Workaround for https://github.com/dotnet/sdk/issues/42255 -->
+    <PropertyGroup>
+      <!-- IntermediateDepsFilePath is the location where the deps.json file is originally created -->
+      <_IntermediateDepsFilePath Condition=" '$(PublishDepsFilePath)' != ''">$(PublishDepsFilePath)</_IntermediateDepsFilePath >
+      <_IntermediateDepsFilePath Condition=" '$(PublishDepsFilePath)' == ''">$(IntermediateOutputPath)$(ProjectDepsFileName)</_IntermediateDepsFilePath >
+    </PropertyGroup>
 
-  <Target Name="PublishProjectOutputGroup" DependsOnTargets="Publish" Returns="@(_PublishedFiles)">
     <ItemGroup>
       <!-- Need to include and then update items (https://github.com/microsoft/msbuild/issues/1053) -->
-      <_PublishedFiles Include="$(PublishDir)**\*.*" />
-      <_PublishedFiles Remove="@(_PublishedFiles)" Condition="'%(Extension)' == '.pdb'" />
+      <_VsixItem Include="@(PublishItemsOutputGroupOutputs->'%(OutputPath)')" />
+      <_VsixItem Remove="@(_VsixItem)" Condition="'%(Extension)' == '.pdb'" />
+
+      <!-- Include .deps.json file (see https://github.com/dotnet/sdk/issues/42255) -->
+      <_VsixItem Include="$(_IntermediateDepsFilePath)" Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'" />
 
       <!-- Include .rsp file -->
-      <_PublishedFiles Include="$(MSBuildProjectDirectory)\Desktop\CSharpInteractive.rsp" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
-      <_PublishedFiles Include="$(MSBuildProjectDirectory)\Core\CSharpInteractive.rsp" Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'" />
+      <_VsixItem Include="$(MSBuildProjectDirectory)\Desktop\CSharpInteractive.rsp" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
+      <_VsixItem Include="$(MSBuildProjectDirectory)\Core\CSharpInteractive.rsp" Condition="'$(TargetFrameworkIdentifier)' != '.NETFramework'" />
 
       <!-- Include the specified .editorconfig file to pickup the correct interactive settings. -->
-      <_PublishedFiles Include="$(MSBuildProjectDirectory)\.editorconfig"/>
+      <_VsixItem Include="$(MSBuildProjectDirectory)\.editorconfig" />
 
       <!-- Set TargetPath -->
-      <_PublishedFiles Update="@(_PublishedFiles)" TargetPath="%(RecursiveDir)%(Filename)%(Extension)" />
+      <_VsixItem Update="@(_VsixItem)" TargetPath="%(Filename)%(Extension)" Condition="'%(_VsixItem.TargetPath)' == ''" />
 
       <!-- Set NGEN metadata -->
-      <_PublishedFiles Update="@(_PublishedFiles)" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and ('%(Extension)' == '.dll' or '%(Extension)' == '.exe')">
+      <_VsixItem Update="@(_VsixItem)" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and ('%(Extension)' == '.dll' or '%(Extension)' == '.exe')">
         <Ngen>true</Ngen>
         <NgenPriority>3</NgenPriority>
         <NgenArchitecture Condition="'%(Filename)' != 'InteractiveHost64'">All</NgenArchitecture>
         <NgenArchitecture Condition="'%(Filename)' == 'InteractiveHost64'">X64</NgenArchitecture>
         <NgenApplication>[installDir]\Common7\IDE\$(CommonExtensionInstallationRoot)\$(LanguageServicesExtensionInstallationFolder)\InteractiveHost\Desktop\InteractiveHost64.exe</NgenApplication>
-      </_PublishedFiles>
+      </_VsixItem>
     </ItemGroup>
   </Target>
+
+  <Target Name="PublishVsixItems" DependsOnTargets="Publish;PublishedProjectOutputGroup" Returns="@(_VsixItem)" />
 </Project>

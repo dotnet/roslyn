@@ -7,6 +7,11 @@
         <target state="translated">Kod bloğu tercihleri</target>
         <note />
       </trans-unit>
+      <trans-unit id="EditorConfig_option_0_contains_unrecognized_value_1">
+        <source>EditorConfig option '{0}' contains unrecognized value '{1}'</source>
+        <target state="translated">‘{0}’ EditorConfig seçeneği tanınmayan ‘{1}’ değerini içeriyor</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expected_string_or_char_literal">
         <source>Expected string or char literal</source>
         <target state="translated">Beklenen dize veya karakter sabiti değeri</target>

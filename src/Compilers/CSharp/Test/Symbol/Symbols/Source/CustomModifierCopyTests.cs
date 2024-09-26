@@ -974,7 +974,7 @@ class C : I
             var il = @"
 .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
 .assembly extern System.Core {}
-.assembly extern System.ValueTuple { .publickeytoken = (CC 7B 13 FF CD 2D DD 51 ) .ver 4:0:1:0 }
+.assembly extern System.ValueTuple { .publickeytoken = (CC 7B 13 FF CD 2D DD 51 ) .ver 4:0:3:0 }
 .assembly '<<GeneratedFileName>>' { }
 
 .class interface public abstract auto ansi I
@@ -1092,7 +1092,7 @@ class C : I
             var il = @"
 .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
 .assembly extern System.Core {}
-.assembly extern System.ValueTuple { .publickeytoken = (CC 7B 13 FF CD 2D DD 51 ) .ver 4:0:1:0 }
+.assembly extern System.ValueTuple { .publickeytoken = (CC 7B 13 FF CD 2D DD 51 ) .ver 4:0:3:0 }
 .assembly '<<GeneratedFileName>>' { }
 
 .class interface public abstract auto ansi I
@@ -1189,7 +1189,7 @@ class C : I
             var il = @"
 .assembly extern mscorlib { .ver 4:0:0:0 .publickeytoken = (B7 7A 5C 56 19 34 E0 89) }
 .assembly extern System.Core {}
-.assembly extern System.ValueTuple { .publickeytoken = (CC 7B 13 FF CD 2D DD 51 ) .ver 4:0:1:0 }
+.assembly extern System.ValueTuple { .publickeytoken = (CC 7B 13 FF CD 2D DD 51 ) .ver 4:0:3:0 }
 .assembly '<<GeneratedFileName>>' { }
 
 .class public auto ansi beforefieldinit Base

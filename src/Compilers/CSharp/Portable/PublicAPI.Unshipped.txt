@@ -1,20 +1,11 @@
-Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp12 = 1200 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
-Microsoft.CodeAnalysis.CSharp.Conversion.IsCollectionExpression.get -> bool
+Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp13 = 1300 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 [RSEXPERIMENTAL002]Microsoft.CodeAnalysis.CSharp.InterceptableLocation
 [RSEXPERIMENTAL002]abstract Microsoft.CodeAnalysis.CSharp.InterceptableLocation.Data.get -> string!
 [RSEXPERIMENTAL002]abstract Microsoft.CodeAnalysis.CSharp.InterceptableLocation.GetDisplayLocation() -> string!
 [RSEXPERIMENTAL002]abstract Microsoft.CodeAnalysis.CSharp.InterceptableLocation.Version.get -> int
-Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.ReadOnlyKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
-Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken refKindKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!
-Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.WithReadOnlyKeyword(Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!
 Microsoft.CodeAnalysis.CSharp.SyntaxKind.RazorContentToken = 8523 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
-static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetDeclaredSymbol(this Microsoft.CodeAnalysis.SemanticModel? semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.LocalFunctionStatementSyntax! node, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IMethodSymbol?
-static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetElementConversion(this Microsoft.CodeAnalysis.Operations.ISpreadOperation! spread) -> Microsoft.CodeAnalysis.CSharp.Conversion
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.CrefParameter(Microsoft.CodeAnalysis.SyntaxToken refKindKeyword, Microsoft.CodeAnalysis.SyntaxToken readOnlyKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax! type) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax!
-[RSEXPERIMENTAL001]Microsoft.CodeAnalysis.CSharp.CSharpCompilation.GetSemanticModel(Microsoft.CodeAnalysis.SyntaxTree! syntaxTree, Microsoft.CodeAnalysis.SemanticModelOptions options) -> Microsoft.CodeAnalysis.SemanticModel!
 [RSEXPERIMENTAL002]override abstract Microsoft.CodeAnalysis.CSharp.InterceptableLocation.Equals(object? obj) -> bool
 [RSEXPERIMENTAL002]override abstract Microsoft.CodeAnalysis.CSharp.InterceptableLocation.GetHashCode() -> int
-[RSEXPERIMENTAL002]static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetInterceptorMethod(this Microsoft.CodeAnalysis.SemanticModel? semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax! node, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IMethodSymbol?
 [RSEXPERIMENTAL002]static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetInterceptableLocation(this Microsoft.CodeAnalysis.SemanticModel? semanticModel, Microsoft.CodeAnalysis.CSharp.Syntax.InvocationExpressionSyntax! node, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.CSharp.InterceptableLocation?
 [RSEXPERIMENTAL002]static Microsoft.CodeAnalysis.CSharp.CSharpExtensions.GetInterceptsLocationAttributeSyntax(this Microsoft.CodeAnalysis.CSharp.InterceptableLocation! location) -> string!
 [RSEXPERIMENTAL003]Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser
@@ -60,3 +51,15 @@ virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitAllowsConstraintC
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitRefStructConstraint(Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax! node) -> void
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitAllowsConstraintClause(Microsoft.CodeAnalysis.CSharp.Syntax.AllowsConstraintClauseSyntax! node) -> TResult?
 virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitRefStructConstraint(Microsoft.CodeAnalysis.CSharp.Syntax.RefStructConstraintSyntax! node) -> TResult?
+Microsoft.CodeAnalysis.CSharp.SyntaxKind.FieldExpression = 8757 -> Microsoft.CodeAnalysis.CSharp.SyntaxKind
+Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.VisitFieldExpression(Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax! node) -> TResult?
+override Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.VisitFieldExpression(Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax! node) -> Microsoft.CodeAnalysis.SyntaxNode?
+virtual Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.VisitFieldExpression(Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax! node) -> void
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FieldExpression() -> Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax!
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.FieldExpression(Microsoft.CodeAnalysis.SyntaxToken token) -> Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax.Token.get -> Microsoft.CodeAnalysis.SyntaxToken
+override Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor! visitor) -> void
+override Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>! visitor) -> TResult?
+Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken token) -> Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax!
+Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax.WithToken(Microsoft.CodeAnalysis.SyntaxToken token) -> Microsoft.CodeAnalysis.CSharp.Syntax.FieldExpressionSyntax!

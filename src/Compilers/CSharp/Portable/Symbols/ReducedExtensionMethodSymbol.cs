@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+        internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
             return false;
         }
@@ -607,6 +607,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
 #nullable enable
+
+        internal override int? TryGetOverloadResolutionPriority()
+        {
+            return _reducedFrom.TryGetOverloadResolutionPriority();
+        }
 
         private sealed class ReducedExtensionMethodParameterSymbol : WrappedParameterSymbol
         {

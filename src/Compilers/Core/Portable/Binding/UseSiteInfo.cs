@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis
             return info;
         }
 
-        public void InterlockedCompareExchange(TAssemblySymbol? primaryDependency, UseSiteInfo<TAssemblySymbol> value)
+        public void InterlockedInitializeFromSentinel(TAssemblySymbol? primaryDependency, UseSiteInfo<TAssemblySymbol> value)
         {
             if ((object?)_info == Sentinel)
             {
@@ -526,7 +526,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public UseSiteInfo<TAssemblySymbol> InterlockedInitialize(TAssemblySymbol? primaryDependency, UseSiteInfo<TAssemblySymbol> value)
+        /// <summary>
+        /// Atomically initializes the cache with the given value if it is currently fully default.
+        /// This <i>will not</i> initialize <see cref="CachedUseSiteInfo{TAssemblySymbol}.Uninitialized"/>.
+        /// </summary>
+        public UseSiteInfo<TAssemblySymbol> InterlockedInitializeFromDefault(TAssemblySymbol? primaryDependency, UseSiteInfo<TAssemblySymbol> value)
         {
             object? info = Compact(value.DiagnosticInfo, GetDependenciesToCache(primaryDependency, value));
             Debug.Assert(info is object);

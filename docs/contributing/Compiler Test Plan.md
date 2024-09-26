@@ -85,6 +85,7 @@ This document provides guidance for thinking about language interactions and tes
 - Conversions (boxing/unboxing)
 - Nullable (wrapping, unwrapping)
 - Overload resolution, override/hide/implement (OHI)
+  - OverloadResolutionPriorityAttribute
 - Inheritance (virtual, override, abstract, new)
 - Anonymous types
 - Tuple types and literals (elements with explicit or inferred names, long tuples), tuple equality
@@ -115,6 +116,7 @@ This document provides guidance for thinking about language interactions and tes
 - extension based Dispose, DisposeAsync, GetEnumerator, GetAsyncEnumerator, Deconstruct, GetAwaiter etc.
 - UTF8 String Literals (string literals with 'u8' or 'U8' type suffix).
 - Inline array element access and slicing.
+- Collection expressions and spread elements
 
 # Misc
 - reserved keywords (sometimes contextual)
@@ -344,6 +346,7 @@ __makeref( x )
 - Function type (in type inference comparing function types of lambdas or method groups)
 - UTF8 String Literal (string constant value to ```byte[]```, ```Span<byte>```, or ```ReadOnlySpan<byte>``` types)
 - Inline arrays (conversions to Span and ReadOnlySpan)
+- Collection expression conversions
 
 ## Types 
 

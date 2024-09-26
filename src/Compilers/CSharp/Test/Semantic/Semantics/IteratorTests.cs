@@ -144,21 +144,8 @@ class Test
                 }
                 """ + AsyncStreamsTypes;
 
-            var comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseDll.WithWarningLevel(8));
+            var comp = CreateCompilationWithTasksExtensions(source);
             CompileAndVerify(comp).VerifyDiagnostics();
-
-            var expectedDiagnostics = new[]
-            {
-                // (23,17): warning CS9237: 'yield return' should not be used in the body of a lock statement
-                //                 yield return i;
-                Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(23, 17)
-            };
-
-            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseDll.WithWarningLevel(9));
-            CompileAndVerify(comp).VerifyDiagnostics(expectedDiagnostics);
-
-            comp = CreateCompilationWithTasksExtensions(source, options: TestOptions.ReleaseDll);
-            CompileAndVerify(comp).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72443")]
@@ -208,20 +195,8 @@ class Test
                 After: False
                 """;
 
-            CompileAndVerify(source, options: TestOptions.ReleaseExe.WithWarningLevel(8),
+            CompileAndVerify(source, options: TestOptions.ReleaseExe,
                 expectedOutput: expectedOutput).VerifyDiagnostics();
-
-            var expectedDiagnostics = new[]
-            {
-                // (24,13): warning CS9237: 'yield return' should not be used in the body of a lock statement
-                //             yield return i;
-                Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(24, 13)
-            };
-
-            CompileAndVerify(source, options: TestOptions.ReleaseExe.WithWarningLevel(9),
-                expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
-
-            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72443")]
@@ -259,13 +234,7 @@ class Test
                 }
                 """;
 
-            CreateCompilation(source).VerifyDiagnostics(
-                // (10,13): warning CS9237: 'yield return' should not be used in the body of a lock statement
-                //             yield return 2;
-                Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(10, 13),
-                // (20,21): warning CS9237: 'yield return' should not be used in the body of a lock statement
-                //                     yield return 4;
-                Diagnostic(ErrorCode.WRN_BadYieldInLock, "yield").WithLocation(20, 21));
+            CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(546081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546081")]
@@ -470,7 +439,7 @@ namespace RoslynYield
         {
             // The incomplete statement is intended
             var text = "yield return int.";
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Script);
+            var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Script);
             comp.VerifyDiagnostics(
                 // (1,18): error CS1001: Identifier expected
                 // yield return int.
@@ -502,7 +471,7 @@ namespace RoslynYield
         public void TopLevelYieldBreak()
         {
             var text = "yield break;";
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Script);
+            var comp = CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.Script);
             comp.VerifyDiagnostics(
                 // (1,1): error CS7020: You cannot use 'yield' in top-level script code
                 // yield break;
@@ -633,7 +602,7 @@ class Test<TKey, TValue>
         yield return new KeyValuePair<TKey, TValue>(kvp.Key, kvp.Value);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib461(text);
             comp.VerifyDiagnostics();
 
             var tree = comp.SyntaxTrees[0];
@@ -667,7 +636,7 @@ class Test<TKey, TValue>
         yield return new KeyValuePair<TKey, TValue>(kvp, kvp.Value);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib461(text);
             comp.VerifyDiagnostics(
                 // (8,53): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.KeyValuePair<TKey, TValue>' to 'TKey'
                 //         yield return new KeyValuePair<TKey, TValue>(kvp, kvp.Value);

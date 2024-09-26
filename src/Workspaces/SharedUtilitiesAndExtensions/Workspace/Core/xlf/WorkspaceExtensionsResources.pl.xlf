@@ -47,6 +47,11 @@
         <target state="translated">Typ docelowy musi być elementem {0} lub {1}, ale podano element {2}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_does_not_support_syntax_trees">
+        <source>Document does not support syntax trees</source>
+        <target state="translated">Dokument nie obsługuje drzew składni</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_all_0">
         <source>Fix all '{0}'</source>
         <target state="translated">Napraw wszystkie wystąpienia elementu „{0}”</target>
@@ -120,6 +125,11 @@
       <trans-unit id="The_solution_does_not_contain_the_specified_document">
         <source>The solution does not contain the specified document.</source>
         <target state="translated">Rozwiązanie nie zawiera określonego dokumentu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_members">
+        <source>Type members</source>
+        <target state="translated">Składowe typu</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">

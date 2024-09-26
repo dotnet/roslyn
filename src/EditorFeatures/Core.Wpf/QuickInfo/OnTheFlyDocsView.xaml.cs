@@ -69,6 +69,9 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         _document = editorFeaturesOnTheFlyDocsElement.Document;
 
         var sparkle = new ImageElement(new VisualStudio.Core.Imaging.ImageId(CopilotConstants.CopilotIconMonikerGuid, CopilotConstants.CopilotIconSparkleId));
+        object onDemandLinkText = _onTheFlyDocsElement.IsContentExcluded
+            ? ToUIElement(new ContainerElement(ContainerElementStyle.Wrapped, new ClassifiedTextElement([new ClassifiedTextRun(ClassificationTypeNames.Text, EditorFeaturesResources.Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization)])))
+            : ClassifiedTextElement.CreateHyperlink(EditorFeaturesResources.Describe_with_Copilot, EditorFeaturesResources.Generate_summary_with_Copilot, () => RequestResults());
 
         OnDemandLinkContent = ToUIElement(
             new ContainerElement(
@@ -76,8 +79,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
                 new object[]
                 {
                     sparkle,
-                    ClassifiedTextElement.CreateHyperlink(EditorFeaturesResources.Tell_me_more, EditorFeaturesResources.Show_an_AI_generated_summary_of_this_code, () =>
-                    RequestResults()),
+                    onDemandLinkText,
                 }));
 
         LoadingContent = ToUIElement(
@@ -86,7 +88,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
                 new object[]
                 {
                     new ClassifiedTextElement(new ClassifiedTextRun(
-                        ClassificationTypeDefinitions.ReducedEmphasisText, EditorFeaturesResources.GitHub_Copilot_thinking)),
+                        ClassificationTypeDefinitions.ReducedEmphasisText, EditorFeaturesResources.Copilot_thinking)),
                     new SmoothProgressBar { IsIndeterminate = true, Height = 2, Margin = new Thickness { Top = 2 } },
                 }));
 
@@ -107,13 +109,10 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
                         new object[]
                         {
                             sparkle,
-                            ClassifiedTextElement.CreatePlainText(EditorFeaturesResources.GitHub_Copilot),
+                            ClassifiedTextElement.CreatePlainText(EditorFeaturesResources.Copilot),
                         }),
                     new ThematicBreakElement(),
                     _responseControl,
-                    new ThematicBreakElement(),
-                    new ClassifiedTextElement(new ClassifiedTextRun(
-                        ClassificationTypeDefinitions.ReducedEmphasisText, EditorFeaturesResources.AI_generated_content_may_be_inaccurate)),
                 }));
 
         ResultsRequested += (_, _) => PopulateAIDocumentationElements(_cancellationTokenSource.Token);
@@ -205,8 +204,14 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         CurrentState = OnTheFlyDocsState.Loading;
         Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Loading_State_Entered, KeyValueLogMessage.Create(m =>
         {
-            m["SymbolHeaderText"] = _onTheFlyDocsElement.SymbolSignature;
+            m["HasDocumentationComments"] = _onTheFlyDocsElement.HasComments;
         }, LogLevel.Information));
+
+        OnTheFlyDocsLogger.LogOnTheFlyDocsResultsRequested();
+        if (_onTheFlyDocsElement.HasComments)
+        {
+            OnTheFlyDocsLogger.LogOnTheFlyDocsResultsRequestedWithDocComments();
+        }
 
         ResultsRequested?.Invoke(this, EventArgs.Empty);
     }

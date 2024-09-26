@@ -431,11 +431,8 @@ class X
                         case ErrorCode.WRN_UseDefViolationRefField:
                         case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                         case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
-                        case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
-                        case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
-                        case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
                         case ErrorCode.INF_TooManyBoundLambdas:
-                        case ErrorCode.INF_IdentifierConflictWithContextualKeyword:
+                        case ErrorCode.WRN_FieldIsAmbiguous:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -472,10 +469,6 @@ class X
                         case ErrorCode.WRN_ByValArraySizeConstRequired:
                             // These are the warnings introduced with the warning "wave" shipped with dotnet 8 and C# 12.
                             Assert.Equal(8, ErrorFacts.GetWarningLevel(errorCode));
-                            break;
-                        case ErrorCode.WRN_BadYieldInLock:
-                            // These are the warnings introduced with the warning "wave" shipped with dotnet 9 and C# 13.
-                            Assert.Equal(9, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:
                             // If a new warning is added, this test will fail

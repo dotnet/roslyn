@@ -8,8 +8,9 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing the options for execute command support.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#executeCommandOptions">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class ExecuteCommandOptions : IWorkDoneProgressOptions
     {
@@ -23,9 +24,7 @@ namespace Roslyn.LanguageServer.Protocol
             set;
         }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether work done progress is supported.
-        /// </summary>
+        /// <inheritdoc/>
         [JsonPropertyName("workDoneProgress")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool WorkDoneProgress { get; init; }

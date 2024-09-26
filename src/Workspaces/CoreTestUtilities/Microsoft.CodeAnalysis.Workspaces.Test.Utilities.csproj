@@ -6,7 +6,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
     <TargetFrameworks>$(NetRoslynAll);net472</TargetFrameworks>
     <IsShipping>false</IsShipping>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <IsTestUtilityProject>true</IsTestUtilityProject>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -65,5 +65,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CodeStyle.LegacyTestFramework.UnitTestUtilities"/>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.DiagnosticsTests.Utilities"/>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.Test.Utilities"/>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities" />
   </ItemGroup>
 </Project>

@@ -2,14 +2,9 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="cs" original="../EditorFeaturesResources.resx">
     <body>
-      <trans-unit id="AI_generated_content_may_be_inaccurate">
-        <source>AI-generated content may be inaccurate</source>
-        <target state="new">AI-generated content may be inaccurate</target>
-        <note />
-      </trans-unit>
       <trans-unit id="An_error_occurred_while_generating_documentation_for_this_code">
         <source>An error occurred while generating documentation for this code.</source>
-        <target state="new">An error occurred while generating documentation for this code.</target>
+        <target state="translated">Při generování dokumentace pro tento kód došlo k chybě.</target>
         <note />
       </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
@@ -30,6 +25,26 @@
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">Výpočet informací Encapsulate Field</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copilot">
+        <source>Copilot</source>
+        <target state="translated">Copilot</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copilot_thinking">
+        <source>Copilot thinking...</source>
+        <target state="translated">Copilot přemýšlí…</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Describe_with_Copilot">
+        <source>Describe with Copilot</source>
+        <target state="translated">Popis s využitím Copilotu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Describe_with_Copilot_is_unavailable_since_the_referenced_document_is_excluded_by_your_organization">
+        <source>'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</source>
+        <target state="new">'Describe with Copilot' is unavailable since the referenced document is excluded by your organization.</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
@@ -67,19 +82,14 @@
         <target state="translated">Filtr</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
+      <trans-unit id="Generate_summary_with_Copilot">
+        <source>Generate summary with Copilot (might be inaccurate)</source>
+        <target state="translated">Vygenerovat souhrn pomocí Copilotu (může být nepřesné)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Get_help_for_0">
         <source>Get help for '{0}'</source>
         <target state="translated">Získat nápovědu pro: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="GitHub_Copilot">
-        <source>GitHub Copilot</source>
-        <target state="new">GitHub Copilot</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="GitHub_Copilot_thinking">
-        <source>GitHub Copilot thinking...</source>
-        <target state="new">GitHub Copilot thinking...</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_To_Base">
@@ -224,12 +234,12 @@
       </trans-unit>
       <trans-unit id="Obsolete_symbol">
         <source>Obsolete symbol</source>
-        <target state="new">Obsolete symbol</target>
+        <target state="translated">Zastaralý symbol</target>
         <note />
       </trans-unit>
       <trans-unit id="On_the_fly_documentation">
         <source>On-the-fly documentation</source>
-        <target state="new">On-the-fly documentation</target>
+        <target state="translated">Průběžná dokumentace</target>
         <note />
       </trans-unit>
       <trans-unit id="Operator_Overloaded">
@@ -324,12 +334,7 @@
       </trans-unit>
       <trans-unit id="Run">
         <source>Run</source>
-        <target state="new">Run</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Show_an_AI_generated_summary_of_this_code">
-        <source>Show an AI generated summary of this code</source>
-        <target state="new">Show an AI generated summary of this code</target>
+        <target state="translated">Spustit</target>
         <note />
       </trans-unit>
       <trans-unit id="Split_comment">
@@ -350,11 +355,6 @@
       <trans-unit id="Tab_Size">
         <source>Tab Size</source>
         <target state="translated">Velikost tabulátoru</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Tell_me_more">
-        <source>Tell me more</source>
-        <target state="new">Tell me more</target>
         <note />
       </trans-unit>
       <trans-unit id="The_results_may_be_incomplete_due_to_the_solution_still_loading_projects">
@@ -637,9 +637,19 @@
         <target state="translated">Vyřeší se tento počet konfliktů: {0}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_declarations_and_interceptors">
+        <source>'{0}' declarations and interceptors</source>
+        <target state="translated">Deklarace a zachycovací objekty {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_implemented_members">
         <source>'{0}' implemented members</source>
         <target state="translated">Implementované členy {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="_0_intercepted_locations">
+        <source>'{0}' intercepted locations</source>
+        <target state="translated">Zachycená místa: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">

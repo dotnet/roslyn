@@ -8,16 +8,15 @@
           xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
           xmlns:sr="clr-namespace:Microsoft.CodeAnalysis.InlineRename.UI.SmartRename"
           mc:Ignorable="d"
-          GotKeyboardFocus="ComboBox_GotKeyboardFocus"
-          LostKeyboardFocus="ComboBox_LostKeyboardFocus"
+          Name="SmartRenameInputControl"
           Unloaded="ComboBox_Unloaded"
-          PreviewKeyUp="ComboBox_PreviewKeyUp"
           SelectionChanged="ComboBox_SelectionChanged"
           Text="{Binding BaseViewModel.IdentifierText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
           ItemsSource="{Binding SuggestedNames}"
           StaysOpenOnEdit="True"
           IsEditable="True"
           Style="{StaticResource {x:Static vsfx:VsResourceKeys.ComboBoxStyleKey}}"
+          GotKeyboardFocus="ComboBox_GotKeyboardFocus"
           VirtualizingStackPanel.IsVirtualizing="True"
           VirtualizingStackPanel.VirtualizationMode="Recycling">
     <ComboBox.Resources>
@@ -68,9 +67,9 @@
                 </Setter>
             </Style>
 
-            <Style x:Key="GetSuggestionButtonStyle" BasedOn="{StaticResource {x:Static vsfx:VsResourceKeys.ButtonStyleKey}}" TargetType="Button">
+            <Style x:Key="GetSuggestionsButtonStyle" BasedOn="{StaticResource {x:Static vsfx:VsResourceKeys.ButtonStyleKey}}" TargetType="Button">
                 <Setter Property="Padding" Value="4,4,1,0"/>
-                <Setter Property="Margin" Value="3,0,1,1"/>
+                <Setter Property="Margin" Value="3,1,1,1"/>
                 <Setter Property="MinHeight" Value="0"/>
                 <Setter Property="MinWidth" Value="0"/>
                 <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderBrushKey}}"/>
@@ -78,7 +77,7 @@
                 <Setter Property="Cursor" Value="Arrow"/>
                 <Setter Property="ForceCursor" Value="True"/>
                 <Style.Triggers>
-                    <DataTrigger Binding="{Binding IsSuggestionsPanelExpanded}" Value="True">
+                    <DataTrigger Binding="{Binding IsAutomaticSuggestionsEnabled}" Value="True">
                         <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonDefaultBrushKey}}"/>
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderPressedBrushKey}}"/>
                     </DataTrigger>
@@ -88,7 +87,6 @@
                     </Trigger>
                     <Trigger Property="IsKeyboardFocused" Value="true">
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderFocusedBrushKey}}"/>
-                        <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonFocusedBrushKey}}"/>
                     </Trigger>
                 </Style.Triggers>
             </Style>
@@ -106,41 +104,6 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Popup x:Name="PART_Popup"
-                               x:Uid="PART_Popup"
-                               Visibility="{Binding IsUsingDropdown, Converter={StaticResource BooleanToCollapsedVisibilityConverter}, Mode=OneWay}"
-                               AllowsTransparency="true"
-                               Grid.ColumnSpan="2"
-                               Placement="Bottom"
-                               PopupAnimation="{DynamicResource {x:Static SystemParameters.ComboBoxPopupAnimationKey}}">
-                    <vsui:SystemDropShadowChrome x:Name="shadow"
-                                                         x:Uid="shadow"
-                                                         Color="Transparent"
-                                                         MinWidth="{Binding ActualWidth, ElementName=templateRoot}"
-                                                         MaxHeight="{TemplateBinding MaxDropDownHeight}">
-                        <Border x:Name="dropDownBorder"
-                                        x:Uid="dropDownBorder"
-                                        BorderBrush="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxPopupBorderBrushKey}}"
-                                        BorderThickness="1">
-                            <ScrollViewer x:Name="DropDownScrollViewer"
-                                              x:Uid="DropDownScrollViewer">
-                                <Grid x:Name="grid"
-                                          x:Uid="grid"
-                                          RenderOptions.ClearTypeHint="Enabled"
-                                          RenderOptions.BitmapScalingMode="{x:Static vsui:DpiHelper.BitmapScalingMode}"
-                                          Background="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxPopupBackgroundGradientBrushKey}}">
-                                    <ItemsPresenter x:Name="ItemsPresenter"
-                                                        x:Uid="ItemsPresenter"
-                                                        VirtualizingStackPanel.IsVirtualizing="True"
-                                                        KeyboardNavigation.DirectionalNavigation="Contained"
-                                                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
-                                                        PreviewMouseUp="ItemsPresenter_PreviewMouseUp">
-                                    </ItemsPresenter>
-                                </Grid>
-                            </ScrollViewer>
-                        </Border>
-                    </vsui:SystemDropShadowChrome>
-                </Popup>
                 <Border x:Name="border"
                         x:Uid="border"
                         Grid.Row="0"
@@ -159,19 +122,15 @@
                                  Foreground="{TemplateBinding Foreground}"
                                  SelectionBrush="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxSelectionBrushKey}}"
                                  IsReadOnly="{Binding IsReadOnly, RelativeSource={RelativeSource Mode=TemplatedParent}}"
-                                 Style="{StaticResource ComboBoxEditableTextBox}"
-                                 GotFocus="InnerTextBox_GotFocus"
-                                 LostFocus="InnerTextBox_LostFocus"
-                                 PreviewKeyDown="InnerTextBox_PreviewKeyDown"/>
+                                 Style="{StaticResource ComboBoxEditableTextBox}" />
                 </Border>
                 <Button x:Name="GetSuggestionsButton"
-                                x:Uid="GetSuggestionsButton"
-                                Grid.Row="0"
-                                Grid.Column="1"
-                                Style="{StaticResource GetSuggestionButtonStyle}"
-                                ToolTip="{Binding GetSuggestionsTooltip}"
-                                Click="GetSuggestionsButtonClick"
-                                Command="{Binding GetSuggestionsCommand}">
+                        x:Uid="GetSuggestionsButton"
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Style="{StaticResource GetSuggestionsButtonStyle}"
+                        ToolTip="{Binding GetSuggestionsTooltip}"
+                        Click="GetSuggestionsButtonClick">
                     <Button.Content>
                         <Canvas Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <!-- TODO: Replace by KnownMoniker once available. -->
@@ -214,8 +173,7 @@
                         x:Uid="ProgressBarHost"
                         Grid.Row="1"
                         Grid.Column="0"
-                        BorderThickness="0"
-                        Visibility="{Binding IsUsingDropdown, Converter={StaticResource BooleanToCollapsedVisibilityConverter}, Mode=OneWay}">
+                        BorderThickness="0">
                     <ProgressBar x:Name="ProgressBar"
                                  x:Uid="ProgressBar"
                                  Height="2"
@@ -237,36 +195,19 @@
                         BorderBrush="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxPopupBorderBrushKey}}"
                         BorderThickness="1">
                     <ScrollViewer x:Name="SuggestionsPanelScrollViewer"
-                        x:Uid="SuggestionsPanelScrollViewer">
+                        x:Uid="SuggestionsPanelScrollViewer"
+                        HorizontalScrollBarVisibility="Hidden"
+                        MouseDoubleClick="SuggestionsPanelScrollViewer_MouseDoubleClick">
                         <Grid x:Name="SuggestionsPanelGrid"
                             x:Uid="SuggestionsPanelGrid"
                             RenderOptions.ClearTypeHint="Enabled"
                             RenderOptions.BitmapScalingMode="{x:Static vsui:DpiHelper.BitmapScalingMode}"
                             Background="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxPopupBackgroundGradientBrushKey}}">
-                            <StackPanel x:Name="PanelProgressBarHost"
-                                        x:Uid="PanelProgressBarHost"
-                                        Orientation="Vertical"
-                                        Visibility="{Binding IsInProgress, Converter={StaticResource BooleanToHiddenVisibilityConverter}, Mode=OneWay}"
-                                        >
-                                <TextBlock x:Name="PanelLabel"
-                                           x:Uid="PanelLabel"
-                                           Padding="2"
-                                           Text="{Binding GeneratingSuggestionsLabel}" />
-                                <ProgressBar x:Name="PanelProgressBar"
-                                     x:Uid="PanelProgressBar"
-                                     Margin="{TemplateBinding BorderThickness}"
-                                     IsIndeterminate="{Binding IsInProgress}"
-                                     Height="2"
-                                     Template="{DynamicResource {x:Static vsfx:VsResourceKeys.ProgressBarTemplateKey}}"
-                                     Foreground="{StaticResource copilotBranding}"
-                                     Background="Transparent" />
-                            </StackPanel>
                             <ItemsPresenter x:Name="AltItemsPresenter"
                                     x:Uid="AltItemsPresenter"
                                     VirtualizingStackPanel.IsVirtualizing="True"
                                     KeyboardNavigation.DirectionalNavigation="Contained"
-                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
-                                    PreviewMouseUp="ItemsPresenter_PreviewMouseUp">
+                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" >
                             </ItemsPresenter>
                         </Grid>
                     </ScrollViewer>
@@ -285,13 +226,6 @@
                     <Setter TargetName="border" Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxMouseOverBackgroundGradientBrushKey}}" />
                     <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxMouseOverBorderBrushKey}}" />
                     <Setter Property="TextElement.Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxMouseOverTextBrushKey}}" />
-                </Trigger>
-                <Trigger Property="HasDropShadow" SourceName="PART_Popup" Value="true">
-                    <Setter Property="Margin" TargetName="shadow" Value="0,0,5,5"/>
-                    <Setter Property="Color" TargetName="shadow" Value="#71000000"/>
-                </Trigger>
-                <Trigger Property="HasItems" Value="false">
-                    <Setter Property="Height" TargetName="dropDownBorder" Value="95"/>
                 </Trigger>
                 <MultiTrigger>
                     <MultiTrigger.Conditions>
@@ -319,6 +253,7 @@
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Template" Value="{StaticResource ComboBoxItemTemplate}" />
             <Setter Property="Margin" Value="2,0,2,0" />
+            <Setter Property="Padding" Value="4,1,24,1" /> <!-- Add 20px to the right over the default template to prevent popup from changing size -->
         </Style>
     </ComboBox.ItemContainerStyle>
 </ComboBox>

@@ -96,6 +96,11 @@
         <target state="translated">Evite parâmetros não usados no seu código. Se o parâmetro não puder ser removido, altere o nome para que ele comece com um sublinhado e seja seguido opcionalmente por um inteiro, como '_', '_1', '_2' etc. Esses nomes são tratados como nomes de símbolo de descarte especiais.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
+        <source>Base classes contain inaccessible unimplemented members</source>
+        <target state="translated">As classes base contêm membros não implementados inacessíveis</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
         <source>Blank line required between block and subsequent statement</source>
         <target state="translated">Linha em branco necessária entre o bloco e a próxima instrução</target>
@@ -144,6 +149,16 @@
       <trans-unit id="GetHashCode_implementation_can_be_simplified">
         <source>'GetHashCode' implementation can be simplified</source>
         <target state="translated">A implementação de 'GetHashCode' pode ser simplificada</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="translated">Implementar classe abstrata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_through_0">
+        <source>Implement through '{0}'</source>
+        <target state="translated">Implementar por meio de '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">

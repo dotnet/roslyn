@@ -924,7 +924,7 @@ public partial class C
             Assert.True(propDefinition.IsPartialDefinition);
 
             var propImplementation = propDefinition.PartialImplementationPart!;
-            Assert.True(propImplementation.IsPartialImplementation);
+            Assert.True(propImplementation.IsPartialImplementation());
 
             Assert.Same(propDefinition, propImplementation.PartialDefinitionPart);
             Assert.Null(propImplementation.PartialImplementationPart);
@@ -998,7 +998,7 @@ public partial class C
             Assert.True(propDefinition.IsPartialDefinition);
 
             var propImplementation = propDefinition.PartialImplementationPart!;
-            Assert.True(propImplementation.IsPartialImplementation);
+            Assert.True(propImplementation.IsPartialImplementation());
 
             Assert.Same(propDefinition, propImplementation.PartialDefinitionPart);
             Assert.Null(propImplementation.PartialImplementationPart);
@@ -1084,7 +1084,7 @@ public partial class C
             Assert.True(propDefinition.IsPartialDefinition);
 
             var propImplementation = propDefinition.PartialImplementationPart!;
-            Assert.True(propImplementation.IsPartialImplementation);
+            Assert.True(propImplementation.IsPartialImplementation());
 
             Assert.Same(propDefinition, propImplementation.PartialDefinitionPart);
             Assert.Null(propImplementation.PartialImplementationPart);
@@ -1512,10 +1512,10 @@ public partial class C
                 // (6,17): error CS0274: Cannot specify accessibility modifiers for both accessors of the property or indexer 'C.P2'
                 //     partial int P2 { private get; private set; }
                 Diagnostic(ErrorCode.ERR_DuplicatePropertyAccessMods, "P2").WithArguments("C.P2").WithLocation(6, 17),
-                // (6,30): error CS0273: The accessibility modifier of the 'C.P2.get' accessor must be more restrictive than the property or indexer 'C.P2'       
+                // (6,30): error CS0273: The accessibility modifier of the 'C.P2.get' accessor must be more restrictive than the property or indexer 'C.P2'
                 //     partial int P2 { private get; private set; }
                 Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "get").WithArguments("C.P2.get", "C.P2").WithLocation(6, 30),
-                // (6,43): error CS0273: The accessibility modifier of the 'C.P2.set' accessor must be more restrictive than the property or indexer 'C.P2'       
+                // (6,43): error CS0273: The accessibility modifier of the 'C.P2.set' accessor must be more restrictive than the property or indexer 'C.P2'
                 //     partial int P2 { private get; private set; }
                 Diagnostic(ErrorCode.ERR_InvalidPropertyAccessMod, "set").WithArguments("C.P2.set", "C.P2").WithLocation(6, 43),
                 // (11,17): error CS8799: Both partial member declarations must have identical accessibility modifiers.
@@ -3768,18 +3768,41 @@ public partial class C
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,27): error CS8050: Only auto-implemented properties can have initializers.
+                // (3,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public partial string P1 { get; set; } = "a";
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 27),
-                // (7,27): error CS8050: Only auto-implemented properties can have initializers.
+                // (7,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public partial string P2 { get => ""; set { } } = "b";
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(7, 27),
-                // (9,27): error CS8050: Only auto-implemented properties can have initializers.
+                // (9,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public partial string P3 { get; set; } = "c";
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(9, 27),
-                // (10,27): error CS8050: Only auto-implemented properties can have initializers.
+                // (10,27): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //     public partial string P3 { get => ""; set { } } = "d";
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P3").WithLocation(10, 27),
+                // (10,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public partial string P3 { get => ""; set { } } = "d";
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(10, 27));
+
+            AssertEx.Equal([
+                "System.String C.<P1>k__BackingField",
+                "System.String C.P1 { get; set; }",
+                "System.String C.P1.get",
+                "void C.P1.set",
+                "System.String C.P2 { get; set; }",
+                "System.String C.P2.get",
+                "void C.P2.set",
+                "System.String C.<P2>k__BackingField",
+                "System.String C.<P3>k__BackingField",
+                "System.String C.P3 { get; set; }",
+                "System.String C.P3.get",
+                "void C.P3.set",
+                "C..ctor()"],
+                comp.GetMember<NamedTypeSymbol>("C").GetMembers().SelectAsArray(m => m.ToTestDisplayString()));
+
+            Assert.Empty(comp.GetMember<FieldSymbol>("C.<P1>k__BackingField").GetAttributes());
+            Assert.Empty(comp.GetMember<FieldSymbol>("C.<P2>k__BackingField").GetAttributes());
+            Assert.Empty(comp.GetMember<FieldSymbol>("C.<P3>k__BackingField").GetAttributes());
         }
 
         [Fact]
@@ -3801,30 +3824,53 @@ public partial class C
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,27): error CS8050: Only auto-implemented properties can have initializers.
+                // (3,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public partial string P1 { get; set; } = ERROR;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 27),
                 // (3,46): error CS0103: The name 'ERROR' does not exist in the current context
                 //     public partial string P1 { get; set; } = ERROR;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(3, 46),
-                // (7,27): error CS8050: Only auto-implemented properties can have initializers.
+                // (7,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public partial string P2 { get => ""; set { } } = ERROR;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(7, 27),
                 // (7,55): error CS0103: The name 'ERROR' does not exist in the current context
                 //     public partial string P2 { get => ""; set { } } = ERROR;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(7, 55),
-                // (9,27): error CS8050: Only auto-implemented properties can have initializers.
+                // (9,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public partial string P3 { get; set; } = ERROR;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(9, 27),
                 // (9,46): error CS0103: The name 'ERROR' does not exist in the current context
                 //     public partial string P3 { get; set; } = ERROR;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(9, 46),
-                // (10,27): error CS8050: Only auto-implemented properties can have initializers.
+                // (10,27): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //     public partial string P3 { get => ""; set { } } = ERROR;
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P3").WithLocation(10, 27),
+                // (10,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public partial string P3 { get => ""; set { } } = ERROR;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(10, 27),
                 // (10,55): error CS0103: The name 'ERROR' does not exist in the current context
                 //     public partial string P3 { get => ""; set { } } = ERROR;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "ERROR").WithArguments("ERROR").WithLocation(10, 55));
+
+            AssertEx.Equal([
+                "System.String C.<P1>k__BackingField",
+                "System.String C.P1 { get; set; }",
+                "System.String C.P1.get",
+                "void C.P1.set",
+                "System.String C.P2 { get; set; }",
+                "System.String C.P2.get",
+                "void C.P2.set",
+                "System.String C.<P2>k__BackingField",
+                "System.String C.<P3>k__BackingField",
+                "System.String C.P3 { get; set; }",
+                "System.String C.P3.get",
+                "void C.P3.set",
+                "C..ctor()"],
+                comp.GetMember<NamedTypeSymbol>("C").GetMembers().SelectAsArray(m => m.ToTestDisplayString()));
+
+            Assert.Empty(comp.GetMember<FieldSymbol>("C.<P1>k__BackingField").GetAttributes());
+            Assert.Empty(comp.GetMember<FieldSymbol>("C.<P2>k__BackingField").GetAttributes());
+            Assert.Empty(comp.GetMember<FieldSymbol>("C.<P3>k__BackingField").GetAttributes());
         }
 
         [Fact]
@@ -3859,7 +3905,7 @@ public partial class C
                 // (6,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
                 //     [field: Attr1]
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(6, 6),
-                // (7,27): error CS8050: Only auto-implemented properties can have initializers.
+                // (7,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public partial string P1 { get; set; } = "a";
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(7, 27),
                 // (8,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
@@ -3871,19 +3917,22 @@ public partial class C
                 // (13,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
                 //     [field: Attr2]
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(13, 6),
-                // (14,27): error CS8050: Only auto-implemented properties can have initializers.
+                // (14,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public partial string P2 { get => ""; set { } } = "b";
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(14, 27),
                 // (16,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
                 //     [field: Attr1]
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(16, 6),
-                // (17,27): error CS8050: Only auto-implemented properties can have initializers.
+                // (17,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public partial string P3 { get; set; } = "c";
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(17, 27),
                 // (18,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
                 //     [field: Attr2]
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(18, 6),
-                // (19,27): error CS8050: Only auto-implemented properties can have initializers.
+                // (19,27): error CS9263: A partial property cannot have an initializer on both the definition and implementation.
+                //     public partial string P3 { get => ""; set { } } = "d";
+                Diagnostic(ErrorCode.ERR_PartialPropertyDuplicateInitializer, "P3").WithLocation(19, 27),
+                // (19,27): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public partial string P3 { get => ""; set { } } = "d";
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(19, 27));
 
@@ -3900,17 +3949,12 @@ public partial class C
                 "System.String C.P3 { get; set; }",
                 "System.String C.P3.get",
                 "void C.P3.set",
-                "System.String C.<P3>k__BackingField",
                 "C..ctor()"],
                 comp.GetMember<NamedTypeSymbol>("C").GetMembers().SelectAsArray(m => m.ToTestDisplayString()));
 
             Assert.Empty(comp.GetMember<FieldSymbol>("C.<P1>k__BackingField").GetAttributes());
             Assert.Empty(comp.GetMember<FieldSymbol>("C.<P2>k__BackingField").GetAttributes());
-
-            var p3Fields = comp.GetMembers("C.<P3>k__BackingField");
-            Assert.Equal(2, p3Fields.Length);
-            Assert.Empty(p3Fields[0].GetAttributes());
-            Assert.Empty(p3Fields[1].GetAttributes());
+            Assert.Empty(comp.GetMember<FieldSymbol>("C.<P3>k__BackingField").GetAttributes());
         }
 
         [Theory]
@@ -4802,23 +4846,23 @@ public partial class C
                 }
                 """;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularNext);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics();
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
             comp.VerifyEmitDiagnostics(
-                // (3,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version 'preview' or greater.
+                // (3,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version '13.0' or greater.
                 //     public partial int P { get; set; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P").WithArguments("partial", "12.0", "preview").WithLocation(3, 24),
-                // (4,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P").WithArguments("partial", "12.0", "13.0").WithLocation(3, 24),
+                // (4,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version '13.0' or greater.
                 //     public partial int P { get => 1; set { } }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P").WithArguments("partial", "12.0", "preview").WithLocation(4, 24),
-                // (6,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P").WithArguments("partial", "12.0", "13.0").WithLocation(4, 24),
+                // (6,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version '13.0' or greater.
                 //     public partial int this[int i] { get; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "this").WithArguments("partial", "12.0", "preview").WithLocation(6, 24),
-                // (7,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version 'preview' or greater.
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "this").WithArguments("partial", "12.0", "13.0").WithLocation(6, 24),
+                // (7,24): error CS8703: The modifier 'partial' is not valid for this item in C# 12.0. Please use language version '13.0' or greater.
                 //     public partial int this[int i] { get => i; }
-                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "this").WithArguments("partial", "12.0", "preview").WithLocation(7, 24));
+                Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "this").WithArguments("partial", "12.0", "13.0").WithLocation(7, 24));
         }
 
         [Fact]
@@ -4972,6 +5016,70 @@ public partial class C
             // This is consistent with partial methods.
             Assert.Equal("SourceFile(Program.cs[52..53))", defSymbol.Locations.Single().ToString());
             Assert.Equal("SourceFile(Program.cs[97..98))", implSymbol.Locations.Single().ToString());
+        }
+
+        [Fact]
+        public void OnlyOneAccessorHasBodyOnImplementation()
+        {
+            var source = """
+                partial class C
+                {
+                    public partial int Prop1 { get; set; }
+                    public partial int Prop1 { get => 1; set; }
+
+                    public partial int Prop2 { get; set; }
+                    public partial int Prop2 { get; set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74679")]
+        public void WRN_SequentialOnPartialClass_NotReportedForPartialProperty_01()
+        {
+            var source = """
+                partial struct S
+                {
+                    partial int I { get; }
+                }
+
+                partial struct S
+                {
+                    public S() => i = 42;
+                    private readonly int i;
+                    partial int I => i;
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74679")]
+        public void WRN_SequentialOnPartialClass_NotReportedForPartialProperty_02()
+        {
+            var source = """
+                partial struct S
+                {
+                    partial int I { get; }
+                }
+
+                partial struct S
+                {
+                    partial int I => i;
+                }
+
+                partial struct S
+                {
+                    public S() => i = 42;
+                    private readonly int i;
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

@@ -157,14 +157,15 @@ internal abstract partial class AbstractStructureTaggerProvider(
             TaggerEventSources.OnTextChanged(subjectBuffer),
             TaggerEventSources.OnParseOptionChanged(subjectBuffer),
             TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions),
-            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, BlockStructureOptionsStorage.CollapseLocalFunctionsWhenCollapsingToDefinitions));
+            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, static option =>
+                option.Equals(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs) ||
+                option.Equals(BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs) ||
+                option.Equals(BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions) ||
+                option.Equals(BlockStructureOptionsStorage.ShowOutliningForCodeLevelConstructs) ||
+                option.Equals(BlockStructureOptionsStorage.ShowOutliningForDeclarationLevelConstructs) ||
+                option.Equals(BlockStructureOptionsStorage.ShowOutliningForCommentsAndPreprocessorRegions) ||
+                option.Equals(BlockStructureOptionsStorage.CollapseRegionsWhenCollapsingToDefinitions) ||
+                option.Equals(BlockStructureOptionsStorage.CollapseLocalFunctionsWhenCollapsingToDefinitions)));
     }
 
     protected sealed override async Task ProduceTagsAsync(
@@ -205,9 +206,13 @@ internal abstract partial class AbstractStructureTaggerProvider(
         ImmutableArray<BlockSpan> spans)
     {
         var snapshot = snapshotSpan.Snapshot;
-        spans = GetMultiLineRegions(outliningService, spans, snapshot);
 
-        foreach (var span in spans)
+        // Use the returned enumerable directly instead of allocating into an array. The returned
+        // enumeration can contain a fairly large number of items for large files, so even
+        // using an ArrayBuilder could result in allocation issues without using a custom pool.
+        var multiLineSpans = GetMultiLineRegions(outliningService, spans, snapshot);
+
+        foreach (var span in multiLineSpans)
         {
             var tag = new StructureTag(this, span, snapshot);
             context.AddTag(new TagSpan<IContainerStructureTag>(span.TextSpan.ToSnapshotSpan(snapshot), tag));
@@ -225,12 +230,11 @@ internal abstract partial class AbstractStructureTaggerProvider(
 
     private static bool s_exceptionReported = false;
 
-    private static ImmutableArray<BlockSpan> GetMultiLineRegions(
+    private static IEnumerable<BlockSpan> GetMultiLineRegions(
         BlockStructureService service,
         ImmutableArray<BlockSpan> regions, ITextSnapshot snapshot)
     {
         // Remove any spans that aren't multiline.
-        var multiLineRegions = ArrayBuilder<BlockSpan>.GetInstance();
         foreach (var region in regions)
         {
             if (region.TextSpan.Length > 0)
@@ -261,12 +265,10 @@ internal abstract partial class AbstractStructureTaggerProvider(
                 var endLine = snapshot.GetLineNumberFromPosition(region.TextSpan.End);
                 if (startLine != endLine)
                 {
-                    multiLineRegions.Add(region);
+                    yield return region;
                 }
             }
         }
-
-        return multiLineRegions.ToImmutableAndFree();
     }
 
     #region Creating Preview Buffers

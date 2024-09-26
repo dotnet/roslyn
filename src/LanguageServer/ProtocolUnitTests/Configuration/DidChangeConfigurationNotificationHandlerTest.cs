@@ -40,7 +40,7 @@ public class B { }";
             {
                 Workspace = new WorkspaceClientCapabilities()
                 {
-                    DidChangeConfiguration = new DynamicRegistrationSetting() { DynamicRegistration = true },
+                    DidChangeConfiguration = new DidChangeConfigurationClientCapabilities() { DynamicRegistration = true },
                     Configuration = false
                 }
             };
@@ -69,7 +69,7 @@ public class A { }";
             {
                 Workspace = new WorkspaceClientCapabilities()
                 {
-                    DidChangeConfiguration = new DynamicRegistrationSetting() { DynamicRegistration = true },
+                    DidChangeConfiguration = new DidChangeConfigurationClientCapabilities() { DynamicRegistration = true },
                     Configuration = true
                 }
             };
@@ -107,16 +107,17 @@ public class A { }";
         public void VerifyLspClientOptionNames()
         {
             var actualNames = DidChangeConfigurationNotificationHandler.SupportedOptions.Select(
-                DidChangeConfigurationNotificationHandler.GenerateFullNameForOption).OrderBy(name => name).ToArray();
-            // These options are persist in the LSP client. Please make sure also modify the LSP client code if these strings are changed.
+                DidChangeConfigurationNotificationHandler.GenerateFullNameForOption);
+            // These options are persisted by the LSP client. Please make sure also modify the LSP client code if these strings are changed.
             var expectedNames = new[]
             {
                 "symbol_search.dotnet_search_reference_assemblies",
-                "implement_type.dotnet_insertion_behavior",
-                "implement_type.dotnet_property_generation_behavior",
+                "type_members.dotnet_member_insertion_location",
+                "type_members.dotnet_property_generation_behavior",
                 "completion.dotnet_show_name_completion_suggestions",
                 "completion.dotnet_provide_regex_completions",
                 "completion.dotnet_show_completion_items_from_unimported_namespaces",
+                "completion.dotnet_trigger_completion_in_argument_lists",
                 "quick_info.dotnet_show_remarks_in_quick_info",
                 "navigation.dotnet_navigate_to_decompiled_sources",
                 "highlighting.dotnet_highlight_related_json_components",
@@ -133,6 +134,7 @@ public class A { }";
                 "inlay_hints.csharp_enable_inlay_hints_for_implicit_variable_types",
                 "inlay_hints.csharp_enable_inlay_hints_for_lambda_parameter_types",
                 "inlay_hints.csharp_enable_inlay_hints_for_implicit_object_creation",
+                "inlay_hints.csharp_enable_inlay_hints_for_collection_expressions",
                 "code_style.formatting.indentation_and_spacing.tab_width",
                 "code_style.formatting.indentation_and_spacing.indent_size",
                 "code_style.formatting.indentation_and_spacing.indent_style",
@@ -143,10 +145,11 @@ public class A { }";
                 "code_lens.dotnet_enable_references_code_lens",
                 "code_lens.dotnet_enable_tests_code_lens",
                 "projects.dotnet_binary_log_path",
-                "projects.dotnet_enable_automatic_restore"
-            }.OrderBy(name => name);
+                "projects.dotnet_enable_automatic_restore",
+                "navigation.dotnet_navigate_to_source_link_and_embedded_sources"
+            };
 
-            Assert.Equal(expectedNames, actualNames);
+            AssertEx.SetEqual(expectedNames, actualNames);
         }
 
         private static void VerifyValuesInServer(EditorTestWorkspace workspace, List<string> expectedValues)

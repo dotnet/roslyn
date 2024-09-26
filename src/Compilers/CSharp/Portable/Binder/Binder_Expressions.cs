@@ -598,6 +598,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return BindThis((ThisExpressionSyntax)node, diagnostics);
                     case SyntaxKind.BaseExpression:
                         return BindBase((BaseExpressionSyntax)node, diagnostics);
+                    case SyntaxKind.FieldExpression:
+                        return BindFieldExpression((FieldExpressionSyntax)node, diagnostics);
                     case SyntaxKind.InvocationExpression:
                         return BindInvocationExpression((InvocationExpressionSyntax)node, diagnostics);
                     case SyntaxKind.ArrayInitializerExpression:
@@ -1433,6 +1435,56 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.GetSpecialType(SpecialType.System_Int32, diagnostics, node), hasErrors);
         }
 
+        private BoundExpression BindFieldExpression(FieldExpressionSyntax node, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(ContainingType is { });
+            SynthesizedBackingFieldSymbolBase? field = null;
+
+            if (hasOtherFieldSymbolInScope())
+            {
+                diagnostics.Add(ErrorCode.WRN_FieldIsAmbiguous, node, Compilation.LanguageVersion.ToDisplayString());
+            }
+
+            switch (ContainingMember())
+            {
+                case SynthesizedBackingFieldSymbolBase backingField:
+                    field = backingField;
+                    break;
+                case MethodSymbol { AssociatedSymbol: SourcePropertySymbol property }:
+                    field = property.BackingField;
+                    break;
+                default:
+                    {
+                        Debug.Assert((this.Flags & BinderFlags.InContextualAttributeBinder) != 0);
+                        var contextualAttributeBinder = TryGetContextualAttributeBinder(this);
+                        if (contextualAttributeBinder is { AttributeTarget: MethodSymbol { AssociatedSymbol: SourcePropertySymbol property } })
+                        {
+                            field = property.BackingField;
+                        }
+                        break;
+                    }
+            }
+
+            if (field is null)
+            {
+                throw ExceptionUtilities.UnexpectedValue(ContainingMember());
+            }
+
+            var implicitReceiver = field.IsStatic ? null : ThisReference(node, field.ContainingType, wasCompilerGenerated: true);
+            return new BoundFieldAccess(node, implicitReceiver, field, constantValueOpt: null);
+
+            bool hasOtherFieldSymbolInScope()
+            {
+                var lookupResult = LookupResult.GetInstance();
+                var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                this.LookupIdentifier(lookupResult, name: "field", arity: 0, invoked: false, ref useSiteInfo);
+                bool result = lookupResult.Kind != LookupResultKind.Empty;
+                Debug.Assert(!result || lookupResult.Symbols.Count > 0);
+                lookupResult.Free();
+                return result;
+            }
+        }
+
         /// <returns>true if managed type-related errors were found, otherwise false.</returns>
         internal static bool CheckManagedAddr(CSharpCompilation compilation, TypeSymbol type, Location location, BindingDiagnosticBag diagnostics, bool errorForManaged = false)
         {
@@ -1548,11 +1600,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isError;
                 var members = ArrayBuilder<Symbol>.GetInstance();
                 Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, name, node.Arity, members, diagnostics, out isError, qualifierOpt: null);  // reports diagnostics in result.
-
-                if (symbol is not SynthesizedAccessorValueParameterSymbol { Name: "value" })
-                {
-                    ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
-                }
 
                 if ((object)symbol == null)
                 {
@@ -1736,31 +1783,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-#nullable enable
-        /// <summary>
-        /// Report a diagnostic for a 'field' or 'value' identifier that the meaning will
-        /// change when the identifier is considered a contextual keyword.
-        /// </summary>
-        internal void ReportFieldOrValueContextualKeywordConflictIfAny(SyntaxNode syntax, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
-        {
-            string name = identifier.Text;
-            switch (name)
-            {
-                case "field" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol: PropertySymbol { IsIndexer: false } }:
-                case "value" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove }:
-                    {
-                        var requiredVersion = MessageID.IDS_FeatureFieldAndValueKeywords.RequiredVersion();
-                        if (Compilation.LanguageVersion < requiredVersion)
-                        {
-                            diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, name, requiredVersion.ToDisplayString());
-                        }
-                    }
-                    break;
-            }
-        }
-#nullable disable
-
         private void LookupIdentifier(LookupResult lookupResult, SimpleNameSyntax node, bool invoked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            LookupIdentifier(lookupResult, name: node.Identifier.ValueText, arity: node.Arity, invoked, useSiteInfo: ref useSiteInfo);
+        }
+
+        private void LookupIdentifier(LookupResult lookupResult, string name, int arity, bool invoked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             LookupOptions options = LookupOptions.AllMethodsOnArityZero;
             if (invoked)
@@ -1774,7 +1802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options |= LookupOptions.MustNotBeMethodTypeParameter;
             }
 
-            this.LookupSymbolsWithFallback(lookupResult, node.Identifier.ValueText, arity: node.Arity, useSiteInfo: ref useSiteInfo, options: options);
+            this.LookupSymbolsWithFallback(lookupResult, name, arity, useSiteInfo: ref useSiteInfo, options: options);
         }
 
         /// <summary>
@@ -3118,8 +3146,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isVar;
             var designation = (SingleVariableDesignationSyntax)declarationExpression.Designation;
             TypeSyntax typeSyntax = declarationExpression.Type;
-
-            ReportFieldOrValueContextualKeywordConflictIfAny(designation, designation.Identifier, diagnostics);
 
             // Is this a local?
             SourceLocalSymbol localSymbol = this.LookupLocal(designation.Identifier);
@@ -4842,47 +4868,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (initializerArgumentListOpt != null && analyzedArguments.HasDynamicArgument)
                 {
-                    BoundExpression result = null;
-                    CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                    ImmutableArray<MethodSymbol> accessibleConstructors = GetAccessibleConstructorsForOverloadResolution(initializerType, allowProtectedConstructorsOfBaseType: true, allInstanceConstructors: out _, ref useSiteInfo);
-                    OverloadResolutionResult<MethodSymbol> overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
-                    this.OverloadResolution.ObjectCreationOverloadResolution(accessibleConstructors, analyzedArguments, overloadResolutionResult, dynamicResolution: true, ref useSiteInfo);
+                    diagnostics.Add(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, errorLocation);
 
-                    if (overloadResolutionResult.HasAnyApplicableMember)
-                    {
-                        var finalApplicableCandidates = GetCandidatesPassingFinalValidation(nonNullSyntax, overloadResolutionResult, receiverOpt: null, default(ImmutableArray<TypeWithAnnotations>), invokedAsExtensionMethod: false, diagnostics);
-
-                        if (finalApplicableCandidates.Length == 1)
-                        {
-                            Debug.Assert(finalApplicableCandidates[0].IsApplicable);
-
-                            if (!IsAmbiguousDynamicParamsArgument(analyzedArguments.Arguments, finalApplicableCandidates[0], out SyntaxNode argumentSyntax))
-                            {
-                                result = BindConstructorInitializerCoreContinued(found: true, initializerArgumentListOpt, constructor, analyzedArguments, constructorReturnType,
-                                            initializerType, isBaseConstructorInitializer, nonNullSyntax, errorLocation, enableCallerInfo,
-                                            finalApplicableCandidates[0], accessibleConstructors, in useSiteInfo, diagnostics);
-                            }
-                        }
-
-                        if (result == null)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, errorLocation);
-                            diagnostics.Add(errorLocation, useSiteInfo);
-
-                            result = new BoundBadExpression(
-                                    syntax: initializerArgumentListOpt.Parent,
-                                    resultKind: LookupResultKind.Empty,
-                                    symbols: accessibleConstructors.Cast<MethodSymbol, Symbol>(),
-                                    childBoundNodes: BuildArgumentsForErrorRecovery(analyzedArguments),
-                                    type: constructorReturnType);
-                        }
-                    }
-
-                    overloadResolutionResult.Free();
-                    if (result != null)
-                    {
-                        return result;
-                    }
+                    return new BoundBadExpression(
+                            syntax: initializerArgumentListOpt.Parent,
+                            resultKind: LookupResultKind.Empty,
+                            symbols: ImmutableArray<Symbol>.Empty, //CONSIDER: we could look for a matching constructor on System.ValueType
+                            childBoundNodes: BuildArgumentsForErrorRecovery(analyzedArguments),
+                            type: constructorReturnType);
                 }
 
                 MemberResolutionResult<MethodSymbol> memberResolutionResult;
@@ -5254,11 +5247,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(conversion.IsValid);
                 diagnostics.Add(syntax.Expression, useSiteInfo);
                 var convertedExpression = @this.ConvertForEachCollection(expressionPlaceholder, conversion, collectionType, diagnostics);
+
                 BoundExpression? lengthOrCount;
-                if (!@this.TryBindLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, diagnostics))
+
+                if (enumeratorInfo is { InlineArraySpanType: not WellKnownType.Unknown })
+                {
+                    _ = expression.Type.HasInlineArrayAttribute(out int length);
+                    Debug.Assert(length > 0);
+                    lengthOrCount = new BoundLiteral(expression.Syntax, ConstantValue.Create(length), @this.GetSpecialType(SpecialType.System_Int32, diagnostics, expression.Syntax)) { WasCompilerGenerated = true };
+                }
+                else if (!@this.TryBindLengthOrCount(syntax.Expression, expressionPlaceholder, out lengthOrCount, diagnostics))
                 {
                     lengthOrCount = null;
                 }
+
                 return new BoundCollectionExpressionSpreadElement(
                     syntax,
                     expression,
@@ -5800,6 +5802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<RefKind> argumentRefKindsOpt = default;
             BitVector defaultArguments = default;
             bool expanded = false;
+            AccessorKind accessorKind = AccessorKind.Unknown;
 
             switch (boundMemberKind)
             {
@@ -5838,6 +5841,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         argumentRefKindsOpt = indexer.ArgumentRefKindsOpt;
                         defaultArguments = indexer.DefaultArguments;
                         expanded = indexer.Expanded;
+                        accessorKind = indexer.AccessorKind;
 
                         // If any of the arguments is an interpolated string handler that takes the receiver as an argument for creation,
                         // we disallow this. During lowering, indexer arguments are evaluated before the receiver for this scenario, and
@@ -5914,6 +5918,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argsToParamsOpt,
                 defaultArguments,
                 resultKind,
+                accessorKind,
                 implicitReceiver.Type,
                 type: boundMember.Type,
                 hasErrors: hasErrors);
@@ -6581,7 +6586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
                 OverloadResolutionResult<MethodSymbol> overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
                 ImmutableArray<MethodSymbol> accessibleConstructors = GetAccessibleConstructorsForOverloadResolution(type, ref useSiteInfo);
-                this.OverloadResolution.ObjectCreationOverloadResolution(accessibleConstructors, analyzedArguments, overloadResolutionResult, dynamicResolution: true, ref useSiteInfo);
+                this.OverloadResolution.ObjectCreationOverloadResolution(accessibleConstructors, analyzedArguments, overloadResolutionResult, dynamicResolution: true, isEarlyAttributeBinding: IsEarlyAttributeBinder, ref useSiteInfo);
 
                 if (overloadResolutionResult.HasAnyApplicableMember)
                 {
@@ -6590,16 +6595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (finalApplicableCandidates.Length == 1)
                     {
                         Debug.Assert(finalApplicableCandidates[0].IsApplicable);
-                        ReportMemberNotSupportedByDynamicDispatch(node, finalApplicableCandidates[0], analyzedArguments.Arguments, diagnostics);
-                    }
-
-                    if (finalApplicableCandidates.Length != 1 &&
-                        Compilation.LanguageVersion > LanguageVersion.CSharp12 && // The following check (while correct) is redundant otherwise
-                        HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(analyzedArguments.Arguments, finalApplicableCandidates))
-                    {
-                        Error(diagnostics,
-                            ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor,
-                            node);
+                        ReportMemberNotSupportedByDynamicDispatch(node, finalApplicableCandidates[0], diagnostics);
                     }
 
                     var argArray = BuildArgumentsForDynamicInvocation(analyzedArguments, diagnostics);
@@ -7061,7 +7057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (candidateConstructors.Any())
             {
                 // We have at least one accessible candidate constructor, perform overload resolution with accessible candidateConstructors.
-                this.OverloadResolution.ObjectCreationOverloadResolution(candidateConstructors, analyzedArguments, result, dynamicResolution: false, ref useSiteInfo);
+                this.OverloadResolution.ObjectCreationOverloadResolution(candidateConstructors, analyzedArguments, result, dynamicResolution: false, isEarlyAttributeBinding: IsEarlyAttributeBinder, ref useSiteInfo);
 
                 if (result.Succeeded)
                 {
@@ -7075,7 +7071,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We might have a best match constructor which is inaccessible.
                 // Try overload resolution with all instance constructors to generate correct diagnostics and semantic info for this case.
                 OverloadResolutionResult<MethodSymbol> inaccessibleResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
-                this.OverloadResolution.ObjectCreationOverloadResolution(allInstanceConstructors, analyzedArguments, inaccessibleResult, dynamicResolution: false, ref useSiteInfo);
+                this.OverloadResolution.ObjectCreationOverloadResolution(allInstanceConstructors, analyzedArguments, inaccessibleResult, dynamicResolution: false, isEarlyAttributeBinding: IsEarlyAttributeBinder, ref useSiteInfo);
 
                 if (inaccessibleResult.Succeeded)
                 {
@@ -7554,8 +7550,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(boundLeft != null);
 
             boundLeft = MakeMemberAccessValue(boundLeft, diagnostics);
-
-            ReportFieldOrValueContextualKeywordConflictIfAny(right, right.Identifier, diagnostics);
 
             TypeSymbol leftType = boundLeft.Type;
 
@@ -8297,6 +8291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                       OverloadResolution.Options.IsFunctionPointerResolution |
                                       OverloadResolution.Options.InferWithDynamic |
                                       OverloadResolution.Options.IgnoreNormalFormIfHasValidParamsParameter |
+                                      OverloadResolution.Options.DisallowExpandedNonArrayParams |
                                       OverloadResolution.Options.DynamicResolution |
                                       OverloadResolution.Options.DynamicConvertsToAnything)) == 0);
 
@@ -8631,7 +8626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
-            return new BoundPropertyAccess(node, receiver, initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, propertySymbol), propertySymbol, lookupResult, propertySymbol.Type, hasErrors: (hasErrors || hasError));
+            return new BoundPropertyAccess(node, receiver, initialBindingReceiverIsSubjectToCloning: ReceiverIsSubjectToCloning(receiver, propertySymbol), propertySymbol, autoPropertyAccessorKind: AccessorKind.Unknown, lookupResult, propertySymbol.Type, hasErrors: (hasErrors || hasError));
         }
 #nullable disable
 
@@ -9709,16 +9704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (finalApplicableCandidates.Length == 1)
                 {
                     Debug.Assert(finalApplicableCandidates[0].IsApplicable);
-                    ReportMemberNotSupportedByDynamicDispatch(syntax, finalApplicableCandidates[0], analyzedArguments.Arguments, diagnostics);
-                }
-
-                if (finalApplicableCandidates.Length != 1 &&
-                    Compilation.LanguageVersion > LanguageVersion.CSharp12 && // The following check (while correct) is redundant otherwise
-                    HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(analyzedArguments.Arguments, finalApplicableCandidates))
-                {
-                    Error(diagnostics,
-                        ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer,
-                        syntax);
+                    ReportMemberNotSupportedByDynamicDispatch(syntax, finalApplicableCandidates[0], diagnostics);
                 }
 
                 overloadResolutionResult.Free();
@@ -9823,6 +9809,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argumentNames,
                     argumentRefKinds,
                     expanded: resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm,
+                    AccessorKind.Unknown,
                     argsToParams,
                     defaultArguments: default,
                     property.Type,
@@ -10340,6 +10327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                       OverloadResolution.Options.IsFunctionPointerResolution |
                                       OverloadResolution.Options.InferWithDynamic |
                                       OverloadResolution.Options.IgnoreNormalFormIfHasValidParamsParameter |
+                                      OverloadResolution.Options.DisallowExpandedNonArrayParams |
                                       OverloadResolution.Options.DynamicResolution |
                                       OverloadResolution.Options.DynamicConvertsToAnything)) == 0);
 
@@ -10506,7 +10494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private MethodSymbol? GetUniqueSignatureFromMethodGroup(BoundMethodGroup node)
         {
-            if (Compilation.LanguageVersion < LanguageVersionFacts.CSharpNext)
+            if (Compilation.LanguageVersion < LanguageVersion.CSharp13)
             {
                 return GetUniqueSignatureFromMethodGroup_CSharp10(node);
             }
@@ -10621,7 +10609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool satisfiesConstraintChecks(MethodSymbol method)
             {
-                if (method.Arity == 0)
+                if (!ConstraintsHelper.RequiresChecking(method))
                 {
                     return true;
                 }
@@ -10665,7 +10653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 parameters.SelectAsArray(p => p.ExplicitDefaultConstantValue) :
                 default;
 
-            var hasParams = OverloadResolution.IsValidParams(this, methodSymbol, out _);
+            var hasParams = OverloadResolution.IsValidParams(this, methodSymbol, disallowExpandedNonArrayParams: false, out _);
 
             Debug.Assert(ContainingMemberOrLambda is { });
             Debug.Assert(parameterRefKinds.IsDefault || parameterRefKinds.Length == parameterTypes.Length);

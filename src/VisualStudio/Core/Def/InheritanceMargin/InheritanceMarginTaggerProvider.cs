@@ -59,11 +59,12 @@ internal sealed class InheritanceMarginTaggerProvider(TaggerHost taggerHost)
         // Note: Also generate tags when InheritanceMarginOptions.InheritanceMarginCombinedWithIndicatorMargin is changed,
         // because we want to refresh the glyphs in indicator margin.
         return TaggerEventSources.Compose(
-           TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
-           TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
-           TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-           TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InheritanceMarginOptionsStorage.ShowInheritanceMargin),
-           TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin));
+            TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
+            TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
+            TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
+            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions, static option =>
+                option.Equals(InheritanceMarginOptionsStorage.ShowInheritanceMargin) ||
+                option.Equals(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin)));
     }
 
     protected override async Task ProduceTagsAsync(

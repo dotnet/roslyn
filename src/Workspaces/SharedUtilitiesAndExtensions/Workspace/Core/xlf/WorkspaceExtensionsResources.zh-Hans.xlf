@@ -47,6 +47,11 @@
         <target state="translated">目标类型必须是 {0} 或 {1}，但给定类型是 {2}。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_does_not_support_syntax_trees">
+        <source>Document does not support syntax trees</source>
+        <target state="translated">文档不支持语法树</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_all_0">
         <source>Fix all '{0}'</source>
         <target state="translated">修复所有“{0}”</target>
@@ -120,6 +125,11 @@
       <trans-unit id="The_solution_does_not_contain_the_specified_document">
         <source>The solution does not contain the specified document.</source>
         <target state="translated">解决方案不包含指定的文档。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_members">
+        <source>Type members</source>
+        <target state="translated">类型成员</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">

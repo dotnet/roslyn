@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
@@ -10,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -27,7 +29,7 @@ using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedCla
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification;
 
 [Trait(Traits.Feature, Traits.Features.Classification)]
-public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
+public sealed partial class SemanticClassifierTests : AbstractCSharpClassifierTests
 {
     protected override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, ImmutableArray<TextSpan> spans, ParseOptions? options, TestHost testHost)
     {
@@ -35,6 +37,14 @@ public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
         var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
 
         return await GetSemanticClassificationsAsync(document, spans);
+    }
+
+    private new Task TestAsync(
+        [StringSyntax("C#-Test")] string code,
+        TestHost testHost,
+        params FormattedClassification[] expected)
+    {
+        return base.TestAsync(code, testHost, expected);
     }
 
     [Theory, CombinatorialData]

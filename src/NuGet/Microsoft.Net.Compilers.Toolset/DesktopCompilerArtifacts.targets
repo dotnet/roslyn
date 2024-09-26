@@ -24,7 +24,7 @@
     VS training data to the assemblies they produce.
   -->
 
-  <Target Name="InitializeDesktopCompilerArtifacts" Condition="'$(DotNetBuildFromSource)' != 'true'">
+  <Target Name="InitializeDesktopCompilerArtifacts" Condition="'$(DotNetBuildSourceOnly)' != 'true'">
     <ItemGroup>
       
       <!-- The Roslyn built binaries must be taken from these locations because this is the location where signing occurs -->
@@ -33,9 +33,10 @@
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.Scripting\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.Scripting.dll" NgenArchitecture="all" NgenApplication="csi.exe"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.CSharp.Scripting\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.CSharp.Scripting.dll" NgenArchitecture="all" NgenApplication="csi.exe"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.VisualBasic\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.VisualBasic.dll" NgenArchitecture="all" NgenApplication="VBCSCompiler.exe"/>
-      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csc$(_ExeDirSuffix)\$(Configuration)\net472\Microsoft.DiaSymReader.Native.amd64.dll" Condition="'$(DotNetBuildFromSource)' != 'true'"/>
-      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csc$(_ExeDirSuffix)\$(Configuration)\net472\Microsoft.DiaSymReader.Native.arm64.dll" Condition="'$(DotNetBuildFromSource)' != 'true'"/>
-      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csc$(_ExeDirSuffix)\$(Configuration)\net472\Microsoft.DiaSymReader.Native.x86.dll" Condition="'$(DotNetBuildFromSource)' != 'true'"/>
+      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler\$(Configuration)\netstandard2.0\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.dll" />
+      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csc$(_ExeDirSuffix)\$(Configuration)\net472\Microsoft.DiaSymReader.Native.amd64.dll" Condition="'$(DotNetBuildSourceOnly)' != 'true'"/>
+      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csc$(_ExeDirSuffix)\$(Configuration)\net472\Microsoft.DiaSymReader.Native.arm64.dll" Condition="'$(DotNetBuildSourceOnly)' != 'true'"/>
+      <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csc$(_ExeDirSuffix)\$(Configuration)\net472\Microsoft.DiaSymReader.Native.x86.dll" Condition="'$(DotNetBuildSourceOnly)' != 'true'"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csc$(_ExeDirSuffix)\$(Configuration)\net472\csc.exe" NgenArchitecture="all" NgenApplication="csc.exe" NgenPriority="2"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csc$(_ExeDirSuffix)\$(Configuration)\net472\csc.exe.config"/>
       <DesktopCompilerArtifact Include="$(ArtifactsBinDir)csc$(_ExeDirSuffix)\$(Configuration)\net472\csc.rsp"/>

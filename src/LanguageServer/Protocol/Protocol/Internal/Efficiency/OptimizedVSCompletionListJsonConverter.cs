@@ -57,14 +57,8 @@ internal class OptimizedVSCompletionListJsonConverter : JsonConverter<OptimizedV
             JsonSerializer.Serialize(writer, completionList.CommitCharacters, options);
         }
 
-        if (completionList.IsIncomplete)
-        {
-            writer.WriteBoolean("isIncomplete", completionList.IsIncomplete);
-        }
-        else
-        {
-            // Default is "false" so no need to serialize
-        }
+        // this is a required property per the LSP spec
+        writer.WriteBoolean("isIncomplete", completionList.IsIncomplete);
 
         writer.WritePropertyName("items");
         if (completionList.Items == null || completionList.Items.Length == 0)
@@ -154,10 +148,7 @@ internal class OptimizedVSCompletionListJsonConverter : JsonConverter<OptimizedV
         }
 
         var label = completionItem.Label;
-        if (label != null)
-        {
-            writer.WriteString("label", label);
-        }
+        writer.WriteString("label", label);
 
         if (completionItem.LabelDetails != null)
         {

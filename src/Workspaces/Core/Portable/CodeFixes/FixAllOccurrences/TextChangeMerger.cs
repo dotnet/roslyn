@@ -28,7 +28,7 @@ internal class TextChangeMerger
     private readonly IDocumentTextDifferencingService _differenceService;
 
     private readonly SimpleMutableIntervalTree<TextChange, IntervalIntrospector> _totalChangesIntervalTree =
-        BinaryIntervalTree.Create(new IntervalIntrospector(), Array.Empty<TextChange>());
+        SimpleMutableIntervalTree.Create(new IntervalIntrospector(), Array.Empty<TextChange>());
 
     public TextChangeMerger(Document document)
     {

@@ -10,6 +10,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CodeStyle;
 
+/// <summary>
+/// Internal representation of a code style option value. Should be used throughout Roslyn.
+/// The internal values are translated to the public ones (ICodeStyleOption) at the public entry points.
+/// </summary>
 internal interface ICodeStyleOption2
 {
     XElement ToXElement();

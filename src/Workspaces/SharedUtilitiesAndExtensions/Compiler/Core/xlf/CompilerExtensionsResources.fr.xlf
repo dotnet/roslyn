@@ -52,6 +52,11 @@
         <target state="translated">Préférences de champ</target>
         <note />
       </trans-unit>
+      <trans-unit id="Instantiated_parts_threw_exceptions_from_IDisposable_Dispose">
+        <source>Instantiated part(s) threw exception(s) from IDisposable.Dispose().</source>
+        <target state="translated">La ou les parties instanciées ont levé une ou plusieurs exceptions à partir de IDisposable.Dispose().</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Interface">
         <source>Interface</source>
         <target state="new">Interface</target>

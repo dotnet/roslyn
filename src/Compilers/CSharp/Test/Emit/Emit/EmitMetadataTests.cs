@@ -891,7 +891,7 @@ class C : I
         [Fact]
         public void SetGetOnlyAutopropsInConstructors()
         {
-            var comp = CreateCompilationWithMscorlib45(@"using System;
+            var comp = CreateCompilationWithMscorlib461(@"using System;
 class C
 {
     public int P1 { get; }
@@ -1294,7 +1294,7 @@ class C : B<string>
             {
                 if (property is SourcePropertySymbol sourceProperty)
                 {
-                    Assert.True(sourceProperty.IsAutoPropertyWithGetAccessor);
+                    Assert.True(sourceProperty.IsAutoProperty);
                 }
             }
             else

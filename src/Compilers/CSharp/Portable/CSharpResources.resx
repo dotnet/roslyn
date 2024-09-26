@@ -3119,16 +3119,16 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Anonymous methods, lambda expressions, query expressions, and local functions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression, query expression, or local function and using the local instead.</value>
   </data>
   <data name="ERR_NoConvToIDisp" xml:space="preserve">
-    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</value>
+    <value>'{0}': type used in a using statement must implement 'System.IDisposable'.</value>
   </data>
   <data name="ERR_NoConvToIDispWrongAsync" xml:space="preserve">
-    <value>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</value>
+    <value>'{0}': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</value>
   </data>
   <data name="ERR_NoConvToIAsyncDisp" xml:space="preserve">
-    <value>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</value>
+    <value>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</value>
   </data>
   <data name="ERR_NoConvToIAsyncDispWrongAsync" xml:space="preserve">
-    <value>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</value>
+    <value>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</value>
   </data>
   <data name="ERR_BadParamRef" xml:space="preserve">
     <value>Parameter {0} must be declared with the '{1}' keyword</value>
@@ -3844,9 +3844,6 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   </data>
   <data name="ERR_BadAsyncLacksBody" xml:space="preserve">
     <value>The 'async' modifier can only be used in methods that have a body.</value>
-  </data>
-  <data name="ERR_BadSpecialByRefIterator" xml:space="preserve">
-    <value>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</value>
   </data>
   <data name="ERR_BadSpecialByRefParameter" xml:space="preserve">
     <value>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</value>
@@ -4891,7 +4888,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Expected identifier or numeric literal</value>
   </data>
   <data name="ERR_InitializerOnNonAutoProperty" xml:space="preserve">
-    <value>Only auto-implemented properties can have initializers.</value>
+    <value>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</value>
   </data>
   <data name="ERR_InstancePropertyInitializerInInterface" xml:space="preserve">
     <value>Instance properties in interfaces cannot have initializers.</value>
@@ -6632,6 +6629,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureNotAvailableInVersion12" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.</value>
   </data>
+  <data name="ERR_FeatureNotAvailableInVersion13" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</value>
+  </data>
   <data name="ERR_UnexpectedArgumentList" xml:space="preserve">
     <value>Unexpected argument list.</value>
   </data>
@@ -6865,8 +6865,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="INF_TooManyBoundLambdas_Title" xml:space="preserve">
     <value>Compiling requires binding the lambda expression many times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</value>
   </data>
-  <data name="INF_IdentifierConflictWithContextualKeyword" xml:space="preserve">
-    <value>'{0}' is a contextual keyword, with a specific meaning, starting in language version {1}. Use '@{0}' to avoid a breaking change when compiling with language version {1} or later.</value>
+  <data name="WRN_FieldIsAmbiguous" xml:space="preserve">
+    <value>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</value>
+  </data>
+  <data name="WRN_FieldIsAmbiguous_Title" xml:space="preserve">
+    <value>The 'field' keyword binds to a synthesized backing field for the property.</value>
   </data>
   <data name="INF_IdentifierConflictWithContextualKeyword_Title" xml:space="preserve">
     <value>Identifier is a contextual keyword, with a specific meaning, in a later language version.</value>
@@ -7606,7 +7609,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A switch expression arm does not begin with a 'case' keyword.</value>
   </data>
   <data name="ERR_InterceptorsFeatureNotEnabled" xml:space="preserve">
-    <value>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</value>
+    <value>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</value>
   </data>
   <data name="ERR_InterceptorGlobalNamespace" xml:space="preserve">
     <value>An interceptor cannot be declared in the global namespace.</value>
@@ -7857,26 +7860,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DynamicDispatchToParamsCollection" xml:space="preserve">
     <value>'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</value>
   </data>
-  <data name="ERR_ParamsCollectionAmbiguousDynamicArgument" xml:space="preserve">
-    <value>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</value>
-  </data>
-  <data name="WRN_DynamicDispatchToParamsCollectionMethod" xml:space="preserve">
-    <value>One or more overloads of method '{0}' having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
-  </data>
-  <data name="WRN_DynamicDispatchToParamsCollectionMethod_Title" xml:space="preserve">
-    <value>One or more overloads of method having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
-  </data>
-  <data name="WRN_DynamicDispatchToParamsCollectionIndexer" xml:space="preserve">
-    <value>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
-  </data>
-  <data name="WRN_DynamicDispatchToParamsCollectionIndexer_Title" xml:space="preserve">
-    <value>One or more indexer overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
-  </data>
-  <data name="WRN_DynamicDispatchToParamsCollectionConstructor" xml:space="preserve">
-    <value>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
-  </data>
-  <data name="WRN_DynamicDispatchToParamsCollectionConstructor_Title" xml:space="preserve">
-    <value>One or more constructor overloads having non-array params collection parameter might be applicable only in expanded form which is not supported during dynamic dispatch.</value>
+  <data name="ERR_CollectionInitializerInfiniteChainOfAddCalls" xml:space="preserve">
+    <value>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</value>
   </data>
   <data name="ERR_ParamsCollectionInfiniteChainOfConstructorCalls" xml:space="preserve">
     <value>Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</value>
@@ -7917,17 +7902,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InterceptsLocationDataInvalidPosition" xml:space="preserve">
     <value>The data argument to InterceptsLocationAttribute refers to an invalid position in file '{0}'.</value>
   </data>
-  <data name="WRN_BadYieldInLock" xml:space="preserve">
-    <value>'yield return' should not be used in the body of a lock statement</value>
-  </data>
-  <data name="WRN_BadYieldInLock_Title" xml:space="preserve">
-    <value>'yield return' should not be used in the body of a lock statement</value>
-  </data>
   <data name="IDS_FeatureRefUnsafeInIteratorAsync" xml:space="preserve">
     <value>ref and unsafe in async and iterator methods</value>
   </data>
-  <data name="IDS_FeatureFieldAndValueKeywords" xml:space="preserve">
-    <value>field and value keywords</value>
+  <data name="IDS_FeatureFieldKeyword" xml:space="preserve">
+    <value>field keyword</value>
   </data>
   <data name="ERR_RefLocalAcrossAwait" xml:space="preserve">
     <value>A 'ref' local cannot be preserved across 'await' or 'yield' boundary.</value>
@@ -7997,5 +7976,23 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PartialPropertyRequiredDifference" xml:space="preserve">
     <value>Both partial property declarations must be required or neither may be required</value>
+  </data>
+  <data name="ERR_PartialPropertyDuplicateInitializer" xml:space="preserve">
+    <value>A partial property cannot have an initializer on both the definition and implementation.</value>
+  </data>
+  <data name="IDS_FeatureAllowsRefStructConstraint" xml:space="preserve">
+    <value>allows ref struct constraint</value>
+  </data>
+  <data name="ERR_CannotApplyOverloadResolutionPriorityToOverride" xml:space="preserve">
+    <value>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</value>
+  </data>
+  <data name="ERR_CannotApplyOverloadResolutionPriorityToMember" xml:space="preserve">
+    <value>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</value>
+  </data>
+  <data name="IDS_OverloadResolutionPriority" xml:space="preserve">
+    <value>overload resolution priority</value>
+  </data>
+  <data name="ERR_InlineArrayAttributeOnRecord" xml:space="preserve">
+    <value>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</value>
   </data>
 </root>

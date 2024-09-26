@@ -36,18 +36,6 @@ internal abstract class AbstractQualifyMemberAccessDiagnosticAnalyzer<
     {
     }
 
-    public override bool OpenFileOnly(SimplifierOptions? options)
-    {
-        // analyzer is only active in C# and VB projects
-        Contract.ThrowIfNull(options);
-
-        return
-           !(options.QualifyFieldAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
-             options.QualifyPropertyAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
-             options.QualifyMethodAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
-             options.QualifyEventAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
-    }
-
     /// <summary>
     /// Reports on whether the specified member is suitable for qualification. Some member
     /// access expressions cannot be qualified; for instance if they begin with <c>base.</c>,

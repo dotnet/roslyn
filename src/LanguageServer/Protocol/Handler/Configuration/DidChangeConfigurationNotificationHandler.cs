@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
@@ -84,55 +85,41 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             RoslynDebug.Assert(configurationsFromClient.Length == SupportedOptions.Sum(option => option is IPerLanguageValuedOption ? 2 : 1));
 
             // LSP ensures the order of result from client should match the order we sent from server.
+            using var _ = ArrayBuilder<KeyValuePair<OptionKey2, object?>>.GetInstance(out var optionsToUpdate);
+
             for (var i = 0; i < configurationsFromClient.Length; i++)
             {
                 var valueFromClient = configurationsFromClient[i];
                 var (option, languageName) = _optionsAndLanguageNamesToRefresh[i];
+
                 // If option doesn't exist in the client, don't try to update the option.
                 if (!string.IsNullOrEmpty(valueFromClient))
-                    SetOption(option, valueFromClient, languageName);
+                {
+                    if (option.Definition.Serializer.TryParse(valueFromClient, out var parsedValue))
+                    {
+                        optionsToUpdate.Add(KeyValuePairUtil.Create(new OptionKey2(option, language: languageName), parsedValue));
+                    }
+                    else
+                    {
+                        _lspLogger.LogWarning($"Failed to parse '{valueFromClient}' to type: '{option.Type.Name}'. '{option.Name}' would not be updated.");
+                    }
+                }
             }
-        }
 
-        private void SetOption(IOption2 option, string valueFromClient, string? languageName = null)
-        {
-            if (option.Definition.Serializer.TryParse(valueFromClient, out var result))
-            {
-                if (option is IPerLanguageValuedOption && languageName != null)
-                {
-                    _globalOptionService.SetGlobalOption(new OptionKey2(option, language: languageName), result);
-                }
-                else
-                {
-                    RoslynDebug.Assert(languageName == null);
-                    _globalOptionService.SetGlobalOption(new OptionKey2(option, language: null), result);
-                }
-            }
-            else
-            {
-                _lspLogger.LogWarning($"Failed to parse {valueFromClient} to type: {option.Type.Name}. {option.Name} would not be updated.");
-            }
+            _globalOptionService.SetGlobalOptions(optionsToUpdate.ToImmutable());
         }
 
         private async Task<ImmutableArray<string?>> GetConfigurationsAsync(CancellationToken cancellationToken)
         {
-            try
-            {
-                var configurationParams = new ConfigurationParams() { Items = _configurationItems.AsArray() };
-                var options = await _clientLanguageServerManager.SendRequestAsync<ConfigurationParams, JsonArray>(
-                    Methods.WorkspaceConfigurationName, configurationParams, cancellationToken).ConfigureAwait(false);
+            // Attempt to get configurations from the client.  If this throws we'll get NFW reports.
+            var configurationParams = new ConfigurationParams() { Items = _configurationItems.AsArray() };
+            var options = await _clientLanguageServerManager.SendRequestAsync<ConfigurationParams, JsonArray>(
+                Methods.WorkspaceConfigurationName, configurationParams, cancellationToken).ConfigureAwait(false);
 
-                // Failed to get result from client.
-                Contract.ThrowIfNull(options);
-                var converted = options.SelectAsArray(token => token?.ToString());
-                return converted;
-            }
-            catch (Exception e)
-            {
-                _lspLogger.LogException(e, $"Exception occurs when make {Methods.WorkspaceConfigurationName}.");
-            }
-
-            return [];
+            // Failed to get result from client.
+            Contract.ThrowIfNull(options);
+            var converted = options.SelectAsArray(token => token?.ToString());
+            return converted;
         }
 
         private static ImmutableArray<(IOption2 option, string? langaugeName)> GenerateOptionsNeedsToRefresh()
@@ -195,7 +182,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         /// </summary>
         /// <remarks>
         /// Example:Full name of <see cref="ImplementTypeOptionsStorage.InsertionBehavior"/> would be:
-        /// implement_type.dotnet_insertion_behavior
+        /// implement_type.dotnet_member_insertion_location
         /// </remarks>
         internal static string GenerateFullNameForOption(IOption2 option)
         {

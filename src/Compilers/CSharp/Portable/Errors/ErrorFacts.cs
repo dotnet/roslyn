@@ -10,6 +10,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -132,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static string GetMessage(MessageID code, CultureInfo culture)
         {
             string message = ResourceManager.GetString(code.ToString(), culture);
-            Debug.Assert(!string.IsNullOrEmpty(message), code.ToString());
+            RoslynDebug.Assert(!string.IsNullOrEmpty(message), $"{code}");
             return message;
         }
 
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static string GetMessage(ErrorCode code, CultureInfo culture)
         {
             string message = ResourceManager.GetString(code.ToString(), culture);
-            Debug.Assert(!string.IsNullOrEmpty(message), code.ToString());
+            RoslynDebug.Assert(!string.IsNullOrEmpty(message), $"{code}");
             return message;
         }
 
@@ -207,10 +208,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // docs/compilers/CSharp/Warnversion Warning Waves.md
             switch (code)
             {
-                case ErrorCode.WRN_BadYieldInLock:
-                    // Warning level 9 is exclusively for warnings introduced in the compiler
-                    // shipped with dotnet 9 (C# 13) and that can be reported for pre-existing code.
-                    return 9;
                 case ErrorCode.WRN_AddressOfInAsync:
                 case ErrorCode.WRN_ByValArraySizeConstRequired:
                     // Warning level 8 is exclusively for warnings introduced in the compiler
@@ -558,11 +555,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                 case ErrorCode.WRN_ConvertingLock:
-                case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
-                case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
-                case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
                 case ErrorCode.WRN_PartialPropertySignatureDifference:
-
+                case ErrorCode.WRN_FieldIsAmbiguous:
                     return 1;
                 default:
                     return 0;
@@ -1844,7 +1838,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_FieldsInRoStruct
                 or ErrorCode.ERR_AutoPropsInRoStruct
                 or ErrorCode.ERR_FieldlikeEventsInRoStruct
-                or ErrorCode.ERR_BadSpecialByRefIterator
                 or ErrorCode.ERR_FieldAutoPropCantBeByRefLike
                 or ErrorCode.ERR_StackAllocConversionNotPossible
                 or ErrorCode.ERR_EscapeCall
@@ -2422,10 +2415,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CollectionExpressionMissingAdd
                 or ErrorCode.WRN_ConvertingLock
                 or ErrorCode.ERR_DynamicDispatchToParamsCollection
-                or ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument
-                or ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod
-                or ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer
-                or ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor
+                or ErrorCode.ERR_CollectionInitializerInfiniteChainOfAddCalls
                 or ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls
                 or ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember
                 or ErrorCode.ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember
@@ -2440,7 +2430,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InterceptsLocationFileNotFound
                 or ErrorCode.ERR_InterceptsLocationDataInvalidPosition
                 or ErrorCode.INF_TooManyBoundLambdas
-                or ErrorCode.WRN_BadYieldInLock
                 or ErrorCode.ERR_BadYieldInUnsafe
                 or ErrorCode.ERR_AddressOfInIterator
                 or ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics
@@ -2461,7 +2450,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PartialPropertyTypeDifference
                 or ErrorCode.WRN_PartialPropertySignatureDifference
                 or ErrorCode.ERR_PartialPropertyRequiredDifference
-                or ErrorCode.INF_IdentifierConflictWithContextualKeyword
+                or ErrorCode.WRN_FieldIsAmbiguous
+                or ErrorCode.ERR_InlineArrayAttributeOnRecord
+                or ErrorCode.ERR_FeatureNotAvailableInVersion13
+                or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride
+                or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember
+                or ErrorCode.ERR_PartialPropertyDuplicateInitializer
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

@@ -57,7 +57,7 @@ internal sealed class ExportProviderBuilder
         var config = CompositionConfiguration.Create(catalog);
 
         // Verify we only have expected errors.
-        ThrowOnUnexpectedErrors(config, logger);
+        ThrowOnUnexpectedErrors(config, catalog, logger);
 
         // Prepare an ExportProvider factory based on this graph.
         var exportProviderFactory = config.CreateExportProviderFactory();
@@ -69,10 +69,13 @@ internal sealed class ExportProviderBuilder
         // Immediately set the logger factory, so that way it'll be available for the rest of the composition
         exportProvider.GetExportedValue<ServerLoggerFactory>().SetFactory(loggerFactory);
 
+        // Also add the ExtensionAssemblyManager so it will be available for the rest of the composition.
+        exportProvider.GetExportedValue<ExtensionAssemblyManagerMefProvider>().SetMefExtensionAssemblyManager(extensionManager);
+
         return exportProvider;
     }
 
-    private static void ThrowOnUnexpectedErrors(CompositionConfiguration configuration, ILogger logger)
+    private static void ThrowOnUnexpectedErrors(CompositionConfiguration configuration, ComposableCatalog catalog, ILogger logger)
     {
         // Verify that we have exactly the MEF errors that we expect.  If we have less or more this needs to be updated to assert the expected behavior.
         // Currently we are expecting the following:
@@ -84,15 +87,18 @@ internal sealed class ExportProviderBuilder
         //         part definition Microsoft.CodeAnalysis.ExternalAccess.Pythia.PythiaSignatureHelpProvider
         var erroredParts = configuration.CompositionErrors.FirstOrDefault()?.SelectMany(error => error.Parts).Select(part => part.Definition.Type.Name) ?? Enumerable.Empty<string>();
         var expectedErroredParts = new string[] { "PythiaSignatureHelpProvider" };
-        if (erroredParts.Count() != expectedErroredParts.Length || !erroredParts.All(part => expectedErroredParts.Contains(part)))
+        var hasUnexpectedErroredParts = erroredParts.Any(part => !expectedErroredParts.Contains(part));
+
+        if (hasUnexpectedErroredParts || !catalog.DiscoveredParts.DiscoveryErrors.IsEmpty)
         {
             try
             {
+                catalog.DiscoveredParts.ThrowOnErrors();
                 configuration.ThrowOnErrors();
             }
             catch (CompositionFailedException ex)
             {
-                // The ToString for the composition failed exception doesn't output a nice set of errors by default, so log it separately here.
+                // The ToString for the composition failed exception doesn't output a nice set of errors by default, so log it separately
                 logger.LogError($"Encountered errors in the MEF composition:{Environment.NewLine}{ex.ErrorsAsString}");
                 throw;
             }

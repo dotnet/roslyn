@@ -119,8 +119,8 @@ internal partial class FormattingContext
         public AdjustedIndentationData(TextSpan textSpan, IndentationData baseIndentationData, int adjustment)
             : base(textSpan)
         {
-            Debug.Assert(adjustment != 0, $"Indentation with no adjustment should be represented by {nameof(BaseIndentationData)} directly.");
-            Debug.Assert(baseIndentationData is not AdjustedIndentationData, $"Indentation data should only involve one layer of adjustment (multiples can be combined by adding the {nameof(Adjustment)} fields.");
+            RoslynDebug.Assert(adjustment != 0, $"Indentation with no adjustment should be represented by {nameof(BaseIndentationData)} directly.");
+            RoslynDebug.Assert(baseIndentationData is not AdjustedIndentationData, $"Indentation data should only involve one layer of adjustment (multiples can be combined by adding the {nameof(Adjustment)} fields.");
 
             BaseIndentationData = baseIndentationData;
             Adjustment = adjustment;

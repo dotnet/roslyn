@@ -95,18 +95,25 @@ internal static partial class Extensions
         => filePath.EndsWith(".razor.g.cs", StringComparison.OrdinalIgnoreCase) ||
             filePath.EndsWith(".cshtml.g.cs", StringComparison.OrdinalIgnoreCase);
 
-    public static ManagedHotReloadDiagnostic ToHotReloadDiagnostic(this DiagnosticData data, ModuleUpdateStatus updateStatus)
+    public static ManagedHotReloadDiagnostic ToHotReloadDiagnostic(this DiagnosticData data, ModuleUpdateStatus updateStatus, bool isRudeEdit)
     {
         var fileSpan = data.DataLocation.MappedFileSpan;
 
         return new(
             data.Id,
             data.Message ?? FeaturesResources.Unknown_error_occurred,
-            updateStatus == ModuleUpdateStatus.RestartRequired
-                ? ManagedHotReloadDiagnosticSeverity.RestartRequired
-                : (data.Severity == DiagnosticSeverity.Error)
-                    ? ManagedHotReloadDiagnosticSeverity.Error
-                    : ManagedHotReloadDiagnosticSeverity.Warning,
+            isRudeEdit
+                ? data.DefaultSeverity switch
+                {
+                    DiagnosticSeverity.Error => ManagedHotReloadDiagnosticSeverity.RestartRequired,
+                    DiagnosticSeverity.Warning => ManagedHotReloadDiagnosticSeverity.Warning,
+                    _ => throw ExceptionUtilities.UnexpectedValue(data.DefaultSeverity)
+                }
+                : updateStatus == ModuleUpdateStatus.RestartRequired
+                    ? ManagedHotReloadDiagnosticSeverity.RestartRequired
+                    : (data.Severity == DiagnosticSeverity.Error)
+                        ? ManagedHotReloadDiagnosticSeverity.Error
+                        : ManagedHotReloadDiagnosticSeverity.Warning,
             fileSpan.Path ?? "",
             fileSpan.Span.ToSourceSpan());
     }
@@ -183,9 +190,33 @@ internal static partial class Extensions
         => (IMethodSymbol?)constructor.ContainingType.GetMembers(WellKnownMemberNames.DeconstructMethodName).FirstOrDefault(
             static (symbol, constructor) => symbol is IMethodSymbol method && HasDeconstructorSignature(method, constructor), constructor)?.PartialAsImplementation();
 
-    // https://github.com/dotnet/roslyn/issues/73772: does this helper need to be updated to use IPropertySymbol.PartialImplementationPart?
+    /// <summary>
+    /// Returns a partial implementation part of a partial member, or the member itself if it's not partial.
+    /// </summary>
     public static ISymbol PartialAsImplementation(this ISymbol symbol)
-        => symbol is IMethodSymbol { PartialImplementationPart: { } impl } ? impl : symbol;
+        => PartialImplementationPart(symbol) ?? symbol;
+
+    public static bool IsPartialDefinition(this ISymbol symbol)
+        => symbol is IMethodSymbol { IsPartialDefinition: true } or IPropertySymbol { IsPartialDefinition: true };
+
+    public static bool IsPartialImplementation(this ISymbol symbol)
+        => symbol is IMethodSymbol { PartialDefinitionPart: not null } or IPropertySymbol { PartialDefinitionPart: not null };
+
+    public static ISymbol? PartialDefinitionPart(this ISymbol symbol)
+        => symbol switch
+        {
+            IMethodSymbol { PartialDefinitionPart: var def } => def,
+            IPropertySymbol { PartialDefinitionPart: var def } => def,
+            _ => null
+        };
+
+    public static ISymbol? PartialImplementationPart(this ISymbol symbol)
+        => symbol switch
+        {
+            IMethodSymbol { PartialImplementationPart: var impl } => impl,
+            IPropertySymbol { PartialImplementationPart: var impl } => impl,
+            _ => null
+        };
 
     /// <summary>
     /// Returns true if any member of the type implements an interface member explicitly.

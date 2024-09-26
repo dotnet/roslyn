@@ -53,7 +53,11 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
 
     internal TestWorkspace CreateWorkspace(out Solution solution, out EditAndContinueService service, Type[]? additionalParts = null)
     {
-        var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features.AddParts(additionalParts), solutionTelemetryId: s_solutionTelemetryId);
+        var composition = FeaturesTestCompositions.Features
+            .AddParts(typeof(TestWorkspaceConfigurationService))
+            .AddParts(additionalParts);
+
+        var workspace = new TestWorkspace(composition: composition, solutionTelemetryId: s_solutionTelemetryId);
         solution = workspace.CurrentSolution;
         service = GetEditAndContinueService(workspace);
         return workspace;
@@ -69,7 +73,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
         string? additionalFileText = null,
         (string key, string value)[]? analyzerConfig = null)
     {
-        solution = AddDefaultTestProject(solution, new[] { source }, generator, additionalFileText, analyzerConfig);
+        solution = AddDefaultTestProject(solution, [source], generator, additionalFileText, analyzerConfig);
         return (solution, solution.Projects.Single().Documents.Single());
     }
 
@@ -259,7 +263,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
         {
             var optionsProvider = (analyzerOptions != null) ? new EditAndContinueTestAnalyzerConfigOptionsProvider(analyzerOptions) : null;
             var additionalTexts = (additionalFileText != null) ? new[] { new InMemoryAdditionalText("additional_file", additionalFileText) } : null;
-            var generatorDriver = CSharpGeneratorDriver.Create(new[] { generator }, additionalTexts, parseOptions, optionsProvider);
+            var generatorDriver = CSharpGeneratorDriver.Create([generator], additionalTexts, parseOptions, optionsProvider);
             generatorDriver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
             generatorDiagnostics.Verify();
             compilation = outputCompilation;
@@ -410,7 +414,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
         const string ClosingMarker = "*/";
 
         var index = markedSource.IndexOf(OpeningMarker);
-        if (index > 0)
+        if (index >= 0)
         {
             index += OpeningMarker.Length;
             var closing = markedSource.IndexOf(ClosingMarker, index);

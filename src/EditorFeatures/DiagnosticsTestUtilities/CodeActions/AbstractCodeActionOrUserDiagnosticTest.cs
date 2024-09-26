@@ -110,9 +110,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             internal TestParameters WithOptions(OptionsCollectionAlias options)
                 => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
 
-            internal TestParameters WithGlobalOptions(OptionsCollectionAlias globalOptions)
-                => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
-
             public TestParameters WithFixProviderData(object fixProviderData)
                 => new(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, retainNonFixableDiagnostics, includeDiagnosticsOutsideSelection, title, testHost, workspaceKind, includeNonLocalDocumentDiagnostics, treatPositionIndicatorsAsCode);
 
@@ -408,7 +405,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CodeActionPriority? priority = null,
             CompilationOptions compilationOptions = null,
             OptionsCollectionAlias options = null,
-            OptionsCollectionAlias globalOptions = null,
             object fixProviderData = null,
             ParseOptions parseOptions = null,
             string title = null,
@@ -416,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         {
             return TestInRegularAndScript1Async(
                 initialMarkup, expectedMarkup,
-                new TestParameters(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, title: title, testHost: testHost));
+                new TestParameters(parseOptions, compilationOptions, options, globalOptions: null, fixProviderData, index, priority, title: title, testHost: testHost));
         }
 
         internal Task TestInRegularAndScript1Async(
@@ -449,7 +445,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CompilationOptions compilationOptions = null,
             int index = 0,
             OptionsCollectionAlias options = null,
-            OptionsCollectionAlias globalOptions = null,
             object fixProviderData = null,
             CodeActionPriority? priority = null,
             TestHost testHost = TestHost.OutOfProcess)
@@ -457,7 +452,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             return TestAsync(
                 initialMarkup,
                 expectedMarkup,
-                new TestParameters(parseOptions, compilationOptions, options, globalOptions, fixProviderData, index, priority, testHost: testHost));
+                new TestParameters(parseOptions, compilationOptions, options, globalOptions: null, fixProviderData, index, priority, testHost: testHost));
         }
 
         private async Task TestAsync(

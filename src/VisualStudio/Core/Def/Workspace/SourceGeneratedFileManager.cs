@@ -224,13 +224,9 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
         }
     }
 
-    void IOpenTextBufferEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
-    {
-    }
-
-    void IOpenTextBufferEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer textBuffer)
-    {
-    }
+    void IOpenTextBufferEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy) { }
+    void IOpenTextBufferEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer textBuffer) { }
+    void IOpenTextBufferEventListener.OnSaveDocument(string moniker) { }
 
     private sealed class OpenSourceGeneratedFile : IDisposable
     {
@@ -405,12 +401,8 @@ internal sealed class SourceGeneratedFileManager : IOpenTextBufferEventListener
 
                     // If the file isn't already open, open it now. We may transition between opening and closing
                     // if the file is repeatedly appearing and disappearing.
-                    var connectToWorkspace = _workspaceConfigurationService?.Options.EnableOpeningSourceGeneratedFiles != false;
-
-                    if (connectToWorkspace && !this.Workspace.IsDocumentOpen(_documentIdentity.DocumentId))
-                    {
+                    if (!this.Workspace.IsDocumentOpen(_documentIdentity.DocumentId))
                         this.Workspace.OnSourceGeneratedDocumentOpened(_textBuffer.AsTextContainer(), generatedDocument);
-                    }
                 }
                 finally
                 {

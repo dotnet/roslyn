@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -710,7 +711,7 @@ namespace Microsoft.CodeAnalysis
                     typeIdName = typeIdName.Substring(0, separator);
                 }
 
-                Debug.Assert(name == typeIdName, $"Enum name ({typeIdName}) and type name ({name}) must match at {i}");
+                RoslynDebug.Assert(name == typeIdName, $"Enum name ({typeIdName}) and type name ({name}) must match at {i}");
             }
 
 #if DEBUG

@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -626,8 +627,8 @@ public partial class CodeCleanupTests
     }
 
     [Theory]
-    [InlineData(LanguageNames.CSharp, 49)]
-    [InlineData(LanguageNames.VisualBasic, 86)]
+    [InlineData(LanguageNames.CSharp, 50)]
+    [InlineData(LanguageNames.VisualBasic, 87)]
     public void VerifyAllCodeStyleFixersAreSupportedByCodeCleanup(string language, int numberOfUnsupportedDiagnosticIds)
     {
         var supportedDiagnostics = GetSupportedDiagnosticIdsForCodeCleanupService(language);
@@ -794,8 +795,6 @@ public partial class CodeCleanupTests
 
         using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf.AddParts(typeof(TCodefix)));
 
-        var options = CodeActionOptions.DefaultProvider;
-
         var project = workspace.CurrentSolution.Projects.Single();
         var analyzer = (DiagnosticAnalyzer)new TAnalyzer();
         var diagnosticIds = analyzer.SupportedDiagnostics.SelectAsArray(d => d.Id);
@@ -823,7 +822,7 @@ public partial class CodeCleanupTests
         var enabledDiagnostics = codeCleanupService.GetAllDiagnostics();
 
         var newDoc = await codeCleanupService.CleanupAsync(
-            document, enabledDiagnostics, CodeAnalysisProgress.None, options, CancellationToken.None);
+            document, enabledDiagnostics, CodeAnalysisProgress.None, CancellationToken.None);
 
         var actual = await newDoc.GetTextAsync();
         Assert.Equal(expected, actual.ToString());
@@ -886,16 +885,18 @@ public partial class CodeCleanupTests
         using var workspace = EditorTestWorkspace.CreateCSharp(code, composition: EditorTestCompositions.EditorFeaturesWpf);
 
         // must set global options since incremental analyzer infra reads from global options
-        var globalOptions = workspace.GlobalOptions;
-        globalOptions.SetGlobalOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.CSharp, separateUsingGroups);
-        globalOptions.SetGlobalOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.CSharp, systemUsingsFirst);
-        globalOptions.SetGlobalOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredImportPlacement);
-
-        var solution = workspace.CurrentSolution.WithAnalyzerReferences(new[]
+        workspace.SetAnalyzerFallbackAndGlobalOptions(new OptionsCollection(LanguageNames.CSharp)
         {
+            { GenerationOptions.SeparateImportDirectiveGroups, separateUsingGroups },
+            { GenerationOptions.PlaceSystemNamespaceFirst, systemUsingsFirst },
+            { CSharpCodeStyleOptions.PreferredUsingDirectivePlacement, preferredImportPlacement },
+        });
+
+        var solution = workspace.CurrentSolution.WithAnalyzerReferences(
+        [
             new AnalyzerFileReference(typeof(CSharpCompilerDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
             new AnalyzerFileReference(typeof(UseExpressionBodyDiagnosticAnalyzer).Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
-        });
+        ]);
 
         if (diagnosticIdsWithSeverity != null)
         {
@@ -923,7 +924,7 @@ public partial class CodeCleanupTests
             enabledDiagnostics = VisualStudio.LanguageServices.Implementation.CodeCleanup.AbstractCodeCleanUpFixer.AdjustDiagnosticOptions(enabledDiagnostics, enabledFixIdsFilter);
 
         var newDoc = await codeCleanupService.CleanupAsync(
-            document, enabledDiagnostics, CodeAnalysisProgress.None, globalOptions.CreateProvider(), CancellationToken.None);
+            document, enabledDiagnostics, CodeAnalysisProgress.None, CancellationToken.None);
 
         var actual = await newDoc.GetTextAsync();
 

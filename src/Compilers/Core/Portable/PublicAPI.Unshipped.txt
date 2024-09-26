@@ -1,64 +1,23 @@
-Microsoft.CodeAnalysis.IParameterSymbol.IsParamsCollection.get -> bool
-Microsoft.CodeAnalysis.IParameterSymbol.IsParamsArray.get -> bool
+Microsoft.CodeAnalysis.GeneratorDriver.RunGenerators(Microsoft.CodeAnalysis.Compilation! compilation) -> Microsoft.CodeAnalysis.GeneratorDriver!
+Microsoft.CodeAnalysis.GeneratorDriver.RunGenerators(Microsoft.CodeAnalysis.Compilation! compilation, System.Func<Microsoft.CodeAnalysis.GeneratorFilterContext, bool>? generatorFilter, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.GeneratorDriver!
+Microsoft.CodeAnalysis.GeneratorDriver.RunGenerators(Microsoft.CodeAnalysis.Compilation! compilation, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.GeneratorDriver!
+*REMOVED*Microsoft.CodeAnalysis.GeneratorDriver.RunGenerators(Microsoft.CodeAnalysis.Compilation! compilation, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.GeneratorDriver!
+Microsoft.CodeAnalysis.GeneratorFilterContext
+Microsoft.CodeAnalysis.GeneratorFilterContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.GeneratorFilterContext.Generator.get -> Microsoft.CodeAnalysis.ISourceGenerator!
+Microsoft.CodeAnalysis.GeneratorFilterContext.GeneratorFilterContext() -> void
+Microsoft.CodeAnalysis.GeneratorRunResult.HostOutputs.get -> System.Collections.Immutable.ImmutableDictionary<string!, object!>!
+Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind.Host = 8 -> Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind
 Microsoft.CodeAnalysis.IPropertySymbol.PartialDefinitionPart.get -> Microsoft.CodeAnalysis.IPropertySymbol?
 Microsoft.CodeAnalysis.IPropertySymbol.PartialImplementationPart.get -> Microsoft.CodeAnalysis.IPropertySymbol?
 Microsoft.CodeAnalysis.IPropertySymbol.IsPartialDefinition.get -> bool
-Microsoft.CodeAnalysis.Operations.ArgumentKind.ParamCollection = 4 -> Microsoft.CodeAnalysis.Operations.ArgumentKind
-Microsoft.CodeAnalysis.Diagnostics.SuppressionInfo.ProgrammaticSuppressions.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.Suppression>
-Microsoft.CodeAnalysis.Emit.InstrumentationKind.ModuleCancellation = 3 -> Microsoft.CodeAnalysis.Emit.InstrumentationKind
-Microsoft.CodeAnalysis.Emit.InstrumentationKind.StackOverflowProbing = 2 -> Microsoft.CodeAnalysis.Emit.InstrumentationKind
-Microsoft.CodeAnalysis.OperationKind.CollectionExpression = 127 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.OperationKind.Spread = 128 -> Microsoft.CodeAnalysis.OperationKind
-Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation.ConstructMethod.get -> Microsoft.CodeAnalysis.IMethodSymbol?
-Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation
-Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation.Elements.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.IOperation!>
-Microsoft.CodeAnalysis.Operations.ISpreadOperation
-Microsoft.CodeAnalysis.Operations.ISpreadOperation.ElementConversion.get -> Microsoft.CodeAnalysis.Operations.CommonConversion
-Microsoft.CodeAnalysis.Operations.ISpreadOperation.ElementType.get -> Microsoft.CodeAnalysis.ITypeSymbol?
-Microsoft.CodeAnalysis.Operations.ISpreadOperation.Operand.get -> Microsoft.CodeAnalysis.IOperation!
-Microsoft.CodeAnalysis.SeparatedSyntaxList
-Microsoft.CodeAnalysis.SyntaxList
-static Microsoft.CodeAnalysis.SeparatedSyntaxList.Create<TNode>(System.ReadOnlySpan<TNode!> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>
-static Microsoft.CodeAnalysis.SyntaxList.Create<TNode>(System.ReadOnlySpan<TNode!> nodes) -> Microsoft.CodeAnalysis.SyntaxList<TNode!>
-static Microsoft.CodeAnalysis.SyntaxNodeOrTokenList.Create(System.ReadOnlySpan<Microsoft.CodeAnalysis.SyntaxNodeOrToken> nodesAndTokens) -> Microsoft.CodeAnalysis.SyntaxNodeOrTokenList
-static Microsoft.CodeAnalysis.SyntaxTokenList.Create(System.ReadOnlySpan<Microsoft.CodeAnalysis.SyntaxToken> tokens) -> Microsoft.CodeAnalysis.SyntaxTokenList
-static Microsoft.CodeAnalysis.SyntaxTriviaList.Create(System.ReadOnlySpan<Microsoft.CodeAnalysis.SyntaxTrivia> trivias) -> Microsoft.CodeAnalysis.SyntaxTriviaList
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitCollectionExpression(Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation! operation) -> void
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitSpread(Microsoft.CodeAnalysis.Operations.ISpreadOperation! operation) -> void
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitCollectionExpression(Microsoft.CodeAnalysis.Operations.ICollectionExpressionOperation! operation, TArgument argument) -> TResult?
-virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitSpread(Microsoft.CodeAnalysis.Operations.ISpreadOperation! operation, TArgument argument) -> TResult?
-*REMOVED*static Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SeparatedSyntaxList<TNode!>
-*REMOVED*static Microsoft.CodeAnalysis.SyntaxList<TNode>.implicit operator Microsoft.CodeAnalysis.SyntaxList<TNode!>(Microsoft.CodeAnalysis.SyntaxList<Microsoft.CodeAnalysis.SyntaxNode!> nodes) -> Microsoft.CodeAnalysis.SyntaxList<TNode!>
-*REMOVED*Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAllDiagnosticsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
-*REMOVED*Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
-*REMOVED*static Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerExtensions.WithAnalyzers(this Microsoft.CodeAnalysis.Compilation! compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions? options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers!
-const Microsoft.CodeAnalysis.WellKnownDiagnosticTags.CustomSeverityConfigurable = "CustomSeverityConfigurable" -> string!
-Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.CompilationWithAnalyzers(Microsoft.CodeAnalysis.Compilation! compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions? options) -> void
-Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAllDiagnosticsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
-Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalyzerDiagnosticsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
-*REMOVED*Microsoft.CodeAnalysis.Emit.SemanticEdit.SemanticEdit(Microsoft.CodeAnalysis.Emit.SemanticEditKind kind, Microsoft.CodeAnalysis.ISymbol? oldSymbol, Microsoft.CodeAnalysis.ISymbol? newSymbol, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode?>? syntaxMap = null, bool preserveLocalVariables = false, Microsoft.CodeAnalysis.Emit.MethodInstrumentation instrumentation = default(Microsoft.CodeAnalysis.Emit.MethodInstrumentation)) -> void
-Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit
-Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit.Message.get -> string!
-Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit.RuntimeRudeEdit() -> void
-Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit.RuntimeRudeEdit(string! message) -> void
-Microsoft.CodeAnalysis.Emit.SemanticEdit.RuntimeRudeEdit.get -> System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit?>?
-Microsoft.CodeAnalysis.Emit.SemanticEdit.SemanticEdit(Microsoft.CodeAnalysis.Emit.SemanticEditKind kind, Microsoft.CodeAnalysis.ISymbol? oldSymbol, Microsoft.CodeAnalysis.ISymbol? newSymbol, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode?>? syntaxMap = null, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit?>? runtimeRudeEdit = null, Microsoft.CodeAnalysis.Emit.MethodInstrumentation instrumentation = default(Microsoft.CodeAnalysis.Emit.MethodInstrumentation)) -> void
-Microsoft.CodeAnalysis.Emit.SemanticEdit.SemanticEdit(Microsoft.CodeAnalysis.Emit.SemanticEditKind kind, Microsoft.CodeAnalysis.ISymbol? oldSymbol, Microsoft.CodeAnalysis.ISymbol? newSymbol, System.Func<Microsoft.CodeAnalysis.SyntaxNode!, Microsoft.CodeAnalysis.SyntaxNode?>? syntaxMap, bool preserveLocalVariables, Microsoft.CodeAnalysis.Emit.MethodInstrumentation instrumentation) -> void
-Microsoft.CodeAnalysis.Text.SourceText.GetContentHash() -> System.Collections.Immutable.ImmutableArray<byte>
-static Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerExtensions.WithAnalyzers(this Microsoft.CodeAnalysis.Compilation! compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions? options = null) -> Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers!
-static Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzerExtensions.WithAnalyzers(this Microsoft.CodeAnalysis.Compilation! compilation, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer!> analyzers, Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions? options, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers!
-Microsoft.CodeAnalysis.RefKind.RefReadOnlyParameter = 4 -> Microsoft.CodeAnalysis.RefKind
-virtual Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.MinimumReportedSeverity.get -> Microsoft.CodeAnalysis.DiagnosticSeverity
-static Microsoft.CodeAnalysis.Emit.EmitBaseline.CreateInitialBaseline(Microsoft.CodeAnalysis.Compilation! compilation, Microsoft.CodeAnalysis.ModuleMetadata! module, System.Func<System.Reflection.Metadata.MethodDefinitionHandle, Microsoft.CodeAnalysis.Emit.EditAndContinueMethodDebugInformation>! debugInformationProvider, System.Func<System.Reflection.Metadata.MethodDefinitionHandle, System.Reflection.Metadata.StandaloneSignatureHandle>! localSignatureProvider, bool hasPortableDebugInformation) -> Microsoft.CodeAnalysis.Emit.EmitBaseline!
-virtual Microsoft.CodeAnalysis.SyntaxContextReceiverCreator.Invoke() -> Microsoft.CodeAnalysis.ISyntaxContextReceiver?
-virtual Microsoft.CodeAnalysis.SyntaxReceiverCreator.Invoke() -> Microsoft.CodeAnalysis.ISyntaxReceiver!
-static Microsoft.CodeAnalysis.DocumentationCommentId.CreateDeclarationId(Microsoft.CodeAnalysis.ISymbol! symbol) -> string?
-*REMOVED*static Microsoft.CodeAnalysis.DocumentationCommentId.CreateDeclarationId(Microsoft.CodeAnalysis.ISymbol! symbol) -> string!
-[RSEXPERIMENTAL001]Microsoft.CodeAnalysis.SemanticModelOptions
-[RSEXPERIMENTAL001]Microsoft.CodeAnalysis.SemanticModelOptions.None = 0 -> Microsoft.CodeAnalysis.SemanticModelOptions
-[RSEXPERIMENTAL001]Microsoft.CodeAnalysis.SemanticModelOptions.IgnoreAccessibility = 1 -> Microsoft.CodeAnalysis.SemanticModelOptions
-[RSEXPERIMENTAL001]Microsoft.CodeAnalysis.SemanticModelOptions.DisableNullableAnalysis = 2 -> Microsoft.CodeAnalysis.SemanticModelOptions
-[RSEXPERIMENTAL001]Microsoft.CodeAnalysis.Compilation.GetSemanticModel(Microsoft.CodeAnalysis.SyntaxTree! syntaxTree, Microsoft.CodeAnalysis.SemanticModelOptions options) -> Microsoft.CodeAnalysis.SemanticModel!
-abstract Microsoft.CodeAnalysis.SemanticModel.NullableAnalysisIsDisabled.get -> bool
 Microsoft.CodeAnalysis.ITypeParameterSymbol.AllowsRefLikeType.get -> bool
 Microsoft.CodeAnalysis.RuntimeCapability.ByRefLikeGenerics = 8 -> Microsoft.CodeAnalysis.RuntimeCapability
+static Microsoft.CodeAnalysis.GeneratorExtensions.AsIncrementalGenerator(this Microsoft.CodeAnalysis.ISourceGenerator! sourceGenerator) -> Microsoft.CodeAnalysis.IIncrementalGenerator!
+static Microsoft.CodeAnalysis.GeneratorExtensions.GetGeneratorType(this Microsoft.CodeAnalysis.IIncrementalGenerator! generator) -> System.Type!
+[RSEXPERIMENTAL004]Microsoft.CodeAnalysis.HostOutputProductionContext
+[RSEXPERIMENTAL004]Microsoft.CodeAnalysis.HostOutputProductionContext.AddOutput(string! name, object! value) -> void
+[RSEXPERIMENTAL004]Microsoft.CodeAnalysis.HostOutputProductionContext.CancellationToken.get -> System.Threading.CancellationToken
+[RSEXPERIMENTAL004]Microsoft.CodeAnalysis.HostOutputProductionContext.HostOutputProductionContext() -> void
+[RSEXPERIMENTAL004]Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterHostOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValueProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.HostOutputProductionContext, TSource>! action) -> void
+[RSEXPERIMENTAL004]Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterHostOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValuesProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.HostOutputProductionContext, TSource>! action) -> void

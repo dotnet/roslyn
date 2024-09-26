@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -187,7 +188,7 @@ internal sealed class GlobalOptionService(
 
     private bool SetGlobalOptions(OneOrMany<KeyValuePair<OptionKey2, object?>> options)
     {
-        var changedOptions = new List<OptionChangedEventArgs>();
+        using var _ = ArrayBuilder<(OptionKey2, object?)>.GetInstance(options.Count, out var changedOptions);
         var persisters = GetOptionPersisters();
 
         lock (_gate)
@@ -202,23 +203,23 @@ internal sealed class GlobalOptionService(
                 }
 
                 currentValues = currentValues.SetItem(optionKey, value);
-                changedOptions.Add(new OptionChangedEventArgs(optionKey, value));
+                changedOptions.Add((optionKey, value));
             }
 
             _currentValues = currentValues;
         }
 
-        if (changedOptions.Count == 0)
+        if (changedOptions.IsEmpty)
         {
             return false;
         }
 
-        foreach (var changedOption in changedOptions)
+        foreach (var (key, value) in changedOptions)
         {
-            PersistOption(persisters, changedOption.OptionKey, changedOption.Value);
+            PersistOption(persisters, key, value);
         }
 
-        RaiseOptionChangedEvent(changedOptions);
+        RaiseOptionChangedEvent(changedOptions.ToImmutable());
         return true;
     }
 
@@ -249,29 +250,24 @@ internal sealed class GlobalOptionService(
             _currentValues = _currentValues.SetItem(optionKey, newValue);
         }
 
-        var changedOptions = new List<OptionChangedEventArgs> { new OptionChangedEventArgs(optionKey, newValue) };
-        RaiseOptionChangedEvent(changedOptions);
+        RaiseOptionChangedEvent([(optionKey, newValue)]);
         return true;
     }
 
-    public void AddOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
+    public void AddOptionChangedHandler(object target, WeakEventHandler<OptionChangedEventArgs> handler)
     {
         _optionChanged.AddHandler(target, handler);
     }
 
-    public void RemoveOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
+    public void RemoveOptionChangedHandler(object target, WeakEventHandler<OptionChangedEventArgs> handler)
     {
         _optionChanged.RemoveHandler(target, handler);
     }
 
-    private void RaiseOptionChangedEvent(List<OptionChangedEventArgs> changedOptions)
+    private void RaiseOptionChangedEvent(ImmutableArray<(OptionKey2, object?)> changedOptions)
     {
-        Debug.Assert(changedOptions.Count > 0);
-
-        foreach (var changedOption in changedOptions)
-        {
-            _optionChanged.RaiseEvent(this, changedOption);
-        }
+        Debug.Assert(!changedOptions.IsEmpty);
+        _optionChanged.RaiseEvent(this, new OptionChangedEventArgs(changedOptions));
     }
 
     internal TestAccessor GetTestAccessor()

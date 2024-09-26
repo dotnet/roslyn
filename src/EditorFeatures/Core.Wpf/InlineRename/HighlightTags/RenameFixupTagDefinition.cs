@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTag
     internal class RenameFixupTagDefinition : MarkerFormatDefinition
     {
         public static double StrokeThickness => 1.0;
-        public static double[] StrokeDashArray => new[] { 4.0, 4.0 };
+        public static double[] StrokeDashArray => [4.0, 4.0];
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

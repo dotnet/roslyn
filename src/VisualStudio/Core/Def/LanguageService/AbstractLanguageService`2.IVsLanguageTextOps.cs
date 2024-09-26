@@ -56,7 +56,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         var documentSyntax = ParsedDocument.CreateSynchronously(document, cancellationToken);
         var text = documentSyntax.Text;
         var root = documentSyntax.Root;
-        var formattingOptions = textBuffer.GetSyntaxFormattingOptions(EditorOptionsService, document.Project.Services, explicitFormat: true);
+        var formattingOptions = textBuffer.GetSyntaxFormattingOptions(EditorOptionsService, document.Project.GetFallbackAnalyzerOptions(), document.Project.Services, explicitFormat: true);
 
         var ts = selections.Single();
         var start = text.Lines[ts.iStartLine].Start + ts.iStartIndex;

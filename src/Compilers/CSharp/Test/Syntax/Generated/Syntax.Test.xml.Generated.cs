@@ -121,6 +121,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static Syntax.InternalSyntax.LiteralExpressionSyntax GenerateLiteralExpression()
             => InternalSyntaxFactory.LiteralExpression(SyntaxKind.ArgListExpression, InternalSyntaxFactory.Token(SyntaxKind.ArgListKeyword));
 
+        private static Syntax.InternalSyntax.FieldExpressionSyntax GenerateFieldExpression()
+            => InternalSyntaxFactory.FieldExpression(InternalSyntaxFactory.Token(SyntaxKind.FieldKeyword));
+
         private static Syntax.InternalSyntax.MakeRefExpressionSyntax GenerateMakeRefExpression()
             => InternalSyntaxFactory.MakeRefExpression(InternalSyntaxFactory.Token(SyntaxKind.MakeRefKeyword), InternalSyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), InternalSyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
@@ -1155,6 +1158,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateLiteralExpression();
 
             Assert.Equal(SyntaxKind.ArgListKeyword, node.Token.Kind);
+
+            AttachAndCheckDiagnostics(node);
+        }
+
+        [Fact]
+        public void TestFieldExpressionFactoryAndProperties()
+        {
+            var node = GenerateFieldExpression();
+
+            Assert.Equal(SyntaxKind.FieldKeyword, node.Token.Kind);
 
             AttachAndCheckDiagnostics(node);
         }
@@ -4820,6 +4833,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLiteralExpressionIdentityRewriter()
         {
             var oldNode = GenerateLiteralExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestFieldExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateFieldExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFieldExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateFieldExpression();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 
@@ -10298,6 +10337,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static LiteralExpressionSyntax GenerateLiteralExpression()
             => SyntaxFactory.LiteralExpression(SyntaxKind.ArgListExpression, SyntaxFactory.Token(SyntaxKind.ArgListKeyword));
 
+        private static FieldExpressionSyntax GenerateFieldExpression()
+            => SyntaxFactory.FieldExpression(SyntaxFactory.Token(SyntaxKind.FieldKeyword));
+
         private static MakeRefExpressionSyntax GenerateMakeRefExpression()
             => SyntaxFactory.MakeRefExpression(SyntaxFactory.Token(SyntaxKind.MakeRefKeyword), SyntaxFactory.Token(SyntaxKind.OpenParenToken), GenerateIdentifierName(), SyntaxFactory.Token(SyntaxKind.CloseParenToken));
 
@@ -11332,6 +11374,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var node = GenerateLiteralExpression();
 
             Assert.Equal(SyntaxKind.ArgListKeyword, node.Token.Kind());
+            var newNode = node.WithToken(node.Token);
+            Assert.Equal(node, newNode);
+        }
+
+        [Fact]
+        public void TestFieldExpressionFactoryAndProperties()
+        {
+            var node = GenerateFieldExpression();
+
+            Assert.Equal(SyntaxKind.FieldKeyword, node.Token.Kind());
             var newNode = node.WithToken(node.Token);
             Assert.Equal(node, newNode);
         }
@@ -14997,6 +15049,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLiteralExpressionIdentityRewriter()
         {
             var oldNode = GenerateLiteralExpression();
+            var rewriter = new IdentityRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            Assert.Same(oldNode, newNode);
+        }
+
+        [Fact]
+        public void TestFieldExpressionTokenDeleteRewriter()
+        {
+            var oldNode = GenerateFieldExpression();
+            var rewriter = new TokenDeleteRewriter();
+            var newNode = rewriter.Visit(oldNode);
+
+            if(!oldNode.IsMissing)
+            {
+                Assert.NotEqual(oldNode, newNode);
+            }
+
+            Assert.NotNull(newNode);
+            Assert.True(newNode.IsMissing, "No tokens => missing");
+        }
+
+        [Fact]
+        public void TestFieldExpressionIdentityRewriter()
+        {
+            var oldNode = GenerateFieldExpression();
             var rewriter = new IdentityRewriter();
             var newNode = rewriter.Visit(oldNode);
 

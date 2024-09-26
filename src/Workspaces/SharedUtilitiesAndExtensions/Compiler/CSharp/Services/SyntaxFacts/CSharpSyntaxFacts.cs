@@ -19,17 +19,14 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
-using Microsoft.CodeAnalysis.Editing;
-#endif
-
 namespace Microsoft.CodeAnalysis.CSharp.LanguageService;
 
 internal class CSharpSyntaxFacts : ISyntaxFacts
 {
     internal static readonly CSharpSyntaxFacts Instance = new();
+
+    // Specifies false for trimOnFree as these objects commonly exceed the default ObjectPool threshold
+    private static readonly ObjectPool<List<SyntaxNode>> s_syntaxNodeListPool = new ObjectPool<List<SyntaxNode>>(() => [], trimOnFree: false);
 
     protected CSharpSyntaxFacts()
     {
@@ -178,9 +175,6 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
 
     public bool IsDeclarationExpression([NotNullWhen(true)] SyntaxNode? node)
         => node is DeclarationExpressionSyntax;
-
-    public bool IsAttributeName(SyntaxNode node)
-        => SyntaxFacts.IsAttributeName(node);
 
     public bool IsNamedArgument([NotNullWhen(true)] SyntaxNode? node)
         => node is ArgumentSyntax arg && arg.NameColon != null;
@@ -620,9 +614,6 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public bool IsUnsafeContext(SyntaxNode node)
         => node.IsUnsafeContext();
 
-    public SyntaxNode GetNameOfAttribute(SyntaxNode node)
-        => ((AttributeSyntax)node).Name;
-
     public bool IsAttributeNamedArgumentIdentifier([NotNullWhen(true)] SyntaxNode? node)
         => (node as IdentifierNameSyntax).IsAttributeNamedArgumentIdentifier();
 
@@ -902,18 +893,24 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
         }
     }
 
-    public List<SyntaxNode> GetTopLevelAndMethodLevelMembers(SyntaxNode? root)
+    public PooledObject<List<SyntaxNode>> GetTopLevelAndMethodLevelMembers(SyntaxNode? root)
     {
-        var list = new List<SyntaxNode>();
+        var pooledObject = s_syntaxNodeListPool.GetPooledObject();
+        var list = pooledObject.Object;
+
         AppendMembers(root, list, topLevel: true, methodLevel: true);
-        return list;
+
+        return pooledObject;
     }
 
-    public List<SyntaxNode> GetMethodLevelMembers(SyntaxNode? root)
+    public PooledObject<List<SyntaxNode>> GetMethodLevelMembers(SyntaxNode? root)
     {
-        var list = new List<SyntaxNode>();
+        var pooledObject = s_syntaxNodeListPool.GetPooledObject();
+        var list = pooledObject.Object;
+
         AppendMembers(root, list, topLevel: false, methodLevel: true);
-        return list;
+
+        return pooledObject;
     }
 
     public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
@@ -923,24 +920,24 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     {
         Debug.Assert(topLevel || methodLevel);
 
-        foreach (var member in node.GetMembers())
-        {
-            if (IsTopLevelNodeWithMembers(member))
+        node.ForEachMember(static (member, arg) =>
             {
-                if (topLevel)
+                var (@this, list, topLevel, methodLevel) = arg;
+                if (@this.IsTopLevelNodeWithMembers(member))
+                {
+                    if (topLevel)
+                    {
+                        list.Add(member);
+                    }
+
+                    @this.AppendMembers(member, list, topLevel, methodLevel);
+                }
+                else if (methodLevel && @this.IsMethodLevelMember(member))
                 {
                     list.Add(member);
                 }
-
-                AppendMembers(member, list, topLevel, methodLevel);
-                continue;
-            }
-
-            if (methodLevel && IsMethodLevelMember(member))
-            {
-                list.Add(member);
-            }
-        }
+            },
+            (this, list, topLevel, methodLevel));
     }
 
     public TextSpan GetMemberBodySpanForSpeculativeBinding(SyntaxNode node)
@@ -1586,6 +1583,13 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
         closeParenToken = argumentListNode.CloseParenToken;
     }
 
+    public void GetPartsOfAttribute(SyntaxNode node, out SyntaxNode name, out SyntaxNode? argumentList)
+    {
+        var attribute = (AttributeSyntax)node;
+        name = attribute.Name;
+        argumentList = attribute.ArgumentList;
+    }
+
     public void GetPartsOfBaseObjectCreationExpression(SyntaxNode node, out SyntaxNode? argumentList, out SyntaxNode? initializer)
     {
         var objectCreationExpression = (BaseObjectCreationExpressionSyntax)node;
@@ -1733,6 +1737,9 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public SyntaxNode GetArgumentListOfImplicitElementAccess(SyntaxNode node)
         => ((ImplicitElementAccessSyntax)node).ArgumentList;
 
+    public SeparatedSyntaxList<SyntaxNode> GetAttributesOfAttributeList(SyntaxNode node)
+        => ((AttributeListSyntax)node).Attributes;
+
     public SyntaxNode GetExpressionOfAwaitExpression(SyntaxNode node)
         => ((AwaitExpressionSyntax)node).Expression;
 
@@ -1747,6 +1754,9 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
 
     public SeparatedSyntaxList<SyntaxNode> GetExpressionsOfObjectCollectionInitializer(SyntaxNode node)
         => node is InitializerExpressionSyntax(SyntaxKind.CollectionInitializerExpression) initExpr ? initExpr.Expressions : default;
+
+    public SyntaxToken GetTokenOfLiteralExpression(SyntaxNode node)
+        => ((LiteralExpressionSyntax)node).Token;
 
     #endregion
 }

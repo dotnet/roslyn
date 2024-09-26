@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1760,13 +1761,13 @@ class C
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
-                // (3,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version '8.0' or greater.
+                // (3,23): error CS8703: The modifier 'static' is not valid for this item in C# 7.0. Please use language version '8.0' or greater.
                 //     public static int P1 { get; }
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("static", "7.0", "8.0").WithLocation(3, 23),
-                // (3,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version '8.0' or greater.
+                // (3,23): error CS8703: The modifier 'public' is not valid for this item in C# 7.0. Please use language version '8.0' or greater.
                 //     public static int P1 { get; }
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("public", "7.0", "8.0").WithLocation(3, 23),
-                // (4,18): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version '8.0' or greater.
+                // (4,18): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.0. Please use language version '8.0' or greater.
                 //     abstract int P2 { static set; }
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P2").WithArguments("abstract", "7.0", "8.0").WithLocation(4, 18),
                 // (4,30): error CS0106: The modifier 'static' is not valid for this item
@@ -1796,6 +1797,9 @@ class C
                 // (14,21): error CS0106: The modifier 'sealed' is not valid for this item
                 //     int P4 { sealed get { return 0; } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("sealed").WithLocation(14, 21),
+                // (15,31): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     protected internal object P5 { get { return null; } extern set; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P5").WithArguments("field keyword").WithLocation(15, 31),
                 // (15,64): error CS0106: The modifier 'extern' is not valid for this item
                 //     protected internal object P5 { get { return null; } extern set; }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("extern").WithLocation(15, 64),
@@ -2486,12 +2490,21 @@ class MyClass
 ";
             CreateCompilation(text).
                 VerifyDiagnostics(
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "a").WithArguments("a"),
-                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "a").WithArguments("a"),
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x"),
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value"),
-                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "value").WithArguments("value")
-                );
+                    // (7,14): error CS0136: A local or parameter named 'a' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //         long a; // 0136
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "a").WithArguments("a").WithLocation(7, 14),
+                    // (7,14): warning CS0168: The variable 'a' is declared but never used
+                    //         long a; // 0136
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "a").WithArguments("a").WithLocation(7, 14),
+                    // (12,14): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //         long x = 1; // 0136
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(12, 14),
+                    // (20,17): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //             int value; // 0136
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(20, 17),
+                    // (20,17): warning CS0168: The variable 'value' is declared but never used
+                    //             int value; // 0136
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "value").WithArguments("value").WithLocation(20, 17));
         }
 
         [Fact]
@@ -8116,13 +8129,21 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
     protected abstract object S { set; } // no error
 }
 ";
-            CreateCompilation(text).VerifyDiagnostics(
-                // (3,20): error CS0501: 'C.P.get' must declare a body because it is not marked abstract, extern, or partial
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("C.P.get"),
-                // (4,38): error CS0501: 'C.Q.set' must declare a body because it is not marked abstract, extern, or partial
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("C.Q.set"),
+            CreateCompilation(text, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+                // (3,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public int P { get; set { } }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "P").WithArguments("field keyword").WithLocation(3, 16),
+                // (4,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public int Q { get { return 0; } set; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q").WithArguments("field keyword").WithLocation(4, 16),
                 // (5,30): warning CS0626: Method, operator, or accessor 'C.R.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("C.R.get"));
+                //     public extern object R { get; } // no error
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("C.R.get").WithLocation(5, 30));
+
+            CreateCompilation(text).VerifyDiagnostics(
+                // (5,30): warning CS0626: Method, operator, or accessor 'C.R.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     public extern object R { get; } // no error
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("C.R.get").WithLocation(5, 30));
         }
 
         [Fact]
@@ -14924,7 +14945,7 @@ class B
 {
     public static void M4(this object o) { }
 }";
-            var compilation = CreateEmptyCompilation(source, new[] { TestMetadata.Net40.mscorlib });
+            var compilation = CreateEmptyCompilation(source, new[] { Net40.References.mscorlib });
             compilation.VerifyDiagnostics(
                 // (3,27): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 27),
@@ -16823,7 +16844,7 @@ namespace N1
                 Diagnostic(ErrorCode.ERR_NamespaceNotAllowedInScript, "namespace").WithLocation(2, 1)
             };
 
-            CreateCompilationWithMscorlib45(new[] { Parse(text, options: TestOptions.Script) }).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilationWithMscorlib461(new[] { Parse(text, options: TestOptions.Script) }).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -16839,13 +16860,13 @@ namespace N1
     protected int P { get { throw null; } set {  } } = 1;
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,9): error CS8050: Only auto-implemented properties can have initializers.
+                // (5,9): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     int I { get { throw null; } set {  } } = 1;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithLocation(5, 9),
-                // (6,16): error CS8050: Only auto-implemented properties can have initializers.
+                // (6,16): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     static int S { get { throw null; } set {  } } = 1;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "S").WithLocation(6, 16),
-                // (7,19): error CS8050: Only auto-implemented properties can have initializers.
+                // (7,19): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     protected int P { get { throw null; } set {  } } = 1;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(7, 19)
             );
@@ -20428,7 +20449,7 @@ class C
 @"internal abstract void M();
 internal abstract object P { get; }
 internal abstract event System.EventHandler E;";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract void M();

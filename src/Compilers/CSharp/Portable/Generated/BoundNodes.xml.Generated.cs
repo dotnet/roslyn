@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         UnconvertedConditionalOperator,
         ConditionalOperator,
         ArrayAccess,
+        RefArrayAccess,
         ArrayLength,
         AwaitableInfo,
         AwaitExpression,
@@ -252,6 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ExpressionWithNullability,
         WithExpression,
     }
+
 
 
 
@@ -2067,6 +2069,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression != this.Expression || indices != this.Indices || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundArrayAccess(this.Syntax, expression, indices, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundRefArrayAccess : BoundExpression
+    {
+        public BoundRefArrayAccess(SyntaxNode syntax, BoundArrayAccess arrayAccess, bool hasErrors = false)
+            : base(BoundKind.RefArrayAccess, syntax, null, hasErrors || arrayAccess.HasErrors())
+        {
+
+            RoslynDebug.Assert(arrayAccess is object, "Field 'arrayAccess' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.ArrayAccess = arrayAccess;
+        }
+
+        public new TypeSymbol? Type => base.Type;
+        public BoundArrayAccess ArrayAccess { get; }
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitRefArrayAccess(this);
+
+        public BoundRefArrayAccess Update(BoundArrayAccess arrayAccess)
+        {
+            if (arrayAccess != this.ArrayAccess)
+            {
+                var result = new BoundRefArrayAccess(this.Syntax, arrayAccess, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -6709,7 +6740,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundObjectInitializerMember : BoundExpression
     {
-        public BoundObjectInitializerMember(SyntaxNode syntax, Symbol? memberSymbol, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, LookupResultKind resultKind, TypeSymbol receiverType, TypeSymbol type, bool hasErrors = false)
+        public BoundObjectInitializerMember(SyntaxNode syntax, Symbol? memberSymbol, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, LookupResultKind resultKind, AccessorKind accessorKind, TypeSymbol receiverType, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.ObjectInitializerMember, syntax, type, hasErrors || arguments.HasErrors())
         {
 
@@ -6725,6 +6756,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ArgsToParamsOpt = argsToParamsOpt;
             this.DefaultArguments = defaultArguments;
             this.ResultKind = resultKind;
+            this.AccessorKind = accessorKind;
             this.ReceiverType = receiverType;
         }
 
@@ -6737,16 +6769,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<int> ArgsToParamsOpt { get; }
         public BitVector DefaultArguments { get; }
         public override LookupResultKind ResultKind { get; }
+        public AccessorKind AccessorKind { get; }
         public TypeSymbol ReceiverType { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitObjectInitializerMember(this);
 
-        public BoundObjectInitializerMember Update(Symbol? memberSymbol, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, LookupResultKind resultKind, TypeSymbol receiverType, TypeSymbol type)
+        public BoundObjectInitializerMember Update(Symbol? memberSymbol, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, LookupResultKind resultKind, AccessorKind accessorKind, TypeSymbol receiverType, TypeSymbol type)
         {
-            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(memberSymbol, this.MemberSymbol) || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || defaultArguments != this.DefaultArguments || resultKind != this.ResultKind || !TypeSymbol.Equals(receiverType, this.ReceiverType, TypeCompareKind.ConsiderEverything) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (!Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(memberSymbol, this.MemberSymbol) || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || defaultArguments != this.DefaultArguments || resultKind != this.ResultKind || accessorKind != this.AccessorKind || !TypeSymbol.Equals(receiverType, this.ReceiverType, TypeCompareKind.ConsiderEverything) || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundObjectInitializerMember(this.Syntax, memberSymbol, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, resultKind, receiverType, type, this.HasErrors);
+                var result = new BoundObjectInitializerMember(this.Syntax, memberSymbol, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, resultKind, accessorKind, receiverType, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7301,7 +7334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPropertyAccess : BoundExpression
     {
-        public BoundPropertyAccess(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, PropertySymbol propertySymbol, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
+        public BoundPropertyAccess(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, PropertySymbol propertySymbol, AccessorKind autoPropertyAccessorKind, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.PropertyAccess, syntax, type, hasErrors || receiverOpt.HasErrors())
         {
 
@@ -7311,6 +7344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ReceiverOpt = receiverOpt;
             this.InitialBindingReceiverIsSubjectToCloning = initialBindingReceiverIsSubjectToCloning;
             this.PropertySymbol = propertySymbol;
+            this.AutoPropertyAccessorKind = autoPropertyAccessorKind;
             this.ResultKind = resultKind;
         }
 
@@ -7318,16 +7352,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression? ReceiverOpt { get; }
         public ThreeState InitialBindingReceiverIsSubjectToCloning { get; }
         public PropertySymbol PropertySymbol { get; }
+        public AccessorKind AutoPropertyAccessorKind { get; }
         public override LookupResultKind ResultKind { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitPropertyAccess(this);
 
-        public BoundPropertyAccess Update(BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, PropertySymbol propertySymbol, LookupResultKind resultKind, TypeSymbol type)
+        public BoundPropertyAccess Update(BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, PropertySymbol propertySymbol, AccessorKind autoPropertyAccessorKind, LookupResultKind resultKind, TypeSymbol type)
         {
-            if (receiverOpt != this.ReceiverOpt || initialBindingReceiverIsSubjectToCloning != this.InitialBindingReceiverIsSubjectToCloning || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(propertySymbol, this.PropertySymbol) || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (receiverOpt != this.ReceiverOpt || initialBindingReceiverIsSubjectToCloning != this.InitialBindingReceiverIsSubjectToCloning || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(propertySymbol, this.PropertySymbol) || autoPropertyAccessorKind != this.AutoPropertyAccessorKind || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundPropertyAccess(this.Syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, propertySymbol, resultKind, type, this.HasErrors);
+                var result = new BoundPropertyAccess(this.Syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, propertySymbol, autoPropertyAccessorKind, resultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7373,7 +7408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundIndexerAccess : BoundExpression
     {
-        public BoundIndexerAccess(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, PropertySymbol indexer, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, ImmutableArray<PropertySymbol> originalIndexersOpt, TypeSymbol type, bool hasErrors = false)
+        public BoundIndexerAccess(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, PropertySymbol indexer, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, AccessorKind accessorKind, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, ImmutableArray<PropertySymbol> originalIndexersOpt, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.IndexerAccess, syntax, type, hasErrors || receiverOpt.HasErrors() || arguments.HasErrors())
         {
 
@@ -7388,6 +7423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ArgumentNamesOpt = argumentNamesOpt;
             this.ArgumentRefKindsOpt = argumentRefKindsOpt;
             this.Expanded = expanded;
+            this.AccessorKind = accessorKind;
             this.ArgsToParamsOpt = argsToParamsOpt;
             this.DefaultArguments = defaultArguments;
             this.OriginalIndexersOpt = originalIndexersOpt;
@@ -7401,6 +7437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<string?> ArgumentNamesOpt { get; }
         public ImmutableArray<RefKind> ArgumentRefKindsOpt { get; }
         public bool Expanded { get; }
+        public AccessorKind AccessorKind { get; }
         public ImmutableArray<int> ArgsToParamsOpt { get; }
         public BitVector DefaultArguments { get; }
         public ImmutableArray<PropertySymbol> OriginalIndexersOpt { get; }
@@ -7408,11 +7445,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitIndexerAccess(this);
 
-        public BoundIndexerAccess Update(BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, PropertySymbol indexer, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, ImmutableArray<PropertySymbol> originalIndexersOpt, TypeSymbol type)
+        public BoundIndexerAccess Update(BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, PropertySymbol indexer, ImmutableArray<BoundExpression> arguments, ImmutableArray<string?> argumentNamesOpt, ImmutableArray<RefKind> argumentRefKindsOpt, bool expanded, AccessorKind accessorKind, ImmutableArray<int> argsToParamsOpt, BitVector defaultArguments, ImmutableArray<PropertySymbol> originalIndexersOpt, TypeSymbol type)
         {
-            if (receiverOpt != this.ReceiverOpt || initialBindingReceiverIsSubjectToCloning != this.InitialBindingReceiverIsSubjectToCloning || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(indexer, this.Indexer) || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || argsToParamsOpt != this.ArgsToParamsOpt || defaultArguments != this.DefaultArguments || originalIndexersOpt != this.OriginalIndexersOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (receiverOpt != this.ReceiverOpt || initialBindingReceiverIsSubjectToCloning != this.InitialBindingReceiverIsSubjectToCloning || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(indexer, this.Indexer) || arguments != this.Arguments || argumentNamesOpt != this.ArgumentNamesOpt || argumentRefKindsOpt != this.ArgumentRefKindsOpt || expanded != this.Expanded || accessorKind != this.AccessorKind || argsToParamsOpt != this.ArgsToParamsOpt || defaultArguments != this.DefaultArguments || originalIndexersOpt != this.OriginalIndexersOpt || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundIndexerAccess(this.Syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, originalIndexersOpt, type, this.HasErrors);
+                var result = new BoundIndexerAccess(this.Syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, accessorKind, argsToParamsOpt, defaultArguments, originalIndexersOpt, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8890,6 +8927,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitConditionalOperator((BoundConditionalOperator)node, arg);
                 case BoundKind.ArrayAccess:
                     return VisitArrayAccess((BoundArrayAccess)node, arg);
+                case BoundKind.RefArrayAccess:
+                    return VisitRefArrayAccess((BoundRefArrayAccess)node, arg);
                 case BoundKind.ArrayLength:
                     return VisitArrayLength((BoundArrayLength)node, arg);
                 case BoundKind.AwaitableInfo:
@@ -9311,6 +9350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitUnconvertedConditionalOperator(BoundUnconvertedConditionalOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitConditionalOperator(BoundConditionalOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitArrayAccess(BoundArrayAccess node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitRefArrayAccess(BoundRefArrayAccess node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitArrayLength(BoundArrayLength node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitAwaitableInfo(BoundAwaitableInfo node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitAwaitExpression(BoundAwaitExpression node, A arg) => this.DefaultVisit(node, arg);
@@ -9546,6 +9586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitUnconvertedConditionalOperator(BoundUnconvertedConditionalOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitConditionalOperator(BoundConditionalOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitArrayAccess(BoundArrayAccess node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitRefArrayAccess(BoundRefArrayAccess node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitArrayLength(BoundArrayLength node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitAwaitableInfo(BoundAwaitableInfo node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitAwaitExpression(BoundAwaitExpression node) => this.DefaultVisit(node);
@@ -9928,6 +9969,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Visit(node.Expression);
             this.VisitList(node.Indices);
+            return null;
+        }
+        public override BoundNode? VisitRefArrayAccess(BoundRefArrayAccess node)
+        {
+            this.Visit(node.ArrayAccess);
             return null;
         }
         public override BoundNode? VisitArrayLength(BoundArrayLength node)
@@ -11054,6 +11100,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(expression, indices, type);
         }
+        public override BoundNode? VisitRefArrayAccess(BoundRefArrayAccess node)
+        {
+            BoundArrayAccess arrayAccess = (BoundArrayAccess)this.Visit(node.ArrayAccess);
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(arrayAccess);
+        }
         public override BoundNode? VisitArrayLength(BoundArrayLength node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
@@ -11786,7 +11838,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol? receiverType = this.VisitType(node.ReceiverType);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(node.MemberSymbol, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, receiverType, type);
+            return node.Update(node.MemberSymbol, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, node.AccessorKind, receiverType, type);
         }
         public override BoundNode? VisitDynamicObjectInitializerMember(BoundDynamicObjectInitializerMember node)
         {
@@ -11888,7 +11940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression? receiverOpt = (BoundExpression?)this.Visit(node.ReceiverOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, node.PropertySymbol, node.ResultKind, type);
+            return node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, node.PropertySymbol, node.AutoPropertyAccessorKind, node.ResultKind, type);
         }
         public override BoundNode? VisitEventAccess(BoundEventAccess node)
         {
@@ -11901,7 +11953,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression? receiverOpt = (BoundExpression?)this.Visit(node.ReceiverOpt);
             ImmutableArray<BoundExpression> arguments = this.VisitList(node.Arguments);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, node.Indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.OriginalIndexersOpt, type);
+            return node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, node.Indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.AccessorKind, node.ArgsToParamsOpt, node.DefaultArguments, node.OriginalIndexersOpt, type);
         }
         public override BoundNode? VisitImplicitIndexerAccess(BoundImplicitIndexerAccess node)
         {
@@ -12858,6 +12910,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 updatedNode = node.Update(expression, indices, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitRefArrayAccess(BoundRefArrayAccess node)
+        {
+            BoundArrayAccess arrayAccess = (BoundArrayAccess)this.Visit(node.ArrayAccess);
+            BoundRefArrayAccess updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(arrayAccess);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(arrayAccess);
             }
             return updatedNode;
         }
@@ -14101,12 +14170,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(memberSymbol, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, receiverType, infoAndType.Type!);
+                updatedNode = node.Update(memberSymbol, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, node.AccessorKind, receiverType, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(memberSymbol, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, receiverType, node.Type);
+                updatedNode = node.Update(memberSymbol, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, node.AccessorKind, receiverType, node.Type);
             }
             return updatedNode;
         }
@@ -14383,12 +14452,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, propertySymbol, node.ResultKind, infoAndType.Type!);
+                updatedNode = node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, propertySymbol, node.AutoPropertyAccessorKind, node.ResultKind, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, propertySymbol, node.ResultKind, node.Type);
+                updatedNode = node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, propertySymbol, node.AutoPropertyAccessorKind, node.ResultKind, node.Type);
             }
             return updatedNode;
         }
@@ -14421,12 +14490,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.OriginalIndexersOpt, infoAndType.Type!);
+                updatedNode = node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.AccessorKind, node.ArgsToParamsOpt, node.DefaultArguments, node.OriginalIndexersOpt, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.OriginalIndexersOpt, node.Type);
+                updatedNode = node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, indexer, arguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.AccessorKind, node.ArgsToParamsOpt, node.DefaultArguments, node.OriginalIndexersOpt, node.Type);
             }
             return updatedNode;
         }
@@ -15345,6 +15414,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("indices", null, from x in node.Indices select Visit(x, null)),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitRefArrayAccess(BoundRefArrayAccess node, object? arg) => new TreeDumperNode("refArrayAccess", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("arrayAccess", null, new TreeDumperNode[] { Visit(node.ArrayAccess, null) }),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
@@ -16488,6 +16565,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("argsToParamsOpt", node.ArgsToParamsOpt, null),
             new TreeDumperNode("defaultArguments", node.DefaultArguments, null),
             new TreeDumperNode("resultKind", node.ResultKind, null),
+            new TreeDumperNode("accessorKind", node.AccessorKind, null),
             new TreeDumperNode("receiverType", node.ReceiverType, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
@@ -16646,6 +16724,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("receiverOpt", null, new TreeDumperNode[] { Visit(node.ReceiverOpt, null) }),
             new TreeDumperNode("initialBindingReceiverIsSubjectToCloning", node.InitialBindingReceiverIsSubjectToCloning, null),
             new TreeDumperNode("propertySymbol", node.PropertySymbol, null),
+            new TreeDumperNode("autoPropertyAccessorKind", node.AutoPropertyAccessorKind, null),
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
@@ -16672,6 +16751,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("argumentNamesOpt", node.ArgumentNamesOpt, null),
             new TreeDumperNode("argumentRefKindsOpt", node.ArgumentRefKindsOpt, null),
             new TreeDumperNode("expanded", node.Expanded, null),
+            new TreeDumperNode("accessorKind", node.AccessorKind, null),
             new TreeDumperNode("argsToParamsOpt", node.ArgsToParamsOpt, null),
             new TreeDumperNode("defaultArguments", node.DefaultArguments, null),
             new TreeDumperNode("originalIndexersOpt", node.OriginalIndexersOpt, null),

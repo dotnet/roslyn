@@ -47,6 +47,11 @@
         <target state="translated">대상 형식은 {0} 또는 {1}이어야 하지만 지정된 형식은 {2}입니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_does_not_support_syntax_trees">
+        <source>Document does not support syntax trees</source>
+        <target state="translated">문서가 구문 트리를 지원하지 않음</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_all_0">
         <source>Fix all '{0}'</source>
         <target state="translated">모든 '{0}' 수정</target>
@@ -120,6 +125,11 @@
       <trans-unit id="The_solution_does_not_contain_the_specified_document">
         <source>The solution does not contain the specified document.</source>
         <target state="translated">솔루션에 지정한 문서가 포함되어 있지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_members">
+        <source>Type members</source>
+        <target state="translated">멤버 입력</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">

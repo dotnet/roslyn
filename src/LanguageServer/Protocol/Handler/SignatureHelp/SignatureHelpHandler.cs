@@ -12,56 +12,50 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SignatureHelp;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Text.Adornments;
+using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     [ExportCSharpVisualBasicStatelessLspService(typeof(SignatureHelpHandler)), Shared]
     [Method(LSP.Methods.TextDocumentSignatureHelpName)]
-    internal class SignatureHelpHandler : ILspServiceDocumentRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal class SignatureHelpHandler(SignatureHelpService signatureHelpService) : ILspServiceDocumentRequestHandler<LSP.TextDocumentPositionParams, LSP.SignatureHelp?>
     {
-        private readonly SignatureHelpService _signatureHelpService;
-        private readonly IGlobalOptionService _globalOptions;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SignatureHelpHandler(
-            SignatureHelpService signatureHelpService,
-            IGlobalOptionService globalOptions)
-        {
-            _signatureHelpService = signatureHelpService;
-            _globalOptions = globalOptions;
-        }
-
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
         public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
 
-        public async Task<LSP.SignatureHelp?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+        public Task<LSP.SignatureHelp?> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var clientCapabilities = context.GetRequiredClientCapabilities();
             var document = context.Document;
             if (document == null)
-                return null;
+                return SpecializedTasks.Null<LSP.SignatureHelp>();
 
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var supportsVisualStudioExtensions = context.GetRequiredClientCapabilities().HasVisualStudioLspCapability();
+            var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
+            return GetSignatureHelpAsync(signatureHelpService, document, linePosition, supportsVisualStudioExtensions, cancellationToken);
+        }
+
+        internal static async Task<LSP.SignatureHelp?> GetSignatureHelpAsync(SignatureHelpService signatureHelpService, Document document, LinePosition linePosition, bool supportsVisualStudioExtensions, CancellationToken cancellationToken)
+        {
+            var position = await document.GetPositionFromLinePositionAsync(linePosition, cancellationToken).ConfigureAwait(false);
             var triggerInfo = new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.InvokeSignatureHelpCommand);
-            var options = _globalOptions.GetSignatureHelpOptions(document.Project.Language);
 
-            var (_, sigItems) = await _signatureHelpService.GetSignatureHelpAsync(document, position, triggerInfo, options, cancellationToken).ConfigureAwait(false);
+            var (_, sigItems) = await signatureHelpService.GetSignatureHelpAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
             if (sigItems is null)
             {
                 return null;
             }
-
             using var _ = ArrayBuilder<LSP.SignatureInformation>.GetInstance(out var sigInfos);
-
             foreach (var item in sigItems.Items)
             {
                 LSP.SignatureInformation sigInfo;
-                if (clientCapabilities.HasVisualStudioLspCapability() == true)
+                if (supportsVisualStudioExtensions)
                 {
                     sigInfo = new LSP.VSInternalSignatureInformation
                     {
@@ -86,7 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var sigHelp = new LSP.SignatureHelp
             {
                 ActiveSignature = GetActiveSignature(sigItems),
-                ActiveParameter = sigItems.ArgumentIndex,
+                ActiveParameter = sigItems.SemanticParameterIndex,
                 Signatures = sigInfos.ToArray()
             };
 
@@ -106,7 +100,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // However, the LSP spec expects the language server to make this decision.
             // So implement the logic of picking a signature that has enough arguments here.
 
-            var matchingSignature = items.Items.FirstOrDefault(sig => sig.Parameters.Length > items.ArgumentIndex);
+            var matchingSignature = items.Items.FirstOrDefault(
+                sig => sig.Parameters.Length > items.SemanticParameterIndex);
             return matchingSignature != null ? items.Items.IndexOf(matchingSignature) : 0;
         }
 
@@ -141,9 +136,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             return sb.ToString();
         }
+
         private static ClassifiedTextElement GetSignatureClassifiedText(SignatureHelpItem item)
         {
-            var taggedTexts = new ArrayBuilder<TaggedText>();
+            using var _ = ArrayBuilder<TaggedText>.GetInstance(out var taggedTexts);
 
             taggedTexts.AddRange(item.PrefixDisplayParts);
 
@@ -165,7 +161,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             taggedTexts.AddRange(item.SuffixDisplayParts);
             taggedTexts.AddRange(item.DescriptionParts);
 
-            return new ClassifiedTextElement(taggedTexts.ToArrayAndFree().Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
+            return new ClassifiedTextElement(taggedTexts.ToArray().Select(part => new ClassifiedTextRun(part.Tag.ToClassificationTypeName(), part.Text)));
         }
     }
 }

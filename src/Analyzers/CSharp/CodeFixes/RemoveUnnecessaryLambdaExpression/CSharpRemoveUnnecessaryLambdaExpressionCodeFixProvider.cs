@@ -5,10 +5,8 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -16,21 +14,16 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryLambdaExpression;
 
 using static CSharpRemoveUnnecessaryLambdaExpressionDiagnosticAnalyzer;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnnecessaryLambdaExpression), Shared]
-internal partial class CSharpRemoveUnnecessaryLambdaExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class CSharpRemoveUnnecessaryLambdaExpressionCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpRemoveUnnecessaryLambdaExpressionCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.RemoveUnnecessaryLambdaExpressionDiagnosticId];
 
@@ -42,7 +35,7 @@ internal partial class CSharpRemoveUnnecessaryLambdaExpressionCodeFixProvider : 
 
     protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics)
         {

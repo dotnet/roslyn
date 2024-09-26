@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Debug.Assert(!_typeParameters.IsDefault, $"Expected {nameof(SetTypeParameters)} prior to accessing this property.");
+                RoslynDebug.Assert(!_typeParameters.IsDefault, $"Expected {nameof(SetTypeParameters)} prior to accessing this property.");
                 if (_typeParameters.IsDefault)
                 {
                     return ImmutableArray<TypeParameterSymbol>.Empty;
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Debug.Assert(!_parameters.IsDefault, $"Expected {nameof(SetParameters)} prior to accessing this property.");
+                RoslynDebug.Assert(!_parameters.IsDefault, $"Expected {nameof(SetParameters)} prior to accessing this property.");
                 if (_parameters.IsDefault)
                 {
                     return ImmutableArray<ParameterSymbol>.Empty;
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+        internal sealed override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
             return false;
         }
@@ -360,6 +360,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             builderArgument = null;
             return false;
+        }
+
+        internal sealed override int? TryGetOverloadResolutionPriority()
+        {
+            return null;
         }
     }
 }

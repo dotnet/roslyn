@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.ComponentModel.Composition" Version="$(SystemComponentModelCompositionVersion)" />
+    <PackageReference Include="System.ComponentModel.Composition" />
   </ItemGroup>
 
   <ItemGroup>

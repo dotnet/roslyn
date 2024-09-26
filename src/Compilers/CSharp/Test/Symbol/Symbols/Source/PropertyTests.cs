@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
             // One would think this creates an error, but it doesn't because
             // language version is a property of the parser and there are
             // no syntactical changes to the language for get-only autoprops
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 class C
 {
     public int P { get; }
@@ -36,7 +36,7 @@ class C
         [Fact]
         public void SetGetOnlyAutoPropInConstructor()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 class C
 {
     public int P { get; }
@@ -50,7 +50,7 @@ class C
         [Fact]
         public void GetOnlyAutoPropBadOverride()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 
 class Base
 {
@@ -83,7 +83,7 @@ class C : Base
         [Fact]
         public void SetGetOnlyAutoPropOutOfConstructor()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 class C
 {
     public int P { get; }
@@ -1776,7 +1776,7 @@ class C : I
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text);
+            var comp = CreateCompilationWithMscorlib461(text);
 
             var globalNamespace = comp.GlobalNamespace;
 
@@ -2909,7 +2909,7 @@ unsafe class Test
     }
     ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (4,17): error CS8080: Properties with by-reference returns must have a get accessor.
                 //         ref int P { set { } }
                 Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "P").WithLocation(4, 17));
@@ -2922,18 +2922,18 @@ unsafe class Test
     class C
     {
         int field = 0;
-        ref int P { get { return ref field; } set { } } 
+        ref int P { get { return ref @field; } set { } } 
     }
     ";
 
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
-                // (5,47): error CS8081: Properties with by-reference returns cannot have set accessors.
-                //         ref int P { get { return ref field; } set { } } 
-                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(5, 47));
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
+                // (5,48): error CS8147: Properties which return by reference cannot have set accessors
+                //         ref int P { get { return ref @field; } set { } } 
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(5, 48));
         }
 
         [Fact, WorkItem(4696, "https://github.com/dotnet/roslyn/issues/4696")]
-        public void LangVersionAndReadonlyAutoProperty()
+        public void LangVersionAndReadonlyAutoProperty_01()
         {
             var source = @"
 public class Class1
@@ -2957,12 +2957,48 @@ interface I1
 }
 ";
 
-            var comp = CreateCompilation(source, parseOptions: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular5);
             comp.GetDeclarationDiagnostics().Verify(
-    // (9,19): error CS8026: Feature 'readonly automatically implemented properties' is not available in C# 5. Please use language version 6 or greater.
-    //     public string Prop1 { get; }
-    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "Prop1").WithArguments("readonly automatically implemented properties", "6").WithLocation(9, 19)
+                // (9,19): error CS8026: Feature 'readonly automatically implemented properties' is not available in C# 5. Please use language version 6 or greater.
+                //     public string Prop1 { get; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion5, "Prop1").WithArguments("readonly automatically implemented properties", "6").WithLocation(9, 19)
                 );
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.Regular6);
+            comp.GetDeclarationDiagnostics().Verify();
+        }
+
+        [Fact]
+        public void LangVersionAndReadonlyAutoProperty_02()
+        {
+            var source = @"
+public class Class1
+{
+    public string Prop1 { set; }
+}
+
+abstract class Class2
+{
+    public abstract string Prop2 { set; }
+}
+
+interface I1
+{
+    string Prop3 { set; }
+}
+";
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular5);
+            comp.GetDeclarationDiagnostics().Verify(
+                // (4,27): error CS8051: Auto-implemented properties must have get accessors.
+                //     public string Prop1 { set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithLocation(4, 27));
+
+            comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
+            comp.GetDeclarationDiagnostics().Verify(
+                // (4,27): error CS8051: Auto-implemented properties must have get accessors.
+                //     public string Prop1 { set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, "set").WithLocation(4, 27));
         }
 
         [Fact]

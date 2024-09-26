@@ -31,7 +31,7 @@ internal static class ConvertToRecordEngine
         SyntaxRemoveOptions.AddElasticMarker;
 
     public static async Task<CodeAction?> GetCodeActionAsync(
-        Document document, TypeDeclarationSyntax typeDeclaration, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, TypeDeclarationSyntax typeDeclaration, CancellationToken cancellationToken)
     {
         // any type declared partial requires complex movement, don't offer refactoring
         if (typeDeclaration.Modifiers.Any(SyntaxKind.PartialKeyword))
@@ -70,7 +70,6 @@ internal static class ConvertToRecordEngine
                 type,
                 positionalParameterInfos,
                 typeDeclaration,
-                fallbackOptions,
                 cancellationToken),
             nameof(CSharpCodeFixesResources.Convert_to_positional_record));
         // note: when adding nested actions, use string.Format(CSharpFeaturesResources.Convert_0_to_record, type.Name) as title string
@@ -82,7 +81,6 @@ internal static class ConvertToRecordEngine
         INamedTypeSymbol type,
         ImmutableArray<PositionalParameterInfo> positionalParameterInfos,
         TypeDeclarationSyntax typeDeclaration,
-        CodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -241,8 +239,7 @@ internal static class ConvertToRecordEngine
             }
         }
 
-        var optionsProvider = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-        var lineFormattingOptions = optionsProvider.GetLineFormattingOptions();
+        var lineFormattingOptions = await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var modifiedClassTrivia = GetModifiedClassTrivia(
             positionalParameterInfos, typeDeclaration, lineFormattingOptions);

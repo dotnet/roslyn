@@ -7,6 +7,21 @@
         <target state="translated">URI seri durumdan çıkarılamıyor. Beklenmeyen değerle karşılaşıldı: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="FormattingOptionsEncounteredInvalidToken">
+        <source>Unable to deserialize FormattingOptions. Invalid token: {0}</source>
+        <target state="translated">FormattingOptions seri durumdan çıkarılamıyor. Geçersiz belirteç: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FormattingOptionsEndedUnexpectedly">
+        <source>Unable to deserialize FormattingOptions as it ended unexpectedly</source>
+        <target state="translated">Beklenmedik bir şekilde sonlandırıldığından FormattingOptions seri durumdan çıkarılamıyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FormattingOptionsMissingRequiredProperty">
+        <source>Unable to deserialize FormattingOptions. Missing required property: {0}</source>
+        <target state="translated">FormattingOptions seri durumdan çıkarılamıyor. Gerekli özellik eksik: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="MarkupContentSerializationError">
         <source>Unable to deserialize MarkupContent. Unexpected value encountered: {0}</source>
         <target state="translated">MarkupContent seri durumdan çıkarılamıyor. Beklenmeyen değerle karşılaşıldı: {0}</target>

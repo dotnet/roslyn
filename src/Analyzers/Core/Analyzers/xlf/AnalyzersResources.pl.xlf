@@ -96,6 +96,11 @@
         <target state="translated">Unikaj nieużywanych parametrów w kodzie. Jeśli nie można usunąć parametru, zmień jego nazwę, tak aby rozpoczynała się od znaku podkreślenia, a opcjonalnie następowała po niej liczba całkowita, na przykład „_”, „_1”, „_2” itp. Są one traktowane jako specjalne nazwy symboli odrzucenia.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
+        <source>Base classes contain inaccessible unimplemented members</source>
+        <target state="translated">Klasy podstawowe zawierają niedostępne niezaimplementowane składowe</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
         <source>Blank line required between block and subsequent statement</source>
         <target state="translated">Wymagany jest pusty wiersz między blokiem a kolejną instrukcją</target>
@@ -144,6 +149,16 @@
       <trans-unit id="GetHashCode_implementation_can_be_simplified">
         <source>'GetHashCode' implementation can be simplified</source>
         <target state="translated">Implementację „GetHashCode” można uprościć</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_abstract_class">
+        <source>Implement abstract class</source>
+        <target state="translated">Implementuj klasę abstrakcyjną</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_through_0">
+        <source>Implement through '{0}'</source>
+        <target state="translated">Implementuj za pomocą elementu „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">

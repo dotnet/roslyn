@@ -122,10 +122,11 @@ internal sealed class InheritanceMarginViewMargin : IWpfTextViewMargin
         _refreshAllGlyphs = false;
     }
 
-    private void OnGlobalOptionChanged(object sender, OptionChangedEventArgs e)
+    private void OnGlobalOptionChanged(object sender, object target, OptionChangedEventArgs e)
     {
-        if (e.Option.Equals(InheritanceMarginOptionsStorage.ShowInheritanceMargin) ||
-            e.Option.Equals(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin))
+        if (e.HasOption(option =>
+                option.Equals(InheritanceMarginOptionsStorage.ShowInheritanceMargin) ||
+                option.Equals(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin)))
         {
             UpdateMarginVisibility();
         }
