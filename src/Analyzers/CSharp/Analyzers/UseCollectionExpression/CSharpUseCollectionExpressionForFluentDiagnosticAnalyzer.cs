@@ -155,6 +155,9 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         out InitializerExpressionSyntax? existingInitializer,
         CancellationToken cancellationToken)
     {
+        var semanticModel = state.SemanticModel;
+        var compilation = semanticModel.Compilation;
+
         existingInitializer = null;
         if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess)
             return false;
@@ -167,12 +170,11 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
 
         // We don't want to offer this feature on top of some builder-type.  They will commonly end with something like
         // `builder.ToImmutable()`.  We want that case to be handled by the 'ForBuilder' analyzer instead.
-        var expressionType = state.SemanticModel.GetTypeInfo(memberAccess.Expression, cancellationToken).Type;
+        var expressionType = semanticModel.GetTypeInfo(memberAccess.Expression, cancellationToken).Type;
         if (expressionType is null || expressionType.Name.EndsWith("Builder", StringComparison.Ordinal))
             return false;
 
-        var semanticModel = state.SemanticModel;
-        var compilation = semanticModel.Compilation;
+        var ienumerableOfTType = compilation.IEnumerableOfTType();
 
         using var _1 = ArrayBuilder<ExpressionSyntax>.GetInstance(out var stack);
         stack.Push(memberAccess.Expression);
@@ -224,7 +226,6 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             {
                 if (objectCreation is not
                     {
-                        ArgumentList: null or { Arguments.Count: 0 },
                         Initializer: null or { RawKind: (int)SyntaxKind.CollectionInitializerExpression }
                     })
                 {
@@ -237,7 +238,32 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 if (!IsListLike(current))
                     return false;
 
-                existingInitializer = objectCreation.Initializer;
+                if (objectCreation.ArgumentList is { Arguments.Count: 1 })
+                {
+                    // Can take a single argument if that argument is itself a collection.
+                    var argumentType = semanticModel.GetTypeInfo(objectCreation.ArgumentList.Arguments[0].Expression, cancellationToken).Type;
+                    if (argumentType is null)
+                        return false;
+
+                    if (!argumentType.AllInterfaces.Any(i => Equals(i.OriginalDefinition, ienumerableOfTType)))
+                        return false;
+
+                    // Need to push any initializer values to the matchesInReverse first, as they need to execute prior
+                    // to the argument to the object creation itself executing.
+
+                    var synthesizedArgumentList = objectCreation.Initializer is null
+                        ? ArgumentList()
+                        : ArgumentList(SeparatedList(objectCreation.Initializer.Expressions.Select(Argument)));
+
+                    AddArgumentsInReverse(matchesInReverse, synthesizedArgumentList.Arguments, useSpread: false);
+                    AddArgumentsInReverse(matchesInReverse, objectCreation.ArgumentList.Arguments, useSpread: true);
+                }
+                else if (objectCreation.ArgumentList is not null or { Arguments.Count: 0 })
+                {
+                    // Otherwise, we have to have an empty argument list.
+                    return false;
+                }
+
                 return true;
             }
 
@@ -359,6 +385,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                         return false;
                 }
             }
+
             return true;
         }
     }
