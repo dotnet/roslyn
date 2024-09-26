@@ -26,9 +26,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities;
 /// It uses the original tree's semantic model to create a speculative semantic model and verifies that
 /// the syntax replacement doesn't break the semantics of any parenting nodes of the original expression.
 /// </summary>
-internal class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
+internal sealed class SpeculationAnalyzer : AbstractSpeculationAnalyzer<
     ExpressionSyntax,
     TypeSyntax,
+    QualifiedNameSyntax,
     AttributeSyntax,
     ArgumentSyntax,
     CommonForEachStatementSyntax,

@@ -1731,24 +1731,7 @@ Module M
 End Module
 </Code>
 
-            Dim expected =
-        <Code>
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-
-Module Program
-    Sub Main(args As String())
-
-    End Sub
-End Module
-
-Module M
-    Dim e = GetType(List(Of ).Enumerator)
-End Module
-</Code>
-
-            Await TestInRegularAndScriptAsync(source.Value, expected.Value)
+            Await TestMissingAsync(source.Value)
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578686")>

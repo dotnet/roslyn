@@ -15,10 +15,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
     ''' It uses the original tree's semantic model to create a speculative semantic model and verifies that
     ''' the syntax replacement doesn't break the semantics of any parenting nodes of the original expression.
     ''' </summary>
-    Friend Class SpeculationAnalyzer
+    Friend NotInheritable Class SpeculationAnalyzer
         Inherits AbstractSpeculationAnalyzer(Of
             ExpressionSyntax,
             TypeSyntax,
+            QualifiedNameSyntax,
             AttributeSyntax,
             ArgumentSyntax,
             ForEachStatementSyntax,

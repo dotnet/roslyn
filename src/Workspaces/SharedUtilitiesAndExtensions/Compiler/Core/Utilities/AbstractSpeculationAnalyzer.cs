@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -27,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities;
 internal abstract class AbstractSpeculationAnalyzer<
         TExpressionSyntax,
         TTypeSyntax,
+        TQualifiedNameSyntax,
         TAttributeSyntax,
         TArgumentSyntax,
         TForEachStatementSyntax,
@@ -35,6 +35,7 @@ internal abstract class AbstractSpeculationAnalyzer<
         TConversion> : ISpeculationAnalyzer
     where TExpressionSyntax : SyntaxNode
     where TTypeSyntax : TExpressionSyntax
+    where TQualifiedNameSyntax : TTypeSyntax
     where TAttributeSyntax : SyntaxNode
     where TArgumentSyntax : SyntaxNode
     where TForEachStatementSyntax : SyntaxNode
@@ -598,10 +599,22 @@ internal abstract class AbstractSpeculationAnalyzer<
             return true;
         }
 
-        if (currentOriginalNode is TTypeSyntax originalType)
+        if (currentOriginalNode is TQualifiedNameSyntax { Parent: not TAttributeSyntax } originalQualifiedName)
         {
-            var newType = (TTypeSyntax)currentReplacedNode;
-            return ReplacementBreaksTypeResolution(originalType, newType);
+            // If we are in a place where we have a qualified name to start with (like A.B in a type-only context), we
+            // can directly lookup if "B" binds to the same symbol using the original model using the same lookup code
+            // instead of having to do a speculative lookup (which might succeed inappropriately).
+            //
+            // Note: this is only for non-attribute contexts as name lookup in the original model doesn't support lookup
+            // with the trimmed (no-"Attribute"-suffix) name.
+            return ReplacementBreaksTypeResolution(originalQualifiedName, (TTypeSyntax)currentReplacedNode, useSpeculativeModel: false);
+        }
+        else if (currentOriginalNode is TTypeSyntax originalType)
+        {
+            // For all other type names (including simple identifier names) use the name in the new speculative model to
+            // do the check.  This may be innacurate as the compiler's logic in speculative models doesn't always match
+            // the logic in the original model.
+            return ReplacementBreaksTypeResolution(originalType, (TTypeSyntax)currentReplacedNode, useSpeculativeModel: true);
         }
         else if (currentOriginalNode is TExpressionSyntax originalExpression)
         {
@@ -850,7 +863,7 @@ internal abstract class AbstractSpeculationAnalyzer<
 
     protected abstract bool IsInNamespaceOrTypeContext(TExpressionSyntax node);
 
-    private bool ReplacementBreaksTypeResolution(TTypeSyntax type, TTypeSyntax newType, bool useSpeculativeModel = true)
+    private bool ReplacementBreaksTypeResolution(TTypeSyntax type, TTypeSyntax newType, bool useSpeculativeModel)
     {
         var symbol = this.OriginalSemanticModel.GetSymbolInfo(type).Symbol;
 
