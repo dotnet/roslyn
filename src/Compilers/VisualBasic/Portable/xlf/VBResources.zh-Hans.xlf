@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
         <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
-        <target state="new">The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</target>
+        <target state="translated">指定的版本字符串包含通配符，这与确定性不兼容。请删除版本字符串中的通配符，或禁用此编译的确定性。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LockTypeUnsupported">
@@ -7698,7 +7698,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
         <source>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</source>
-        <target state="needs-review-translation">指定版本字符串不符合建议格式 - major.minor.build.revision</target>
+        <target state="translated">指定的版本字符串不符合建议的格式 - major.minor.build.revision (不带通配符)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyCultureForExe">
