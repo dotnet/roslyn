@@ -59,10 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _textView = textView;
             this.DataContext = model;
 
-            this.Visibility = textView.HasAggregateFocus ? Visibility.Visible : Visibility.Collapsed;
-
             _textView.GotAggregateFocus += OnTextViewGotAggregateFocus;
-            _textView.LostAggregateFocus += OnTextViewLostAggregateFocus;
             _textView.VisualElement.SizeChanged += OnElementSizeChanged;
             this.SizeChanged += OnElementSizeChanged;
 
@@ -313,12 +310,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void OnTextViewGotAggregateFocus(object sender, EventArgs e)
         {
-            this.Visibility = Visibility.Visible;
             PositionDashboard();
         }
-
-        private void OnTextViewLostAggregateFocus(object sender, EventArgs e)
-            => this.Visibility = Visibility.Collapsed;
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
@@ -367,7 +360,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public override void Dispose()
         {
             _textView.GotAggregateFocus -= OnTextViewGotAggregateFocus;
-            _textView.LostAggregateFocus -= OnTextViewLostAggregateFocus;
             _textView.VisualElement.SizeChanged -= OnElementSizeChanged;
             this.SizeChanged -= OnElementSizeChanged;
 
