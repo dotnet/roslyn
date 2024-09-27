@@ -123,8 +123,8 @@ internal static class CSharpCollectionExpressionRewriter
 
                 // now create the elements, following that indentation preference.
                 using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
-                CreateAndAddElements(preMatches, nodesAndTokens, preferredIndentation: elementIndentation, forceTrailingComma: true);
-                CreateAndAddElements(postMatches, nodesAndTokens, preferredIndentation: elementIndentation, forceTrailingComma: true);
+                CreateAndAddElements(preMatches, nodesAndTokens, preferredIndentation: elementIndentation, forceTrailingComma: true, moreToCome: true);
+                CreateAndAddElements(postMatches, nodesAndTokens, preferredIndentation: elementIndentation, forceTrailingComma: true, moreToCome: false);
 
                 // Add a newline between the last element and the close bracket if we don't already have one.
                 if (nodesAndTokens.Count > 0 && nodesAndTokens.Last().GetTrailingTrivia() is [.., (kind: not SyntaxKind.EndOfLineTrivia)])
@@ -146,8 +146,8 @@ internal static class CSharpCollectionExpressionRewriter
                 // fresh collection expression, and do a wholesale replacement of the original object creation
                 // expression with it.
                 using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
-                CreateAndAddElements(preMatches, nodesAndTokens, preferredIndentation: null, forceTrailingComma: false);
-                CreateAndAddElements(postMatches, nodesAndTokens, preferredIndentation: null, forceTrailingComma: false);
+                CreateAndAddElements(preMatches, nodesAndTokens, preferredIndentation: null, forceTrailingComma: false, moreToCome: true);
+                CreateAndAddElements(postMatches, nodesAndTokens, preferredIndentation: null, forceTrailingComma: false, moreToCome: false);
 
                 // Remove any trailing whitespace from the last element/comma and the final close bracket.
                 if (nodesAndTokens.Count > 0)
@@ -344,7 +344,8 @@ internal static class CSharpCollectionExpressionRewriter
             ImmutableArray<CollectionExpressionMatch<TMatchNode>> matches,
             ArrayBuilder<SyntaxNodeOrToken> nodesAndTokens,
             string? preferredIndentation,
-            bool forceTrailingComma)
+            bool forceTrailingComma,
+            bool moreToCome)
         {
             // If there's no requested indentation, then we want to produce the sequence as: `a, b, c, d`.  So just
             // a space after any comma.  If there is desired indentation for an element, then we always follow a comma
@@ -360,7 +361,7 @@ internal static class CSharpCollectionExpressionRewriter
             }
 
             if (matches.Length > 0 && forceTrailingComma)
-                AddCommaIfMissing(last: true);
+                AddCommaIfMissing(last: !moreToCome);
 
             return;
 
@@ -397,7 +398,7 @@ internal static class CSharpCollectionExpressionRewriter
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 
             // Add any pre-items before the initializer items.
-            CreateAndAddElements(preMatches, nodesAndTokens, preferredIndentation, forceTrailingComma: true);
+            CreateAndAddElements(preMatches, nodesAndTokens, preferredIndentation, forceTrailingComma: true, moreToCome: true);
 
             // Now add all the initializer items.
             nodesAndTokens.AddRange(initialCollectionExpression.Elements.GetWithSeparators());
@@ -425,7 +426,8 @@ internal static class CSharpCollectionExpressionRewriter
             // maintain.
             CreateAndAddElements(
                 postMatches, nodesAndTokens, preferredIndentation,
-                forceTrailingComma: preferredIndentation != null && trailingComma == default);
+                forceTrailingComma: preferredIndentation != null && trailingComma == default,
+                moreToCome: false);
 
             if (trailingComma != default)
             {
