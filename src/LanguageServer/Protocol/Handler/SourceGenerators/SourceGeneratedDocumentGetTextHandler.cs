@@ -12,17 +12,13 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 
-[ExportCSharpVisualBasicStatelessLspService(typeof(SourceGeneratedFileGetTextHandler)), Shared]
+[ExportCSharpVisualBasicStatelessLspService(typeof(SourceGeneratedDocumentGetTextHandler)), Shared]
 [Method(MethodName)]
-internal sealed class SourceGeneratedFileGetTextHandler : ILspServiceDocumentRequestHandler<SourceGeneratorGetTextParams, SourceGeneratedDocumentText>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class SourceGeneratedDocumentGetTextHandler() : ILspServiceDocumentRequestHandler<SourceGeneratorGetTextParams, SourceGeneratedDocumentText>
 {
-    public const string MethodName = "sourceGeneratedFile/_roslyn_getText";
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public SourceGeneratedFileGetTextHandler()
-    {
-    }
+    public const string MethodName = "sourceGeneratedDocument/_roslyn_getText";
 
     public bool MutatesSolutionState => false;
     public bool RequiresLSPSolution => true;

@@ -26,7 +26,7 @@ public class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHelper) :
         var sourceGeneratedDocumentIdentity = sourceGeneratedDocuments.Single().Identity;
         var sourceGeneratorDocumentUri = SourceGeneratedDocumentUri.Create(sourceGeneratedDocumentIdentity);
 
-        var text = await testLspServer.ExecuteRequestAsync<SourceGeneratorGetTextParams, SourceGeneratedDocumentText>(SourceGeneratedFileGetTextHandler.MethodName,
+        var text = await testLspServer.ExecuteRequestAsync<SourceGeneratorGetTextParams, SourceGeneratedDocumentText>(SourceGeneratedDocumentGetTextHandler.MethodName,
             new SourceGeneratorGetTextParams(new LSP.TextDocumentIdentifier { Uri = sourceGeneratorDocumentUri }), CancellationToken.None);
 
         AssertEx.NotNull(text);
@@ -42,7 +42,7 @@ public class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHelper) :
         var sourceGeneratedDocumentIdentity = sourceGeneratedDocuments.Single().Identity;
         var sourceGeneratorDocumentUri = SourceGeneratedDocumentUri.Create(sourceGeneratedDocumentIdentity);
 
-        var text = await testLspServer.ExecuteRequestAsync<SourceGeneratorGetTextParams, SourceGeneratedDocumentText>(SourceGeneratedFileGetTextHandler.MethodName,
+        var text = await testLspServer.ExecuteRequestAsync<SourceGeneratorGetTextParams, SourceGeneratedDocumentText>(SourceGeneratedDocumentGetTextHandler.MethodName,
             new SourceGeneratorGetTextParams(new LSP.TextDocumentIdentifier { Uri = sourceGeneratorDocumentUri }), CancellationToken.None);
 
         AssertEx.NotNull(text);
@@ -67,7 +67,7 @@ public class SourceGeneratedDocumentTests(ITestOutputHelper? testOutputHelper) :
 
         foreach (var sourceGeneratorDocumentUri in sourceGeneratorDocumentUris)
         {
-            var text = await testLspServer.ExecuteRequestAsync<SourceGeneratorGetTextParams, SourceGeneratedDocumentText>(SourceGeneratedFileGetTextHandler.MethodName,
+            var text = await testLspServer.ExecuteRequestAsync<SourceGeneratorGetTextParams, SourceGeneratedDocumentText>(SourceGeneratedDocumentGetTextHandler.MethodName,
                 new SourceGeneratorGetTextParams(new LSP.TextDocumentIdentifier { Uri = sourceGeneratorDocumentUri }), CancellationToken.None);
             AssertEx.NotNull(text?.Text);
             await testLspServer.OpenDocumentAsync(sourceGeneratorDocumentUri, text.Text);
