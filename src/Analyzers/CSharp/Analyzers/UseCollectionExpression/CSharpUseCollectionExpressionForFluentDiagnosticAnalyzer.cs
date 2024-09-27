@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 using Roslyn.Utilities;
 
@@ -133,8 +134,8 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     {
         // Because we're recursing from top to bottom in the expression tree, we build up the matches in reverse.  Right
         // before returning them, we'll reverse them again to get the proper order.
-        using var _1 = ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>.GetInstance(out var preMatchesInReverse);
-        using var _2 = ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>.GetInstance(out var postMatchesInReverse);
+        using var _1 = ArrayBuilder<CollectionMatch<ArgumentSyntax>>.GetInstance(out var preMatchesInReverse);
+        using var _2 = ArrayBuilder<CollectionMatch<ArgumentSyntax>>.GetInstance(out var postMatchesInReverse);
         if (!AnalyzeInvocation(
                 text, state, invocation,
                 addMatches ? preMatchesInReverse : null,
@@ -159,8 +160,8 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         SourceText text,
         FluentState state,
         InvocationExpressionSyntax invocation,
-        ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>? preMatchesInReverse,
-        ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>? postMatchesInReverse,
+        ArrayBuilder<CollectionMatch<ArgumentSyntax>>? preMatchesInReverse,
+        ArrayBuilder<CollectionMatch<ArgumentSyntax>>? postMatchesInReverse,
         out InitializerExpressionSyntax? existingInitializer,
         CancellationToken cancellationToken)
     {
@@ -326,7 +327,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                     .All(static t => t.IsWhitespaceOrEndOfLine()))
             {
                 // Remove any whitespace around the `.`, making the singly-wrapped fluent expression into a single line.
-                postMatchesInReverse.Add(new CollectionExpressionMatch<ArgumentSyntax>(
+                postMatchesInReverse.Add(new CollectionMatch<ArgumentSyntax>(
                     Argument(innerInvocation.WithExpression(
                         memberAccess.Update(
                             memberAccess.Expression.WithoutTrailingTrivia(),
@@ -336,7 +337,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 return;
             }
 
-            postMatchesInReverse.Add(new CollectionExpressionMatch<ArgumentSyntax>(Argument(expression), UseSpread: true));
+            postMatchesInReverse.Add(new CollectionMatch<ArgumentSyntax>(Argument(expression), UseSpread: true));
         }
 
         // We only want to offer this feature when the original collection was list-like (as opposed to being something
@@ -399,7 +400,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     }
 
     private static void AddArgumentsInReverse(
-        ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>? matchesInReverse,
+        ArrayBuilder<CollectionMatch<ArgumentSyntax>>? matchesInReverse,
         SeparatedSyntaxList<ArgumentSyntax> arguments,
         bool useSpread)
     {
@@ -423,7 +424,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         MemberAccessExpressionSyntax memberAccess,
         InvocationExpressionSyntax invocation,
         bool allowLinq,
-        ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>? matchesInReverse,
+        ArrayBuilder<CollectionMatch<ArgumentSyntax>>? matchesInReverse,
         out bool isAdditionMatch,
         CancellationToken cancellationToken)
     {
@@ -510,7 +511,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         // Location DiagnosticLocation,
         InitializerExpressionSyntax? ExistingInitializer,
         InvocationExpressionSyntax CreationExpression,
-        ImmutableArray<CollectionExpressionMatch<ArgumentSyntax>> PreMatches,
-        ImmutableArray<CollectionExpressionMatch<ArgumentSyntax>> PostMatches,
+        ImmutableArray<CollectionMatch<ArgumentSyntax>> PreMatches,
+        ImmutableArray<CollectionMatch<ArgumentSyntax>> PostMatches,
         bool ChangesSemantics);
 }

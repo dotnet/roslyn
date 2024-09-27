@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
@@ -45,8 +46,8 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
     }
 
     protected override bool AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
-        ArrayBuilder<Match> preMatches,
-        ArrayBuilder<Match> postMatches,
+        ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches,
+        ArrayBuilder<CollectionMatch<SyntaxNode>> postMatches,
         CancellationToken cancellationToken)
     {
         // Constructor wasn't called with any arguments.  Nothing to validate.
@@ -92,7 +93,7 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
             using var _1 = ArrayBuilder<ExpressionSyntax>.GetInstance(out var spreadElements);
             foreach (var match in postMatches)
             {
-                switch (match.StatementOrExpression)
+                switch (match.Node)
                 {
                     case ExpressionStatementSyntax { Expression: InvocationExpressionSyntax invocation } expressionStatement:
                         // x.AddRange(y).  Have to make sure we see y.Count in the capacity list.

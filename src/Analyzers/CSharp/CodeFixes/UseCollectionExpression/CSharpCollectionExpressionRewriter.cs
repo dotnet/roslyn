@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -36,8 +37,8 @@ internal static class CSharpCollectionExpressionRewriter
     public static async Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync<TParentExpression, TMatchNode>(
         Document workspaceDocument,
         TParentExpression expressionToReplace,
-        ImmutableArray<CollectionExpressionMatch<TMatchNode>> preMatches,
-        ImmutableArray<CollectionExpressionMatch<TMatchNode>> postMatches,
+        ImmutableArray<CollectionMatch<TMatchNode>> preMatches,
+        ImmutableArray<CollectionMatch<TMatchNode>> postMatches,
         Func<TParentExpression, InitializerExpressionSyntax?> getInitializer,
         Func<TParentExpression, InitializerExpressionSyntax, TParentExpression> withInitializer,
         CancellationToken cancellationToken)
@@ -193,7 +194,7 @@ internal static class CSharpCollectionExpressionRewriter
             }
         }
 
-        CollectionExpressionSyntax CreateSingleElementCollection(CollectionExpressionMatch<TMatchNode> match)
+        CollectionExpressionSyntax CreateSingleElementCollection(CollectionMatch<TMatchNode> match)
         {
             // Specialize when we're taking some expression (like x.y.ToArray()) and converting to a spreaded
             // collection expression.  We just want to trivially make that `[.. x.y]` without any specialized
@@ -341,7 +342,7 @@ internal static class CSharpCollectionExpressionRewriter
         // Used to we can uniformly add the items correctly with the requested (but optional) indentation.  And so that
         // commas are added properly to the sequence.
         void CreateAndAddElements(
-            ImmutableArray<CollectionExpressionMatch<TMatchNode>> matches,
+            ImmutableArray<CollectionMatch<TMatchNode>> matches,
             ArrayBuilder<SyntaxNodeOrToken> nodesAndTokens,
             string? preferredIndentation,
             bool forceTrailingComma,
@@ -456,7 +457,7 @@ internal static class CSharpCollectionExpressionRewriter
         }
 
         IEnumerable<CollectionElementSyntax> CreateElements(
-            CollectionExpressionMatch<TMatchNode> match, string? preferredIndentation)
+            CollectionMatch<TMatchNode> match, string? preferredIndentation)
         {
             var node = match.Node;
 
@@ -744,7 +745,7 @@ internal static class CSharpCollectionExpressionRewriter
 
             return totalLength > wrappingLength;
 
-            bool CheckForMultiLine(ImmutableArray<CollectionExpressionMatch<TMatchNode>> matches)
+            bool CheckForMultiLine(ImmutableArray<CollectionMatch<TMatchNode>> matches)
             {
                 foreach (var (node, _) in matches)
                 {
