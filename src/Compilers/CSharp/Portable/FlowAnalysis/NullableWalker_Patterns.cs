@@ -117,12 +117,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundBinaryPattern current = node;
             do
             {
-                TakeIncrementalSnapshot(current);
                 stack.Push(current);
                 current = current.Left as BoundBinaryPattern;
             } while (current != null);
 
             current = stack.Pop();
+            // We don't need to snapshot on the way down because the left spine of the tree will always have the same span start, and each
+            // call to TakeIncrementalSnapshot would overwrite the previous one with the new state. This can be a _significant_ performance
+            // improvement for deeply nested binary patterns; over 10x faster in some pathological cases.
+            TakeIncrementalSnapshot(current);
             Debug.Assert(current.Left is not BoundBinaryPattern);
             Visit(current.Left);
 
