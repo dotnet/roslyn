@@ -1039,7 +1039,7 @@
       </trans-unit>
       <trans-unit id="Prefer_System_Threading_Lock">
         <source>Prefer 'System.Threading.Lock'</source>
-        <target state="new">Prefer 'System.Threading.Lock'</target>
+        <target state="translated">'System.Threading.Lock' 선호</target>
         <note>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Prefer_Utf8_string_literals">

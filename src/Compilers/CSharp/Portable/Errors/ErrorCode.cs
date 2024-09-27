@@ -2336,13 +2336,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_PartialPropertySignatureDifference = 9256,
         ERR_PartialPropertyRequiredDifference = 9257,
 
-        INF_IdentifierConflictWithContextualKeyword = 9258,
+        WRN_FieldIsAmbiguous = 9258,
 
         ERR_InlineArrayAttributeOnRecord = 9259,
         ERR_FeatureNotAvailableInVersion13 = 9260,
 
         ERR_CannotApplyOverloadResolutionPriorityToOverride = 9261,
         ERR_CannotApplyOverloadResolutionPriorityToMember = 9262,
+        ERR_PartialPropertyDuplicateInitializer = 9263,
+
+        WRN_UninitializedNonNullableBackingField = 9264,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

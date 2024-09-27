@@ -1192,7 +1192,7 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       </trans-unit>
       <trans-unit id="NET_Code_Actions">
         <source>.NET Code Actions</source>
-        <target state="new">.NET Code Actions</target>
+        <target state="translated">Akcje kodu platformy .NET</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_expected">
@@ -2632,7 +2632,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="Symbol_search">
         <source>Symbol search</source>
-        <target state="new">Symbol search</target>
+        <target state="translated">Wyszukiwanie symboli</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbols">
@@ -2922,7 +2922,7 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application">
         <source>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</source>
-        <target state="new">Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</target>
+        <target state="translated">Aktualizacja typu {0} (z „{1}” na „{2}”) dotycząca aktywnej instrukcji wymaga ponownego uruchomienia aplikacji.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">

@@ -354,7 +354,7 @@ class A {
         await InsertTextAsync(testLspServer, document, buffer.CurrentSnapshot.Length, "}");
 
         results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics, results.Single().ResultId);
-        Assert.Empty(results[0].Diagnostics);
+        AssertEx.Empty(results[0].Diagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -470,11 +470,11 @@ class B {";
         testLspServer.TestWorkspace.SetDocumentContext(csproj1Document.Id);
         results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, csproj1Document.GetURI(), useVSDiagnostics);
         Assert.Equal(2, results.Single().Diagnostics!.Length);
-        Assert.All(results.Single().Diagnostics, d => Assert.Equal("CS1513", d.Code));
+        AssertEx.All(results.Single().Diagnostics, d => Assert.Equal("CS1513", d.Code));
 
         if (useVSDiagnostics)
         {
-            Assert.All(results.Single().Diagnostics, d => Assert.Equal("CSProj1", ((VSDiagnostic)d).Projects.Single().ProjectName));
+            AssertEx.All(results.Single().Diagnostics, d => Assert.Equal("CSProj1", ((VSDiagnostic)d).Projects.Single().ProjectName));
         }
     }
 
@@ -565,7 +565,7 @@ class B {";
         var originalResultId = results.Single().ResultId;
         results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, csproj1Document.GetURI(), useVSDiagnostics, originalResultId);
         Assert.Single(results);
-        Assert.Empty(results.Single().Diagnostics);
+        AssertEx.Empty(results.Single().Diagnostics);
         Assert.NotEqual(originalResultId, results.Single().ResultId);
     }
 
@@ -687,7 +687,7 @@ class B {";
         var results = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI(), useVSDiagnostics);
 
-        var diagnostic = Assert.Single(results.Single().Diagnostics);
+        var diagnostic = AssertEx.Single(results.Single().Diagnostics);
         Assert.Equal(DiagnosticProducingGenerator.Descriptor.Id, diagnostic.Code);
     }
 
@@ -751,7 +751,7 @@ class A
         var results = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI(), useVSDiagnostics);
 
-        Assert.All(results.Single().Diagnostics, d => Assert.False(d.Tags!.Contains(DiagnosticTag.Unnecessary)));
+        AssertEx.All(results.Single().Diagnostics, d => Assert.False(d.Tags!.Contains(DiagnosticTag.Unnecessary)));
     }
 
     [Theory, CombinatorialData]
@@ -844,7 +844,7 @@ class C
         var results = await RunGetDocumentPullDiagnosticsAsync(
             testLspServer, document.GetURI(), useVSDiagnostics);
 
-        Assert.Empty(results.Single().Diagnostics);
+        AssertEx.Empty(results.Single().Diagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -926,8 +926,8 @@ class C
 
         Assert.Equal(3, results.Length);
         Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
-        Assert.Empty(results[1].Diagnostics);
-        Assert.Empty(results[2].Diagnostics);
+        AssertEx.Empty(results[1].Diagnostics);
+        AssertEx.Empty(results[2].Diagnostics);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65967")]
@@ -947,9 +947,9 @@ class C
         Assert.Equal(3, results.Length);
         Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
         // this should be considered a build-error, since it was produced by the last code-analysis run.
-        Assert.Contains(VSDiagnosticTags.BuildError, results[0].Diagnostics.Single().Tags);
-        Assert.Empty(results[1].Diagnostics);
-        Assert.Empty(results[2].Diagnostics);
+        Assert.Contains(VSDiagnosticTags.BuildError, results[0].Diagnostics.Single().Tags!);
+        AssertEx.Empty(results[1].Diagnostics);
+        AssertEx.Empty(results[2].Diagnostics);
 
         // Now fix the compiler error, but don't re-execute code analysis.
         // Verify that we still get the workspace diagnostics from the prior snapshot on which code analysis was executed.
@@ -962,7 +962,7 @@ class C
 
         Assert.Equal(results[0].Diagnostics, results2[0].Diagnostics);
         // this should be considered a build-error, since it was produced by the last code-analysis run.
-        Assert.Contains(VSDiagnosticTags.BuildError, results2[0].Diagnostics.Single().Tags);
+        Assert.Contains(VSDiagnosticTags.BuildError, results2[0].Diagnostics.Single().Tags!);
         Assert.Equal(results[1].Diagnostics, results2[1].Diagnostics);
         Assert.Equal(results[2].Diagnostics, results2[2].Diagnostics);
 
@@ -972,9 +972,9 @@ class C
         var results3 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results2));
 
         Assert.Equal(results.Length, results3.Length);
-        Assert.Empty(results3[0].Diagnostics);
-        Assert.Empty(results3[1].Diagnostics);
-        Assert.Empty(results3[2].Diagnostics);
+        AssertEx.Empty(results3[0].Diagnostics);
+        AssertEx.Empty(results3[1].Diagnostics);
+        AssertEx.Empty(results3[2].Diagnostics);
     }
 
     [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/65967")]
@@ -995,9 +995,9 @@ class C
         Assert.Equal(3, results.Length);
         Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
         // this should *not* be considered a build-error, since it was produced by the live workspace results.
-        Assert.DoesNotContain(VSDiagnosticTags.BuildError, results[0].Diagnostics.Single().Tags);
-        Assert.Empty(results[1].Diagnostics);
-        Assert.Empty(results[2].Diagnostics);
+        Assert.DoesNotContain(VSDiagnosticTags.BuildError, results[0].Diagnostics.Single().Tags!);
+        AssertEx.Empty(results[1].Diagnostics);
+        AssertEx.Empty(results[2].Diagnostics);
 
         // Now fix the compiler error, but don't rerun code analysis.
         // Verify that we get up-to-date workspace diagnostics, i.e. no compiler errors, from the current snapshot because FSA is enabled.
@@ -1009,9 +1009,9 @@ class C
         Assert.Equal(results.Length, results2.Length);
 
         Assert.Equal(results.Length, results2.Length);
-        Assert.Empty(results2[0].Diagnostics);
-        Assert.Empty(results2[1].Diagnostics);
-        Assert.Empty(results2[2].Diagnostics);
+        AssertEx.Empty(results2[0].Diagnostics);
+        AssertEx.Empty(results2[1].Diagnostics);
+        AssertEx.Empty(results2[2].Diagnostics);
 
         // Now rerun code analysis and verify we still get up-to-date workspace diagnostics.
         await testLspServer.RunCodeAnalysisAsync(projectId);
@@ -1043,7 +1043,7 @@ class C
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
         Assert.Equal(2, results.Length);
-        Assert.Empty(results[0].Diagnostics);
+        AssertEx.Empty(results[0].Diagnostics);
         Assert.True(results[1].Diagnostics.Single().Message.Contains("Source generator failed"));
     }
 
@@ -1166,6 +1166,32 @@ class A {
     }
 
     [Theory, CombinatorialData]
+    public async Task EditAndContinue_NonHostWorkspace(bool mutatingLspWorkspace)
+    {
+        var xmlWorkspace = """
+            <Workspace>
+                <Project Language='C#' CommonReferences='true' AssemblyName='Submission' Name='Submission1'>
+                    <Document FilePath='C:\Submission#1.cs'>1+1</Document>
+                </Project>
+            </Workspace>
+            """;
+
+        var options = GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, compilerDiagnosticsScope: null, useVSDiagnostics: false);
+        await using var testLspServer = await CreateXmlTestLspServerAsync(xmlWorkspace, mutatingLspWorkspace, WorkspaceKind.Interactive, options);
+
+        var document = testLspServer.TestWorkspace.CurrentSolution.Projects.Single().Documents.Single();
+        await OpenDocumentAsync(testLspServer, document);
+
+        var encSessionState = testLspServer.TestWorkspace.GetService<EditAndContinueSessionState>();
+
+        // active session, but should get no EnC diagnostics for Interactive workspace
+        encSessionState.IsSessionActive = true;
+
+        var results = await RunGetDocumentPullDiagnosticsAsync(testLspServer, document.GetURI(), useVSDiagnostics: false, category: PullDiagnosticCategories.EditAndContinue);
+        AssertEx.Empty(results.Single().Diagnostics);
+    }
+
+    [Theory, CombinatorialData]
     public async Task EditAndContinue_NoActiveSession(bool mutatingLspWorkspace)
     {
         var markup1 = "class C {}";
@@ -1173,8 +1199,6 @@ class A {
         var options = GetInitializationOptions(BackgroundAnalysisScope.OpenFiles, compilerDiagnosticsScope: null, useVSDiagnostics: false);
 
         await using var testLspServer = await CreateTestLspServerAsync([markup1], LanguageNames.CSharp, mutatingLspWorkspace, options);
-
-        var encSessionState = testLspServer.TestWorkspace.GetService<EditAndContinueSessionState>();
 
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics: false, includeTaskListItems: false, category: PullDiagnosticCategories.EditAndContinue);
         Assert.Empty(results);
@@ -1317,7 +1341,7 @@ class A {
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
 
         Assert.Equal(DiagnosticProducingGenerator.Descriptor.Id, results[0].Diagnostics.Single().Code);
-        Assert.Empty(results[1].Diagnostics);
+        AssertEx.Empty(results[1].Diagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -1383,9 +1407,9 @@ class A {
 
         Assert.Equal(3, results.Length);
         // Since we sorted above by URI the first result is the project.
-        Assert.Empty(results[0].Diagnostics);
+        AssertEx.Empty(results[0].Diagnostics);
         Assert.Equal("CS1513", results[1].Diagnostics.Single().Code);
-        Assert.Empty(results[2].Diagnostics);
+        AssertEx.Empty(results[2].Diagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -1401,8 +1425,8 @@ class A {
 
         Assert.Equal(3, results.Length);
         Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
-        Assert.Empty(results[1].Diagnostics);
-        Assert.Empty(results[2].Diagnostics);
+        AssertEx.Empty(results[1].Diagnostics);
+        AssertEx.Empty(results[2].Diagnostics);
 
         testLspServer.TestWorkspace.OnDocumentRemoved(testLspServer.TestWorkspace.Documents.First().Id);
 
@@ -1415,9 +1439,9 @@ class A {
         Assert.Null(results2[0].ResultId);
 
         // Second and third doc should be changed as the project has changed.
-        Assert.Empty(results2[1].Diagnostics);
+        AssertEx.Empty(results2[1].Diagnostics);
         Assert.NotEqual(results[1].ResultId, results2[1].ResultId);
-        Assert.Empty(results2[2].Diagnostics);
+        AssertEx.Empty(results2[2].Diagnostics);
         Assert.NotEqual(results[2].ResultId, results2[2].ResultId);
     }
 
@@ -1434,8 +1458,8 @@ class A {
 
         Assert.Equal(3, results.Length);
         Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
-        Assert.Empty(results[1].Diagnostics);
-        Assert.Empty(results[2].Diagnostics);
+        AssertEx.Empty(results[1].Diagnostics);
+        AssertEx.Empty(results[2].Diagnostics);
 
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
 
@@ -1456,8 +1480,8 @@ class A {
 
         Assert.Equal(3, results.Length);
         Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
-        Assert.Empty(results[1].Diagnostics);
-        Assert.Empty(results[2].Diagnostics);
+        AssertEx.Empty(results[1].Diagnostics);
+        AssertEx.Empty(results[2].Diagnostics);
 
         var buffer = testLspServer.TestWorkspace.Documents.First().GetTextBuffer();
         buffer.Insert(buffer.CurrentSnapshot.Length, "}");
@@ -1465,11 +1489,11 @@ class A {
         var results2 = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics, previousResults: CreateDiagnosticParamsFromPreviousReports(results));
 
         Assert.Equal(3, results2.Length);
-        Assert.Empty(results2[0].Diagnostics);
+        AssertEx.Empty(results2[0].Diagnostics);
         // Project has changed, so we re-computed diagnostics as changes in the first file
         // may have changed results in the second.
-        Assert.Empty(results2[1].Diagnostics);
-        Assert.Empty(results2[2].Diagnostics);
+        AssertEx.Empty(results2[1].Diagnostics);
+        AssertEx.Empty(results2[2].Diagnostics);
 
         Assert.NotEqual(results[0].ResultId, results2[0].ResultId);
         Assert.NotEqual(results[1].ResultId, results2[1].ResultId);
@@ -1491,8 +1515,8 @@ class A {
         Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
         Assert.Equal(new Position { Line = 0, Character = 9 }, results[0].Diagnostics.Single().Range.Start);
 
-        Assert.Empty(results[1].Diagnostics);
-        Assert.Empty(results[2].Diagnostics);
+        AssertEx.Empty(results[1].Diagnostics);
+        AssertEx.Empty(results[2].Diagnostics);
 
         var buffer = testLspServer.TestWorkspace.Documents.First().GetTextBuffer();
         buffer.Insert(0, " ");
@@ -1510,9 +1534,9 @@ class A {
         Assert.Equal("CS1513", results2[0].Diagnostics.Single().Code);
         Assert.Equal(new Position { Line = 0, Character = 10 }, results2[0].Diagnostics.Single().Range.Start);
 
-        Assert.Empty(results2[1].Diagnostics);
+        AssertEx.Empty(results2[1].Diagnostics);
         Assert.NotEqual(results[1].ResultId, results2[1].ResultId);
-        Assert.Empty(results2[2].Diagnostics);
+        AssertEx.Empty(results2[2].Diagnostics);
         Assert.NotEqual(results[2].ResultId, results2[2].ResultId);
     }
 
@@ -1551,8 +1575,8 @@ class A {";
         Assert.Equal(ProtocolConversions.CreateAbsoluteUri(@"C:\test1.cs"), results[0].TextDocument!.Uri);
         Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
         Assert.Equal(1, results[0].Diagnostics.Single().Range.Start.Line);
-        Assert.Empty(results[1].Diagnostics);
-        Assert.Empty(results[2].Diagnostics);
+        AssertEx.Empty(results[1].Diagnostics);
+        AssertEx.Empty(results[2].Diagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -1604,11 +1628,11 @@ class A {";
         Assert.Equal(4, results.Length);
 
         // Verify diagnostics for A.cs are updated as the type B now exists.
-        Assert.Empty(results[0].Diagnostics);
+        AssertEx.Empty(results[0].Diagnostics);
         Assert.NotEqual(previousResultIds[0].resultId, results[0].ResultId);
 
         // Verify diagnostics for B.cs are updated as the class definition is now correct.
-        Assert.Empty(results[2].Diagnostics);
+        AssertEx.Empty(results[2].Diagnostics);
         Assert.NotEqual(previousResultIds[2].resultId, results[2].ResultId);
     }
 
@@ -1659,12 +1683,12 @@ class A {";
         var results = await RunGetWorkspacePullDiagnosticsAsync(testLspServer, useVSDiagnostics);
         AssertEx.NotNull(results);
         Assert.Equal(6, results.Length);
-        Assert.Empty(results[0].Diagnostics);
-        Assert.Empty(results[1].Diagnostics);
-        Assert.Empty(results[2].Diagnostics);
-        Assert.Empty(results[3].Diagnostics);
+        AssertEx.Empty(results[0].Diagnostics);
+        AssertEx.Empty(results[1].Diagnostics);
+        AssertEx.Empty(results[2].Diagnostics);
+        AssertEx.Empty(results[3].Diagnostics);
         Assert.Equal("CS1001", results[4].Diagnostics.Single().Code);
-        Assert.Empty(results[5].Diagnostics);
+        AssertEx.Empty(results[5].Diagnostics);
 
         // Insert C into C.cs via the workspace.
         var caretLocation = testLspServer.GetLocations("caret").First().Range;
@@ -1680,19 +1704,19 @@ class A {";
 
         // Verify that new diagnostics are returned for all files (even though the diagnostics for the first two files are the same)
         // since we re-calculate when transitive project dependencies change.
-        Assert.Empty(results[0].Diagnostics);
+        AssertEx.Empty(results[0].Diagnostics);
         Assert.NotEqual(previousResultIds[0].resultId, results[0].ResultId);
-        Assert.Empty(results[1].Diagnostics);
+        AssertEx.Empty(results[1].Diagnostics);
         Assert.NotEqual(previousResultIds[1].resultId, results[1].ResultId);
 
-        Assert.Empty(results[2].Diagnostics);
+        AssertEx.Empty(results[2].Diagnostics);
         Assert.NotEqual(previousResultIds[2].resultId, results[2].ResultId);
-        Assert.Empty(results[3].Diagnostics);
+        AssertEx.Empty(results[3].Diagnostics);
         Assert.NotEqual(previousResultIds[3].resultId, results[3].ResultId);
 
-        Assert.Empty(results[4].Diagnostics);
+        AssertEx.Empty(results[4].Diagnostics);
         Assert.NotEqual(previousResultIds[4].resultId, results[4].ResultId);
-        Assert.Empty(results[5].Diagnostics);
+        AssertEx.Empty(results[5].Diagnostics);
         Assert.NotEqual(previousResultIds[5].resultId, results[5].ResultId);
     }
 
@@ -1729,9 +1753,9 @@ class A {";
         AssertEx.NotNull(results);
         Assert.Equal(4, results.Length);
         Assert.Equal("CS0246", results[0].Diagnostics.Single().Code);
-        Assert.Empty(results[1].Diagnostics);
+        AssertEx.Empty(results[1].Diagnostics);
         Assert.Equal("CS1001", results[2].Diagnostics.Single().Code);
-        Assert.Empty(results[3].Diagnostics);
+        AssertEx.Empty(results[3].Diagnostics);
 
         // Insert B into B.cs via the workspace.
         var caretLocation = testLspServer.GetLocations("caret").First().Range;
@@ -1747,9 +1771,9 @@ class A {";
 
         // Note: tehre will be no results for A.cs as it is unchanged and does not reference CSProj2.
         // Verify that the diagnostics result for B.cs reflects the change we made to it.
-        Assert.Empty(results[0].Diagnostics);
+        AssertEx.Empty(results[0].Diagnostics);
         Assert.NotEqual(previousResultIds[2].resultId, results[0].ResultId);
-        Assert.Empty(results[1].Diagnostics);
+        AssertEx.Empty(results[1].Diagnostics);
         Assert.NotEqual(previousResultIds[3].resultId, results[1].ResultId);
     }
 
@@ -2060,7 +2084,7 @@ class A {";
 
         Assert.Equal(2, results.Length);
         Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
-        Assert.Empty(results[1].Diagnostics);
+        AssertEx.Empty(results[1].Diagnostics);
 
         var options = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
         options.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, LanguageNames.CSharp, BackgroundAnalysisScope.OpenFiles);
@@ -2081,8 +2105,8 @@ class A {";
         }
         else
         {
-            Assert.Empty(results[0].Diagnostics);
-            Assert.Empty(results[1].Diagnostics);
+            AssertEx.Empty(results[0].Diagnostics);
+            AssertEx.Empty(results[1].Diagnostics);
         }
     }
 
@@ -2106,7 +2130,7 @@ class A {";
 
         Assert.Equal(2, results.Length);
         Assert.Equal("CS1513", results[0].Diagnostics.Single().Code);
-        Assert.Empty(results[1].Diagnostics);
+        AssertEx.Empty(results[1].Diagnostics);
     }
 
     #endregion

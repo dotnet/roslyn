@@ -813,10 +813,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we are not generating any observable diagnostics here so it is ok to short-circuit on global errors.
             if (!_globalHasErrors)
             {
+                var interfaces = sourceTypeSymbol.GetInterfacesToEmit();
+
                 var discardedDiagnostics = BindingDiagnosticBag.GetInstance(_diagnostics);
                 foreach (var synthesizedExplicitImpl in sourceTypeSymbol.GetSynthesizedExplicitImplementations(_cancellationToken).ForwardingMethods)
                 {
                     Debug.Assert(synthesizedExplicitImpl.SynthesizesLoweredBoundBody);
+
+                    // Avoid emitting duplicate forwarding methods (e.g., when the class implements the same interface twice with different nullability).
+                    if (!interfaces.Contains(synthesizedExplicitImpl.ExplicitInterfaceImplementations[0].ContainingType,
+                        Symbols.SymbolEqualityComparer.ConsiderEverything))
+                    {
+                        continue;
+                    }
+
                     synthesizedExplicitImpl.GenerateMethodBody(compilationState, discardedDiagnostics);
                     Debug.Assert(!discardedDiagnostics.HasAnyErrors());
                     discardedDiagnostics.DiagnosticBag.Clear();
@@ -1823,6 +1833,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
                     Debug.Assert(IsEmptyRewritePossible(methodBody));
+                    Debug.Assert(WasPropertyBackingFieldAccessChecked.FindUncheckedAccess(methodBody) is null);
 #endif
 
                     RefSafetyAnalysis.Analyze(compilation, method, methodBody, diagnostics);
@@ -1874,8 +1885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var property = sourceMethod.AssociatedSymbol as SourcePropertySymbolBase;
-                    if (property is not null && property.IsAutoPropertyWithGetAccessor)
+                    if (sourceMethod is SourcePropertyAccessorSymbol { IsAutoPropertyAccessor: true })
                     {
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
                     }
@@ -2010,6 +2020,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // Logic in this lambda is based on Binder.IdentifierUsedAsValueFinder.CheckIdentifiersInNode.childrenNeedChecking.
+            // It can be more permissive (i.e. allow us to dive into more nodes), but should not be more restrictive
             static void addIdentifiers(CSharpSyntaxNode? node, ConcurrentDictionary<IdentifierNameSyntax, int> identifierMap)
             {
                 if (node is null)
@@ -2097,6 +2109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     inMethodBinder.IdentifierMap = null;
 
+                    // In presence of errors, we're not guaranteed to have bound all identifiers, so we don't care about correctness of our prediction
                     if (!diagnostics.HasAnyResolvedErrors())
                     {
                         foreach (var (id, flags) in identifierMap)
@@ -2130,6 +2143,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     }
 
                                     if (UnboundLambdaFinder.FoundInUnboundLambda(methodBody, id))
+                                    {
+                                        continue;
+                                    }
+
+                                    // If an attribute is misplaced (invalid target), it is expected that identifiers within were not bound.
+                                    // In that case, we emit a warning and skip binding the attribute.
+                                    if (id.Ancestors(ascendOutOfTrivia: false).OfType<AttributeListSyntax>().Any() &&
+                                        diagnostics.DiagnosticBag!.AsEnumerable().Any(d => d.Code == (int)ErrorCode.WRN_AttributeLocationOnBadDeclaration))
                                     {
                                         continue;
                                     }
@@ -2204,6 +2225,94 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return base.Visit(node);
+            }
+        }
+
+        private sealed class WasPropertyBackingFieldAccessChecked : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            public static BoundPropertyAccess? FindUncheckedAccess(BoundNode node)
+            {
+                var walker = new WasPropertyBackingFieldAccessChecked();
+                walker.Visit(node);
+                return walker._found;
+            }
+
+            private BoundPropertyAccess? _found;
+            private bool _suppressChecking;
+
+            private WasPropertyBackingFieldAccessChecked()
+            {
+            }
+
+            public override BoundNode? Visit(BoundNode? node)
+            {
+                if (_found is { })
+                {
+                    return null;
+                }
+
+                return base.Visit(node);
+            }
+
+            public override BoundNode? VisitPropertyAccess(BoundPropertyAccess node)
+            {
+                if (!_suppressChecking &&
+                    !node.WasPropertyBackingFieldAccessChecked)
+                {
+                    _found = node;
+                }
+
+                return base.VisitPropertyAccess(node);
+            }
+
+            public override BoundNode? VisitRangeVariable(BoundRangeVariable node)
+            {
+                using (new ChangeSuppression(this, suppressChecking: true))
+                {
+                    return base.VisitRangeVariable(node);
+                }
+            }
+
+            public override BoundNode? VisitAssignmentOperator(BoundAssignmentOperator node)
+            {
+                using (new ChangeSuppression(this, suppressChecking: false))
+                {
+                    return base.VisitAssignmentOperator(node);
+                }
+            }
+
+            public override BoundNode? VisitNameOfOperator(BoundNameOfOperator node)
+            {
+                using (new ChangeSuppression(this, suppressChecking: true))
+                {
+                    return base.VisitNameOfOperator(node);
+                }
+            }
+
+            public override BoundNode? VisitBadExpression(BoundBadExpression node)
+            {
+                using (new ChangeSuppression(this, suppressChecking: true))
+                {
+                    return base.VisitBadExpression(node);
+                }
+            }
+
+            private struct ChangeSuppression : IDisposable
+            {
+                private readonly WasPropertyBackingFieldAccessChecked _walker;
+                private readonly bool _previousValue;
+
+                internal ChangeSuppression(WasPropertyBackingFieldAccessChecked walker, bool suppressChecking)
+                {
+                    _walker = walker;
+                    _previousValue = walker._suppressChecking;
+                    walker._suppressChecking = suppressChecking;
+                }
+
+                public void Dispose()
+                {
+                    _walker._suppressChecking = _previousValue;
+                }
             }
         }
 #endif

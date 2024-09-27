@@ -113,13 +113,26 @@ namespace Roslyn.Test.Utilities
     /// </summary>
     public static class NetFramework
     {
+        private static ImmutableArray<MetadataReference> s_references;
+
         /// <summary>
         /// This is the full set of references provided by default on the .NET Framework TFM
         /// </summary>
         /// <remarks>
         /// Need to special case tuples until we move to net472
         /// </remarks>
-        public static ImmutableArray<MetadataReference> References { get; } = [.. Net461.References.All, Net461.ExtraReferences.SystemValueTuple];
+        public static ImmutableArray<MetadataReference> References
+        {
+            get
+            {
+                if (s_references.IsDefault)
+                {
+                    s_references = [.. Net461.References.All, Net461.ExtraReferences.SystemValueTuple];
+                }
+
+                return s_references;
+            }
+        }
 
         /// <summary>
         /// This is a limited set of references on this .NET Framework TFM. This should be avoided in new code 

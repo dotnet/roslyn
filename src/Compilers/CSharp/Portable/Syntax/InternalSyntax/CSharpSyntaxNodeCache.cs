@@ -39,6 +39,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 flags |= GreenNode.NodeFlags.FactoryContextIsInQuery;
             }
 
+            if (context.IsInFieldKeywordContext)
+            {
+                flags |= GreenNode.NodeFlags.FactoryContextIsInFieldKeywordContext;
+            }
+
             return flags;
         }
     }

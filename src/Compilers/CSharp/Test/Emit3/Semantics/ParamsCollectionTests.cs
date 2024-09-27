@@ -5108,8 +5108,8 @@ class C1 : IEnumerable<char>
 
         [Theory]
         [InlineData("System.ReadOnlySpan<int>", "System.Span<int>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Span<object>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Span<int?>", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<int>", "System.Span<object>", null)]
+        [InlineData("System.ReadOnlySpan<int>", "System.Span<int?>", null)]
         [InlineData("System.ReadOnlySpan<object>", "System.Span<int>", null)] // cannot convert object to int
         [InlineData("System.ReadOnlySpan<int?>", "System.Span<int>", null)] // cannot convert int? to int
         [InlineData("System.ReadOnlySpan<int>", "System.ReadOnlySpan<object>", null)]
@@ -5119,24 +5119,24 @@ class C1 : IEnumerable<char>
         [InlineData("System.Span<int>", "System.Span<int?>", null)]
         [InlineData("System.Span<object>", "System.Span<int?>", null)]
         [InlineData("System.ReadOnlySpan<object>", "System.ReadOnlySpan<long>", null)]
-        [InlineData("System.Span<int>", "int?[]", "System.Span<System.Int32>")]
-        [InlineData("System.Span<int>", "System.Collections.Generic.IEnumerable<int?>", "System.Span<System.Int32>")]
-        [InlineData("System.Span<int>", "System.Collections.Generic.IReadOnlyCollection<int?>", "System.Span<System.Int32>")]
-        [InlineData("System.Span<int>", "System.Collections.Generic.IReadOnlyList<int?>", "System.Span<System.Int32>")]
-        [InlineData("System.Span<int>", "System.Collections.Generic.ICollection<int?>", "System.Span<System.Int32>")]
-        [InlineData("System.Span<int>", "System.Collections.Generic.IList<int?>", "System.Span<System.Int32>")]
+        [InlineData("System.Span<int>", "int?[]", null)]
+        [InlineData("System.Span<int>", "System.Collections.Generic.IEnumerable<int?>", null)]
+        [InlineData("System.Span<int>", "System.Collections.Generic.IReadOnlyCollection<int?>", null)]
+        [InlineData("System.Span<int>", "System.Collections.Generic.IReadOnlyList<int?>", null)]
+        [InlineData("System.Span<int>", "System.Collections.Generic.ICollection<int?>", null)]
+        [InlineData("System.Span<int>", "System.Collections.Generic.IList<int?>", null)]
         [InlineData("System.Span<int?>", "int[]", null)] // cannot convert int? to int
         [InlineData("System.Span<int?>", "System.Collections.Generic.IEnumerable<int>", null)] // cannot convert int? to int
         [InlineData("System.Span<int?>", "System.Collections.Generic.IReadOnlyCollection<int>", null)] // cannot convert int? to int
         [InlineData("System.Span<int?>", "System.Collections.Generic.IReadOnlyList<int>", null)] // cannot convert int? to int
         [InlineData("System.Span<int?>", "System.Collections.Generic.ICollection<int>", null)] // cannot convert int? to int
         [InlineData("System.Span<int?>", "System.Collections.Generic.IList<int>", null)] // cannot convert int? to int
-        [InlineData("System.ReadOnlySpan<int>", "object[]", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IEnumerable<object>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IReadOnlyCollection<object>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IReadOnlyList<object>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.ICollection<object>", "System.ReadOnlySpan<System.Int32>")]
-        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IList<object>", "System.ReadOnlySpan<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<int>", "object[]", null)]
+        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IEnumerable<object>", null)]
+        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IReadOnlyCollection<object>", null)]
+        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IReadOnlyList<object>", null)]
+        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.ICollection<object>", null)]
+        [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IList<object>", null)]
         [InlineData("System.ReadOnlySpan<object>", "int[]", null)] // cannot convert object to int
         [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IEnumerable<int>", null)] // cannot convert object to int
         [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IReadOnlyCollection<int>", null)] // cannot convert object to int
@@ -5146,6 +5146,16 @@ class C1 : IEnumerable<char>
         [InlineData("System.Collections.Generic.List<int>", "System.Collections.Generic.IEnumerable<int>", "System.Collections.Generic.List<System.Int32>")]
         [InlineData("int[]", "object[]", null)] // rule requires span
         [InlineData("int[]", "System.Collections.Generic.IReadOnlyList<object>", null)] // rule requires span
+        [InlineData("System.Collections.Generic.List<int>", "System.Collections.Generic.List<byte>", null)]
+        [InlineData("System.Collections.Generic.List<int?>", "System.Collections.Generic.List<long>", null)]
+        [InlineData("System.Collections.Generic.List<int?>", "System.Collections.Generic.List<ulong>", null)]
+        [InlineData("System.Collections.Generic.List<short>", "System.Collections.Generic.List<long>", null)]
+        [InlineData("System.Collections.Generic.IEnumerable<int>", "System.Collections.Generic.List<byte>", null)]
+        [InlineData("int[]", "System.Collections.Generic.List<byte>", null)]
+        [InlineData("System.Collections.Generic.HashSet<short>", "System.Span<long>", null)]
+        [InlineData("System.Collections.Generic.HashSet<short>", "System.ReadOnlySpan<long>", null)]
+        [InlineData("System.Collections.Generic.HashSet<long>", "System.Span<short>", null)]
+        [InlineData("System.Collections.Generic.HashSet<long>", "System.ReadOnlySpan<short>", null)]
         public void BetterConversionFromExpression_01B_Empty(string type1, string type2, string expectedType) // This is a clone of a unit-test from CollectionExpressionTests.cs
         {
             string source = $$"""
@@ -5198,24 +5208,14 @@ class C1 : IEnumerable<char>
         [InlineData("System.ReadOnlySpan<int>", "System.Span<int>", "System.ReadOnlySpan<System.Int32>")]
         [InlineData("System.ReadOnlySpan<int>", "System.Span<object>", "System.ReadOnlySpan<System.Int32>")]
         [InlineData("System.ReadOnlySpan<int>", "System.Span<int?>", "System.ReadOnlySpan<System.Int32>")]
-
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
-        [InlineData("System.ReadOnlySpan<object>", "System.Span<int>", "System.Span<System.Int32>")] // cannot convert object to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'int?' in params case
-        [InlineData("System.ReadOnlySpan<int?>", "System.Span<int>", "System.Span<System.Int32>")] // cannot convert int? to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
+        [InlineData("System.ReadOnlySpan<object>", "System.Span<int>", "System.Span<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<int?>", "System.Span<int>", "System.Span<System.Int32>")]
         [InlineData("System.ReadOnlySpan<int>", "System.ReadOnlySpan<object>", "System.ReadOnlySpan<System.Int32>")]
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'int?' in params case
         [InlineData("System.ReadOnlySpan<int>", "System.ReadOnlySpan<int?>", "System.ReadOnlySpan<System.Int32>")]
-        // Ambiguous for inline collection expression, but 'int?' is a better conversion target than 'object' in params case
         [InlineData("System.ReadOnlySpan<object>", "System.ReadOnlySpan<int?>", "System.ReadOnlySpan<System.Nullable<System.Int32>>")]
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
         [InlineData("System.Span<int>", "System.Span<object>", "System.Span<System.Int32>")]
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'int?' in params case
         [InlineData("System.Span<int>", "System.Span<int?>", "System.Span<System.Int32>")]
-        // Ambiguous for inline collection expression, but 'int?' is a better conversion target than 'object' in params case
         [InlineData("System.Span<object>", "System.Span<int?>", "System.Span<System.Nullable<System.Int32>>")]
-        // Ambiguous for inline collection expression, but 'long' is a better conversion target than 'object' in params case
         [InlineData("System.ReadOnlySpan<object>", "System.ReadOnlySpan<long>", "System.ReadOnlySpan<System.Int64>")]
 
         [InlineData("System.Span<int>", "int?[]", "System.Span<System.Int32>")]
@@ -5225,18 +5225,12 @@ class C1 : IEnumerable<char>
         [InlineData("System.Span<int>", "System.Collections.Generic.ICollection<int?>", "System.Span<System.Int32>")]
         [InlineData("System.Span<int>", "System.Collections.Generic.IList<int?>", "System.Span<System.Int32>")]
 
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'int?' in params case
         [InlineData("System.Span<int?>", "int[]", "System.Int32[]")] // cannot convert int? to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'int?' in params case
-        [InlineData("System.Span<int?>", "System.Collections.Generic.IEnumerable<int>", "System.Collections.Generic.IEnumerable<System.Int32>")] // cannot convert int? to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'int?' in params case
-        [InlineData("System.Span<int?>", "System.Collections.Generic.IReadOnlyCollection<int>", "System.Collections.Generic.IReadOnlyCollection<System.Int32>")] // cannot convert int? to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'int?' in params case
-        [InlineData("System.Span<int?>", "System.Collections.Generic.IReadOnlyList<int>", "System.Collections.Generic.IReadOnlyList<System.Int32>")] // cannot convert int? to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'int?' in params case
-        [InlineData("System.Span<int?>", "System.Collections.Generic.ICollection<int>", "System.Collections.Generic.ICollection<System.Int32>")] // cannot convert int? to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'int?' in params case
-        [InlineData("System.Span<int?>", "System.Collections.Generic.IList<int>", "System.Collections.Generic.IList<System.Int32>")] // cannot convert int? to int
+        [InlineData("System.Span<int?>", "System.Collections.Generic.IEnumerable<int>", "System.Collections.Generic.IEnumerable<System.Int32>")]
+        [InlineData("System.Span<int?>", "System.Collections.Generic.IReadOnlyCollection<int>", "System.Collections.Generic.IReadOnlyCollection<System.Int32>")]
+        [InlineData("System.Span<int?>", "System.Collections.Generic.IReadOnlyList<int>", "System.Collections.Generic.IReadOnlyList<System.Int32>")]
+        [InlineData("System.Span<int?>", "System.Collections.Generic.ICollection<int>", "System.Collections.Generic.ICollection<System.Int32>")]
+        [InlineData("System.Span<int?>", "System.Collections.Generic.IList<int>", "System.Collections.Generic.IList<System.Int32>")]
 
         [InlineData("System.ReadOnlySpan<int>", "object[]", "System.ReadOnlySpan<System.Int32>")]
         [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IEnumerable<object>", "System.ReadOnlySpan<System.Int32>")]
@@ -5245,25 +5239,28 @@ class C1 : IEnumerable<char>
         [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.ICollection<object>", "System.ReadOnlySpan<System.Int32>")]
         [InlineData("System.ReadOnlySpan<int>", "System.Collections.Generic.IList<object>", "System.ReadOnlySpan<System.Int32>")]
 
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
-        [InlineData("System.ReadOnlySpan<object>", "int[]", "System.Int32[]")] // cannot convert object to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
-        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IEnumerable<int>", "System.Collections.Generic.IEnumerable<System.Int32>")] // cannot convert object to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
-        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IReadOnlyCollection<int>", "System.Collections.Generic.IReadOnlyCollection<System.Int32>")] // cannot convert object to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
-        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IReadOnlyList<int>", "System.Collections.Generic.IReadOnlyList<System.Int32>")] // cannot convert object to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
-        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.ICollection<int>", "System.Collections.Generic.ICollection<System.Int32>")] // cannot convert object to int
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
-        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IList<int>", "System.Collections.Generic.IList<System.Int32>")] // cannot convert object to int
+        [InlineData("System.ReadOnlySpan<object>", "int[]", "System.Int32[]")]
+        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IEnumerable<int>", "System.Collections.Generic.IEnumerable<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IReadOnlyCollection<int>", "System.Collections.Generic.IReadOnlyCollection<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IReadOnlyList<int>", "System.Collections.Generic.IReadOnlyList<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.ICollection<int>", "System.Collections.Generic.ICollection<System.Int32>")]
+        [InlineData("System.ReadOnlySpan<object>", "System.Collections.Generic.IList<int>", "System.Collections.Generic.IList<System.Int32>")]
 
         [InlineData("System.Collections.Generic.List<int>", "System.Collections.Generic.IEnumerable<int>", "System.Collections.Generic.List<System.Int32>")]
 
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
-        [InlineData("int[]", "object[]", "System.Int32[]")] // rule requires span
-        // Ambiguous for inline collection expression, but 'int' is a better conversion target than 'object' in params case
-        [InlineData("int[]", "System.Collections.Generic.IReadOnlyList<object>", "System.Int32[]")] // rule requires span
+        [InlineData("int[]", "object[]", "System.Int32[]")]
+        [InlineData("int[]", "System.Collections.Generic.IReadOnlyList<object>", "System.Int32[]")]
+
+        [InlineData("System.Collections.Generic.List<int>", "System.Collections.Generic.List<byte>", "System.Collections.Generic.List<System.Int32>")]
+        [InlineData("System.Collections.Generic.List<int?>", "System.Collections.Generic.List<long>", null)]
+        [InlineData("System.Collections.Generic.List<int?>", "System.Collections.Generic.List<ulong>", "System.Collections.Generic.List<System.Nullable<System.Int32>>")]
+        [InlineData("System.Collections.Generic.List<short>", "System.Collections.Generic.List<long>", "System.Collections.Generic.List<System.Int16>")]
+        [InlineData("System.Collections.Generic.IEnumerable<int>", "System.Collections.Generic.List<byte>", "System.Collections.Generic.IEnumerable<System.Int32>")]
+        [InlineData("int[]", "System.Collections.Generic.List<byte>", "System.Int32[]")]
+        [InlineData("System.Collections.Generic.HashSet<short>", "System.Span<long>", "System.Collections.Generic.HashSet<System.Int16>")]
+        [InlineData("System.Collections.Generic.HashSet<short>", "System.ReadOnlySpan<long>", "System.Collections.Generic.HashSet<System.Int16>")]
+        [InlineData("System.Collections.Generic.HashSet<long>", "System.Span<short>", "System.Span<System.Int16>")]
+        [InlineData("System.Collections.Generic.HashSet<long>", "System.ReadOnlySpan<short>", "System.ReadOnlySpan<System.Int16>")]
         public void BetterConversionFromExpression_01B_NotEmpty(string type1, string type2, string expectedType) // This is a clone of a unit-test from CollectionExpressionTests.cs
         {
             string source = $$"""
@@ -5307,6 +5304,104 @@ class C1 : IEnumerable<char>
 
             static string generateMethod(string methodName, string parameterType) =>
                 $"static Type {methodName}(params {parameterType} value) => typeof({parameterType});";
+
+            static string generateMethodSignature(string methodName, string parameterType) =>
+                $"Program.{methodName}(params {parameterType})";
+        }
+
+        [Theory, CombinatorialData]
+        public void BetterConversionFromExpression_01C(
+            [CombinatorialValues(
+                "System.ReadOnlySpan<string>",
+                "System.Span<string>",
+                "string[]",
+                "System.Collections.Generic.IEnumerable<string>",
+                "System.Collections.Generic.IReadOnlyList<string>",
+                "System.Collections.Generic.IReadOnlyCollection<string>",
+                "System.Collections.Generic.IList<string>",
+                "System.Collections.Generic.ICollection<string>"
+            )]
+            string stringType,
+            [CombinatorialValues(
+                "System.ReadOnlySpan<CustomHandler>",
+                "System.Span<CustomHandler>",
+                "CustomHandler[]",
+                "System.Collections.Generic.IEnumerable<CustomHandler>",
+                "System.Collections.Generic.IReadOnlyList<CustomHandler>",
+                "System.Collections.Generic.IReadOnlyCollection<CustomHandler>",
+                "System.Collections.Generic.IList<CustomHandler>",
+                "System.Collections.Generic.ICollection<CustomHandler>")]
+             string interpolatedType) // This is a clone of a unit-test from CollectionExpressionTests.cs
+        {
+            var testMethods = $$"""
+                partial class Program
+                {
+                    {{generateMethod("F1", stringType)}}
+                    {{generateMethod("F1", interpolatedType)}}
+                    {{generateMethod("F2", interpolatedType)}}
+                    {{generateMethod("F2", stringType)}}
+                }
+                """;
+
+            var customHandler = GetInterpolatedStringCustomHandlerType("CustomHandler", "class", useBoolReturns: false, includeOneTimeHelpers: false);
+
+            string source1 = $$"""
+                var a = F1();
+                var b = F2();
+                var c = F1($"{1}", $"2", $"{3}");
+                var d = F2($"{1}", $"2", $"{3}");
+                """;
+            var comp = CreateCompilation(
+                [source1, testMethods, customHandler, CollectionExpressionTests.s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                options: TestOptions.ReleaseExe);
+
+            string f1InterpolatedSig = generateMethodSignature("F1", interpolatedType);
+            string f1StringSig = generateMethodSignature("F1", stringType);
+            string f2InterpolatedSig = generateMethodSignature("F2", interpolatedType);
+            string f2StringSig = generateMethodSignature("F2", stringType);
+            comp.VerifyDiagnostics(
+                // (1,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(IReadOnlyList<string>)' and 'Program.F1(IReadOnlyCollection<CustomHandler>)'
+                // var a = F1();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments(f1StringSig, f1InterpolatedSig).WithLocation(1, 9),
+                // (2,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(IReadOnlyCollection<CustomHandler>)' and 'Program.F2(IReadOnlyList<string>)'
+                // var b = F2();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments(f2InterpolatedSig, f2StringSig).WithLocation(2, 9),
+                // (3,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(string[])' and 'Program.F1(CustomHandler[])'
+                // var c = F1($"{1}", $"2", $"{3}");
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments(f1StringSig, f1InterpolatedSig).WithLocation(3, 9),
+                // (4,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(CustomHandler[])' and 'Program.F2(string[])'
+                // var d = F2($"{1}", $"2", $"{3}");
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments(f2InterpolatedSig, f2StringSig).WithLocation(4, 9)
+            );
+
+            var source2 = $$"""
+                using System;
+                var c = F1($"{1}", $"{2}", $"{3}");
+                Console.WriteLine(c.GetTypeName());
+                var d = F2($"{1}", $"{2}", $"{3}");
+                Console.WriteLine(d.GetTypeName());
+                var e = F1([$"1", $"2", $"3"]);
+                Console.WriteLine(e.GetTypeName());
+                var f = F2([$"1", $"2", $"3"]);
+                Console.WriteLine(f.GetTypeName());
+                """;
+
+            comp = CreateCompilation(
+                [source2, testMethods, customHandler, CollectionExpressionTests.s_collectionExtensions],
+                targetFramework: TargetFramework.Net80,
+                options: TestOptions.ReleaseExe);
+
+            string outputStringType = stringType.Replace("string", "System.String");
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: ExpectedOutput($"""
+                {interpolatedType}
+                {interpolatedType}
+                {outputStringType}
+                {outputStringType}
+                """));
+
+            static string generateMethod(string methodName, string parameterType) =>
+                $"static System.Type {methodName}(params {parameterType} value) => typeof({parameterType});";
 
             static string generateMethodSignature(string methodName, string parameterType) =>
                 $"Program.{methodName}(params {parameterType})";
@@ -5451,25 +5546,11 @@ class C1 : IEnumerable<char>
                     }
                 }
                 """;
+
+            // Both calls are ambiguous for collection expressions due to different betterness among arguments.
             CreateCompilation(
                 new[] { source, CollectionExpressionTests.s_collectionExtensionsWithSpan },
                 targetFramework: TargetFramework.Net80).VerifyDiagnostics(
-                // Inline collection expression works in this case.
-                // For 'params' case it fails because:
-                //    - For the first argument, 'int[]' and 'Span<object>' -> neither is better
-                //    - For the second argument, 'int' and 'int' -> neither is better vs. 'int[]' and 'ReadOnlySpan<int>' -> ReadOnlySpan<int> for a collection expression 
-                // Parameters type sequences are different, tie-breaking rules do not apply.   
-
-                // 0.cs(10,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F1(int[], params int[])' and 'Program.F1(Span<object>, params ReadOnlySpan<int>)'
-                //         F1([1], 2);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "F1").WithArguments("Program.F1(int[], params int[])", "Program.F1(System.Span<object>, params System.ReadOnlySpan<int>)").WithLocation(10, 9),
-
-                // Inline collection expression works in this case.
-                // For 'params' case it fails because:
-                //    - For the first argument, 'object' and 'string' -> string
-                //    - For the second argument, 'string' and 'object' -> string (different direction) vs. 'string[]' and 'Span<object>' -> neither is better for a collection expression 
-                // Parameters type sequences are different, tie-breaking rules do not apply.   
-
                 // 0.cs(11,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(object, params string[])' and 'Program.F2(string, params Span<object>)'
                 //         F2("3", "4");
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(object, params string[])", "Program.F2(string, params System.Span<object>)").WithLocation(11, 9)
@@ -5640,6 +5721,95 @@ string
                 }
                 """;
             CompileAndVerify(source, expectedOutput: "string[]");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73857")]
+        public void BetterConversionFromExpression_08C() // This is a clone of a unit-test from CollectionExpressionTests.cs
+        {
+            string source = """
+                using System;
+                class Program
+                {
+                    static void F2(params ReadOnlySpan<string> value) { Console.WriteLine("ReadOnlySpan<string>"); }
+                    static void F2(params ReadOnlySpan<object> value) { Console.WriteLine("ReadOnlySpan<object>"); }
+                    static void Main()
+                    {
+                        F2("a", "b");
+                    }
+                }
+                """;
+            CompileAndVerify(source,
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: ExpectedOutput("ReadOnlySpan<string>"));
+        }
+
+        [Fact]
+        public void BetterConversionFromExpression_09() // This is a clone of a unit-test from CollectionExpressionTests.cs
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void F2(params List<int> value) { Console.WriteLine("List<int>"); }
+                    static void F2(params List<byte> value) { Console.WriteLine("List<byte>"); }
+                    static void Main()
+                    {
+                        F2(1, (byte)2);
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'Program.F2(List<int>)' and 'Program.F2(List<byte>)'
+                //         F2([1, (byte)2]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "F2").WithArguments("Program.F2(params System.Collections.Generic.List<int>)", "Program.F2(params System.Collections.Generic.List<byte>)").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void BetterConversionFromExpression_10() // This is a clone of a unit-test from CollectionExpressionTests.cs
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void F2(params List<int> value) { Console.WriteLine("List<int>"); }
+                    static void F2(params List<byte> value) { Console.WriteLine("List<byte>"); }
+                    static void Main()
+                    {
+                        F2((byte)1, (byte)2);
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: "List<byte>");
+        }
+
+        [Theory]
+        [InlineData("System.FormattableString")]
+        [InlineData("System.IFormattable")]
+        public void BetterConversionFromExpression_11(string formatType) // This is a clone of a unit-test from CollectionExpressionTests.cs
+        {
+            string source = $$"""
+                using System;
+                class Program
+                {
+                    static void F2(params ReadOnlySpan<string> value) { Console.WriteLine("ReadOnlySpan<string>"); }
+                    static void F2(params ReadOnlySpan<{{formatType}}> value) { Console.WriteLine("ReadOnlySpan<{{formatType}}>"); }
+                    static void Main()
+                    {
+                        F2($"{1}");
+                    }
+                }
+                """;
+
+            CompileAndVerify(source,
+                parseOptions: TestOptions.Regular13,
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: ExpectedOutput("ReadOnlySpan<string>"));
         }
 
         [Theory]
@@ -16358,6 +16528,537 @@ namespace OverloadResolutionRepro
                 // attribute is not embedded.
                 Assert.Empty(module.GlobalNamespace.GetMembers("System"));
             }
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73743")]
+        public void ParamsSpanInExpression_01()
+        {
+            string source = """
+class Program
+{
+    public static void Test()
+    {
+        System.Linq.Expressions.Expression<System.Action<string>> e = (s) => M(s, s, s);
+    }
+
+    static void M(params string[] p) {}
+    static void M(params System.Span<string> p) {}
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (5,78): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Span'.
+                //         System.Linq.Expressions.Expression<System.Action<string>> e = (s) => M(s, s, s);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "M(s, s, s)").WithArguments("Span").WithLocation(5, 78),
+                // (5,78): error CS9226: An expression tree may not contain an expanded form of non-array params collection parameter.
+                //         System.Linq.Expressions.Expression<System.Action<string>> e = (s) => M(s, s, s);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionExpressionTree, "M(s, s, s)").WithLocation(5, 78)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73743")]
+        public void ParamsSpanInExpression_02()
+        {
+            string source = """
+class Program
+{
+    public static void Test()
+    {
+        System.Linq.Expressions.Expression<System.Action<string>> e = (s) => M(s, s, s);
+    }
+
+    static void M(params System.Span<string> p) {}
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+            comp.VerifyEmitDiagnostics(
+                // (5,78): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Span'.
+                //         System.Linq.Expressions.Expression<System.Action<string>> e = (s) => M(s, s, s);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "M(s, s, s)").WithArguments("Span").WithLocation(5, 78),
+                // (5,78): error CS9226: An expression tree may not contain an expanded form of non-array params collection parameter.
+                //         System.Linq.Expressions.Expression<System.Action<string>> e = (s) => M(s, s, s);
+                Diagnostic(ErrorCode.ERR_ParamsCollectionExpressionTree, "M(s, s, s)").WithLocation(5, 78)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74163")]
+        public void StringInterpolation_01()
+        {
+            string source1 = """
+class Program
+{
+    public static void Test1()
+    {
+        System.Linq.Expressions.Expression<System.Func<string, string>> e = (s) => $"{s} {2} {s} {4}";
+    }
+
+    public static void Test2()
+    {
+        System.Linq.Expressions.Expression<System.Func<string, System.FormattableString>> e = (s) => $"{s} {2} {s} {4}";
+    }
+}
+""";
+            string core = """
+namespace System
+{
+    public class Object {}
+
+    public class ValueType {}
+    public abstract partial class Enum {}
+
+    public struct Void {}
+    public struct Boolean {}
+    public struct Byte {}
+    public struct Int16 {}
+    public struct Int32 {}
+    public struct Int64 {}
+    public struct IntPtr {}
+
+    public partial class Exception {}
+
+    public class String
+    {
+        public static string Format(string format, params object[] args) => null;
+        public static string Format(string format, params ReadOnlySpan<object> args) => null;
+    }
+
+    public abstract class FormattableString {}
+
+    public abstract partial class Attribute {}
+    public sealed class ParamArrayAttribute : Attribute {}
+
+    public enum AttributeTargets
+    {
+        Assembly = 1,
+        Module = 2,
+        Class = 4,
+        Struct = 8,
+        Enum = 16,
+        Constructor = 32,
+        Method = 64,
+        Property = 128,
+        Field = 256,
+        Event = 512,
+        Interface = 1024,
+        Parameter = 2048,
+        Delegate = 4096,
+        ReturnValue = 8192,
+        GenericParameter = 16384,
+        All = 32767
+    }
+
+    public sealed class AttributeUsageAttribute : Attribute
+    {
+        public AttributeUsageAttribute(AttributeTargets validOn)
+        {
+        }
+
+        internal AttributeUsageAttribute(AttributeTargets validOn, bool allowMultiple, bool inherited)
+        {
+        }
+
+        public AttributeTargets ValidOn {get; set;}
+
+        public bool AllowMultiple {get; set;}
+
+        public bool Inherited {get; set;}
+    }
+
+    public abstract partial class Delegate {}
+    public abstract partial class MulticastDelegate : Delegate {}
+
+    public delegate TResult Func<in T, out TResult>(T arg); 
+
+    public interface IDisposable
+    {
+        void Dispose();
+    }
+
+    public partial struct Nullable<T> where T : struct {}
+
+    public unsafe partial struct RuntimeTypeHandle {}
+    public unsafe partial struct RuntimeMethodHandle {}
+    public abstract partial class Type
+    {
+        public static Type GetTypeFromHandle(RuntimeTypeHandle handle) => null;
+    }
+
+    public ref struct ReadOnlySpan<T>
+    {
+        public ReadOnlySpan(T[] array)
+        {
+        }
+
+        public ReadOnlySpan(T[] array, int start, int length)
+        {
+        }
+
+        public unsafe ReadOnlySpan(void* pointer, int length)
+        {
+        }
+    }
+}
+
+namespace System.Collections
+{
+    public interface IEnumerator
+    {
+        object Current { get; }
+        bool MoveNext();
+        void Reset();
+    }
+
+    public interface IEnumerable
+    {
+        IEnumerator GetEnumerator();
+    }
+}
+
+namespace System.Collections.Generic
+{
+    public interface IEnumerator<out T> : IEnumerator, IDisposable
+    {
+        new T Current { get; }
+    }
+
+    public interface IEnumerable<out T> : IEnumerable
+    {
+        new IEnumerator<T> GetEnumerator();
+    }
+}
+
+namespace System.Reflection
+{
+    public abstract unsafe partial class MethodBase
+    {
+        public static MethodBase GetMethodFromHandle(RuntimeMethodHandle handle) => null;
+        public static MethodBase GetMethodFromHandle(RuntimeMethodHandle handle, RuntimeTypeHandle declaringType) => null;
+    }
+
+    public abstract partial class MethodInfo : MethodBase {}
+
+    public abstract partial class ConstructorInfo : MethodBase {}
+}
+
+namespace System.Linq.Expressions
+{
+    using System.Collections.Generic;
+    using System.Reflection;
+
+    public partial class Expression
+    {
+        public static ParameterExpression Parameter(Type type) => null;
+        public static ParameterExpression Parameter(Type type, string name) => null;
+        public static ConstantExpression Constant(object value) => null;
+        public static ConstantExpression Constant(object value, Type type) => null;
+
+        public static Expression<TDelegate> Lambda<TDelegate>(Expression body, params ParameterExpression[] parameters) => null;
+        public static NewArrayExpression NewArrayInit(Type type, params Expression[] initializers) => null;
+        public static NewExpression New(ConstructorInfo constructor, IEnumerable<Expression> arguments) => null;
+        public static MethodCallExpression Call(Expression instance, MethodInfo method, params Expression[] arguments) => null;
+        public static UnaryExpression Convert(Expression expression, Type type) => null;
+    }
+
+    public abstract class LambdaExpression : Expression {}
+
+    public class Expression<TDelegate> : LambdaExpression {}
+
+    public class ParameterExpression : Expression {}
+    public class ConstantExpression : Expression {}
+    public class NewArrayExpression : Expression {}
+    public class NewExpression : Expression {}
+    public class MethodCallExpression : Expression {}
+    public class UnaryExpression : Expression {}
+}
+
+namespace System.Runtime.CompilerServices
+{
+    public sealed class InlineArrayAttribute : Attribute
+    {
+        public InlineArrayAttribute(int length)
+        {
+        }
+    }
+
+    public sealed class IsReadOnlyAttribute : Attribute
+    {}
+
+    public static class FormattableStringFactory
+    {
+        public static FormattableString Create(string format, params object[] arguments) => null;
+        public static FormattableString Create(string format, params ReadOnlySpan<object> arguments) => null;
+    }
+
+    public static unsafe partial class Unsafe
+    {
+        public static ref TTo As<TFrom, TTo>(ref TFrom source) => throw null;
+        public static ref T AsRef<T>(scoped ref readonly T source) => throw null;
+        public static ref T Add<T>(ref T source, int elementOffset) => throw null;
+    }
+}
+
+namespace System.Runtime.InteropServices
+{
+    public static partial class MemoryMarshal
+    {
+        public static ReadOnlySpan<T> CreateReadOnlySpan<T>(ref readonly T reference, int length) => default;
+    }
+}
+""";
+
+            var comp = CreateEmptyCompilation([source1, core], options: TestOptions.ReleaseDll.WithAllowUnsafe(true));
+            var verifier = CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
+                );
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size      198 (0xc6)
+  .maxstack  11
+  .locals init (System.Linq.Expressions.ParameterExpression V_0)
+  IL_0000:  ldtoken    ""string""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""s""
+  IL_000f:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0014:  stloc.0
+  IL_0015:  ldnull
+  IL_0016:  ldtoken    ""string string.Format(string, params object[])""
+  IL_001b:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0020:  castclass  ""System.Reflection.MethodInfo""
+  IL_0025:  ldc.i4.2
+  IL_0026:  newarr     ""System.Linq.Expressions.Expression""
+  IL_002b:  dup
+  IL_002c:  ldc.i4.0
+  IL_002d:  ldstr      ""{0} {1} {2} {3}""
+  IL_0032:  ldtoken    ""string""
+  IL_0037:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_003c:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_0041:  stelem.ref
+  IL_0042:  dup
+  IL_0043:  ldc.i4.1
+  IL_0044:  ldtoken    ""object""
+  IL_0049:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_004e:  ldc.i4.4
+  IL_004f:  newarr     ""System.Linq.Expressions.Expression""
+  IL_0054:  dup
+  IL_0055:  ldc.i4.0
+  IL_0056:  ldloc.0
+  IL_0057:  stelem.ref
+  IL_0058:  dup
+  IL_0059:  ldc.i4.1
+  IL_005a:  ldc.i4.2
+  IL_005b:  box        ""int""
+  IL_0060:  ldtoken    ""int""
+  IL_0065:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_006a:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_006f:  ldtoken    ""object""
+  IL_0074:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0079:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+  IL_007e:  stelem.ref
+  IL_007f:  dup
+  IL_0080:  ldc.i4.2
+  IL_0081:  ldloc.0
+  IL_0082:  stelem.ref
+  IL_0083:  dup
+  IL_0084:  ldc.i4.3
+  IL_0085:  ldc.i4.4
+  IL_0086:  box        ""int""
+  IL_008b:  ldtoken    ""int""
+  IL_0090:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0095:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_009a:  ldtoken    ""object""
+  IL_009f:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_00a4:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+  IL_00a9:  stelem.ref
+  IL_00aa:  call       ""System.Linq.Expressions.NewArrayExpression System.Linq.Expressions.Expression.NewArrayInit(System.Type, params System.Linq.Expressions.Expression[])""
+  IL_00af:  stelem.ref
+  IL_00b0:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+  IL_00b5:  ldc.i4.1
+  IL_00b6:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_00bb:  dup
+  IL_00bc:  ldc.i4.0
+  IL_00bd:  ldloc.0
+  IL_00be:  stelem.ref
+  IL_00bf:  call       ""System.Linq.Expressions.Expression<System.Func<string, string>> System.Linq.Expressions.Expression.Lambda<System.Func<string, string>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_00c4:  pop
+  IL_00c5:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size      198 (0xc6)
+  .maxstack  11
+  .locals init (System.Linq.Expressions.ParameterExpression V_0)
+  IL_0000:  ldtoken    ""string""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  ldstr      ""s""
+  IL_000f:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+  IL_0014:  stloc.0
+  IL_0015:  ldnull
+  IL_0016:  ldtoken    ""System.FormattableString System.Runtime.CompilerServices.FormattableStringFactory.Create(string, params object[])""
+  IL_001b:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle)""
+  IL_0020:  castclass  ""System.Reflection.MethodInfo""
+  IL_0025:  ldc.i4.2
+  IL_0026:  newarr     ""System.Linq.Expressions.Expression""
+  IL_002b:  dup
+  IL_002c:  ldc.i4.0
+  IL_002d:  ldstr      ""{0} {1} {2} {3}""
+  IL_0032:  ldtoken    ""string""
+  IL_0037:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_003c:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_0041:  stelem.ref
+  IL_0042:  dup
+  IL_0043:  ldc.i4.1
+  IL_0044:  ldtoken    ""object""
+  IL_0049:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_004e:  ldc.i4.4
+  IL_004f:  newarr     ""System.Linq.Expressions.Expression""
+  IL_0054:  dup
+  IL_0055:  ldc.i4.0
+  IL_0056:  ldloc.0
+  IL_0057:  stelem.ref
+  IL_0058:  dup
+  IL_0059:  ldc.i4.1
+  IL_005a:  ldc.i4.2
+  IL_005b:  box        ""int""
+  IL_0060:  ldtoken    ""int""
+  IL_0065:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_006a:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_006f:  ldtoken    ""object""
+  IL_0074:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0079:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+  IL_007e:  stelem.ref
+  IL_007f:  dup
+  IL_0080:  ldc.i4.2
+  IL_0081:  ldloc.0
+  IL_0082:  stelem.ref
+  IL_0083:  dup
+  IL_0084:  ldc.i4.3
+  IL_0085:  ldc.i4.4
+  IL_0086:  box        ""int""
+  IL_008b:  ldtoken    ""int""
+  IL_0090:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0095:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+  IL_009a:  ldtoken    ""object""
+  IL_009f:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_00a4:  call       ""System.Linq.Expressions.UnaryExpression System.Linq.Expressions.Expression.Convert(System.Linq.Expressions.Expression, System.Type)""
+  IL_00a9:  stelem.ref
+  IL_00aa:  call       ""System.Linq.Expressions.NewArrayExpression System.Linq.Expressions.Expression.NewArrayInit(System.Type, params System.Linq.Expressions.Expression[])""
+  IL_00af:  stelem.ref
+  IL_00b0:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+  IL_00b5:  ldc.i4.1
+  IL_00b6:  newarr     ""System.Linq.Expressions.ParameterExpression""
+  IL_00bb:  dup
+  IL_00bc:  ldc.i4.0
+  IL_00bd:  ldloc.0
+  IL_00be:  stelem.ref
+  IL_00bf:  call       ""System.Linq.Expressions.Expression<System.Func<string, System.FormattableString>> System.Linq.Expressions.Expression.Lambda<System.Func<string, System.FormattableString>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+  IL_00c4:  pop
+  IL_00c5:  ret
+
+}
+");
+
+            string source2 = """
+class Program
+{
+    public static string Test1(string s) => $"{s} {2} {s} {4}";
+
+    public static System.FormattableString Test2(string s) => $"{s} {2} {s} {4}";
+}
+""";
+            comp = CreateEmptyCompilation([source2, core], options: TestOptions.ReleaseDll.WithAllowUnsafe(true));
+            verifier = CompileAndVerify(comp, verify: Verification.Skipped).VerifyDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
+                );
+
+            verifier.VerifyIL("Program.Test1",
+@"
+{
+  // Code size       77 (0x4d)
+  .maxstack  3
+  .locals init (<>y__InlineArray4<object> V_0)
+  IL_0000:  ldstr      ""{0} {1} {2} {3}""
+  IL_0005:  ldloca.s   V_0
+  IL_0007:  initobj    ""<>y__InlineArray4<object>""
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  ldc.i4.0
+  IL_0010:  call       ""ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray4<object>, object>(ref <>y__InlineArray4<object>, int)""
+  IL_0015:  ldarg.0
+  IL_0016:  stind.ref
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldc.i4.1
+  IL_001a:  call       ""ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray4<object>, object>(ref <>y__InlineArray4<object>, int)""
+  IL_001f:  ldc.i4.2
+  IL_0020:  box        ""int""
+  IL_0025:  stind.ref
+  IL_0026:  ldloca.s   V_0
+  IL_0028:  ldc.i4.2
+  IL_0029:  call       ""ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray4<object>, object>(ref <>y__InlineArray4<object>, int)""
+  IL_002e:  ldarg.0
+  IL_002f:  stind.ref
+  IL_0030:  ldloca.s   V_0
+  IL_0032:  ldc.i4.3
+  IL_0033:  call       ""ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray4<object>, object>(ref <>y__InlineArray4<object>, int)""
+  IL_0038:  ldc.i4.4
+  IL_0039:  box        ""int""
+  IL_003e:  stind.ref
+  IL_003f:  ldloca.s   V_0
+  IL_0041:  ldc.i4.4
+  IL_0042:  call       ""System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray4<object>, object>(in <>y__InlineArray4<object>, int)""
+  IL_0047:  call       ""string string.Format(string, params System.ReadOnlySpan<object>)""
+  IL_004c:  ret
+}
+");
+
+            verifier.VerifyIL("Program.Test2",
+@"
+{
+  // Code size       77 (0x4d)
+  .maxstack  3
+  .locals init (<>y__InlineArray4<object> V_0)
+  IL_0000:  ldstr      ""{0} {1} {2} {3}""
+  IL_0005:  ldloca.s   V_0
+  IL_0007:  initobj    ""<>y__InlineArray4<object>""
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  ldc.i4.0
+  IL_0010:  call       ""ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray4<object>, object>(ref <>y__InlineArray4<object>, int)""
+  IL_0015:  ldarg.0
+  IL_0016:  stind.ref
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  ldc.i4.1
+  IL_001a:  call       ""ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray4<object>, object>(ref <>y__InlineArray4<object>, int)""
+  IL_001f:  ldc.i4.2
+  IL_0020:  box        ""int""
+  IL_0025:  stind.ref
+  IL_0026:  ldloca.s   V_0
+  IL_0028:  ldc.i4.2
+  IL_0029:  call       ""ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray4<object>, object>(ref <>y__InlineArray4<object>, int)""
+  IL_002e:  ldarg.0
+  IL_002f:  stind.ref
+  IL_0030:  ldloca.s   V_0
+  IL_0032:  ldc.i4.3
+  IL_0033:  call       ""ref object <PrivateImplementationDetails>.InlineArrayElementRef<<>y__InlineArray4<object>, object>(ref <>y__InlineArray4<object>, int)""
+  IL_0038:  ldc.i4.4
+  IL_0039:  box        ""int""
+  IL_003e:  stind.ref
+  IL_003f:  ldloca.s   V_0
+  IL_0041:  ldc.i4.4
+  IL_0042:  call       ""System.ReadOnlySpan<object> <PrivateImplementationDetails>.InlineArrayAsReadOnlySpan<<>y__InlineArray4<object>, object>(in <>y__InlineArray4<object>, int)""
+  IL_0047:  call       ""System.FormattableString System.Runtime.CompilerServices.FormattableStringFactory.Create(string, params System.ReadOnlySpan<object>)""
+  IL_004c:  ret
+}
+");
         }
     }
 }

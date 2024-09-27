@@ -1039,7 +1039,7 @@
       </trans-unit>
       <trans-unit id="Prefer_System_Threading_Lock">
         <source>Prefer 'System.Threading.Lock'</source>
-        <target state="new">Prefer 'System.Threading.Lock'</target>
+        <target state="translated">„System.Threading.Lock“ bevorzugen</target>
         <note>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Prefer_Utf8_string_literals">
@@ -1364,7 +1364,7 @@
       </trans-unit>
       <trans-unit id="Show_hints_for_collection_expressions">
         <source>Show hints for collection expressions</source>
-        <target state="new">Show hints for collection expressions</target>
+        <target state="translated">Hinweise für Sammlungsausdrücke anzeigen</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">

@@ -49,7 +49,7 @@
       </trans-unit>
       <trans-unit id="Document_does_not_support_syntax_trees">
         <source>Document does not support syntax trees</source>
-        <target state="new">Document does not support syntax trees</target>
+        <target state="translated">ドキュメントでは構文ツリーがサポートされません</target>
         <note />
       </trans-unit>
       <trans-unit id="Fix_all_0">
@@ -129,7 +129,7 @@
       </trans-unit>
       <trans-unit id="Type_members">
         <source>Type members</source>
-        <target state="new">Type members</target>
+        <target state="translated">型メンバー</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">
