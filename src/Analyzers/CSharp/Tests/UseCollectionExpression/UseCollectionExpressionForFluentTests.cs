@@ -3058,7 +3058,7 @@ public class UseCollectionExpressionForFluentTests
                 {
                     void M(int[] values, int[] x)
                     {
-                        List<int> list = [.. values, 1, 2, 3,  .. x];
+                        List<int> list = [.. values, 1, 2, 3, .. x];
                     }
                 }
                 """,
