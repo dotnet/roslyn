@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -34,7 +36,8 @@ internal static class CSharpCollectionExpressionRewriter
     public static async Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync<TParentExpression, TMatchNode>(
         Document workspaceDocument,
         TParentExpression expressionToReplace,
-        ImmutableArray<CollectionExpressionMatch<TMatchNode>> matches,
+        ImmutableArray<CollectionExpressionMatch<TMatchNode>> preMatches,
+        ImmutableArray<CollectionExpressionMatch<TMatchNode>> postMatches,
         Func<TParentExpression, InitializerExpressionSyntax?> getInitializer,
         Func<TParentExpression, InitializerExpressionSyntax, TParentExpression> withInitializer,
         CancellationToken cancellationToken)
@@ -81,22 +84,13 @@ internal static class CSharpCollectionExpressionRewriter
             // Didn't have an existing initializer (or it was empty).  For both cases, just create an entirely
             // fresh collection expression, and replace the object entirely.
 
-            if (matches is [{ Node: ExpressionSyntax expression } match])
+            if (preMatches is [{ Node: ExpressionSyntax } preMatch] && postMatches.IsEmpty)
             {
-                // Specialize when we're taking some expression (like x.y.ToArray()) and converting to a spreaded
-                // collection expression.  We just want to trivially make that `[.. x.y]` without any specialized
-                // behavior.  In particular, we do not want to generate something like:
-                //
-                //  [
-                //      .. x.y,
-                //  ]
-                //
-                // For that sort of case.  Single element collections should stay closely associated with the original
-                // expression.
-                return CollectionExpression([
-                    match.UseSpread
-                        ? SpreadElement(expression.WithoutTrivia())
-                        : ExpressionElement(expression.WithoutTrivia())]).WithTriviaFrom(expressionToReplace);
+                return CreateSingleElementCollection(preMatch);
+            }
+            else if (preMatches.IsEmpty && postMatches is [{ Node: ExpressionSyntax } postMatch])
+            {
+                return CreateSingleElementCollection(postMatch);
             }
             else if (makeMultiLineCollectionExpression)
             {
@@ -129,7 +123,8 @@ internal static class CSharpCollectionExpressionRewriter
 
                 // now create the elements, following that indentation preference.
                 using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
-                CreateAndAddElements(matches, nodesAndTokens, preferredIndentation: elementIndentation, forceTrailingComma: true);
+                CreateAndAddElements(preMatches, nodesAndTokens, preferredIndentation: elementIndentation, forceTrailingComma: true);
+                CreateAndAddElements(postMatches, nodesAndTokens, preferredIndentation: elementIndentation, forceTrailingComma: true);
 
                 // Add a newline between the last element and the close bracket if we don't already have one.
                 if (nodesAndTokens.Count > 0 && nodesAndTokens.Last().GetTrailingTrivia() is [.., (kind: not SyntaxKind.EndOfLineTrivia)])
@@ -151,7 +146,8 @@ internal static class CSharpCollectionExpressionRewriter
                 // fresh collection expression, and do a wholesale replacement of the original object creation
                 // expression with it.
                 using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
-                CreateAndAddElements(matches, nodesAndTokens, preferredIndentation: null, forceTrailingComma: false);
+                CreateAndAddElements(preMatches, nodesAndTokens, preferredIndentation: null, forceTrailingComma: false);
+                CreateAndAddElements(postMatches, nodesAndTokens, preferredIndentation: null, forceTrailingComma: false);
 
                 // Remove any trailing whitespace from the last element/comma and the final close bracket.
                 if (nodesAndTokens.Count > 0)
@@ -197,6 +193,25 @@ internal static class CSharpCollectionExpressionRewriter
             }
         }
 
+        CollectionExpressionSyntax CreateSingleElementCollection(CollectionExpressionMatch<TMatchNode> match)
+        {
+            // Specialize when we're taking some expression (like x.y.ToArray()) and converting to a spreaded
+            // collection expression.  We just want to trivially make that `[.. x.y]` without any specialized
+            // behavior.  In particular, we do not want to generate something like:
+            //
+            //  [
+            //      .. x.y,
+            //  ]
+            //
+            // For that sort of case.  Single element collections should stay closely associated with the original
+            // expression.
+            var expression = (ExpressionSyntax)(object)match.Node;
+            return CollectionExpression([
+                match.UseSpread
+                    ? SpreadElement(expression.WithoutTrivia())
+                    : ExpressionElement(expression.WithoutTrivia())]).WithTriviaFrom(expressionToReplace);
+        }
+
         CollectionExpressionSyntax CreateCollectionExpressionWithExistingElements()
         {
             // If the object creation expression had an initializer (with at least one element in it).  Attempt to
@@ -220,8 +235,8 @@ internal static class CSharpCollectionExpressionRewriter
                     //  }
                     //
                     // Just add the new elements to this.
-                    var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(
-                        initialCollection, preferredIndentation: null);
+                    var withPreMatches = AddMatchesToExistingNonEmptyCollectionExpression(preMatches, initialCollection, preferredIndentation: null, index: 0);
+                    var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(postMatches, withPreMatches, preferredIndentation: null);
 
                     return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
                         document.Text, initializer, finalCollection, newCollectionIsSingleLine: false);
@@ -233,8 +248,8 @@ internal static class CSharpCollectionExpressionRewriter
                     var preferredIndentation = initializer.Expressions.First().GetFirstToken().GetPreferredIndentation(
                         document, indentationOptions, cancellationToken);
 
-                    var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(
-                        initialCollection, preferredIndentation);
+                    var withPreMatches = AddMatchesToExistingNonEmptyCollectionExpression(preMatches, initialCollection, preferredIndentation: null, index: 0);
+                    var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(postMatches, withPreMatches, preferredIndentation);
 
                     return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
                         document.Text, initializer, finalCollection, newCollectionIsSingleLine: false);
@@ -262,7 +277,8 @@ internal static class CSharpCollectionExpressionRewriter
                         initialCollection.CloseBracketToken.WithLeadingTrivia(endOfLine, Whitespace(preferredBraceIndentation)));
 
                     // Then add all new elements at the right indentation level.
-                    var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(initialCollection, preferredItemIndentation);
+                    var withPreMatches = AddMatchesToExistingNonEmptyCollectionExpression(preMatches, initialCollection, preferredItemIndentation, index: 0);
+                    var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(postMatches, withPreMatches, preferredItemIndentation);
 
                     return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
                         document.Text, initializer, finalCollection, newCollectionIsSingleLine: false);
@@ -283,7 +299,8 @@ internal static class CSharpCollectionExpressionRewriter
                         FixLeadingAndTrailingWhitespace(initialCollection.Elements, preferredItemIndentation),
                         initialCollection.CloseBracketToken.WithLeadingTrivia(endOfLine, Whitespace(braceIndentation)));
 
-                    var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(initialCollection, preferredItemIndentation);
+                    var withPreMatches = AddMatchesToExistingNonEmptyCollectionExpression(preMatches, initialCollection, preferredItemIndentation, index: 0);
+                    var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(postMatches, withPreMatches, preferredItemIndentation);
 
                     return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
                         document.Text, initializer, finalCollection, newCollectionIsSingleLine: false);
@@ -299,6 +316,7 @@ internal static class CSharpCollectionExpressionRewriter
                     initializer, wasOnSingleLine: true);
 
                 // now, add all the matches in after the existing elements.
+                var withPreMatches = AddMatchesToExistingNonEmptyCollectionExpression(preMatches, initialCollection, preferredIndentation: null, index: 0);
                 var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(initialCollection, preferredIndentation: null);
 
                 // Now do the actual replacement.  This will ensure the location of the collection expression
@@ -326,7 +344,7 @@ internal static class CSharpCollectionExpressionRewriter
         // Used to we can uniformly add the items correctly with the requested (but optional) indentation.  And so that
         // commas are added properly to the sequence.
         void CreateAndAddElements(
-            ImmutableArray<CollectionExpressionMatch<TMatchNode>> matches,
+            ImmutableArray<CollectionExpressionMatch<TMatchNode>> postMatches,
             ArrayBuilder<SyntaxNodeOrToken> nodesAndTokens,
             string? preferredIndentation,
             bool forceTrailingComma)
@@ -338,13 +356,13 @@ internal static class CSharpCollectionExpressionRewriter
                 ? TriviaList(Space)
                 : TriviaList(endOfLine);
 
-            foreach (var element in matches.SelectMany(m => CreateElements(m, preferredIndentation)))
+            foreach (var element in postMatches.SelectMany(m => CreateElements(m, preferredIndentation)))
             {
                 AddCommaIfMissing(last: false);
                 nodesAndTokens.Add(element);
             }
 
-            if (matches.Length > 0 && forceTrailingComma)
+            if (postMatches.Length > 0 && forceTrailingComma)
                 AddCommaIfMissing(last: true);
 
             return;
@@ -376,8 +394,10 @@ internal static class CSharpCollectionExpressionRewriter
         // Helper which takes a collection expression that already has at least one element in it and adds the new
         // elements to it.
         CollectionExpressionSyntax AddMatchesToExistingNonEmptyCollectionExpression(
+            ImmutableArray<CollectionExpressionMatch<TMatchNode>> matches,
             CollectionExpressionSyntax initialCollectionExpression,
-            string? preferredIndentation)
+            string? preferredIndentation,
+            int index = -1)
         {
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
             nodesAndTokens.AddRange(initialCollectionExpression.Elements.GetWithSeparators());
@@ -402,7 +422,7 @@ internal static class CSharpCollectionExpressionRewriter
             // end.  This keeps every element consistent with ending the line with a comma, which makes code easier to
             // maintain.
             CreateAndAddElements(
-                matches, nodesAndTokens, preferredIndentation,
+                postMatches, nodesAndTokens, preferredIndentation,
                 forceTrailingComma: preferredIndentation != null && trailingComma == default);
 
             if (trailingComma != default)
@@ -702,7 +722,7 @@ internal static class CSharpCollectionExpressionRewriter
         {
             // If there's already an initializer, and we're not adding anything to it, then just keep the initializer
             // as-is.  No need to convert it to be multi-line if it's currently single-line.
-            if (initializer != null && matches.Length == 0)
+            if (initializer != null && preMatches.Length == 0 && postMatches.Length == 0)
                 return false;
 
             var totalLength = 0;
@@ -712,27 +732,38 @@ internal static class CSharpCollectionExpressionRewriter
                     totalLength += expression.Span.Length;
             }
 
-            foreach (var (node, _) in matches)
+            if (CheckForMultiLine(preMatches) ||
+                CheckForMultiLine(postMatches))
             {
-                // if the statement we're replacing has any comments on it, then we need to be multiline to give them an
-                // appropriate place to go.
-                if (node.GetLeadingTrivia().Any(static t => t.IsSingleOrMultiLineComment()) ||
-                    node.GetTrailingTrivia().Any(static t => t.IsSingleOrMultiLineComment()))
-                {
-                    return true;
-                }
-
-                foreach (var component in GetElementComponents(node))
-                {
-                    // if any of the expressions we're adding are multiline, then make things multiline.
-                    if (!document.Text.AreOnSameLine(component.GetFirstToken(), component.GetLastToken()))
-                        return true;
-
-                    totalLength += component.Span.Length;
-                }
+                return true;
             }
 
             return totalLength > wrappingLength;
+
+            bool CheckForMultiLine(ImmutableArray<CollectionExpressionMatch<TMatchNode>> matches)
+            {
+                foreach (var (node, _) in matches)
+                {
+                    // if the statement we're replacing has any comments on it, then we need to be multiline to give them an
+                    // appropriate place to go.
+                    if (node.GetLeadingTrivia().Any(static t => t.IsSingleOrMultiLineComment()) ||
+                        node.GetTrailingTrivia().Any(static t => t.IsSingleOrMultiLineComment()))
+                    {
+                        return true;
+                    }
+
+                    foreach (var component in GetElementComponents(node))
+                    {
+                        // if any of the expressions we're adding are multiline, then make things multiline.
+                        if (!document.Text.AreOnSameLine(component.GetFirstToken(), component.GetLastToken()))
+                            return true;
+
+                        totalLength += component.Span.Length;
+                    }
+                }
+
+                return false;
+            }
         }
 
         static IEnumerable<SyntaxNode> GetElementComponents(TMatchNode node)
