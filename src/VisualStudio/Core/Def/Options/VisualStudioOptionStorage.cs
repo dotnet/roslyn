@@ -344,7 +344,6 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_rename_use_inline_adornment", new RoamingProfileStorage("TextEditor.RenameUseInlineAdornment")},
         {"dotnet_preview_inline_rename_changes", new RoamingProfileStorage("TextEditor.Specific.PreviewRename")},
         {"dotnet_collapse_suggestions_in_inline_rename_ui", new RoamingProfileStorage("TextEditor.CollapseRenameSuggestionsUI")},
-        {"dotnet_only_commit_rename_on_enter", new RoamingProfileStorage("TextEditor.Specific.OnlyCommitRenameOnEnter")},
         {"dotnet_commit_rename_asynchronously", new RoamingProfileStorage("TextEditor.Specific.CommitRenameAsynchronously")},
         {"dotnet_commit_rename_asynchronously_feature_flag", new FeatureFlagStorage("Roslyn.CommitRenameAsynchronously")},
         {"dotnet_rename_get_suggestions_automatically", new FeatureFlagStorage(@"Editor.AutoSmartRenameSuggestions")},
