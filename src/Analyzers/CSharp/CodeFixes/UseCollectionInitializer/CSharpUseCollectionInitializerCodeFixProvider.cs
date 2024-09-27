@@ -37,23 +37,14 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider() :
         Document document,
         BaseObjectCreationExpressionSyntax objectCreation,
         bool useCollectionExpression,
+        InitializerExpressionSyntax? existingInitializer,
         ImmutableArray<Match> matches,
         CancellationToken cancellationToken)
     {
-        var newObjectCreation = await GetNewObjectCreationAsync(
-            document, objectCreation, useCollectionExpression, matches, cancellationToken).ConfigureAwait(false);
-        return (objectCreation, newObjectCreation);
-    }
-
-    private static async Task<ExpressionSyntax> GetNewObjectCreationAsync(
-        Document document,
-        BaseObjectCreationExpressionSyntax objectCreation,
-        bool useCollectionExpression,
-        ImmutableArray<Match> matches,
-        CancellationToken cancellationToken)
-    {
-        return useCollectionExpression
-            ? await CreateCollectionExpressionAsync(document, objectCreation, matches, cancellationToken).ConfigureAwait(false)
+        ExpressionSyntax newObjectCreation = useCollectionExpression
+            ? await CreateCollectionExpressionAsync(document, objectCreation, existingInitializer, matches, cancellationToken).ConfigureAwait(false)
             : CreateObjectInitializerExpression(objectCreation, matches);
+
+        return (objectCreation, newObjectCreation);
     }
 }

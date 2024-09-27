@@ -7,8 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
-using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
@@ -22,6 +20,7 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider
     private static Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync(
         Document document,
         BaseObjectCreationExpressionSyntax objectCreation,
+        InitializerExpressionSyntax? existingInitializer,
         ImmutableArray<Match> matches,
         CancellationToken cancellationToken)
     {
@@ -29,7 +28,8 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider
             document,
             objectCreation,
             matches.SelectAsArray(m => new CollectionExpressionMatch<SyntaxNode>(m.StatementOrExpression, m.UseSpread)),
-            static objectCreation => objectCreation.Initializer,
+            // Use the initializer the analyzer recommends, regardless of what's on the object creation node.  
+            _ => existingInitializer,
             static (objectCreation, initializer) => objectCreation.WithInitializer(initializer),
             cancellationToken);
     }

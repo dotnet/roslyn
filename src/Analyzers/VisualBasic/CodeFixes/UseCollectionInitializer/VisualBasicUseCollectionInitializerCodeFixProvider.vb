@@ -8,8 +8,6 @@ Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Formatting
-Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.UseCollectionInitializer
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
 
@@ -42,6 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
                 document As Document,
                 objectCreation As ObjectCreationExpressionSyntax,
                 useCollectionExpression As Boolean,
+                existingInitializer As ObjectCollectionInitializerSyntax,
                 matches As ImmutableArray(Of Match),
                 cancellationToken As CancellationToken) As Task(Of (SyntaxNode, SyntaxNode))
             Contract.ThrowIfTrue(useCollectionExpression, "VB does not support collection expressions")

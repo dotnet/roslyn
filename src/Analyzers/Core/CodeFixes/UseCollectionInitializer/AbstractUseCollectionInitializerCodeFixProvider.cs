@@ -56,7 +56,7 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
     protected abstract TAnalyzer GetAnalyzer();
 
     protected abstract Task<(SyntaxNode oldNode, SyntaxNode newNode)> GetReplacementNodesAsync(
-        Document document, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression, ImmutableArray<Match> matches, CancellationToken cancellationToken);
+        Document document, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression, TInitializerSyntax? existingInitializer, ImmutableArray<Match> matches, CancellationToken cancellationToken);
 
     protected sealed override async Task FixAsync(
         Document document,
@@ -84,7 +84,7 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
             return;
 
         var (oldNode, newNode) = await GetReplacementNodesAsync(
-            document, objectCreation, useCollectionExpression, matches, cancellationToken).ConfigureAwait(false);
+            document, objectCreation, useCollectionExpression, initializer, matches, cancellationToken).ConfigureAwait(false);
 
         editor.ReplaceNode(oldNode, newNode);
         foreach (var match in matches)
