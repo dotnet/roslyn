@@ -8211,8 +8211,9 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "b As Integer", FeaturesResources.field, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "c As Integer", FeaturesResources.field, FeaturesResources.class_))
+                Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "b As Integer", GetResource("field"), GetResource("class")),
+                Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "c As Integer", GetResource("field"), GetResource("class")),
+                Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "d As Integer", GetResource("field"), GetResource("class")))
         End Sub
 
         <Fact>
@@ -8240,8 +8241,9 @@ End Class
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifySemanticDiagnostics(
-                Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "b As Integer", FeaturesResources.field, FeaturesResources.class_),
-                Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "c As Integer", FeaturesResources.field, FeaturesResources.class_))
+                Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "b As Integer", GetResource("field"), GetResource("class")),
+                Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "c As Integer", GetResource("field"), GetResource("class")),
+                Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "d As Integer", GetResource("field"), GetResource("class")))
         End Sub
 
         <Fact>
@@ -9042,11 +9044,8 @@ End " & type
 End " & type
             Dim edits = GetTopEdits(src1, src2)
 
-            edits.VerifySemantics(
-                {SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("S.c")),
-                SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("S.e")),
-                SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("S.h")),
-                SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember("S.i"))},
+            edits.VerifySemanticDiagnostics(
+                {Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "Private Shared Property c", GetResource("auto-property"), GetResource(type))},
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType Or EditAndContinueCapabilities.AddStaticFieldToExistingType)
         End Sub
 

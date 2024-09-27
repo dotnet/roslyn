@@ -16922,8 +16922,10 @@ struct S
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.InsertOrMoveStructMember, "b", FeaturesResources.field, CSharpFeaturesResources.struct_),
-            Diagnostic(RudeEditKind.InsertOrMoveStructMember, "d", CSharpFeaturesResources.event_field, CSharpFeaturesResources.struct_));
+            Diagnostic(RudeEditKind.InsertOrMoveStructMember, "b", GetResource("field"), GetResource("struct")),
+            Diagnostic(RudeEditKind.InsertOrMoveStructMember, "c", GetResource("field"), GetResource("struct")),
+            Diagnostic(RudeEditKind.InsertOrMoveStructMember, "f = 1", GetResource("field"), GetResource("struct")),
+            Diagnostic(RudeEditKind.InsertOrMoveStructMember, "d", GetResource("event field"), GetResource("struct")));
     }
 
     [Fact]
@@ -16996,8 +16998,9 @@ class C
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "b", FeaturesResources.field, FeaturesResources.class_),
-            Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "c", FeaturesResources.field, FeaturesResources.class_));
+            Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "b", GetResource("field"), GetResource("class")),
+            Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "c", GetResource("field"), GetResource("class")),
+            Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "d", GetResource("field"), GetResource("class")));
     }
 
     [Fact]
@@ -17028,8 +17031,9 @@ class C
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "b", FeaturesResources.field, FeaturesResources.class_),
-            Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "c", FeaturesResources.field, FeaturesResources.class_));
+            Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "b", GetResource("field"), GetResource("class")),
+            Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "c", GetResource("field"), GetResource("class")),
+            Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "d", GetResource("field"), GetResource("class")));
     }
 
     [Fact]
@@ -18504,18 +18508,10 @@ struct S
 
         var edits = GetTopEdits(src1, src2);
 
-        edits.VerifySemantics(
-            [
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("S.c")),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("S.e")),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("S.g")),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("S.i")),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("S.k")),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("S.l")),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("S.m")),
-                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember<INamedTypeSymbol>("S").StaticConstructors.Single()),
-            ],
-            capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddStaticFieldToExistingType);
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.InsertOrMoveStructMember, "static int c", GetResource("auto-property"), GetResource("struct")),
+            Diagnostic(RudeEditKind.InsertOrMoveStructMember, "static int g", GetResource("auto-property"), GetResource("struct")),
+            Diagnostic(RudeEditKind.InsertOrMoveStructMember, "static int i", GetResource("auto-property"), GetResource("struct")));
     }
 
     [Fact]

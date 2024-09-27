@@ -5027,11 +5027,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             return;
         }
 
-        // static members do not affect type layout:
-        if (newSymbol.IsStatic)
-        {
-            return;
-        }
+        // Note: static fields do not affect type layout but no runtime supports adding them.
 
         switch (newSymbol.Kind)
         {
