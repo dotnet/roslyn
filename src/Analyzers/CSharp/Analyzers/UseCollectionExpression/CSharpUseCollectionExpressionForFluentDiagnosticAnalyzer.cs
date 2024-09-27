@@ -263,8 +263,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                     }
 
                     // Add the arguments to the pre-matches.  They will execute before the initializer values are added.
-                    if (objectCreation.Initializer != null)
-                        AddArgumentsInReverse(preMatchesInReverse, ArgumentList(SeparatedList(objectCreation.Initializer.Expressions.Select(Argument))).Arguments, useSpread: false);
+                    AddArgumentsInReverse(preMatchesInReverse, objectCreation.ArgumentList.Arguments, useSpread: false);
                     return true;
                 }
                 else if (objectCreation.ArgumentList is null or { Arguments.Count: 0 })
