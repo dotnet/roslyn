@@ -23,6 +23,7 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -216,15 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             SmartRenameViewModel?.Commit(IdentifierText);
-            if (_globalOptionService.ShouldCommitAsynchronously())
-            {
-                _ = Session.CommitAsync(previewChanges: false);
-            }
-            else
-            {
-                Session.Commit();
-            }
-
+            _ = Session.CommitAsync(previewChanges: false).ReportNonFatalErrorAsync();
             return true;
         }
 
