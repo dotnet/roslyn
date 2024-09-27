@@ -9013,9 +9013,9 @@ End " & type
         End Sub
 
         <Theory>
-        <InlineData("", "Structure")>
-        <InlineData("<System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential)>", "Class")>
-        Friend Sub Property_Insert_TypeLayout_Shared(attribute As String, type As String)
+        <InlineData("", "Structure", RudeEditKind.InsertOrMoveStructMember)>
+        <InlineData("<System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential)>", "Class", RudeEditKind.InsertOrMoveTypeWithLayoutMember)>
+        Friend Sub Property_Insert_TypeLayout_Shared(attribute As String, type As String, rudeEditKind As RudeEditKind)
             Dim src1 = attribute & type & " S
 End " & type
 
@@ -9045,7 +9045,7 @@ End " & type
             Dim edits = GetTopEdits(src1, src2)
 
             edits.VerifySemanticDiagnostics(
-                {Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "Private Shared Property c", GetResource("auto-property"), GetResource(type))},
+                {Diagnostic(rudeEditKind, "Private Shared Property c", GetResource("auto-property"), GetResource(type))},
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType Or EditAndContinueCapabilities.AddStaticFieldToExistingType)
         End Sub
 
