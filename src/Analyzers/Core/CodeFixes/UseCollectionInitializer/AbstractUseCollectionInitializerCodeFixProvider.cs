@@ -75,17 +75,17 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
         using var analyzer = GetAnalyzer();
 
         var useCollectionExpression = properties.ContainsKey(UseCollectionInitializerHelpers.UseCollectionExpressionName) is true;
-        var (initializer, matches) = analyzer.Analyze(
+        var (preMatches, postMatches) = analyzer.Analyze(
             semanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
 
-        if (matches.IsDefault)
+        if (preMatches.IsDefault || postMatches.IsDefault)
             return;
 
         var (oldNode, newNode) = await GetReplacementNodesAsync(
-            document, objectCreation, useCollectionExpression, initializer, matches, cancellationToken).ConfigureAwait(false);
+            document, objectCreation, useCollectionExpression, preMatches, postMatches, cancellationToken).ConfigureAwait(false);
 
         editor.ReplaceNode(oldNode, newNode);
-        foreach (var match in matches)
+        foreach (var match in postMatches)
         {
             if (match.StatementOrExpression is TStatementSyntax statement)
                 editor.RemoveNode(statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
