@@ -67,7 +67,6 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider()
         var collectionExpression = await CreateCollectionExpressionAsync(
             newSemanticDocument.Document,
             dummyObjectCreation,
-            preMatches: [],
             matches,
             static o => o.Initializer,
             static (o, i) => o.WithInitializer(i),

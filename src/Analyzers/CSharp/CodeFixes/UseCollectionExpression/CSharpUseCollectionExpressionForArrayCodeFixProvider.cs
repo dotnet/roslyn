@@ -72,7 +72,6 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider()
             var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
                 document,
                 arrayCreationExpression,
-                preMatches: [],
                 matches,
                 static e => e switch
                 {

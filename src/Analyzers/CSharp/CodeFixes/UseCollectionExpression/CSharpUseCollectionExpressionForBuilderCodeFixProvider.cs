@@ -65,7 +65,6 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider()
         var collectionExpression = await CreateCollectionExpressionAsync(
             newDocument,
             dummyObjectCreation,
-            preMatches: [],
             analysisResult.Matches.SelectAsArray(m => new CollectionExpressionMatch<SyntaxNode>(m.StatementOrExpression, m.UseSpread)),
             static o => o.Initializer,
             static (o, i) => o.WithInitializer(i),

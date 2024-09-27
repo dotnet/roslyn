@@ -34,8 +34,7 @@ internal static class CSharpCollectionExpressionRewriter
     public static async Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync<TParentExpression, TMatchNode>(
         Document workspaceDocument,
         TParentExpression expressionToReplace,
-        ImmutableArray<CollectionExpressionMatch<TMatchNode>> preMatches,
-        ImmutableArray<CollectionExpressionMatch<TMatchNode>> postMatches,
+        ImmutableArray<CollectionExpressionMatch<TMatchNode>> matches,
         Func<TParentExpression, InitializerExpressionSyntax?> getInitializer,
         Func<TParentExpression, InitializerExpressionSyntax, TParentExpression> withInitializer,
         CancellationToken cancellationToken)
@@ -82,7 +81,7 @@ internal static class CSharpCollectionExpressionRewriter
             // Didn't have an existing initializer (or it was empty).  For both cases, just create an entirely
             // fresh collection expression, and replace the object entirely.
 
-            if (preMatches.IsEmpty && postMatches is [{ Node: ExpressionSyntax expression } match])
+            if (matches is [{ Node: ExpressionSyntax expression } match])
             {
                 // Specialize when we're taking some expression (like x.y.ToArray()) and converting to a spreaded
                 // collection expression.  We just want to trivially make that `[.. x.y]` without any specialized
@@ -130,7 +129,7 @@ internal static class CSharpCollectionExpressionRewriter
 
                 // now create the elements, following that indentation preference.
                 using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
-                CreateAndAddElements(preMatches, postMatches, nodesAndTokens, preferredIndentation: elementIndentation, forceTrailingComma: true);
+                CreateAndAddElements(matches, nodesAndTokens, preferredIndentation: elementIndentation, forceTrailingComma: true);
 
                 // Add a newline between the last element and the close bracket if we don't already have one.
                 if (nodesAndTokens.Count > 0 && nodesAndTokens.Last().GetTrailingTrivia() is [.., (kind: not SyntaxKind.EndOfLineTrivia)])
@@ -152,7 +151,7 @@ internal static class CSharpCollectionExpressionRewriter
                 // fresh collection expression, and do a wholesale replacement of the original object creation
                 // expression with it.
                 using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
-                CreateAndAddElements(postMatches, nodesAndTokens, preferredIndentation: null, forceTrailingComma: false);
+                CreateAndAddElements(matches, nodesAndTokens, preferredIndentation: null, forceTrailingComma: false);
 
                 // Remove any trailing whitespace from the last element/comma and the final close bracket.
                 if (nodesAndTokens.Count > 0)
@@ -327,8 +326,7 @@ internal static class CSharpCollectionExpressionRewriter
         // Used to we can uniformly add the items correctly with the requested (but optional) indentation.  And so that
         // commas are added properly to the sequence.
         void CreateAndAddElements(
-            ImmutableArray<CollectionExpressionMatch<TMatchNode>> preMatches,
-            ImmutableArray<CollectionExpressionMatch<TMatchNode>> postMatches,
+            ImmutableArray<CollectionExpressionMatch<TMatchNode>> matches,
             ArrayBuilder<SyntaxNodeOrToken> nodesAndTokens,
             string? preferredIndentation,
             bool forceTrailingComma)
@@ -404,7 +402,7 @@ internal static class CSharpCollectionExpressionRewriter
             // end.  This keeps every element consistent with ending the line with a comma, which makes code easier to
             // maintain.
             CreateAndAddElements(
-                postMatches, nodesAndTokens, preferredIndentation,
+                matches, nodesAndTokens, preferredIndentation,
                 forceTrailingComma: preferredIndentation != null && trailingComma == default);
 
             if (trailingComma != default)
@@ -704,7 +702,7 @@ internal static class CSharpCollectionExpressionRewriter
         {
             // If there's already an initializer, and we're not adding anything to it, then just keep the initializer
             // as-is.  No need to convert it to be multi-line if it's currently single-line.
-            if (initializer != null && preMatches.Length == 0 && postMatches.Length == 0)
+            if (initializer != null && matches.Length == 0)
                 return false;
 
             var totalLength = 0;
@@ -714,38 +712,27 @@ internal static class CSharpCollectionExpressionRewriter
                     totalLength += expression.Span.Length;
             }
 
-            if (CheckForMultiLine(preMatches) ||
-                CheckForMultiLine(postMatches))
+            foreach (var (node, _) in matches)
             {
-                return true;
+                // if the statement we're replacing has any comments on it, then we need to be multiline to give them an
+                // appropriate place to go.
+                if (node.GetLeadingTrivia().Any(static t => t.IsSingleOrMultiLineComment()) ||
+                    node.GetTrailingTrivia().Any(static t => t.IsSingleOrMultiLineComment()))
+                {
+                    return true;
+                }
+
+                foreach (var component in GetElementComponents(node))
+                {
+                    // if any of the expressions we're adding are multiline, then make things multiline.
+                    if (!document.Text.AreOnSameLine(component.GetFirstToken(), component.GetLastToken()))
+                        return true;
+
+                    totalLength += component.Span.Length;
+                }
             }
 
             return totalLength > wrappingLength;
-
-            bool CheckForMultiLine(ImmutableArray<CollectionExpressionMatch<TMatchNode>> matches)
-            {
-                foreach (var (node, _) in matches)
-                {
-                    // if the statement we're replacing has any comments on it, then we need to be multiline to give them an
-                    // appropriate place to go.
-                    if (node.GetLeadingTrivia().Any(static t => t.IsSingleOrMultiLineComment()) ||
-                        node.GetTrailingTrivia().Any(static t => t.IsSingleOrMultiLineComment()))
-                    {
-                        return true;
-                    }
-
-                    foreach (var component in GetElementComponents(node))
-                    {
-                        // if any of the expressions we're adding are multiline, then make things multiline.
-                        if (!document.Text.AreOnSameLine(component.GetFirstToken(), component.GetLastToken()))
-                            return true;
-
-                        totalLength += component.Span.Length;
-                    }
-                }
-
-                return false;
-            }
         }
 
         static IEnumerable<SyntaxNode> GetElementComponents(TMatchNode node)
