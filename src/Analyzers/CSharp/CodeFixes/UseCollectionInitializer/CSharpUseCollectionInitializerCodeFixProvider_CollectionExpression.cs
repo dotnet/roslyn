@@ -27,8 +27,8 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider
         return CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
             document,
             objectCreation,
-            preMatches.Concat(postMatches).SelectAsArray(m => new CollectionExpressionMatch<SyntaxNode>(m.StatementOrExpression, m.UseSpread)),
-            postMatches.Concat(postMatches).SelectAsArray(m => new CollectionExpressionMatch<SyntaxNode>(m.StatementOrExpression, m.UseSpread)),
+            preMatches.SelectAsArray(m => new CollectionExpressionMatch<SyntaxNode>(m.StatementOrExpression, m.UseSpread)),
+            postMatches.SelectAsArray(m => new CollectionExpressionMatch<SyntaxNode>(m.StatementOrExpression, m.UseSpread)),
             static objectCreation => objectCreation.Initializer,
             static (objectCreation, initializer) => objectCreation.WithInitializer(initializer),
             cancellationToken);
