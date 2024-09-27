@@ -133,9 +133,16 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     {
         // Because we're recursing from top to bottom in the expression tree, we build up the matches in reverse.  Right
         // before returning them, we'll reverse them again to get the proper order.
-        using var _ = ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>.GetInstance(out var matchesInReverse);
-        if (!AnalyzeInvocation(text, state, invocation, addMatches ? matchesInReverse : null, out var existingInitializer, cancellationToken))
+        using var _1 = ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>.GetInstance(out var preMatchesInReverse);
+        using var _2 = ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>.GetInstance(out var postMatchesInReverse);
+        if (!AnalyzeInvocation(
+                text, state, invocation,
+                addMatches ? preMatchesInReverse : null,
+                addMatches ? postMatchesInReverse : null,
+                out var existingInitializer, cancellationToken))
+        {
             return null;
+        }
 
         if (!CanReplaceWithCollectionExpression(
                 state.SemanticModel, invocation, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
@@ -143,15 +150,17 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             return null;
         }
 
-        matchesInReverse.ReverseContents();
-        return new AnalysisResult(existingInitializer, invocation, matchesInReverse.ToImmutable(), changesSemantics);
+        preMatchesInReverse.ReverseContents();
+        postMatchesInReverse.ReverseContents();
+        return new AnalysisResult(existingInitializer, invocation, preMatchesInReverse.ToImmutable(), postMatchesInReverse.ToImmutable(), changesSemantics);
     }
 
     private static bool AnalyzeInvocation(
         SourceText text,
         FluentState state,
         InvocationExpressionSyntax invocation,
-        ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>? matchesInReverse,
+        ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>? preMatchesInReverse,
+        ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>? postMatchesInReverse,
         out InitializerExpressionSyntax? existingInitializer,
         CancellationToken cancellationToken)
     {
@@ -165,7 +174,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         // Topmost invocation must be a syntactic match for one of our collection manipulation forms.  At the top level
         // we don't want to end with a linq method as that would be lazy, and a collection expression will eagerly
         // realize the collection.
-        if (!IsMatch(state, memberAccess, invocation, allowLinq: false, matchesInReverse, out var isAdditionMatch, cancellationToken))
+        if (!IsMatch(state, memberAccess, invocation, allowLinq: false, postMatchesInReverse, out var isAdditionMatch, cancellationToken))
             return false;
 
         // We don't want to offer this feature on top of some builder-type.  They will commonly end with something like
@@ -189,7 +198,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             // left hand side of the expression.  In the inner expressions we can have things like `.Concat/.Append`
             // calls as the outer expressions will realize the collection.
             if (current is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax currentMemberAccess } currentInvocation &&
-                IsMatch(state, currentMemberAccess, currentInvocation, allowLinq: true, matchesInReverse, out _, cancellationToken))
+                IsMatch(state, currentMemberAccess, currentInvocation, allowLinq: true, postMatchesInReverse, out _, cancellationToken))
             {
                 copiedData = true;
                 stack.Push(currentMemberAccess.Expression);
@@ -232,6 +241,8 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                     return false;
                 }
 
+                existingInitializer = objectCreation.Initializer;
+
                 if (!IsLegalInitializer(objectCreation.Initializer))
                     return false;
 
@@ -251,23 +262,14 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                         return false;
                     }
 
-                    if (matchesInReverse != null)
-                    {
-                        // Need to push any initializer values to the matchesInReverse first, as they need to execute prior
-                        // to the argument to the object creation itself executing.
-
-                        if (objectCreation.Initializer != null)
-                            AddArgumentsInReverse(matchesInReverse, ArgumentList(SeparatedList(objectCreation.Initializer.Expressions.Select(Argument))).Arguments, useSpread: false);
-
-                        AddArgumentsInReverse(matchesInReverse, objectCreation.ArgumentList.Arguments, useSpread: true);
-                    }
-
+                    // Add the arguments to the pre-matches.  They will execute before the initializer values are added.
+                    if (objectCreation.Initializer != null)
+                        AddArgumentsInReverse(preMatchesInReverse, ArgumentList(SeparatedList(objectCreation.Initializer.Expressions.Select(Argument))).Arguments, useSpread: false);
                     return true;
                 }
                 else if (objectCreation.ArgumentList is null or { Arguments.Count: 0 })
                 {
                     // Otherwise, we have to have an empty argument list.
-                    existingInitializer = objectCreation.Initializer;
                     return true;
                 }
 
@@ -281,7 +283,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 if (!IsListLike(current))
                     return false;
 
-                AddArgumentsInReverse(matchesInReverse, GetArguments(currentInvocationExpression, unwrapArgument), useSpread: false);
+                AddArgumentsInReverse(postMatchesInReverse, GetArguments(currentInvocationExpression, unwrapArgument), useSpread: false);
                 return true;
             }
 
@@ -310,13 +312,13 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
 
         void AddFinalMatch(ExpressionSyntax expression)
         {
-            if (matchesInReverse is null)
+            if (postMatchesInReverse is null)
                 return;
 
             // We're only adding one item to the final collection.  So we're ending up with `[.. <expr>]`.  If this
             // originally was wrapped over multiple lines in a fluent fashion, and we're down to just a single wrapped
             // line, then unwrap.
-            if (matchesInReverse.Count == 0 &&
+            if (postMatchesInReverse.Count == 0 &&
                 expression is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax memberAccess } innerInvocation &&
                 text.Lines.GetLineFromPosition(expression.SpanStart).LineNumber + 1 == text.Lines.GetLineFromPosition(expression.Span.End).LineNumber &&
                 memberAccess.Expression.GetTrailingTrivia()
@@ -325,7 +327,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                     .All(static t => t.IsWhitespaceOrEndOfLine()))
             {
                 // Remove any whitespace around the `.`, making the singly-wrapped fluent expression into a single line.
-                matchesInReverse.Add(new CollectionExpressionMatch<ArgumentSyntax>(
+                postMatchesInReverse.Add(new CollectionExpressionMatch<ArgumentSyntax>(
                     Argument(innerInvocation.WithExpression(
                         memberAccess.Update(
                             memberAccess.Expression.WithoutTrailingTrivia(),
@@ -335,7 +337,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 return;
             }
 
-            matchesInReverse.Add(new CollectionExpressionMatch<ArgumentSyntax>(Argument(expression), UseSpread: true));
+            postMatchesInReverse.Add(new CollectionExpressionMatch<ArgumentSyntax>(Argument(expression), UseSpread: true));
         }
 
         // We only want to offer this feature when the original collection was list-like (as opposed to being something
@@ -501,12 +503,15 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     /// help determine the best collection expression final syntax.</param>
     /// <param name="CreationExpression">The location of the code like <c>builder.ToImmutable()</c> that will actually be
     /// replaced with the collection expression</param>
-    /// <param name="Matches">The arguments being added to the collection that will be converted into elements in the
-    /// final collection expression.</param>
+    /// <param name="PreMatches">The arguments being added to the collection that will be converted into elements in
+    /// the final collection expression *before* the existing initializer elements.</param>
+    /// <param name="PostMatches">The arguments being added to the collection that will be converted into elements in
+    /// the final collection expression *after* the existing initializer elements.</param>
     public readonly record struct AnalysisResult(
         // Location DiagnosticLocation,
         InitializerExpressionSyntax? ExistingInitializer,
         InvocationExpressionSyntax CreationExpression,
-        ImmutableArray<CollectionExpressionMatch<ArgumentSyntax>> Matches,
+        ImmutableArray<CollectionExpressionMatch<ArgumentSyntax>> PreMatches,
+        ImmutableArray<CollectionExpressionMatch<ArgumentSyntax>> PostMatches,
         bool ChangesSemantics);
 }
