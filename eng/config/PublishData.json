@@ -211,10 +211,10 @@
         "Shipping",
         "NonShipping"
       ],
-      "vsBranch": "rel/d17.12",
+      "vsBranch": "main",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.12 P2]"
+      "insertionTitlePrefix": "[d17.12 P3]"
     },
     "main": {
       "nugetKind": [
@@ -223,8 +223,8 @@
       ],
       "vsBranch": "main",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.12 P3]"
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[d17.13 P1]"
     },
     "dev/andrha/telemetry": {
       "nugetKind": [

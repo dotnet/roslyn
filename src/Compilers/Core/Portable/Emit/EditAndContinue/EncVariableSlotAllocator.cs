@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 // closure shape changed:
                 closureId = default;
-                runtimeRudeEdit = new RuntimeRudeEdit(CodeAnalysisResources.EncLambdaRudeEdit_CapturedVariables);
+                runtimeRudeEdit = new RuntimeRudeEdit(HotReloadExceptionCode.UnsupportedChangeToCapturedVariables);
                 return false;
             }
 
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 // lambda closure changed:
                 lambdaId = default;
-                runtimeRudeEdit = new RuntimeRudeEdit(CodeAnalysisResources.EncLambdaRudeEdit_CapturedVariables);
+                runtimeRudeEdit = new RuntimeRudeEdit(HotReloadExceptionCode.UnsupportedChangeToCapturedVariables);
                 return false;
             }
 
