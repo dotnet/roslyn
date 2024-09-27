@@ -595,4 +595,14 @@
   <data name="DoNotDeclareCompilerFeatureInAssemblyWithUnsupportedTargetFrameworkRuleTitle" xml:space="preserve">
     <value>Compiler extensions should be implemented in assemblies targeting netstandard2.0</value>
   </data>
+  <data name="ImplementationIsObsoleteDescription" xml:space="preserve">
+    <value>The author of this interface has deprecated implementing this interface.</value>
+  </data>
+  <data name="ImplementationIsObsoleteMessage" xml:space="preserve">
+    <value>Type {0} cannot implement interface {1} because {1} is obsolete for implementation. See {2} for more details.</value>
+    <remarks>{2} is a URL</remarks>
+  </data>
+  <data name="ImplementationIsObsoleteTitle" xml:space="preserve">
+    <value>Implementations of this interface are not allowed</value>
+  </data>
 </root>

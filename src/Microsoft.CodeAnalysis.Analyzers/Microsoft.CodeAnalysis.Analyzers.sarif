@@ -513,6 +513,21 @@
             ]
           }
         },
+        "RS1042": {
+          "id": "RS1042",
+          "shortDescription": "Implementations of this interface are not allowed",
+          "fullDescription": "The author of this interface has deprecated implementing this interface.",
+          "defaultLevel": "error",
+          "properties": {
+            "category": "MicrosoftCodeAnalysisCompatibility",
+            "isEnabledByDefault": true,
+            "typeName": "ImplementationIsObsoleteAnalyzer",
+            "languages": [
+              "C#",
+              "Visual Basic"
+            ]
+          }
+        },
         "RS2000": {
           "id": "RS2000",
           "shortDescription": "Add analyzer diagnostic IDs to analyzer release",

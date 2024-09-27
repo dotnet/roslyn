@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.Analyzers
         public const string SemanticModelGetDeclaredSymbolAlwaysReturnsNull = "RS1039";
         public const string SemanticModelGetDeclaredSymbolAlwaysReturnsNullForField = "RS1040";
         public const string DoNotRegisterCompilerTypesWithBadTargetFrameworkRuleId = "RS1041";
+        public const string ImplementationIsObsoleteRuleId = "RS1042";
 
         // Release tracking analyzer IDs
         public const string DeclareDiagnosticIdInAnalyzerReleaseRuleId = "RS2000";

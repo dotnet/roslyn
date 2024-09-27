@@ -39,3 +39,4 @@ RS1036 |  | Specify analyzer banned API enforcement setting |
 RS1037 |  | Add "CompilationEnd" custom tag to compilation end diagnostic descriptor |
 RS1039 |  | This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null' |
 RS1040 |  | This call to 'SemanticModel.GetDeclaredSymbol()' will always return 'null' |
+RS1042 |  | Implementations of this interface are not allowed |

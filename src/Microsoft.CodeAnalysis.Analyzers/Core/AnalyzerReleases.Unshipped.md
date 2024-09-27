@@ -6,3 +6,4 @@ Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 RS1038 | MicrosoftCodeAnalysisCorrectness | Warning | CompilerExtensionStrictApiAnalyzer
 RS1041 | MicrosoftCodeAnalysisCorrectness | Warning | CompilerExtensionTargetFrameworkAnalyzer, [Documentation](https://github.com/dotnet/roslyn-analyzers/blob/main/docs/rules/RS1041.md)
+RS1042 | MicrosoftCodeAnalysisCompatibility | Error | ImplementationIsObsoleteAnalyzer

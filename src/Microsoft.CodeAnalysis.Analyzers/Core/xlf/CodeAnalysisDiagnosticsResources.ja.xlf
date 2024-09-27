@@ -217,6 +217,21 @@
         <target state="translated">同時実行を有効にします</target>
         <note />
       </trans-unit>
+      <trans-unit id="ImplementationIsObsoleteDescription">
+        <source>The author of this interface has deprecated implementing this interface.</source>
+        <target state="new">The author of this interface has deprecated implementing this interface.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImplementationIsObsoleteMessage">
+        <source>Type {0} cannot implement interface {1} because {1} is obsolete for implementation. See {2} for more details.</source>
+        <target state="new">Type {0} cannot implement interface {1} because {1} is obsolete for implementation. See {2} for more details.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ImplementationIsObsoleteTitle">
+        <source>Implementations of this interface are not allowed</source>
+        <target state="new">Implementations of this interface are not allowed</target>
+        <note />
+      </trans-unit>
       <trans-unit id="InvalidEntryInAnalyzerReleasesFileRuleDescription">
         <source>Invalid entry in analyzer release file.</source>
         <target state="translated">アナライザー リリース ファイルに無効なエントリがあります。</target>

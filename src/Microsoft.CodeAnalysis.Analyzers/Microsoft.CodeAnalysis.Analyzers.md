@@ -508,6 +508,18 @@ Types which implement compiler extension points should only be declared in assem
 |CodeFix|False|
 ---
 
+## RS1042: Implementations of this interface are not allowed
+
+The author of this interface has deprecated implementing this interface.
+
+|Item|Value|
+|-|-|
+|Category|MicrosoftCodeAnalysisCompatibility|
+|Enabled|True|
+|Severity|Error|
+|CodeFix|False|
+---
+
 ## [RS2000](https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.Analyzers/ReleaseTrackingAnalyzers.Help.md): Add analyzer diagnostic IDs to analyzer release
 
 All supported analyzer diagnostic IDs should be part of an analyzer release.
