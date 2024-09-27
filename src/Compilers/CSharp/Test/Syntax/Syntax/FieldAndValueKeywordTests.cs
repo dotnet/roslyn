@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
             // No diagnostics expected for field in indexers.
             comp.VerifyEmitDiagnostics();
         }
@@ -577,8 +577,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 #pragma warning disable 8321, 8981
                 class C
                 {
-                    object P1 { get { void F1<field>() { } return null; } }
-                    object P2 { get { void F2<@field>() { } return null; } }
+                    object P1 { get { object F1<field>() { return default(@field); } return null; } }
+                    object P2 { get { object F2<@field>() { return default(field); } return null; } }
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -680,6 +680,39 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
+        public void Local(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+        {
+            string source = """
+                class C
+                {
+                    object P
+                    {
+                        set
+                        {
+                            object field = 1;
+                            _ = field;
+                            _ = @field;
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (8,17): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
+                    //             _ = field;
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(8, 17));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
         public void Lambda_01(
             [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
@@ -752,8 +785,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact]
-        public void Lambda_Local()
+        [Theory]
+        [CombinatorialData]
+        public void Lambda_Local(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649
@@ -765,19 +800,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         get
                         {
                             Func<object> f;
-                            f = () => { object field = 1; return null; };
-                            f = () => { object @field = 2; return null; };
+                            f = () => { object field = 1; return field; };
+                            f = () => { object @field = 2; return @field; };
                             return null;
                         }
                     }
                 }
                 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
-            comp.VerifyEmitDiagnostics();
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (10,50): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
+                    //             f = () => { object field = 1; return field; };
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(10, 50));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
-        [Fact]
-        public void Lambda_Parameter_01()
+        [Theory]
+        [CombinatorialData]
+        public void Lambda_Parameter_01(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649
@@ -789,15 +836,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         get
                         {
                             Func<object, object> f;
-                            f = field => null;
-                            f = @field => null;
+                            f = field => @field;
+                            f = @field => field;
                             return null;
                         }
                     }
                 }
                 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
-            comp.VerifyEmitDiagnostics();
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (11,27): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
+                    //             f = @field => field;
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(11, 27));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Fact]
@@ -819,7 +876,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -842,12 +899,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics();
         }
 
-        [Fact]
-        public void LocalFunction_Local()
+        [Theory]
+        [CombinatorialData]
+        public void LocalFunction_Local(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649, 8321
@@ -857,19 +916,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         get
                         {
-                            object F1() { object field = 1; return null; };
-                            object F2() { object @field = 2; return null; };
+                            object F1() { object field = 1; return field; };
+                            object F2() { object @field = 2; return @field; };
                             return null;
                         }
                     }
                 }
                 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
-            comp.VerifyEmitDiagnostics();
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (8,52): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
+                    //             object F1() { object field = 1; return field; };
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(8, 52));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
-        [Fact]
-        public void LocalFunction_Parameter()
+        [Theory]
+        [CombinatorialData]
+        public void LocalFunction_Parameter(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649, 8321
@@ -879,15 +950,84 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         get
                         {
-                            object F1(object field) => null;
-                            object F2(object @field) => null;
+                            object F1(object field) => @field;
+                            object F2(object @field) => field;
                             return null;
                         }
                     }
                 }
                 """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular12);
-            comp.VerifyEmitDiagnostics();
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (9,41): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
+                    //             object F2(object @field) => field;
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(9, 41));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void TypeParameter(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+        {
+            string source = """
+                class C1<field>
+                {
+                    object P1 => default(@field);
+                }
+                class C2<@field>
+                {
+                    object P2 => default(field);
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics(
+                // (1,10): warning CS8981: The type name 'field' only contains lower-cased ascii characters. Such names may become reserved for the language.
+                // class C1<field>
+                Diagnostic(ErrorCode.WRN_LowerCaseTypeName, "field").WithArguments("field").WithLocation(1, 10));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ParameterDefaultValue(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
+        {
+            string source = """
+                #pragma warning disable 649, 8321
+                class C
+                {
+                    const int field = 0;
+                    object P
+                    {
+                        set
+                        {
+                            static void F1(int v = field) { }
+                            static void F2(int v = @field) { }
+                        }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (9,36): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
+                    //             static void F1(int v = field) { }
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(9, 36),
+                    // (9,36): error CS1736: Default parameter value for 'v' must be a compile-time constant
+                    //             static void F1(int v = field) { }
+                    Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "field").WithArguments("v").WithLocation(9, 36));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory]
@@ -1143,6 +1283,45 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var actualFields = comp.GetMember<NamedTypeSymbol>("Derived").GetMembers().Where(m => m.Kind == SymbolKind.Field).ToTestDisplayStrings();
                 string[] expectedFields = synthesizeField ? ["System.String Derived.<P>k__BackingField"] : [];
                 AssertEx.Equal(expectedFields, actualFields);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Conditional(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
+            bool useDEBUG)
+        {
+            string source = """
+                using System.Diagnostics;
+                class C
+                {
+                    const int field = 0;
+                    object P1 { get { M(field); return null; } }
+                    object P2 { set { M(field); } }
+                    [Conditional("DEBUG")]
+                    static void M( object o) { }
+                }
+                """;
+            var parseOptions = TestOptions.Regular.WithLanguageVersion(languageVersion);
+            if (useDEBUG)
+            {
+                parseOptions = parseOptions.WithPreprocessorSymbols("DEBUG");
+            }
+            var comp = CreateCompilation(source, parseOptions: parseOptions);
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (5,25): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
+                    //     object P1 { get { M(field); return null; } }
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(5, 25),
+                    // (6,25): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
+                    //     object P2 { set { M(field); } }
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(6, 25));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
             }
         }
     }
