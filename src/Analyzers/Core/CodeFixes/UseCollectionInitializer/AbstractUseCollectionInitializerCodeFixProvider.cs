@@ -54,7 +54,8 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
 
     protected abstract Task<(SyntaxNode oldNode, SyntaxNode newNode)> GetReplacementNodesAsync(
         Document document, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression,
-        ImmutableArray<Match> preMatches, ImmutableArray<Match> postMatches, CancellationToken cancellationToken);
+        ImmutableArray<CollectionMatch<SyntaxNode>> preMatches,
+        ImmutableArray<CollectionMatch<SyntaxNode>> postMatches, CancellationToken cancellationToken);
 
     protected sealed override async Task FixAsync(
         Document document,
@@ -85,10 +86,10 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
             document, objectCreation, useCollectionExpression, preMatches, postMatches, cancellationToken).ConfigureAwait(false);
 
         editor.ReplaceNode(oldNode, newNode);
+
+        // We only need to remove the post-matches.  The pre-matches are the arguments in teh object creation, which
+        // itself got replaced above.
         foreach (var match in postMatches)
-        {
-            if (match.StatementOrExpression is TStatementSyntax statement)
-                editor.RemoveNode(statement, SyntaxRemoveOptions.KeepUnbalancedDirectives);
-        }
+            editor.RemoveNode(match.Node, SyntaxRemoveOptions.KeepUnbalancedDirectives);
     }
 }

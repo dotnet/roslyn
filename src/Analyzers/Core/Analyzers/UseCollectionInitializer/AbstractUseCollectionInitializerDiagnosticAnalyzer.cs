@@ -11,20 +11,9 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
-
-/// <summary>
-/// Represents statements following an object initializer that should be converted into
-/// collection-initializer/expression elements.
-/// </summary>
-/// <param name="StatementOrExpression">The statement that follows that contains the values to add to the new
-/// collection-initializer or collection-expression. Or the expression directly to add.</param>
-/// <param name="UseSpread">Whether or not a spread (<c>.. x</c>) element should be created for this statement. This
-/// is needed as the statement could be cases like <c>expr.Add(x)</c> vs. <c>expr.AddRange(x)</c>. This property
-/// indicates that the latter should become a spread, without the consumer having to reexamine the statement to see
-/// what form it is.</param>
-internal readonly record struct Match(SyntaxNode StatementOrExpression, bool UseSpread);
 
 internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyzer<
     TSyntaxKind,
@@ -180,7 +169,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         var nodes = containingStatement is null
             ? ImmutableArray<SyntaxNode>.Empty
             : [containingStatement];
-        nodes = nodes.AddRange(matches.Select(static m => m.StatementOrExpression));
+        nodes = nodes.AddRange(matches.Select(static m => m.Node));
         if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
             return;
 
@@ -203,7 +192,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
         return;
 
-        (ImmutableArray<Match> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionInitializerMatches()
+        (ImmutableArray<CollectionMatch<SyntaxNode>> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionInitializerMatches()
         {
             if (containingStatement is null)
                 return null;
@@ -220,7 +209,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             return (matches, shouldUseCollectionExpression: false, changesSemantics: false);
         }
 
-        (ImmutableArray<Match> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionExpressionMatches()
+        (ImmutableArray<CollectionMatch<SyntaxNode>> matches, bool shouldUseCollectionExpression, bool changesSemantics)? GetCollectionExpressionMatches()
         {
             if (preferExpressionOption.Value == CollectionExpressionPreference.Never)
                 return null;
@@ -246,7 +235,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
     private void FadeOutCode(
         SyntaxNodeAnalysisContext context,
-        ImmutableArray<Match> matches,
+        ImmutableArray<CollectionMatch<SyntaxNode>> matches,
         ImmutableArray<Location> locations,
         ImmutableDictionary<string, string?>? properties)
     {

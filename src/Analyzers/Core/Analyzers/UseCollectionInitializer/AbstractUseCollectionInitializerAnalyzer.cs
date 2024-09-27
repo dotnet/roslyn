@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
@@ -27,7 +28,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         TObjectCreationExpressionSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
-        Match, TAnalyzer>
+        CollectionMatch<SyntaxNode>, TAnalyzer>
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
     where TObjectCreationExpressionSyntax : TExpressionSyntax
@@ -48,13 +49,13 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         TAnalyzer>, new()
 {
     public readonly record struct AnalysisResult(
-        ImmutableArray<Match> PreMatches,
-        ImmutableArray<Match> PostMatches);
+        ImmutableArray<CollectionMatch<SyntaxNode>> PreMatches,
+        ImmutableArray<CollectionMatch<SyntaxNode>> PostMatches);
 
     protected abstract bool IsComplexElementInitializer(SyntaxNode expression);
     protected abstract bool HasExistingInvalidInitializerForCollection();
     protected abstract bool AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
-        ArrayBuilder<Match> preMatches, ArrayBuilder<Match> postMatches, CancellationToken cancellationToken);
+        ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches, ArrayBuilder<CollectionMatch<SyntaxNode>> postMatches, CancellationToken cancellationToken);
 
     protected abstract IUpdateExpressionSyntaxHelper<TExpressionSyntax, TStatementSyntax> SyntaxHelper { get; }
 
@@ -92,7 +93,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
     }
 
     protected sealed override bool TryAddMatches(
-        ArrayBuilder<Match> preMatches, ArrayBuilder<Match> postMatches, CancellationToken cancellationToken)
+        ArrayBuilder<CollectionMatch<SyntaxNode>> preMatches, ArrayBuilder<CollectionMatch<SyntaxNode>> postMatches, CancellationToken cancellationToken)
     {
         var seenInvocation = false;
         var seenIndexAssignment = false;
@@ -136,7 +137,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         return true;
     }
 
-    private Match? TryAnalyzeStatement(
+    private CollectionMatch<SyntaxNode>? TryAnalyzeStatement(
         TStatementSyntax statement, ref bool seenInvocation, ref bool seenIndexAssignment, CancellationToken cancellationToken)
     {
         return _analyzeForCollectionExpression
@@ -144,7 +145,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
             : TryAnalyzeStatementForCollectionInitializer(statement, ref seenInvocation, ref seenIndexAssignment, cancellationToken);
     }
 
-    private Match? TryAnalyzeStatementForCollectionInitializer(
+    private CollectionMatch<SyntaxNode>? TryAnalyzeStatementForCollectionInitializer(
         TStatementSyntax statement, ref bool seenInvocation, ref bool seenIndexAssignment, CancellationToken cancellationToken)
     {
         // At least one of these has to be false.

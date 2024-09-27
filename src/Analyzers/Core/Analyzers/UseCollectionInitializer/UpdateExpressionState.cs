@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
@@ -337,7 +338,7 @@ internal readonly struct UpdateExpressionState<
     /// includes calls to <c>.Add</c> and <c>.AddRange</c>, as well as <c>foreach</c> statements that update the
     /// collection, and <c>if</c> statements that conditionally add items to the collection-expression.
     /// </summary>
-    public Match? TryAnalyzeStatementForCollectionExpression(
+    public CollectionMatch<SyntaxNode>? TryAnalyzeStatementForCollectionExpression(
         IUpdateExpressionSyntaxHelper<TExpressionSyntax, TStatementSyntax> syntaxHelper,
         TStatementSyntax statement,
         CancellationToken cancellationToken)
@@ -355,7 +356,7 @@ internal readonly struct UpdateExpressionState<
 
         return null;
 
-        Match? TryAnalyzeExpressionStatement(TStatementSyntax expressionStatement)
+        CollectionMatch<SyntaxNode>? TryAnalyzeExpressionStatement(TStatementSyntax expressionStatement)
         {
             var expression = (TExpressionSyntax)@this.SyntaxFacts.GetExpressionOfExpressionStatement(expressionStatement);
 
@@ -369,7 +370,7 @@ internal readonly struct UpdateExpressionState<
             return null;
         }
 
-        Match? TryAnalyzeForeachStatement(TStatementSyntax foreachStatement)
+        CollectionMatch<SyntaxNode>? TryAnalyzeForeachStatement(TStatementSyntax foreachStatement)
         {
             syntaxHelper.GetPartsOfForeachStatement(foreachStatement, out var awaitKeyword, out var identifier, out _, out var foreachStatements);
             if (awaitKeyword != default)
@@ -399,7 +400,7 @@ internal readonly struct UpdateExpressionState<
             return null;
         }
 
-        Match? TryAnalyzeIfStatement(TStatementSyntax ifStatement)
+        CollectionMatch<SyntaxNode>? TryAnalyzeIfStatement(TStatementSyntax ifStatement)
         {
             // look for the form:
             //

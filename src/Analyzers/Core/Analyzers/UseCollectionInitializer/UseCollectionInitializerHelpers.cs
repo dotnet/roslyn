@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
 
@@ -20,9 +21,9 @@ internal static class UseCollectionInitializerHelpers
 
     public static ImmutableArray<Location> GetLocationsToFade(
         ISyntaxFacts syntaxFacts,
-        Match matchInfo)
+        CollectionMatch<SyntaxNode> matchInfo)
     {
-        var match = matchInfo.StatementOrExpression;
+        var match = matchInfo.Node;
         var syntaxTree = match.SyntaxTree;
         if (syntaxFacts.IsExpressionStatement(match))
         {
