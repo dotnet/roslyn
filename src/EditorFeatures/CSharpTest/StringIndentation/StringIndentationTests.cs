@@ -25,7 +25,7 @@ public class StringIndentationTests
     {
         using var workspace = TestWorkspace.CreateWorkspace(
             TestWorkspace.CreateWorkspaceElement(LanguageNames.CSharp,
-                files: new[] { contents.Replace("|", " ") },
+                files: [contents.Replace("|", " ")],
                 isMarkup: false));
         var document = workspace.CurrentSolution.GetRequiredDocument(workspace.Documents.First().Id);
         var root = await document.GetRequiredSyntaxRootAsync(default);

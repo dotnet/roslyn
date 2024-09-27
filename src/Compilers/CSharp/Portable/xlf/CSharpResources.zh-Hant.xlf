@@ -287,11 +287,6 @@
         <target state="translated">記錄成員 '{0}' 必須是類型 '{1}' 的可讀取執行個體屬性或欄位，才能符合位置參數 '{2}'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
-        <target state="translated">foreach 陳述式無法對 async 或 iterator 方法中 '{0}' 類型的列舉值運作，因為 '{0}' 是 ref struct 或允許 ref struct 的型別參數。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
         <target state="translated">類型 '{0}' 的參數不得在非同步方法或非同步 Lambda 運算式中宣告。</target>
@@ -505,6 +500,11 @@
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
         <target state="translated">無法使用集合運算式將類型 '{0}' 初始化，因為該類型為不可建構。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
+        <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
+        <target state="new">Collection initializer results in an infinite chain of instantiations of collection '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -1148,8 +1148,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="translated">未在此命名空間中啟用「攔截器」實驗功能。將 '{0}' 新增至您的專案。</target>
+        <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="needs-review-translation">未在此命名空間中啟用「攔截器」實驗功能。將 '{0}' 新增至您的專案。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
@@ -1735,6 +1735,11 @@
       <trans-unit id="ERR_PartialPropertyDuplicateImplementation">
         <source>A partial property may not have multiple implementing declarations</source>
         <target state="translated">部分屬性不可具有多個實作的宣告</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateInitializer">
+        <source>A partial property cannot have an initializer on both the definition and implementation.</source>
+        <target state="new">A partial property cannot have an initializer on both the definition and implementation.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyInitMismatch">
@@ -2632,11 +2637,6 @@
         <target state="translated">指標</target>
         <note />
       </trans-unit>
-      <trans-unit id="INF_IdentifierConflictWithContextualKeyword">
-        <source>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</source>
-        <target state="translated">'{0}' 是從語言版本 {1} 開始之屬性存取子中的內容相關關鍵字。請改用 '@{0}'。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
         <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
         <target state="translated">識別碼是在較新語言版本中具有特定意義的內容相關關鍵字。</target>
@@ -2925,6 +2925,16 @@
       <trans-unit id="WRN_EscapeVariable_Title">
         <source>Use of variable in this context may expose referenced variables outside of their declaration scope</source>
         <target state="translated">在此內容中使用變數，可能會將參考的變數公開在其宣告範圍外</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous">
+        <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</source>
+        <target state="new">In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous_Title">
+        <source>The 'field' keyword binds to a synthesized backing field for the property.</source>
+        <target state="new">The 'field' keyword binds to a synthesized backing field for the property.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
@@ -5271,6 +5281,16 @@ strument:TestCoverage      產生檢測要收集
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter_Title">
         <source>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
         <target state="translated">非同步迭代器成員有一或多個類型 'CancellationToken' 的參數，但因為沒有任何參數有裝飾 'EnumeratorCancellation' 屬性，所以將不會取用來自已產生 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' 的取消權杖參數</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableBackingField">
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</target>
+        <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
+        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <target state="new">Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -12155,8 +12175,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
-        <source>Only auto-implemented properties can have initializers.</source>
-        <target state="translated">只有自動實作的屬性可以有初始設定式。</target>
+        <source>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</source>
+        <target state="needs-review-translation">只有自動實作的屬性可以有初始設定式。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyMustHaveGetAccessor">

@@ -63,9 +63,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
                 : base.ReadMetadataReferenceFrom(reader);
 
         protected override Checksum CreateChecksum(AnalyzerReference reference)
-            => reference is TestGeneratorReference generatorReference
-                ? generatorReference.Checksum
-                : base.CreateChecksum(reference);
+            => reference switch
+            {
+                TestGeneratorReference generatorReference => generatorReference.Checksum,
+                TestAnalyzerReferenceByLanguage analyzerReferenceByLanguage => analyzerReferenceByLanguage.Checksum,
+                _ => base.CreateChecksum(reference)
+            };
 
         protected override void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer)
         {

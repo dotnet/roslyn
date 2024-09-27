@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -15,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -146,13 +146,6 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             return null;
         }
 
-        // Checks to see if there have been any files excluded at the workspace level
-        // since the copilot service passes along symbol information.
-        if (await copilotService.IsAnyExclusionAsync(cancellationToken).ConfigureAwait(false))
-        {
-            return null;
-        }
-
         if (document.GetLanguageService<ICopilotOptionsService>() is not { } service ||
             !await service.IsOnTheFlyDocsOptionEnabledAsync().ConfigureAwait(false))
         {
@@ -182,6 +175,19 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             return null;
         }
 
+        // Checks to see if any of the files containing the symbol are excluded.
+        var hasContentExcluded = false;
+        var symbolFilePaths = symbol.DeclaringSyntaxReferences.Select(reference => reference.SyntaxTree.FilePath);
+        foreach (var symbolFilePath in symbolFilePaths)
+        {
+            if (await copilotService.IsFileExcludedAsync(symbolFilePath, cancellationToken).ConfigureAwait(false))
+            {
+                hasContentExcluded = true;
+                Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Content_Excluded, logLevel: LogLevel.Information);
+                break;
+            }
+        }
+
         var maxLength = 1000;
         var symbolStrings = symbol.DeclaringSyntaxReferences.Select(reference =>
         {
@@ -190,6 +196,6 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             return sourceText.GetSubText(new Text.TextSpan(span.Start, Math.Min(maxLength, span.Length))).ToString();
         }).ToImmutableArray();
 
-        return new OnTheFlyDocsElement(symbol.ToDisplayString(), symbolStrings, symbol.Language);
+        return new OnTheFlyDocsElement(symbol.ToDisplayString(), symbolStrings, symbol.Language, hasContentExcluded);
     }
 }

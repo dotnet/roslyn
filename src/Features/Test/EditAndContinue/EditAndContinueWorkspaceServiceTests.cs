@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -68,7 +69,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var sourceTreeC1 = SyntaxFactory.ParseSyntaxTree(SourceText.From(sourceBytesC1, sourceBytesC1.Length, encodingC, SourceHashAlgorithm.Sha1), TestOptions.Regular, sourceFileC.Path);
 
         // E is not included in the compilation:
-        var compilation = CSharpTestBase.CreateCompilation(new[] { sourceTreeA1, sourceTreeB1, sourceTreeC1 }, options: TestOptions.DebugDll, targetFramework: DefaultTargetFramework, assemblyName: "P");
+        var compilation = CSharpTestBase.CreateCompilation([sourceTreeA1, sourceTreeB1, sourceTreeC1], options: TestOptions.DebugDll, targetFramework: DefaultTargetFramework, assemblyName: "P");
         EmitLibrary(compilation);
 
         // change content of B on disk:
@@ -138,11 +139,11 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         var debuggingSession = service.GetTestAccessor().GetDebuggingSession(sessionId);
 
         var matchingDocuments = debuggingSession.LastCommittedSolution.Test_GetDocumentStates();
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             "(A, MatchesBuildOutput)",
             "(C, MatchesBuildOutput)"
-        }, matchingDocuments.Select(e => (solution.GetDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
+        ], matchingDocuments.Select(e => (solution.GetDocument(e.id).Name, e.state)).OrderBy(e => e.Name).Select(e => e.ToString()));
 
         // change content of B on disk again:
         sourceFileB.WriteAllText(sourceB3, encodingB);
@@ -219,10 +220,10 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         EndDebuggingSession(debuggingSession);
 
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1"
-        }, _telemetryLog);
+        ], _telemetryLog);
     }
 
     [Theory, CombinatorialData]
@@ -287,10 +288,10 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         EndDebuggingSession(debuggingSession);
 
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1"
-        }, _telemetryLog);
+        ], _telemetryLog);
     }
 
     [Fact]
@@ -349,7 +350,7 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         using var _ = CreateWorkspace(out var solution, out var service);
 
-        // The workspace starts with 
+        // The workspace starts with
         // [added == false] a version of the source that's not updated with the output of single file generator (or design-time build):
         // [added == true] without the output of single file generator (design-time build has not completed)
 
@@ -497,21 +498,21 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         if (breakMode)
         {
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=3",
                 "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges={6A6F7270-0000-4000-8000-000000000000}",
                 "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC1001"
-            }, _telemetryLog);
+            ], _telemetryLog);
         }
         else
         {
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=1",
                 "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges={6A6F7270-0000-4000-8000-000000000000}",
                 "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC1001"
-            }, _telemetryLog);
+            ], _telemetryLog);
         }
     }
 
@@ -560,10 +561,10 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         EndDebuggingSession(debuggingSession);
 
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=1|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1"
-        }, _telemetryLog);
+        ], _telemetryLog);
     }
 
     [Fact]
@@ -616,11 +617,11 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
         debuggingSession.DiscardSolutionUpdate();
         EndDebuggingSession(debuggingSession);
 
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
             "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges="
-        }, _telemetryLog);
+        ], _telemetryLog);
     }
 
     [Theory, CombinatorialData]
@@ -674,19 +675,19 @@ public sealed class EditAndContinueWorkspaceServiceTests : EditAndContinueWorksp
 
         if (breakMode)
         {
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
                 "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges="
-            }, _telemetryLog);
+            ], _telemetryLog);
         }
         else
         {
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
                 "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges="
-            }, _telemetryLog);
+            ], _telemetryLog);
         }
     }
 
@@ -844,18 +845,18 @@ class C1
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.RestartRequired, updates.Status);
         Assert.Empty(updates.Updates);
-        AssertEx.Equal(new[] { $"{document2.FilePath}: (5,0)-(5,32): Error ENC2016: {string.Format(FeaturesResources.EditAndContinueDisallowedByProject, document2.Project.Name, "*message*")}" }, InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"{document2.FilePath}: (5,0)-(5,32): Error ENC2016: {string.Format(FeaturesResources.EditAndContinueDisallowedByProject, document2.Project.Name, "*message*")}"], InspectDiagnostics(emitDiagnostics));
 
         EndDebuggingSession(debuggingSession);
 
-        AssertEx.SetEqual(new[] { moduleId }, debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
+        AssertEx.SetEqual([moduleId], debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
 
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
             "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges=",
             "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC2016"
-        }, _telemetryLog);
+        ], _telemetryLog);
     }
 
     [Fact]
@@ -936,7 +937,7 @@ class C1
         var document2 = solution.GetDocument(document1.Id);
 
         var diagnostics1 = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
-        AssertEx.Equal(new[] { "ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method) },
+        AssertEx.Equal(["ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method)],
             diagnostics1.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
         // validate solution update status and emit:
@@ -955,25 +956,25 @@ class C1
             EndDebuggingSession(debuggingSession);
         }
 
-        AssertEx.SetEqual(new[] { moduleId }, debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
+        AssertEx.SetEqual([moduleId], debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
 
         if (breakMode)
         {
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
                 "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges=",
                 "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=110|RudeEditSyntaxKind=8910|RudeEditBlocking=True|RudeEditProjectId={6A6F7270-0000-4000-8000-000000000000}"
-            }, _telemetryLog);
+            ], _telemetryLog);
         }
         else
         {
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
                 "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges=",
                 "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=110|RudeEditSyntaxKind=8910|RudeEditBlocking=True|RudeEditProjectId={6A6F7270-0000-4000-8000-000000000000}"
-            }, _telemetryLog);
+            ], _telemetryLog);
         }
     }
 
@@ -1007,7 +1008,7 @@ class C1
         var document2 = solution.GetDocument(document.Id);
 
         var diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
-        AssertEx.Equal(new[] { "ENC0001: " + string.Format(FeaturesResources.Updating_an_active_statement_requires_restarting_the_application) },
+        AssertEx.Equal(["ENC0001: " + string.Format(FeaturesResources.Updating_an_active_statement_requires_restarting_the_application)],
             diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
         // exit break state without applying the change:
@@ -1021,7 +1022,7 @@ class C1
         EnterBreakState(debuggingSession, activeStatements);
 
         diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
-        AssertEx.Equal(new[] { "ENC0001: " + string.Format(FeaturesResources.Updating_an_active_statement_requires_restarting_the_application) },
+        AssertEx.Equal(["ENC0001: " + string.Format(FeaturesResources.Updating_an_active_statement_requires_restarting_the_application)],
             diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
         // exit break state without applying the change:
@@ -1074,7 +1075,7 @@ class C { int Y => 2; }
         var generatedDocument = (await solution.Projects.Single().GetSourceGeneratedDocumentsAsync()).Single();
 
         var diagnostics1 = await service.GetDocumentDiagnosticsAsync(generatedDocument, s_noActiveSpans, CancellationToken.None);
-        AssertEx.Equal(new[] { "ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method) },
+        AssertEx.Equal(["ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method)],
             diagnostics1.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -1146,10 +1147,10 @@ class C { int Y => 2; }
 
         // now we see the rude edit:
         diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
-        AssertEx.Equal(new[]
-            {
+        AssertEx.Equal(
+            [
                 "ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method)
-            },
+            ],
             diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
         (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -1167,25 +1168,25 @@ class C { int Y => 2; }
             EndDebuggingSession(debuggingSession);
         }
 
-        AssertEx.SetEqual(new[] { moduleId }, debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
+        AssertEx.SetEqual([moduleId], debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
 
         if (breakMode)
         {
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=2",
                 "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges=",
                 "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=110|RudeEditSyntaxKind=8875|RudeEditBlocking=True|RudeEditProjectId={6A6F7270-0000-4000-8000-000000000000}"
-            }, _telemetryLog);
+            ], _telemetryLog);
         }
         else
         {
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount=0",
                 "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=True|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=1|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges=",
                 "Debugging_EncSession_EditSession_RudeEdit: SessionId=1|EditSessionId=2|RudeEditKind=110|RudeEditSyntaxKind=8875|RudeEditBlocking=True|RudeEditProjectId={6A6F7270-0000-4000-8000-000000000000}"
-            }, _telemetryLog);
+            ], _telemetryLog);
         }
     }
 
@@ -1220,7 +1221,7 @@ class C { int Y => 2; }
         // Rude Edits reported:
         var diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
         AssertEx.Equal(
-            new[] { "ENC0023: " + string.Format(FeaturesResources.Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application, FeaturesResources.method) },
+            ["ENC0023: " + string.Format(FeaturesResources.Adding_an_abstract_0_or_overriding_an_inherited_0_requires_restarting_the_application, FeaturesResources.method)],
             diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
         // validate solution update status and emit:
@@ -1263,7 +1264,7 @@ class C { int Y => 2; }
         // Rude Edits reported:
         var diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
         AssertEx.Equal(
-            new[] { "ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method) },
+            ["ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method)],
             diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -1277,7 +1278,7 @@ class C { int Y => 2; }
         // Rude Edits still reported:
         diagnostics = await service.GetDocumentDiagnosticsAsync(document2, s_noActiveSpans, CancellationToken.None);
         AssertEx.Equal(
-            new[] { "ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method) },
+            ["ENC0110: " + string.Format(FeaturesResources.Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.method)],
             diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
         (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -1319,13 +1320,13 @@ class C { int Y => 2; }
 
         EndDebuggingSession(debuggingSession);
 
-        AssertEx.SetEqual(new[] { moduleId }, debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
+        AssertEx.SetEqual([moduleId], debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
 
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
             "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=True|HadRudeEdits=False|HadValidChanges=False|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges="
-        }, _telemetryLog);
+        ], _telemetryLog);
     }
 
     [Fact]
@@ -1360,18 +1361,18 @@ class C { int Y => 2; }
         // TODO: https://github.com/dotnet/roslyn/issues/36061
         // Semantic errors should not be reported in emit diagnostics.
 
-        AssertEx.Equal(new[] { $"{document2.FilePath}: (0,30)-(0,32): Error CS0266: {string.Format(CSharpResources.ERR_NoImplicitConvCast, "long", "int")}" }, InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"{document2.FilePath}: (0,30)-(0,32): Error CS0266: {string.Format(CSharpResources.ERR_NoImplicitConvCast, "long", "int")}"], InspectDiagnostics(emitDiagnostics));
 
         EndDebuggingSession(debuggingSession);
 
-        AssertEx.SetEqual(new[] { moduleId }, debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
+        AssertEx.SetEqual([moduleId], debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
 
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
             "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges=",
             "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=CS0266"
-        }, _telemetryLog);
+        ], _telemetryLog);
     }
 
     [Fact]
@@ -1508,7 +1509,7 @@ class C { int Y => 2; }
         {
             DocumentKind.Source => solution.AddDocument(documentId, "X", CreateText("xxx"), filePath: pathX),
             DocumentKind.Additional => solution.AddAdditionalDocument(documentId, "X", CreateText("xxx"), filePath: pathX),
-            DocumentKind.AnalyzerConfig => solution.AddAnalyzerConfigDocument(documentId, "X", GetAnalyzerConfigText(new[] { ("x", "1") }), filePath: pathX),
+            DocumentKind.AnalyzerConfig => solution.AddAnalyzerConfigDocument(documentId, "X", GetAnalyzerConfigText([("x", "1")]), filePath: pathX),
             _ => throw ExceptionUtilities.Unreachable(),
         };
         Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
@@ -1520,10 +1521,12 @@ class C { int Y => 2; }
         // generator is not executed since we already know the solution changed without inspecting generated files:
         Assert.Equal(0, generatorExecutionCount);
 
-        AssertEx.Equal(new[] { generatedDocumentId },
+        AssertEx.Equal([generatedDocumentId],
             await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, CancellationToken.None);
+        var diagnostics = new ArrayBuilder<ProjectDiagnostics>();
+        await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
+        Assert.Empty(diagnostics);
         AssertEx.Equal(documentKind == DocumentKind.Source ? [documentId, generatedDocumentId] : [generatedDocumentId], changedOrAddedDocuments.Select(d => d.Id));
 
         Assert.Equal(1, generatorExecutionCount);
@@ -1539,7 +1542,7 @@ class C { int Y => 2; }
         {
             DocumentKind.Source => solution.WithDocumentText(documentId, CreateText("xxx")),
             DocumentKind.Additional => solution.WithAdditionalDocumentText(documentId, CreateText("xxx")),
-            DocumentKind.AnalyzerConfig => solution.WithAnalyzerConfigDocumentText(documentId, GetAnalyzerConfigText(new[] { ("x", "1") })),
+            DocumentKind.AnalyzerConfig => solution.WithAnalyzerConfigDocumentText(documentId, GetAnalyzerConfigText([("x", "1")])),
             _ => throw ExceptionUtilities.Unreachable(),
         };
         Assert.False(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
@@ -1551,7 +1554,8 @@ class C { int Y => 2; }
         AssertEx.Equal(documentKind == DocumentKind.Source ? new[] { documentId } : [],
             await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, CancellationToken.None);
+        await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
+        Assert.Empty(diagnostics);
         Assert.Empty(changedOrAddedDocuments);
 
         Assert.Equal(1, generatorExecutionCount);
@@ -1566,7 +1570,7 @@ class C { int Y => 2; }
         {
             DocumentKind.Source => solution.WithDocumentText(documentId, CreateText("xxx-changed")),
             DocumentKind.Additional => solution.WithAdditionalDocumentText(documentId, CreateText("xxx-changed")),
-            DocumentKind.AnalyzerConfig => solution.WithAnalyzerConfigDocumentText(documentId, GetAnalyzerConfigText(new[] { ("x", "2") })),
+            DocumentKind.AnalyzerConfig => solution.WithAnalyzerConfigDocumentText(documentId, GetAnalyzerConfigText([("x", "2")])),
             _ => throw ExceptionUtilities.Unreachable(),
         };
         Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
@@ -1575,7 +1579,8 @@ class C { int Y => 2; }
         AssertEx.Equal(documentKind == DocumentKind.Source ? [documentId, generatedDocumentId] : [generatedDocumentId],
             await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, CancellationToken.None);
+        await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
+        Assert.Empty(diagnostics);
         AssertEx.Equal(documentKind == DocumentKind.Source ? [documentId, generatedDocumentId] : [generatedDocumentId], changedOrAddedDocuments.Select(d => d.Id));
 
         Assert.Equal(1, generatorExecutionCount);
@@ -1598,13 +1603,91 @@ class C { int Y => 2; }
 
         Assert.Equal(0, generatorExecutionCount);
 
-        AssertEx.Equal(new[] { generatedDocumentId },
+        AssertEx.Equal([generatedDocumentId],
             await EditSession.GetChangedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
 
-        await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, CancellationToken.None);
-        AssertEx.Equal(new[] { generatedDocumentId }, changedOrAddedDocuments.Select(d => d.Id));
+        await EditSession.PopulateChangedAndAddedDocumentsAsync(oldSolution.GetProject(projectId), solution.GetProject(projectId), changedOrAddedDocuments, diagnostics, CancellationToken.None);
+        Assert.Empty(diagnostics);
+        AssertEx.Equal([generatedDocumentId], changedOrAddedDocuments.Select(d => d.Id));
 
         Assert.Equal(1, generatorExecutionCount);
+    }
+
+    [Fact]
+    public async Task HasChanges_SourceGeneratorFailure()
+    {
+        using var _ = CreateWorkspace(out var solution, out var service);
+
+        var pathA = Path.Combine(TempRoot.Root, "A.txt");
+
+        var generatorExecutionCount = 0;
+        var generator = new TestSourceGenerator()
+        {
+            ExecuteImpl = context =>
+            {
+                generatorExecutionCount++;
+
+                var additionalText = context.AdditionalFiles.Single().GetText().ToString();
+                if (additionalText.Contains("updated"))
+                {
+                    throw new InvalidOperationException("Source generator failed");
+                }
+
+                context.AddSource("generated.cs", SourceText.From("generated: " + additionalText, Encoding.UTF8, SourceHashAlgorithm.Sha256));
+            }
+        };
+
+        var project = solution
+            .AddProject("A", "A", "C#")
+            .AddAdditionalDocument("A.txt", "text", filePath: pathA)
+            .Project;
+
+        var projectId = project.Id;
+        solution = project.Solution.AddAnalyzerReference(projectId, new TestGeneratorReference(generator));
+        project = solution.GetRequiredProject(projectId);
+        var aId = project.AdditionalDocumentIds.Single();
+
+        var generatedDocuments = await project.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(project.State, CancellationToken.None);
+
+        var generatedText = generatedDocuments.States.Single().Value.GetTextSynchronously(CancellationToken.None).ToString();
+        AssertEx.AreEqual("generated: text", generatedText);
+        Assert.Equal(1, generatorExecutionCount);
+
+        var generatorDiagnostics = await solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(project.State, CancellationToken.None);
+        Assert.Empty(generatorDiagnostics);
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+        EnterBreakState(debuggingSession);
+
+        var changedOrAddedDocuments = new ArrayBuilder<Document>();
+
+        //
+        // Update document content
+        //
+
+        var oldSolution = solution;
+        var oldProject = project;
+        solution = solution.WithAdditionalDocumentText(aId, CreateText("updated text"));
+        project = solution.GetRequiredProject(projectId);
+
+        // Change in additional file is detected:
+        Assert.True(await EditSession.HasChangesAsync(oldSolution, solution, CancellationToken.None));
+
+        // No changed source documents since the generator failed:
+        AssertEx.Empty(await EditSession.GetChangedDocumentsAsync(oldProject, project, CancellationToken.None).ToImmutableArrayAsync(CancellationToken.None));
+
+        var diagnostics = new ArrayBuilder<ProjectDiagnostics>();
+        await EditSession.PopulateChangedAndAddedDocumentsAsync(oldProject, project, changedOrAddedDocuments, diagnostics, CancellationToken.None);
+        Assert.Contains("System.InvalidOperationException: Source generator failed", diagnostics.Single().Diagnostics.Single().GetMessage());
+        AssertEx.Empty(changedOrAddedDocuments);
+
+        Assert.Equal(2, generatorExecutionCount);
+
+        generatedDocuments = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(project.State, CancellationToken.None);
+        Assert.Empty(generatedDocuments.States);
+
+        generatorDiagnostics = await solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(project.State, CancellationToken.None);
+        Assert.Contains("System.InvalidOperationException: Source generator failed", generatorDiagnostics.Single().GetMessage());
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/1204")]
@@ -1626,7 +1709,7 @@ class C { int Y => 2; }
         var sourceFileB = dir.CreateFile("b.cs").WriteAllText(sourceB1, Encoding.UTF8);
 
         using var _ = CreateWorkspace(out var solution, out var service);
-        solution = AddDefaultTestProject(solution, new[] { sourceA1 });
+        solution = AddDefaultTestProject(solution, [sourceA1]);
         var documentA1 = solution.Projects.Single().Documents.Single();
 
         var mvidA = EmitAndLoadLibraryToDebuggee(sourceA1, sourceFilePath: sourceFileA.Path, assemblyName: "A");
@@ -1663,11 +1746,11 @@ class C { int Y => 2; }
         // TODO: https://github.com/dotnet/roslyn/issues/1204
         // Should return span in document B since the document content matches the PDB.
         var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentA1.Id, documentB2.Id), CancellationToken.None);
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             "<empty>",
             "(0,21)-(0,22)"
-        }, baseSpans.Select(spans => spans.IsEmpty ? "<empty>" : string.Join(",", spans.Select(s => s.LineSpan.ToString()))));
+        ], baseSpans.Select(spans => spans.IsEmpty ? "<empty>" : string.Join(",", spans.Select(s => s.LineSpan.ToString()))));
 
         var trackedActiveSpans = ImmutableArray.Create(
             new ActiveStatementSpan(new ActiveStatementId(0), activeLineSpanB1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame));
@@ -1706,7 +1789,7 @@ class C { int Y => 2; }
         var source2 = "[System.Obsolete]class C { void M() { } }";
 
         using var _ = CreateWorkspace(out var solution, out var service);
-        solution = AddDefaultTestProject(solution, new[] { source1 });
+        solution = AddDefaultTestProject(solution, [source1]);
         var documentId = solution.Projects.Single().Documents.Single().Id;
 
         EmitAndLoadLibraryToDebuggee(source1);
@@ -1749,7 +1832,7 @@ class C { int Y => 2; }
         }
 
         diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
-        AssertEx.Equal(new[] { "ENC0101: " + string.Format(FeaturesResources.Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.class_) },
+        AssertEx.Equal(["ENC0101: " + string.Format(FeaturesResources.Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.class_)],
            diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
         if (breakState)
@@ -1758,7 +1841,7 @@ class C { int Y => 2; }
         }
 
         diagnostics = await service.GetDocumentDiagnosticsAsync(solution.GetDocument(documentId), s_noActiveSpans, CancellationToken.None);
-        AssertEx.Equal(new[] { "ENC0101: " + string.Format(FeaturesResources.Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.class_) },
+        AssertEx.Equal(["ENC0101: " + string.Format(FeaturesResources.Updating_the_attributes_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime, FeaturesResources.class_)],
            diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
         // detach from processes that do not allow updating custom attributes:
@@ -1783,10 +1866,10 @@ class C { int Y => 2; }
 
         EndDebuggingSession(debuggingSession);
 
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             $"Debugging_EncSession: SolutionSessionId={{00000000-AAAA-AAAA-AAAA-000000000000}}|SessionId=1|SessionCount=0|EmptySessionCount={(breakState ? 3 : 0)}|HotReloadSessionCount=0|EmptyHotReloadSessionCount={(breakState ? 4 : 3)}"
-        }, _telemetryLog);
+        ], _telemetryLog);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/56431")]
@@ -1852,7 +1935,7 @@ class G
         var source2 = "class C { void M() { var x = new { Goo = 1 }; } }";
 
         using var _ = CreateWorkspace(out var solution, out var service);
-        solution = AddDefaultTestProject(solution, new[] { source1 });
+        solution = AddDefaultTestProject(solution, [source1]);
         var project = solution.Projects.Single();
         solution = solution.WithProjectParseOptions(project.Id, new CSharpParseOptions(LanguageVersion.CSharp10));
         var documentId = solution.Projects.Single().Documents.Single().Id;
@@ -1875,7 +1958,7 @@ class G
 
         // They are reported as emit diagnostics
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        AssertEx.Equal(new[] { $"proj.csproj: (0,0)-(0,0): Error ENC1007: {FeaturesResources.ChangesRequiredSynthesizedType}" }, InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"proj.csproj: (0,0)-(0,0): Error ENC1007: {FeaturesResources.ChangesRequiredSynthesizedType}"], InspectDiagnostics(emitDiagnostics));
 
         // no emitted delta:
         Assert.Empty(updates.Updates);
@@ -1907,7 +1990,7 @@ class G
 
         // validate solution update status and emit:
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
-        AssertEx.Equal(new[] { $"{document2.FilePath}: (0,0)-(0,54): Error CS8055: {string.Format(CSharpResources.ERR_EncodinglessSyntaxTree)}" }, InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"{document2.FilePath}: (0,0)-(0,54): Error CS8055: {string.Format(CSharpResources.ERR_EncodinglessSyntaxTree)}"], InspectDiagnostics(emitDiagnostics));
 
         // no emitted delta:
         Assert.Empty(updates.Updates);
@@ -1924,16 +2007,16 @@ class G
         // solution update status after discarding an update (still has update ready):
         (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
         Assert.Equal(ModuleUpdateStatus.Blocked, updates.Status);
-        AssertEx.Equal(new[] { $"{document2.FilePath}: (0,0)-(0,54): Error CS8055: {string.Format(CSharpResources.ERR_EncodinglessSyntaxTree)}" }, InspectDiagnostics(emitDiagnostics));
+        AssertEx.Equal([$"{document2.FilePath}: (0,0)-(0,54): Error CS8055: {string.Format(CSharpResources.ERR_EncodinglessSyntaxTree)}"], InspectDiagnostics(emitDiagnostics));
 
         EndDebuggingSession(debuggingSession);
 
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
             "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges=",
             "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=CS8055"
-        }, _telemetryLog);
+        ], _telemetryLog);
     }
 
     [Theory]
@@ -2327,23 +2410,23 @@ class G
         // open module readers should be disposed when the debugging session ends:
         VerifyReadersDisposed(readers);
 
-        AssertEx.SetEqual(new[] { moduleId }, debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
+        AssertEx.SetEqual([moduleId], debuggingSession.GetTestAccessor().GetModulesPreparedForUpdate());
 
         if (breakMode)
         {
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"Debugging_EncSession: SolutionSessionId={{00000000-AAAA-AAAA-AAAA-000000000000}}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount={(commitUpdate ? 3 : 2)}",
                 $"Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges={(commitUpdate ? "{6A6F7270-0000-4000-8000-000000000000}" : "")}",
-            }, _telemetryLog);
+            ], _telemetryLog);
         }
         else
         {
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 $"Debugging_EncSession: SolutionSessionId={{00000000-AAAA-AAAA-AAAA-000000000000}}|SessionId=1|SessionCount=0|EmptySessionCount=0|HotReloadSessionCount=1|EmptyHotReloadSessionCount={(commitUpdate ? 1 : 0)}",
                 $"Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=0|InBreakState=False|Capabilities=31|ProjectIdsWithAppliedChanges={(commitUpdate ? "{6A6F7270-0000-4000-8000-000000000000}" : "")}"
-            }, _telemetryLog);
+            ], _telemetryLog);
         }
     }
 
@@ -2484,10 +2567,10 @@ partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func
 ";
 
         using var _ = CreateWorkspace(out var solution, out var service);
-        solution = AddDefaultTestProject(solution, new[] { sourceA1, sourceB1 });
+        solution = AddDefaultTestProject(solution, [sourceA1, sourceB1]);
         var project = solution.Projects.Single();
 
-        LoadLibraryToDebuggee(EmitLibrary(new[] { (sourceA1, "test1.cs"), (sourceB1, "test2.cs") }));
+        LoadLibraryToDebuggee(EmitLibrary([(sourceA1, "test1.cs"), (sourceB1, "test2.cs")]));
 
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
 
@@ -2511,7 +2594,7 @@ partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func
         Assert.NotEmpty(delta.MetadataDelta);
         Assert.NotEmpty(delta.PdbDelta);
         Assert.Equal(6, delta.UpdatedMethods.Length);  // F, C.C(), D.D(), E.E(int), E.E(int, int), lambda
-        AssertEx.SetEqual(new[] { 0x02000002, 0x02000003, 0x02000004, 0x02000005 }, delta.UpdatedTypes, itemInspector: t => "0x" + t.ToString("X"));
+        AssertEx.SetEqual([0x02000002, 0x02000003, 0x02000004, 0x02000005], delta.UpdatedTypes, itemInspector: t => "0x" + t.ToString("X"));
 
         debuggingSession.DiscardSolutionUpdate();
         EndDebuggingSession(debuggingSession);
@@ -2568,7 +2651,7 @@ class C { int Y => 2; }
         Assert.NotEmpty(delta.MetadataDelta);
         Assert.NotEmpty(delta.PdbDelta);
         Assert.Equal(2, delta.UpdatedMethods.Length);
-        AssertEx.Equal(new[] { 0x02000002, 0x02000003 }, delta.UpdatedTypes, itemInspector: t => "0x" + t.ToString("X"));
+        AssertEx.Equal([0x02000002, 0x02000003], delta.UpdatedTypes, itemInspector: t => "0x" + t.ToString("X"));
 
         debuggingSession.DiscardSolutionUpdate();
         EndDebuggingSession(debuggingSession);
@@ -2614,23 +2697,17 @@ class C { int Y => 2; }
         solution = solution.WithDocumentText(document1.Id, CreateText(sourceV2));
 
         // validate solution update status and emit:
-        var results = await debuggingSession.EmitSolutionUpdateAsync(solution, s_noActiveSpans, CancellationToken.None).ConfigureAwait(false);
-        var updates = results.ModuleUpdates;
-        var diagnosticData = results.Diagnostics.ToDiagnosticData(solution);
-        var rudeEdits = results.RudeEdits;
-        var syntaxError = results.GetSyntaxErrorData(solution);
-        Assert.Empty(diagnosticData);
-        Assert.Null(syntaxError);
-
-        var diagnostics = await EmitSolutionUpdateResults.GetAllDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, updates.Status, CancellationToken.None).ConfigureAwait(false);
+        var results = (await debuggingSession.EmitSolutionUpdateAsync(solution, s_noActiveSpans, CancellationToken.None).ConfigureAwait(false)).Dehydrate();
+        var diagnostics = results.GetAllDiagnostics();
 
         AssertEx.Equal(
         [
-            "ENC0021: " + string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, FeaturesResources.attribute),
-        ], diagnostics.Select(d => $"{d.Id}: {d.Message}"));
+            @"ENC0021: 'Microsoft.CodeAnalysis.Test.Utilities\Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator\Generated_test1.cs' (0,0)-(0,56): " +
+            string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, FeaturesResources.attribute),
+        ], diagnostics.Select(d => $"{d.Id}: '{d.FilePath}' {d.Span.GetDebuggerDisplay()}: {d.Message}"));
 
-        Assert.Equal(ModuleUpdateStatus.RestartRequired, updates.Status);
-        Assert.Empty(updates.Updates);
+        Assert.Equal(ModuleUpdateStatus.RestartRequired, results.ModuleUpdates.Status);
+        Assert.Empty(results.ModuleUpdates.Updates);
 
         EndDebuggingSession(debuggingSession);
     }
@@ -2687,7 +2764,7 @@ class G
         Assert.Empty(delta.ActiveStatements);
 
         var lineUpdate = delta.SequencePoints.Single();
-        AssertEx.Equal(new[] { "3 -> 4" }, lineUpdate.LineUpdates.Select(edit => $"{edit.OldLine} -> {edit.NewLine}"));
+        AssertEx.Equal(["3 -> 4"], lineUpdate.LineUpdates.Select(edit => $"{edit.OldLine} -> {edit.NewLine}"));
         Assert.NotEmpty(delta.ILDelta);
         Assert.NotEmpty(delta.MetadataDelta);
         Assert.NotEmpty(delta.PdbDelta);
@@ -2883,7 +2960,7 @@ class C { int Y => 1; }
         var source2 = "class C { void M() { var x = new { Goo = 1 }; } }";
 
         using var _ = CreateWorkspace(out var solution, out var service);
-        solution = AddDefaultTestProject(solution, new[] { source1 });
+        solution = AddDefaultTestProject(solution, [source1]);
         var project = solution.Projects.Single();
         solution = solution.WithProjectParseOptions(project.Id, new CSharpParseOptions(LanguageVersion.CSharp10));
         var documentId = solution.Projects.Single().Documents.Single().Id;
@@ -3128,12 +3205,12 @@ class C { int Y => 1; }
 
         EndDebuggingSession(debuggingSession);
 
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             "Debugging_EncSession: SolutionSessionId={00000000-AAAA-AAAA-AAAA-000000000000}|SessionId=1|SessionCount=1|EmptySessionCount=0|HotReloadSessionCount=0|EmptyHotReloadSessionCount=1",
             "Debugging_EncSession_EditSession: SessionId=1|EditSessionId=2|HadCompilationErrors=False|HadRudeEdits=False|HadValidChanges=True|HadValidInsignificantChanges=False|RudeEditsCount=0|EmitDeltaErrorIdCount=1|InBreakState=True|Capabilities=31|ProjectIdsWithAppliedChanges=",
             "Debugging_EncSession_EditSession_EmitDeltaErrorId: SessionId=1|EditSessionId=2|ErrorId=ENC1001"
-        }, _telemetryLog);
+        ], _telemetryLog);
     }
 
     [Fact]
@@ -3192,11 +3269,11 @@ class C { int Y => 1; }
         var activeStatementSpan12 = new ActiveStatementSpan(new ActiveStatementId(1), activeLineSpan12, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame);
 
         var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document1.Id), CancellationToken.None);
-        AssertEx.Equal(new[]
-        {
-           activeStatementSpan11,
-           activeStatementSpan12
-        }, baseSpans.Single());
+        AssertEx.Equal(
+        [
+            activeStatementSpan11,
+            activeStatementSpan12
+        ], baseSpans.Single());
 
         var trackedActiveSpans1 = ImmutableArray.Create(activeStatementSpan11, activeStatementSpan12);
 
@@ -3213,7 +3290,7 @@ class C { int Y => 1; }
         var trackedActiveSpans2 = ImmutableArray.Create(activeStatementSpan21, activeStatementSpan22);
 
         currentSpans = await debuggingSession.GetAdjustedActiveStatementSpansAsync(document2, (_, _, _) => new(trackedActiveSpans2), CancellationToken.None);
-        AssertEx.Equal(new[] { adjustedActiveLineSpan1, adjustedActiveLineSpan2 }, currentSpans.Select(s => s.LineSpan));
+        AssertEx.Equal([adjustedActiveLineSpan1, adjustedActiveLineSpan2], currentSpans.Select(s => s.LineSpan));
     }
 
     [Theory, CombinatorialData]
@@ -3265,11 +3342,11 @@ class C { int Y => 1; }
         EnterBreakState(debuggingSession, activeStatements);
 
         var baseSpans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             new ActiveStatementSpan(new ActiveStatementId(0), activeLineSpan11, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame),
             new ActiveStatementSpan(new ActiveStatementId(1), activeLineSpan12, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame)
-        }, baseSpans);
+        ], baseSpans);
 
         // change the source (valid edit):
         solution = solution.WithDocumentText(documentId, sourceTextV2);
@@ -3277,7 +3354,7 @@ class C { int Y => 1; }
 
         // no adjustments made due to syntax error or out-of-sync document:
         var currentSpans = await debuggingSession.GetAdjustedActiveStatementSpansAsync(document2, (_, _, _) => ValueTaskFactory.FromResult(baseSpans), CancellationToken.None);
-        AssertEx.Equal(new[] { activeLineSpan11, activeLineSpan12 }, currentSpans.Select(s => s.LineSpan));
+        AssertEx.Equal([activeLineSpan11, activeLineSpan12], currentSpans.Select(s => s.LineSpan));
     }
 
     [Theory, CombinatorialData]
@@ -3383,16 +3460,16 @@ class C { int Y => 1; }
 
         Assert.Equal(2, documentMap.Count);
 
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             $"2: {doc1.FilePath}: (2,32)-(2,52) flags=[MethodUpToDate, NonLeafFrame]",
             $"1: {doc1.FilePath}: (3,29)-(3,49) flags=[MethodUpToDate, NonLeafFrame]"
-        }, documentMap[doc1.FilePath].Select(InspectActiveStatement));
+        ], documentMap[doc1.FilePath].Select(InspectActiveStatement));
 
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             $"0: {doc2.FilePath}: (0,39)-(0,59) flags=[LeafFrame, MethodUpToDate]",
-        }, documentMap[doc2.FilePath].Select(InspectActiveStatement));
+        ], documentMap[doc2.FilePath].Select(InspectActiveStatement));
 
         Assert.Equal(3, baseActiveStatementsMap.InstructionMap.Count);
 
@@ -3411,14 +3488,14 @@ class C { int Y => 1; }
 
         var spans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(doc1.Id, doc2.Id, docId3, docId4, docId5), CancellationToken.None);
 
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             "(2,32)-(2,52), (3,29)-(3,49)", // test1.cs
             "(0,39)-(0,59)",                // test2.cs
             "(2,32)-(2,52), (3,29)-(3,49)", // link test1.cs
             "(2,32)-(2,52), (3,29)-(3,49)", // link test1.cs
             "(0,39)-(0,59)"                 // link test2.cs
-        }, spans.Select(docSpans => string.Join(", ", docSpans.Select(span => span.LineSpan))));
+        ], spans.Select(docSpans => string.Join(", ", docSpans.Select(span => span.LineSpan))));
     }
 
     [Fact]
@@ -3487,10 +3564,10 @@ class C { int Y => 1; }
 
         Assert.Single(baseActiveStatementMap.DocumentPathMap);
 
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             $"0: {document.FilePath}: (9,18)-(9,22) flags=[LeafFrame, MethodUpToDate]",
-        }, baseActiveStatementMap.DocumentPathMap[document.FilePath].Select(InspectActiveStatement));
+        ], baseActiveStatementMap.DocumentPathMap[document.FilePath].Select(InspectActiveStatement));
 
         Assert.Equal(1, baseActiveStatementMap.InstructionMap.Count);
 
@@ -3501,14 +3578,14 @@ class C { int Y => 1; }
 
         // Active statement reported as unchanged as the containing document is out-of-sync:
         var baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document.Id), CancellationToken.None);
-        AssertEx.Equal(new[] { $"(9,18)-(9,22)" }, baseSpans.Single().Select(s => s.LineSpan.ToString()));
+        AssertEx.Equal([$"(9,18)-(9,22)"], baseSpans.Single().Select(s => s.LineSpan.ToString()));
 
         // Document got synchronized:
         debuggingSession.LastCommittedSolution.Test_SetDocumentState(document.Id, CommittedSolution.DocumentState.MatchesBuildOutput);
 
         // New location of the active statement reported:
         baseSpans = await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(document.Id), CancellationToken.None);
-        AssertEx.Equal(new[] { $"(10,12)-(10,16)" }, baseSpans.Single().Select(s => s.LineSpan.ToString()));
+        AssertEx.Equal([$"(10,12)-(10,16)"], baseSpans.Single().Select(s => s.LineSpan.ToString()));
     }
 
     [Fact]
@@ -3560,8 +3637,8 @@ class C
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
 
         EnterBreakState(debuggingSession, GetActiveStatementDebugInfosCSharp(
-            new[] { GetGeneratedCodeFromMarkedSource(markedSource1) },
-            filePaths: new[] { generatedDocument1.FilePath },
+            [GetGeneratedCodeFromMarkedSource(markedSource1)],
+            filePaths: [generatedDocument1.FilePath],
             modules: [moduleId],
             methodRowIds: [1],
             methodVersions: [1],
@@ -3587,10 +3664,10 @@ class C
         Assert.Empty(delta.UpdatedMethods);
         Assert.Empty(delta.UpdatedTypes);
 
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             "a.razor: [0 -> 1]"
-        }, delta.SequencePoints.Inspect());
+        ], delta.SequencePoints.Inspect());
 
         debuggingSession.DiscardSolutionUpdate();
         EndDebuggingSession(debuggingSession);
@@ -3643,7 +3720,7 @@ class C
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
 
         EnterBreakState(debuggingSession, GetActiveStatementDebugInfosCSharp(
-            new[] { markedSource1 },
+            [markedSource1],
             modules: [moduleId],
             methodRowIds: [1],
             methodVersions: [1],
@@ -3657,7 +3734,7 @@ class C
         document = solution.GetDocument(document.Id);
 
         var diagnostics = await service.GetDocumentDiagnosticsAsync(document, s_noActiveSpans, CancellationToken.None);
-        AssertEx.Equal(new[] { "ENC0063: " + string.Format(FeaturesResources.Updating_a_0_around_an_active_statement_requires_restarting_the_application, CSharpFeaturesResources.catch_clause) },
+        AssertEx.Equal(["ENC0063: " + string.Format(FeaturesResources.Updating_a_0_around_an_active_statement_requires_restarting_the_application, CSharpFeaturesResources.catch_clause)],
             diagnostics.Select(d => $"{d.Id}: {d.GetMessage()}"));
 
         var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, solution);
@@ -3729,7 +3806,7 @@ class C
         // EnC update F v1 -> v2
 
         EnterBreakState(debuggingSession, GetActiveStatementDebugInfosCSharp(
-            new[] { markedSourceV1 },
+            [markedSourceV1],
             modules: [moduleId, moduleId],
             methodRowIds: [2, 3],
             methodVersions: [1, 1],
@@ -3749,11 +3826,11 @@ class C
 
         CommitSolutionUpdate(debuggingSession);
 
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             $"0x06000002 v1 | AS {document.FilePath}: (4,41)-(4,42) => (4,41)-(4,42)",
             $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) => (10,14)-(10,18)",
-        }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
+        ], InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
         ExitBreakState(debuggingSession);
 
@@ -3770,16 +3847,16 @@ class C
         CommitSolutionUpdate(debuggingSession);
 
         // the regions remain unchanged
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             $"0x06000002 v1 | AS {document.FilePath}: (4,41)-(4,42) => (4,41)-(4,42)",
             $"0x06000003 v1 | AS {document.FilePath}: (9,14)-(9,18) => (10,14)-(10,18)",
-        }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
+        ], InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
         // EnC update F v3 -> v4
 
         EnterBreakState(debuggingSession, GetActiveStatementDebugInfosCSharp(
-            new[] { markedSourceV1 },       // matches F v1
+            [markedSourceV1],       // matches F v1
             modules: [moduleId, moduleId],
             methodRowIds: [2, 3],
             methodVersions: [1, 1], // frame F v1 is still executing (G has not returned)
@@ -3790,10 +3867,10 @@ class C
             ]));
 
         var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
-        AssertEx.Equal(new[]
-        {
-            new ActiveStatementSpan(new ActiveStatementId(0), new LinePositionSpan(new(4,41), new(4,42)), ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame),
-        }, spans);
+        AssertEx.Equal(
+        [
+            new ActiveStatementSpan(new ActiveStatementId(0), new LinePositionSpan(new(4, 41), new(4, 42)), ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame),
+        ], spans);
 
         solution = solution.WithDocumentText(documentId, CreateText(SourceMarkers.Clear(markedSourceV4)));
 
@@ -3806,10 +3883,10 @@ class C
         CommitSolutionUpdate(debuggingSession);
 
         // Stale active statement region is gone.
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             $"0x06000002 v1 | AS {document.FilePath}: (4,41)-(4,42) => (4,41)-(4,42)",
-        }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
+        ], InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
         ExitBreakState(debuggingSession);
     }
@@ -3877,7 +3954,7 @@ class C
         // EnC update F v2 -> v3
 
         EnterBreakState(debuggingSession, GetActiveStatementDebugInfosCSharp(
-            new[] { markedSource1 },
+            [markedSource1],
             modules: [moduleId, moduleId],
             methodRowIds: [2, 3],
             methodVersions: [1, 1],
@@ -3892,11 +3969,11 @@ class C
         var expectedSpanF1 = new LinePositionSpan(new LinePosition(8, 14), new LinePosition(8, 18));
 
         var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             new ActiveStatementSpan(new ActiveStatementId(0), expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, documentId),
             new ActiveStatementSpan(new ActiveStatementId(1), expectedSpanF1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, documentId)
-        }, spans);
+        ], spans);
 
         solution = solution.WithDocumentText(documentId, CreateText(SourceMarkers.Clear(markedSource3)));
 
@@ -3905,11 +3982,11 @@ class C
         var expectedSpanF2 = new LinePositionSpan(new LinePosition(9, 14), new LinePosition(9, 18));
 
         spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             new ActiveStatementSpan(new ActiveStatementId(0), expectedSpanG2, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame, documentId),
             new ActiveStatementSpan(new ActiveStatementId(1), expectedSpanF2, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.NonLeafFrame, documentId)
-        }, spans);
+        ], spans);
 
         // no rude edits:
         var document1 = solution.GetDocument(documentId);
@@ -3924,11 +4001,11 @@ class C
 
         CommitSolutionUpdate(debuggingSession);
 
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             $"0x06000002 v1 | AS {document.FilePath}: (3,41)-(3,42) => (3,41)-(3,42)",
             $"0x06000003 v1 | AS {document.FilePath}: (7,14)-(7,18) => (9,14)-(9,18)",
-        }, InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
+        ], InspectNonRemappableRegions(debuggingSession.EditSession.NonRemappableRegions));
 
         ExitBreakState(debuggingSession);
     }
@@ -3987,7 +4064,7 @@ class C
         // Break
 
         EnterBreakState(debuggingSession, GetActiveStatementDebugInfosCSharp(
-            new[] { markedSource1 },
+            [markedSource1],
             modules: [moduleId, moduleId],
             methodRowIds: [2, 3],
             methodVersions: [1, 1],  // frame F v1 is still executing (G has not returned)
@@ -4001,11 +4078,11 @@ class C
         var expectedSpanG1 = new LinePositionSpan(new LinePosition(3, 41), new LinePosition(3, 42));
 
         var spans = (await debuggingSession.GetBaseActiveStatementSpansAsync(solution, ImmutableArray.Create(documentId), CancellationToken.None)).Single();
-        AssertEx.Equal(new[]
-        {
+        AssertEx.Equal(
+        [
             new ActiveStatementSpan(new ActiveStatementId(0), expectedSpanG1, ActiveStatementFlags.MethodUpToDate | ActiveStatementFlags.LeafFrame)
             // active statement in F has been deleted
-        }, spans);
+        ], spans);
 
         ExitBreakState(debuggingSession);
     }

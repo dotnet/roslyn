@@ -9,8 +9,10 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text.Classification;
@@ -117,6 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             var useInlineAdornment = _globalOptionService.GetOption(InlineRenameUIOptionsStorage.UseInlineAdornment);
+            LogAdornmentChoice(useInlineAdornment);
             if (useInlineAdornment)
             {
                 if (!_textView.HasAggregateFocus)
@@ -180,6 +183,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             Workspace.TryGetWorkspace(textContainer, out var workspace);
             return workspace;
+        }
+
+        private static void LogAdornmentChoice(bool useInlineAdornment)
+        {
+            TelemetryLogging.Log(FunctionId.InlineRenameAdornmentChoice, KeyValueLogMessage.Create(m =>
+            {
+                m[nameof(useInlineAdornment)] = useInlineAdornment;
+            }));
         }
     }
 }

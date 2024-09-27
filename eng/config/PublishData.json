@@ -94,6 +94,15 @@
   },
   "comment-about-servicing-branches": "For a list of VS versions under servicing, see https://docs.microsoft.com/en-us/visualstudio/releases/2019/servicing#support-options-for-enterprise-and-professional-customers",
   "branches": {
+    "release/vscode": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[Validation]"
+    },
     "dev15.9.x-vs-deps": {
       "nugetKind": "PerBuildPreRelease",
       "vsBranch": "rel/d15.9",
@@ -205,7 +214,7 @@
       "vsBranch": "rel/d17.12",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.12 P1]"
+      "insertionTitlePrefix": "[d17.12 P2]"
     },
     "main": {
       "nugetKind": [
@@ -215,7 +224,7 @@
       "vsBranch": "main",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.12 P2]"
+      "insertionTitlePrefix": "[d17.12 P3]"
     },
     "dev/andrha/telemetry": {
       "nugetKind": [

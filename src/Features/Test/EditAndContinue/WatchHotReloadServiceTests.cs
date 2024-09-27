@@ -5,7 +5,9 @@
 #if NET
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -13,8 +15,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.ExternalAccess.Watch.Api;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
+using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -107,6 +112,60 @@ public sealed class WatchHotReloadServiceTests : EditAndContinueWorkspaceTestBas
         Assert.Empty(result.ProjectsToRestart);
         Assert.Empty(result.ProjectsToRebuild);
 
+        hotReload.EndSession();
+    }
+
+    [Fact]
+    public async Task SourceGeneratorFailure()
+    {
+        using var workspace = CreateWorkspace(out var solution, out var encService);
+
+        var generatorExecutionCount = 0;
+        var generator = new TestSourceGenerator()
+        {
+            ExecuteImpl = context =>
+            {
+                generatorExecutionCount++;
+
+                var additionalText = context.AdditionalFiles.Single().GetText().ToString();
+                if (additionalText.Contains("updated"))
+                {
+                    throw new InvalidOperationException("Source generator failed");
+                }
+
+                context.AddSource("generated.cs", SourceText.From("generated: " + additionalText, Encoding.UTF8, SourceHashAlgorithm.Sha256));
+            }
+        };
+
+        var project = solution
+            .AddTestProject("A")
+            .AddAdditionalDocument("A.txt", "text", filePath: Path.Combine(TempRoot.Root, "A.txt"))
+            .Project;
+
+        var projectId = project.Id;
+        solution = project.Solution.AddAnalyzerReference(projectId, new TestGeneratorReference(generator));
+        project = solution.GetRequiredProject(projectId);
+        var aId = project.AdditionalDocumentIds.Single();
+
+        var generatedDocuments = await project.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(project.State, CancellationToken.None);
+
+        var generatedText = generatedDocuments.States.Single().Value.GetTextSynchronously(CancellationToken.None).ToString();
+        AssertEx.AreEqual("generated: text", generatedText);
+        Assert.Equal(1, generatorExecutionCount);
+
+        var generatorDiagnostics = await solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(project.State, CancellationToken.None);
+        Assert.Empty(generatorDiagnostics);
+
+        var hotReload = new WatchHotReloadService(workspace.Services, ["Baseline", "AddDefinitionToExistingType", "NewTypeDefinition"]);
+
+        await hotReload.StartSessionAsync(solution, CancellationToken.None);
+
+        solution = solution.WithAdditionalDocumentText(aId, CreateText("updated text"));
+
+        var result = await hotReload.GetUpdatesAsync(solution, isRunningProject: _ => true, CancellationToken.None);
+        var diagnostic = result.Diagnostics.Single();
+        Assert.Equal("CS8785", diagnostic.Id);
+        Assert.Contains("Source generator failed", diagnostic.GetMessage());
         hotReload.EndSession();
     }
 }

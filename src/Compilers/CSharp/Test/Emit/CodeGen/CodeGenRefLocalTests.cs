@@ -2160,7 +2160,7 @@ class Program
 class Program
 {
     static int field = 0;
-    static ref int P { get { return ref field; } }
+    static ref int P { get { return ref @field; } }
 
     static void M()
     {
@@ -2188,7 +2188,7 @@ class Program
 class Program
 {
     int field = 0;
-    ref int P { get { return ref field; } }
+    ref int P { get { return ref @field; } }
 
     void M()
     {

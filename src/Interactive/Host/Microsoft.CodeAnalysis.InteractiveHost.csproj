@@ -11,7 +11,7 @@
 
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") interactive host implementation.
     </PackageDescription>

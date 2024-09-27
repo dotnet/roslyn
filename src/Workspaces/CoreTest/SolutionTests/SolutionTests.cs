@@ -202,8 +202,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(newSolution2, newSolution1);
 
             // empty:
-            var newSolution3 = solution.WithDocumentFolders(documentId, new string[0]);
-            Assert.Equal(new string[0], newSolution3.GetDocument(documentId)!.Folders);
+            var newSolution3 = solution.WithDocumentFolders(documentId, []);
+            Assert.Equal([], newSolution3.GetDocument(documentId)!.Folders);
 
             var newSolution4 = solution.WithDocumentFolders(documentId, []);
             Assert.Same(newSolution3, newSolution4);
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var newSolution5 = solution.WithDocumentFolders(documentId, null);
             Assert.Same(newSolution3, newSolution5);
 
-            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFolders(documentId, folders: new string[] { null! }));
+            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFolders(documentId, folders: [null!]));
 
             Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFolders(null!, folders));
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentFolders(s_unrelatedDocumentId, folders));
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var newSolution1 = solution.WithDocumentFilePath(documentId, path);
             Assert.Equal(path, newSolution1.GetRequiredDocument(documentId).FilePath);
-            AssertEx.Equal(new[] { documentId }, newSolution1.GetDocumentIdsWithFilePath(path));
+            AssertEx.Equal([documentId], newSolution1.GetDocumentIdsWithFilePath(path));
 
             var newSolution2 = newSolution1.WithDocumentFilePath(documentId, path);
             Assert.Same(newSolution1, newSolution2);
@@ -405,8 +405,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(newSolution1, newSolution2);
 
             // documents not in solution are skipped: https://github.com/dotnet/roslyn/issues/42029
-            Assert.Same(solution, solution.WithDocumentText(new DocumentId[] { null! }, text));
-            Assert.Same(solution, solution.WithDocumentText(new DocumentId[] { s_unrelatedDocumentId }, text));
+            Assert.Same(solution, solution.WithDocumentText([null!], text));
+            Assert.Same(solution, solution.WithDocumentText([s_unrelatedDocumentId], text));
 
             Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText((DocumentId[])null!, text, PreservationMode.PreserveIdentity));
             Assert.Throws<ArgumentNullException>(() => solution.WithDocumentText([documentId], null!, PreservationMode.PreserveIdentity));
@@ -1482,6 +1482,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             fileD.WriteAllBytes(bytes);
 
             var sha256 = SHA256.Create();
+            // CodeQL [SM02196] This is not enabled by default but exists as a compat option for existing builds.
             var sha1 = SHA1.Create();
             var checksumSHA1 = sha1.ComputeHash(bytes);
             var checksumSHA256 = sha256.ComputeHash(bytes);
@@ -1708,8 +1709,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(document.Project.ParseOptions, oldTree.Options);
 
             ParseOptions newOptions = languageName == LanguageNames.CSharp
-                ? new CSharpParseOptions(preprocessorSymbols: new[] { "DEBUG" })
-                : new VisualBasicParseOptions(preprocessorSymbols: new KeyValuePair<string, object?>[] { new("DEBUG", null) });
+                ? new CSharpParseOptions(preprocessorSymbols: ["DEBUG"])
+                : new VisualBasicParseOptions(preprocessorSymbols: [new("DEBUG", null)]);
 
             document = document.Project.WithParseOptions(newOptions).GetRequiredDocument(documentId);
 
@@ -1855,12 +1856,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var e = OnceEnumerable(projectRef2, externalProjectRef);
 
             var solution3 = solution.AddProjectReferences(projectId, e);
-            AssertEx.Equal(new[] { projectRef2 }, solution3.GetProject(projectId)!.ProjectReferences);
-            AssertEx.Equal(new[] { projectRef2, externalProjectRef }, solution3.GetProject(projectId)!.AllProjectReferences);
+            AssertEx.Equal((ProjectReference[])[projectRef2], solution3.GetProject(projectId)!.ProjectReferences);
+            AssertEx.Equal((ProjectReference[])[projectRef2, externalProjectRef], solution3.GetProject(projectId)!.AllProjectReferences);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.AddProjectReferences(null!, [projectRef2]));
             Assert.Throws<ArgumentNullException>("projectReferences", () => solution.AddProjectReferences(projectId, null!));
-            Assert.Throws<ArgumentNullException>("projectReferences[0]", () => solution.AddProjectReferences(projectId, new ProjectReference[] { null! }));
+            Assert.Throws<ArgumentNullException>("projectReferences[0]", () => solution.AddProjectReferences(projectId, [null!]));
             Assert.Throws<ArgumentException>("projectReferences[1]", () => solution.AddProjectReferences(projectId, [projectRef2, projectRef2]));
             Assert.Throws<ArgumentException>("projectReferences[1]", () => solution.AddProjectReferences(projectId, [new ProjectReference(projectId2), new ProjectReference(projectId2)]));
 
@@ -1888,11 +1889,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // remove reference to a project that's not part of the solution:
             var solution2 = solution.RemoveProjectReference(projectId, externalProjectRef);
-            AssertEx.Equal(new[] { projectRef2 }, solution2.GetProject(projectId)!.AllProjectReferences);
+            AssertEx.Equal((ProjectReference[])[projectRef2], solution2.GetProject(projectId)!.AllProjectReferences);
 
             // remove reference to a project that's part of the solution:
             var solution3 = solution.RemoveProjectReference(projectId, projectRef2);
-            AssertEx.Equal(new[] { externalProjectRef }, solution3.GetProject(projectId)!.AllProjectReferences);
+            AssertEx.Equal((ProjectReference[])[externalProjectRef], solution3.GetProject(projectId)!.AllProjectReferences);
 
             var solution4 = solution3.RemoveProjectReference(projectId, externalProjectRef);
             Assert.Empty(solution4.GetProject(projectId)!.AllProjectReferences);
@@ -1975,15 +1976,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var metadataRef2 = new TestMetadataReference();
 
             var solution3 = solution.AddMetadataReferences(projectId, OnceEnumerable(metadataRef1, metadataRef2));
-            AssertEx.Equal(new[] { metadataRef1, metadataRef2 }, solution3.GetProject(projectId)!.MetadataReferences);
+            AssertEx.Equal((MetadataReference[])[metadataRef1, metadataRef2], solution3.GetProject(projectId)!.MetadataReferences);
 
-            Assert.Throws<ArgumentNullException>("projectId", () => solution.AddMetadataReferences(null!, new[] { metadataRef1 }));
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.AddMetadataReferences(null!, [metadataRef1]));
             Assert.Throws<ArgumentNullException>("metadataReferences", () => solution.AddMetadataReferences(projectId, null!));
-            Assert.Throws<ArgumentNullException>("metadataReferences[0]", () => solution.AddMetadataReferences(projectId, new MetadataReference[] { null! }));
-            Assert.Throws<ArgumentException>("metadataReferences[1]", () => solution.AddMetadataReferences(projectId, new[] { metadataRef1, metadataRef1 }));
+            Assert.Throws<ArgumentNullException>("metadataReferences[0]", () => solution.AddMetadataReferences(projectId, [null!]));
+            Assert.Throws<ArgumentException>("metadataReferences[1]", () => solution.AddMetadataReferences(projectId, [metadataRef1, metadataRef1]));
 
             // dup:
-            Assert.Throws<InvalidOperationException>(() => solution3.AddMetadataReferences(projectId, new[] { metadataRef1 }));
+            Assert.Throws<InvalidOperationException>(() => solution3.AddMetadataReferences(projectId, [metadataRef1]));
         }
 
         [Fact]
@@ -1995,10 +1996,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var metadataRef1 = new TestMetadataReference();
             var metadataRef2 = new TestMetadataReference();
 
-            solution = solution.WithProjectMetadataReferences(projectId, new[] { metadataRef1, metadataRef2 });
+            solution = solution.WithProjectMetadataReferences(projectId, [metadataRef1, metadataRef2]);
 
             var solution2 = solution.RemoveMetadataReference(projectId, metadataRef1);
-            AssertEx.Equal(new[] { metadataRef2 }, solution2.GetProject(projectId)!.MetadataReferences);
+            AssertEx.Equal((MetadataReference[])[metadataRef2], solution2.GetProject(projectId)!.MetadataReferences);
 
             var solution3 = solution2.RemoveMetadataReference(projectId, metadataRef2);
             Assert.Empty(solution3.GetProject(projectId)!.MetadataReferences);
@@ -2045,18 +2046,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var analyzerRef2 = new TestAnalyzerReference();
 
             var solution3 = solution.AddAnalyzerReferences(projectId, OnceEnumerable(analyzerRef1, analyzerRef2));
-            AssertEx.Equal(new[] { analyzerRef1, analyzerRef2 }, solution3.GetProject(projectId)!.AnalyzerReferences);
+            AssertEx.Equal((AnalyzerReference[])[analyzerRef1, analyzerRef2], solution3.GetProject(projectId)!.AnalyzerReferences);
 
-            var solution4 = solution3.AddAnalyzerReferences(projectId, new AnalyzerReference[0]);
+            var solution4 = solution3.AddAnalyzerReferences(projectId, []);
 
             Assert.Same(solution, solution2);
-            Assert.Throws<ArgumentNullException>("projectId", () => solution.AddAnalyzerReferences(null!, new[] { analyzerRef1 }));
+            Assert.Throws<ArgumentNullException>("projectId", () => solution.AddAnalyzerReferences(null!, [analyzerRef1]));
             Assert.Throws<ArgumentNullException>("analyzerReferences", () => solution.AddAnalyzerReferences(projectId, null!));
-            Assert.Throws<ArgumentNullException>("analyzerReferences[0]", () => solution.AddAnalyzerReferences(projectId, new AnalyzerReference[] { null! }));
-            Assert.Throws<ArgumentException>("analyzerReferences[1]", () => solution.AddAnalyzerReferences(projectId, new[] { analyzerRef1, analyzerRef1 }));
+            Assert.Throws<ArgumentNullException>("analyzerReferences[0]", () => solution.AddAnalyzerReferences(projectId, [null!]));
+            Assert.Throws<ArgumentException>("analyzerReferences[1]", () => solution.AddAnalyzerReferences(projectId, [analyzerRef1, analyzerRef1]));
 
             // dup:
-            Assert.Throws<InvalidOperationException>(() => solution3.AddAnalyzerReferences(projectId, new[] { analyzerRef1 }));
+            Assert.Throws<InvalidOperationException>(() => solution3.AddAnalyzerReferences(projectId, [analyzerRef1]));
         }
 
         [Fact]
@@ -2068,10 +2069,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var analyzerRef1 = new TestAnalyzerReference();
             var analyzerRef2 = new TestAnalyzerReference();
 
-            solution = solution.WithProjectAnalyzerReferences(projectId, new[] { analyzerRef1, analyzerRef2 });
+            solution = solution.WithProjectAnalyzerReferences(projectId, [analyzerRef1, analyzerRef2]);
 
             var solution2 = solution.RemoveAnalyzerReference(projectId, analyzerRef1);
-            AssertEx.Equal(new[] { analyzerRef2 }, solution2.GetProject(projectId)!.AnalyzerReferences);
+            AssertEx.Equal((AnalyzerReference[])[analyzerRef2], solution2.GetProject(projectId)!.AnalyzerReferences);
 
             var solution3 = solution2.RemoveAnalyzerReference(projectId, analyzerRef2);
             Assert.Empty(solution3.GetProject(projectId)!.AnalyzerReferences);
@@ -2113,17 +2114,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var analyzerRef2 = new TestAnalyzerReference();
 
             var solution3 = solution.AddAnalyzerReferences(OnceEnumerable(analyzerRef1, analyzerRef2));
-            AssertEx.Equal(new[] { analyzerRef1, analyzerRef2 }, solution3.AnalyzerReferences);
+            AssertEx.Equal((AnalyzerReference[])[analyzerRef1, analyzerRef2], solution3.AnalyzerReferences);
 
-            var solution4 = solution3.AddAnalyzerReferences(new AnalyzerReference[0]);
+            var solution4 = solution3.AddAnalyzerReferences([]);
 
             Assert.Same(solution, solution2);
             Assert.Throws<ArgumentNullException>("analyzerReferences", () => solution.AddAnalyzerReferences(null!));
-            Assert.Throws<ArgumentNullException>("analyzerReferences[0]", () => solution.AddAnalyzerReferences(new AnalyzerReference[] { null! }));
-            Assert.Throws<ArgumentException>("analyzerReferences[1]", () => solution.AddAnalyzerReferences(new[] { analyzerRef1, analyzerRef1 }));
+            Assert.Throws<ArgumentNullException>("analyzerReferences[0]", () => solution.AddAnalyzerReferences([null!]));
+            Assert.Throws<ArgumentException>("analyzerReferences[1]", () => solution.AddAnalyzerReferences([analyzerRef1, analyzerRef1]));
 
             // dup:
-            Assert.Throws<InvalidOperationException>(() => solution3.AddAnalyzerReferences(new[] { analyzerRef1 }));
+            Assert.Throws<InvalidOperationException>(() => solution3.AddAnalyzerReferences([analyzerRef1]));
         }
 
         [Fact]
@@ -2134,10 +2135,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var analyzerRef1 = new TestAnalyzerReference();
             var analyzerRef2 = new TestAnalyzerReference();
 
-            solution = solution.WithAnalyzerReferences(new[] { analyzerRef1, analyzerRef2 });
+            solution = solution.WithAnalyzerReferences([analyzerRef1, analyzerRef2]);
 
             var solution2 = solution.RemoveAnalyzerReference(analyzerRef1);
-            AssertEx.Equal(new[] { analyzerRef2 }, solution2.AnalyzerReferences);
+            AssertEx.Equal((AnalyzerReference[])[analyzerRef2], solution2.AnalyzerReferences);
 
             var solution3 = solution2.RemoveAnalyzerReference(analyzerRef2);
             Assert.Empty(solution3.AnalyzerReferences);
@@ -4450,7 +4451,7 @@ public class C : A {
 
             var oldVersion = GetVersion();
 
-            solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange(new[] { did5, did4, did3, did2, did1 }));
+            solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange([did5, did4, did3, did2, did1]));
 
             var newVersion = GetVersion();
 
@@ -4475,7 +4476,7 @@ public class C : A {
             Assert.Equal("test2.cs", syntaxTrees[3].FilePath, StringComparer.OrdinalIgnoreCase);
             Assert.Equal("test1.cs", syntaxTrees[4].FilePath, StringComparer.OrdinalIgnoreCase);
 
-            solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange(new[] { did5, did4, did3, did2, did1 }));
+            solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange([did5, did4, did3, did2, did1]));
 
             var newSameVersion = GetVersion();
 
@@ -4516,8 +4517,8 @@ public class C : A {
 
             Assert.Throws<ArgumentException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.Create<DocumentId>()));
             Assert.Throws<ArgumentNullException>(() => solution = solution.WithProjectDocumentsOrder(pid, null));
-            Assert.Throws<InvalidOperationException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange(new[] { did5, did3, did2, did1 })));
-            Assert.Throws<ArgumentException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange(new[] { did3, did2, did1 })));
+            Assert.Throws<InvalidOperationException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange([did5, did3, did2, did1])));
+            Assert.Throws<ArgumentException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange([did3, did2, did1])));
         }
 
         [Theory, CombinatorialData]
@@ -4683,7 +4684,7 @@ public class C : A {
             var sourceDocumentId = DocumentId.CreateNewId(projectId);
 
             solution = solution.AddProject(projectId, "Test", "Test.dll", LanguageNames.CSharp)
-                .WithProjectMetadataReferences(projectId, new[] { NetFramework.mscorlib })
+                .WithProjectMetadataReferences(projectId, [NetFramework.mscorlib])
                 .WithProjectCompilationOptions(projectId, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithNullableContextOptions(NullableContextOptions.Enable));
             var src = @"
 class C

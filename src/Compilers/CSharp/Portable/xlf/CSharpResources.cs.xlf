@@ -287,11 +287,6 @@
         <target state="translated">Člen záznamu {0} musí být čitelná vlastnost instance nebo pole typu {1}, která se bude shodovat s pozičním parametrem {2}.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadSpecialByRefIterator">
-        <source>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</source>
-        <target state="translated">Výraz foreach nejde použít na enumerátorech typu {0} v asynchronních metodách nebo metodách iterátoru, protože {0} je ref struct nebo parametr typu umožňující struktury ref struct.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_BadSpecialByRefParameter">
         <source>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</source>
         <target state="translated">Parametry typu {0} nemůžou být deklarované v asynchronních metodách nebo asynchronních výrazech lambda.</target>
@@ -505,6 +500,11 @@
       <trans-unit id="ERR_CollectionExpressionTargetTypeNotConstructible">
         <source>Cannot initialize type '{0}' with a collection expression because the type is not constructible.</source>
         <target state="translated">Typ {0} nelze inicializovat pomocí výrazu kolekce, protože typ není konstruovatelný.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
+        <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
+        <target state="new">Collection initializer results in an infinite chain of instantiations of collection '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -1148,8 +1148,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
-        <source>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="translated">Experimentální funkce interceptors není v tomto oboru názvů povolená. Přidejte do projektu {0}.</target>
+        <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
+        <target state="needs-review-translation">Experimentální funkce interceptors není v tomto oboru názvů povolená. Přidejte do projektu {0}.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
@@ -1735,6 +1735,11 @@
       <trans-unit id="ERR_PartialPropertyDuplicateImplementation">
         <source>A partial property may not have multiple implementing declarations</source>
         <target state="translated">Částečná vlastnost nesmí mít víc implementujících deklarací.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_PartialPropertyDuplicateInitializer">
+        <source>A partial property cannot have an initializer on both the definition and implementation.</source>
+        <target state="new">A partial property cannot have an initializer on both the definition and implementation.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyInitMismatch">
@@ -2632,11 +2637,6 @@
         <target state="translated">ukazatel</target>
         <note />
       </trans-unit>
-      <trans-unit id="INF_IdentifierConflictWithContextualKeyword">
-        <source>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</source>
-        <target state="translated">{0} je kontextové klíčové slovo v přístupových objektech vlastností počínaje jazykovou verzí {1}. Místo toho použijte @{0}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
         <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
         <target state="translated">Identifikátor je kontextové klíčové slovo se specifickým významem v novější jazykové verzi.</target>
@@ -2925,6 +2925,16 @@
       <trans-unit id="WRN_EscapeVariable_Title">
         <source>Use of variable in this context may expose referenced variables outside of their declaration scope</source>
         <target state="translated">Použití proměnné v tomto kontextu může vystavit odkazované proměnné mimo rozsah jejich oboru.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous">
+        <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</source>
+        <target state="new">In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous_Title">
+        <source>The 'field' keyword binds to a synthesized backing field for the property.</source>
+        <target state="new">The 'field' keyword binds to a synthesized backing field for the property.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
@@ -5271,6 +5281,16 @@
       <trans-unit id="WRN_UndecoratedCancellationTokenParameter_Title">
         <source>Async-iterator member has one or more parameters of type 'CancellationToken' but none of them is decorated with the 'EnumeratorCancellation' attribute, so the cancellation token parameter from the generated 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' will be unconsumed</source>
         <target state="translated">Člen asynchronního iterátoru má jeden nebo více parametrů typu CancellationToken, ale žádný z nich není dekorovaný atributem EnumeratorCancellation, takže parametr tokenu zrušení z vygenerovaného výrazu IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator se nespotřebuje.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableBackingField">
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</target>
+        <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
+        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <target state="new">Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -12155,8 +12175,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
-        <source>Only auto-implemented properties can have initializers.</source>
-        <target state="translated">Jenom automaticky implementované vlastnosti můžou mít inicializátory.</target>
+        <source>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</source>
+        <target state="needs-review-translation">Jenom automaticky implementované vlastnosti můžou mít inicializátory.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyMustHaveGetAccessor">

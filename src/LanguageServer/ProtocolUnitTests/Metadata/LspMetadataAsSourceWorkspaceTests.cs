@@ -114,6 +114,7 @@ public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerPr
         var definitionFromMetadata = await testLspServer.ExecuteRequestAsync<LSP.TextDocumentPositionParams, LSP.Location[]>(LSP.Methods.TextDocumentDefinitionName,
                            CreateTextDocumentPositionParams(locationOfStringKeyword), CancellationToken.None);
 
+        Assert.NotNull(definitionFromMetadata);
         Assert.NotEmpty(definitionFromMetadata);
         Assert.Contains("String.cs", definitionFromMetadata.Single().Uri.LocalPath);
     }

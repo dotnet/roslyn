@@ -569,9 +569,45 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private BoundStatement RewriteForEachStatementAsFor<TArg>(BoundForEachStatement node, GetForEachStatementAsForPreamble? getPreamble, GetForEachStatementAsForItem<TArg> getItem, GetForEachStatementAsForLength<TArg> getLength, TArg arg)
         {
-            var forEachSyntax = (CommonForEachStatementSyntax)node.Syntax;
-
             BoundExpression collectionExpression = GetUnconvertedCollectionExpression(node, out _);
+
+            BoundStatement? rewrittenBody = VisitStatement(node.Body);
+            Debug.Assert(rewrittenBody is { });
+
+            Debug.Assert(node.EnumeratorInfoOpt is not null);
+            return RewriteForEachStatementAsFor<TArg>(
+                node,
+                getPreamble,
+                getItem,
+                getLength,
+                arg,
+                collectionExpression,
+                node.EnumeratorInfoOpt,
+                node.ElementPlaceholder,
+                node.ElementConversion,
+                node.IterationVariables,
+                node.DeconstructionOpt,
+                node.BreakLabel,
+                node.ContinueLabel,
+                rewrittenBody);
+        }
+
+        private BoundStatement RewriteForEachStatementAsFor<TArg>(
+            BoundNode node,
+            GetForEachStatementAsForPreamble? getPreamble,
+            GetForEachStatementAsForItem<TArg> getItem,
+            GetForEachStatementAsForLength<TArg> getLength,
+            TArg arg,
+            BoundExpression collectionExpression,
+            ForEachEnumeratorInfo enumeratorInfo,
+            BoundValuePlaceholder? elementPlaceholder,
+            BoundExpression? elementConversion,
+            ImmutableArray<LocalSymbol> iterationVariables,
+            BoundForEachDeconstructStep? deconstructionOpt,
+            GeneratedLabelSymbol breakLabel,
+            GeneratedLabelSymbol continueLabel,
+            BoundStatement rewrittenBody)
+        {
             NamedTypeSymbol? collectionType = (NamedTypeSymbol?)collectionExpression.Type;
             Debug.Assert(collectionType is { });
 
@@ -579,12 +615,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol boolType = _compilation.GetSpecialType(SpecialType.System_Boolean);
 
             BoundExpression rewrittenExpression = VisitExpression(collectionExpression);
-            BoundStatement? rewrittenBody = VisitStatement(node.Body);
-            Debug.Assert(rewrittenBody is { });
 
+            var forEachSyntax = (CSharpSyntaxNode)node.Syntax;
             LocalSymbol? preambleLocal = null;
             RefKind collectionTempRefKind = RefKind.None;
-            BoundStatement? collectionVarInitializationPreamble = getPreamble?.Invoke(this, node, ref rewrittenExpression, out preambleLocal, out collectionTempRefKind);
+            BoundStatement? collectionVarInitializationPreamble = getPreamble?.Invoke(this, forEachSyntax, enumeratorInfo, ref rewrittenExpression, out preambleLocal, out collectionTempRefKind);
 
             // Collection a
             LocalSymbol collectionTemp = _factory.SynthesizedLocal(collectionType, forEachSyntax, kind: SynthesizedLocalKind.ForEachArray, refKind: collectionTempRefKind);
@@ -614,13 +649,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // (V)a[p]
             BoundExpression iterationVarInitValue = ApplyConversionIfNotIdentity(
-                node.ElementConversion,
-                node.ElementPlaceholder,
-                getItem(this, node, boundArrayVar, boundPositionVar, arg));
+                elementConversion,
+                elementPlaceholder,
+                getItem(this, forEachSyntax, enumeratorInfo, boundArrayVar, boundPositionVar, arg));
 
             // V v = (V)a[p];   /* OR */   (D1 d1, ...) = (V)a[p];
-            ImmutableArray<LocalSymbol> iterationVariables = node.IterationVariables;
-            BoundStatement iterationVariableDecl = LocalOrDeconstructionDeclaration(forEachSyntax, node.DeconstructionOpt, iterationVariables, iterationVarInitValue);
+            BoundStatement iterationVariableDecl = LocalOrDeconstructionDeclaration(forEachSyntax, deconstructionOpt, iterationVariables, iterationVarInitValue);
 
             InstrumentForEachStatementIterationVarDeclaration(node, ref iterationVariableDecl);
 
@@ -628,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         statements: ImmutableArray.Create<BoundStatement>(arrayVarDecl, positionVarDecl));
 
             // a.Length
-            BoundExpression arrayLength = getLength(this, node, boundArrayVar, arg);
+            BoundExpression arrayLength = getLength(this, forEachSyntax, boundArrayVar, arg);
 
             // p < a.Length
             BoundExpression exitCondition = new BoundBinaryOperator(
@@ -663,8 +697,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenCondition: exitCondition,
                 rewrittenIncrement: positionIncrement,
                 rewrittenBody: loopBody,
-                breakLabel: node.BreakLabel,
-                continueLabel: node.ContinueLabel,
+                breakLabel: breakLabel,
+                continueLabel: continueLabel,
                 hasErrors: node.HasErrors);
 
             InstrumentForEachStatement(node, ref result);
@@ -672,27 +706,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private delegate BoundStatement? GetForEachStatementAsForPreamble(LocalRewriter rewriter, BoundForEachStatement node, ref BoundExpression rewrittenExpression, out LocalSymbol? preambleLocal, out RefKind collectionTempRefKind);
-        private delegate BoundExpression GetForEachStatementAsForItem<TArg>(LocalRewriter rewriter, BoundForEachStatement node, BoundLocal boundArrayVar, BoundLocal boundPositionVar, TArg arg);
-        private delegate BoundExpression GetForEachStatementAsForLength<TArg>(LocalRewriter rewriter, BoundForEachStatement node, BoundLocal boundArrayVar, TArg arg);
+        private delegate BoundStatement? GetForEachStatementAsForPreamble(LocalRewriter rewriter, SyntaxNode syntax, ForEachEnumeratorInfo enumeratorInfo, ref BoundExpression rewrittenExpression, out LocalSymbol? preambleLocal, out RefKind collectionTempRefKind);
+        private delegate BoundExpression GetForEachStatementAsForItem<TArg>(LocalRewriter rewriter, SyntaxNode syntax, ForEachEnumeratorInfo enumeratorInfo, BoundLocal boundArrayVar, BoundLocal boundPositionVar, TArg arg);
+        private delegate BoundExpression GetForEachStatementAsForLength<TArg>(LocalRewriter rewriter, SyntaxNode syntax, BoundLocal boundArrayVar, TArg arg);
 
         private BoundStatement RewriteForEachStatementAsFor(BoundForEachStatement node, MethodSymbol indexerGet, MethodSymbol lengthGet)
         {
             return RewriteForEachStatementAsFor(node,
                                                 getPreamble: null,
-                                                getItem: static (LocalRewriter rewriter, BoundForEachStatement node, BoundLocal boundArrayVar, BoundLocal boundPositionVar, (MethodSymbol indexerGet, MethodSymbol lengthGet) arg) =>
+                                                getItem: static (LocalRewriter rewriter, SyntaxNode syntax, ForEachEnumeratorInfo enumeratorInfo, BoundLocal boundArrayVar, BoundLocal boundPositionVar, (MethodSymbol indexerGet, MethodSymbol lengthGet) arg) =>
                                                 {
                                                     return BoundCall.Synthesized(
-                                                               syntax: node.Syntax,
+                                                               syntax: syntax,
                                                                receiverOpt: boundArrayVar,
                                                                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                                                                arg.indexerGet,
                                                                boundPositionVar);
                                                 },
-                                                getLength: static (LocalRewriter rewriter, BoundForEachStatement node, BoundLocal boundArrayVar, (MethodSymbol indexerGet, MethodSymbol lengthGet) arg) =>
+                                                getLength: static (LocalRewriter rewriter, SyntaxNode syntax, BoundLocal boundArrayVar, (MethodSymbol indexerGet, MethodSymbol lengthGet) arg) =>
                                                 {
                                                     return BoundCall.Synthesized(
-                                                               syntax: node.Syntax,
+                                                               syntax: syntax,
                                                                receiverOpt: boundArrayVar,
                                                                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                                                                arg.lengthGet);
@@ -703,58 +737,68 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement RewriteInlineArrayForEachStatementAsFor(BoundForEachStatement node)
         {
             return RewriteForEachStatementAsFor(node,
-                                                getPreamble: static (LocalRewriter rewriter, BoundForEachStatement node, ref BoundExpression rewrittenExpression, out LocalSymbol? preambleLocal, out RefKind collectionTempRefKind) =>
-                                                                    {
-                                                                        var enumeratorInfo = node.EnumeratorInfoOpt;
-                                                                        Debug.Assert(enumeratorInfo is not null);
-                                                                        Debug.Assert(rewrittenExpression.Type is not null);
-
-                                                                        BoundStatement? collectionVarInitializationPreamble = null;
-                                                                        preambleLocal = null;
-                                                                        if (enumeratorInfo.InlineArrayUsedAsValue)
-                                                                        {
-                                                                            BoundLocal boundLocal = rewriter._factory.StoreToTemp(rewrittenExpression, out BoundAssignmentOperator? valueStore);
-                                                                            rewrittenExpression = boundLocal;
-                                                                            collectionVarInitializationPreamble = rewriter._factory.ExpressionStatement(valueStore);
-                                                                            preambleLocal = boundLocal.LocalSymbol;
-                                                                        }
-
-                                                                        collectionTempRefKind = enumeratorInfo.InlineArraySpanType == WellKnownType.System_Span_T ? RefKind.Ref : RefKindExtensions.StrictIn;
-                                                                        return collectionVarInitializationPreamble;
-                                                                    },
-                                                getItem: static (LocalRewriter rewriter, BoundForEachStatement node, BoundLocal boundArrayVar, BoundLocal boundPositionVar, object? _) =>
-                                                                {
-                                                                    MethodSymbol elementRef;
-                                                                    Debug.Assert(rewriter._factory.ModuleBuilderOpt is { });
-                                                                    Debug.Assert(rewriter._diagnostics.DiagnosticBag is { });
-
-                                                                    var enumeratorInfo = node.EnumeratorInfoOpt;
-                                                                    Debug.Assert(enumeratorInfo is not null);
-
-                                                                    NamedTypeSymbol intType = rewriter._factory.SpecialType(SpecialType.System_Int32);
-                                                                    if (enumeratorInfo.InlineArraySpanType == WellKnownType.System_Span_T)
-                                                                    {
-                                                                        elementRef = rewriter._factory.ModuleBuilderOpt.EnsureInlineArrayElementRefExists(node.Syntax, intType, rewriter._diagnostics.DiagnosticBag);
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        Debug.Assert(enumeratorInfo.InlineArraySpanType == WellKnownType.System_ReadOnlySpan_T);
-                                                                        elementRef = rewriter._factory.ModuleBuilderOpt.EnsureInlineArrayElementRefReadOnlyExists(node.Syntax, intType, rewriter._diagnostics.DiagnosticBag);
-                                                                    }
-
-                                                                    TypeSymbol inlineArrayType = boundArrayVar.Type;
-                                                                    elementRef = elementRef.Construct(inlineArrayType, inlineArrayType.TryGetInlineArrayElementField()!.Type);
-
-                                                                    return rewriter._factory.Call(null, elementRef, boundArrayVar, boundPositionVar, useStrictArgumentRefKinds: true);
-                                                                },
-                                                getLength: static (LocalRewriter rewriter, BoundForEachStatement node, BoundLocal boundArrayVar, object? _) =>
-                                                                  {
-                                                                      _ = boundArrayVar.Type.HasInlineArrayAttribute(out int length);
-                                                                      Debug.Assert(length > 0);
-                                                                      BoundExpression arrayLength = rewriter._factory.Literal(length);
-                                                                      return arrayLength;
-                                                                  },
+                                                getPreamble: GetInlineArrayForEachStatementPreambleDelegate(),
+                                                getItem: GetInlineArrayForEachStatementGetItemDelegate(),
+                                                getLength: GetInlineArrayForEachStatementGetLengthDelegate(),
                                                 arg: null);
+        }
+
+        private static GetForEachStatementAsForPreamble GetInlineArrayForEachStatementPreambleDelegate()
+        {
+            return static (LocalRewriter rewriter, SyntaxNode syntax, ForEachEnumeratorInfo enumeratorInfo, ref BoundExpression rewrittenExpression, out LocalSymbol? preambleLocal, out RefKind collectionTempRefKind) =>
+            {
+                Debug.Assert(rewrittenExpression.Type is not null);
+
+                BoundStatement? collectionVarInitializationPreamble = null;
+                preambleLocal = null;
+                if (enumeratorInfo.InlineArrayUsedAsValue)
+                {
+                    BoundLocal boundLocal = rewriter._factory.StoreToTemp(rewrittenExpression, out BoundAssignmentOperator? valueStore);
+                    rewrittenExpression = boundLocal;
+                    collectionVarInitializationPreamble = rewriter._factory.ExpressionStatement(valueStore);
+                    preambleLocal = boundLocal.LocalSymbol;
+                }
+
+                collectionTempRefKind = enumeratorInfo.InlineArraySpanType == WellKnownType.System_Span_T ? RefKind.Ref : RefKindExtensions.StrictIn;
+                return collectionVarInitializationPreamble;
+            };
+        }
+
+        private static GetForEachStatementAsForItem<object?> GetInlineArrayForEachStatementGetItemDelegate()
+        {
+            return static (LocalRewriter rewriter, SyntaxNode syntax, ForEachEnumeratorInfo enumeratorInfo, BoundLocal boundArrayVar, BoundLocal boundPositionVar, object? _) =>
+            {
+                MethodSymbol elementRef;
+                Debug.Assert(rewriter._factory.ModuleBuilderOpt is { });
+                Debug.Assert(rewriter._diagnostics.DiagnosticBag is { });
+
+                NamedTypeSymbol intType = rewriter._factory.SpecialType(SpecialType.System_Int32);
+                if (enumeratorInfo.InlineArraySpanType == WellKnownType.System_Span_T)
+                {
+                    elementRef = rewriter._factory.ModuleBuilderOpt.EnsureInlineArrayElementRefExists(syntax, intType, rewriter._diagnostics.DiagnosticBag);
+                }
+                else
+                {
+                    Debug.Assert(enumeratorInfo.InlineArraySpanType == WellKnownType.System_ReadOnlySpan_T);
+                    elementRef = rewriter._factory.ModuleBuilderOpt.EnsureInlineArrayElementRefReadOnlyExists(syntax, intType, rewriter._diagnostics.DiagnosticBag);
+                }
+
+                TypeSymbol inlineArrayType = boundArrayVar.Type;
+                elementRef = elementRef.Construct(inlineArrayType, inlineArrayType.TryGetInlineArrayElementField()!.Type);
+
+                return rewriter._factory.Call(null, elementRef, boundArrayVar, boundPositionVar, useStrictArgumentRefKinds: true);
+            };
+        }
+
+        private static GetForEachStatementAsForLength<object?> GetInlineArrayForEachStatementGetLengthDelegate()
+        {
+            return static (LocalRewriter rewriter, SyntaxNode syntax, BoundLocal boundArrayVar, object? _) =>
+            {
+                _ = boundArrayVar.Type.HasInlineArrayAttribute(out int length);
+                Debug.Assert(length > 0);
+                BoundExpression arrayLength = rewriter._factory.Literal(length);
+                return arrayLength;
+            };
         }
 
         /// <summary>

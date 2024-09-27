@@ -80,6 +80,6 @@ internal sealed partial class CSharpCopilotCodeAnalysisService : AbstractCopilot
         return filteredDiagnostics.ToImmutable();
     }
 
-    protected override Task<bool> IsAnyExclusionCoreAsync(CancellationToken cancellationToken)
-        => _lazyExternalCopilotService.Value.IsAnyExclusionAsync(cancellationToken);
+    protected override Task<bool> IsFileExcludedCoreAsync(string filePath, CancellationToken cancellationToken)
+        => _lazyExternalCopilotService.Value.IsFileExcludedAsync(filePath, cancellationToken);
 }

@@ -888,7 +888,7 @@ internal sealed partial class ProjectSystemProjectFactory
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (getFilePath(oldReference) == fullFilePath)
+                    if (fullFilePath.Equals(getFilePath(oldReference), StringComparison.OrdinalIgnoreCase))
                     {
                         var newReference = createNewReference(solutionServices, oldReference);
 

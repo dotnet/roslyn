@@ -126,7 +126,7 @@ internal sealed class UnitTestingHotReloadService(HostWorkspaceServices services
                 update.UpdatedMethods,
                 update.UpdatedTypes));
 
-        var diagnostics = await results.GetAllDiagnosticsAsync(solution, cancellationToken).ConfigureAwait(false);
+        var diagnostics = results.GetAllDiagnostics();
 
         return (updates, diagnostics);
     }

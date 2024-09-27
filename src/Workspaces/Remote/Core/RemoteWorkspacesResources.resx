@@ -231,4 +231,7 @@
   <data name="FeatureName_SemanticSearch" xml:space="preserve">
     <value>Semantic search</value>
   </data>
+  <data name="FeatureName_RelatedDocuments" xml:space="preserve">
+    <value>Related documents</value>
+  </data>
 </root>

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -112,6 +113,33 @@ internal static class UseExpressionBodyForLambdaHelpers
     {
         var body = declaration.Body as BlockSyntax;
 
-        return body.TryConvertToExpressionBody(languageVersion, conversionPreference, cancellationToken, out expression, out _);
+        if (!body.TryConvertToExpressionBody(languageVersion, conversionPreference, cancellationToken, out expression, out var semicolonToken))
+            return false;
+
+        // If we have directives, we have something like:
+        //
+        // X(c =>
+        // {
+        // #if DEBUG
+        //      Y();
+        // #else
+        //      Z();
+        // #endif
+        // });
+        //
+        // Converting this to an expression body is a little too complex for us to support currently. We'd have to grab
+        // out the parts of the #else/#elif blocks, grab out their expressions, and rewrite into a form like so:
+        //
+        // X(c =>
+        // #if DEBUG
+        //      Y()
+        // #else
+        //      Z()
+        // #endif
+        // );
+        if (semicolonToken.TrailingTrivia.Any(t => t.IsDirective))
+            return false;
+
+        return true;
     }
 }

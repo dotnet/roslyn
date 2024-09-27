@@ -8,7 +8,7 @@
     <MajorVersion>4</MajorVersion>
     <MinorVersion>12</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>2</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>3</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <!--
       By default the assembly version in official builds is "$(MajorVersion).$(MinorVersion).0.0".
@@ -45,6 +45,7 @@
     <MicrosoftDiaSymReaderVersion>2.0.0</MicrosoftDiaSymReaderVersion>
     <MicrosoftExtensionsConfigurationVersion>8.0.0</MicrosoftExtensionsConfigurationVersion>
     <MicrosoftExtensionsDependencyInjectionVersion>8.0.0</MicrosoftExtensionsDependencyInjectionVersion>
+    <MicrosoftExtensionsFileSystemGlobbingVersion>8.0.0</MicrosoftExtensionsFileSystemGlobbingVersion>
     <MicrosoftExtensionsLoggingVersion>8.0.0</MicrosoftExtensionsLoggingVersion>
     <MicrosoftExtensionsLoggingAbstractionsVersion>8.0.0</MicrosoftExtensionsLoggingAbstractionsVersion>
     <MicrosoftExtensionsLoggingConsoleVersion>8.0.0</MicrosoftExtensionsLoggingConsoleVersion>
@@ -64,7 +65,7 @@
     <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
     <SystemIdentityModelTokensJwtVersion>6.34.0</SystemIdentityModelTokensJwtVersion>
     <!-- TODO: remove https://github.com/dotnet/roslyn/issues/71827 -->
-    <MicrosoftDotNetXliffTasksVersion Condition="'$(DotnetBuildFromSource)' != 'true'">9.0.0-beta.24076.5</MicrosoftDotNetXliffTasksVersion>
+    <MicrosoftDotNetXliffTasksVersion Condition="'$(DotNetBuildSourceOnly)' != 'true'">9.0.0-beta.24076.5</MicrosoftDotNetXliffTasksVersion>
     <MicrosoftIdentityClientVersion>4.61.3</MicrosoftIdentityClientVersion>
     <SystemIdentityModelTokensJwtVersion>6.34.0</SystemIdentityModelTokensJwtVersion>
   </PropertyGroup>

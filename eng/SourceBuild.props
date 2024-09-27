@@ -27,6 +27,7 @@
   <Target Name="ConfigureInnerBuildArg" BeforeTargets="GetSourceBuildCommandConfiguration">
     <PropertyGroup>
       <InnerBuildArgs>$(InnerBuildArgs) /p:Projects="$(InnerSourceBuildRepoRoot)Roslyn.sln"</InnerBuildArgs>
+      <InnerBuildArgs Condition="'$(DotNetBuildSourceOnly)'=='true'">$(InnerBuildArgs) /p:RestoreUseStaticGraphEvaluation=false</InnerBuildArgs>
     </PropertyGroup>
   </Target>
 

@@ -3845,9 +3845,6 @@ Give the compiler some way to differentiate the methods. For example, you can gi
   <data name="ERR_BadAsyncLacksBody" xml:space="preserve">
     <value>The 'async' modifier can only be used in methods that have a body.</value>
   </data>
-  <data name="ERR_BadSpecialByRefIterator" xml:space="preserve">
-    <value>foreach statement cannot operate on enumerators of type '{0}' in async or iterator methods because '{0}' is a ref struct or a type parameter that allows ref struct.</value>
-  </data>
   <data name="ERR_BadSpecialByRefParameter" xml:space="preserve">
     <value>Parameters of type '{0}' cannot be declared in async methods or async lambda expressions.</value>
   </data>
@@ -4891,7 +4888,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Expected identifier or numeric literal</value>
   </data>
   <data name="ERR_InitializerOnNonAutoProperty" xml:space="preserve">
-    <value>Only auto-implemented properties can have initializers.</value>
+    <value>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</value>
   </data>
   <data name="ERR_InstancePropertyInitializerInInterface" xml:space="preserve">
     <value>Instance properties in interfaces cannot have initializers.</value>
@@ -6868,8 +6865,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="INF_TooManyBoundLambdas_Title" xml:space="preserve">
     <value>Compiling requires binding the lambda expression many times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</value>
   </data>
-  <data name="INF_IdentifierConflictWithContextualKeyword" xml:space="preserve">
-    <value>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</value>
+  <data name="WRN_FieldIsAmbiguous" xml:space="preserve">
+    <value>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</value>
+  </data>
+  <data name="WRN_FieldIsAmbiguous_Title" xml:space="preserve">
+    <value>The 'field' keyword binds to a synthesized backing field for the property.</value>
   </data>
   <data name="INF_IdentifierConflictWithContextualKeyword_Title" xml:space="preserve">
     <value>Identifier is a contextual keyword, with a specific meaning, in a later language version.</value>
@@ -7609,7 +7609,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>A switch expression arm does not begin with a 'case' keyword.</value>
   </data>
   <data name="ERR_InterceptorsFeatureNotEnabled" xml:space="preserve">
-    <value>The 'interceptors' experimental feature is not enabled in this namespace. Add '{0}' to your project.</value>
+    <value>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</value>
   </data>
   <data name="ERR_InterceptorGlobalNamespace" xml:space="preserve">
     <value>An interceptor cannot be declared in the global namespace.</value>
@@ -7860,6 +7860,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_DynamicDispatchToParamsCollection" xml:space="preserve">
     <value>'{0}' is applicable only with expanded form of non-array params collection which is not supported during dynamic dispatch.</value>
   </data>
+  <data name="ERR_CollectionInitializerInfiniteChainOfAddCalls" xml:space="preserve">
+    <value>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</value>
+  </data>
   <data name="ERR_ParamsCollectionInfiniteChainOfConstructorCalls" xml:space="preserve">
     <value>Creation of params collection '{0}' results in an infinite chain of invocation of constructor '{1}'.</value>
   </data>
@@ -7974,6 +7977,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PartialPropertyRequiredDifference" xml:space="preserve">
     <value>Both partial property declarations must be required or neither may be required</value>
   </data>
+  <data name="ERR_PartialPropertyDuplicateInitializer" xml:space="preserve">
+    <value>A partial property cannot have an initializer on both the definition and implementation.</value>
+  </data>
   <data name="IDS_FeatureAllowsRefStructConstraint" xml:space="preserve">
     <value>allows ref struct constraint</value>
   </data>
@@ -7988,5 +7994,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InlineArrayAttributeOnRecord" xml:space="preserve">
     <value>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</value>
+  </data>
+  <data name="WRN_UninitializedNonNullableBackingField" xml:space="preserve">
+    <value>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</value>
+    <comment>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</comment>
+  </data>
+  <data name="WRN_UninitializedNonNullableBackingField_Title" xml:space="preserve">
+    <value>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</value>
   </data>
 </root>

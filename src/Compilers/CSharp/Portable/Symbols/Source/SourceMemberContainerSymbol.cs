@@ -1772,6 +1772,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyMembersDictionary;
         }
 
+        internal bool AreMembersComplete => state.HasComplete(CompletionPart.Members);
+
         internal override IEnumerable<Symbol> GetInstanceFieldsAndEvents()
         {
             var membersAndInitializers = this.GetMembersAndInitializers();
@@ -3668,13 +3670,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    if ((object)membersByName == _lazyEarlyAttributeDecodingMembersDictionary)
-                    {
-                        // Avoid mutating the cached dictionary and especially avoid doing this possibly on multiple threads in parallel.
-                        membersByName = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>(membersByName, ReadOnlyMemoryOfCharComparer.Instance);
-                    }
-
-                    membersByName[name] = FixPartialMember(membersByName[name], prevMethod, currentMethod);
+                    DuplicateMembersByNameIfCached(ref membersByName);
+                    membersByName[name] = FixPartialMethod(membersByName[name], prevMethod, currentMethod);
                 }
             }
 
@@ -3692,40 +3689,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else
                 {
-                    var (currentGet, prevGet) = ((SourcePropertyAccessorSymbol?)currentProperty.GetMethod, (SourcePropertyAccessorSymbol?)prevProperty.GetMethod);
-                    if (currentGet != null || prevGet != null)
+                    if (hasInitializer(prevProperty) && hasInitializer(currentProperty))
                     {
-                        var accessorName = (currentGet ?? prevGet)!.Name.AsMemory();
-                        mergeAccessors(ref membersByName, accessorName, currentGet, prevGet);
+                        diagnostics.Add(ErrorCode.ERR_PartialPropertyDuplicateInitializer, currentProperty.GetFirstLocation());
                     }
 
-                    var (currentSet, prevSet) = ((SourcePropertyAccessorSymbol?)currentProperty.SetMethod, (SourcePropertyAccessorSymbol?)prevProperty.SetMethod);
-                    if (currentSet != null || prevSet != null)
-                    {
-                        var accessorName = (currentSet ?? prevSet)!.Name.AsMemory();
-                        mergeAccessors(ref membersByName, accessorName, currentSet, prevSet);
-                    }
-
-                    if ((object)membersByName == _lazyEarlyAttributeDecodingMembersDictionary)
-                    {
-                        // Avoid mutating the cached dictionary and especially avoid doing this possibly on multiple threads in parallel.
-                        membersByName = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>(membersByName, ReadOnlyMemoryOfCharComparer.Instance);
-                    }
-
-                    membersByName[name] = FixPartialMember(membersByName[name], prevProperty, currentProperty);
+                    DuplicateMembersByNameIfCached(ref membersByName);
+                    mergeAccessors(ref membersByName, (SourcePropertyAccessorSymbol?)currentProperty.GetMethod, (SourcePropertyAccessorSymbol?)prevProperty.GetMethod);
+                    mergeAccessors(ref membersByName, (SourcePropertyAccessorSymbol?)currentProperty.SetMethod, (SourcePropertyAccessorSymbol?)prevProperty.SetMethod);
+                    FixPartialProperty(ref membersByName, name, prevProperty, currentProperty);
                 }
 
-                void mergeAccessors(ref Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName, ReadOnlyMemory<char> name, SourcePropertyAccessorSymbol? currentAccessor, SourcePropertyAccessorSymbol? prevAccessor)
+                void mergeAccessors(ref Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName, SourcePropertyAccessorSymbol? currentAccessor, SourcePropertyAccessorSymbol? prevAccessor)
                 {
-                    Debug.Assert(currentAccessor != null || prevAccessor != null);
-                    if (currentAccessor != null && prevAccessor != null)
+                    if (currentAccessor is { } && prevAccessor is { })
                     {
+                        var name = currentAccessor.Name.AsMemory();
                         var implementationAccessor = currentProperty.IsPartialDefinition ? prevAccessor : currentAccessor;
                         membersByName[name] = Remove(membersByName[name], implementationAccessor);
                     }
-                    else
+                    else if (currentAccessor is { } || prevAccessor is { })
                     {
-                        var (foundAccessor, containingProperty, otherProperty) = prevAccessor != null ? (prevAccessor, prevProperty, currentProperty) : (currentAccessor!, currentProperty, prevProperty);
+                        var (foundAccessor, containingProperty, otherProperty) = prevAccessor is { } ? (prevAccessor, prevProperty, currentProperty) : (currentAccessor!, currentProperty, prevProperty);
                         // When an accessor is present on definition but not on implementation, the accessor is said to be missing on the implementation.
                         // When an accessor is present on implementation but not on definition, the accessor is said to be unexpected on the implementation.
                         var (errorCode, propertyToBlame) = foundAccessor.IsPartialDefinition
@@ -3734,11 +3719,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(errorCode, propertyToBlame.GetFirstLocation(), foundAccessor);
                     }
                 }
+
+                static bool hasInitializer(SourcePropertySymbol property)
+                {
+                    return property.DeclaredBackingField?.HasInitializer == true;
+                }
+            }
+        }
+
+        private void DuplicateMembersByNameIfCached(ref Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName)
+        {
+            if ((object)membersByName == _lazyEarlyAttributeDecodingMembersDictionary)
+            {
+                // Avoid mutating the cached dictionary and especially avoid doing this possibly on multiple threads in parallel.
+                membersByName = new Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>>(membersByName, ReadOnlyMemoryOfCharComparer.Instance);
             }
         }
 
         /// <summary>Links together the definition and implementation parts of a partial method. Returns a member list which has the implementation part removed.</summary>
-        private static ImmutableArray<Symbol> FixPartialMember(ImmutableArray<Symbol> symbols, SourceOrdinaryMethodSymbol part1, SourceOrdinaryMethodSymbol part2)
+        private static ImmutableArray<Symbol> FixPartialMethod(ImmutableArray<Symbol> symbols, SourceOrdinaryMethodSymbol part1, SourceOrdinaryMethodSymbol part2)
         {
             SourceOrdinaryMethodSymbol definition;
             SourceOrdinaryMethodSymbol implementation;
@@ -3760,7 +3759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>Links together the definition and implementation parts of a partial property. Returns a member list which has the implementation part removed.</summary>
-        private static ImmutableArray<Symbol> FixPartialMember(ImmutableArray<Symbol> symbols, SourcePropertySymbol part1, SourcePropertySymbol part2)
+        private static void FixPartialProperty(ref Dictionary<ReadOnlyMemory<char>, ImmutableArray<Symbol>> membersByName, ReadOnlyMemory<char> name, SourcePropertySymbol part1, SourcePropertySymbol part2)
         {
             SourcePropertySymbol definition;
             SourcePropertySymbol implementation;
@@ -3775,10 +3774,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 implementation = part1;
             }
 
+            if (implementation.DeclaredBackingField is { } implementationField &&
+                definition.DeclaredBackingField is { })
+            {
+                var fieldName = implementationField.Name.AsMemory();
+                membersByName[fieldName] = Remove(membersByName[fieldName], implementationField);
+            }
+
             SourcePropertySymbol.InitializePartialPropertyParts(definition, implementation);
 
             // a partial property is represented in the member list by its definition part:
-            return Remove(symbols, implementation);
+            membersByName[name] = Remove(membersByName[name], implementation);
         }
 
         private static ImmutableArray<Symbol> Remove(ImmutableArray<Symbol> symbols, Symbol symbol)
@@ -4551,7 +4557,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Debug.Assert(property.SetMethod is object);
                         members.Add(property.GetMethod);
                         members.Add(property.SetMethod);
-                        members.Add(property.BackingField);
+                        var backingField = property.DeclaredBackingField;
+                        Debug.Assert(backingField is object);
+                        members.Add(backingField);
 
                         builder.AddInstanceInitializerForPositionalMembers(new FieldOrPropertyInitializer(property.BackingField, paramList.Parameters[param.Ordinal]));
                         addedCount++;
@@ -4991,13 +4999,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.GetMethod);
                             AddAccessorIfAvailable(builder.NonTypeMembers, property.SetMethod);
-                            FieldSymbol backingField = property.BackingField;
+                            FieldSymbol? backingField = property.DeclaredBackingField;
 
                             // TODO: can we leave this out of the member list?
                             // From the 10/12/11 design notes:
                             //   In addition, we will change autoproperties to behavior in
                             //   a similar manner and make the autoproperty fields private.
-                            if ((object)backingField != null)
+                            if (backingField is { })
                             {
                                 builder.NonTypeMembers.Add(backingField);
                                 builder.UpdateIsNullableEnabledForConstructorsAndFields(useStatic: backingField.IsStatic, compilation, propertySyntax);

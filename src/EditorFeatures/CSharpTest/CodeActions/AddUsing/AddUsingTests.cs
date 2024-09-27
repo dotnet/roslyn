@@ -17,7 +17,6 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 using Basic.Reference.Assemblies;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddUsing;
 
