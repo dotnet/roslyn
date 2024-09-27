@@ -1189,7 +1189,7 @@ Override.set y: 1
 
         [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/75032")]
-        public void MissingDefaultMemberAttribute()
+        public void MissingDefaultMemberAttribute_01()
         {
             var text1 = @"
 public interface I1
@@ -1200,31 +1200,66 @@ public interface I1
             var comp1 = CreateCompilation(text1);
             comp1.MakeMemberMissing(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor);
 
-            CompileAndVerify(comp1).VerifyDiagnostics();
+            comp1.VerifyDiagnostics(
+                // (4,15): error CS0656: Missing compiler required member 'System.Reflection.DefaultMemberAttribute..ctor'
+                //     public I1 this[I1 args] { get; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this").WithArguments("System.Reflection.DefaultMemberAttribute", ".ctor").WithLocation(4, 15)
+                );
+
+            comp1 = CreateCompilation(text1);
+            comp1.MakeTypeMissing(WellKnownType.System_Reflection_DefaultMemberAttribute);
+
+            comp1.VerifyDiagnostics(
+                // (4,15): error CS0656: Missing compiler required member 'System.Reflection.DefaultMemberAttribute..ctor'
+                //     public I1 this[I1 args] { get; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this").WithArguments("System.Reflection.DefaultMemberAttribute", ".ctor").WithLocation(4, 15)
+                );
+
+            comp1 = CreateCompilation(text1);
+            comp1.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75032")]
+        public void MissingDefaultMemberAttribute_02()
+        {
+            var text1 = @"
+public interface I1
+{
+    public I1 this[I1 args] { get; }
+}
+";
+            var comp1 = CreateCompilation(text1);
 
             var text2 = @"
-class Program
+class C : I1
 {
-    static void Test(I1 x)
-    {
-        _ = x[null];
-        _ = x.get_Item(null);
-    }
+    I1 I1.this[I1 args] => throw null;
 }
 ";
             var comp2 = CreateCompilation(text2, references: [comp1.ToMetadataReference()]);
-            comp2.VerifyDiagnostics(
-                // (7,15): error CS0571: 'I1.this[I1].get': cannot explicitly call operator or accessor
-                //         _ = x.get_Item(null);
-                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "get_Item").WithArguments("I1.this[I1].get").WithLocation(7, 15)
-                );
+            comp2.MakeMemberMissing(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor);
+            comp2.VerifyEmitDiagnostics();
+        }
 
-            var comp3 = CreateCompilation(text2, references: [comp1.EmitToImageReference()]);
-            comp3.VerifyDiagnostics(
-                // (6,13): error CS0021: Cannot apply indexing with [] to an expression of type 'I1'
-                //         _ = x[null];
-                Diagnostic(ErrorCode.ERR_BadIndexLHS, "x[null]").WithArguments("I1").WithLocation(6, 13)
-                );
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75032")]
+        public void MissingDefaultMemberAttribute_03()
+        {
+            var text1 = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static IEnumerable<int> Test()
+    {
+        return [123];
+    }
+}
+";
+            var comp1 = CreateCompilation(text1);
+            comp1.MakeMemberMissing(WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor);
+            CompileAndVerify(comp1).VerifyDiagnostics();
         }
     }
 }

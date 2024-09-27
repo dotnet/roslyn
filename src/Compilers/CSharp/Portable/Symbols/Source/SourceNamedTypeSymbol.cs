@@ -1713,7 +1713,7 @@ next:;
 
                 AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor,
-                    ImmutableArray.Create(defaultMemberNameConstant), isOptionalUse: true));
+                    ImmutableArray.Create(defaultMemberNameConstant)));
             }
 
             if (this.declaration.Declarations.All(d => d.IsSimpleProgram))
@@ -1796,25 +1796,28 @@ next:;
             Debug.Assert(ObsoleteKind != ObsoleteAttributeKind.Uninitialized);
             Debug.Assert(GetMembers().All(m => m.ObsoleteKind != ObsoleteAttributeKind.Uninitialized));
 
-            if (ObsoleteKind != ObsoleteAttributeKind.None
-                || GetMembers().All(m => m is not MethodSymbol { MethodKind: MethodKind.Constructor, ObsoleteKind: ObsoleteAttributeKind.None } method
+            if (ObsoleteKind == ObsoleteAttributeKind.None
+                && !GetMembers().All(m => m is not MethodSymbol { MethodKind: MethodKind.Constructor, ObsoleteKind: ObsoleteAttributeKind.None } method
                                          || !method.ShouldCheckRequiredMembers()))
             {
-                return;
+                foreach (var member in GetMembers())
+                {
+                    if (!member.IsRequired())
+                    {
+                        continue;
+                    }
+
+                    if (member.ObsoleteKind != ObsoleteAttributeKind.None)
+                    {
+                        // Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
+                        diagnostics.Add(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, member.GetFirstLocation(), member);
+                    }
+                }
             }
 
-            foreach (var member in GetMembers())
+            if (Indexers.FirstOrDefault() is PropertySymbol indexerSymbol)
             {
-                if (!member.IsRequired())
-                {
-                    continue;
-                }
-
-                if (member.ObsoleteKind != ObsoleteAttributeKind.None)
-                {
-                    // Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
-                    diagnostics.Add(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, member.GetFirstLocation(), member);
-                }
+                Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor, diagnostics, indexerSymbol.TryGetFirstLocation() ?? GetFirstLocation());
             }
 
             if (TypeKind == TypeKind.Struct && !IsRecordStruct && HasInlineArrayAttribute(out _))
