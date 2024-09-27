@@ -23,7 +23,6 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
     TExpressionStatementSyntax,
     TLocalDeclarationStatementSyntax,
     TVariableDeclaratorSyntax,
-    TInitializerSyntax,
     TAnalyzer>()
     : AbstractUseCollectionExpressionCodeFixProvider<TObjectCreationExpressionSyntax>(
         AnalyzersResources.Collection_initialization_can_be_simplified,
@@ -37,7 +36,6 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
     where TExpressionStatementSyntax : TStatementSyntax
     where TLocalDeclarationStatementSyntax : TStatementSyntax
     where TVariableDeclaratorSyntax : SyntaxNode
-    where TInitializerSyntax : SyntaxNode
     where TAnalyzer : AbstractUseCollectionInitializerAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
@@ -47,7 +45,6 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
         TExpressionStatementSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
-        TInitializerSyntax,
         TAnalyzer>, new()
 {
     public sealed override ImmutableArray<string> FixableDiagnosticIds
@@ -56,7 +53,8 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
     protected abstract TAnalyzer GetAnalyzer();
 
     protected abstract Task<(SyntaxNode oldNode, SyntaxNode newNode)> GetReplacementNodesAsync(
-        Document document, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression, TInitializerSyntax? existingInitializer, ImmutableArray<Match> matches, CancellationToken cancellationToken);
+        Document document, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression,
+        ImmutableArray<Match> preMatches, ImmutableArray<Match> postMatches, CancellationToken cancellationToken);
 
     protected sealed override async Task FixAsync(
         Document document,

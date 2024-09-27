@@ -47,6 +47,7 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
         var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
             document,
             stackAllocExpression,
+            preMatches: [],
             matches,
             static e => e switch
             {

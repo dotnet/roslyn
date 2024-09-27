@@ -20,16 +20,17 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider
     private static Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync(
         Document document,
         BaseObjectCreationExpressionSyntax objectCreation,
-        InitializerExpressionSyntax? existingInitializer,
-        ImmutableArray<Match> matches,
+        ImmutableArray<Match> preMatches,
+        ImmutableArray<Match> postMatches,
         CancellationToken cancellationToken)
     {
         return CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
             document,
             objectCreation,
-            matches.SelectAsArray(m => new CollectionExpressionMatch<SyntaxNode>(m.StatementOrExpression, m.UseSpread)),
+            preMatches.SelectAsArray(m => new CollectionExpressionMatch<SyntaxNode>(m.StatementOrExpression, m.UseSpread)),
+            postMatches.SelectAsArray(m => new CollectionExpressionMatch<SyntaxNode>(m.StatementOrExpression, m.UseSpread)),
             // Use the initializer the analyzer recommends, regardless of what's on the object creation node.  
-            _ => existingInitializer,
+            static objectCreation => objectCreation.Initializer,
             static (objectCreation, initializer) => objectCreation.WithInitializer(initializer),
             cancellationToken);
     }

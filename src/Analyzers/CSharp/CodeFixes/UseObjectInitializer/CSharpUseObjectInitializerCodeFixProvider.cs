@@ -29,7 +29,6 @@ internal sealed class CSharpUseObjectInitializerCodeFixProvider() :
         ExpressionStatementSyntax,
         LocalDeclarationStatementSyntax,
         VariableDeclaratorSyntax,
-        InitializerExpressionSyntax,
         CSharpUseNamedMemberInitializerAnalyzer>
 {
     protected override CSharpUseNamedMemberInitializerAnalyzer GetAnalyzer()

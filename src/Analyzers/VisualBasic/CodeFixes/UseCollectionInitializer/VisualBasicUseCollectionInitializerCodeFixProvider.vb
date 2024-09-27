@@ -8,6 +8,8 @@ Imports System.Diagnostics.CodeAnalysis
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.UseCollectionInitializer
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
 
@@ -24,7 +26,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             ExpressionStatementSyntax,
             LocalDeclarationStatementSyntax,
             VariableDeclaratorSyntax,
-            ObjectCollectionInitializerSyntax,
             VisualBasicCollectionInitializerAnalyzer)
 
         <ImportingConstructor>
@@ -40,21 +41,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
                 document As Document,
                 objectCreation As ObjectCreationExpressionSyntax,
                 useCollectionExpression As Boolean,
-                existingInitializer As ObjectCollectionInitializerSyntax,
-                matches As ImmutableArray(Of Match),
+                preMatches As ImmutableArray(Of Match),
+                postMatches As ImmutableArray(Of Match),
                 cancellationToken As CancellationToken) As Task(Of (SyntaxNode, SyntaxNode))
+            Contract.ThrowIfFalse(preMatches.IsEmpty)
             Contract.ThrowIfTrue(useCollectionExpression, "VB does not support collection expressions")
 
             Dim statement = objectCreation.FirstAncestorOrSelf(Of StatementSyntax)
             Dim newStatement = statement.ReplaceNode(
                 objectCreation,
-                GetNewObjectCreation(objectCreation, matches))
+                GetNewObjectCreation(objectCreation, postMatches))
 
             Dim totalTrivia = ArrayBuilder(Of SyntaxTrivia).GetInstance()
             totalTrivia.AddRange(statement.GetLeadingTrivia())
             totalTrivia.Add(SyntaxFactory.ElasticMarker)
 
-            For Each match In matches
+            For Each match In postMatches
                 For Each trivia In match.StatementOrExpression.GetLeadingTrivia()
                     If trivia.Kind = SyntaxKind.CommentTrivia Then
                         totalTrivia.Add(trivia)

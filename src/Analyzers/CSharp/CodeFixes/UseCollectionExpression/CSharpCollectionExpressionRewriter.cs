@@ -33,7 +33,8 @@ internal static class CSharpCollectionExpressionRewriter
     public static async Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync<TParentExpression, TMatchNode>(
         Document workspaceDocument,
         TParentExpression expressionToReplace,
-        ImmutableArray<CollectionExpressionMatch<TMatchNode>> matches,
+        ImmutableArray<CollectionExpressionMatch<TMatchNode>> preMatches,
+        ImmutableArray<CollectionExpressionMatch<TMatchNode>> postMatches,
         Func<TParentExpression, InitializerExpressionSyntax?> getInitializer,
         Func<TParentExpression, InitializerExpressionSyntax, TParentExpression> withInitializer,
         CancellationToken cancellationToken)
@@ -80,7 +81,7 @@ internal static class CSharpCollectionExpressionRewriter
             // Didn't have an existing initializer (or it was empty).  For both cases, just create an entirely
             // fresh collection expression, and replace the object entirely.
 
-            if (matches is [{ Node: ExpressionSyntax expression } match])
+            if (postMatches is [{ Node: ExpressionSyntax expression } match])
             {
                 // Specialize when we're taking some expression (like x.y.ToArray()) and converting to a spreaded
                 // collection expression.  We just want to trivially make that `[.. x.y]` without any specialized
@@ -128,7 +129,7 @@ internal static class CSharpCollectionExpressionRewriter
 
                 // now create the elements, following that indentation preference.
                 using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
-                CreateAndAddElements(matches, nodesAndTokens, preferredIndentation: elementIndentation, forceTrailingComma: true);
+                CreateAndAddElements(postMatches, nodesAndTokens, preferredIndentation: elementIndentation, forceTrailingComma: true);
 
                 // Add a newline between the last element and the close bracket if we don't already have one.
                 if (nodesAndTokens.Count > 0 && nodesAndTokens.Last().GetTrailingTrivia() is [.., (kind: not SyntaxKind.EndOfLineTrivia)])
@@ -150,7 +151,7 @@ internal static class CSharpCollectionExpressionRewriter
                 // fresh collection expression, and do a wholesale replacement of the original object creation
                 // expression with it.
                 using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
-                CreateAndAddElements(matches, nodesAndTokens, preferredIndentation: null, forceTrailingComma: false);
+                CreateAndAddElements(postMatches, nodesAndTokens, preferredIndentation: null, forceTrailingComma: false);
 
                 // Remove any trailing whitespace from the last element/comma and the final close bracket.
                 if (nodesAndTokens.Count > 0)
@@ -401,7 +402,7 @@ internal static class CSharpCollectionExpressionRewriter
             // end.  This keeps every element consistent with ending the line with a comma, which makes code easier to
             // maintain.
             CreateAndAddElements(
-                matches, nodesAndTokens, preferredIndentation,
+                postMatches, nodesAndTokens, preferredIndentation,
                 forceTrailingComma: preferredIndentation != null && trailingComma == default);
 
             if (trailingComma != default)
@@ -701,7 +702,7 @@ internal static class CSharpCollectionExpressionRewriter
         {
             // If there's already an initializer, and we're not adding anything to it, then just keep the initializer
             // as-is.  No need to convert it to be multi-line if it's currently single-line.
-            if (initializer != null && matches.Length == 0)
+            if (initializer != null && postMatches.Length == 0)
                 return false;
 
             var totalLength = 0;
@@ -711,7 +712,7 @@ internal static class CSharpCollectionExpressionRewriter
                     totalLength += expression.Span.Length;
             }
 
-            foreach (var (node, _) in matches)
+            foreach (var (node, _) in postMatches)
             {
                 // if the statement we're replacing has any comments on it, then we need to be multiline to give them an
                 // appropriate place to go.

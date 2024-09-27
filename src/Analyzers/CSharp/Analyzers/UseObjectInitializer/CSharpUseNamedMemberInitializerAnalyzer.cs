@@ -18,7 +18,6 @@ internal sealed class CSharpUseNamedMemberInitializerAnalyzer :
         ExpressionStatementSyntax,
         LocalDeclarationStatementSyntax,
         VariableDeclaratorSyntax,
-        InitializerExpressionSyntax,
         CSharpUseNamedMemberInitializerAnalyzer>
 {
     protected override bool IsInitializerOfLocalDeclarationStatement(LocalDeclarationStatementSyntax localDeclarationStatement, BaseObjectCreationExpressionSyntax rootExpression, [NotNullWhen(true)] out VariableDeclaratorSyntax? variableDeclarator)

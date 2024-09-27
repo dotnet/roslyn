@@ -26,7 +26,6 @@ internal sealed class CSharpUseCollectionInitializerDiagnosticAnalyzer :
         ExpressionStatementSyntax,
         LocalDeclarationStatementSyntax,
         VariableDeclaratorSyntax,
-        InitializerExpressionSyntax,
         CSharpUseCollectionInitializerAnalyzer>
 {
     protected override ISyntaxFacts SyntaxFacts

@@ -27,7 +27,6 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider() :
         ExpressionStatementSyntax,
         LocalDeclarationStatementSyntax,
         VariableDeclaratorSyntax,
-        InitializerExpressionSyntax,
         CSharpUseCollectionInitializerAnalyzer>
 {
     protected override CSharpUseCollectionInitializerAnalyzer GetAnalyzer()
@@ -37,13 +36,13 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider() :
         Document document,
         BaseObjectCreationExpressionSyntax objectCreation,
         bool useCollectionExpression,
-        InitializerExpressionSyntax? existingInitializer,
-        ImmutableArray<Match> matches,
+        ImmutableArray<Match> preMatches,
+        ImmutableArray<Match> postMatches,
         CancellationToken cancellationToken)
     {
         ExpressionSyntax newObjectCreation = useCollectionExpression
-            ? await CreateCollectionExpressionAsync(document, objectCreation, existingInitializer, matches, cancellationToken).ConfigureAwait(false)
-            : CreateObjectInitializerExpression(objectCreation, matches);
+            ? await CreateCollectionExpressionAsync(document, objectCreation, preMatches, postMatches, cancellationToken).ConfigureAwait(false)
+            : CreateObjectInitializerExpression(objectCreation, postMatches);
 
         return (objectCreation, newObjectCreation);
     }

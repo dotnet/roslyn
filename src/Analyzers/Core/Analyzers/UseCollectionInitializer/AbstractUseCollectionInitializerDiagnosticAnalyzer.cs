@@ -36,7 +36,6 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
     TExpressionStatementSyntax,
     TLocalDeclarationStatementSyntax,
     TVariableDeclaratorSyntax,
-    TInitializerSyntax,
     TAnalyzer>
     : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     where TSyntaxKind : struct
@@ -48,7 +47,6 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
     where TExpressionStatementSyntax : TStatementSyntax
     where TLocalDeclarationStatementSyntax : TStatementSyntax
     where TVariableDeclaratorSyntax : SyntaxNode
-    where TInitializerSyntax : SyntaxNode
     where TAnalyzer : AbstractUseCollectionInitializerAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
@@ -58,7 +56,6 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         TExpressionStatementSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
-        TInitializerSyntax,
         TAnalyzer>, new()
 {
 

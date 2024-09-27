@@ -24,7 +24,6 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
     TAssignmentStatementSyntax,
     TLocalDeclarationStatementSyntax,
     TVariableDeclaratorSyntax,
-    TInitializerSyntax,
     TAnalyzer>
     : ForkingSyntaxEditorBasedCodeFixProvider<TObjectCreationExpressionSyntax>
     where TSyntaxKind : struct
@@ -35,7 +34,6 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
     where TAssignmentStatementSyntax : TStatementSyntax
     where TLocalDeclarationStatementSyntax : TStatementSyntax
     where TVariableDeclaratorSyntax : SyntaxNode
-    where TInitializerSyntax : SyntaxNode
     where TAnalyzer : AbstractUseNamedMemberInitializerAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
@@ -44,7 +42,6 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
         TAssignmentStatementSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
-        TInitializerSyntax,
         TAnalyzer>, new()
 {
     protected override (string title, string equivalenceKey) GetTitleAndEquivalenceKey(CodeFixContext context)
