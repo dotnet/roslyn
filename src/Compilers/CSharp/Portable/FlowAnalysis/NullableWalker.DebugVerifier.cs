@@ -262,6 +262,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            public override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
+            {
+                // There can be deep recursion on the left side, so verify iteratively to avoid blowing the stack
+                while (true)
+                {
+                    Visit(node.Right);
+
+                    if (node.Left is not BoundBinaryPattern child)
+                    {
+                        Visit(node.Left);
+                        return null;
+                    }
+
+                    node = child;
+                }
+            }
+
             public override BoundNode? VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
             {
                 Visit(node.SourceTuple);

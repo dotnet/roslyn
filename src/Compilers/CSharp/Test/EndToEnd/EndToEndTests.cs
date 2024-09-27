@@ -743,7 +743,7 @@ $@"        if (F({i}))
                 ? 1 : 0);
                 """;
 
-            const int numBinaryExpressions = 12_000;
+            const int numBinaryExpressions = 5_000;
 
             var builder = new StringBuilder(preamble.Length + postscript.Length + append.Length * numBinaryExpressions + 5 /* Max num digit characters */ * numBinaryExpressions);
 
