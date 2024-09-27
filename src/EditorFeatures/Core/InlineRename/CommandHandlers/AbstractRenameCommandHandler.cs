@@ -58,6 +58,11 @@ internal abstract partial class AbstractRenameCommandHandler(
             return;
         }
 
+        if (renameService.ActiveSession.IsCommitInProgress)
+        {
+            return;
+        }
+
         var selectedSpans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
 
         if (selectedSpans.Count > 1)
@@ -88,16 +93,18 @@ internal abstract partial class AbstractRenameCommandHandler(
 
     private void CompleteActiveSessionAndMoveCaret(EditorCommandArgs args, IUIThreadOperationContext operationContext, bool invalidEditCommandInvoked)
     {
-        if (renameService.ActiveSession != null)
+        if (renameService.ActiveSession == null || renameService.ActiveSession.IsCommitInProgress)
         {
-            var selection = args.TextView.Selection.VirtualSelectedSpans.First();
-
-            CompleteActiveSession(operationContext, invalidEditCommandInvoked);
-
-            var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
-            args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
-            args.TextView.Caret.MoveTo(translatedSelection.End);
+            return;
         }
+
+        var selection = args.TextView.Selection.VirtualSelectedSpans.First();
+
+        CompleteActiveSession(operationContext, invalidEditCommandInvoked);
+
+        var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
+        args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
+        args.TextView.Caret.MoveTo(translatedSelection.End);
     }
 
     private void CompleteActionSessionAndCallNextHandler(EditorCommandArgs args, Action nextHandler, IUIThreadOperationContext operationContext, bool invalidEditCommandInvoked)

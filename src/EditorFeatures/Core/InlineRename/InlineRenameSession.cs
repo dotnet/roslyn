@@ -790,6 +790,12 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             return false;
         }
 
+        // Don't commit rename twice.
+        if (this.IsCommitInProgress)
+        {
+            return false;
+        }
+
         previewChanges = previewChanges || PreviewChanges;
 
         if (editorUIOperationContext is not null)
