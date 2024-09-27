@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionExpression;
-using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
@@ -66,7 +65,7 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider()
             newDocument,
             dummyObjectCreation,
             preMatches: [],
-            analysisResult.Matches.SelectAsArray(m => new CollectionExpressionMatch<SyntaxNode>(m.StatementOrExpression, m.UseSpread)),
+            analysisResult.Matches,
             static o => o.Initializer,
             static (o, i) => o.WithInitializer(i),
             cancellationToken).ConfigureAwait(false);
@@ -92,7 +91,7 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider()
             => new(analysisResult.DiagnosticLocation,
                    root.GetCurrentNode(analysisResult.LocalDeclarationStatement)!,
                    root.GetCurrentNode(analysisResult.CreationExpression)!,
-                   analysisResult.Matches.SelectAsArray(m => new Match(root.GetCurrentNode(m.StatementOrExpression)!, m.UseSpread)),
+                   analysisResult.Matches.SelectAsArray(m => new CollectionMatch<SyntaxNode>(root.GetCurrentNode(m.Node)!, m.UseSpread)),
                    analysisResult.ChangesSemantics);
 
         // Creates a new document with all of the relevant nodes in analysisResult tracked so that we can find them

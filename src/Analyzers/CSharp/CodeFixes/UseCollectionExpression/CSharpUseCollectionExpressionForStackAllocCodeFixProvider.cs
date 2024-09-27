@@ -70,7 +70,7 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
 
         return;
 
-        ImmutableArray<CollectionExpressionMatch<StatementSyntax>> GetMatches()
+        ImmutableArray<CollectionMatch<StatementSyntax>> GetMatches()
             => stackAllocExpression switch
             {
                 // if we have `stackalloc[] { ... }` we have no subsequent matches to add to the collection. All values come

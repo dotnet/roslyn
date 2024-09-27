@@ -7,7 +7,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -98,7 +97,7 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider()
         static bool IsOnSingleLine(SourceText sourceText, SyntaxNode node)
             => sourceText.AreOnSameLine(node.GetFirstToken(), node.GetLastToken());
 
-        ImmutableArray<CollectionExpressionMatch<StatementSyntax>> GetMatches(
+        ImmutableArray<CollectionMatch<StatementSyntax>> GetMatches(
             SemanticModel semanticModel, ExpressionSyntax expression, INamedTypeSymbol? expressionType)
             => expression switch
             {

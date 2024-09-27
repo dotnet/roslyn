@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
@@ -36,8 +37,8 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider() :
         Document document,
         BaseObjectCreationExpressionSyntax objectCreation,
         bool useCollectionExpression,
-        ImmutableArray<Match> preMatches,
-        ImmutableArray<Match> postMatches,
+        ImmutableArray<CollectionMatch<SyntaxNode>> preMatches,
+        ImmutableArray<CollectionMatch<SyntaxNode>> postMatches,
         CancellationToken cancellationToken)
     {
         ExpressionSyntax newObjectCreation = useCollectionExpression

@@ -62,7 +62,7 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider()
             semanticDocument.Root.ReplaceNode(invocationExpression, dummyObjectCreation), cancellationToken).ConfigureAwait(false);
         dummyObjectCreation = (ImplicitObjectCreationExpressionSyntax)newSemanticDocument.Root.GetAnnotatedNodes(dummyObjectAnnotation).Single();
         var expressions = dummyObjectCreation.ArgumentList.Arguments.Select(a => a.Expression);
-        var matches = expressions.SelectAsArray(static e => new CollectionExpressionMatch<ExpressionSyntax>(e, UseSpread: false));
+        var matches = expressions.SelectAsArray(static e => new CollectionMatch<ExpressionSyntax>(e, UseSpread: false));
 
         var collectionExpression = await CreateCollectionExpressionAsync(
             newSemanticDocument.Document,

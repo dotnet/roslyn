@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.UseObjectInitializer;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 using Roslyn.Utilities;
 
@@ -23,7 +24,7 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider
 {
     private static BaseObjectCreationExpressionSyntax CreateObjectInitializerExpression(
         BaseObjectCreationExpressionSyntax objectCreation,
-        ImmutableArray<Match> matches)
+        ImmutableArray<CollectionMatch<SyntaxNode>> matches)
     {
         var expressions = CreateCollectionInitializerExpressions();
         var withLineBreaks = AddLineBreaks(expressions);
@@ -35,13 +36,13 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider
         {
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 
-            UseInitializerHelpers.AddExistingItems<Match, ExpressionSyntax>(
+            UseInitializerHelpers.AddExistingItems<CollectionMatch<SyntaxNode>, ExpressionSyntax>(
                 objectCreation, nodesAndTokens, addTrailingComma: matches.Length > 0, static (_, expression) => expression);
 
             for (var i = 0; i < matches.Length; i++)
             {
                 var match = matches[i];
-                var statement = (ExpressionStatementSyntax)match.StatementOrExpression;
+                var statement = (ExpressionStatementSyntax)match.Node;
 
                 var trivia = statement.GetLeadingTrivia();
                 var leadingTrivia = i == 0 ? trivia.WithoutLeadingBlankLines() : trivia;

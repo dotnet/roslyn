@@ -101,12 +101,12 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
 
         editor.ReplaceNode(invocationExpression, collectionExpression);
 
-        static ImmutableArray<CollectionExpressionMatch<ExpressionSyntax>> CreateMatches(
+        static ImmutableArray<CollectionMatch<ExpressionSyntax>> CreateMatches(
             SeparatedSyntaxList<ArgumentSyntax> arguments,
-            ImmutableArray<CollectionExpressionMatch<ArgumentSyntax>> matches,
+            ImmutableArray<CollectionMatch<ArgumentSyntax>> matches,
             int index)
         {
-            using var result = TemporaryArray<CollectionExpressionMatch<ExpressionSyntax>>.Empty;
+            using var result = TemporaryArray<CollectionMatch<ExpressionSyntax>>.Empty;
 
             for (int i = 0, n = matches.Length; i < n; i++)
             {
@@ -140,7 +140,7 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
 
         static async Task<SeparatedSyntaxList<ArgumentSyntax>> GetArgumentsAsync(
             Document document,
-            ImmutableArray<CollectionExpressionMatch<ArgumentSyntax>> matches,
+            ImmutableArray<CollectionMatch<ArgumentSyntax>> matches,
             CancellationToken cancellationToken)
         {
             if (matches.IsEmpty)
