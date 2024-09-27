@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
     /// is no guarantee that the same instance will be used on a 
     /// subsequent generation pass.
     /// </remarks>
-    [ImplementationObsolete(url: "https://github.com/dotnet/roslyn/blob/main/docs/features/incremental-generators.md")]
+    [ImplementationIsObsolete(url: "https://github.com/dotnet/roslyn/blob/main/docs/features/incremental-generators.md")]
     public interface ISourceGenerator
     {
         /// <summary>
