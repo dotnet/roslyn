@@ -588,8 +588,7 @@ class D : B
                 Using dashboard = New RenameDashboard(
                     New RenameDashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession)),
                     editorFormatMapService:=Nothing,
-                    textView:=cursorDocument.GetTextView(),
-                    globalOptions)
+                    textView:=cursorDocument.GetTextView())
 
                     Await WaitForRename(workspace)
 

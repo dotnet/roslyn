@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
@@ -14,7 +15,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Telemetry;
@@ -34,7 +34,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private UIElement _focusedElement = null;
         private readonly List<UIElement> _tabNavigableChildren;
         private readonly IEditorFormatMap _textFormattingMap;
-        private readonly IGlobalOptionService _globalOptionService;
 
         internal bool ShouldReceiveKeyboardNavigation { get; set; }
 
@@ -50,11 +49,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public RenameDashboard(
             RenameDashboardViewModel model,
             IEditorFormatMapService editorFormatMapService,
-            IWpfTextView textView,
-            IGlobalOptionService globalOptionService)
+            IWpfTextView textView)
         {
             _model = model;
-            _globalOptionService = globalOptionService;
             InitializeComponent();
 
             _tabNavigableChildren = [this.OverloadsCheckbox, this.CommentsCheckbox, this.StringsCheckbox, this.FileRenameCheckbox, this.PreviewChangesCheckbox, this.ApplyButton, this.CloseButton];
@@ -251,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
                 else if (string.Equals(e.Key, RenameShortcutKey.Apply, StringComparison.OrdinalIgnoreCase))
                 {
-                    this.Commit();
+                    this.CommitAsync();
                 }
             }
         }
@@ -330,22 +327,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         private void Apply_Click(object sender, RoutedEventArgs e)
-            => Commit();
+            => _ = CommitAsync();
 
-        private void Commit()
+        private async Task CommitAsync()
         {
             try
             {
-                if (_globalOptionService.ShouldCommitAsynchronously())
-                {
-                    _ = _model.Session.CommitAsync(previewChanges: false);
-                }
-                else
-                {
-                    _model.Session.Commit();
-                    _textView.VisualElement.Focus();
-                }
-
+                //.ConfigureAwait(true) to make sure Exceptions could be shown in UI.
+                await _model.Session.CommitAsync(previewChanges: false).ConfigureAwait(true);
             }
             catch (NotSupportedException ex)
             {
