@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
                 else if (string.Equals(e.Key, RenameShortcutKey.Apply, StringComparison.OrdinalIgnoreCase))
                 {
-                    this.CommitAsync();
+                    _ = this.CommitAsync();
                 }
             }
         }

@@ -116,6 +116,12 @@ internal abstract partial class AbstractRenameCommandHandler(
     private void CompleteActiveSession(IUIThreadOperationContext operationContext, bool invalidEditCommandInvoked)
     {
         RoslynDebug.AssertNotNull(renameService.ActiveSession);
+        // No-op if it's being committed.
+        if (renameService.ActiveSession.IsCommitInProgress)
+        {
+            return;
+        }
+
         if (invalidEditCommandInvoked && globalOptionService.ShouldCommitAsynchronously())
         {
             // When rename is async, and an invalid edit command is invoked.

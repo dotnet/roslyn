@@ -34,6 +34,11 @@ internal abstract partial class AbstractRenameCommandHandler :
             return false;
         }
 
+        if (renameService.ActiveSession.IsCommitInProgress)
+        {
+            return true;
+        }
+
         var caretPoint = view.GetCaretPoint(subjectBuffer);
         if (caretPoint.HasValue)
         {
