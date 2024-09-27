@@ -1185,7 +1185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // ERR_NameIllegallyOverrides3 = 7040, // Not used anymore due to 'Single Meaning' relaxation changes
         ERR_ResourceFileNameNotUnique = 7041,
         ERR_DllImportOnGenericMethod = 7042,
-        ERR_EncUpdateFailedMissingAttribute = 7043,
+        ERR_EncUpdateFailedMissingSymbol = 7043,
 
         ERR_ParameterNotValidForType = 7045,
         ERR_AttributeParameterRequired1 = 7046,

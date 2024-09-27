@@ -168,6 +168,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var embeddedTypes = moduleBeingBuiltOpt.GetEmbeddedTypes(diagnostics);
                 methodCompiler.CompileSynthesizedMethods(embeddedTypes, diagnostics);
 
+                // Create and compile HotReloadException type if emitting deltas even if it is not used.
+                // We might need to use it for deleted members, which we determine when indexing metadata.
+                if (moduleBeingBuiltOpt.TryGetOrCreateSynthesizedHotReloadExceptionType() is { } hotReloadException)
+                {
+                    methodCompiler.CompileSynthesizedMethods([(NamedTypeSymbol)hotReloadException], diagnostics);
+                }
+
                 if (emitMethodBodies)
                 {
                     // By this time we have processed all types reachable from module's global namespace

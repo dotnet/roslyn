@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
@@ -65,19 +66,30 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 #nullable enable
         public static ImmutableArray<byte> GetIL(EmitContext context, RuntimeRudeEdit? rudeEdit, bool isLambdaOrLocalFunction)
         {
-            var missingMethodExceptionStringStringConstructor = context.Module.CommonCompilation.CommonGetWellKnownTypeMember(WellKnownMember.System_MissingMethodException__ctorString);
-            Debug.Assert(missingMethodExceptionStringStringConstructor is not null);
+            var hotReloadExceptionCtorDef = context.Module.GetOrCreateHotReloadExceptionConstructorDefinition();
 
             var builder = new ILBuilder((ITokenDeferral)context.Module, null, OptimizationLevel.Debug, false);
 
-            builder.EmitStringConstant(rudeEdit.HasValue
-                ? string.Format(CodeAnalysisResources.EncLambdaRudeEdit, rudeEdit.Value.Message)
-                : isLambdaOrLocalFunction
-                    ? CodeAnalysisResources.EncDeletedLambdaInvoked
-                    : CodeAnalysisResources.EncDeletedMethodInvoked);
+            string message;
+            int codeValue;
+            if (rudeEdit.HasValue)
+            {
+                message = string.Format(CodeAnalysisResources.EncLambdaRudeEdit, rudeEdit.Value.Message);
+                codeValue = rudeEdit.Value.ErrorCode;
+            }
+            else
+            {
+                var code = isLambdaOrLocalFunction ? HotReloadExceptionCode.DeletedLambdaInvoked : HotReloadExceptionCode.DeletedMethodInvoked;
+                message = code.GetExceptionMessage();
+                codeValue = code.GetExceptionCodeValue();
+            }
 
-            builder.EmitOpCode(ILOpCode.Newobj, 4);
-            builder.EmitToken(missingMethodExceptionStringStringConstructor.GetCciAdapter(), context.SyntaxNode!, context.Diagnostics);
+            builder.EmitStringConstant(message);
+            builder.EmitIntConstant(codeValue);
+
+            // consumes message and code, pushes the created exception object:
+            builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment: -1);
+            builder.EmitToken(hotReloadExceptionCtorDef.GetCciAdapter(), context.SyntaxNode!, context.Diagnostics);
             builder.EmitThrow(isRethrow: false);
             builder.Realize();
 

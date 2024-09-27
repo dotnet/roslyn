@@ -43,6 +43,13 @@ namespace Microsoft.CodeAnalysis
     public abstract partial class Compilation
     {
         /// <summary>
+        /// Optional data collected during testing only.
+        /// Used for instance for nullable analysis (NullableWalker.NullableAnalysisData)
+        /// and inferred delegate types (InferredDelegateTypeData).
+        /// </summary>
+        internal object? TestOnlyCompilationData;
+
+        /// <summary>
         /// Returns true if this is a case sensitive compilation, false otherwise.  Case sensitivity
         /// affects compilation features such as name lookup as well as choosing what names to emit
         /// when there are multiple different choices (for example between a virtual method and an
@@ -3400,9 +3407,10 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
+        private protected abstract EmitBaseline MapToCompilation(CommonPEModuleBuilder moduleBeingBuilt);
+
         internal EmitBaseline? SerializeToDeltaStreams(
             CommonPEModuleBuilder moduleBeingBuilt,
-            EmitBaseline baseline,
             DefinitionMap definitionMap,
             SymbolChanges changes,
             Stream metadataStream,
@@ -3424,6 +3432,14 @@ namespace Microsoft.CodeAnalysis
             using (nativePdbWriter)
             {
                 var context = new EmitContext(moduleBeingBuilt, diagnostics, metadataOnly: false, includePrivateMembers: true);
+                var deletedMethodDefs = DeltaMetadataWriter.CreateDeletedMethodsDefs(context, changes);
+
+                // Map the definitions from the previous compilation to the current compilation.
+                // This must be done after compiling since synthesized definitions (generated when compiling method bodies)
+                // may be required. Must also be done after determining deleted method definitions
+                // since doing so may synthesize HotReloadException symbol.
+
+                var baseline = MapToCompilation(moduleBeingBuilt);
                 var encId = Guid.NewGuid();
 
                 try
@@ -3435,6 +3451,7 @@ namespace Microsoft.CodeAnalysis
                         encId,
                         definitionMap,
                         changes,
+                        deletedMethodDefs,
                         cancellationToken);
 
                     moduleBeingBuilt.TestData?.SetMetadataWriter(writer);
@@ -3467,6 +3484,13 @@ namespace Microsoft.CodeAnalysis
                 {
                     diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PermissionSetAttributeFileReadError, Location.None, e.FileName, e.PropertyName, e.Message));
                     return null;
+                }
+                finally
+                {
+                    foreach (var (_, builder) in deletedMethodDefs)
+                    {
+                        builder.Free();
+                    }
                 }
             }
         }

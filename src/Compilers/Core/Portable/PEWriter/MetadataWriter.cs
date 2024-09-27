@@ -495,37 +495,41 @@ namespace Microsoft.Cci
 
         private void CreateIndicesForModule()
         {
-            var nestedTypes = new Queue<INestedTypeDefinition>();
+            var typesToIndex = new Queue<ITypeDefinition>();
 
             foreach (INamespaceTypeDefinition typeDef in module.GetTopLevelTypeDefinitions(Context))
             {
-                this.CreateIndicesFor(typeDef, nestedTypes);
+                createIndices(typeDef, typesToIndex);
             }
 
-            while (nestedTypes.Count > 0)
+            if (module.GetUsedSynthesizedHotReloadExceptionType() is { } hotReloadException)
             {
-                var nestedType = nestedTypes.Dequeue();
-                this.CreateIndicesFor(nestedType, nestedTypes);
+                createIndices((ITypeDefinition)hotReloadException.GetCciAdapter(), typesToIndex);
+            }
+
+            while (typesToIndex.Count > 0)
+            {
+                createIndices(typesToIndex.Dequeue(), typesToIndex);
+            }
+
+            void createIndices(ITypeDefinition typeDef, Queue<ITypeDefinition> typesToIndex)
+            {
+                _cancellationToken.ThrowIfCancellationRequested();
+
+                CreateIndicesForNonTypeMembers(typeDef);
+
+                // Metadata spec:
+                // The TypeDef table has a special ordering constraint:
+                // the definition of an enclosing class shall precede the definition of all classes it encloses.
+                foreach (var nestedType in typeDef.GetNestedTypes(Context))
+                {
+                    typesToIndex.Enqueue(nestedType);
+                }
             }
         }
 
         protected virtual void OnIndicesCreated()
         {
-        }
-
-        private void CreateIndicesFor(ITypeDefinition typeDef, Queue<INestedTypeDefinition> nestedTypes)
-        {
-            _cancellationToken.ThrowIfCancellationRequested();
-
-            this.CreateIndicesForNonTypeMembers(typeDef);
-
-            // Metadata spec:
-            // The TypeDef table has a special ordering constraint:
-            // the definition of an enclosing class shall precede the definition of all classes it encloses.
-            foreach (var nestedType in typeDef.GetNestedTypes(Context))
-            {
-                nestedTypes.Enqueue(nestedType);
-            }
         }
 
         protected IEnumerable<IGenericTypeParameter> GetConsolidatedTypeParameters(ITypeDefinition typeDef)

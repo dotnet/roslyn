@@ -1808,8 +1808,8 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="ERR_DllImportOnInvalidMethod" xml:space="preserve">
     <value>The DllImport attribute must be specified on a method marked 'static' and 'extern'</value>
   </data>
-  <data name="ERR_EncUpdateFailedMissingAttribute" xml:space="preserve">
-    <value>Cannot update '{0}'; attribute '{1}' is missing.</value>
+  <data name="ERR_EncUpdateFailedMissingSymbol" xml:space="preserve">
+    <value>Cannot emit update; {0} '{1}' is missing.</value>
   </data>
   <data name="ERR_DllImportOnGenericMethod" xml:space="preserve">
     <value>The DllImport attribute cannot be applied to a method that is generic or contained in a generic method or type.</value>
