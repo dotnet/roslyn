@@ -2365,8 +2365,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17823")]
     public async Task TestWhenReferencedInInitializer_LocalVar2()
     {
-        await TestMissingInRegularAndScriptAsync(
-            """
+        await TestInRegularAndScriptAsync("""
             using System.Collections.Generic;
             using System.Linq;
 
@@ -2374,7 +2373,19 @@ public partial class UseCollectionInitializerTests_CollectionExpression
             {
                 void M()
                 {
-                    List<int> t = new List<int>(new int[] { 1, 2, 3 });
+                    List<int> t = [|new|] List<int>(new int[] { 1, 2, 3 });
+                    t.Add(t.Min() - 1);
+                }
+            }
+            """, """
+            using System.Collections.Generic;
+            using System.Linq;
+            
+            class C
+            {
+                void M()
+                {
+                    List<int> t = [.. new int[] { 1, 2, 3 }];
                     t.Add(t.Min() - 1);
                 }
             }
@@ -2420,7 +2431,7 @@ public partial class UseCollectionInitializerTests_CollectionExpression
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/18260")]
     public async Task TestWhenReferencedInInitializer_Assignment2()
     {
-        await TestMissingInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             using System.Collections.Generic;
             using System.Linq;
@@ -2430,7 +2441,21 @@ public partial class UseCollectionInitializerTests_CollectionExpression
                 void M()
                 {
                     List<int> t = null;
-                    t = new List<int>(new int[] { 1, 2, 3 });
+                    t = [|new|] List<int>(new int[] { 1, 2, 3 });
+                    t.Add(t.Min() - 1);
+                }
+            }
+            """,
+            """
+            using System.Collections.Generic;
+            using System.Linq;
+            
+            class C
+            {
+                void M()
+                {
+                    List<int> t = null;
+                    t = [.. new int[] { 1, 2, 3 }];
                     t.Add(t.Min() - 1);
                 }
             }
