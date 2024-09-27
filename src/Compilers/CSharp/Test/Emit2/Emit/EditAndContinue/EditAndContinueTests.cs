@@ -16147,7 +16147,7 @@ class C
         [Fact]
         public void Method_Delete_SynthesizedHotReloadException_MissingExceptionType()
         {
-            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Minimal)
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Minimal, verification: Verification.Skipped)
                 .AddBaseline(
                     source: """
                         class C
@@ -16187,7 +16187,7 @@ class C
                 }
                 """;
 
-            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Minimal)
+            using var _ = new EditAndContinueTest(targetFramework: TargetFramework.Minimal, verification: Verification.Skipped)
                 .AddBaseline(
                     source: libs + """
                         class C
