@@ -235,8 +235,8 @@ internal static class CSharpCollectionExpressionRewriter
                     //  }
                     //
                     // Just add the new elements to this.
-                    var withPreMatches = AddMatchesToExistingNonEmptyCollectionExpression(preMatches, initialCollection, preferredIndentation: null, index: 0);
-                    var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(postMatches, withPreMatches, preferredIndentation: null);
+                    var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(
+                        initialCollection, preferredIndentation: null);
 
                     return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
                         document.Text, initializer, finalCollection, newCollectionIsSingleLine: false);
@@ -248,8 +248,8 @@ internal static class CSharpCollectionExpressionRewriter
                     var preferredIndentation = initializer.Expressions.First().GetFirstToken().GetPreferredIndentation(
                         document, indentationOptions, cancellationToken);
 
-                    var withPreMatches = AddMatchesToExistingNonEmptyCollectionExpression(preMatches, initialCollection, preferredIndentation: null, index: 0);
-                    var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(postMatches, withPreMatches, preferredIndentation);
+                    var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(
+                        initialCollection, preferredIndentation);
 
                     return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
                         document.Text, initializer, finalCollection, newCollectionIsSingleLine: false);
@@ -277,8 +277,7 @@ internal static class CSharpCollectionExpressionRewriter
                         initialCollection.CloseBracketToken.WithLeadingTrivia(endOfLine, Whitespace(preferredBraceIndentation)));
 
                     // Then add all new elements at the right indentation level.
-                    var withPreMatches = AddMatchesToExistingNonEmptyCollectionExpression(preMatches, initialCollection, preferredItemIndentation, index: 0);
-                    var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(postMatches, withPreMatches, preferredItemIndentation);
+                    var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(initialCollection, preferredItemIndentation);
 
                     return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
                         document.Text, initializer, finalCollection, newCollectionIsSingleLine: false);
@@ -299,8 +298,7 @@ internal static class CSharpCollectionExpressionRewriter
                         FixLeadingAndTrailingWhitespace(initialCollection.Elements, preferredItemIndentation),
                         initialCollection.CloseBracketToken.WithLeadingTrivia(endOfLine, Whitespace(braceIndentation)));
 
-                    var withPreMatches = AddMatchesToExistingNonEmptyCollectionExpression(preMatches, initialCollection, preferredItemIndentation, index: 0);
-                    var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(postMatches, withPreMatches, preferredItemIndentation);
+                    var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(initialCollection, preferredItemIndentation);
 
                     return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
                         document.Text, initializer, finalCollection, newCollectionIsSingleLine: false);
@@ -316,7 +314,6 @@ internal static class CSharpCollectionExpressionRewriter
                     initializer, wasOnSingleLine: true);
 
                 // now, add all the matches in after the existing elements.
-                var withPreMatches = AddMatchesToExistingNonEmptyCollectionExpression(preMatches, initialCollection, preferredIndentation: null, index: 0);
                 var finalCollection = AddMatchesToExistingNonEmptyCollectionExpression(initialCollection, preferredIndentation: null);
 
                 // Now do the actual replacement.  This will ensure the location of the collection expression
@@ -344,7 +341,7 @@ internal static class CSharpCollectionExpressionRewriter
         // Used to we can uniformly add the items correctly with the requested (but optional) indentation.  And so that
         // commas are added properly to the sequence.
         void CreateAndAddElements(
-            ImmutableArray<CollectionExpressionMatch<TMatchNode>> postMatches,
+            ImmutableArray<CollectionExpressionMatch<TMatchNode>> matches,
             ArrayBuilder<SyntaxNodeOrToken> nodesAndTokens,
             string? preferredIndentation,
             bool forceTrailingComma)
@@ -356,13 +353,13 @@ internal static class CSharpCollectionExpressionRewriter
                 ? TriviaList(Space)
                 : TriviaList(endOfLine);
 
-            foreach (var element in postMatches.SelectMany(m => CreateElements(m, preferredIndentation)))
+            foreach (var element in matches.SelectMany(m => CreateElements(m, preferredIndentation)))
             {
                 AddCommaIfMissing(last: false);
                 nodesAndTokens.Add(element);
             }
 
-            if (postMatches.Length > 0 && forceTrailingComma)
+            if (matches.Length > 0 && forceTrailingComma)
                 AddCommaIfMissing(last: true);
 
             return;
@@ -394,12 +391,15 @@ internal static class CSharpCollectionExpressionRewriter
         // Helper which takes a collection expression that already has at least one element in it and adds the new
         // elements to it.
         CollectionExpressionSyntax AddMatchesToExistingNonEmptyCollectionExpression(
-            ImmutableArray<CollectionExpressionMatch<TMatchNode>> matches,
             CollectionExpressionSyntax initialCollectionExpression,
-            string? preferredIndentation,
-            int index = -1)
+            string? preferredIndentation)
         {
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
+
+            // Add any pre-items before the initializer items.
+            CreateAndAddElements(preMatches, nodesAndTokens, preferredIndentation, forceTrailingComma: true);
+
+            // Now add all the initializer items.
             nodesAndTokens.AddRange(initialCollectionExpression.Elements.GetWithSeparators());
 
             // If there is already a trailing comma before, remove it.  We'll add it back at the end. If there is no
@@ -417,6 +417,8 @@ internal static class CSharpCollectionExpressionRewriter
                 trailingTrivia = nodesAndTokens[^1].GetTrailingTrivia();
                 nodesAndTokens[^1] = nodesAndTokens[^1].WithTrailingTrivia();
             }
+
+            // Now add all the post matches in.
 
             // If we're wrapping to multiple lines, and we don't already have a trailing comma, then force one at the
             // end.  This keeps every element consistent with ending the line with a comma, which makes code easier to
