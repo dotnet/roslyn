@@ -2411,12 +2411,12 @@ V rozevíracím seznamu si můžete zobrazit jiné projekty, ke kterým by tento
       </trans-unit>
       <trans-unit id="example">
         <source>example</source>
-        <target state="needs-review-translation">příklad</target>
+        <target state="translated">example</target>
         <note>{Locked} IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
       </trans-unit>
       <trans-unit id="identifier">
         <source>identifier</source>
-        <target state="needs-review-translation">identifikátor</target>
+        <target state="translated">identifier</target>
         <note>{Locked} IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
       </trans-unit>
       <trans-unit id="Install_0">
