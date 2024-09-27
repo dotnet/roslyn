@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Specialized;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -22,6 +23,12 @@ internal static class SourceGeneratedDocumentUri
 {
     public const string Scheme = "roslyn-source-generated";
     private const string GuidFormat = "D";
+    private const string DocumentIdParam = "documentId";
+    private const string HintNameParam = "hintName";
+    private const string AssemblyNameParam = "assemblyName";
+    private const string AssemblyVersionParam = "assemblyVersion";
+    private const string AssemblyPathParam = "assemblyPath";
+    private const string TypeNameParam = "typeName";
 
     public static Uri Create(SourceGeneratedDocumentIdentity identity)
     {
@@ -29,18 +36,18 @@ internal static class SourceGeneratedDocumentUri
         var hintPathParts = identity.HintName.Split('\\');
         var hintPathPortion = string.Join("/", hintPathParts.Select(Uri.EscapeDataString));
 
-        var uri = Scheme + "://" +
-            identity.DocumentId.ProjectId.Id.ToString(GuidFormat) + "/" +
-            hintPathPortion +
-            "?documentId=" + identity.DocumentId.Id.ToString(GuidFormat) +
-            "&hintName=" + Uri.EscapeDataString(identity.HintName) +
-            "&assemblyName=" + Uri.EscapeDataString(identity.Generator.AssemblyName) +
-            "&assemblyVersion=" + Uri.EscapeDataString(identity.Generator.AssemblyVersion.ToString()) +
-            "&typeName=" + Uri.EscapeDataString(identity.Generator.TypeName);
+        var projectId = identity.DocumentId.ProjectId.Id.ToString(GuidFormat);
+        var documentId = identity.DocumentId.Id.ToString(GuidFormat);
+        var hintName = Uri.EscapeDataString(identity.HintName);
+        var assemblyName = Uri.EscapeDataString(identity.Generator.AssemblyName);
+        var assemblyVersion = Uri.EscapeDataString(identity.Generator.AssemblyVersion.ToString());
+        var typeName = Uri.EscapeDataString(identity.Generator.TypeName);
+
+        var uri = $"{Scheme}://{projectId}/{hintPathPortion}?{DocumentIdParam}={documentId}&{HintNameParam}={hintName}&{AssemblyNameParam}={assemblyName}&{AssemblyVersionParam}={assemblyVersion}&{TypeNameParam}={typeName}";
 
         // If we have a path (which is technically optional) also append it
         if (identity.Generator.AssemblyPath != null)
-            uri += "&assemblyPath=" + Uri.EscapeDataString(identity.Generator.AssemblyPath);
+            uri += $"&{AssemblyPathParam}={Uri.EscapeDataString(identity.Generator.AssemblyPath)}";
 
         return ProtocolConversions.CreateAbsoluteUri(uri);
     }
@@ -57,46 +64,16 @@ internal static class SourceGeneratedDocumentUri
         if (projectId == null)
             return null;
 
-        Guid? documentIdGuid = null;
-        string? hintName = null;
-        string? assemblyName = null;
-        string? assemblyPath = null; // this one is actually OK if it's null, since it's optional
-        Version? assemblyVersion = null;
-        string? typeName = null;
+        var query = System.Web.HttpUtility.ParseQueryString(documentUri.Query);
+        var documentIdGuid = Guid.ParseExact(GetRequiredQueryValue(DocumentIdParam, query, documentUri.Query), GuidFormat);
+        var hintName = GetRequiredQueryValue(HintNameParam, query, documentUri.Query);
+        var assemblyName = GetRequiredQueryValue(AssemblyNameParam, query, documentUri.Query);
+        // this one is actually OK if it's null, since it's optional
+        var assemblyPath = query[AssemblyPathParam];
+        var assemblyVersion = Version.Parse(GetRequiredQueryValue(AssemblyVersionParam, query, documentUri.Query));
+        var typeName = GetRequiredQueryValue(TypeNameParam, query, documentUri.Query);
 
-        // Parse the query string apart and grab everything from it
-        foreach (var part in documentUri.Query.TrimStart('?').Split('&'))
-        {
-            var equals = part.IndexOf('=');
-            Contract.ThrowIfTrue(equals <= 0);
-#if NET
-            var name = part.AsSpan()[0..equals];
-#else
-            var name = part.Substring(0, equals);
-#endif
-            var value = Uri.UnescapeDataString(part.Substring(equals + 1));
-
-            if (name.Equals("documentId", StringComparison.Ordinal))
-                documentIdGuid = Guid.ParseExact(value, GuidFormat);
-            else if (name.Equals("hintName", StringComparison.Ordinal))
-                hintName = value.ToString();
-            else if (name.Equals("assemblyName", StringComparison.Ordinal))
-                assemblyName = value.ToString();
-            else if (name.Equals("assemblyPath", StringComparison.Ordinal))
-                assemblyPath = value.ToString();
-            else if (name.Equals("assemblyVersion", StringComparison.Ordinal))
-                assemblyVersion = Version.Parse(value);
-            else if (name.Equals("typeName", StringComparison.Ordinal))
-                typeName = value.ToString();
-        }
-
-        Contract.ThrowIfNull(documentIdGuid, "Expected a URI with a documentId parameter.");
-        Contract.ThrowIfNull(hintName, "Expected a URI with a hintName parameter.");
-        Contract.ThrowIfNull(assemblyName, "Expected a URI with an assemblyName parameter.");
-        Contract.ThrowIfNull(assemblyVersion, "Expected a URI with an assemblyVersion parameter.");
-        Contract.ThrowIfNull(typeName, "Expected a URI with an typeName parameter.");
-
-        var documentId = DocumentId.CreateFromSerialized(projectId, documentIdGuid.Value, isSourceGenerated: true, hintName);
+        var documentId = DocumentId.CreateFromSerialized(projectId, documentIdGuid, isSourceGenerated: true, hintName);
 
         return new SourceGeneratedDocumentIdentity(
             documentId,
@@ -107,5 +84,12 @@ internal static class SourceGeneratedDocumentUri
                 assemblyVersion,
                 typeName),
             hintName);
+
+        static string GetRequiredQueryValue(string keyName, NameValueCollection nameValueCollection, string query)
+        {
+            var value = nameValueCollection[keyName];
+            Contract.ThrowIfNull(value, $"Could not get {keyName} from {query}");
+            return value;
+        }
     }
 }
