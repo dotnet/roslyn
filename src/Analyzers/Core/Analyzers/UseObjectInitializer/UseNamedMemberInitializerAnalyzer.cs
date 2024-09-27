@@ -21,12 +21,14 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
     TAssignmentStatementSyntax,
     TLocalDeclarationStatementSyntax,
     TVariableDeclaratorSyntax,
+    TInitializerSyntax,
     TAnalyzer> : AbstractObjectCreationExpressionAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
         TObjectCreationExpressionSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
+        TInitializerSyntax,
         Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>,
         TAnalyzer>, IDisposable
     where TExpressionSyntax : SyntaxNode
@@ -36,6 +38,7 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
     where TAssignmentStatementSyntax : TStatementSyntax
     where TLocalDeclarationStatementSyntax : TStatementSyntax
     where TVariableDeclaratorSyntax : SyntaxNode
+    where TInitializerSyntax : SyntaxNode
     where TAnalyzer : AbstractUseNamedMemberInitializerAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
@@ -44,6 +47,7 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
         TAssignmentStatementSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
+        TInitializerSyntax,
         TAnalyzer>, new()
 {
     public ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> Analyze(
@@ -57,7 +61,7 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
             return default;
 
         this.Initialize(state.Value, objectCreationExpression, analyzeForCollectionExpression: false);
-        return this.AnalyzeWorker(cancellationToken);
+        return this.AnalyzeWorker(cancellationToken).matches;
     }
 
     protected sealed override bool ShouldAnalyze(CancellationToken cancellationToken)
@@ -68,8 +72,14 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
 
     protected sealed override bool TryAddMatches(
         ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches,
+        out TInitializerSyntax? exitingInitializer,
         CancellationToken cancellationToken)
     {
+        // Not used in the 'use named member initializer' case.  We could update this in the future so that if a user
+        // already has a named initializer, and adds more initialization statements afterwards, that we can merge them
+        // into one final initializer.
+        exitingInitializer = null;
+
         using var _1 = PooledHashSet<string>.GetInstance(out var seenNames);
 
         var initializer = this.SyntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);

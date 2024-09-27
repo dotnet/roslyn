@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             AssignmentStatementSyntax,
             LocalDeclarationStatementSyntax,
             VariableDeclaratorSyntax,
+            ObjectMemberInitializerSyntax,
             VisualBasicUseNamedMemberInitializerAnalyzer)
 
         Protected Overrides Function IsInitializerOfLocalDeclarationStatement(localDeclarationStatement As LocalDeclarationStatementSyntax, rootExpression As ObjectCreationExpressionSyntax, ByRef variableDeclarator As VariableDeclaratorSyntax) As Boolean

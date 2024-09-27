@@ -18,6 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             ExpressionStatementSyntax,
             LocalDeclarationStatementSyntax,
             VariableDeclaratorSyntax,
+            ObjectCollectionInitializerSyntax,
             VisualBasicCollectionInitializerAnalyzer)
 
         Protected Overrides ReadOnly Property SyntaxHelper As IUpdateExpressionSyntaxHelper(Of ExpressionSyntax, StatementSyntax) =
@@ -37,7 +38,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             Return TypeOf _objectCreationExpression.Initializer Is ObjectMemberInitializerSyntax
         End Function
 
-        Protected Overrides Function AnalyzeMatchesAndCollectionConstructorForCollectionExpression(matches As ArrayBuilder(Of Match), cancellationToken As CancellationToken) As Boolean
+        Protected Overrides Function AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
+                matches As ArrayBuilder(Of Match),
+                ByRef existingInitializer As ObjectCollectionInitializerSyntax,
+                cancellationToken As CancellationToken) As Boolean
             ' Only called for collection expressions, which VB does not support
             Throw ExceptionUtilities.Unreachable()
         End Function

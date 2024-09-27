@@ -26,6 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             ExpressionStatementSyntax,
             LocalDeclarationStatementSyntax,
             VariableDeclaratorSyntax,
+            ObjectCollectionInitializerSyntax,
             VisualBasicCollectionInitializerAnalyzer)
 
         <ImportingConstructor>

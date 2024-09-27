@@ -18,6 +18,7 @@ internal abstract class AbstractObjectCreationExpressionAnalyzer<
     TObjectCreationExpressionSyntax,
     TLocalDeclarationStatementSyntax,
     TVariableDeclaratorSyntax,
+    TInitializerSyntax,
     TMatch,
     TAnalyzer> : IDisposable
     where TExpressionSyntax : SyntaxNode
@@ -25,12 +26,14 @@ internal abstract class AbstractObjectCreationExpressionAnalyzer<
     where TObjectCreationExpressionSyntax : TExpressionSyntax
     where TLocalDeclarationStatementSyntax : TStatementSyntax
     where TVariableDeclaratorSyntax : SyntaxNode
+    where TInitializerSyntax : SyntaxNode
     where TAnalyzer : AbstractObjectCreationExpressionAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
         TObjectCreationExpressionSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
+        TInitializerSyntax,
         TMatch,
         TAnalyzer>, new()
 {
@@ -43,7 +46,7 @@ internal abstract class AbstractObjectCreationExpressionAnalyzer<
     protected SemanticModel SemanticModel => this.State.SemanticModel;
 
     protected abstract bool ShouldAnalyze(CancellationToken cancellationToken);
-    protected abstract bool TryAddMatches(ArrayBuilder<TMatch> matches, CancellationToken cancellationToken);
+    protected abstract bool TryAddMatches(ArrayBuilder<TMatch> matches, out TInitializerSyntax? exitingInitializer, CancellationToken cancellationToken);
     protected abstract bool IsInitializerOfLocalDeclarationStatement(
         TLocalDeclarationStatementSyntax localDeclarationStatement, TObjectCreationExpressionSyntax rootExpression, [NotNullWhen(true)] out TVariableDeclaratorSyntax? variableDeclarator);
 
@@ -75,16 +78,16 @@ internal abstract class AbstractObjectCreationExpressionAnalyzer<
         _analyzeForCollectionExpression = false;
     }
 
-    protected ImmutableArray<TMatch> AnalyzeWorker(CancellationToken cancellationToken)
+    protected (ImmutableArray<TMatch> matches, TInitializerSyntax? existingInitializer) AnalyzeWorker(CancellationToken cancellationToken)
     {
         if (!ShouldAnalyze(cancellationToken))
             return default;
 
         using var _ = ArrayBuilder<TMatch>.GetInstance(out var matches);
-        if (!TryAddMatches(matches, cancellationToken))
+        if (!TryAddMatches(matches, out var existingInitializer, cancellationToken))
             return default;
 
-        return matches.ToImmutableAndClear();
+        return (matches.ToImmutableAndClear(), existingInitializer);
     }
 
     protected UpdateExpressionState<TExpressionSyntax, TStatementSyntax>? TryInitializeState(

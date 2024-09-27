@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -24,6 +23,7 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
     TExpressionStatementSyntax,
     TLocalDeclarationStatementSyntax,
     TVariableDeclaratorSyntax,
+    TInitializerSyntax,
     TAnalyzer>()
     : AbstractUseCollectionExpressionCodeFixProvider<TObjectCreationExpressionSyntax>(
         AnalyzersResources.Collection_initialization_can_be_simplified,
@@ -37,6 +37,7 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
     where TExpressionStatementSyntax : TStatementSyntax
     where TLocalDeclarationStatementSyntax : TStatementSyntax
     where TVariableDeclaratorSyntax : SyntaxNode
+    where TInitializerSyntax : SyntaxNode
     where TAnalyzer : AbstractUseCollectionInitializerAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
@@ -46,6 +47,7 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
         TExpressionStatementSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
+        TInitializerSyntax,
         TAnalyzer>, new()
 {
     public sealed override ImmutableArray<string> FixableDiagnosticIds
@@ -75,7 +77,7 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
         using var analyzer = GetAnalyzer();
 
         var useCollectionExpression = properties.ContainsKey(UseCollectionInitializerHelpers.UseCollectionExpressionName) is true;
-        var matches = analyzer.Analyze(
+        var (initializer, matches) = analyzer.Analyze(
             semanticModel, syntaxFacts, objectCreation, useCollectionExpression, cancellationToken);
 
         if (matches.IsDefault)

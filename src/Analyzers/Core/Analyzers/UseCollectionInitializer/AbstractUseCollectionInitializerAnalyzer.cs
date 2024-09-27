@@ -21,12 +21,14 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
     TExpressionStatementSyntax,
     TLocalDeclarationStatementSyntax,
     TVariableDeclaratorSyntax,
+    TInitializerSyntax,
     TAnalyzer> : AbstractObjectCreationExpressionAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
         TObjectCreationExpressionSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
+        TInitializerSyntax,
         Match, TAnalyzer>
     where TExpressionSyntax : SyntaxNode
     where TStatementSyntax : SyntaxNode
@@ -36,6 +38,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
     where TExpressionStatementSyntax : TStatementSyntax
     where TLocalDeclarationStatementSyntax : TStatementSyntax
     where TVariableDeclaratorSyntax : SyntaxNode
+    where TInitializerSyntax : SyntaxNode
     where TAnalyzer : AbstractUseCollectionInitializerAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
@@ -45,15 +48,21 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         TExpressionStatementSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
+        TInitializerSyntax,
         TAnalyzer>, new()
 {
+    public readonly record struct AnalysisResult(
+        TInitializerSyntax? ExistingInitializer,
+        ImmutableArray<Match> Matches);
+
     protected abstract bool IsComplexElementInitializer(SyntaxNode expression);
     protected abstract bool HasExistingInvalidInitializerForCollection();
-    protected abstract bool AnalyzeMatchesAndCollectionConstructorForCollectionExpression(ArrayBuilder<Match> matches, CancellationToken cancellationToken);
+    protected abstract bool AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
+        ArrayBuilder<Match> matches, out TInitializerSyntax? existingInitializer, CancellationToken cancellationToken);
 
     protected abstract IUpdateExpressionSyntaxHelper<TExpressionSyntax, TStatementSyntax> SyntaxHelper { get; }
 
-    public ImmutableArray<Match> Analyze(
+    public AnalysisResult Analyze(
         SemanticModel semanticModel,
         ISyntaxFacts syntaxFacts,
         TObjectCreationExpressionSyntax objectCreationExpression,
@@ -65,10 +74,11 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
             return default;
 
         this.Initialize(state.Value, objectCreationExpression, analyzeForCollectionExpression);
-        var result = this.AnalyzeWorker(cancellationToken);
+        var analysisResult = this.AnalyzeWorker(cancellationToken);
+        var matches = analysisResult.matches;
 
         // If analysis failed entirely, immediately bail out.
-        if (result.IsDefault)
+        if (matches.IsDefault)
             return default;
 
         // Analysis succeeded, but the result may be empty or non empty.
@@ -80,17 +90,18 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         // other words, we don't want to suggest changing `new List<int>()` to `new List<int>() { }` as that's just
         // noise.  So convert empty results to an invalid result here.
         if (analyzeForCollectionExpression)
-            return result;
+            return new(analysisResult.existingInitializer, matches);
 
         // Downgrade an empty result to a failure for the normal collection-initializer case.
-        return result.IsEmpty ? default : result;
+        return matches.IsEmpty ? default : new(analysisResult.existingInitializer, matches);
     }
 
     protected sealed override bool TryAddMatches(
-        ArrayBuilder<Match> matches, CancellationToken cancellationToken)
+        ArrayBuilder<Match> matches, out TInitializerSyntax? existingInitializer, CancellationToken cancellationToken)
     {
         var seenInvocation = false;
         var seenIndexAssignment = false;
+        existingInitializer = null;
 
         var initializer = this.SyntaxFacts.GetInitializerOfBaseObjectCreationExpression(_objectCreationExpression);
         if (initializer != null)
@@ -126,7 +137,7 @@ internal abstract class AbstractUseCollectionInitializerAnalyzer<
         }
 
         if (_analyzeForCollectionExpression)
-            return AnalyzeMatchesAndCollectionConstructorForCollectionExpression(matches, cancellationToken);
+            return AnalyzeMatchesAndCollectionConstructorForCollectionExpression(matches, out existingInitializer, cancellationToken);
 
         return true;
     }

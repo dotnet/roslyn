@@ -20,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             AssignmentStatementSyntax,
             LocalDeclarationStatementSyntax,
             VariableDeclaratorSyntax,
+            ObjectMemberInitializerSyntax,
             VisualBasicUseNamedMemberInitializerAnalyzer)
 
         Protected Overrides ReadOnly Property FadeOutOperatorToken As Boolean = False

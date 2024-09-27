@@ -22,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             ExpressionStatementSyntax,
             LocalDeclarationStatementSyntax,
             VariableDeclaratorSyntax,
+            ObjectCollectionInitializerSyntax,
             VisualBasicCollectionInitializerAnalyzer)
 
         Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance

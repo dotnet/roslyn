@@ -36,6 +36,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
     TExpressionStatementSyntax,
     TLocalDeclarationStatementSyntax,
     TVariableDeclaratorSyntax,
+    TInitializerSyntax,
     TAnalyzer>
     : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     where TSyntaxKind : struct
@@ -47,6 +48,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
     where TExpressionStatementSyntax : TStatementSyntax
     where TLocalDeclarationStatementSyntax : TStatementSyntax
     where TVariableDeclaratorSyntax : SyntaxNode
+    where TInitializerSyntax : SyntaxNode
     where TAnalyzer : AbstractUseCollectionInitializerAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
@@ -56,6 +58,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         TExpressionStatementSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
+        TInitializerSyntax,
         TAnalyzer>, new()
 {
 
@@ -211,7 +214,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             if (!preferInitializerOption.Value)
                 return null;
 
-            var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: false, cancellationToken);
+            var (_, matches) = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: false, cancellationToken);
 
             // If analysis failed, we can't change this, no matter what.
             if (matches.IsDefault)
@@ -229,7 +232,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             if (!this.AreCollectionExpressionsSupported(context.Compilation))
                 return null;
 
-            var matches = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: true, cancellationToken);
+            var (_, matches) = analyzer.Analyze(semanticModel, syntaxFacts, objectCreationExpression, analyzeForCollectionExpression: true, cancellationToken);
 
             // If analysis failed, we can't change this, no matter what.
             if (matches.IsDefault)

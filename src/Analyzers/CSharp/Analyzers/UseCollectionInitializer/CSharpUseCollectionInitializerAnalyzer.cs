@@ -22,6 +22,7 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
     ExpressionStatementSyntax,
     LocalDeclarationStatementSyntax,
     VariableDeclaratorSyntax,
+    InitializerExpressionSyntax,
     CSharpUseCollectionInitializerAnalyzer>
 {
     protected override IUpdateExpressionSyntaxHelper<ExpressionSyntax, StatementSyntax> SyntaxHelper
@@ -45,8 +46,10 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
     }
 
     protected override bool AnalyzeMatchesAndCollectionConstructorForCollectionExpression(
-        ArrayBuilder<Match> matches, CancellationToken cancellationToken)
+        ArrayBuilder<Match> matches, out InitializerExpressionSyntax? existingInitializer, CancellationToken cancellationToken)
     {
+        existingInitializer = _objectCreationExpression.Initializer;
+
         // Constructor wasn't called with any arguments.  Nothing to validate.
         var argumentList = _objectCreationExpression.ArgumentList;
         if (argumentList is null || argumentList.Arguments.Count == 0)
@@ -72,8 +75,20 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
             firstParameter.Type.AllInterfaces.Any(i => Equals(i.OriginalDefinition, ienumerableOfTType)))
         {
             // Took a single argument that implements IEnumerable<T>.  We handle this by spreading that argument as the
-            // first thing added to the collection.
-            matches.Insert(0, new(argumentList.Arguments[0].Expression, UseSpread: true));
+            // first thing added to the collection.  Also, because we're adding the initial arguments, we want the
+            // initializer values to go after that.  So clear out the initializer we're returning and add the values
+            // directly as matches.
+
+            var index = 0;
+            matches.Insert(index++, new(argumentList.Arguments[0].Expression, UseSpread: true));
+            existingInitializer = null;
+
+            if (_objectCreationExpression.Initializer != null)
+            {
+                foreach (var expression in _objectCreationExpression.Initializer.Expressions)
+                    matches.Insert(index++, new(expression, UseSpread: false));
+            }
+
             return true;
         }
         else if (firstParameter is { Type.SpecialType: SpecialType.System_Int32, Name: "capacity" })

@@ -21,6 +21,7 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
     TAssignmentStatementSyntax,
     TLocalDeclarationStatementSyntax,
     TVariableDeclaratorSyntax,
+    TINitializerSyntax,
     TAnalyzer>
     : AbstractBuiltInCodeStyleDiagnosticAnalyzer
     where TSyntaxKind : struct
@@ -31,6 +32,7 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
     where TAssignmentStatementSyntax : TStatementSyntax
     where TLocalDeclarationStatementSyntax : TStatementSyntax
     where TVariableDeclaratorSyntax : SyntaxNode
+    where TINitializerSyntax : SyntaxNode
     where TAnalyzer : AbstractUseNamedMemberInitializerAnalyzer<
         TExpressionSyntax,
         TStatementSyntax,
@@ -39,6 +41,7 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
         TAssignmentStatementSyntax,
         TLocalDeclarationStatementSyntax,
         TVariableDeclaratorSyntax,
+        TINitializerSyntax,
         TAnalyzer>, new()
 {
     private static readonly DiagnosticDescriptor s_descriptor = CreateDescriptorWithId(

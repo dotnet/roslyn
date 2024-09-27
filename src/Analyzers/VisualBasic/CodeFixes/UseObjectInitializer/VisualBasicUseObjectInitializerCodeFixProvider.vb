@@ -22,6 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
             AssignmentStatementSyntax,
             LocalDeclarationStatementSyntax,
             VariableDeclaratorSyntax,
+            ObjectMemberInitializerSyntax,
             VisualBasicUseNamedMemberInitializerAnalyzer)
 
         <ImportingConstructor>

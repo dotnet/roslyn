@@ -22,6 +22,7 @@ internal sealed class CSharpUseObjectInitializerDiagnosticAnalyzer :
         ExpressionStatementSyntax,
         LocalDeclarationStatementSyntax,
         VariableDeclaratorSyntax,
+        InitializerExpressionSyntax,
         CSharpUseNamedMemberInitializerAnalyzer>
 {
     protected override bool FadeOutOperatorToken => true;

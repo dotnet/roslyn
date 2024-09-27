@@ -7,7 +7,6 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
@@ -28,6 +27,7 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider() :
         ExpressionStatementSyntax,
         LocalDeclarationStatementSyntax,
         VariableDeclaratorSyntax,
+        InitializerExpressionSyntax,
         CSharpUseCollectionInitializerAnalyzer>
 {
     protected override CSharpUseCollectionInitializerAnalyzer GetAnalyzer()
