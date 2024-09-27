@@ -13,12 +13,11 @@ namespace Microsoft.CodeAnalysis.QuickInfo;
 /// <param name="declarationCode">the symbol's declaration code</param>
 /// <param name="language">the language of the symbol</param>
 /// <param name="hasComments">whether the symbol has comments</param>
-internal sealed class OnTheFlyDocsElement(string symbolSignature, ImmutableArray<string> declarationCode, string language, bool isContentExcluded, bool hasComments = false)
+internal sealed class OnTheFlyDocsElement(string symbolSignature, ImmutableArray<string> declarationCode, string language, bool hasComments = false)
 {
     public string SymbolSignature { get; } = symbolSignature;
     public ImmutableArray<string> DeclarationCode { get; } = declarationCode;
     public string Language { get; } = language;
-    public bool IsContentExcluded { get; set; } = isContentExcluded;
 
     // Added for telemetry collection purposes.
     public bool HasComments { get; set; } = hasComments;
