@@ -348,6 +348,9 @@
   <data name="Changing_the_return_type_of_0_requires_restarting_the_application" xml:space="preserve">
     <value>Changing the return type of {0} requires restarting the application.</value>
   </data>
+  <data name="Changing_the_signature_of_0_requires_restarting_the_application" xml:space="preserve">
+    <value>Changing the signature of {0} requires restarting the application.</value>
+  </data>
   <data name="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime" xml:space="preserve">
     <value>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</value>
   </data>

@@ -6843,17 +6843,17 @@ Partial Class C
         Return 0
     End Function
 
-    Dim A1(F(<N:0.0>Function(a1) a1 + 1</N:0.0>))
-    Dim A2 As Integer = F(<N:0.1>Function(a2) a2 + 1</N:0.1>)
-    Dim A3, A4 As New Func(Of Integer, Integer)(<N:0.2>Function(a34) a34 + 1</N:0.2>)
-    Dim A5(F(<N:0.3>Function(a51) a51 + 1</N:0.3>), F(<N:0.4>Function(a52) a52 + 1</N:0.4>)) As Integer
+    Dim A1(F(<N:0>Function(a1) a1 + 1</N:0>))
+    Dim A2 As Integer = F(<N:1>Function(a2) a2 + 1</N:1>)
+    Dim A3, A4 As New Func(Of Integer, Integer)(<N:2>Function(a34) a34 + 1</N:2>)
+    Dim A5(F(<N:3>Function(a51) a51 + 1</N:3>), F(<N:4>Function(a52) a52 + 1</N:4>)) As Integer
 End Class
 
 Partial Class C
-    ReadOnly Property B As Integer = F(<N:0.5>Function(b) b + 1</N:0.5>)
+    ReadOnly Property B As Integer = F(<N:5>Function(b) b + 1</N:5>)
 
     Public Sub New()
-        F(<N:0.6>Function(c) c + 1</N:0.6>)
+        F(<N:6>Function(c) c + 1</N:6>)
     End Sub
 End Class
 "
@@ -6865,27 +6865,27 @@ Partial Class C
         Return 0
     End Function
 
-    Dim A1(F(<N:0.0>Function(a1) a1 + 1</N:0.0>))
-    Dim A2 As Integer = F(<N:0.1>Function(a2) a2 + 1</N:0.1>)
-    Dim A3, A4 As New Func(Of Integer, Integer)(<N:0.2>Function(a34) a34 + 1</N:0.2>)
-    Dim A5(F(<N:0.3>Function(a51) a51 + 1</N:0.3>), F(<N:0.4>Function(a52) a52 + 1</N:0.4>)) As Integer
+    Dim A1(F(<N:0>Function(a1) a1 + 1</N:0>))
+    Dim A2 As Integer = F(<N:1>Function(a2) a2 + 1</N:1>)
+    Dim A3, A4 As New Func(Of Integer, Integer)(<N:2>Function(a34) a34 + 1</N:2>)
+    Dim A5(F(<N:3>Function(a51) a51 + 1</N:3>), F(<N:4>Function(a52) a52 + 1</N:4>)) As Integer
 End Class
 
 Partial Class C
-    ReadOnly Property B As Integer = F(<N:0.5>Function(b) b + 1</N:0.5>)
+    ReadOnly Property B As Integer = F(<N:5>Function(b) b + 1</N:5>)
 
     Public Sub New()
-        F(<N:0.6>Function(c) c + 2</N:0.6>)
+        F(<N:6>Function(c) c + 2</N:6>)
     End Sub
 End Class
 "
 
             Dim edits = GetTopEdits(src1, src2)
-            Dim syntaxMap = GetSyntaxMap(src1, src2)
+            Dim syntaxMap = edits.GetSyntaxMap()
 
             edits.VerifySemantics(
                 ActiveStatementsDescription.Empty,
-                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap(0))})
+                {SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(), syntaxMap)})
         End Sub
 
         <Fact>
@@ -7155,10 +7155,12 @@ Partial Class C
     End Sub
 End Class
 "
-            Dim syntaxMapB = GetSyntaxMap(srcB1, srcB2)(0)
+            Dim editsA = GetTopEdits(srcA1, srcA2)
+            Dim editsB = GetTopEdits(srcB1, srcB2)
+            Dim syntaxMapB = editsB.GetSyntaxMap()
 
             EditAndContinueValidation.VerifySemantics(
-                {GetTopEdits(srcA1, srcA2), GetTopEdits(srcB1, srcB2)},
+                {editsA, editsB},
                 {
                     DocumentResults(),
                     DocumentResults(
@@ -7167,7 +7169,7 @@ End Class
                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(Function(m) m.Parameters.Single().Type.Name = "Int32"), partialType:="C", syntaxMap:=syntaxMapB),
                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(Function(m) m.Parameters.Single().Type.Name = "Boolean"), partialType:="C", syntaxMap:=syntaxMapB),
                            SemanticEdit(SemanticEditKind.Update, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(Function(m) m.Parameters.Single().Type.Name = "UInt32"), partialType:="C", syntaxMap:=syntaxMapB),
-                           SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(Function(m) m.Parameters.Single().Type.Name = "Byte"), partialType:="C", syntaxMap:=Nothing)
+                           SemanticEdit(SemanticEditKind.Insert, Function(c) c.GetMember(Of NamedTypeSymbol)("C").Constructors.Single(Function(m) m.Parameters.Single().Type.Name = "Byte"), partialType:="C")
                         })
                 },
                 capabilities:=EditAndContinueCapabilities.AddMethodToExistingType)

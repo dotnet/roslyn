@@ -10203,7 +10203,6 @@ class C
         var active = GetActiveStatements(src1, src2);
 
         edits.VerifySemanticDiagnostics(active,
-            Diagnostic(RudeEditKind.ChangingLambdaReturnType, "b", GetResource("lambda")),
             Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "F(b);", GetResource("lambda")));
     }
 

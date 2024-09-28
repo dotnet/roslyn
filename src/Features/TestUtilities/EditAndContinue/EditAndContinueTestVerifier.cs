@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         internal void VerifyLineEdits(
-            EditScript<SyntaxNode> editScript,
+            EditScriptDescription editScript,
             SequencePointUpdates[] expectedLineEdits,
             SemanticEditDescription[]? expectedSemanticEdits,
             RudeEditDiagnosticDescription[]? expectedDiagnostics,
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         }
 
         internal void VerifySemantics(
-            EditScript<SyntaxNode>[] editScripts,
+            EditScriptDescription[] editScripts,
             TargetFramework targetFramework,
             DocumentAnalysisResultsDescription[] expectedResults,
             EditAndContinueCapabilities? capabilities = null)
@@ -412,13 +412,26 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 var actualOldNode = actualSyntaxMaps.MatchingNodes(newNode);
                 Assert.Equal(expectedOldNode, actualOldNode);
 
-                AssertEx.Equal(
-                    expectedRuntimeRudeEdit?.GetMessage(newRoot.SyntaxTree),
-                    actualSyntaxMaps.RuntimeRudeEdits?.Invoke(newNode)?.Message);
+                var expected = expectedRuntimeRudeEdit?.GetMessage(newRoot.SyntaxTree);
+                var actual = actualSyntaxMaps.RuntimeRudeEdits?.Invoke(newNode)?.Message;
+
+                if (expected != actual)
+                {
+                    Assert.Fail($"""
+                        Unexpected runtime rude edit.
+
+                        Expected message:
+                        '{expected}'
+                        Actual message:
+                        '{actual}'
+                        Node ({newNode.GetType().Name}):
+                        `{newNode}`
+                        """);
+                }
             }
         }
 
-        private void CreateProjects(EditScript<SyntaxNode>[] editScripts, AdhocWorkspace workspace, TargetFramework targetFramework, out Project oldProject, out Project newProject)
+        private void CreateProjects(EditScriptDescription[] editScripts, AdhocWorkspace workspace, TargetFramework targetFramework, out Project oldProject, out Project newProject)
         {
             var projectInfo = ProjectInfo.Create(
                 new ProjectInfo.ProjectAttributes(
@@ -517,17 +530,5 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
             }
         }
-    }
-
-    internal static class EditScriptTestUtils
-    {
-        public static void VerifyEdits<TNode>(this EditScript<TNode> actual)
-            => VerifyEdits(actual, Array.Empty<string>());
-
-        public static void VerifyEdits<TNode>(this EditScript<TNode> actual, params string[] expected)
-            => AssertEx.Equal(expected, actual.Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
-
-        public static void VerifyEdits<TNode>(this EditScript<TNode> actual, params EditKind[] expected)
-            => AssertEx.Equal(expected, actual.Edits.Select(e => e.Kind));
     }
 }

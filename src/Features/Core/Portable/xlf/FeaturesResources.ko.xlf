@@ -465,9 +465,14 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">{0}의 반환 형식을 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application">
+        <source>Changing the signature of {0} requires restarting the application.</source>
+        <target state="new">Changing the signature of {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
         <source>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</source>
-        <target state="translated">런타임에서 지원하지 않기 때문에 {0} 서명을 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <target state="new">Changing the signature of {0} requires restarting the application because is not supported by the runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application">
