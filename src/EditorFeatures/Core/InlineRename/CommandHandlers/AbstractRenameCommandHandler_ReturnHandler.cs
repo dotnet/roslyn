@@ -7,6 +7,7 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
@@ -28,14 +29,7 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
 
     protected virtual void CommitAndSetFocus(InlineRenameSession activeSession, ITextView textView, IUIThreadOperationContext operationContext)
     {
-        if (globalOptionService.ShouldCommitAsynchronously())
-        {
-            _ = activeSession.CommitAsync(previewChanges: false, operationContext);
-        }
-        else
-        {
-            activeSession.Commit(previewChanges: false, operationContext);
-            SetFocusToTextView(textView);
-        }
+        _ = activeSession.CommitAsync(previewChanges: false, operationContext).ReportNonFatalErrorAsync();
+        SetFocusToTextView(textView);
     }
 }

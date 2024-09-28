@@ -67,6 +67,11 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
         // If there is already an active session, commit it first
         if (renameService.ActiveSession != null)
         {
+            if (renameService.ActiveSession.IsCommitInProgress)
+            {
+                return;
+            }
+
             // Is the caret within any of the rename fields in this buffer?
             // If so, focus the dashboard
             if (renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out _))

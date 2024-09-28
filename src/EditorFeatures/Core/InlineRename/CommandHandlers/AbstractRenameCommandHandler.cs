@@ -93,18 +93,16 @@ internal abstract partial class AbstractRenameCommandHandler(
 
     private void CompleteActiveSessionAndMoveCaret(EditorCommandArgs args, IUIThreadOperationContext operationContext, bool invalidEditCommandInvoked)
     {
-        if (renameService.ActiveSession == null || renameService.ActiveSession.IsCommitInProgress)
+        if (renameService.ActiveSession != null)
         {
-            return;
+            var selection = args.TextView.Selection.VirtualSelectedSpans.First();
+
+            CompleteActiveSession(operationContext, invalidEditCommandInvoked);
+
+            var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
+            args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
+            args.TextView.Caret.MoveTo(translatedSelection.End);
         }
-
-        var selection = args.TextView.Selection.VirtualSelectedSpans.First();
-
-        CompleteActiveSession(operationContext, invalidEditCommandInvoked);
-
-        var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
-        args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
-        args.TextView.Caret.MoveTo(translatedSelection.End);
     }
 
     private void CompleteActionSessionAndCallNextHandler(EditorCommandArgs args, Action nextHandler, IUIThreadOperationContext operationContext, bool invalidEditCommandInvoked)
@@ -116,12 +114,6 @@ internal abstract partial class AbstractRenameCommandHandler(
     private void CompleteActiveSession(IUIThreadOperationContext operationContext, bool invalidEditCommandInvoked)
     {
         RoslynDebug.AssertNotNull(renameService.ActiveSession);
-        // No-op if it's being committed.
-        if (renameService.ActiveSession.IsCommitInProgress)
-        {
-            return;
-        }
-
         if (invalidEditCommandInvoked && globalOptionService.ShouldCommitAsynchronously())
         {
             // When rename is async, and an invalid edit command is invoked.

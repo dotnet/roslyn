@@ -15,6 +15,9 @@ internal abstract partial class AbstractRenameCommandHandler :
 
     public bool ExecuteCommand(MoveSelectedLinesUpCommandArgs args, CommandExecutionContext context)
     {
+        if (renameService.ActiveSession?.IsCommitInProgress is true)
+            return true;
+
         CompleteActiveSessionAndMoveCaret(args, context.OperationContext, invalidEditCommandInvoked: true);
         return false;
     }
@@ -24,6 +27,9 @@ internal abstract partial class AbstractRenameCommandHandler :
 
     public bool ExecuteCommand(MoveSelectedLinesDownCommandArgs args, CommandExecutionContext context)
     {
+        if (renameService.ActiveSession?.IsCommitInProgress is true)
+            return true;
+
         CompleteActiveSessionAndMoveCaret(args, context.OperationContext, invalidEditCommandInvoked: true);
         return false;
     }
