@@ -10940,5 +10940,128 @@ f( [Attribute] () => { });
         {
             await AssertFormatAsync(expected, text);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72196")]
+        public async Task TestSwitchExpression_WithFormattedListPattern_ShouldNotFormatListPattern()
+        {
+            await AssertFormatAsync(
+                code: @"
+var result1 = Array.Empty<string>() switch
+{
+    [1] => ""one"",
+    _ => 1,
+};
+",
+                expected: @"
+var result1 = Array.Empty<string>() switch
+{
+    [1] => ""one"",
+    _ => 1,
+};
+");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72196")]
+        public async Task TestSwitchExpression_WithNonFormattedListPattern_ShouldFormatListPattern()
+        {
+            await AssertFormatAsync(
+               code: @"
+var result2 = Array.Empty<string>() switch
+{
+[] => 0,
+    _ => 1,
+};
+",
+               expected: @"
+var result2 = Array.Empty<string>() switch
+{
+    [] => 0,
+    _ => 1,
+};
+");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72196")]
+        public async Task TestSwitchExpression_WithFormattedListPattern_FollowedByPropertyPattern_ShouldNotFormatListPattern()
+        {
+            await AssertFormatAsync(
+                code: @"
+var result3 = new int[] { 1, 2 } switch
+{
+    { Length: 0 } => ""empty"",
+    [1] => ""one"",
+    _ => ""unknown""
+};
+",
+                expected: @"
+var result3 = new int[] { 1, 2 } switch
+{
+    { Length: 0 } => ""empty"",
+    [1] => ""one"",
+    _ => ""unknown""
+};
+");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72196")]
+        public async Task TestSwitchExpression_WithNonFormattedListPattern_FollowedByPropertyPattern_ShouldFormatListPattern()
+        {
+            await AssertFormatAsync(
+                code: @"
+var result3 = new int[] { 1, 2 } switch
+{
+    { Length: 0 } => ""empty"",
+[1] => ""one"",
+    _ => ""unknown""
+};
+",
+                expected: @"
+var result3 = new int[] { 1, 2 } switch
+{
+    { Length: 0 } => ""empty"",
+    [1] => ""one"",
+    _ => ""unknown""
+};
+");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72196")]
+        public async Task TestSwitchExpression_WithDiscardOperator_ShouldFormatListPattern()
+        {
+            await AssertFormatAsync(
+                code: @"
+var result3 = new int[] { 1, 2 } switch
+{
+_ => ""unknown""
+};
+",
+                expected: @"
+var result3 = new int[] { 1, 2 } switch
+{
+    _ => ""unknown""
+};
+");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72196")]
+        public async Task TestArgumentInitializerExpression_ShouldNotFormat()
+        {
+            const string Code = @"
+var result = fakefunction(
+[
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+]);
+";
+            await AssertFormatAsync(code: Code, expected: Code);
+        }
     }
 }
