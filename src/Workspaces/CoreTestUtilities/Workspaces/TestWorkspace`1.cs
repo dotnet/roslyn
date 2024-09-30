@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             if (configurationOptions != null)
             {
                 var workspaceConfigurationService = GetService<TestWorkspaceConfigurationService>();
-                workspaceConfigurationService.Options = configurationOptions.Value;
+                workspaceConfigurationService.Options = configurationOptions;
             }
 
             SetCurrentSolutionEx(CreateSolution(SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Create()).WithTelemetryId(solutionTelemetryId)));

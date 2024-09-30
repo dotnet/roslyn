@@ -8,12 +8,12 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace AnalyzerRunner
+namespace AnalyzerRunner;
 {
     [ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Host), Shared]
     internal sealed class AnalyzerRunnerWorkspaceConfigurationService : IWorkspaceConfigurationService
     {
-        public WorkspaceConfigurationOptions Options { get; set; }
+        public WorkspaceConfigurationOptions Options { get; set; } = new();
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

@@ -31,7 +31,7 @@ internal partial class SerializerService
     private static readonly object s_analyzerImageReferenceMapGate = new();
     private static IBidirectionalMap<AnalyzerImageReference, Guid> s_analyzerImageReferenceMap = BidirectionalMap<AnalyzerImageReference, Guid>.Empty;
 
-    private static bool TryGetAnalyzerImageReferenceGuid(AnalyzerImageReference imageReference, out Guid guid)
+    public static bool TryGetAnalyzerImageReferenceGuid(AnalyzerImageReference imageReference, out Guid guid)
     {
         lock (s_analyzerImageReferenceMapGate)
             return s_analyzerImageReferenceMap.TryGetValue(imageReference, out guid);
@@ -502,7 +502,7 @@ internal partial class SerializerService
         }
     }
 
-    private static Guid TryGetAnalyzerFileReferenceMvid(AnalyzerFileReference file)
+    public static Guid TryGetAnalyzerFileReferenceMvid(AnalyzerFileReference file)
     {
         try
         {

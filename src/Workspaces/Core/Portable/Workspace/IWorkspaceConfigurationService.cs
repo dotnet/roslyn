@@ -32,7 +32,7 @@ internal sealed class DefaultWorkspaceConfigurationService() : IWorkspaceConfigu
 /// when devenv connects to the ServiceHub process.
 /// </summary>
 [DataContract]
-internal readonly record struct WorkspaceConfigurationOptions(
+internal sealed record class WorkspaceConfigurationOptions(
     [property: DataMember(Order = 0)] SourceGeneratorExecutionPreference SourceGeneratorExecution = SourceGeneratorExecutionPreference.Automatic,
     [property: DataMember(Order = 1)] bool ValidateCompilationTrackerStates =
 #if DEBUG // We will default this on in DEBUG builds
