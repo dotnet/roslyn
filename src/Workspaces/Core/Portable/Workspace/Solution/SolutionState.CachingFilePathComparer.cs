@@ -33,14 +33,7 @@ internal sealed partial class SolutionState
 
         public static readonly CachingFilePathComparer Instance = new();
 
-        /// <summary>
-        /// Lock to protect the the last string and hash code we computed.  `enableThreadOwnerTracking: false` as we
-        /// don't need that tracking, and it substantially speeds up the spin lock (removing 0.7% cpu from solution load
-        /// scenario).
-        /// </summary>
-        private SpinLock _lock = new(enableThreadOwnerTracking: false);
-        private string? _lastString;
-        private int _lastHashCode;
+        private static readonly ThreadLocal<(string? lastString, int lastHashCode)> s_data = new();
 
         private CachingFilePathComparer()
         {
@@ -60,25 +53,12 @@ internal sealed partial class SolutionState
             // string. Falls back to normal OrdinalIgnoreCase.GetHashCode for the uncommon case.
             hashCode = GetNonRandomizedHashCodeOrdinalIgnoreCase(obj);
 
-            var lockTaken = false;
-            try
-            {
-                _lock.Enter(ref lockTaken);
-                _lastString = obj;
-                _lastHashCode = hashCode;
-            }
-            finally
-            {
-                if (lockTaken)
-                    _lock.Exit();
-            }
-
-            return hashCode;
+            s_data.Value = (obj, hashCode);
         }
 
         private bool TryGetCachedHashCode(string obj, out int hashCode)
         {
-            var lastString = _lastString;
+            var (lastString, hash) = s_data.Value;
 
             // Quickly check if this is definitely *not* trying to hash the same string that this comparer was just used
             // to hash. If that's the case, we can avoid taking the lock and just return false immediately.  For the
@@ -90,22 +70,8 @@ internal sealed partial class SolutionState
                 return false;
             }
 
-            // Otherwise, take the lock, and now copy both the string and hash out.
-            var lockTaken = false;
-            try
-            {
-                _lock.Enter(ref lockTaken);
-                lastString = _lastString;
-                hashCode = _lastHashCode;
-            }
-            finally
-            {
-                if (lockTaken)
-                    _lock.Exit();
-            }
-
-            // Check again, as another thread may have written into this field between the first check and taking the lock.
-            return ReferenceEquals(lastString, obj);
+            hashCode = hash;
+            return true;
         }
 
         // From https://github.com/dotnet/runtime/blob/5aa9687e110faa19d1165ba680e52585a822464d/src/libraries/System.Private.CoreLib/src/System/String.Comparison.cs#L921
