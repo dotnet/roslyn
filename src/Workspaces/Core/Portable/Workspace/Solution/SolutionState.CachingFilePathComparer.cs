@@ -50,7 +50,7 @@ internal sealed partial class SolutionState
 
         public int GetHashCode([DisallowNull] string obj)
         {
-            // Stephen thinks this may be faster on NetFx as it will help the runtime with reading/writing from a single location.
+            // SToub thinks this may be faster on NetFx as it will help the runtime with reading/writing from a single location.
             ref var data = ref s_data;
             if (ReferenceEquals(data.lastString, obj))
                 return data.lastHashCode;
