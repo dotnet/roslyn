@@ -1141,6 +1141,9 @@ outerDefault:
                     }
 
                     break;
+
+                case MemberResolutionKind.None:
+                    return true;
             }
             return false;
 

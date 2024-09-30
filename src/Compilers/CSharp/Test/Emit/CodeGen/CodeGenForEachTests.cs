@@ -5576,5 +5576,22 @@ public static class Extensions
                 //     r.S.F++;
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocal2Cause, "r.S.F").WithArguments("r", "foreach iteration variable").WithLocation(7, 5));
         }
+
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2187060")]
+        public void ExtensionDisposeMethodWithParams()
+        {
+            var source = """
+System.ReadOnlySpan<int> values = [4, 2];
+foreach (int value in values) { System.Console.Write(value); }
+
+public static class C
+{
+    public static void Dispose(this int i, params int[] other) { }
+}
+""";
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "42" : null, verify: Verification.Skipped)
+                .VerifyDiagnostics();
+        }
     }
 }
