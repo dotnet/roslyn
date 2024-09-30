@@ -147,7 +147,12 @@ public partial class Project
     /// <summary>
     /// The options used by analyzers for this project.
     /// </summary>
-    public AnalyzerOptions AnalyzerOptions => State.AnalyzerOptions;
+    public AnalyzerOptions AnalyzerOptions => State.ProjectAnalyzerOptions;
+
+    /// <summary>
+    /// The options used by analyzers for this project.
+    /// </summary>
+    public AnalyzerOptions HostAnalyzerOptions => State.HostAnalyzerOptions;
 
     /// <summary>
     /// The options used when building the compilation for this project.
