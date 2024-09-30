@@ -95,7 +95,34 @@ internal abstract class AbstractSpeculationAnalyzer<
     }
 
     protected abstract ISyntaxFacts SyntaxFactsService { get; }
+
+    protected abstract SyntaxNode GetSemanticRootForSpeculation(TExpressionSyntax expression);
+    protected abstract SemanticModel CreateSpeculativeSemanticModel(SyntaxNode originalNode, SyntaxNode nodeToSpeculate, SemanticModel semanticModel);
+
+    protected abstract bool IsInNamespaceOrTypeContext(TExpressionSyntax node);
+    protected abstract bool ExpressionMightReferenceMember([NotNullWhen(true)] SyntaxNode? node);
     protected abstract bool CanAccessInstanceMemberThrough(TExpressionSyntax? expression);
+
+    protected abstract TConversion ClassifyConversion(SemanticModel model, TExpressionSyntax expression, ITypeSymbol targetType);
+    protected abstract TConversion ClassifyConversion(SemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType);
+    protected abstract bool ConversionsAreCompatible(SemanticModel model1, TExpressionSyntax expression1, SemanticModel model2, TExpressionSyntax expression2);
+    protected abstract bool ConversionsAreCompatible(TExpressionSyntax originalExpression, ITypeSymbol originalTargetType, TExpressionSyntax newExpression, ITypeSymbol newTargetType);
+    protected abstract bool IsReferenceConversion(Compilation model, ITypeSymbol sourceType, ITypeSymbol targetType);
+
+    protected abstract TExpressionSyntax GetForEachStatementExpression(TForEachStatementSyntax forEachStatement);
+    protected abstract bool IsForEachTypeInferred(TForEachStatementSyntax forEachStatement, SemanticModel semanticModel);
+    protected abstract bool ForEachConversionsAreCompatible(SemanticModel originalModel, TForEachStatementSyntax originalForEach, SemanticModel newModel, TForEachStatementSyntax newForEach);
+    protected abstract void GetForEachSymbols(
+        SemanticModel model, TForEachStatementSyntax forEach, out IMethodSymbol getEnumeratorMethod, out ITypeSymbol elementType, out ImmutableArray<ILocalSymbol> localVariables);
+
+    protected abstract bool ReplacementChangesSemanticsForNodeLanguageSpecific(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode? previousOriginalNode, SyntaxNode? previousReplacedNode);
+
+    protected abstract bool IsParenthesizedExpression([NotNullWhen(true)] SyntaxNode? node);
+    protected abstract bool IsNamedArgument(TArgumentSyntax argument);
+    protected abstract string GetNamedArgumentIdentifierValueText(TArgumentSyntax argument);
+    protected abstract TExpressionSyntax GetThrowStatementExpression(TThrowStatementSyntax throwStatement);
+    protected abstract ImmutableArray<TArgumentSyntax> GetArguments(TExpressionSyntax expression);
+    protected abstract TExpressionSyntax GetReceiver(TExpressionSyntax expression);
 
     /// <summary>
     /// Original expression to be replaced.
@@ -172,8 +199,6 @@ internal abstract class AbstractSpeculationAnalyzer<
 
     public CancellationToken CancellationToken { get; }
 
-    protected abstract SyntaxNode GetSemanticRootForSpeculation(TExpressionSyntax expression);
-
     protected virtual SyntaxNode GetSemanticRootOfReplacedExpression(SyntaxNode semanticRootOfOriginalExpression, TExpressionSyntax annotatedReplacedExpression)
         => semanticRootOfOriginalExpression.ReplaceNode(this.OriginalExpression, annotatedReplacedExpression);
 
@@ -209,8 +234,6 @@ internal abstract class AbstractSpeculationAnalyzer<
             ValidateSpeculativeSemanticModel(_lazySpeculativeSemanticModel, nodeToSpeculate);
         }
     }
-
-    protected abstract SemanticModel CreateSpeculativeSemanticModel(SyntaxNode originalNode, SyntaxNode nodeToSpeculate, SemanticModel semanticModel);
 
     #region Semantic comparison helpers
 
@@ -291,9 +314,6 @@ internal abstract class AbstractSpeculationAnalyzer<
 
         return ConversionsAreCompatible(originalExpression, originalTargetType, newExpression, newTargetType);
     }
-
-    protected abstract bool ConversionsAreCompatible(SemanticModel model1, TExpressionSyntax expression1, SemanticModel model2, TExpressionSyntax expression2);
-    protected abstract bool ConversionsAreCompatible(TExpressionSyntax originalExpression, ITypeSymbol originalTargetType, TExpressionSyntax newExpression, ITypeSymbol newTargetType);
 
     protected bool SymbolsAreCompatible(SyntaxNode originalNode, SyntaxNode newNode, bool requireNonNullSymbols = false)
     {
@@ -497,8 +517,6 @@ internal abstract class AbstractSpeculationAnalyzer<
             skipVerificationForCurrentNode: _skipVerificationForReplacedNode);
     }
 
-    protected abstract bool IsParenthesizedExpression([NotNullWhen(true)] SyntaxNode? node);
-
     protected bool ReplacementChangesSemantics(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode originalRoot, bool skipVerificationForCurrentNode)
     {
         if (this.SpeculativeSemanticModel == null)
@@ -551,8 +569,6 @@ internal abstract class AbstractSpeculationAnalyzer<
 
         return SymbolsAreCompatible(this.OriginalExpression, this.ReplacedExpression, requireNonNullSymbols: true);
     }
-
-    protected abstract bool ReplacementChangesSemanticsForNodeLanguageSpecific(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode? previousOriginalNode, SyntaxNode? previousReplacedNode);
 
     private bool ReplacementChangesSemanticsForNode(SyntaxNode currentOriginalNode, SyntaxNode currentReplacedNode, SyntaxNode? previousOriginalNode, SyntaxNode? previousReplacedNode)
     {
@@ -766,10 +782,6 @@ internal abstract class AbstractSpeculationAnalyzer<
         return !SymbolsAreCompatible(attributeSym, newAttributeSym);
     }
 
-    protected abstract TExpressionSyntax GetForEachStatementExpression(TForEachStatementSyntax forEachStatement);
-
-    protected abstract bool IsForEachTypeInferred(TForEachStatementSyntax forEachStatement, SemanticModel semanticModel);
-
     private bool ReplacementBreaksForEachStatement(TForEachStatementSyntax forEachStatement, TForEachStatementSyntax newForEachStatement)
     {
         var forEachExpression = GetForEachStatementExpression(forEachStatement);
@@ -779,19 +791,21 @@ internal abstract class AbstractSpeculationAnalyzer<
             return false;
         }
 
+        GetForEachSymbols(this.OriginalSemanticModel, forEachStatement, out var originalGetEnumerator, out var originalElementType, out var originalLocalVariables);
+        GetForEachSymbols(this.SpeculativeSemanticModel, newForEachStatement, out var newGetEnumerator, out var newElementType, out var newLocalVariables);
+
         // inferred variable type compatible
         if (IsForEachTypeInferred(forEachStatement, OriginalSemanticModel))
         {
-            var local = (ILocalSymbol)OriginalSemanticModel.GetRequiredDeclaredSymbol(forEachStatement, CancellationToken);
-            var newLocal = (ILocalSymbol)this.SpeculativeSemanticModel.GetRequiredDeclaredSymbol(newForEachStatement, CancellationToken);
-            if (!SymbolsAreCompatible(local.Type, newLocal.Type))
-            {
+            if (originalLocalVariables.Length != newLocalVariables.Length)
                 return true;
+
+            for (int i = 0, n = originalLocalVariables.Length; i < n; i++)
+            {
+                if (!SymbolsAreCompatible(originalLocalVariables[i].Type, newLocalVariables[i].Type))
+                    return true;
             }
         }
-
-        GetForEachSymbols(this.OriginalSemanticModel, forEachStatement, out var originalGetEnumerator, out var originalElementType);
-        GetForEachSymbols(this.SpeculativeSemanticModel, newForEachStatement, out var newGetEnumerator, out var newElementType);
 
         var newForEachExpression = GetForEachStatementExpression(newForEachStatement);
 
@@ -804,10 +818,6 @@ internal abstract class AbstractSpeculationAnalyzer<
 
         return false;
     }
-
-    protected abstract bool ForEachConversionsAreCompatible(SemanticModel originalModel, TForEachStatementSyntax originalForEach, SemanticModel newModel, TForEachStatementSyntax newForEach);
-
-    protected abstract void GetForEachSymbols(SemanticModel model, TForEachStatementSyntax forEach, out IMethodSymbol getEnumeratorMethod, out ITypeSymbol elementType);
 
     private bool ReplacementBreaksForEachGetEnumerator(IMethodSymbol getEnumerator, IMethodSymbol newGetEnumerator, TExpressionSyntax newForEachStatementExpression)
     {
@@ -847,8 +857,6 @@ internal abstract class AbstractSpeculationAnalyzer<
         return false;
     }
 
-    protected abstract TExpressionSyntax GetThrowStatementExpression(TThrowStatementSyntax throwStatement);
-
     private bool ReplacementBreaksThrowStatement(TThrowStatementSyntax originalThrowStatement, TThrowStatementSyntax newThrowStatement)
     {
         var originalThrowExpression = GetThrowStatementExpression(originalThrowStatement);
@@ -861,9 +869,13 @@ internal abstract class AbstractSpeculationAnalyzer<
             newThrowExpressionType.IsOrDerivesFromExceptionType(this.SpeculativeSemanticModel.Compilation);
     }
 
+<<<<<<< HEAD
     protected abstract bool IsInNamespaceOrTypeContext(TExpressionSyntax node);
 
     private bool ReplacementBreaksTypeResolution(TTypeSyntax type, TTypeSyntax newType, bool useSpeculativeModel)
+=======
+    private bool ReplacementBreaksTypeResolution(TTypeSyntax type, TTypeSyntax newType, bool useSpeculativeModel = true)
+>>>>>>> upstream/main
     {
         var symbol = this.OriginalSemanticModel.GetSymbolInfo(type).Symbol;
 
@@ -880,8 +892,6 @@ internal abstract class AbstractSpeculationAnalyzer<
 
         return symbol != null && !SymbolsAreCompatible(symbol, newSymbol);
     }
-
-    protected abstract bool ExpressionMightReferenceMember([NotNullWhen(true)] SyntaxNode? node);
 
     private static bool IsDelegateInvoke(ISymbol symbol)
     {
@@ -982,8 +992,6 @@ internal abstract class AbstractSpeculationAnalyzer<
         return false;
     }
 
-    protected abstract bool IsReferenceConversion(Compilation model, ITypeSymbol sourceType, ITypeSymbol targetType);
-
     private bool IsCompatibleInterfaceMemberImplementation(
         ISymbol symbol,
         ISymbol newSymbol,
@@ -1073,9 +1081,6 @@ internal abstract class AbstractSpeculationAnalyzer<
                receiverSymbol.IsKind(SymbolKind.Property);
     }
 
-    protected abstract ImmutableArray<TArgumentSyntax> GetArguments(TExpressionSyntax expression);
-    protected abstract TExpressionSyntax GetReceiver(TExpressionSyntax expression);
-
     private bool SymbolsHaveCompatibleParameterLists(ISymbol originalSymbol, ISymbol newSymbol, TExpressionSyntax originalInvocation)
     {
         if (originalSymbol.IsKind(SymbolKind.Method) || originalSymbol.IsIndexer())
@@ -1091,9 +1096,6 @@ internal abstract class AbstractSpeculationAnalyzer<
 
         return true;
     }
-
-    protected abstract bool IsNamedArgument(TArgumentSyntax argument);
-    protected abstract string GetNamedArgumentIdentifierValueText(TArgumentSyntax argument);
 
     private bool AreCompatibleParameterLists(
         ImmutableArray<TArgumentSyntax> specifiedArguments,
@@ -1244,7 +1246,4 @@ internal abstract class AbstractSpeculationAnalyzer<
             }
         }
     }
-
-    protected abstract TConversion ClassifyConversion(SemanticModel model, TExpressionSyntax expression, ITypeSymbol targetType);
-    protected abstract TConversion ClassifyConversion(SemanticModel model, ITypeSymbol originalType, ITypeSymbol targetType);
 }

@@ -545,8 +545,8 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_ITuple__get_Item,
         System_Runtime_CompilerServices_ITuple__get_Length,
 
+        System_Exception__ctorString,
         System_InvalidOperationException__ctor,
-        System_InvalidOperationException__ctorString,
         System_Runtime_CompilerServices_SwitchExpressionException__ctor,
         System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
 
@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis
         System_NotSupportedException__ctor,
         System_IndexOutOfRangeException__ctor,
 
-        System_MissingMethodException__ctorString,
+        System_Runtime_CompilerServices_HotReloadException__ctorStringInt32,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
 
         System_Collections_ICollection__Count,

@@ -433,6 +433,7 @@ class X
                         case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                         case ErrorCode.INF_TooManyBoundLambdas:
                         case ErrorCode.WRN_FieldIsAmbiguous:
+                        case ErrorCode.WRN_UninitializedNonNullableBackingField:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

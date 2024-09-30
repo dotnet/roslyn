@@ -144,7 +144,7 @@ End Module
             '                                  AnonymousObjectCreationExpression in the new { } declaration.
             Dim symbol = model.GetDeclaredSymbol(anonObjectCreation)
             Assert.NotNull(symbol)
-            Assert.Equal(Of ISymbol)(localType, symbol)
+            AssertEx.Equal(Of ISymbol)(localType, symbol)
             Assert.Same(anonObjectCreation, symbol.DeclaringSyntaxReferences(0).GetSyntax())
 
             ' Locations: Return the Span of that particular 
@@ -176,7 +176,7 @@ End Module
                     ' SemanticModel.GetDeclaredSymbol: Return this symbol when applied to its new { } 
                     '                                  declaration's AnonymousObjectMemberDeclarator.
                     Dim propSymbol = model.GetDeclaredSymbol(propertyInitializer)
-                    Assert.Equal(Of ISymbol)(member, propSymbol)
+                    AssertEx.Equal(Of ISymbol)(member, propSymbol)
                     Assert.Same(propertyInitializer, propSymbol.DeclaringSyntaxReferences(0).GetSyntax())
 
                     ' Locations: Return the Span of that particular 

@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                   emitOptions,
                   outputKind: OutputKind.DynamicallyLinkedLibrary,
                   serializationProperties: serializationProperties,
-                  manifestResources: SpecializedCollections.EmptyEnumerable<ResourceDescription>(),
+                  manifestResources: [],
                   additionalTypes: additionalTypes)
         {
             _getDynamicOperationContextType = getDynamicOperationContextType;
@@ -67,6 +67,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool IgnoreAccessibility => true;
         public override EmitBaseline? PreviousGeneration => null;
         public override SymbolChanges? EncSymbolChanges => null;
+
+        public override INamedTypeSymbolInternal? TryGetOrCreateSynthesizedHotReloadExceptionType()
+            => null;
+
+        public override IMethodSymbolInternal GetOrCreateHotReloadExceptionConstructorDefinition()
+            => throw ExceptionUtilities.Unreachable();
+
+        public override INamedTypeSymbolInternal? GetUsedSynthesizedHotReloadExceptionType()
+            => null;
 
         internal override NamedTypeSymbol GetDynamicOperationContextType(NamedTypeSymbol contextType)
         {

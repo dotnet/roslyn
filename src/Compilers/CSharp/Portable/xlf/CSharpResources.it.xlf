@@ -632,6 +632,11 @@
         <target state="translated">Un'istruzione non può iniziare con 'else'.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EncUpdateFailedMissingSymbol">
+        <source>Cannot emit update; {0} '{1}' is missing.</source>
+        <target state="new">Cannot emit update; {0} '{1}' is missing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">Non è possibile aggiungere ai punti di ingresso dell'applicazione l'attributo 'UnmanagedCallersOnly'.</target>
@@ -5283,6 +5288,16 @@ target:module               Compila un modulo che può essere aggiunto ad altro
         <target state="translated">Il membro di iteratore asincrono include uno o più parametri di tipo 'CancellationToken', ma nessuno di essi è decorato con l'attributo 'EnumeratorCancellation', di conseguenza il parametro del token di annullamento restituito dall'elemento 'IAsyncEnumerable&lt;&gt;.GetAsyncEnumerator' generato non verrà utilizzato</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableBackingField">
+        <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</target>
+        <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
+      </trans-unit>
+      <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
+        <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
+        <target state="new">Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the {0} as nullable.</source>
         <target state="translated">L'elemento {0} '{1}' non nullable deve contenere un valore non Null all'uscita dal costruttore. Prendere in considerazione l'aggiunta del modificatore 'required' o la dichiarazione di {0} come nullable.</target>
@@ -7595,11 +7610,6 @@ Se si usa tale classe come classe base e se la classe di derivazione definisce u
       <trans-unit id="ERR_DllImportOnInvalidMethod">
         <source>The DllImport attribute must be specified on a method marked 'static' and 'extern'</source>
         <target state="translated">L'attributo DllImport deve essere specificato in un metodo contrassegnato come 'static' ed 'extern'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedMissingAttribute">
-        <source>Cannot update '{0}'; attribute '{1}' is missing.</source>
-        <target state="translated">Non è possibile aggiornare '{0}'. Manca l'attributo '{1}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">

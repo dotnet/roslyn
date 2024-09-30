@@ -65,7 +65,7 @@ Friend Module CompilationUtils
         Dim trees = source.GetSyntaxTrees(parseOptions, assemblyName)
         Dim createCompilationLambda = Function()
                                           Return VisualBasicCompilation.Create(
-                                            If(assemblyName, GetUniqueName()),
+                                            If(String.IsNullOrEmpty(assemblyName), GetUniqueName(), assemblyName),
                                             trees,
                                             references,
                                             options)

@@ -180,8 +180,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return boundNode
         End Function
 
-        Public Function Parameter(p As ParameterSymbol) As BoundParameter
-            Dim boundNode = New BoundParameter(_syntax, p, p.Type)
+        Public Function Parameter(p As ParameterSymbol, Optional isLValue As Boolean = True) As BoundParameter
+            Dim boundNode = New BoundParameter(_syntax, p, isLValue, p.Type)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function

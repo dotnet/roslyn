@@ -594,10 +594,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             Return ConversionsAreCompatible(originalInfo.CurrentConversion, newInfo.CurrentConversion) AndAlso ConversionsAreCompatible(originalInfo.ElementConversion, newInfo.ElementConversion)
         End Function
 
-        Protected Overrides Sub GetForEachSymbols(model As SemanticModel, forEach As ForEachStatementSyntax, ByRef getEnumeratorMethod As IMethodSymbol, ByRef elementType As ITypeSymbol)
+        Protected Overrides Sub GetForEachSymbols(
+                model As SemanticModel,
+                forEach As ForEachStatementSyntax,
+                ByRef getEnumeratorMethod As IMethodSymbol,
+                ByRef elementType As ITypeSymbol,
+                ByRef localVariables As ImmutableArray(Of ILocalSymbol))
             Dim info = model.GetForEachStatementInfo(forEach)
             getEnumeratorMethod = info.GetEnumeratorMethod
             elementType = info.ElementType
+            localVariables = ImmutableArray.Create(DirectCast(model.GetDeclaredSymbol(forEach), ILocalSymbol))
         End Sub
 
         Protected Overrides Function IsReferenceConversion(compilation As Compilation, sourceType As ITypeSymbol, targetType As ITypeSymbol) As Boolean
