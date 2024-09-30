@@ -1311,7 +1311,7 @@ namespace System.Diagnostics.CodeAnalysis
             }
 
             Func<CSharpCompilation> createCompilationLambda = () => CSharpCompilation.Create(
-                assemblyName == "" ? GetUniqueName() : assemblyName,
+                string.IsNullOrEmpty(assemblyName) ? GetUniqueName() : assemblyName,
                 syntaxTrees,
                 references,
                 options);

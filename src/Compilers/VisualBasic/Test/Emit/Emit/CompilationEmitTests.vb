@@ -2460,7 +2460,7 @@ Imports System
                                             Dim actualGlobalMembers = DirectCast(m, SourceModuleSymbol).GlobalNamespace.GetMembers().ToArray()
 
                                             Assert.NotNull(m.GlobalNamespace.ContainingModule)
-                                            Assert.Equal(Of String)("C.dll", m.GlobalNamespace.ContainingModule.ToString)
+                                            AssertEx.Equal(Of String)("C.dll", m.GlobalNamespace.ContainingModule.ToString)
 
                                             For i As Integer = 0 To Math.Max(expectedGlobalMembers.Length, actualGlobalMembers.Length) - 1
                                                 Assert.Equal(expectedGlobalMembers(i), actualGlobalMembers(i).Name)

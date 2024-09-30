@@ -104,6 +104,8 @@ extends:
         enabled: false
       suppression:
         suppressionFile: $(Build.SourcesDirectory)\eng\config\guardian\.gdnsuppres
+      policheck:
+          enabled: true
       tsa:
         enabled: true
         configFile: '$(Build.SourcesDirectory)/eng/TSAConfig.gdntsa'

@@ -418,9 +418,9 @@ namespace Microsoft.CodeAnalysis.Emit
         private void ReportMissingStateMachineAttribute(DiagnosticBag diagnostics, IMethodSymbolInternal method, string stateMachineAttributeFullName)
         {
             diagnostics.Add(MessageProvider.CreateDiagnostic(
-                MessageProvider.ERR_EncUpdateFailedMissingAttribute,
+                MessageProvider.ERR_EncUpdateFailedMissingSymbol,
                 method.Locations.First(),
-                MessageProvider.GetErrorDisplayString(method.GetISymbol()),
+                CodeAnalysisResources.Attribute,
                 stateMachineAttributeFullName));
         }
 

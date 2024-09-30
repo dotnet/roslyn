@@ -19,7 +19,7 @@ pr:
     exclude:
       - docs/*
       - eng/config/PublishData.json
-      - src/Features/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/README.md
+      - src/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/README.md
       - .vscode/*
       - .github/*
       - .devcontainer/*

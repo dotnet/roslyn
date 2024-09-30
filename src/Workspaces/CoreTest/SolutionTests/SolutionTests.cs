@@ -1856,8 +1856,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var e = OnceEnumerable(projectRef2, externalProjectRef);
 
             var solution3 = solution.AddProjectReferences(projectId, e);
-            AssertEx.Equal([projectRef2], solution3.GetProject(projectId)!.ProjectReferences);
-            AssertEx.Equal([projectRef2, externalProjectRef], solution3.GetProject(projectId)!.AllProjectReferences);
+            AssertEx.Equal((ProjectReference[])[projectRef2], solution3.GetProject(projectId)!.ProjectReferences);
+            AssertEx.Equal((ProjectReference[])[projectRef2, externalProjectRef], solution3.GetProject(projectId)!.AllProjectReferences);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.AddProjectReferences(null!, [projectRef2]));
             Assert.Throws<ArgumentNullException>("projectReferences", () => solution.AddProjectReferences(projectId, null!));
@@ -1889,11 +1889,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // remove reference to a project that's not part of the solution:
             var solution2 = solution.RemoveProjectReference(projectId, externalProjectRef);
-            AssertEx.Equal([projectRef2], solution2.GetProject(projectId)!.AllProjectReferences);
+            AssertEx.Equal((ProjectReference[])[projectRef2], solution2.GetProject(projectId)!.AllProjectReferences);
 
             // remove reference to a project that's part of the solution:
             var solution3 = solution.RemoveProjectReference(projectId, projectRef2);
-            AssertEx.Equal([externalProjectRef], solution3.GetProject(projectId)!.AllProjectReferences);
+            AssertEx.Equal((ProjectReference[])[externalProjectRef], solution3.GetProject(projectId)!.AllProjectReferences);
 
             var solution4 = solution3.RemoveProjectReference(projectId, externalProjectRef);
             Assert.Empty(solution4.GetProject(projectId)!.AllProjectReferences);
@@ -1976,7 +1976,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var metadataRef2 = new TestMetadataReference();
 
             var solution3 = solution.AddMetadataReferences(projectId, OnceEnumerable(metadataRef1, metadataRef2));
-            AssertEx.Equal([metadataRef1, metadataRef2], solution3.GetProject(projectId)!.MetadataReferences);
+            AssertEx.Equal((MetadataReference[])[metadataRef1, metadataRef2], solution3.GetProject(projectId)!.MetadataReferences);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.AddMetadataReferences(null!, [metadataRef1]));
             Assert.Throws<ArgumentNullException>("metadataReferences", () => solution.AddMetadataReferences(projectId, null!));
@@ -1999,7 +1999,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             solution = solution.WithProjectMetadataReferences(projectId, [metadataRef1, metadataRef2]);
 
             var solution2 = solution.RemoveMetadataReference(projectId, metadataRef1);
-            AssertEx.Equal([metadataRef2], solution2.GetProject(projectId)!.MetadataReferences);
+            AssertEx.Equal((MetadataReference[])[metadataRef2], solution2.GetProject(projectId)!.MetadataReferences);
 
             var solution3 = solution2.RemoveMetadataReference(projectId, metadataRef2);
             Assert.Empty(solution3.GetProject(projectId)!.MetadataReferences);
@@ -2046,7 +2046,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var analyzerRef2 = new TestAnalyzerReference();
 
             var solution3 = solution.AddAnalyzerReferences(projectId, OnceEnumerable(analyzerRef1, analyzerRef2));
-            AssertEx.Equal([analyzerRef1, analyzerRef2], solution3.GetProject(projectId)!.AnalyzerReferences);
+            AssertEx.Equal((AnalyzerReference[])[analyzerRef1, analyzerRef2], solution3.GetProject(projectId)!.AnalyzerReferences);
 
             var solution4 = solution3.AddAnalyzerReferences(projectId, []);
 
@@ -2072,7 +2072,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             solution = solution.WithProjectAnalyzerReferences(projectId, [analyzerRef1, analyzerRef2]);
 
             var solution2 = solution.RemoveAnalyzerReference(projectId, analyzerRef1);
-            AssertEx.Equal([analyzerRef2], solution2.GetProject(projectId)!.AnalyzerReferences);
+            AssertEx.Equal((AnalyzerReference[])[analyzerRef2], solution2.GetProject(projectId)!.AnalyzerReferences);
 
             var solution3 = solution2.RemoveAnalyzerReference(projectId, analyzerRef2);
             Assert.Empty(solution3.GetProject(projectId)!.AnalyzerReferences);
@@ -2114,7 +2114,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var analyzerRef2 = new TestAnalyzerReference();
 
             var solution3 = solution.AddAnalyzerReferences(OnceEnumerable(analyzerRef1, analyzerRef2));
-            AssertEx.Equal([analyzerRef1, analyzerRef2], solution3.AnalyzerReferences);
+            AssertEx.Equal((AnalyzerReference[])[analyzerRef1, analyzerRef2], solution3.AnalyzerReferences);
 
             var solution4 = solution3.AddAnalyzerReferences([]);
 
@@ -2138,7 +2138,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             solution = solution.WithAnalyzerReferences([analyzerRef1, analyzerRef2]);
 
             var solution2 = solution.RemoveAnalyzerReference(analyzerRef1);
-            AssertEx.Equal([analyzerRef2], solution2.AnalyzerReferences);
+            AssertEx.Equal((AnalyzerReference[])[analyzerRef2], solution2.AnalyzerReferences);
 
             var solution3 = solution2.RemoveAnalyzerReference(analyzerRef2);
             Assert.Empty(solution3.AnalyzerReferences);
