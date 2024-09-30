@@ -33,7 +33,13 @@ internal sealed partial class SolutionState
 
         public static readonly CachingFilePathComparer Instance = new();
 
-        private static readonly ThreadLocal<(string? lastString, int lastHashCode)> s_data = new();
+        /// <summary>
+        /// ThreadStatic so that gets its own copy it can safely read/write from, removing the need for expensive
+        /// contentious locks.  The purpose of this type is to allow lookup of the same key across N dictionaries
+        /// efficiently from the same thread.  So this accomplishes that purpose.
+        /// </summary>
+        [ThreadStatic]
+        private static (string? lastString, int lastHashCode) s_data;
 
         private CachingFilePathComparer()
         {
@@ -44,7 +50,7 @@ internal sealed partial class SolutionState
 
         public int GetHashCode([DisallowNull] string obj)
         {
-            var (lastString, hash) = s_data.Value;
+            var (lastString, hash) = s_data;
             if (ReferenceEquals(lastString, obj))
                 return hash;
 
@@ -54,7 +60,7 @@ internal sealed partial class SolutionState
             // string. Falls back to normal OrdinalIgnoreCase.GetHashCode for the uncommon case.
             hash = GetNonRandomizedHashCodeOrdinalIgnoreCase(obj);
 
-            s_data.Value = (obj, hash);
+            s_data = (obj, hash);
             return hash;
         }
 
