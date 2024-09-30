@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
@@ -329,9 +330,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void Commit()
         {
+            _ = CommitAsync();
+        }
+
+        private async Task CommitAsync()
+        {
             try
             {
-                _model.Session.Commit();
+                // ConfigureAwait(true) because later need to set focus on UI element.
+                await _model.Session.CommitAsync(previewChanges: false).ConfigureAwait(true);
                 _textView.VisualElement.Focus();
             }
             catch (NotSupportedException ex)

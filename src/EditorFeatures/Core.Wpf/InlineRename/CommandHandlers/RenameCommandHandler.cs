@@ -5,6 +5,8 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Commanding;
@@ -14,6 +16,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -35,8 +38,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public RenameCommandHandler(
             IThreadingContext threadingContext,
             InlineRenameService renameService,
+            IGlobalOptionService globalOptionService,
             IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
-            : base(threadingContext, renameService, asynchronousOperationListenerProvider)
+            : base(threadingContext, renameService, globalOptionService, asynchronousOperationListenerProvider)
         {
         }
 
@@ -94,11 +98,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        protected override void CommitAndSetFocus(InlineRenameSession activeSession, ITextView textView, IUIThreadOperationContext operationContext)
+        protected override async Task CommitAndSetFocusAsync(InlineRenameSession activeSession, ITextView textView, IUIThreadOperationContext operationContext)
         {
             try
             {
-                base.CommitAndSetFocus(activeSession, textView, operationContext);
+                // ConfigureAwait(true) in case exception needs to be reported.
+                await base.CommitAndSetFocusAsync(activeSession, textView, operationContext).ConfigureAwait(true);
             }
             catch (NotSupportedException ex)
             {

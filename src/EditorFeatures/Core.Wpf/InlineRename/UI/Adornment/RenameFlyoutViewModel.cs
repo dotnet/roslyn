@@ -9,6 +9,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Interop;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -23,6 +24,7 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -30,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         private readonly bool _registerOleComponent;
         private readonly IGlobalOptionService _globalOptionService;
+        private readonly IAsynchronousOperationListener _asyncListener;
         private OleComponent? _oleComponent;
         private bool _disposedValue;
         private bool _isReplacementTextValid = true;
@@ -52,8 +55,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             Session.ReplacementTextChanged += OnReplacementTextChanged;
             Session.ReplacementsComputed += OnReplacementsComputed;
             Session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
+            Session.CommitStateChange += SessionOnCommitStateChange;
             StartingSelection = selectionSpan;
             InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.Rename);
             var smartRenameSession = smartRenameSessionFactory?.Value.CreateSmartRenameSession(Session.TriggerSpan);
             if (smartRenameSession is not null)
             {
@@ -61,6 +66,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             RegisterOleComponent();
+        }
+
+        private void SessionOnCommitStateChange(object sender, bool commitStarts)
+        {
+            // When commit in progress, we will use background indicator to show the progress.
+            // Rename flyout would hide the tooltip so we need to collapse it.
+            Visibility = commitStarts ? Visibility.Collapsed : Visibility.Visible;
         }
 
         public SmartRenameViewModel? SmartRenameViewModel { get; }
@@ -73,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 if (value != Session.ReplacementText)
                 {
                     Session.ApplyReplacementText(value, propagateEditImmediately: true, updateSelection: false);
-                    NotifyPropertyChanged(nameof(IdentifierText));
+                    NotifyPropertyChanged();
                 }
             }
         }
@@ -206,17 +218,28 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public bool IsRenameOverloadsVisible
             => Session.HasRenameOverloads;
 
+        public bool AllowUserInput
+            => !Session.IsCommitInProgress;
+
+        private Visibility _visibility;
+        public Visibility Visibility
+        {
+            get => _visibility;
+            set => Set(ref _visibility, value);
+        }
+
         public TextSpan StartingSelection { get; }
 
         public bool Submit()
         {
+            using var token = _asyncListener.BeginAsyncOperation(nameof(Submit));
             if (StatusSeverity == Severity.Error)
             {
                 return false;
             }
 
             SmartRenameViewModel?.Commit(IdentifierText);
-            Session.Commit();
+            _ = Session.CommitAsync(previewChanges: false).ReportNonFatalErrorAsync();
             return true;
         }
 
@@ -310,6 +333,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 {
                     Session.ReplacementTextChanged -= OnReplacementTextChanged;
                     Session.ReplacementsComputed -= OnReplacementsComputed;
+                    Session.CommitStateChange -= SessionOnCommitStateChange;
 
                     if (SmartRenameViewModel is not null)
                     {

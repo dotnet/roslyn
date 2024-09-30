@@ -84,13 +84,6 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
 
     public bool ExecuteCommand(ExtractMethodCommandArgs args, CommandExecutionContext context)
     {
-        // Finish any rename that had been started. We'll do this here before we enter the
-        // wait indicator for Extract Method
-        if (_renameService.ActiveSession != null)
-        {
-            _threadingContext.JoinableTaskFactory.Run(() => _renameService.ActiveSession.CommitAsync(previewChanges: false, context.OperationContext));
-        }
-
         if (!args.SubjectBuffer.SupportsRefactorings())
             return false;
 
@@ -106,7 +99,7 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         if (document is null)
             return false;
 
-        _ = ExecuteAsync(view, textBuffer, document, span);
+        _ = ExecuteAsync(view, textBuffer, document, span, context).ReportNonFatalErrorAsync();
         return true;
     }
 
@@ -114,9 +107,19 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         ITextView view,
         ITextBuffer textBuffer,
         Document document,
-        SnapshotSpan span)
+        SnapshotSpan span,
+        CommandExecutionContext context)
     {
         _threadingContext.ThrowIfNotOnUIThread();
+
+        // Finish any rename that had been started. We'll do this here before we enter the
+        // wait indicator for Extract Method
+        if (_renameService.ActiveSession != null)
+        {
+            // ConfigureAwait(true) to make sure the next wait indicator would be created correctly.
+            await _renameService.ActiveSession.CommitAsync(previewChanges: false, context.OperationContext).ConfigureAwait(true);
+        }
+
         var indicatorFactory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
         using var indicatorContext = indicatorFactory.Create(
             view, span, EditorFeaturesResources.Applying_Extract_Method_refactoring, cancelOnEdit: true, cancelOnFocusLost: true);

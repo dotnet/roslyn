@@ -145,8 +145,8 @@
 
                 <CheckBox Content="{Binding ElementName=dashboard, Path=RenameOverloads}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameOverloadFlag, Mode=TwoWay}"
                       Name="OverloadsCheckbox" Visibility="{Binding ElementName=dashboard, Path=RenameOverloadsVisibility}" IsEnabled="{Binding ElementName=dashboard, Path=IsRenameOverloadsEditable}" />
-                <CheckBox Name="CommentsCheckbox" Content="{Binding ElementName=dashboard, Path=SearchInComments}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameInCommentsFlag, Mode=TwoWay}" />
-                <CheckBox Name="StringsCheckbox" Content="{Binding ElementName=dashboard, Path=SearchInStrings}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameInStringsFlag, Mode=TwoWay}" />
+                <CheckBox Name="CommentsCheckbox" Content="{Binding ElementName=dashboard, Path=SearchInComments}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameInCommentsFlag, Mode=TwoWay}" IsEnabled="{Binding Path=CommitNotStart}" />
+                <CheckBox Name="StringsCheckbox" Content="{Binding ElementName=dashboard, Path=SearchInStrings}" Margin="0,0,0,0" IsChecked="{Binding Path=DefaultRenameInStringsFlag, Mode=TwoWay}" IsEnabled="{Binding Path=CommitNotStart}" />
                 <CheckBox Name="FileRenameCheckbox" 
                           Content="{Binding Path=FileRenameString}" 
                           Margin="0" 
@@ -154,7 +154,7 @@
                           IsEnabled="{Binding Path=AllowFileRename, Mode=OneWay}" 
                           Visibility="{Binding Path=ShowFileRename, Converter={StaticResource BooleanToVisibilityConverter}, Mode=OneWay}"/>
 
-                <CheckBox Name="PreviewChangesCheckbox" Content="{Binding ElementName=dashboard, Path=PreviewChanges}" Margin="0,8,0,0" IsChecked="{Binding Path=DefaultPreviewChangesFlag, Mode=TwoWay}" />
+                <CheckBox Name="PreviewChangesCheckbox" Content="{Binding ElementName=dashboard, Path=PreviewChanges}" Margin="0,8,0,0" IsChecked="{Binding Path=DefaultPreviewChangesFlag, Mode=TwoWay}" IsEnabled="{Binding Path=CommitNotStart}" />
 
                 <!-- Summary: Includes the number of references to be updated and any conflict information -->
 

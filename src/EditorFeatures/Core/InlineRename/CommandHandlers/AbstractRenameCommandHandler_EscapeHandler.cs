@@ -18,7 +18,8 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<E
         {
             _renameService.ActiveSession.Cancel();
             SetFocusToTextView(args.TextView);
-            return true;
+            // When ESC is pressed, don't handle the command here because rename might rely on
+            // BackgroundWorkIndicator to show the progress. Let platform propagates ESC to let indicator also get cancelled.
         }
 
         return false;

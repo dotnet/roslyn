@@ -4,8 +4,11 @@
 
 using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
@@ -20,15 +23,18 @@ internal abstract partial class AbstractRenameCommandHandler
 {
     private readonly IThreadingContext _threadingContext;
     private readonly InlineRenameService _renameService;
+    private readonly IGlobalOptionService _globalOptionService;
     private readonly IAsynchronousOperationListener _listener;
 
     protected AbstractRenameCommandHandler(
         IThreadingContext threadingContext,
         InlineRenameService renameService,
+        IGlobalOptionService globalOptionService,
         IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
     {
         _threadingContext = threadingContext;
         _renameService = renameService;
+        _globalOptionService = globalOptionService;
         _listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Rename);
     }
 
@@ -67,7 +73,6 @@ internal abstract partial class AbstractRenameCommandHandler
         }
 
         var selectedSpans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
-
         if (selectedSpans.Count > 1)
         {
             // If we have multiple spans active, then that means we have something like box
@@ -86,7 +91,6 @@ internal abstract partial class AbstractRenameCommandHandler
         {
             // It's in a read-only area that is open, so let's commit the rename 
             // and then let the character go through
-
             CommitIfActiveAndCallNextHandler(args, nextHandler, operationContext);
         }
         else

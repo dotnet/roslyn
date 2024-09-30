@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -77,7 +78,8 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             else
             {
                 // Otherwise, commit the existing session and start a new one.
-                Commit(editorOperationContext);
+                // ConfigureAwait(true) because we need to create another IBackgroundWorkIndicatorContext later.
+                await _renameService.ActiveSession.CommitAsync(previewChanges: false, editorOperationContext).ConfigureAwait(true);
             }
         }
 
