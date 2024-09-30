@@ -12995,8 +12995,8 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">
-        <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}'</source>
-        <target state="translated">Die Debuginformationen der Methode "{0}" (Token 0x{1:X8}) können nicht aus der Assembly "{2}" gelesen werden.</target>
+        <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</source>
+        <target state="new">Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</target>
         <note />
       </trans-unit>
       <trans-unit id="IConversionExpressionIsNotCSharpConversion">

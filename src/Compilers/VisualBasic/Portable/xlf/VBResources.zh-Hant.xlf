@@ -9323,8 +9323,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">
-        <source>Unable to read debug information of method '{0}' (token 0x{1}) from assembly '{2}'</source>
-        <target state="translated">無法從組件 '{2}' 讀取方法 '{0}' 的偵錯資訊 (權杖 0x{1})</target>
+        <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</source>
+        <target state="new">Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</target>
         <note />
       </trans-unit>
       <trans-unit id="IConversionExpressionIsNotVisualBasicConversion">

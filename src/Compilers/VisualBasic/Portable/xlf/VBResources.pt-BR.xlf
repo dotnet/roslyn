@@ -9322,8 +9322,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">
-        <source>Unable to read debug information of method '{0}' (token 0x{1}) from assembly '{2}'</source>
-        <target state="translated">Não é possível ler as informações de depuração do método '{0}' (token 0x{1}) do assembly '{2}'</target>
+        <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</source>
+        <target state="new">Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</target>
         <note />
       </trans-unit>
       <trans-unit id="IConversionExpressionIsNotVisualBasicConversion">

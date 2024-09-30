@@ -12760,52 +12760,35 @@ public class C
             }
         }
 
+        [Theory]
+        [InlineData(typeof(IOException))]
+        [InlineData(typeof(BadImageFormatException))]
+        [InlineData(typeof(InvalidDataException))]
         [WorkItem(187868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/187868")]
-        [Fact]
-        public void PdbReadingErrors()
+        public void SymReaderErrors(Type exceptionType)
         {
-            var source0 = MarkedSource(@"
-using System;
-
-class C
-{
-	static void F() 
-    {
-        <N:0>Console.WriteLine(1);</N:0>
-    }
-}");
-
-            var source1 = MarkedSource(@"
-using System;
-
-class C
-{
-	static void F() 
-    {
-        <N:0>Console.WriteLine(2);</N:0>
-    }
-}");
-            var compilation0 = CreateCompilation(source0.Tree, options: TestOptions.DebugDll, assemblyName: "PdbReadingErrorsAssembly");
-            var compilation1 = compilation0.WithSource(source1.Tree);
-
-            var v0 = CompileAndVerify(compilation0);
-            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
-
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-
-            var generation0 = CreateInitialBaseline(compilation0, md0, methodHandle =>
-            {
-                throw new InvalidDataException("Bad PDB!");
-            });
-
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
-
-            diff1.EmitResult.Diagnostics.Verify(
-                // (6,14): error CS7038: Failed to emit module 'Unable to read debug information of method 'C.F()' (token 0x06000001) from assembly 'PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null''.
-                Diagnostic(ErrorCode.ERR_InvalidDebugInfo, "F").WithArguments("C.F()", "100663297", "PdbReadingErrorsAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(6, 14));
+            using var _ = new EditAndContinueTest(assemblyName: "test")
+                .AddBaseline(
+                    """
+                    class C { void F() { int x = 1; } }
+                    """,
+                    debugInformationProvider: _ => throw (Exception)Activator.CreateInstance(exceptionType, ["bug!"]))
+                .AddGeneration(
+                    // 1
+                    """
+                    class C { void F() { int x = 2; } }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)
+                    ],
+                    expectedErrors:
+                    [
+                        // (1,16): error CS7103: Unable to read debug information of method 'C.F()' (token 0x06000001) from assembly 'test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null': bug!
+                        // class C { void F() { int x = 2; } }
+                        Diagnostic(ErrorCode.ERR_InvalidDebugInfo, "F").WithArguments("C.F()", "100663297", "test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "bug!").WithLocation(1, 16)
+                    ])
+                .Verify();
         }
 
         [Fact]
@@ -12846,7 +12829,7 @@ class C
                 throw new ArgumentOutOfRangeException();
             });
 
-            // the compiler should't swallow any exceptions but InvalidDataException
+            // the compiler should't swallow any exceptions but InvalidDataException, IOException and BadImageFormatException
             Assert.Throws<ArgumentOutOfRangeException>(() =>
                 compilation1.EmitDifference(
                     generation0,

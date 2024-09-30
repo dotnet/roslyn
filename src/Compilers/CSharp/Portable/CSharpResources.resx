@@ -5876,7 +5876,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Local function '{0}' must declare a body because it is not marked 'static extern'.</value>
   </data>
   <data name="ERR_InvalidDebugInfo" xml:space="preserve">
-    <value>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}'</value>
+    <value>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</value>
   </data>
   <data name="IConversionExpressionIsNotCSharpConversion" xml:space="preserve">
     <value>{0} is not a valid C# conversion expression</value>
