@@ -139,6 +139,90 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
                 "Update [Resume Next]@80 -> [Resume]@65")
         End Sub
 
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75231")>
+        Public Sub XmlLiteral_Text()
+            Dim src1 = "
+Dim a = <x>Text1</x>
+"
+            Dim src2 = "
+Dim a = <x>Text2</x>
+"
+            Dim edits = GetMethodEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [a = <x>Text1</x>]@14 -> [a = <x>Text2</x>]@14")
+        End Sub
+
+        <Fact>
+        Public Sub XmlLiteral_Node()
+            Dim src1 = "
+Dim a = <x>Text</x>
+"
+            Dim src2 = "
+Dim a = <y>Text</y>
+"
+            Dim edits = GetMethodEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [a = <x>Text</x>]@14 -> [a = <y>Text</y>]@14")
+        End Sub
+
+        <Fact>
+        Public Sub XmlLiteral_AttributeValue()
+            Dim src1 = "
+Dim a = <x a=""attr1"">Text</x>
+"
+            Dim src2 = "
+Dim a = <x a=""attr2"">Text</x>
+"
+            Dim edits = GetMethodEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [a = <x a=""attr1"">Text</x>]@14 -> [a = <x a=""attr2"">Text</x>]@14")
+        End Sub
+
+        <Fact>
+        Public Sub XmlLiteral_AttributeName()
+            Dim src1 = "
+Dim a = <x a=""attr"">Text</x>
+"
+            Dim src2 = "
+Dim a = <x b=""attr"">Text</x>
+"
+            Dim edits = GetMethodEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [a = <x a=""attr"">Text</x>]@14 -> [a = <x b=""attr"">Text</x>]@14")
+        End Sub
+
+        <Fact>
+        Public Sub XmlLiteral_CDATA()
+            Dim src1 = "
+Dim a = <x><![CDATA[Text1]]></x>
+"
+            Dim src2 = "
+Dim a = <x><![CDATA[Text2]]></x>
+"
+            Dim edits = GetMethodEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [a = <x><![CDATA[Text1]]></x>]@14 -> [a = <x><![CDATA[Text2]]></x>]@14")
+        End Sub
+
+        <Fact>
+        Public Sub XmlLiteral_Comment()
+            Dim src1 = "
+Dim a = <x><!--Text1--></x>
+"
+            Dim src2 = "
+Dim a = <x><!--Text2--></x>
+"
+            Dim edits = GetMethodEdits(src1, src2)
+
+            edits.VerifyEdits(
+                "Update [a = <x>><!--Text1--></x>]@14 -> [a = <x>><!--Text2--></x>]@14")
+        End Sub
+
 #End Region
 
 #Region "Select"
