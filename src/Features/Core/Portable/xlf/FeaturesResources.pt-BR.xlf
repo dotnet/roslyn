@@ -4200,6 +4200,11 @@ Deseja continuar?</target>
         <target state="translated">acessador de evento</target>
         <note />
       </trans-unit>
+      <trans-unit id="required_property">
+        <source>required property</source>
+        <target state="new">required property</target>
+        <note />
+      </trans-unit>
       <trans-unit id="rfc1123_date_time">
         <source>rfc1123 date/time</source>
         <target state="translated">data/hora rfc1123</target>

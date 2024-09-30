@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Snippets;
 [Trait(Traits.Feature, Traits.Features.Snippets)]
 public abstract class AbstractCSharpAutoPropertySnippetProviderTests : AbstractCSharpSnippetProviderTests
 {
+    protected virtual string AdditionalPropertyModifiers => string.Empty;
+
     protected abstract string DefaultPropertyBlockText { get; }
 
     [Fact]
@@ -152,7 +154,7 @@ public abstract class AbstractCSharpAutoPropertySnippetProviderTests : AbstractC
             {
                 {{modifier}} $$
             }
-            """, $$"""{|0:int|} {|1:MyProperty|} {{DefaultPropertyBlockText}}""");
+            """, $$"""{{AdditionalPropertyModifiers}}{|0:int|} {|1:MyProperty|} {{DefaultPropertyBlockText}}""");
     }
 
     protected async Task VerifyPropertyAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, string propertyMarkup)
@@ -163,5 +165,5 @@ public abstract class AbstractCSharpAutoPropertySnippetProviderTests : AbstractC
     }
 
     protected Task VerifyDefaultPropertyAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, string propertyName = "MyProperty")
-        => VerifyPropertyAsync(markup, $$"""public {|0:int|} {|1:{{propertyName}}|} {{DefaultPropertyBlockText}}""");
+        => VerifyPropertyAsync(markup, $$"""public {{AdditionalPropertyModifiers}}{|0:int|} {|1:{{propertyName}}|} {{DefaultPropertyBlockText}}""");
 }

@@ -58,6 +58,8 @@ internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractProp
             modifiers = SyntaxTokenList.Create(PublicKeyword);
         }
 
+        modifiers = modifiers.AddRange(GetAdditionalPropertyModifiers(syntaxContext));
+
         return SyntaxFactory.PropertyDeclaration(
             attributeLists: default,
             modifiers: modifiers,
@@ -86,5 +88,10 @@ internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractProp
     {
         var node = root.FindNode(TextSpan.FromBounds(position, position));
         return node.GetAncestorOrThis<PropertyDeclarationSyntax>();
+    }
+
+    protected virtual SyntaxToken[] GetAdditionalPropertyModifiers(CSharpSyntaxContext? syntaxContext)
+    {
+        return [];
     }
 }

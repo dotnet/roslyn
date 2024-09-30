@@ -4200,6 +4200,11 @@ Do you want to continue?</source>
         <target state="translated">イベント アクセサー</target>
         <note />
       </trans-unit>
+      <trans-unit id="required_property">
+        <source>required property</source>
+        <target state="new">required property</target>
+        <note />
+      </trans-unit>
       <trans-unit id="rfc1123_date_time">
         <source>rfc1123 date/time</source>
         <target state="translated">rfc1123 日付/時刻</target>

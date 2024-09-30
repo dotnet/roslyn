@@ -13,5 +13,6 @@ internal static class CommonSnippetIdentifiers
     public const string ConsoleWriteLine = "cw";
     public const string Constructor = "ctor";
     public const string Property = "prop";
+    public const string RequiredProperty = "propr";
     public const string GetOnlyProperty = "propg";
 }

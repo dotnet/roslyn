@@ -4200,6 +4200,11 @@ Czy chcesz kontynuować?</target>
         <target state="translated">metoda dostępu do zdarzeń</target>
         <note />
       </trans-unit>
+      <trans-unit id="required_property">
+        <source>required property</source>
+        <target state="new">required property</target>
+        <note />
+      </trans-unit>
       <trans-unit id="rfc1123_date_time">
         <source>rfc1123 date/time</source>
         <target state="translated">data/godzina zgodna z rfc1123</target>

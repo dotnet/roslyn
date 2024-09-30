@@ -3171,4 +3171,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Symbol_search" xml:space="preserve">
     <value>Symbol search</value>
   </data>
+  <data name="required_property" xml:space="preserve">
+    <value>required property</value>
+  </data>
 </root>

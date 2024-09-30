@@ -4200,6 +4200,11 @@ Chcete pokračovat?</target>
         <target state="translated">přístupový objekt události</target>
         <note />
       </trans-unit>
+      <trans-unit id="required_property">
+        <source>required property</source>
+        <target state="new">požadovaná vlastnost</target>
+        <note />
+      </trans-unit>
       <trans-unit id="rfc1123_date_time">
         <source>rfc1123 date/time</source>
         <target state="translated">datum a čas rfc1123</target>
