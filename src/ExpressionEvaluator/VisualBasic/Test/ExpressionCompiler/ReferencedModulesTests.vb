@@ -986,6 +986,18 @@ End Class"
             Protected Overrides Sub AddEmbeddedResourcesFromAddedModules(builder As ArrayBuilder(Of Cci.ManagedResource), diagnostics As DiagnosticBag)
             End Sub
 
+            Public Overrides Function GetOrCreateHotReloadExceptionConstructorDefinition() As IMethodSymbolInternal
+                Throw New NotImplementedException()
+            End Function
+
+            Public Overrides Function TryGetOrCreateSynthesizedHotReloadExceptionType() As INamedTypeSymbolInternal
+                Return Nothing
+            End Function
+
+            Public Overrides Function GetUsedSynthesizedHotReloadExceptionType() As INamedTypeSymbolInternal
+                Return Nothing
+            End Function
+
             Friend Overrides ReadOnly Property AllowOmissionOfConditionalCalls As Boolean
                 Get
                     Return True

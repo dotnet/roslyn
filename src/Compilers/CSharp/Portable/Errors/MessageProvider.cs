@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int ERR_TooManyUserStrings => (int)ErrorCode.ERR_TooManyUserStrings;
         public override int ERR_PeWritingFailure => (int)ErrorCode.ERR_PeWritingFailure;
         public override int ERR_ModuleEmitFailure => (int)ErrorCode.ERR_ModuleEmitFailure;
-        public override int ERR_EncUpdateFailedMissingAttribute => (int)ErrorCode.ERR_EncUpdateFailedMissingAttribute;
+        public override int ERR_EncUpdateFailedMissingSymbol => (int)ErrorCode.ERR_EncUpdateFailedMissingSymbol;
         public override int ERR_InvalidDebugInfo => (int)ErrorCode.ERR_InvalidDebugInfo;
         public override int ERR_FunctionPointerTypesInAttributeNotSupported => (int)ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported;
 

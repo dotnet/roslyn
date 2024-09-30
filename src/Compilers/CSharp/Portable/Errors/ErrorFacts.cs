@@ -83,6 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnInterceptor));
             nullableWarnings.Add(GetId(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnInterceptor));
 
+            nullableWarnings.Add(GetId(ErrorCode.WRN_UninitializedNonNullableBackingField));
+
             NullableWarnings = nullableWarnings.ToImmutable();
         }
 
@@ -557,6 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ConvertingLock:
                 case ErrorCode.WRN_PartialPropertySignatureDifference:
                 case ErrorCode.WRN_FieldIsAmbiguous:
+                case ErrorCode.WRN_UninitializedNonNullableBackingField:
                     return 1;
                 default:
                     return 0;
@@ -1591,7 +1594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_NoCorrespondingArgument
                 or ErrorCode.ERR_ResourceFileNameNotUnique
                 or ErrorCode.ERR_DllImportOnGenericMethod
-                or ErrorCode.ERR_EncUpdateFailedMissingAttribute
+                or ErrorCode.ERR_EncUpdateFailedMissingSymbol
                 or ErrorCode.ERR_ParameterNotValidForType
                 or ErrorCode.ERR_AttributeParameterRequired1
                 or ErrorCode.ERR_AttributeParameterRequired2
@@ -2456,6 +2459,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride
                 or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember
                 or ErrorCode.ERR_PartialPropertyDuplicateInitializer
+                or ErrorCode.WRN_UninitializedNonNullableBackingField
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

@@ -340,6 +340,7 @@
                 case ErrorCode.WRN_ConvertingLock:
                 case ErrorCode.WRN_PartialPropertySignatureDifference:
                 case ErrorCode.WRN_FieldIsAmbiguous:
+                case ErrorCode.WRN_UninitializedNonNullableBackingField:
                     return true;
                 default:
                     return false;

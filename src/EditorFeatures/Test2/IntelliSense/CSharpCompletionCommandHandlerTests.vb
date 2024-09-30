@@ -12622,6 +12622,23 @@ $$
         End Function
 
         <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/73120")>
+        Public Async Function TestAfterPrimaryConstructorAttribute(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                class C([X] $$ client)
+                {
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("int", displayTextSuffix:="")
+                Await state.AssertCompletionItemsContain("System", displayTextSuffix:="")
+            End Using
+        End Function
+
         <WorkItem("https://github.com/dotnet/roslyn/issues/72872")>
         Public Async Function CompletionInsideImplicitObjectCreationInsideCollectionExpression(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
