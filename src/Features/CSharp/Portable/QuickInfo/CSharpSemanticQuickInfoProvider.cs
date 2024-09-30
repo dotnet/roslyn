@@ -135,7 +135,7 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
         return typeInfo.Nullability.FlowState;
     }
 
-    protected override async Task<OnTheFlyDocsElement?> GetOnTheFlyDocsElementAsync(QuickInfoContext context, CancellationToken cancellationToken)
+    protected override async Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(QuickInfoContext context, CancellationToken cancellationToken)
     {
         var document = context.Document;
         var position = context.Position;
@@ -190,6 +190,6 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             return sourceText.GetSubText(new Text.TextSpan(span.Start, Math.Min(maxLength, span.Length))).ToString();
         }).ToImmutableArray();
 
-        return new OnTheFlyDocsElement(symbol.ToDisplayString(), symbolStrings, symbol.Language);
+        return new OnTheFlyDocsInfo(symbol.ToDisplayString(), symbolStrings, symbol.Language);
     }
 }
