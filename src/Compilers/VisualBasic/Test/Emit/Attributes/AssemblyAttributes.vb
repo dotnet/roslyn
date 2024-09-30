@@ -792,11 +792,11 @@ end class
                            Assert.Equal(AssemblyHashAlgorithm.Sha1, assembly.HashAlgorithm)
 
                            Dim file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1))
-                           Assert.Equal(New Byte() {&H6C, &H9C, &H3E, &HDA, &H60, &HF, &H81, &H93, &H4A, &HC1, &HD, &H41, &HB3, &HE9, &HB2, &HB7, &H2D, &HEE, &H59, &HA8},
+                           AssertEx.Equal(New Byte() {&H6C, &H9C, &H3E, &HDA, &H60, &HF, &H81, &H93, &H4A, &HC1, &HD, &H41, &HB3, &HE9, &HB2, &HB7, &H2D, &HEE, &H59, &HA8},
                                reader.GetBlobBytes(file1.HashValue))
 
                            Dim file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2))
-                           Assert.Equal(New Byte() {&H7F, &H28, &HEA, &HD1, &HF4, &HA1, &H7C, &HB8, &HC, &H14, &HC0, &H2E, &H8C, &HFF, &H10, &HEC, &HB3, &HC2, &HA5, &H1D},
+                           AssertEx.Equal(New Byte() {&H7F, &H28, &HEA, &HD1, &HF4, &HA1, &H7C, &HB8, &HC, &H14, &HC0, &H2E, &H8C, &HFF, &H10, &HEC, &HB3, &HC2, &HA5, &H1D},
                                reader.GetBlobBytes(file2.HashValue))
 
                            Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(peAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute))
@@ -823,11 +823,11 @@ end class
                            Assert.Equal(AssemblyHashAlgorithm.None, assembly.HashAlgorithm)
 
                            Dim file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1))
-                           Assert.Equal(New Byte() {&H6C, &H9C, &H3E, &HDA, &H60, &HF, &H81, &H93, &H4A, &HC1, &HD, &H41, &HB3, &HE9, &HB2, &HB7, &H2D, &HEE, &H59, &HA8},
+                           AssertEx.Equal(New Byte() {&H6C, &H9C, &H3E, &HDA, &H60, &HF, &H81, &H93, &H4A, &HC1, &HD, &H41, &HB3, &HE9, &HB2, &HB7, &H2D, &HEE, &H59, &HA8},
                                reader.GetBlobBytes(file1.HashValue))
 
                            Dim file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2))
-                           Assert.Equal(New Byte() {&H7F, &H28, &HEA, &HD1, &HF4, &HA1, &H7C, &HB8, &HC, &H14, &HC0, &H2E, &H8C, &HFF, &H10, &HEC, &HB3, &HC2, &HA5, &H1D},
+                           AssertEx.Equal(New Byte() {&H7F, &H28, &HEA, &HD1, &HF4, &HA1, &H7C, &HB8, &HC, &H14, &HC0, &H2E, &H8C, &HFF, &H10, &HEC, &HB3, &HC2, &HA5, &H1D},
                                reader.GetBlobBytes(file2.HashValue))
 
                            Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(peAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute))
@@ -854,11 +854,11 @@ end class
                            Assert.Equal(AssemblyHashAlgorithm.MD5, assembly.HashAlgorithm)
 
                            Dim file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1))
-                           Assert.Equal(New Byte() {&H24, &H22, &H3, &HC3, &H94, &HD5, &HC2, &HD9, &H99, &HB3, &H6D, &H59, &HB2, &HCA, &H23, &HBC},
+                           AssertEx.Equal(New Byte() {&H24, &H22, &H3, &HC3, &H94, &HD5, &HC2, &HD9, &H99, &HB3, &H6D, &H59, &HB2, &HCA, &H23, &HBC},
                                reader.GetBlobBytes(file1.HashValue))
 
                            Dim file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2))
-                           Assert.Equal(New Byte() {&H8D, &HFE, &HBF, &H49, &H8D, &H62, &H2A, &H88, &H89, &HD1, &HE, &H0, &H9E, &H29, &H72, &HF1},
+                           AssertEx.Equal(New Byte() {&H8D, &HFE, &HBF, &H49, &H8D, &H62, &H2A, &H88, &H89, &HD1, &HE, &H0, &H9E, &H29, &H72, &HF1},
                                reader.GetBlobBytes(file2.HashValue))
 
                            Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(peAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute))
@@ -885,11 +885,11 @@ end class
                            Assert.Equal(AssemblyHashAlgorithm.Sha1, assembly.HashAlgorithm)
 
                            Dim file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1))
-                           Assert.Equal(New Byte() {&H6C, &H9C, &H3E, &HDA, &H60, &HF, &H81, &H93, &H4A, &HC1, &HD, &H41, &HB3, &HE9, &HB2, &HB7, &H2D, &HEE, &H59, &HA8},
+                           AssertEx.Equal(New Byte() {&H6C, &H9C, &H3E, &HDA, &H60, &HF, &H81, &H93, &H4A, &HC1, &HD, &H41, &HB3, &HE9, &HB2, &HB7, &H2D, &HEE, &H59, &HA8},
                                reader.GetBlobBytes(file1.HashValue))
 
                            Dim file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2))
-                           Assert.Equal(New Byte() {&H7F, &H28, &HEA, &HD1, &HF4, &HA1, &H7C, &HB8, &HC, &H14, &HC0, &H2E, &H8C, &HFF, &H10, &HEC, &HB3, &HC2, &HA5, &H1D},
+                           AssertEx.Equal(New Byte() {&H7F, &H28, &HEA, &HD1, &HF4, &HA1, &H7C, &HB8, &HC, &H14, &HC0, &H2E, &H8C, &HFF, &H10, &HEC, &HB3, &HC2, &HA5, &H1D},
                                reader.GetBlobBytes(file2.HashValue))
 
                            Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(peAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute))
@@ -915,11 +915,11 @@ end class
                            Assert.Equal(System.Configuration.Assemblies.AssemblyHashAlgorithm.SHA256, CType(assembly.HashAlgorithm, System.Configuration.Assemblies.AssemblyHashAlgorithm))
 
                            Dim file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1))
-                           Assert.Equal(New Byte() {&HA2, &H32, &H3F, &HD, &HF4, &HB8, &HED, &H5A, &H1B, &H7B, &HBE, &H14, &H4F, &HEC, &HBF, &H88, &H23, &H61, &HEB, &H40, &HF7, &HF9, &H46, &HEF, &H68, &H3B, &H70, &H29, &HCF, &H12, &H5, &H35},
+                           AssertEx.Equal(New Byte() {&HA2, &H32, &H3F, &HD, &HF4, &HB8, &HED, &H5A, &H1B, &H7B, &HBE, &H14, &H4F, &HEC, &HBF, &H88, &H23, &H61, &HEB, &H40, &HF7, &HF9, &H46, &HEF, &H68, &H3B, &H70, &H29, &HCF, &H12, &H5, &H35},
                                reader.GetBlobBytes(file1.HashValue))
 
                            Dim file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2))
-                           Assert.Equal(New Byte() {&HCC, &HAE, &HA0, &HB4, &H9E, &HAE, &H28, &HE0, &HA3, &H46, &HE9, &HCF, &HF3, &HEF, &HEA, &HF7,
+                           AssertEx.Equal(New Byte() {&HCC, &HAE, &HA0, &HB4, &H9E, &HAE, &H28, &HE0, &HA3, &H46, &HE9, &HCF, &HF3, &HEF, &HEA, &HF7,
                                                      &H1D, &HDE, &H62, &H8F, &HD6, &HF4, &H87, &H76, &H1A, &HC3, &H6F, &HAD, &H10, &H1C, &H10, &HAC},
                                reader.GetBlobBytes(file2.HashValue))
 
@@ -946,13 +946,13 @@ end class
                            Assert.Equal(System.Configuration.Assemblies.AssemblyHashAlgorithm.SHA384, CType(assembly.HashAlgorithm, System.Configuration.Assemblies.AssemblyHashAlgorithm))
 
                            Dim file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1))
-                           Assert.Equal(New Byte() {&HB6, &H35, &H9B, &HBE, &H82, &H89, &HFF, &H1, &H22, &H8B, &H56, &H5E, &H9B, &H15, &H5D, &H10,
+                           AssertEx.Equal(New Byte() {&HB6, &H35, &H9B, &HBE, &H82, &H89, &HFF, &H1, &H22, &H8B, &H56, &H5E, &H9B, &H15, &H5D, &H10,
                                                      &H68, &H83, &HF7, &H75, &H4E, &HA6, &H30, &HF7, &H8D, &H39, &H9A, &HB7, &HE8, &HB6, &H47, &H1F,
                                                      &HF6, &HFD, &H1E, &H64, &H63, &H6B, &HE7, &HF4, &HBE, &HA7, &H21, &HED, &HFC, &H82, &H38, &H95},
                                reader.GetBlobBytes(file1.HashValue))
 
                            Dim file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2))
-                           Assert.Equal(New Byte() {&H45, &H5, &H2E, &H90, &H9B, &H61, &HA3, &HF8, &H60, &HD2, &H86, &HCB, &H10, &H33, &HC9, &H86,
+                           AssertEx.Equal(New Byte() {&H45, &H5, &H2E, &H90, &H9B, &H61, &HA3, &HF8, &H60, &HD2, &H86, &HCB, &H10, &H33, &HC9, &H86,
                                                      &H68, &HA5, &HEE, &H4A, &HCF, &H21, &H10, &HA9, &H8F, &H14, &H62, &H8D, &H3E, &H7D, &HFD, &H7E,
                                                      &HE6, &H23, &H6F, &H2D, &HBA, &H4, &HE7, &H13, &HE4, &H5E, &H8C, &HEB, &H80, &H68, &HA3, &H17},
                                reader.GetBlobBytes(file2.HashValue))
@@ -980,14 +980,14 @@ end class
                            Assert.Equal(System.Configuration.Assemblies.AssemblyHashAlgorithm.SHA512, CType(assembly.HashAlgorithm, System.Configuration.Assemblies.AssemblyHashAlgorithm))
 
                            Dim file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1))
-                           Assert.Equal(New Byte() {&H5F, &H4D, &H7E, &H63, &HC9, &H87, &HD9, &HEB, &H4F, &H5C, &HFD, &H96, &H3F, &H25, &H58, &H74,
+                           AssertEx.Equal(New Byte() {&H5F, &H4D, &H7E, &H63, &HC9, &H87, &HD9, &HEB, &H4F, &H5C, &HFD, &H96, &H3F, &H25, &H58, &H74,
                                                      &H86, &HDF, &H97, &H75, &H93, &HEE, &HC2, &H5F, &HFD, &H8A, &H40, &H5C, &H92, &H5E, &HB5, &H7,
                                                      &HD6, &H12, &HE9, &H21, &H55, &HCE, &HD7, &HE5, &H15, &HF5, &HBA, &HBC, &H1B, &H31, &HAD, &H3C,
                                                      &H5E, &HE0, &H91, &H98, &HC2, &HE0, &H96, &HBB, &HAD, &HD, &H4E, &HF4, &H91, &H53, &H3D, &H84},
                                reader.GetBlobBytes(file1.HashValue))
 
                            Dim file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2))
-                           Assert.Equal(New Byte() {&H79, &HFE, &H97, &HAB, &H8, &H8E, &HDF, &H74, &HC2, &HEF, &H84, &HBB, &HFC, &H74, &HAC, &H60,
+                           AssertEx.Equal(New Byte() {&H79, &HFE, &H97, &HAB, &H8, &H8E, &HDF, &H74, &HC2, &HEF, &H84, &HBB, &HFC, &H74, &HAC, &H60,
                                                      &H18, &H6E, &H1A, &HD2, &HC5, &H94, &HE0, &HDA, &HE0, &H45, &H33, &H43, &H99, &HF0, &HF3, &HF1,
                                                      &H72, &H5, &H4B, &HF, &H37, &H50, &HC5, &HD9, &HCE, &H29, &H82, &H4C, &HF7, &HE6, &H94, &H5F,
                                                      &HE5, &H7, &H2B, &H4A, &H18, &H9, &H56, &HC9, &H52, &H69, &H7D, &HC4, &H48, &H63, &H70, &HF2},

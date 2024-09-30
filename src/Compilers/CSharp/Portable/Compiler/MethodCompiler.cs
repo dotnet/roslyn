@@ -168,6 +168,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var embeddedTypes = moduleBeingBuiltOpt.GetEmbeddedTypes(diagnostics);
                 methodCompiler.CompileSynthesizedMethods(embeddedTypes, diagnostics);
 
+                // Create and compile HotReloadException type if emitting deltas even if it is not used.
+                // We might need to use it for deleted members, which we determine when indexing metadata.
+                if (moduleBeingBuiltOpt.TryGetOrCreateSynthesizedHotReloadExceptionType() is { } hotReloadException)
+                {
+                    methodCompiler.CompileSynthesizedMethods([(NamedTypeSymbol)hotReloadException], diagnostics);
+                }
+
                 if (emitMethodBodies)
                 {
                     // By this time we have processed all types reachable from module's global namespace
@@ -1833,6 +1840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
                     Debug.Assert(IsEmptyRewritePossible(methodBody));
+                    Debug.Assert(WasPropertyBackingFieldAccessChecked.FindUncheckedAccess(methodBody) is null);
 #endif
 
                     RefSafetyAnalysis.Analyze(compilation, method, methodBody, diagnostics);
@@ -1884,8 +1892,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var property = sourceMethod.AssociatedSymbol as SourcePropertySymbolBase;
-                    if (property is not null && property.IsAutoPropertyWithGetAccessor)
+                    if (sourceMethod is SourcePropertyAccessorSymbol { IsAutoPropertyAccessor: true })
                     {
                         return MethodBodySynthesizer.ConstructAutoPropertyAccessorBody(sourceMethod);
                     }
@@ -2225,6 +2232,94 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return base.Visit(node);
+            }
+        }
+
+        private sealed class WasPropertyBackingFieldAccessChecked : BoundTreeWalkerWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
+        {
+            public static BoundPropertyAccess? FindUncheckedAccess(BoundNode node)
+            {
+                var walker = new WasPropertyBackingFieldAccessChecked();
+                walker.Visit(node);
+                return walker._found;
+            }
+
+            private BoundPropertyAccess? _found;
+            private bool _suppressChecking;
+
+            private WasPropertyBackingFieldAccessChecked()
+            {
+            }
+
+            public override BoundNode? Visit(BoundNode? node)
+            {
+                if (_found is { })
+                {
+                    return null;
+                }
+
+                return base.Visit(node);
+            }
+
+            public override BoundNode? VisitPropertyAccess(BoundPropertyAccess node)
+            {
+                if (!_suppressChecking &&
+                    !node.WasPropertyBackingFieldAccessChecked)
+                {
+                    _found = node;
+                }
+
+                return base.VisitPropertyAccess(node);
+            }
+
+            public override BoundNode? VisitRangeVariable(BoundRangeVariable node)
+            {
+                using (new ChangeSuppression(this, suppressChecking: true))
+                {
+                    return base.VisitRangeVariable(node);
+                }
+            }
+
+            public override BoundNode? VisitAssignmentOperator(BoundAssignmentOperator node)
+            {
+                using (new ChangeSuppression(this, suppressChecking: false))
+                {
+                    return base.VisitAssignmentOperator(node);
+                }
+            }
+
+            public override BoundNode? VisitNameOfOperator(BoundNameOfOperator node)
+            {
+                using (new ChangeSuppression(this, suppressChecking: true))
+                {
+                    return base.VisitNameOfOperator(node);
+                }
+            }
+
+            public override BoundNode? VisitBadExpression(BoundBadExpression node)
+            {
+                using (new ChangeSuppression(this, suppressChecking: true))
+                {
+                    return base.VisitBadExpression(node);
+                }
+            }
+
+            private struct ChangeSuppression : IDisposable
+            {
+                private readonly WasPropertyBackingFieldAccessChecked _walker;
+                private readonly bool _previousValue;
+
+                internal ChangeSuppression(WasPropertyBackingFieldAccessChecked walker, bool suppressChecking)
+                {
+                    _walker = walker;
+                    _previousValue = walker._suppressChecking;
+                    walker._suppressChecking = suppressChecking;
+                }
+
+                public void Dispose()
+                {
+                    _walker._suppressChecking = _previousValue;
+                }
             }
         }
 #endif

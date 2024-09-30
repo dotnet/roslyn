@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Options;
@@ -35,6 +36,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         private readonly int _position;
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
         private readonly IGlobalOptionService _globalOptions;
+        private readonly bool _supportsVSExtensions;
 
         /// <summary>
         /// Methods in FindUsagesLSPContext can be called by multiple threads concurrently. We need this semaphore to
@@ -78,6 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             IMetadataAsSourceFileService metadataAsSourceFileService,
             IAsynchronousOperationListener asyncListener,
             IGlobalOptionService globalOptions,
+            ClientCapabilities clientCapabilities,
             CancellationToken cancellationToken)
         {
             _progress = progress;
@@ -86,6 +89,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             _position = position;
             _metadataAsSourceFileService = metadataAsSourceFileService;
             _globalOptions = globalOptions;
+            _supportsVSExtensions = clientCapabilities.HasVisualStudioLspCapability();
             _workQueue = new AsyncBatchingWorkQueue<SumType<VSInternalReferenceItem, LSP.Location>>(
                 DelayTimeSpan.Medium, ReportReferencesAsync, asyncListener, cancellationToken);
         }
@@ -189,11 +193,55 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
             var location = await ComputeLocationAsync(documentSpan, cancellationToken).ConfigureAwait(false);
 
-            // Defer to the host we're in to determine the sort of result to return.  In simple hosts this will just be
-            // a Location.  In richer hosts this can include far more data to enhance the user experience.
-            var service = _workspace.Services.GetRequiredService<ILspReferencesResultCreationService>();
-            return service.CreateReference(
-                definitionId, id, text, documentSpan, properties, definitionText, definitionGlyph, symbolUsageInfo, location);
+            return _supportsVSExtensions
+                ? CreateVsReference(definitionId, id, text, documentSpan, properties, definitionText, definitionGlyph, symbolUsageInfo, location)
+                : location;
+        }
+
+        private static SumType<VSInternalReferenceItem, LSP.Location>? CreateVsReference(
+            int definitionId,
+            int id,
+            ClassifiedTextElement text,
+            DocumentSpan? documentSpan,
+            ImmutableArray<(string key, string value)> properties,
+            ClassifiedTextElement? definitionText,
+            Glyph definitionGlyph,
+            SymbolUsageInfo? symbolUsageInfo,
+            LSP.Location? location)
+        {
+            // TO-DO: The Origin property should be added once Rich-Nav is completed.
+            // https://github.com/dotnet/roslyn/issues/42847
+            var result = new VSInternalReferenceItem
+            {
+                DefinitionId = definitionId,
+                DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
+                DefinitionIcon = new ImageElement(definitionGlyph.ToLSPImageId()),
+                DisplayPath = location?.Uri.LocalPath,
+                Id = id,
+                Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : [],
+                ResolutionStatus = VSInternalResolutionStatusKind.ConfirmedAsReference,
+                Text = text,
+            };
+
+            // There are certain items that may not have locations, such as namespace definitions.
+            if (location != null)
+                result.Location = location;
+
+            if (documentSpan is var (document, _))
+            {
+                result.DocumentName = document.Name;
+                result.ProjectName = document.Project.Name;
+            }
+
+            foreach (var (key, value) in properties)
+            {
+                if (key == AbstractReferenceFinder.ContainingMemberInfoPropertyName)
+                    result.ContainingMember = value;
+                else if (key == AbstractReferenceFinder.ContainingTypeInfoPropertyName)
+                    result.ContainingType = value;
+            }
+
+            return result;
         }
 
         private async Task<LSP.Location?> ComputeLocationAsync(DocumentSpan? documentSpan, CancellationToken cancellationToken)

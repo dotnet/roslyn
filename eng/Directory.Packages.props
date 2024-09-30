@@ -12,7 +12,7 @@
     <ILAsmPackageVersion>9.0.0-rc.2.24462.10</ILAsmPackageVersion>
     <ILDAsmPackageVersion>6.0.0-rtm.21518.12</ILDAsmPackageVersion>
     <MicrosoftILVerificationVersion>7.0.0-alpha.1.22060.1</MicrosoftILVerificationVersion>
-    <MicrosoftTestPlatformVersion>17.5.0</MicrosoftTestPlatformVersion>
+    <_MicrosoftTestPlatformVersion>17.5.0</_MicrosoftTestPlatformVersion>
     <!--
       VS .NET Runtime
 
@@ -20,7 +20,7 @@
     -->
     <MicrosoftNetCoreAppRuntimePackagesVersion>8.0.0</MicrosoftNetCoreAppRuntimePackagesVersion>
     <MicrosoftWindowsDesktopAppRuntimePackagesVersion>8.0.0</MicrosoftWindowsDesktopAppRuntimePackagesVersion>
-    <xunitVersion>2.4.1</xunitVersion>
+    <_xunitVersion>2.6.6</_xunitVersion>
     <SqliteVersion>2.1.0</SqliteVersion>
     <MicrosoftVisualStudioExtensibilityVersion>17.10.2079</MicrosoftVisualStudioExtensibilityVersion>
   </PropertyGroup>
@@ -142,8 +142,8 @@
     -->
     <PackageVersion Include="Microsoft.VisualStudio.LanguageServer.Client.Implementation" Version="17.10.72-preview" />
     <PackageVersion Include="NuGet.ProjectModel" Version="6.8.0-rc.112" />
-    <PackageVersion Include="Microsoft.TestPlatform.TranslationLayer" Version="$(MicrosoftTestPlatformVersion)" />
-    <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftTestPlatformVersion)" />
+    <PackageVersion Include="Microsoft.TestPlatform.TranslationLayer" Version="$(_MicrosoftTestPlatformVersion)" />
+    <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="$(_MicrosoftTestPlatformVersion)" />
     <PackageVersion Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="9.0.0-preview.24366.2" />
 
     <!--
@@ -173,6 +173,7 @@
     <PackageVersion Include="Microsoft.DiaSymReader.PortablePdb" Version="1.7.0-beta-21528-01" />
     <PackageVersion Include="Microsoft.Extensions.Configuration" Version="$(MicrosoftExtensionsConfigurationVersion)" />
     <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="$(MicrosoftExtensionsDependencyInjectionVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.FileSystemGlobbing" Version="$(MicrosoftExtensionsFileSystemGlobbingVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging" Version="$(MicrosoftExtensionsLoggingVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Abstractions" Version="$(MicrosoftExtensionsLoggingAbstractionsVersion)" />
     <PackageVersion Include="Microsoft.Extensions.Logging.Console" Version="$(MicrosoftExtensionsLoggingConsoleVersion)" />
@@ -275,17 +276,17 @@
     <PackageVersion Include="InputSimulatorPlus" Version="1.0.7" />
     <PackageVersion Include="UIAComWrapper" Version="1.1.0.14" />
     <PackageVersion Include="DiffPlex" Version="1.7.2" />
-    <PackageVersion Include="xunit" Version="$(xunitVersion)" />
-    <PackageVersion Include="xunit.analyzers" Version="0.12.0-pre.20" />
-    <PackageVersion Include="xunit.assert" Version="$(xunitVersion)" />
-    <PackageVersion Include="xunit.core" Version="$(xunitVersion)" />
-    <PackageVersion Include="Xunit.Combinatorial" Version="1.3.2" />
-    <PackageVersion Include="xunit.extensibility.core" Version="$(xunitVersion)" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
-    <PackageVersion Include="xunit.runner.utility" Version="$(xunitVersion)" />
+    <PackageVersion Include="xunit" Version="$(_xunitVersion)" />
+    <PackageVersion Include="xunit.analyzers" Version="1.15.0" />
+    <PackageVersion Include="xunit.assert" Version="$(_xunitVersion)" />
+    <PackageVersion Include="xunit.core" Version="$(_xunitVersion)" />
+    <PackageVersion Include="Xunit.Combinatorial" Version="1.6.24" />
+    <PackageVersion Include="xunit.extensibility.core" Version="$(_xunitVersion)" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5 " />
+    <PackageVersion Include="xunit.runner.utility" Version="$(_xunitVersion)" />
     <PackageVersion Include="xunit.abstractions" Version="2.0.3" />
-    <PackageVersion Include="xunit.extensibility.execution" Version="$(xunitVersion)" />
-    <PackageVersion Include="XunitXml.TestLogger" Version="2.1.26" />
+    <PackageVersion Include="xunit.extensibility.execution" Version="$(_xunitVersion)" />
+    <PackageVersion Include="XunitXml.TestLogger" Version="3.1.17" />
     <PackageVersion Include="runtime.win-x64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
     <PackageVersion Include="runtime.linux-arm64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
     <PackageVersion Include="runtime.linux-x64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />

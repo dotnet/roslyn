@@ -42,7 +42,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CompilationUnitSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\CSharpSyntaxContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\CSharpSyntaxContextService.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxNodeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxTokenExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxTreeExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DocumentationCommentExtensions.cs" />

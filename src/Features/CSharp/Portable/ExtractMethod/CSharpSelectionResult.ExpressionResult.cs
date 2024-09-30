@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -80,7 +80,7 @@ internal partial class CSharpSelectionResult
         private static (ITypeSymbol? typeSymbol, bool returnsByRef) GetRegularExpressionType(SemanticModel semanticModel, ExpressionSyntax node)
         {
             // regular case. always use ConvertedType to get implicit conversion right.
-            var expression = node.GetUnparenthesizedExpression();
+            var expression = node.WalkDownParentheses();
             var returnsByRef = false;
             if (expression is RefExpressionSyntax refExpression)
             {
