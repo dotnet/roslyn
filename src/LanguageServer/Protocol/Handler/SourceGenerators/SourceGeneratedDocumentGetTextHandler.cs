@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -34,8 +34,10 @@ internal sealed class SourceGeneratedDocumentGetTextHandler() : ILspServiceDocum
         // source-generated files only, this would indicate that something else has gone wrong.
         Contract.ThrowIfFalse(document is SourceGeneratedDocument);
 
-        // If a source file is open we ensure the generated document matches what's currently open in the LSP client so that way everything
-        // stays in sync and we don't have mismatched ranges. But for this particular case, we want to ignore that.
+        // When a user has a open source-generated file, we ensure that the contents in the LSP snapshot match the contents that we
+        // get through didOpen/didChanges, like any other file. That way operations in LSP file are in sync with the
+        // contents the user has. However in this case, we don't want to look at that frozen text, but look at what the
+        // generator would generate if we ran it again. Otherwise, we'll get "stuck" and never update the file with something new.
         document = await document.Project.Solution.WithoutFrozenSourceGeneratedDocuments().GetDocumentAsync(document.Id, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
 
         var text = document != null ? await document.GetTextAsync(cancellationToken).ConfigureAwait(false) : null;

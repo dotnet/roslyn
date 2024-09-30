@@ -483,7 +483,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             var existingState = compilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(identity.DocumentId);
             if (existingState is null)
             {
-                // We don't have existing state for at least one of the documents, so the text does cannot match.
+                // We don't have existing state for at least one of the documents, so the text cannot match.
                 return false;
             }
 
