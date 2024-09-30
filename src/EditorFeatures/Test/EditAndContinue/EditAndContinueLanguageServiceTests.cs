@@ -167,6 +167,7 @@ public class EditAndContinueLanguageServiceTests : EditAndContinueWorkspaceTestB
 
             return new()
             {
+                Solution = solution,
                 ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Ready, []),
                 Diagnostics = [new ProjectDiagnostics(project.Id, [documentDiagnostic, projectDiagnostic])],
                 RudeEdits = [new ProjectDiagnostics(project.Id, [rudeEditDiagnostic])],

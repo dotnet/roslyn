@@ -149,8 +149,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         protected SyntaxTree UsingTree(string text, CSharpParseOptions? options, params DiagnosticDescription[] expectedErrors)
         {
+            return UsingTree(ParseTree(text, options), expectedErrors);
+        }
+
+        protected SyntaxTree UsingTree(SyntaxTree tree, params DiagnosticDescription[] expectedErrors)
+        {
             VerifyEnumeratorConsumed();
-            var tree = ParseTree(text, options);
             _node = tree.GetCompilationUnitRoot();
             var actualErrors = _node.GetDiagnostics();
             actualErrors.Verify(expectedErrors);

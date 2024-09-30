@@ -1039,7 +1039,7 @@
       </trans-unit>
       <trans-unit id="Prefer_System_Threading_Lock">
         <source>Prefer 'System.Threading.Lock'</source>
-        <target state="new">Prefer 'System.Threading.Lock'</target>
+        <target state="translated">'System.Threading.Lock' türünü tercih edin</target>
         <note>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Prefer_Utf8_string_literals">
@@ -2411,13 +2411,13 @@ Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçi�
       </trans-unit>
       <trans-unit id="example">
         <source>example</source>
-        <target state="translated">örnek</target>
-        <note>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
+        <target state="needs-review-translation">örnek</target>
+        <note>{Locked} IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
       </trans-unit>
       <trans-unit id="identifier">
         <source>identifier</source>
-        <target state="translated">tanımlayıcı</target>
-        <note>IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
+        <target state="needs-review-translation">tanımlayıcı</target>
+        <note>{Locked} IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
       </trans-unit>
       <trans-unit id="Install_0">
         <source>Install '{0}'</source>

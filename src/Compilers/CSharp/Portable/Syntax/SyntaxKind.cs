@@ -699,6 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         NullLiteralExpression = 8754,
         DefaultLiteralExpression = 8755,
         Utf8StringLiteralExpression = 8756,
+        FieldExpression = 8757,
 
         // primary function expressions
         TypeOfExpression = 8760,

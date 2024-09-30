@@ -13669,7 +13669,7 @@ namespace System
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // https://github.com/dotnet/roslyn/issues/73563
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/73563")]
         public void AwaitUsing_LanguageVersion_01()
         {
@@ -16106,7 +16106,7 @@ Block[B7] - Exit
             AssertEx.Equal("System.Int32", op.Info.ElementType.ToTestDisplayString());
         }
 
-        [ConditionalFact(typeof(NoUsedAssembliesValidation))] // https://github.com/dotnet/roslyn/issues/73563
+        [Fact]
         [WorkItem("https://github.com/dotnet/roslyn/issues/73563")]
         public void AwaitForeach_IAsyncEnumerableT_LanguageVersion_01()
         {
@@ -22378,7 +22378,7 @@ ref struct S
                 );
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/73553")] // Enable once we get support for 'byreflike' in IL.
+        [ConditionalFact(typeof(CoreClrOnly))]
         [WorkItem("https://github.com/dotnet/roslyn/issues/73553")]
         public void RefFieldTypeAllowsRefLike()
         {
@@ -22401,7 +22401,7 @@ ref struct S
 {
     static void F<T >(ref T r1) where T : allows ref struct
     {
-        var r2 = new R2();
+        var r2 = new R2<T>();
         r2.F = ref r1;
     }
 }";
@@ -22409,7 +22409,7 @@ ref struct S
             comp.VerifyEmitDiagnostics(
                 // (6,12): error CS0570: 'R2.F' is not supported by the language
                 //         r2.F = ref r1;
-                Diagnostic(ErrorCode.ERR_BindToBogus, "F").WithArguments("R2.F").WithLocation(6, 12)
+                Diagnostic(ErrorCode.ERR_BindToBogus, "F").WithArguments("R2<T>.F").WithLocation(6, 12)
                 );
         }
 
@@ -28915,6 +28915,82 @@ interface UsePia5 : ITest29
             CompileAndVerify(compilation1, symbolValidator: metadataValidator, verify: Verification.Skipped).VerifyDiagnostics();
 
             CompileAndVerify(compilation2, symbolValidator: metadataValidator, verify: Verification.Skipped).VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74785")]
+        public void Issue74785()
+        {
+            var src = @"
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
+
+#pragma warning disable CS0649
+
+[InlineArray(256)]
+public struct BufferStruct : IBufferInterface
+{
+    private byte _data;
+
+    [UnscopedRef]
+    public ReadOnlySpan<byte> Data => this;
+}
+
+
+interface IBufferInterface
+{
+    [UnscopedRef]
+    public ReadOnlySpan<byte> Data { get; }
+}
+
+struct TestStruct<T> 
+    where T : struct, IBufferInterface
+{
+    T genericBuffer;
+    BufferStruct directBuffer;
+    IBufferInterface interfaceBuffer;
+    
+    [UnscopedRef]
+    public ReadOnlySpan<byte> GetGenericBuffer1()
+    {
+        return genericBuffer.Data;
+    }
+
+    [UnscopedRef]
+    public ReadOnlySpan<byte> GetDirectBuffer1()
+    {
+        return directBuffer.Data;
+    }
+
+    public ReadOnlySpan<byte> GetInterfaceBuffer()
+    {
+        return interfaceBuffer.Data;
+    }
+    
+    public ReadOnlySpan<byte> GetGenericBuffer2()
+    {
+#line 1000
+        return genericBuffer.Data;
+    }
+
+    public ReadOnlySpan<byte> GetDirectBuffer2()
+    {
+#line 2000
+        return directBuffer.Data;
+    }
+}
+";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net90);
+
+            comp.VerifyEmitDiagnostics(
+                // (1000,16): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //         return genericBuffer.Data;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "genericBuffer").WithLocation(1000, 16),
+                // (2000,16): error CS8170: Struct members cannot return 'this' or other instance members by reference
+                //         return directBuffer.Data;
+                Diagnostic(ErrorCode.ERR_RefReturnStructThis, "directBuffer").WithLocation(2000, 16)
+                );
         }
     }
 }

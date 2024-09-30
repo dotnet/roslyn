@@ -275,6 +275,11 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
                     editor.ReplaceNode(parent, parent.WithAdditionalAnnotations(
                         ConflictAnnotation.Create(FeaturesResources.Property_reference_cannot_be_updated)));
                 }
+                else if (syntaxFacts.IsNameOfSubpattern(parent))
+                {
+                    editor.ReplaceNode(parent, parent.WithAdditionalAnnotations(
+                        ConflictAnnotation.Create(FeaturesResources.Property_reference_cannot_be_updated)));
+                }
                 else
                 {
                     var fieldSymbol = propertyToBackingField.GetValueOrDefault(property);

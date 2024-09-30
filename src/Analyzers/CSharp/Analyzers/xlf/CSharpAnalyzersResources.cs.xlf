@@ -239,7 +239,7 @@
       </trans-unit>
       <trans-unit id="Use_System_Threading_Lock">
         <source>Use 'System.Threading.Lock'</source>
-        <target state="new">Use 'System.Threading.Lock'</target>
+        <target state="translated">Použít System.Threading.Lock</target>
         <note>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_Utf8_string_literal">

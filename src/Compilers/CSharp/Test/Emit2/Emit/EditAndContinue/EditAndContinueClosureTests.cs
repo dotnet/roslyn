@@ -146,7 +146,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                     }
                     """)
                 .AddGeneration(
-                    """
+                    // 1
+                    source: """
                     using System;
                     class C
                     {
@@ -168,7 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                             "C.<>c__DisplayClass0#1_0#1: {x, <F>b__0#1}");
                     })
                 .AddGeneration(
-                    """
+                    // 2
+                    source: """
                     using System;
                     class C
                     {
@@ -185,11 +187,13 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<>c__DisplayClass0#1_0#1}",
                             "C.<>c__DisplayClass0#1_0#1: {x, <F>b__0#1}");
                     })
                 .AddGeneration(
-                    """
+                    // 3
+                    source: """
                     using System;
                     class C
                     {
@@ -207,6 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<>c__DisplayClass0#1_0#3, <>c__DisplayClass0#1_0#1}",
                             "C.<>c__DisplayClass0#1_0#3: {x, <F>b__0#3}",
                             "C.<>c__DisplayClass0#1_0#1: {x, <F>b__0#1}");
@@ -844,15 +849,12 @@ class C
                 ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
 
             diff1.VerifySynthesizedMembers(
-                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
-                "Microsoft: {CodeAnalysis}",
-                "System.Runtime: {CompilerServices, CompilerServices}",
-                "<global namespace>: {Microsoft, System, System}",
+                "Microsoft.CodeAnalysis.EmbeddedAttribute",
+                "System.Runtime.CompilerServices.NullableAttribute",
+                "System.Runtime.CompilerServices.NullableContextAttribute",
                 "C: {<>c__DisplayClass2_0}",
-                "System: {Runtime, Runtime}",
                 "C.<>c__DisplayClass2_0: {x, y1, y2, <F>b__0, <F>b__1}",
                 "<>f__AnonymousType1<<B>j__TPar>: {Equals, GetHashCode, ToString}",
-                "System.Runtime.CompilerServices: {NullableAttribute, NullableContextAttribute}",
                 "<>f__AnonymousType0<<A>j__TPar>: {Equals, GetHashCode, ToString}");
 
             diff1.VerifyIL("C.<>c__DisplayClass2_0.<F>b__1()", @"
@@ -3333,119 +3335,114 @@ class C
         [Fact]
         public void Queries_Select_Reduced2()
         {
-            var source0 = MarkedSource(@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+            using var _ = new EditAndContinueTest(references: [CSharpRef])
+                .AddBaseline(
+                    source: """
+                    using System;
+                    using System.Linq;
+                    using System.Collections.Generic;
+                    
+                    class C
+                    {
+                        void F()
+                        {
+                            var <N:0>result = from a in array
+                                              <N:1>where a > 0</N:1>
+                                              <N:2>select a + 1</N:2></N:0>;
+                        }
+                    
+                        int[] array = null;
+                    }
+                    """,
+                    validator: v =>
+                    {
+                        v.VerifyIL("C.F", """
+                            {
+                              // Code size       81 (0x51)
+                              .maxstack  3
+                              .locals init (System.Collections.Generic.IEnumerable<int> V_0) //result
+                              IL_0000:  nop
+                              IL_0001:  ldarg.0
+                              IL_0002:  ldfld      "int[] C.array"
+                              IL_0007:  ldsfld     "System.Func<int, bool> C.<>c.<>9__0_0"
+                              IL_000c:  dup
+                              IL_000d:  brtrue.s   IL_0026
+                              IL_000f:  pop
+                              IL_0010:  ldsfld     "C.<>c C.<>c.<>9"
+                              IL_0015:  ldftn      "bool C.<>c.<F>b__0_0(int)"
+                              IL_001b:  newobj     "System.Func<int, bool>..ctor(object, System.IntPtr)"
+                              IL_0020:  dup
+                              IL_0021:  stsfld     "System.Func<int, bool> C.<>c.<>9__0_0"
+                              IL_0026:  call       "System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)"
+                              IL_002b:  ldsfld     "System.Func<int, int> C.<>c.<>9__0_1"
+                              IL_0030:  dup
+                              IL_0031:  brtrue.s   IL_004a
+                              IL_0033:  pop
+                              IL_0034:  ldsfld     "C.<>c C.<>c.<>9"
+                              IL_0039:  ldftn      "int C.<>c.<F>b__0_1(int)"
+                              IL_003f:  newobj     "System.Func<int, int>..ctor(object, System.IntPtr)"
+                              IL_0044:  dup
+                              IL_0045:  stsfld     "System.Func<int, int> C.<>c.<>9__0_1"
+                              IL_004a:  call       "System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Select<int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>)"
+                              IL_004f:  stloc.0
+                              IL_0050:  ret
+                            }
+                            """);
+                    })
+                .AddGeneration(
+                    source: """
+                    using System;
+                    using System.Linq;
+                    using System.Collections.Generic;
+                    
+                    class C
+                    {
+                        void F()
+                        {
+                            var <N:0>result = from a in array
+                                              <N:1>where a > 0</N:1>
+                                              <N:2>select a</N:2></N:0>;
+                        }
+                    
+                        int[] array = null;
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)
+                    ],
+                    validator: v =>
+                    {
+                        // lambda for Select(a => a + 1) is gone
+                        v.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
+                            "C: {<>c}",
+                            "C.<>c: {<>9__0_0, <F>b__0_0}");
 
-class C
-{
-    void F()
-    {
-        var <N:0>result = from a in array
-                          <N:1>where a > 0</N:1>
-                          <N:2>select a + 1</N:2></N:0>;
-    }
-
-    int[] array = null;
-}
-");
-            var source1 = MarkedSource(@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
-
-class C
-{
-    void F()
-    {
-        var <N:0>result = from a in array
-                          <N:1>where a > 0</N:1>
-                          <N:2>select a</N:2></N:0>;
-    }
-
-    int[] array = null;
-}
-");
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1.Tree);
-            var v0 = CompileAndVerify(compilation0);
-            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
-
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-
-            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
-
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
-
-            var md1 = diff1.GetMetadata();
-            var reader1 = md1.Reader;
-
-            // lambda for Select(a => a + 1) is gone
-            diff1.VerifySynthesizedMembers(
-                "C: {<>c}",
-                "C.<>c: {<>9__0_0, <F>b__0_0}");
-
-            // old query:
-            v0.VerifyIL("C.F", @"
-{
-  // Code size       81 (0x51)
-  .maxstack  3
-  .locals init (System.Collections.Generic.IEnumerable<int> V_0) //result
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldfld      ""int[] C.array""
-  IL_0007:  ldsfld     ""System.Func<int, bool> C.<>c.<>9__0_0""
-  IL_000c:  dup
-  IL_000d:  brtrue.s   IL_0026
-  IL_000f:  pop
-  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0015:  ldftn      ""bool C.<>c.<F>b__0_0(int)""
-  IL_001b:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
-  IL_0020:  dup
-  IL_0021:  stsfld     ""System.Func<int, bool> C.<>c.<>9__0_0""
-  IL_0026:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)""
-  IL_002b:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_1""
-  IL_0030:  dup
-  IL_0031:  brtrue.s   IL_004a
-  IL_0033:  pop
-  IL_0034:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0039:  ldftn      ""int C.<>c.<F>b__0_1(int)""
-  IL_003f:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
-  IL_0044:  dup
-  IL_0045:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_1""
-  IL_004a:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Select<int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>)""
-  IL_004f:  stloc.0
-  IL_0050:  ret
-}
-");
-            // new query:
-            diff1.VerifyIL("C.F", @"
-{
-  // Code size       45 (0x2d)
-  .maxstack  3
-  .locals init (System.Collections.Generic.IEnumerable<int> V_0) //result
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldfld      ""int[] C.array""
-  IL_0007:  ldsfld     ""System.Func<int, bool> C.<>c.<>9__0_0""
-  IL_000c:  dup
-  IL_000d:  brtrue.s   IL_0026
-  IL_000f:  pop
-  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0015:  ldftn      ""bool C.<>c.<F>b__0_0(int)""
-  IL_001b:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
-  IL_0020:  dup
-  IL_0021:  stsfld     ""System.Func<int, bool> C.<>c.<>9__0_0""
-  IL_0026:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)""
-  IL_002b:  stloc.0
-  IL_002c:  ret
-}
-");
+                        v.VerifyIL("C.F", """
+                        {
+                          // Code size       45 (0x2d)
+                          .maxstack  3
+                          .locals init (System.Collections.Generic.IEnumerable<int> V_0) //result
+                          IL_0000:  nop
+                          IL_0001:  ldarg.0
+                          IL_0002:  ldfld      "int[] C.array"
+                          IL_0007:  ldsfld     "System.Func<int, bool> C.<>c.<>9__0_0"
+                          IL_000c:  dup
+                          IL_000d:  brtrue.s   IL_0026
+                          IL_000f:  pop
+                          IL_0010:  ldsfld     "C.<>c C.<>c.<>9"
+                          IL_0015:  ldftn      "bool C.<>c.<F>b__0_0(int)"
+                          IL_001b:  newobj     "System.Func<int, bool>..ctor(object, System.IntPtr)"
+                          IL_0020:  dup
+                          IL_0021:  stsfld     "System.Func<int, bool> C.<>c.<>9__0_0"
+                          IL_0026:  call       "System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)"
+                          IL_002b:  stloc.0
+                          IL_002c:  ret
+                        }
+                        """);
+                    })
+                .Verify();
         }
 
         [Fact]
@@ -3576,116 +3573,112 @@ class C
         [Fact]
         public void Queries_GroupBy_Reduced2()
         {
-            var source0 = MarkedSource(@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+            using var _ = new EditAndContinueTest(references: [CSharpRef])
+                .AddBaseline(
+                    source: """
+                    using System;
+                    using System.Linq;
+                    using System.Collections.Generic;
 
-class C
-{
-    void F()
-    {
-        var <N:0>result = from a in array
-                          <N:1>group a + 1 by a</N:1></N:0>;
-    }
+                    class C
+                    {
+                        void F()
+                        {
+                            var <N:0>result = from a in array
+                                              <N:1>group a + 1 by a</N:1></N:0>;
+                        }
 
-    int[] array = null;
-}
-");
-            var source1 = MarkedSource(@"
-using System;
-using System.Linq;
-using System.Collections.Generic;
+                        int[] array = null;
+                    }
+                    """,
+                    validator: v =>
+                    {
+                        v.VerifyIL("C.F", """
+                        {
+                            // Code size       76 (0x4c)
+                            .maxstack  4
+                            .locals init (System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> V_0) //result
+                            IL_0000:  nop
+                            IL_0001:  ldarg.0
+                            IL_0002:  ldfld      "int[] C.array"
+                            IL_0007:  ldsfld     "System.Func<int, int> C.<>c.<>9__0_0"
+                            IL_000c:  dup
+                            IL_000d:  brtrue.s   IL_0026
+                            IL_000f:  pop
+                            IL_0010:  ldsfld     "C.<>c C.<>c.<>9"
+                            IL_0015:  ldftn      "int C.<>c.<F>b__0_0(int)"
+                            IL_001b:  newobj     "System.Func<int, int>..ctor(object, System.IntPtr)"
+                            IL_0020:  dup
+                            IL_0021:  stsfld     "System.Func<int, int> C.<>c.<>9__0_0"
+                            IL_0026:  ldsfld     "System.Func<int, int> C.<>c.<>9__0_1"
+                            IL_002b:  dup
+                            IL_002c:  brtrue.s   IL_0045
+                            IL_002e:  pop
+                            IL_002f:  ldsfld     "C.<>c C.<>c.<>9"
+                            IL_0034:  ldftn      "int C.<>c.<F>b__0_1(int)"
+                            IL_003a:  newobj     "System.Func<int, int>..ctor(object, System.IntPtr)"
+                            IL_003f:  dup
+                            IL_0040:  stsfld     "System.Func<int, int> C.<>c.<>9__0_1"
+                            IL_0045:  call       "System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> System.Linq.Enumerable.GroupBy<int, int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>, System.Func<int, int>)"
+                            IL_004a:  stloc.0
+                            IL_004b:  ret
+                        }
+                        """);
+                    })
+                .AddGeneration(
+                    // 1
+                    source: """
+                    using System;
+                    using System.Linq;
+                    using System.Collections.Generic;
+                    
+                    class C
+                    {
+                        void F()
+                        {
+                            var <N:0>result = from a in array
+                                              <N:1>group a by a</N:1></N:0>;
+                        }
+                    
+                        int[] array = null;
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.F"), preserveLocalVariables: true)
+                    ],
+                    validator: v =>
+                    {
+                        // lambda for GroupBy(..., a => a + 1) is gone
+                        v.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
+                            "C: {<>c}",
+                            "C.<>c: {<>9__0_0, <F>b__0_0}");
 
-class C
-{
-    void F()
-    {
-        var <N:0>result = from a in array
-                          <N:1>group a by a</N:1></N:0>;
-    }
-
-    int[] array = null;
-}
-");
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
-            var compilation1 = compilation0.WithSource(source1.Tree);
-            var v0 = CompileAndVerify(compilation0);
-            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
-
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-
-            var generation0 = CreateInitialBaseline(compilation0, md0, v0.CreateSymReader().GetEncMethodDebugInfo);
-
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(
-                    SemanticEdit.Create(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1))));
-
-            var md1 = diff1.GetMetadata();
-            var reader1 = md1.Reader;
-
-            // lambda for GroupBy(..., a => a + 1) is gone
-            diff1.VerifySynthesizedMembers(
-                "C: {<>c}",
-                "C.<>c: {<>9__0_0, <F>b__0_0}");
-
-            // old query:
-            v0.VerifyIL("C.F", @"
-{
-  // Code size       76 (0x4c)
-  .maxstack  4
-  .locals init (System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> V_0) //result
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldfld      ""int[] C.array""
-  IL_0007:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
-  IL_000c:  dup
-  IL_000d:  brtrue.s   IL_0026
-  IL_000f:  pop
-  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0015:  ldftn      ""int C.<>c.<F>b__0_0(int)""
-  IL_001b:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
-  IL_0020:  dup
-  IL_0021:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
-  IL_0026:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_1""
-  IL_002b:  dup
-  IL_002c:  brtrue.s   IL_0045
-  IL_002e:  pop
-  IL_002f:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0034:  ldftn      ""int C.<>c.<F>b__0_1(int)""
-  IL_003a:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
-  IL_003f:  dup
-  IL_0040:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_1""
-  IL_0045:  call       ""System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> System.Linq.Enumerable.GroupBy<int, int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>, System.Func<int, int>)""
-  IL_004a:  stloc.0
-  IL_004b:  ret
-}
-");
-            // new query:
-            diff1.VerifyIL("C.F", @"
-{
-  // Code size       45 (0x2d)
-  .maxstack  3
-  .locals init (System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> V_0) //result
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldfld      ""int[] C.array""
-  IL_0007:  ldsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
-  IL_000c:  dup
-  IL_000d:  brtrue.s   IL_0026
-  IL_000f:  pop
-  IL_0010:  ldsfld     ""C.<>c C.<>c.<>9""
-  IL_0015:  ldftn      ""int C.<>c.<F>b__0_0(int)""
-  IL_001b:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
-  IL_0020:  dup
-  IL_0021:  stsfld     ""System.Func<int, int> C.<>c.<>9__0_0""
-  IL_0026:  call       ""System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> System.Linq.Enumerable.GroupBy<int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>)""
-  IL_002b:  stloc.0
-  IL_002c:  ret
-}
-");
+                        v.VerifyIL("C.F", """
+                        {
+                          // Code size       45 (0x2d)
+                          .maxstack  3
+                          .locals init (System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> V_0) //result
+                          IL_0000:  nop
+                          IL_0001:  ldarg.0
+                          IL_0002:  ldfld      "int[] C.array"
+                          IL_0007:  ldsfld     "System.Func<int, int> C.<>c.<>9__0_0"
+                          IL_000c:  dup
+                          IL_000d:  brtrue.s   IL_0026
+                          IL_000f:  pop
+                          IL_0010:  ldsfld     "C.<>c C.<>c.<>9"
+                          IL_0015:  ldftn      "int C.<>c.<F>b__0_0(int)"
+                          IL_001b:  newobj     "System.Func<int, int>..ctor(object, System.IntPtr)"
+                          IL_0020:  dup
+                          IL_0021:  stsfld     "System.Func<int, int> C.<>c.<>9__0_0"
+                          IL_0026:  call       "System.Collections.Generic.IEnumerable<System.Linq.IGrouping<int, int>> System.Linq.Enumerable.GroupBy<int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>)"
+                          IL_002b:  stloc.0
+                          IL_002c:  ret
+                        }
+                        """);
+                    })
+                .Verify();
         }
 
         [Fact, WorkItem(1170899, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1170899")]
@@ -4844,23 +4837,24 @@ class C
                         // Static lambda is reused.
                         // A new display class and method is generated for lambda that captures x.
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<>c, <>c__DisplayClass0_0#1}",
                             "C.<>c: {<>9__0_1, <F>b__0_1}",
                             "C.<>c__DisplayClass0_0#1: {x, <F>b__0#1}");
 
-                        g.VerifyMethodDefNames("F", "<F>b__0_0", "<F>b__0_1", ".ctor", "<F>b__0#1");
+                        g.VerifyMethodDefNames("F", "<F>b__0_0", "<F>b__0_1", ".ctor", ".ctor", "<F>b__0#1");
 
                         g.VerifyIL(
                         """
                         {
                           // Code size       44 (0x2c)
                           .maxstack  2
-                          IL_0000:  newobj     0x06000007
+                          IL_0000:  newobj     0x06000008
                           IL_0005:  stloc.1
                           IL_0006:  nop
                           IL_0007:  ldloc.1
                           IL_0008:  ldc.i4.1
-                          IL_0009:  stfld      0x04000004
+                          IL_0009:  stfld      0x04000005
                           IL_000e:  nop
                           IL_000f:  ldsfld     0x04000003
                           IL_0014:  brtrue.s   IL_002b
@@ -4871,19 +4865,32 @@ class C
                           IL_002b:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A00000A
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x06000007
+                          IL_000c:  throw
                         }
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldc.i4.2
-                          IL_0001:  call       0x0A00000B
+                          IL_0001:  call       0x0A00000A
                           IL_0006:  nop
                           IL_0007:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A00000B
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000004
+                          IL_000f:  ret
                         }
                         {
                           // Code size        8 (0x8)
@@ -4897,8 +4904,8 @@ class C
                           // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000004
-                          IL_0006:  call       0x0A00000B
+                          IL_0001:  ldfld      0x04000005
+                          IL_0006:  call       0x0A00000A
                           IL_000b:  nop
                           IL_000c:  ret
                         }
@@ -4971,10 +4978,11 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<F>g__L1|0_0#1, <F>g__L2|0_1, <>c__DisplayClass0_0#1}",
                             "C.<>c__DisplayClass0_0#1: {x}");
 
-                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L1|0_0#1");
+                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L1|0_0#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -4984,23 +4992,24 @@ class C
                           IL_0000:  nop
                           IL_0001:  ldloca.s   V_1
                           IL_0003:  ldc.i4.1
-                          IL_0004:  stfld      0x04000001
+                          IL_0004:  stfld      0x04000002
                           IL_0009:  nop
                           IL_000a:  nop
                           IL_000b:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000008
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x06000006
+                          IL_000c:  throw
                         }
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldc.i4.2
-                          IL_0001:  call       0x0A000009
+                          IL_0001:  call       0x0A000008
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -5008,10 +5017,22 @@ class C
                           // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000001
-                          IL_0006:  call       0x0A000009
+                          IL_0001:  ldfld      0x04000002
+                          IL_0006:  call       0x0A000008
                           IL_000b:  nop
                           IL_000c:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000009
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000001
+                          IL_000f:  ret
                         }
                         """);
                     })
@@ -5059,22 +5080,23 @@ class C
                         // Static lambda is reused.
                         // A new display class and method is generated for lambda that captures x.
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<>c, <>c__DisplayClass0_0#1}",
                             "C.<>c: {<>9__0_1, <F>b__0_1}",
                             "C.<>c__DisplayClass0_0#1: {x, <F>b__0#1}");
 
-                        g.VerifyMethodDefNames("F", "<F>b__0_0", "<F>b__0_1", ".ctor", "<F>b__0#1");
+                        g.VerifyMethodDefNames("F", "<F>b__0_0", "<F>b__0_1", ".ctor", ".ctor", "<F>b__0#1");
 
                         g.VerifyIL(
                         """
                         {
                           // Code size       44 (0x2c)
                           .maxstack  2
-                          IL_0000:  newobj     0x06000007
+                          IL_0000:  newobj     0x06000008
                           IL_0005:  stloc.0
                           IL_0006:  ldloc.0
                           IL_0007:  ldarg.1
-                          IL_0008:  stfld      0x04000004
+                          IL_0008:  stfld      0x04000005
                           IL_000d:  nop
                           IL_000e:  nop
                           IL_000f:  ldsfld     0x04000003
@@ -5086,19 +5108,32 @@ class C
                           IL_002b:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A00000A
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x06000007
+                          IL_000c:  throw
                         }
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldc.i4.2
-                          IL_0001:  call       0x0A00000B
+                          IL_0001:  call       0x0A00000A
                           IL_0006:  nop
                           IL_0007:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A00000B
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000004
+                          IL_000f:  ret
                         }
                         {
                           // Code size        8 (0x8)
@@ -5112,8 +5147,8 @@ class C
                           // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000004
-                          IL_0006:  call       0x0A00000B
+                          IL_0001:  ldfld      0x04000005
+                          IL_0006:  call       0x0A00000A
                           IL_000b:  nop
                           IL_000c:  ret
                         }
@@ -5184,36 +5219,37 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<F>g__L1|0_0#1, <F>g__L2|0_1, <>c__DisplayClass0_0#1}",
                             "C.<>c__DisplayClass0_0#1: {x}");
 
-                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L1|0_0#1");
+                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L1|0_0#1", ".ctor");
 
-                        g.VerifyIL(
-                        """
+                        g.VerifyIL("""
                         {
                           // Code size       12 (0xc)
                           .maxstack  2
                           IL_0000:  ldloca.s   V_0
                           IL_0002:  ldarg.1
-                          IL_0003:  stfld      0x04000001
+                          IL_0003:  stfld      0x04000002
                           IL_0008:  nop
                           IL_0009:  nop
                           IL_000a:  nop
                           IL_000b:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000008
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x06000006
+                          IL_000c:  throw
                         }
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldc.i4.2
-                          IL_0001:  call       0x0A000009
+                          IL_0001:  call       0x0A000008
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -5221,10 +5257,22 @@ class C
                           // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000001
-                          IL_0006:  call       0x0A000009
+                          IL_0001:  ldfld      0x04000002
+                          IL_0006:  call       0x0A000008
                           IL_000b:  nop
                           IL_000c:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000009
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000001
+                          IL_000f:  ret
                         }
                         """);
                     })
@@ -5274,11 +5322,12 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<>c, <>c__DisplayClass1_0#1}",
                             "C.<>c: {<>9__1_0, <F>b__1_0}",
                             "C.<>c__DisplayClass1_0#1: {x, <F>b__1#1}");
 
-                        g.VerifyMethodDefNames("F", "<F>b__1_0", "<F>b__1_1", ".ctor", "<F>b__1#1");
+                        g.VerifyMethodDefNames("F", "<F>b__1_0", "<F>b__1_1", ".ctor", ".ctor", "<F>b__1#1");
 
                         g.VerifyIL(
                         """
@@ -5301,23 +5350,36 @@ class C
                         {
                           // Code size       31 (0x1f)
                           .maxstack  2
-                          IL_0000:  newobj     0x06000008
+                          IL_0000:  newobj     0x06000009
                           IL_0005:  stloc.0
                           IL_0006:  ldloc.0
                           IL_0007:  ldarg.1
-                          IL_0008:  stfld      0x04000004
+                          IL_0008:  stfld      0x04000005
                           IL_000d:  ldloc.0
-                          IL_000e:  ldftn      0x06000009
+                          IL_000e:  ldftn      0x0600000A
                           IL_0014:  newobj     0x0A00000A
                           IL_0019:  call       0x06000001
                           IL_001e:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       12 (0xc)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A00000B
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.m1
+                          IL_0006:  newobj     0x06000008
+                          IL_000b:  throw
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A00000B
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000004
+                          IL_000f:  ret
                         }
                         {
                           // Code size        8 (0x8)
@@ -5331,7 +5393,7 @@ class C
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000004
+                          IL_0001:  ldfld      0x04000005
                           IL_0006:  ret
                         }
                         """);
@@ -5382,28 +5444,29 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<>c__DisplayClass0_0#1}",
                             "C.<>c__DisplayClass0_0#1: {x, y, <.ctor>b__0#1, <.ctor>b__1#1}");
 
                         g.VerifyMethodDefNames(
-                            ".ctor", "<.ctor>b__0_0", "<.ctor>b__0_1", ".ctor", "<.ctor>b__0#1", "<.ctor>b__1#1");
+                            ".ctor", "<.ctor>b__0_0", "<.ctor>b__0_1", ".ctor", ".ctor", "<.ctor>b__0#1", "<.ctor>b__1#1");
 
                         g.VerifyIL(
                         """
                         {
                           // Code size       42 (0x2a)
                           .maxstack  3
-                          IL_0000:  newobj     0x06000007
+                          IL_0000:  newobj     0x06000008
                           IL_0005:  stloc.0
                           IL_0006:  ldloc.0
                           IL_0007:  ldarg.1
-                          IL_0008:  stfld      0x04000004
+                          IL_0008:  stfld      0x04000005
                           IL_000d:  ldloc.0
                           IL_000e:  ldarg.2
-                          IL_000f:  stfld      0x04000005
+                          IL_000f:  stfld      0x04000006
                           IL_0014:  ldarg.0
                           IL_0015:  ldloc.0
-                          IL_0016:  ldftn      0x06000008
+                          IL_0016:  ldftn      0x06000009
                           IL_001c:  newobj     0x0A00000A
                           IL_0021:  call       0x06000001
                           IL_0026:  nop
@@ -5412,18 +5475,32 @@ class C
                           IL_0029:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A00000B
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x06000007
+                          IL_000c:  throw
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       12 (0xc)
                           .maxstack  8
                           IL_0000:  ldstr      0x700001F4
-                          IL_0005:  newobj     0x0A00000B
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.m1
+                          IL_0006:  newobj     0x06000007
+                          IL_000b:  throw
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A00000B
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000004
+                          IL_000f:  ret
                         }
                         {
                           // Code size        8 (0x8)
@@ -5437,14 +5514,14 @@ class C
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000004
+                          IL_0001:  ldfld      0x04000005
                           IL_0006:  ret
                         }
                         {
                           // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000005
+                          IL_0001:  ldfld      0x04000006
                           IL_0006:  call       0x0A00000D
                           IL_000b:  nop
                           IL_000c:  ret
@@ -5483,36 +5560,50 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<>c__DisplayClass0_0#1}",
                             "C.<>c__DisplayClass0_0#1: {x, <.ctor>b__0#1}");
 
                         g.VerifyMethodDefNames(
-                            ".ctor", "<.ctor>b__0_0", ".ctor", "<.ctor>b__0#1");
+                            ".ctor", "<.ctor>b__0_0", ".ctor", ".ctor", "<.ctor>b__0#1");
 
                         g.VerifyIL(
                         """
                         {
                           // Code size       33 (0x21)
                           .maxstack  3
-                          IL_0000:  newobj     0x06000006
+                          IL_0000:  newobj     0x06000007
                           IL_0005:  stloc.0
                           IL_0006:  ldloc.0
                           IL_0007:  ldarg.1
-                          IL_0008:  stfld      0x04000003
+                          IL_0008:  stfld      0x04000004
                           IL_000d:  ldarg.0
                           IL_000e:  ldloc.0
-                          IL_000f:  ldftn      0x06000007
+                          IL_000f:  ldftn      0x06000008
                           IL_0015:  newobj     0x0A000008
                           IL_001a:  call       0x06000001
                           IL_001f:  nop
                           IL_0020:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000009
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x06000006
+                          IL_000c:  throw
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000009
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000003
+                          IL_000f:  ret
                         }
                         {
                           // Code size        8 (0x8)
@@ -5526,7 +5617,7 @@ class C
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000003
+                          IL_0001:  ldfld      0x04000004
                           IL_0006:  ret
                         }
                         """);
@@ -5563,34 +5654,48 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "Program: {<>c__DisplayClass0_0#1}",
                             "Program.<>c__DisplayClass0_0#1: {args, <<Main>$>b__0#1}");
 
                         g.VerifyMethodDefNames(
-                            "<Main>$", "<<Main>$>b__0_0", ".ctor", "<<Main>$>b__0#1");
+                            "<Main>$", "<<Main>$>b__0_0", ".ctor", ".ctor", "<<Main>$>b__0#1");
 
                         g.VerifyIL(
                         """
                         {
                           // Code size       27 (0x1b)
                           .maxstack  2
-                          IL_0000:  newobj     0x06000006
+                          IL_0000:  newobj     0x06000007
                           IL_0005:  stloc.1
                           IL_0006:  ldloc.1
                           IL_0007:  ldarg.0
-                          IL_0008:  stfld      0x04000003
+                          IL_0008:  stfld      0x04000004
                           IL_000d:  ldloc.1
-                          IL_000e:  ldftn      0x06000007
+                          IL_000e:  ldftn      0x06000008
                           IL_0014:  newobj     0x0A000008
                           IL_0019:  stloc.2
                           IL_001a:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000009
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x06000006
+                          IL_000c:  throw
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000009
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000003
+                          IL_000f:  ret
                         }
                         {
                           // Code size        8 (0x8)
@@ -5604,7 +5709,7 @@ class C
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000003
+                          IL_0001:  ldfld      0x04000004
                           IL_0006:  ret
                         }
                         """);
@@ -5680,10 +5785,11 @@ class C
                         // Static lambda is reused.
                         // A new display class and method is generated for lambda that captures x.
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<F>b__1_0#1, <>c}",
                             "C.<>c: {<>9__1_1, <F>b__1_1}");
 
-                        g.VerifyMethodDefNames("F", "<F>b__1_0", "<F>b__1_1", "<F>b__1_0#1");
+                        g.VerifyMethodDefNames("F", "<F>b__1_0", "<F>b__1_1", "<F>b__1_0#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -5701,17 +5807,18 @@ class C
                           IL_001e:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A00000A
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x06000008
+                          IL_000c:  throw
                         }
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldc.i4.1
-                          IL_0001:  call       0x0A00000B
+                          IL_0001:  call       0x0A00000A
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -5720,9 +5827,21 @@ class C
                           .maxstack  8
                           IL_0000:  ldarg.0
                           IL_0001:  ldfld      0x04000001
-                          IL_0006:  call       0x0A00000B
+                          IL_0006:  call       0x0A00000A
                           IL_000b:  nop
                           IL_000c:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A00000B
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000005
+                          IL_000f:  ret
                         }
                         """);
                     })
@@ -5796,9 +5915,10 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<F>g__L1|1_0#1, <F>g__L2|1_1}");
 
-                        g.VerifyMethodDefNames("F", "<F>g__L1|1_0", "<F>g__L2|1_1", "<F>g__L1|1_0#1");
+                        g.VerifyMethodDefNames("F", "<F>g__L1|1_0", "<F>g__L2|1_1", "<F>g__L1|1_0#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -5811,17 +5931,18 @@ class C
                           IL_0003:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000008
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x06000006
+                          IL_000c:  throw
                         }
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldc.i4.1
-                          IL_0001:  call       0x0A000009
+                          IL_0001:  call       0x0A000008
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -5830,9 +5951,21 @@ class C
                           .maxstack  8
                           IL_0000:  ldarg.0
                           IL_0001:  ldfld      0x04000001
-                          IL_0006:  call       0x0A000009
+                          IL_0006:  call       0x0A000008
                           IL_000b:  nop
                           IL_000c:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000009
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000002
+                          IL_000f:  ret
                         }
                         """);
                     })
@@ -5880,10 +6013,11 @@ class C
                         // Static lambda is reused.
                         // A new display class and method is generated for lambda that captures x.
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<F>b__1_0#1, <>c}",
                             "C.<>c: {<>9__1_1, <F>b__1_1}");
 
-                        g.VerifyMethodDefNames("F", "<F>b__1_0", "<F>b__1_1", "<F>b__1_0#1");
+                        g.VerifyMethodDefNames("F", "<F>b__1_0", "<F>b__1_1", "<F>b__1_0#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -5901,17 +6035,18 @@ class C
                           IL_001e:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A00000B
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x06000008
+                          IL_000c:  throw
                         }
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldc.i4.2
-                          IL_0001:  call       0x0A00000C
+                          IL_0001:  call       0x0A00000B
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -5920,9 +6055,21 @@ class C
                           .maxstack  8
                           IL_0000:  ldarg.0
                           IL_0001:  ldfld      0x04000004
-                          IL_0006:  call       0x0A00000C
+                          IL_0006:  call       0x0A00000B
                           IL_000b:  nop
                           IL_000c:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A00000C
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000005
+                          IL_000f:  ret
                         }
                         """);
                     })
@@ -5968,9 +6115,10 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<F>g__L1|1_0#1, <F>g__L2|1_1}");
 
-                        g.VerifyMethodDefNames("F", "<F>g__L1|1_0", "<F>g__L2|1_1", "<F>g__L1|1_0#1");
+                        g.VerifyMethodDefNames("F", "<F>g__L1|1_0", "<F>g__L2|1_1", "<F>g__L1|1_0#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -5983,17 +6131,18 @@ class C
                           IL_0003:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000009
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x06000006
+                          IL_000c:  throw
                         }
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldc.i4.1
-                          IL_0001:  call       0x0A00000A
+                          IL_0001:  call       0x0A000009
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -6002,9 +6151,21 @@ class C
                           .maxstack  8
                           IL_0000:  ldarg.0
                           IL_0001:  ldfld      0x04000001
-                          IL_0006:  call       0x0A00000A
+                          IL_0006:  call       0x0A000009
                           IL_000b:  nop
                           IL_000c:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A00000A
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000002
+                          IL_000f:  ret
                         }
                         """);
                     })
@@ -6239,6 +6400,7 @@ class C
                     {
                     })
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -6257,10 +6419,11 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<>c}",
                             "C.<>c: {<>9__0_0#1, <F>b__0_0#1}");
 
-                        g.VerifyMethodDefNames("F", "<F>b__0", ".cctor", ".ctor", "<F>b__0_0#1");
+                        g.VerifyMethodDefNames("F", "<F>b__0", ".ctor", ".cctor", ".ctor", "<F>b__0_0#1");
 
                         g.VerifyIL(
                         """
@@ -6270,26 +6433,39 @@ class C
                           IL_0000:  nop
                           IL_0001:  ldc.i4.1
                           IL_0002:  stloc.1
-                          IL_0003:  ldsfld     0x04000003
+                          IL_0003:  ldsfld     0x04000004
                           IL_0008:  brtrue.s   IL_001f
-                          IL_000a:  ldsfld     0x04000002
-                          IL_000f:  ldftn      0x06000007
+                          IL_000a:  ldsfld     0x04000003
+                          IL_000f:  ldftn      0x06000008
                           IL_0015:  newobj     0x0A000008
-                          IL_001a:  stsfld     0x04000003
+                          IL_001a:  stsfld     0x04000004
                           IL_001f:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000009
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x06000005
+                          IL_000c:  throw
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000009
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000002
+                          IL_000f:  ret
                         }
                         {
                           // Code size       11 (0xb)
                           .maxstack  8
-                          IL_0000:  newobj     0x06000006
-                          IL_0005:  stsfld     0x04000002
+                          IL_0000:  newobj     0x06000007
+                          IL_0005:  stsfld     0x04000003
                           IL_000a:  ret
                         }
                         {
@@ -6310,7 +6486,8 @@ class C
                         }
                         """);
                     })
-                .AddGeneration( // resume capture
+                .AddGeneration(
+                    // 2: resume capture
                     source: """
                     using System;
                     class C
@@ -6329,9 +6506,13 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<>c__DisplayClass0_0#2, <>c}",
                             "C.<>c: {<>9__0_0#1, <F>b__0_0#1}",
                             "C.<>c__DisplayClass0_0#2: {x, <F>b__0#2}");
+
+                        // <HotReloadException> was emitted in previous generation and TypeRef is emitted to the current one:
+                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Console");
 
                         g.VerifyMethodDefNames("F", "<F>b__0_0#1", ".ctor", "<F>b__0#2");
 
@@ -6340,27 +6521,28 @@ class C
                         {
                           // Code size       16 (0x10)
                           .maxstack  2
-                          IL_0000:  newobj     0x06000008
+                          IL_0000:  newobj     0x06000009
                           IL_0005:  stloc.2
                           IL_0006:  nop
                           IL_0007:  ldloc.2
                           IL_0008:  ldc.i4.1
-                          IL_0009:  stfld      0x04000004
+                          IL_0009:  stfld      0x04000005
                           IL_000e:  nop
                           IL_000f:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       12 (0xc)
                           .maxstack  8
                           IL_0000:  ldstr      0x700001F5
-                          IL_0005:  newobj     0x0A00000D
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.m1
+                          IL_0006:  newobj     0x06000005
+                          IL_000b:  throw
                         }
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  call       0x0A00000E
+                          IL_0001:  call       0x0A00000D
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -6368,10 +6550,10 @@ class C
                           // Code size       15 (0xf)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000004
+                          IL_0001:  ldfld      0x04000005
                           IL_0006:  ldc.i4.3
                           IL_0007:  add
-                          IL_0008:  call       0x0A00000F
+                          IL_0008:  call       0x0A00000E
                           IL_000d:  nop
                           IL_000e:  ret
                         }
@@ -6454,9 +6636,10 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<F>g__L|0_0#1, <F>g__L|0_1#1}");
 
-                        g.VerifyMethodDefNames("F", "<F>g__L|0_0", "<F>g__L|0_1", "<F>g__L|0_0#1", "<F>g__L|0_1#1");
+                        g.VerifyMethodDefNames("F", "<F>g__L|0_0", "<F>g__L|0_1", "<F>g__L|0_0#1", "<F>g__L|0_1#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -6479,24 +6662,26 @@ class C
                           IL_000d:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000008
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x06000007
+                          IL_000c:  throw
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       12 (0xc)
                           .maxstack  8
                           IL_0000:  ldstr      0x700001F4
-                          IL_0005:  newobj     0x0A000008
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.m1
+                          IL_0006:  newobj     0x06000007
+                          IL_000b:  throw
                         }
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldc.i4.1
-                          IL_0001:  call       0x0A000009
+                          IL_0001:  call       0x0A000008
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -6504,9 +6689,21 @@ class C
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldc.i4.2
-                          IL_0001:  call       0x0A000009
+                          IL_0001:  call       0x0A000008
                           IL_0006:  nop
                           IL_0007:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000009
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000003
+                          IL_000f:  ret
                         }
                         """);
                     })
@@ -6579,6 +6776,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -6601,10 +6799,11 @@ class C
                         // Static lambda is reused.
                         // A new display class and method is generated for lambda that captured x.
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<>c}",
                             "C.<>c: {<>9__1_0#1, <>9__1_1, <F>b__1_0#1, <F>b__1_1}");
 
-                        g.VerifyMethodDefNames("F", "<F>b__1_0", "<F>b__1_1", "<F>b__1_0#1");
+                        g.VerifyMethodDefNames("F", "<F>b__1_0", "<F>b__1_1", ".ctor", "<F>b__1_0#1");
 
                         g.VerifyIL(
                         """
@@ -6612,12 +6811,12 @@ class C
                           // Code size       58 (0x3a)
                           .maxstack  8
                           IL_0000:  nop
-                          IL_0001:  ldsfld     0x04000004
+                          IL_0001:  ldsfld     0x04000005
                           IL_0006:  brtrue.s   IL_001d
                           IL_0008:  ldsfld     0x04000002
-                          IL_000d:  ldftn      0x06000007
+                          IL_000d:  ldftn      0x06000008
                           IL_0013:  newobj     0x0A000009
-                          IL_0018:  stsfld     0x04000004
+                          IL_0018:  stsfld     0x04000005
                           IL_001d:  ldsfld     0x04000003
                           IL_0022:  brtrue.s   IL_0039
                           IL_0024:  ldsfld     0x04000002
@@ -6627,25 +6826,38 @@ class C
                           IL_0039:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A00000A
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x06000007
+                          IL_000c:  throw
                         }
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldc.i4.1
-                          IL_0001:  call       0x0A00000B
+                          IL_0001:  call       0x0A00000A
                           IL_0006:  nop
                           IL_0007:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A00000B
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000004
+                          IL_000f:  ret
                         }
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldc.i4.0
-                          IL_0001:  call       0x0A00000B
+                          IL_0001:  call       0x0A00000A
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -6740,9 +6952,10 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<F>g__L1|1_0#1, <F>g__L2|1_1}");
 
-                        g.VerifyMethodDefNames("F", "<F>g__L1|1_0", "<F>g__L2|1_1", "<F>g__L1|1_0#1");
+                        g.VerifyMethodDefNames("F", "<F>g__L1|1_0", "<F>g__L2|1_1", "<F>g__L1|1_0#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -6755,17 +6968,18 @@ class C
                           IL_0003:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000008
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x06000006
+                          IL_000c:  throw
                         }
                         {
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldc.i4.1
-                          IL_0001:  call       0x0A000009
+                          IL_0001:  call       0x0A000008
                           IL_0006:  nop
                           IL_0007:  ret
                         }
@@ -6773,9 +6987,21 @@ class C
                           // Code size        8 (0x8)
                           .maxstack  8
                           IL_0000:  ldc.i4.0
-                          IL_0001:  call       0x0A000009
+                          IL_0001:  call       0x0A000008
                           IL_0006:  nop
                           IL_0007:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000009
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000002
+                          IL_000f:  ret
                         }
                         """);
                     })
@@ -6801,6 +7027,7 @@ class C
                     {
                     })
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -6824,6 +7051,8 @@ class C
                             "C.<>c__DisplayClass0#1_0#1: {x, <F>b__0#1}");
 
                         g.VerifyMethodDefNames("F", ".ctor", "<F>b__0#1");
+
+                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Console");
 
                         g.VerifyIL(
                         """
@@ -6858,7 +7087,8 @@ class C
                         }
                         """);
                     })
-                .AddGeneration( // remove closure
+                .AddGeneration(
+                    // 2: remove closure
                     source: """
                     using System;
                     class C
@@ -6876,10 +7106,14 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<>c__DisplayClass0#1_0#1}",
                             "C.<>c__DisplayClass0#1_0#1: {x, <F>b__0#1}");
 
-                        g.VerifyMethodDefNames("F", "<F>b__0#1");
+                        // <HotReloadException> is emitted as a definition in this generation
+                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception");
+
+                        g.VerifyMethodDefNames("F", "<F>b__0#1", ".ctor");
 
                         g.VerifyIL("""
                         {
@@ -6891,11 +7125,24 @@ class C
                           IL_0003:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       12 (0xc)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000009
-                          IL_0005:  newobj     0x0A000008
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.m1
+                          IL_0006:  newobj     0x06000005
+                          IL_000b:  throw
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000009
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000002
+                          IL_000f:  ret
                         }
                         """);
                     })
@@ -6921,6 +7168,7 @@ class C
                     {
                     })
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -6968,7 +7216,8 @@ class C
                         }
                         """);
                     })
-                .AddGeneration( // remove closure
+                .AddGeneration(
+                    // 2: remove closure
                     source: """
                     using System;
                     class C
@@ -6986,10 +7235,11 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<F>g__L|0#1_0#1, <>c__DisplayClass0#1_0#1}",
                             "C.<>c__DisplayClass0#1_0#1: {x}");
 
-                        g.VerifyMethodDefNames("F", "<F>g__L|0#1_0#1");
+                        g.VerifyMethodDefNames("F", "<F>g__L|0#1_0#1", ".ctor");
 
                         g.VerifyIL("""
                         {
@@ -7001,11 +7251,24 @@ class C
                           IL_0003:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       12 (0xc)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000009
-                          IL_0005:  newobj     0x0A000007
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.m1
+                          IL_0006:  newobj     0x06000004
+                          IL_000b:  throw
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000008
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000002
+                          IL_000f:  ret
                         }
                         """);
                     })
@@ -7088,11 +7351,12 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<>c__DisplayClass1_0, <>c__DisplayClass1_1#1}",
                             "C.<>c__DisplayClass1_1#1: {x1, CS$<>8__locals1, <F>b__1#1}",
                             "C.<>c__DisplayClass1_0: {x0, <F>b__0}");
 
-                        g.VerifyMethodDefNames("F", "<F>b__0", "<F>b__1", ".ctor", "<F>b__1#1");
+                        g.VerifyMethodDefNames("F", "<F>b__0", "<F>b__1", ".ctor", ".ctor", "<F>b__1#1");
 
                         g.VerifyIL(
                         """
@@ -7106,25 +7370,25 @@ class C
                           IL_0008:  ldloc.0
                           IL_0009:  ldc.i4.0
                           IL_000a:  stfld      0x04000001
-                          IL_000f:  newobj     0x06000008
+                          IL_000f:  newobj     0x06000009
                           IL_0014:  stloc.2
                           IL_0015:  ldloc.2
                           IL_0016:  ldloc.0
-                          IL_0017:  stfld      0x04000004
+                          IL_0017:  stfld      0x04000005
                           IL_001c:  nop
                           IL_001d:  ldloc.2
                           IL_001e:  ldc.i4.0
-                          IL_001f:  stfld      0x04000003
+                          IL_001f:  stfld      0x04000004
                           IL_0024:  ldarg.0
                           IL_0025:  ldloc.2
-                          IL_0026:  ldfld      0x04000004
+                          IL_0026:  ldfld      0x04000005
                           IL_002b:  ldftn      0x06000005
                           IL_0031:  newobj     0x0A000008
                           IL_0036:  call       0x06000001
                           IL_003b:  nop
                           IL_003c:  ldarg.0
                           IL_003d:  ldloc.2
-                          IL_003e:  ldftn      0x06000009
+                          IL_003e:  ldftn      0x0600000A
                           IL_0044:  newobj     0x0A000008
                           IL_0049:  call       0x06000001
                           IL_004e:  nop
@@ -7140,11 +7404,24 @@ class C
                           IL_0006:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       12 (0xc)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000009
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.m1
+                          IL_0006:  newobj     0x06000008
+                          IL_000b:  throw
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000009
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000003
+                          IL_000f:  ret
                         }
                         {
                           // Code size        8 (0x8)
@@ -7158,10 +7435,10 @@ class C
                           // Code size       19 (0x13)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000004
+                          IL_0001:  ldfld      0x04000005
                           IL_0006:  ldfld      0x04000001
                           IL_000b:  ldarg.0
-                          IL_000c:  ldfld      0x04000003
+                          IL_000c:  ldfld      0x04000004
                           IL_0011:  add
                           IL_0012:  ret
                         }
@@ -7266,11 +7543,12 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<F>g__L1|0_0, <F>g__L2|0_1#1, <>c__DisplayClass0_0, <>c__DisplayClass0_1}",
                             "C.<>c__DisplayClass0_0: {x0}",
                             "C.<>c__DisplayClass0_1: {x1}");
 
-                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L2|0_1#1");
+                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L2|0_1#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -7300,11 +7578,12 @@ class C
                           IL_0006:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       12 (0xc)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000007
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.m1
+                          IL_0006:  newobj     0x06000006
+                          IL_000b:  throw
                         }
                         {
                           // Code size       14 (0xe)
@@ -7315,6 +7594,18 @@ class C
                           IL_0007:  ldfld      0x04000002
                           IL_000c:  add
                           IL_000d:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000007
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000003
+                          IL_000f:  ret
                         }
                         """);
                     })
@@ -7398,11 +7689,12 @@ class C
                     {
                         // closure #0 is preserved, a new closure #1 is created as it has a different parent now:
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<>c__DisplayClass1_0, <>c__DisplayClass1_1#1}",
                             "C.<>c__DisplayClass1_0: {x0, <F>b__0}",
                             "C.<>c__DisplayClass1_1#1: {x1, <F>b__1#1}");
 
-                        g.VerifyMethodDefNames("F", "<F>b__0", "<F>b__1", ".ctor", "<F>b__1#1");
+                        g.VerifyMethodDefNames("F", "<F>b__0", "<F>b__1", ".ctor", ".ctor", "<F>b__1#1");
 
                         g.VerifyIL(
                         """
@@ -7416,19 +7708,19 @@ class C
                           IL_0008:  ldloc.0
                           IL_0009:  ldc.i4.0
                           IL_000a:  stfld      0x04000001
-                          IL_000f:  newobj     0x06000008
+                          IL_000f:  newobj     0x06000009
                           IL_0014:  stloc.2
                           IL_0015:  nop
                           IL_0016:  ldloc.2
                           IL_0017:  ldc.i4.0
-                          IL_0018:  stfld      0x04000004
+                          IL_0018:  stfld      0x04000005
                           IL_001d:  ldloc.0
                           IL_001e:  ldftn      0x06000005
                           IL_0024:  newobj     0x0A000008
                           IL_0029:  call       0x06000001
                           IL_002e:  nop
                           IL_002f:  ldloc.2
-                          IL_0030:  ldftn      0x06000009
+                          IL_0030:  ldftn      0x0600000A
                           IL_0036:  newobj     0x0A000008
                           IL_003b:  call       0x06000001
                           IL_0040:  nop
@@ -7444,11 +7736,24 @@ class C
                           IL_0006:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       12 (0xc)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000009
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.m1
+                          IL_0006:  newobj     0x06000008
+                          IL_000b:  throw
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000009
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000004
+                          IL_000f:  ret
                         }
                         {
                           // Code size        8 (0x8)
@@ -7462,7 +7767,7 @@ class C
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000004
+                          IL_0001:  ldfld      0x04000005
                           IL_0006:  ret
                         }
                         """);
@@ -7569,11 +7874,12 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<F>g__L1|0_0, <F>g__L2|0_1#1, <>c__DisplayClass0_0, <>c__DisplayClass0_1}",
                             "C.<>c__DisplayClass0_1: {x1}",
                             "C.<>c__DisplayClass0_0: {x0}");
 
-                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L2|0_1#1");
+                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L2|0_1#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -7603,11 +7909,12 @@ class C
                           IL_0006:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       12 (0xc)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000007
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.m1
+                          IL_0006:  newobj     0x06000006
+                          IL_000b:  throw
                         }
                         {
                           // Code size        7 (0x7)
@@ -7615,6 +7922,18 @@ class C
                           IL_0000:  ldarg.0
                           IL_0001:  ldfld      0x04000002
                           IL_0006:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000007
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000003
+                          IL_000f:  ret
                         }
                         """);
                     })
@@ -7683,6 +8002,7 @@ class C
                     {
                         // closure #0 is preserved, new closures #1 and #2 are created:
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<>c__DisplayClass1_0, <>c__DisplayClass1_1#1, <>c__DisplayClass1_2#1}",
                             "C.<>c__DisplayClass1_0: {x, <F>b__0}",
                             "C.<>c__DisplayClass1_1#1: {y, CS$<>8__locals1}",
@@ -7692,6 +8012,7 @@ class C
                             "F",
                             "<F>b__0",
                             "<F>b__1",
+                            ".ctor",
                             ".ctor",
                             ".ctor",
                             "<F>b__1#1",
@@ -7708,38 +8029,38 @@ class C
                           IL_0008:  ldloc.0
                           IL_0009:  ldc.i4.1
                           IL_000a:  stfld      0x04000001
-                          IL_000f:  newobj     0x06000008
+                          IL_000f:  newobj     0x06000009
                           IL_0014:  stloc.3
                           IL_0015:  ldloc.3
                           IL_0016:  ldloc.0
-                          IL_0017:  stfld      0x04000005
+                          IL_0017:  stfld      0x04000006
                           IL_001c:  nop
                           IL_001d:  ldloc.3
                           IL_001e:  ldc.i4.2
-                          IL_001f:  stfld      0x04000004
-                          IL_0024:  newobj     0x06000009
+                          IL_001f:  stfld      0x04000005
+                          IL_0024:  newobj     0x0600000A
                           IL_0029:  stloc.s    V_4
                           IL_002b:  ldloc.s    V_4
                           IL_002d:  ldloc.3
-                          IL_002e:  stfld      0x04000007
+                          IL_002e:  stfld      0x04000008
                           IL_0033:  nop
                           IL_0034:  ldloc.s    V_4
                           IL_0036:  ldc.i4.3
-                          IL_0037:  stfld      0x04000006
+                          IL_0037:  stfld      0x04000007
                           IL_003c:  ldloc.s    V_4
-                          IL_003e:  ldfld      0x04000007
-                          IL_0043:  ldfld      0x04000005
+                          IL_003e:  ldfld      0x04000008
+                          IL_0043:  ldfld      0x04000006
                           IL_0048:  ldftn      0x06000005
                           IL_004e:  newobj     0x0A000008
                           IL_0053:  call       0x06000001
                           IL_0058:  nop
                           IL_0059:  ldloc.s    V_4
-                          IL_005b:  ldftn      0x0600000A
+                          IL_005b:  ldftn      0x0600000B
                           IL_0061:  newobj     0x0A000008
                           IL_0066:  call       0x06000001
                           IL_006b:  nop
                           IL_006c:  ldloc.s    V_4
-                          IL_006e:  ldftn      0x0600000B
+                          IL_006e:  ldftn      0x0600000C
                           IL_0074:  newobj     0x0A000008
                           IL_0079:  call       0x06000001
                           IL_007e:  nop
@@ -7756,11 +8077,24 @@ class C
                           IL_0006:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       12 (0xc)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000009
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.m1
+                          IL_0006:  newobj     0x06000008
+                          IL_000b:  throw
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000009
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000004
+                          IL_000f:  ret
                         }
                         {
                           // Code size        8 (0x8)
@@ -7774,10 +8108,10 @@ class C
                           // Code size       24 (0x18)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000006
+                          IL_0001:  ldfld      0x04000007
                           IL_0006:  ldarg.0
-                          IL_0007:  ldfld      0x04000007
-                          IL_000c:  ldfld      0x04000005
+                          IL_0007:  ldfld      0x04000008
+                          IL_000c:  ldfld      0x04000006
                           IL_0011:  ldfld      0x04000001
                           IL_0016:  add
                           IL_0017:  ret
@@ -7786,15 +8120,15 @@ class C
                           // Code size       36 (0x24)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000006
+                          IL_0001:  ldfld      0x04000007
                           IL_0006:  ldarg.0
-                          IL_0007:  ldfld      0x04000007
-                          IL_000c:  ldfld      0x04000005
+                          IL_0007:  ldfld      0x04000008
+                          IL_000c:  ldfld      0x04000006
                           IL_0011:  ldfld      0x04000001
                           IL_0016:  add
                           IL_0017:  ldarg.0
-                          IL_0018:  ldfld      0x04000007
-                          IL_001d:  ldfld      0x04000004
+                          IL_0018:  ldfld      0x04000008
+                          IL_001d:  ldfld      0x04000005
                           IL_0022:  add
                           IL_0023:  ret
                         }
@@ -8084,11 +8418,12 @@ class C
                     {
                         // Lambda moved from closure 0 to 1:
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<>c__DisplayClass1_0, <>c__DisplayClass1_1}",
                             "C.<>c__DisplayClass1_0: {x, <F>b__0}",
                             "C.<>c__DisplayClass1_1: {y, <F>b__1, <F>b__2#1}");
 
-                        g.VerifyMethodDefNames("F", "<F>b__0", "<F>b__2", "<F>b__1", "<F>b__2#1");
+                        g.VerifyMethodDefNames("F", "<F>b__0", "<F>b__2", "<F>b__1", ".ctor", "<F>b__2#1");
 
                         g.VerifyIL(
                         """
@@ -8118,7 +8453,7 @@ class C
                           IL_003a:  call       0x06000001
                           IL_003f:  nop
                           IL_0040:  ldloc.1
-                          IL_0041:  ldftn      0x06000009
+                          IL_0041:  ldftn      0x0600000A
                           IL_0047:  newobj     0x0A000008
                           IL_004c:  call       0x06000001
                           IL_0051:  nop
@@ -8133,11 +8468,12 @@ class C
                           IL_0006:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       12 (0xc)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000009
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.m1
+                          IL_0006:  newobj     0x06000009
+                          IL_000b:  throw
                         }
                         {
                           // Code size        7 (0x7)
@@ -8145,6 +8481,18 @@ class C
                           IL_0000:  ldarg.0
                           IL_0001:  ldfld      0x04000002
                           IL_0006:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000009
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000003
+                          IL_000f:  ret
                         }
                         {
                           // Code size        9 (0x9)
@@ -8268,11 +8616,12 @@ class C
                     {
                         // Lambda moved from closure 0 to 1:
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<F>g__L1|0_0, <F>g__L2|0_1, <F>g__L3|0_2#1, <>c__DisplayClass0_0, <>c__DisplayClass0_1}",
                             "C.<>c__DisplayClass0_0: {x}",
                             "C.<>c__DisplayClass0_1: {y}");
 
-                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L3|0_2", "<F>g__L3|0_2#1");
+                        g.VerifyMethodDefNames("F", "<F>g__L1|0_0", "<F>g__L2|0_1", "<F>g__L3|0_2", "<F>g__L3|0_2#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -8308,11 +8657,12 @@ class C
                           IL_0006:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       12 (0xc)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000007
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.m1
+                          IL_0006:  newobj     0x06000007
+                          IL_000b:  throw
                         }
                         {
                           // Code size        9 (0x9)
@@ -8322,6 +8672,18 @@ class C
                           IL_0006:  ldc.i4.1
                           IL_0007:  add
                           IL_0008:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000007
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000003
+                          IL_000f:  ret
                         }
                         """);
                     })
@@ -8418,11 +8780,12 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<F>g__L1|1_0#1, <>c__DisplayClass1_0#1, <>c__DisplayClass1_1}",
                             "C.<>c__DisplayClass1_0#1: {x}",
                             "C.<>c__DisplayClass1_1: {y, <F>b__1, <F>b__2#1}");
 
-                        g.VerifyMethodDefNames("F", "<F>g__L1|0", "<F>b__2", "<F>b__1", "<F>g__L1|1_0#1", "<F>b__2#1");
+                        g.VerifyMethodDefNames("F", "<F>g__L1|0", "<F>b__2", "<F>b__1", "<F>g__L1|1_0#1", ".ctor", "<F>b__2#1");
 
                         g.VerifyIL(
                         """
@@ -8432,7 +8795,7 @@ class C
                           IL_0000:  nop
                           IL_0001:  ldloca.s   V_2
                           IL_0003:  ldc.i4.1
-                          IL_0004:  stfld      0x04000003
+                          IL_0004:  stfld      0x04000004
                           IL_0009:  newobj     0x06000007
                           IL_000e:  stloc.1
                           IL_000f:  nop
@@ -8446,7 +8809,7 @@ class C
                           IL_0024:  call       0x06000001
                           IL_0029:  nop
                           IL_002a:  ldloc.1
-                          IL_002b:  ldftn      0x0600000A
+                          IL_002b:  ldftn      0x0600000B
                           IL_0031:  newobj     0x0A000008
                           IL_0036:  call       0x06000001
                           IL_003b:  nop
@@ -8454,18 +8817,20 @@ class C
                           IL_003d:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000009
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x0600000A
+                          IL_000c:  throw
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       12 (0xc)
                           .maxstack  8
                           IL_0000:  ldstr      0x700001F4
-                          IL_0005:  newobj     0x0A000009
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.m1
+                          IL_0006:  newobj     0x0600000A
+                          IL_000b:  throw
                         }
                         {
                           // Code size        7 (0x7)
@@ -8478,8 +8843,20 @@ class C
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000003
+                          IL_0001:  ldfld      0x04000004
                           IL_0006:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000009
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000003
+                          IL_000f:  ret
                         }
                         {
                           // Code size        9 (0x9)
@@ -8605,14 +8982,14 @@ class C
                     {
                         // Lambda moved from closure 0 to 1:
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<F>g__L1|1_0, <>c__DisplayClass1_0, <>c__DisplayClass1_1}",
                             "C.<>c__DisplayClass1_0: {x}",
                             "C.<>c__DisplayClass1_1: {y, <F>b__1, <F>g__L3|2#1}");
 
-                        g.VerifyMethodDefNames("F", "<F>g__L1|1_0", "<F>g__L3|1_2", "<F>b__1", "<F>g__L3|2#1");
+                        g.VerifyMethodDefNames("F", "<F>g__L1|1_0", "<F>g__L3|1_2", "<F>b__1", ".ctor", "<F>g__L3|2#1");
 
-                        g.VerifyIL(
-                        """
+                        g.VerifyIL("""
                         {
                           // Code size       45 (0x2d)
                           .maxstack  2
@@ -8644,11 +9021,12 @@ class C
                           IL_0006:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       12 (0xc)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000009
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.m1
+                          IL_0006:  newobj     0x06000008
+                          IL_000b:  throw
                         }
                         {
                           // Code size        7 (0x7)
@@ -8656,6 +9034,18 @@ class C
                           IL_0000:  ldarg.0
                           IL_0001:  ldfld      0x04000002
                           IL_0006:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000009
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000003
+                          IL_000f:  ret
                         }
                         {
                           // Code size        9 (0x9)
@@ -8827,10 +9217,11 @@ class C
                     validator: g =>
                     {
                         g.VerifySynthesizedMembers(
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "C: {<F>g__L|0_0#1, <>c__DisplayClass0_0#1}",
                             "C.<>c__DisplayClass0_0#1: {x, y}");
 
-                        g.VerifyMethodDefNames("F", "<F>g__L|0_0", "<F>g__L|0_0#1");
+                        g.VerifyMethodDefNames("F", "<F>g__L|0_0", "<F>g__L|0_0#1", ".ctor");
 
                         g.VerifyIL("""
                         {
@@ -8839,29 +9230,42 @@ class C
                           IL_0000:  nop
                           IL_0001:  ldloca.s   V_2
                           IL_0003:  ldc.i4.1
-                          IL_0004:  stfld      0x04000002
+                          IL_0004:  stfld      0x04000003
                           IL_0009:  ldloca.s   V_2
                           IL_000b:  ldc.i4.2
-                          IL_000c:  stfld      0x04000003
+                          IL_000c:  stfld      0x04000004
                           IL_0011:  nop
                           IL_0012:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000007
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x06000005
+                          IL_000c:  throw
                         }
                         {
                           // Code size       14 (0xe)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000002
+                          IL_0001:  ldfld      0x04000003
                           IL_0006:  ldarg.0
-                          IL_0007:  ldfld      0x04000003
+                          IL_0007:  ldfld      0x04000004
                           IL_000c:  add
                           IL_000d:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000007
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000002
+                          IL_000f:  ret
                         }
                         """);
                     })
@@ -9029,11 +9433,12 @@ class C
                     {
                         g.VerifySynthesizedMembers(displayTypeKind: true,
                         [
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "struct C.<>c__DisplayClass1_0#1: {x}",
                             "class C: {<F>g__L|1_0#1, <>c__DisplayClass1_0#1}"
                         ]);
 
-                        g.VerifyMethodDefNames("F", "<F>g__L|0", "<F>b__1", "<F>g__L|1_0#1");
+                        g.VerifyMethodDefNames("F", "<F>g__L|0", "<F>b__1", "<F>g__L|1_0#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -9043,30 +9448,44 @@ class C
                           IL_0000:  nop
                           IL_0001:  ldloca.s   V_1
                           IL_0003:  ldc.i4.1
-                          IL_0004:  stfld      0x04000002
+                          IL_0004:  stfld      0x04000003
                           IL_0009:  nop
                           IL_000a:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000008
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x06000008
+                          IL_000c:  throw
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       12 (0xc)
                           .maxstack  8
                           IL_0000:  ldstr      0x700001F4
-                          IL_0005:  newobj     0x0A000008
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.m1
+                          IL_0006:  newobj     0x06000008
+                          IL_000b:  throw
                         }
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000002
+                          IL_0001:  ldfld      0x04000003
                           IL_0006:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000008
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000002
+                          IL_000f:  ret
                         }
                         """);
 
@@ -9074,15 +9493,21 @@ class C
                         [
                             Row(2, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                             Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.Default),
                             Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                             Row(2, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(3, TableIndex.Field, EditAndContinueOperation.Default),
                             Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
                             Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                            Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
                             Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(6, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(7, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                             Row(2, TableIndex.NestedClass, EditAndContinueOperation.Default)
                         ]);
                     })
@@ -9139,11 +9564,12 @@ class C
                     {
                         g.VerifySynthesizedMembers(displayTypeKind: true,
                         [
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "struct C.<>c__DisplayClass1_0#1: {x}",
                             "class C: {<F>g__L|1_0#1, <>c__DisplayClass1_0#1}"
                         ]);
 
-                        g.VerifyMethodDefNames("F", "<F>g__L|0", "<F>g__L|1_0#1");
+                        g.VerifyMethodDefNames("F", "<F>g__L|0", "<F>g__L|1_0#1", ".ctor");
 
                         g.VerifyIL(
                         """
@@ -9153,23 +9579,36 @@ class C
                           IL_0000:  nop
                           IL_0001:  ldloca.s   V_1
                           IL_0003:  ldc.i4.1
-                          IL_0004:  stfld      0x04000002
+                          IL_0004:  stfld      0x04000003
                           IL_0009:  nop
                           IL_000a:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000008
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x06000007
+                          IL_000c:  throw
                         }
                         {
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000002
+                          IL_0001:  ldfld      0x04000003
                           IL_0006:  ret
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000008
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000002
+                          IL_000f:  ret
                         }
                         """);
                     })
@@ -9204,6 +9643,7 @@ class C
                     })
 
                 .AddGeneration(
+                    // 1
                     source: """
                     using System;
                     class C
@@ -9226,37 +9666,52 @@ class C
                     {
                         g.VerifySynthesizedMembers(displayTypeKind: true,
                         [
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "class C: {<>c__DisplayClass1_0#1}",
                             "class C.<>c__DisplayClass1_0#1: {x, <F>g__L|0#1, <F>b__1#1}"
                         ]);
 
-                        g.VerifyMethodDefNames("F", "<F>g__L|1_0", ".ctor", "<F>g__L|0#1", "<F>b__1#1");
+                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception", "Func`1");
 
-                        g.VerifyIL(
-                        """
+                        g.VerifyMethodDefNames("F", "<F>g__L|1_0", ".ctor", ".ctor", "<F>g__L|0#1", "<F>b__1#1");
+
+                        g.VerifyIL("""
                         {
                           // Code size       34 (0x22)
                           .maxstack  2
-                          IL_0000:  newobj     0x06000005
+                          IL_0000:  newobj     0x06000006
                           IL_0005:  stloc.1
                           IL_0006:  nop
                           IL_0007:  ldloc.1
                           IL_0008:  ldc.i4.1
-                          IL_0009:  stfld      0x04000002
+                          IL_0009:  stfld      0x04000003
                           IL_000e:  nop
                           IL_000f:  ldloc.1
-                          IL_0010:  ldftn      0x06000007
+                          IL_0010:  ldftn      0x06000008
                           IL_0016:  newobj     0x0A000007
                           IL_001b:  call       0x06000001
                           IL_0020:  nop
                           IL_0021:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000008
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x06000005
+                          IL_000c:  throw
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000008
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000002
+                          IL_000f:  ret
                         }
                         {
                           // Code size        8 (0x8)
@@ -9270,7 +9725,7 @@ class C
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000002
+                          IL_0001:  ldfld      0x04000003
                           IL_0006:  ret
                         }
                         """);
@@ -9328,37 +9783,53 @@ class C
                     {
                         g.VerifySynthesizedMembers(displayTypeKind: true,
                         [
+                            "System.Runtime.CompilerServices.HotReloadException",
                             "class C: {<>c__DisplayClass1_0#1}",
                             "class C.<>c__DisplayClass1_0#1: {x, <F>g__L|0#1}"
                         ]);
 
-                        g.VerifyMethodDefNames("F", "<F>g__L|1_0", ".ctor", "<F>g__L|0#1");
+                        g.VerifyMethodDefNames("F", "<F>g__L|1_0", ".ctor", ".ctor", "<F>g__L|0#1");
+
+                        g.VerifyTypeRefNames("Object", "CompilerGeneratedAttribute", "Exception", "Func`1");
 
                         g.VerifyIL(
                         """
-                        {
+                         {
                           // Code size       34 (0x22)
                           .maxstack  2
-                          IL_0000:  newobj     0x06000005
+                          IL_0000:  newobj     0x06000006
                           IL_0005:  stloc.1
                           IL_0006:  nop
                           IL_0007:  ldloc.1
                           IL_0008:  ldc.i4.1
-                          IL_0009:  stfld      0x04000002
+                          IL_0009:  stfld      0x04000003
                           IL_000e:  nop
                           IL_000f:  ldloc.1
-                          IL_0010:  ldftn      0x06000006
+                          IL_0010:  ldftn      0x06000007
                           IL_0016:  newobj     0x0A000007
                           IL_001b:  call       0x06000001
                           IL_0020:  nop
                           IL_0021:  ret
                         }
                         {
-                          // Code size       11 (0xb)
+                          // Code size       13 (0xd)
                           .maxstack  8
                           IL_0000:  ldstr      0x70000005
-                          IL_0005:  newobj     0x0A000008
-                          IL_000a:  throw
+                          IL_0005:  ldc.i4.s   -5
+                          IL_0007:  newobj     0x06000005
+                          IL_000c:  throw
+                        }
+                        {
+                          // Code size       16 (0x10)
+                          .maxstack  8
+                          IL_0000:  ldarg.0
+                          IL_0001:  ldarg.1
+                          IL_0002:  call       0x0A000008
+                          IL_0007:  nop
+                          IL_0008:  ldarg.0
+                          IL_0009:  ldarg.2
+                          IL_000a:  stfld      0x04000002
+                          IL_000f:  ret
                         }
                         {
                           // Code size        8 (0x8)
@@ -9372,7 +9843,7 @@ class C
                           // Code size        7 (0x7)
                           .maxstack  8
                           IL_0000:  ldarg.0
-                          IL_0001:  ldfld      0x04000002
+                          IL_0001:  ldfld      0x04000003
                           IL_0006:  ret
                         }
                         """);

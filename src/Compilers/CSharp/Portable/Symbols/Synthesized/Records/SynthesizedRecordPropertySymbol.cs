@@ -30,10 +30,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 modifiers: DeclarationModifiers.Public | (isOverride ? DeclarationModifiers.Override : DeclarationModifiers.None),
                 hasInitializer: true, // Synthesized record properties always have a synthesized initializer
                 hasExplicitAccessMod: false,
-                isAutoProperty: true,
+                hasAutoPropertyGet: true,
+                hasAutoPropertySet: true,
                 isExpressionBodied: false,
-                isInitOnly: ShouldUseInit(containingType),
                 accessorsHaveImplementation: true,
+                usesFieldKeyword: false,
                 RefKind.None,
                 backingParameter.Name,
                 indexerNameAttributeLists: new SyntaxList<AttributeListSyntax>(),

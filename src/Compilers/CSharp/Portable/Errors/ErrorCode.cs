@@ -1185,7 +1185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // ERR_NameIllegallyOverrides3 = 7040, // Not used anymore due to 'Single Meaning' relaxation changes
         ERR_ResourceFileNameNotUnique = 7041,
         ERR_DllImportOnGenericMethod = 7042,
-        ERR_EncUpdateFailedMissingAttribute = 7043,
+        ERR_EncUpdateFailedMissingSymbol = 7043,
 
         ERR_ParameterNotValidForType = 7045,
         ERR_AttributeParameterRequired1 = 7046,
@@ -2292,7 +2292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // available 9219,
         // available 9220,
         // available 9221,
-        // available 9222,
+        ERR_CollectionInitializerInfiniteChainOfAddCalls = 9222,
         ERR_ParamsCollectionInfiniteChainOfConstructorCalls = 9223,
         ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember = 9224,
         ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember = 9225,
@@ -2336,13 +2336,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_PartialPropertySignatureDifference = 9256,
         ERR_PartialPropertyRequiredDifference = 9257,
 
-        INF_IdentifierConflictWithContextualKeyword = 9258,
+        WRN_FieldIsAmbiguous = 9258,
 
         ERR_InlineArrayAttributeOnRecord = 9259,
         ERR_FeatureNotAvailableInVersion13 = 9260,
 
         ERR_CannotApplyOverloadResolutionPriorityToOverride = 9261,
         ERR_CannotApplyOverloadResolutionPriorityToMember = 9262,
+        ERR_PartialPropertyDuplicateInitializer = 9263,
+
+        WRN_UninitializedNonNullableBackingField = 9264,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

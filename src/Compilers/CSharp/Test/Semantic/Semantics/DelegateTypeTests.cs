@@ -1378,7 +1378,7 @@ static class B
             // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
             Assert.Null(symbolInfo.Symbol);
 
-            Assert.Equal(["void System.Object.F(System.Object y)", "void System.Object.F<T>(T y)"],
+            AssertEx.Equal(["void System.Object.F(System.Object y)", "void System.Object.F<T>(T y)"],
                 model.GetMemberGroup(expr).ToTestDisplayStrings());
         }
 
@@ -1421,7 +1421,7 @@ static class B
             // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
             Assert.Null(symbolInfo.Symbol);
 
-            Assert.Equal(["void System.Object.F<T>()", "void System.Object.F()"],
+            AssertEx.Equal(["void System.Object.F<T>()", "void System.Object.F()"],
                 model.GetMemberGroup(expr).ToTestDisplayStrings());
         }
 
@@ -2084,7 +2084,7 @@ public static class E
             Assert.Null(typeInfo.Type);
             Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
             Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-            Assert.Equal(["void C.M()", "void C.M(System.Object o)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void C.M()", "void C.M(System.Object o)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
@@ -2149,7 +2149,7 @@ namespace N
             Assert.Null(typeInfo.Type);
             Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-            Assert.Equal(["void C.M()", "void C.M()", "void C.M(System.Object o)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void C.M()", "void C.M()", "void C.M(System.Object o)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
@@ -2212,7 +2212,7 @@ namespace N
             Assert.True(typeInfo.ConvertedType!.IsErrorType());
             Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
 
-            Assert.Equal(["void C.M()", "void C.M(System.Object o)", "void C.M(System.Object o)"],
+            AssertEx.Equal(["void C.M()", "void C.M(System.Object o)", "void C.M(System.Object o)"],
                 model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
@@ -2270,7 +2270,7 @@ namespace N
             Assert.Null(typeInfo.Type);
             Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
             Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-            Assert.Equal(["void C.M()", "void C.M(System.Object o)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void C.M()", "void C.M(System.Object o)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
@@ -2319,7 +2319,7 @@ namespace N
             Assert.Null(typeInfo.Type);
             Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
             Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-            Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
@@ -2359,7 +2359,7 @@ public static class E
             Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
             // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
             Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-            Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
@@ -2402,7 +2402,7 @@ public static class E
             Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
             // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
             Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-            Assert.Equal(["void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
@@ -2453,7 +2453,7 @@ public static class E
             Assert.Null(typeInfo.Type);
             Assert.True(typeInfo.ConvertedType!.IsErrorType());
             Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-            Assert.Equal(["void C.M(C c)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void C.M(C c)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
@@ -2494,7 +2494,7 @@ public static class E
             Assert.Null(typeInfo.Type);
             Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
             Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-            Assert.Equal(["void C.M<T>()", "void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void C.M<T>()", "void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
@@ -2542,7 +2542,7 @@ namespace N
             Assert.Null(typeInfo.Type);
             Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
             Assert.Equal("void C.M()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-            Assert.Equal(["void C.M<T>()", "void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void C.M<T>()", "void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
@@ -2594,7 +2594,7 @@ namespace N
             Assert.Null(typeInfo.Type);
             Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
             Assert.Equal("void C.M<C>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-            Assert.Equal(["void C.M<C>()", "void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void C.M<C>()", "void C.M()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
@@ -2640,7 +2640,7 @@ public static class E
             Assert.Null(typeInfo.Type);
             Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
             Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-            Assert.Equal(["void C.M<System.Int32, System.Int32>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void C.M<System.Int32, System.Int32>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
@@ -2688,7 +2688,7 @@ namespace N
             Assert.Null(typeInfo.Type);
             Assert.Equal("System.Action", typeInfo.ConvertedType!.ToTestDisplayString());
             Assert.Equal("void C.M<System.Int32, System.Int32>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-            Assert.Equal(["void C.M<System.Int32, System.Int32>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void C.M<System.Int32, System.Int32>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
@@ -2735,7 +2735,7 @@ public static class E
             Assert.Null(typeInfo.Type);
             Assert.True(typeInfo.ConvertedType!.IsErrorType());
             Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-            Assert.Equal(["void C.M<T>()", "void C.M<T, U>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void C.M<T>()", "void C.M<T, U>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
@@ -2779,7 +2779,7 @@ public static class DExt
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "c.M");
             // https://github.com/dotnet/roslyn/issues/52870: GetSymbolInfo() should return resolved method from method group.
             Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-            Assert.Equal(["void C.M()", "void C.M(System.Object o)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void C.M()", "void C.M(System.Object o)"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/csharplang/issues/7364")]
@@ -2829,7 +2829,7 @@ static class E
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
             Assert.Equal("void System.Object.M<System.Object>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-            Assert.Equal(["void System.Object.M<System.Object>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void System.Object.M<System.Object>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
@@ -2859,7 +2859,7 @@ static class E
             Assert.Equal("void C<System.Int32, System.Int64>.M<System.Int32, System.Int64>()",
                 model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
 
-            Assert.Equal(["void C<System.Int32, System.Int64>.M<System.Int32, System.Int64>()"],
+            AssertEx.Equal(["void C<System.Int32, System.Int64>.M<System.Int32, System.Int64>()"],
                  model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
@@ -2888,7 +2888,7 @@ static class E
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M");
             Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
-            Assert.Equal(["void C.M<T>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void C.M<T>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
@@ -2917,7 +2917,7 @@ public class C
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<int>");
             Assert.Equal("void C.M<System.Int32>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
 
-            Assert.Equal(["void C.M<System.Int32>()", "void C.M<System.Int32>(System.Object o)"],
+            AssertEx.Equal(["void C.M<System.Int32>()", "void C.M<System.Int32>(System.Object o)"],
                 model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
@@ -2948,7 +2948,7 @@ public class C
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object?>");
             Assert.Null(model.GetSymbolInfo(memberAccess).Symbol);
 
-            Assert.Equal(["void C.M<System.Object?>()", "void C.M<System.Object?>(System.Object o)"],
+            AssertEx.Equal(["void C.M<System.Object?>()", "void C.M<System.Object?>(System.Object o)"],
                 model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
@@ -2980,7 +2980,7 @@ public class C
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new C().M<object?>");
             Assert.Equal("void C.M<System.Object?>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-            Assert.Equal(["void C.M<System.Object?>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void C.M<System.Object?>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
@@ -3011,7 +3011,7 @@ static class E2
             var model = comp.GetSemanticModel(tree);
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M");
             Assert.Equal("void System.Object.M<System.Object>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
-            Assert.Equal(["void System.Object.M<System.Object>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
+            AssertEx.Equal(["void System.Object.M<System.Object>()"], model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69222")]
@@ -3043,7 +3043,7 @@ static class E2
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().M<object>");
             Assert.Equal("void System.Object.M<System.Object>()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
 
-            Assert.Equal(["void System.Object.M<System.Object>()", "void System.Object.M<System.Object>(System.Object ignored)"],
+            AssertEx.Equal(["void System.Object.M<System.Object>()", "void System.Object.M<System.Object>(System.Object ignored)"],
                 model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
@@ -3078,7 +3078,7 @@ static class A
             var memberAccess = GetSyntax<MemberAccessExpressionSyntax>(tree, "new object().F");
             Assert.Equal("void System.Object.F()", model.GetSymbolInfo(memberAccess).Symbol.ToTestDisplayString());
 
-            Assert.Equal(["void System.Object.F<System.Object>()", "void System.Object.F()"],
+            AssertEx.Equal(["void System.Object.F<System.Object>()", "void System.Object.F()"],
                 model.GetMemberGroup(memberAccess).ToTestDisplayStrings());
         }
 
