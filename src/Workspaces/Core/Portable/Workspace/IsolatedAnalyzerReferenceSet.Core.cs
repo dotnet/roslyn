@@ -184,6 +184,11 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
         SolutionServices solutionServices,
         CancellationToken cancellationToken)
     {
+        // Fallback to stock behavior if the reloading option is disabled.
+        var optionsService = solutionServices.GetRequiredService<IWorkspaceConfigurationService>();
+        if (!optionsService.Options.ReloadChangedAnalyzerReferences)
+            return await DefaultCreateIsolatedAnalyzerReferencesAsync(references).ConfigureAwait(false);
+
         if (references.Length == 0)
             return [];
 
@@ -205,6 +210,11 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
         Func<Task<ImmutableArray<AnalyzerReference>>> getReferencesAsync,
         CancellationToken cancellationToken)
     {
+        // Fallback to stock behavior if the reloading option is disabled.
+        var optionsService = solutionServices.GetRequiredService<IWorkspaceConfigurationService>();
+        if (!optionsService.Options.ReloadChangedAnalyzerReferences)
+            return await DefaultCreateIsolatedAnalyzerReferencesAsync(getReferencesAsync).ConfigureAwait(false);
+
         if (analyzerChecksums.Children.Length == 0)
             return [];
 

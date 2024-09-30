@@ -399,5 +399,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Balanced_Run_generators_after_saving_or_building As String =
             ServicesVSResources.Balanced_Run_generators_after_saving_or_building
 
+        Public ReadOnly Property Option_Automatically_reload_updated_analyzers_and_generators As String =
+            ServicesVSResources.Automatically_reload_updated_analyzers_and_generators
     End Module
 End Namespace

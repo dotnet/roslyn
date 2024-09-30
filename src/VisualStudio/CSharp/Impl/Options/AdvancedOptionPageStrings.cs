@@ -416,5 +416,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public static string Option_Balanced_Run_generators_after_saving_or_building
             => ServicesVSResources.Balanced_Run_generators_after_saving_or_building;
+
+        public static string Option_Automatically_reload_updated_analyzers_and_generators
+            => ServicesVSResources.Automatically_reload_updated_analyzers_and_generators;
     }
 }

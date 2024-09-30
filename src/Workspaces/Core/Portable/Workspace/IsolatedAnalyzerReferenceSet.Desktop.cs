@@ -26,17 +26,17 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
         SolutionServices solutionServices,
         CancellationToken cancellationToken)
     {
-        return ValueTaskFactory.FromResult(references);
+        return DefaultCreateIsolatedAnalyzerReferencesAsync(references);
     }
 
-    public static async partial ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
+    public static partial ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
         bool useAsync,
         ChecksumCollection analyzerChecksums,
         SolutionServices solutionServices,
         Func<Task<ImmutableArray<AnalyzerReference>>> getReferencesAsync,
         CancellationToken cancellationToken)
     {
-        return await getReferencesAsync().ConfigureAwait(false);
+        return DefaultCreateIsolatedAnalyzerReferencesAsync(getReferencesAsync);
     }
 }
 

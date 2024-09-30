@@ -68,7 +68,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(DisplayDiagnosticsInline, InlineDiagnosticsOptionsStorage.EnableInlineDiagnostics, LanguageNames.VisualBasic)
             BindToOption(at_the_end_of_the_line_of_code, InlineDiagnosticsOptionsStorage.Location, InlineDiagnosticsLocations.PlacedAtEndOfCode, LanguageNames.VisualBasic)
             BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptionsStorage.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.VisualBasic)
+
             BindToOption(Run_code_analysis_in_separate_process, RemoteHostOptionsStorage.OOP64Bit)
+            BindToOption(Automatically_reload_updated_analyzers_and_generators, WorkspaceConfigurationOptionsStorage.ReloadChangedAnalyzerReferences,
+                         Function()
+                             ' If the option has Not been set by the user, check if the option Is enabled from
+                             ' experimentation. If so, default to that.
+                             Return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.ReloadChangedAnalyzerReferencesFeatureFlag)
+                         End Function)
 
             BindToOption(Enable_file_logging_for_diagnostics, VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics)
             BindToOption(Skip_analyzers_for_implicitly_triggered_builds, FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds)
@@ -85,6 +92,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                              ' us to only run when builds complete, then we're not in automatic mode.  So we `!` the result.
                              Return Not optionStore.GetOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag)
                          End Function)
+
             BindToOption(Balanced_Run_generators_after_saving_or_building, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced,
                          Function()
                              ' If the option hasn't been set by the user, then check the feature flag.  If the feature flag has set
@@ -189,11 +197,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             ' Document Outline
             BindToOption(EnableDocumentOutline, DocumentOutlineOptionsStorage.EnableDocumentOutline,
-                Function()
-                    ' If the option has Not been set by the user, check if the option is disabled from experimentation.
-                    ' If so, default to reflect that.
-                    Return Not optionStore.GetOption(DocumentOutlineOptionsStorage.DisableDocumentOutlineFeatureFlag)
-                End Function)
+                         Function()
+                             ' If the option has Not been set by the user, check if the option is disabled from experimentation.
+                             ' If so, default to reflect that.
+                             Return Not optionStore.GetOption(DocumentOutlineOptionsStorage.DisableDocumentOutlineFeatureFlag)
+                         End Function)
         End Sub
 
         ' Since this dialog is constructed once for the lifetime of the application and VS Theme can be changed after the application has started,
@@ -250,6 +258,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             Collapse_imports_on_file_open.IsEnabled = False
             Collapse_sourcelink_embedded_decompiled_files_on_open.IsEnabled = False
             Collapse_metadata_signature_files_on_open.IsEnabled = False
+        End Sub
+
+        Private Sub RunCodeAnalysisInSeparateProcess_Checked(sender As Object, e As RoutedEventArgs)
+            Automatically_reload_updated_analyzers_and_generators.IsEnabled = True
+        End Sub
+
+        Private Sub RunCodeAnalysisInSeparateProcess_Unchecked(sender As Object, e As RoutedEventArgs)
+            Automatically_reload_updated_analyzers_and_generators.IsEnabled = False
         End Sub
     End Class
 End Namespace
