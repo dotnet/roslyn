@@ -1154,7 +1154,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
         <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="needs-review-translation">Funkcja eksperymentalna „interceptorów” nie jest włączona w tej przestrzeni nazw. Dodaj „{0}” do swojego projektu.</target>
+        <target state="new">The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
@@ -3640,7 +3640,7 @@
         <target state="translated">
                              Opcje kompilatora języka Visual C#
 
-                       - PLIKI WYJŚCIOWE -
+                       - PLIKI WYJŚCIOWE - 
 -out:&lt;file&gt;                   Określanie nazwy pliku wyjściowego (domyślnie: nazwa podstawowa
                               pliku z klasą główną lub pierwszym plikiem)
 -target:exe                   Kompiluj plik wykonywalny konsoli (domyślnie) (skrócona
@@ -12176,7 +12176,7 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
         <source>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</source>
-        <target state="needs-review-translation">Tylko właściwości zaimplementowane automatycznie mogą mieć inicjatory.</target>
+        <target state="new">Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyMustHaveGetAccessor">
