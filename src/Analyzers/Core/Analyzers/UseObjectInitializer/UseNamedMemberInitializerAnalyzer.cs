@@ -57,7 +57,7 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
             return default;
 
         this.Initialize(state.Value, objectCreationExpression, analyzeForCollectionExpression: false);
-        return this.AnalyzeWorker(cancellationToken).postMatches;
+        return this.AnalyzeWorker(cancellationToken).PostMatches;
     }
 
     protected sealed override bool ShouldAnalyze(CancellationToken cancellationToken)
