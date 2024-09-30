@@ -13,6 +13,7 @@
              Focusable="True"
              x:Name="dashboard"
              AutomationProperties.AutomationId="Microsoft.CodeAnalysis.EditorFeatures.InlineRenameDialog" 
+             Visibility="{Binding Path=Visibility}"
              UseLayoutRounding="True">
     <!-- 
         !!!IMPORTANT!!! 
