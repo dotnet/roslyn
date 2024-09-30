@@ -44,34 +44,18 @@ internal sealed partial class SolutionState
 
         public int GetHashCode([DisallowNull] string obj)
         {
-            if (TryGetCachedHashCode(obj, out var hashCode))
-                return hashCode;
+            var (lastString, hash) = s_data.Value;
+            if (ReferenceEquals(lastString, obj))
+                return hash;
 
             // Hashing a different string than last time.  Compute the hash and cache the value.
 
             // Specialized impl of OrdinalIgnoreCase.GetHashCode that is faster for the common case of an all-ASCII
             // string. Falls back to normal OrdinalIgnoreCase.GetHashCode for the uncommon case.
-            hashCode = GetNonRandomizedHashCodeOrdinalIgnoreCase(obj);
+            hash = GetNonRandomizedHashCodeOrdinalIgnoreCase(obj);
 
-            s_data.Value = (obj, hashCode);
-        }
-
-        private bool TryGetCachedHashCode(string obj, out int hashCode)
-        {
-            var (lastString, hash) = s_data.Value;
-
-            // Quickly check if this is definitely *not* trying to hash the same string that this comparer was just used
-            // to hash. If that's the case, we can avoid taking the lock and just return false immediately.  For the
-            // case when a lot of distinct strings are being hashed (say, when a dictionary is being populated), this
-            // means we only spin-wait once.
-            if (!ReferenceEquals(lastString, obj))
-            {
-                hashCode = default;
-                return false;
-            }
-
-            hashCode = hash;
-            return true;
+            s_data.Value = (obj, hash);
+            return hash;
         }
 
         // From https://github.com/dotnet/runtime/blob/5aa9687e110faa19d1165ba680e52585a822464d/src/libraries/System.Private.CoreLib/src/System/String.Comparison.cs#L921
