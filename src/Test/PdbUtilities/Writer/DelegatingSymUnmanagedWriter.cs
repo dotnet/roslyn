@@ -26,6 +26,11 @@ namespace Roslyn.Test.PdbUtilities
             set => _target.DocumentTableCapacity = value;
         }
 
+        public override void AddCompilerInfo(ushort major, ushort minor, ushort build, ushort revision, string name)
+        {
+            _target.AddCompilerInfo(major, minor, build, revision, name);
+        }
+
         public override void Dispose() => _target.Dispose();
         public override void CloseMethod() => _target.CloseMethod();
         public override void CloseScope(int endOffset) => _target.CloseScope(endOffset);

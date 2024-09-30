@@ -148,6 +148,16 @@ namespace Microsoft.Cci
 
             if (blob.Length > 0)
             {
+                const int limit = 0x10_000;
+                if (blob.Length > limit)
+                {
+                    throw new SymUnmanagedWriterException(string.Format(
+                        CodeAnalysisResources.SymWriterMetadataOverLimit,
+                        methodBody.MethodDefinition,
+                        blob.Length,
+                        limit));
+                }
+
                 _symWriter.DefineCustomMetadata(blob);
             }
 

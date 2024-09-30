@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
@@ -365,6 +366,83 @@ public class C
                 Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("xxx"));
 
             Assert.False(result.Success);
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75237")]
+        [InlineData(0x9_999)]
+        [InlineData(0x9_000)]
+        public void NativeWriterLimit_Under(int length)
+        {
+            CompileWithMockedCustomMetadata(length).Diagnostics.Verify();
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75237")]
+        [InlineData(0x10_000)]
+        [InlineData(0x20_000)]
+        public void NativeWriterLimit_Over(int length)
+        {
+            CompileWithMockedCustomMetadata(length).Diagnostics.Verify(
+                // error CS0041: Unexpected error writing debug information -- 'Insufficient memory to continue the execution of the program.'
+                Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(new OutOfMemoryException().Message).WithLocation(1, 1));
+        }
+
+        private static EmitResult CompileWithMockedCustomMetadata(int length)
+        {
+            var comp = CreateCompilation("""
+                class C
+                {
+                    void M() { }
+                }
+                """);
+            return comp.Emit(
+                peStream: new MemoryStream(),
+                metadataPEStream: null,
+                pdbStream: new MemoryStream(),
+                xmlDocumentationStream: null,
+                cancellationToken: default,
+                win32Resources: null,
+                manifestResources: null,
+                options: null,
+                debugEntryPoint: null,
+                sourceLinkStream: null,
+                embeddedTexts: null,
+                rebuildData: null,
+                testData: new CompilationTestData
+                {
+                    SymWriterFactory = metadataProvider =>
+                    {
+                        var writer = SymWriterTestUtilities.CreateUnmanagedWriter(metadataProvider);
+                        return new CustomMetadataSymUnmanagedWriter(writer, new byte[length]);
+                    },
+                });
+        }
+
+        [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/75237")]
+        public void NativeWriterLimit_EndToEnd()
+        {
+            var locals = Enumerable.Range(0, 14_000)
+                .Select(i => $"""
+                    var local{i} = {i};
+                    M2(local{i});
+                    """)
+                .Join(Environment.NewLine);
+            var source = $$"""
+                namespace N;
+                class C
+                {
+                    void M1()
+                    {
+                        {{locals}}
+                    }
+                    void M2(int x) { }
+                }
+                """;
+            CreateCompilation(source, options: TestOptions.DebugDll).VerifyEmitDiagnostics(
+                // error CS0041: Unexpected error writing debug information -- 'Cannot emit native PDB for method 'N.C.M1()' because its debug metadata size 69096 is over the limit 65536.'
+                Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(string.Format(CodeAnalysisResources.SymWriterMetadataOverLimit, "N.C.M1()", 69096, 65536)).WithLocation(1, 1));
         }
 
         [WorkItem(1067635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067635")]
