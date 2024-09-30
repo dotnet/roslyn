@@ -57,7 +57,7 @@ internal class SimplifyMethodHandler : ILspServiceDocumentRequestHandler<Simplif
         var annotatedDocument = originalDocument.WithSyntaxRoot(annotatedSyntaxRoot);
 
         // Call to the Simplifier and pass back the edits.
-        var configOptions = await originalDocument.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var configOptions = await originalDocument.GetHostAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
         var simplificationService = originalDocument.Project.Services.GetRequiredService<ISimplificationService>();
         var options = simplificationService.GetSimplifierOptions(configOptions);
         var newDocument = await Simplifier.ReduceAsync(annotatedDocument, options, cancellationToken).ConfigureAwait(false);
