@@ -57,7 +57,7 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
             return default;
 
         this.Initialize(state.Value, objectCreationExpression, analyzeForCollectionExpression: false);
-        return this.AnalyzeWorker(cancellationToken);
+        return this.AnalyzeWorker(cancellationToken).postMatches;
     }
 
     protected sealed override bool ShouldAnalyze(CancellationToken cancellationToken)
@@ -67,7 +67,8 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
     }
 
     protected sealed override bool TryAddMatches(
-        ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches,
+        ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> preMatches,
+        ArrayBuilder<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> postMatches,
         CancellationToken cancellationToken)
     {
         using var _1 = PooledHashSet<string>.GetInstance(out var seenNames);
@@ -163,7 +164,7 @@ internal abstract class AbstractUseNamedMemberInitializerAnalyzer<
             if (!seenNames.Add(identifier.ValueText))
                 break;
 
-            matches.Add(new Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>(
+            postMatches.Add(new Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>(
                 statement, leftMemberAccess, rightExpression, typeMember?.Name ?? identifier.ValueText));
         }
 
