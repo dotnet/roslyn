@@ -186,128 +186,119 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
 
         var ienumerableOfTType = compilation.IEnumerableOfTType();
 
-        using var _1 = ArrayBuilder<ExpressionSyntax>.GetInstance(out var stack);
-        stack.Push(memberAccess.Expression);
-
+        var current = memberAccess.Expression;
         var copiedData = false;
 
-        while (stack.TryPop(out var current))
+        // Methods of the form Add(...)/AddRange(...) or `ToXXX()` count as something to continue recursing down the
+        // left hand side of the expression.  In the inner expressions we can have things like `.Concat/.Append`
+        // calls as the outer expressions will realize the collection.
+        while (current is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax currentMemberAccess } currentInvocation &&
+            IsMatch(state, currentMemberAccess, currentInvocation, allowLinq: true, postMatchesInReverse, out _, cancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
+            copiedData = true;
+            current = currentMemberAccess.Expression;
+        }
 
-            // Methods of the form Add(...)/AddRange(...) or `ToXXX()` count as something to continue recursing down the
-            // left hand side of the expression.  In the inner expressions we can have things like `.Concat/.Append`
-            // calls as the outer expressions will realize the collection.
-            if (current is InvocationExpressionSyntax { Expression: MemberAccessExpressionSyntax currentMemberAccess } currentInvocation &&
-                IsMatch(state, currentMemberAccess, currentInvocation, allowLinq: true, postMatchesInReverse, out _, cancellationToken))
-            {
-                copiedData = true;
-                stack.Push(currentMemberAccess.Expression);
-                continue;
-            }
+        // `new int[] { ... }` or `new[] { ... }` is a fine base case to make a collection out of.  As arrays are
+        // always list-like this is safe to move over.
+        if (current is ArrayCreationExpressionSyntax { Initializer: var initializer } arrayCreation)
+        {
+            if (initializer is null || !IsLegalInitializer(initializer))
+                return false;
 
-            // `new int[] { ... }` or `new[] { ... }` is a fine base case to make a collection out of.  As arrays are
-            // always list-like this is safe to move over.
-            if (current is ArrayCreationExpressionSyntax { Initializer: var initializer } arrayCreation)
-            {
-                if (initializer is null || !IsLegalInitializer(initializer))
-                    return false;
+            existingInitializer = initializer;
+            return true;
+        }
 
-                existingInitializer = initializer;
-                return true;
-            }
+        if (current is ImplicitArrayCreationExpressionSyntax implicitArrayCreation)
+        {
+            if (!IsLegalInitializer(implicitArrayCreation.Initializer))
+                return false;
 
-            if (current is ImplicitArrayCreationExpressionSyntax implicitArrayCreation)
-            {
-                if (!IsLegalInitializer(implicitArrayCreation.Initializer))
-                    return false;
+            existingInitializer = implicitArrayCreation.Initializer;
+            return true;
+        }
 
-                existingInitializer = implicitArrayCreation.Initializer;
-                return true;
-            }
+        // Forms like `Array.Empty<int>()` or `ImmutableArray<int>.Empty` are fine base cases.  Because the
+        // collection is empty, we don't have to add any matches.
+        if (IsCollectionEmptyAccess(semanticModel, current, cancellationToken))
+            return IsListLike(current);
 
-            // Forms like `Array.Empty<int>()` or `ImmutableArray<int>.Empty` are fine base cases.  Because the
-            // collection is empty, we don't have to add any matches.
-            if (IsCollectionEmptyAccess(semanticModel, current, cancellationToken))
-                return IsListLike(current);
-
-            // `new X()` or `new X { a, b, c}` or `new X() { a, b, c }` are fine base cases.
-            if (current is ObjectCreationExpressionSyntax objectCreation)
-            {
-                if (objectCreation is not
-                    {
-                        Initializer: null or { RawKind: (int)SyntaxKind.CollectionInitializerExpression }
-                    })
+        // `new X()` or `new X { a, b, c}` or `new X() { a, b, c }` are fine base cases.
+        if (current is ObjectCreationExpressionSyntax objectCreation)
+        {
+            if (objectCreation is not
                 {
-                    return false;
-                }
-
-                existingInitializer = objectCreation.Initializer;
-
-                if (!IsLegalInitializer(objectCreation.Initializer))
-                    return false;
-
-                if (!IsListLike(current))
-                    return false;
-
-                if (objectCreation.ArgumentList is { Arguments.Count: 1 })
-                {
-                    // Can take a single argument if that argument is itself a collection.
-                    var argumentType = semanticModel.GetTypeInfo(objectCreation.ArgumentList.Arguments[0].Expression, cancellationToken).Type;
-                    if (argumentType is null)
-                        return false;
-
-                    if (!Equals(argumentType.OriginalDefinition, ienumerableOfTType) &&
-                        !argumentType.AllInterfaces.Any(i => Equals(i.OriginalDefinition, ienumerableOfTType)))
-                    {
-                        return false;
-                    }
-
-                    // Add the arguments to the pre-matches.  They will execute before the initializer values are added.
-                    AddArgumentsInReverse(preMatchesInReverse, objectCreation.ArgumentList.Arguments, useSpread: true);
-                    return true;
-                }
-                else if (objectCreation.ArgumentList is null or { Arguments.Count: 0 })
-                {
-                    // Otherwise, we have to have an empty argument list.
-                    return true;
-                }
-
+                    Initializer: null or { RawKind: (int)SyntaxKind.CollectionInitializerExpression }
+                })
+            {
                 return false;
             }
 
-            // Forms like `ImmutableArray.Create(...)` or `ImmutableArray.CreateRange(...)` are fine base cases.
-            if (current is InvocationExpressionSyntax currentInvocationExpression &&
-                IsCollectionFactoryCreate(semanticModel, currentInvocationExpression, out var factoryMemberAccess, out var unwrapArgument, cancellationToken))
-            {
-                if (!IsListLike(current))
-                    return false;
+            existingInitializer = objectCreation.Initializer;
 
-                AddArgumentsInReverse(postMatchesInReverse, GetArguments(currentInvocationExpression, unwrapArgument), useSpread: false);
-                return true;
-            }
-
-            // If we're bottomed out at some different type of expression, and we started with an AsSpan, and we did not
-            // perform a copy of the data, then do not convert this.  The above cases produce a fresh-collection (an
-            // rvalue), which is fine to get a span out of.  However, this may be wrapping a *non-fresh* (an lvalue)
-            // collection.  That means the user could mutate the underlying data the span wraps.  Since we are
-            // converting to a form that will create a fresh collection, that could be noticeable.
-            if (memberAccess.Name.Identifier.ValueText == AsSpanName && !copiedData)
+            if (!IsLegalInitializer(objectCreation.Initializer))
                 return false;
 
-            // Down to some final collection.  Like `x` in `x.Concat(y).ToArray()`.  If `x` is itself is something that
-            // can be iterated, we can convert this to `[.. x, .. y]`.  Note: we only want to do this if ending with one
-            // of the ToXXX Methods.  If we just have `x.AddRange(y)` it's preference to keep that, versus `[.. x, ..y]`
-            if (!isAdditionMatch && IsIterable(current))
+            if (!IsListLike(current))
+                return false;
+
+            if (objectCreation.ArgumentList is { Arguments.Count: 1 })
             {
-                AddFinalMatch(current);
+                // Can take a single argument if that argument is itself a collection.
+                var argumentType = semanticModel.GetTypeInfo(objectCreation.ArgumentList.Arguments[0].Expression, cancellationToken).Type;
+                if (argumentType is null)
+                    return false;
+
+                if (!Equals(argumentType.OriginalDefinition, ienumerableOfTType) &&
+                    !argumentType.AllInterfaces.Any(i => Equals(i.OriginalDefinition, ienumerableOfTType)))
+                {
+                    return false;
+                }
+
+                // Add the arguments to the pre-matches.  They will execute before the initializer values are added.
+                AddArgumentsInReverse(preMatchesInReverse, objectCreation.ArgumentList.Arguments, useSpread: true);
+                return true;
+            }
+            else if (objectCreation.ArgumentList is null or { Arguments.Count: 0 })
+            {
+                // Otherwise, we have to have an empty argument list.
                 return true;
             }
 
-            // Something we didn't understand.
             return false;
         }
 
+        // Forms like `ImmutableArray.Create(...)` or `ImmutableArray.CreateRange(...)` are fine base cases.
+        if (current is InvocationExpressionSyntax currentInvocationExpression &&
+            IsCollectionFactoryCreate(semanticModel, currentInvocationExpression, out var factoryMemberAccess, out var unwrapArgument, cancellationToken))
+        {
+            if (!IsListLike(current))
+                return false;
+
+            AddArgumentsInReverse(postMatchesInReverse, GetArguments(currentInvocationExpression, unwrapArgument), useSpread: false);
+            return true;
+        }
+
+        // If we're bottomed out at some different type of expression, and we started with an AsSpan, and we did not
+        // perform a copy of the data, then do not convert this.  The above cases produce a fresh-collection (an
+        // rvalue), which is fine to get a span out of.  However, this may be wrapping a *non-fresh* (an lvalue)
+        // collection.  That means the user could mutate the underlying data the span wraps.  Since we are
+        // converting to a form that will create a fresh collection, that could be noticeable.
+        if (memberAccess.Name.Identifier.ValueText == AsSpanName && !copiedData)
+            return false;
+
+        // Down to some final collection.  Like `x` in `x.Concat(y).ToArray()`.  If `x` is itself is something that
+        // can be iterated, we can convert this to `[.. x, .. y]`.  Note: we only want to do this if ending with one
+        // of the ToXXX Methods.  If we just have `x.AddRange(y)` it's preference to keep that, versus `[.. x, ..y]`
+        if (!isAdditionMatch && IsIterable(current))
+        {
+            AddFinalMatch(current);
+            return true;
+        }
+
+        // Something we didn't understand.
         return false;
 
         void AddFinalMatch(ExpressionSyntax expression)
