@@ -32,10 +32,7 @@ internal static class SourceGeneratedDocumentUri
 
     public static Uri Create(SourceGeneratedDocumentIdentity identity)
     {
-        // Ensure the hint path is converted to a URI-friendly format
-        var hintPathParts = identity.HintName.Split('\\');
-        var hintPathPortion = string.Join("/", hintPathParts.Select(Uri.EscapeDataString));
-
+        var hintPath = Uri.EscapeDataString(identity.HintName);
         var projectId = identity.DocumentId.ProjectId.Id.ToString(GuidFormat);
         var documentId = identity.DocumentId.Id.ToString(GuidFormat);
         var hintName = Uri.EscapeDataString(identity.HintName);
@@ -43,7 +40,7 @@ internal static class SourceGeneratedDocumentUri
         var assemblyVersion = Uri.EscapeDataString(identity.Generator.AssemblyVersion.ToString());
         var typeName = Uri.EscapeDataString(identity.Generator.TypeName);
 
-        var uri = $"{Scheme}://{projectId}/{hintPathPortion}?{DocumentIdParam}={documentId}&{HintNameParam}={hintName}&{AssemblyNameParam}={assemblyName}&{AssemblyVersionParam}={assemblyVersion}&{TypeNameParam}={typeName}";
+        var uri = $"{Scheme}://{projectId}/{hintPath}?{DocumentIdParam}={documentId}&{HintNameParam}={hintName}&{AssemblyNameParam}={assemblyName}&{AssemblyVersionParam}={assemblyVersion}&{TypeNameParam}={typeName}";
 
         // If we have a path (which is technically optional) also append it
         if (identity.Generator.AssemblyPath != null)
