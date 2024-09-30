@@ -33,7 +33,7 @@ internal readonly record struct StateChange(
 /// </summary>
 internal sealed partial class SolutionState
 {
-    public static readonly IEqualityComparer<string> FilePathComparer = CachingFilePathComparer.Instance;
+    public static readonly IEqualityComparer<string> FilePathComparer = StringComparer.OrdinalIgnoreCase;
 
     // the version of the workspace this solution is from
     public int WorkspaceVersion { get; }
