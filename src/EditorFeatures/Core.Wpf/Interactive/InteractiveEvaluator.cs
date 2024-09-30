@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
         #endregion
 
-        public IContentType ContentType { get; }
+        public IContentType ContentType => _session.ContentType;
 
         public InteractiveEvaluatorResetOptions ResetOptions { get; set; }
             = new InteractiveEvaluatorResetOptions(InteractiveHostPlatform.Core);
@@ -77,7 +77,6 @@ namespace Microsoft.CodeAnalysis.Interactive
             Debug.Assert(languageInfo.InteractiveResponseFileName.IndexOfAny([Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar]) == -1);
 
             _threadingContext = threadingContext;
-            ContentType = contentType;
             _languageInfo = languageInfo;
             _classifierAggregator = classifierAggregator;
             _commandsFactory = commandsFactory;
@@ -92,7 +91,8 @@ namespace Microsoft.CodeAnalysis.Interactive
                 textDocumentFactoryService,
                 editorOptionsService,
                 languageInfo,
-                initialWorkingDirectory);
+                initialWorkingDirectory,
+                contentType);
 
             _session.Host.ProcessInitialized += ProcessInitialized;
         }

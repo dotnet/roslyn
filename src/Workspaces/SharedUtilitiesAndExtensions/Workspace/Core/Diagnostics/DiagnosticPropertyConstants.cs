@@ -8,4 +8,5 @@ internal static class DiagnosticPropertyConstants
 {
     public const string UnreferencedAssemblyIdentity = nameof(UnreferencedAssemblyIdentity);
     public const string RequiredLanguageVersion = nameof(RequiredLanguageVersion);
+    public const string IsInteractiveSubmission = nameof(IsInteractiveSubmission);
 }

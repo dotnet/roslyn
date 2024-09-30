@@ -2,7 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -30,6 +32,23 @@ internal partial class InteractiveWorkspace : Workspace
         _openTextContainer = textContainer;
         _openDocumentId = documentId;
         OnDocumentOpened(documentId, textContainer);
+    }
+
+    public override void CloseDocument(DocumentId documentId)
+    {
+        // Document is closed when the content type switches from C# to Interactive Command.
+        // It is reopened when it switches back.
+
+        _openDocumentId = null;
+        _openTextContainer = null;
+
+        var document = CurrentSolution.GetRequiredDocument(documentId);
+
+        // empty the text:
+        var text = document.GetTextSynchronously(CancellationToken.None).GetSubText(TextSpan.FromBounds(0, 0));
+        var version = document.GetTextVersionSynchronously(CancellationToken.None).GetNewerVersion();
+
+        OnDocumentClosed(documentId, TextLoader.From(TextAndVersion.Create(text, version)));
     }
 
     protected override void ApplyDocumentTextChanged(DocumentId document, SourceText newText)
@@ -64,6 +83,9 @@ internal partial class InteractiveWorkspace : Workspace
     public void ResetSolution()
     {
         ClearOpenDocuments();
+
+        _openDocumentId = null;
+        _openTextContainer = null;
 
         var emptySolution = CreateSolution(SolutionId.CreateNewId("InteractiveSolution"));
         SetCurrentSolution(solution => emptySolution.WithAnalyzerReferences(solution.AnalyzerReferences), WorkspaceChangeKind.SolutionCleared);
