@@ -220,7 +220,7 @@ Dim a = <x><!--Text2--></x>
             Dim edits = GetMethodEdits(src1, src2)
 
             edits.VerifyEdits(
-                "Update [a = <x>><!--Text1--></x>]@14 -> [a = <x>><!--Text2--></x>]@14")
+                "Update [a = <x><!--Text1--></x>]@14 -> [a = <x><!--Text2--></x>]@14")
         End Sub
 
 #End Region
