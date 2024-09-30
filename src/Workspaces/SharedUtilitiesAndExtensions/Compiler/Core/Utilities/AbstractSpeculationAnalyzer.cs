@@ -869,13 +869,7 @@ internal abstract class AbstractSpeculationAnalyzer<
             newThrowExpressionType.IsOrDerivesFromExceptionType(this.SpeculativeSemanticModel.Compilation);
     }
 
-<<<<<<< HEAD
-    protected abstract bool IsInNamespaceOrTypeContext(TExpressionSyntax node);
-
     private bool ReplacementBreaksTypeResolution(TTypeSyntax type, TTypeSyntax newType, bool useSpeculativeModel)
-=======
-    private bool ReplacementBreaksTypeResolution(TTypeSyntax type, TTypeSyntax newType, bool useSpeculativeModel = true)
->>>>>>> upstream/main
     {
         var symbol = this.OriginalSemanticModel.GetSymbolInfo(type).Symbol;
 
