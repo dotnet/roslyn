@@ -127,6 +127,9 @@ internal sealed partial class SmartRenameUserInputComboBox : ComboBox, IRenameUs
 
     private void SuggestedNames_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
     {
+        // RenameFlyout handles GotFocus event by calling SelectAllText, which selects all text in the input text box.
+        // If user changed selection (e.g. by moving the caret or selecting text in the input text box we don't want
+        // to step on it once rename suggestions became available.
         if (!_userChangedTextSelection)
         {
             Focus();
