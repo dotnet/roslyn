@@ -50,17 +50,18 @@ internal sealed partial class SolutionState
 
         public int GetHashCode([DisallowNull] string obj)
         {
-            var (lastString, hash) = s_data;
-            if (ReferenceEquals(lastString, obj))
-                return hash;
+            // Stephen thinks this may be faster on NetFx as it will help the runtime with reading/writing from a single location.
+            ref var data = ref s_data;
+            if (ReferenceEquals(data.lastString, obj))
+                return data.lastHashCode;
 
             // Hashing a different string than last time.  Compute the hash and cache the value.
 
             // Specialized impl of OrdinalIgnoreCase.GetHashCode that is faster for the common case of an all-ASCII
             // string. Falls back to normal OrdinalIgnoreCase.GetHashCode for the uncommon case.
-            hash = GetNonRandomizedHashCodeOrdinalIgnoreCase(obj);
+            var hash = GetNonRandomizedHashCodeOrdinalIgnoreCase(obj);
 
-            s_data = (obj, hash);
+            data = (obj, hash);
             return hash;
         }
 
