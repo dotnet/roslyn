@@ -4202,7 +4202,7 @@ Do you want to continue?</source>
       </trans-unit>
       <trans-unit id="required_property">
         <source>required property</source>
-        <target state="new">required property</target>
+        <target state="new">必需屬性</target>
         <note />
       </trans-unit>
       <trans-unit id="rfc1123_date_time">
