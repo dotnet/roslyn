@@ -2588,6 +2588,9 @@ IPropertyReferenceOperation: System.Int32[missing] P.this[System.Int32[missing] 
                 // (6,37): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     public int this[int x, int? y = 5]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "5").WithArguments("System.Int32").WithLocation(6, 37),
+                // (6,16): error CS0656: Missing compiler required member 'System.Reflection.DefaultMemberAttribute..ctor'
+                //     public int this[int x, int? y = 5]
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this").WithArguments("System.Reflection.DefaultMemberAttribute", ".ctor").WithLocation(6, 16),
                 // (5,27): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     private int _number = 0;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(5, 27),
@@ -2766,6 +2769,9 @@ IPropertyReferenceOperation: System.Int32[missing] P.this[System.Int32[missing] 
                 // (5,12): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     public int this[int x, int? y = null]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 12),
+                // (5,16): error CS0656: Missing compiler required member 'System.Reflection.DefaultMemberAttribute..ctor'
+                //     public int this[int x, int? y = null]
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this").WithArguments("System.Reflection.DefaultMemberAttribute", ".ctor").WithLocation(5, 16),
                 // (5,21): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     public int this[int x, int? y = null]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 21),
@@ -3829,6 +3835,9 @@ IInvalidOperation (OperationKind.Invalid, Type: P, IsInvalid) (Syntax: 'new P() 
                 // (5,37): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     public int this[int x, int? y = 0]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(5, 37),
+                // (5,16): error CS0656: Missing compiler required member 'System.Reflection.DefaultMemberAttribute..ctor'
+                //     public int this[int x, int? y = 0]
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this").WithArguments("System.Reflection.DefaultMemberAttribute", ".ctor").WithLocation(5, 16),
                 // (4,27): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     private int _number = 0;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "0").WithArguments("System.Int32").WithLocation(4, 27),
@@ -3903,6 +3912,9 @@ IInvalidOperation (OperationKind.Invalid, Type: P, IsInvalid) (Syntax: 'new P() 
                 // (5,12): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     public int this[int x, int? y = null]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 12),
+                // (5,16): error CS0656: Missing compiler required member 'System.Reflection.DefaultMemberAttribute..ctor'
+                //     public int this[int x, int? y = null]
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "this").WithArguments("System.Reflection.DefaultMemberAttribute", ".ctor").WithLocation(5, 16),
                 // (5,21): error CS0518: Predefined type 'System.Int32' is not defined or imported
                 //     public int this[int x, int? y = null]
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "int").WithArguments("System.Int32").WithLocation(5, 21),

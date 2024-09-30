@@ -632,6 +632,11 @@
         <target state="translated">'else' não pode iniciar uma instrução.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EncUpdateFailedMissingSymbol">
+        <source>Cannot emit update; {0} '{1}' is missing.</source>
+        <target state="new">Cannot emit update; {0} '{1}' is missing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_EntryPointCannotBeUnmanagedCallersOnly">
         <source>Application entry points cannot be attributed with 'UnmanagedCallersOnly'.</source>
         <target state="translated">Os pontos de entrada do aplicativo não podem ser atribuídos com 'UnmanagedCallersOnly'.</target>
@@ -7605,11 +7610,6 @@ Se tal classe for usada como uma classe base e se a classe derivada definir um d
       <trans-unit id="ERR_DllImportOnInvalidMethod">
         <source>The DllImport attribute must be specified on a method marked 'static' and 'extern'</source>
         <target state="translated">O atributo DllImport deve ser especificado em um método marcado como 'static' e 'extern'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedMissingAttribute">
-        <source>Cannot update '{0}'; attribute '{1}' is missing.</source>
-        <target state="translated">Não é possível atualizar '{0}'; o atributo '{1}' está ausente.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DllImportOnGenericMethod">

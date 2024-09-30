@@ -93,3 +93,15 @@ class C
     }
 }
 ```
+
+
+## Declaration of indexers in absence of proper declaration of DefaultMemberAttribute is no longer allowed.
+
+***Introduced in Visual Studio 2022 version 17.13***
+
+```cs
+public interface I1
+{
+    public I1 this[I1 args] { get; } // error CS0656: Missing compiler required member 'System.Reflection.DefaultMemberAttribute..ctor'
+}
+```

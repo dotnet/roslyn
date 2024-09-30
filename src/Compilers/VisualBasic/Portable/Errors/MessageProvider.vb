@@ -570,9 +570,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Public Overrides ReadOnly Property ERR_EncUpdateFailedMissingAttribute As Integer
+        Public Overrides ReadOnly Property ERR_EncUpdateFailedMissingSymbol As Integer
             Get
-                Return ERRID.ERR_EncUpdateFailedMissingAttribute
+                Return ERRID.ERR_EncUpdateFailedMissingSymbol
             End Get
         End Property
 

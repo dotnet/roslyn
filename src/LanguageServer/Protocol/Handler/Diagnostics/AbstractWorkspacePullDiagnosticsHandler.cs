@@ -106,7 +106,7 @@ internal abstract class AbstractWorkspacePullDiagnosticsHandler<TDiagnosticsPara
         }
 
         // We've hit a change, so we close the current request to allow the client to open a new one.
-        context.TraceInformation("Closing workspace/diagnostics request");
+        context.TraceInformation($"Closing workspace/diagnostics request for {category}");
         return;
 
         bool HasChanged()
