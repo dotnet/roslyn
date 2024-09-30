@@ -2411,12 +2411,12 @@ Bu dosyanın ait olabileceği diğer projeleri görüntülemek ve bunlara geçi�
       </trans-unit>
       <trans-unit id="example">
         <source>example</source>
-        <target state="needs-review-translation">örnek</target>
+        <target state="new">example</target>
         <note>{Locked} IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
       </trans-unit>
       <trans-unit id="identifier">
         <source>identifier</source>
-        <target state="needs-review-translation">tanımlayıcı</target>
+        <target state="new">identifier</target>
         <note>{Locked} IdentifierWord_Example and IdentifierWord_Identifier are combined (with prefixes, suffixes, and word separators) into an example identifier name in the NamingStyle UI.</note>
       </trans-unit>
       <trans-unit id="Install_0">

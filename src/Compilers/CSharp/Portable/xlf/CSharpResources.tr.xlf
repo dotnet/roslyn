@@ -1149,7 +1149,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
         <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="needs-review-translation">'Engelleyiciler' deneysel özelliği bu ad alanında etkin değil. Projenize '{0}' ekleyin.</target>
+        <target state="new">The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
@@ -12176,7 +12176,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
         <source>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</source>
-        <target state="needs-review-translation">Yalnızca otomatik uygulanan özelliklerin başlatıcıları olabilir.</target>
+        <target state="new">Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyMustHaveGetAccessor">
