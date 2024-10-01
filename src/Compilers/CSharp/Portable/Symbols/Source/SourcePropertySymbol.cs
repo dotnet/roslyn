@@ -93,19 +93,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 location,
                 diagnostics);
 
-            AccessorDeclarationSyntax? accessorToBlame = null;
-            if (hasSetAccessorImplementation && !setterUsesFieldKeyword && (hasAutoPropertyGet || getterUsesFieldKeyword))
+            if (binder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureFieldKeyword))
             {
-                accessorToBlame = setSyntax;
-            }
-            else if (hasGetAccessorImplementation && !getterUsesFieldKeyword && (hasAutoPropertySet || setterUsesFieldKeyword))
-            {
-                accessorToBlame = getSyntax;
-            }
+                AccessorDeclarationSyntax? accessorToBlame = null;
+                if (hasSetAccessorImplementation && !setterUsesFieldKeyword && (hasAutoPropertyGet || getterUsesFieldKeyword))
+                {
+                    accessorToBlame = setSyntax;
+                }
+                else if (hasGetAccessorImplementation && !getterUsesFieldKeyword && (hasAutoPropertySet || setterUsesFieldKeyword))
+                {
+                    accessorToBlame = getSyntax;
+                }
 
-            if (accessorToBlame is not null)
-            {
-                diagnostics.Add(ErrorCode.WRN_AccessorDoesNotUseBackingField, accessorToBlame.Keyword, [accessorToBlame.Keyword.ValueText, symbol]);
+                if (accessorToBlame is not null)
+                {
+                    diagnostics.Add(ErrorCode.WRN_AccessorDoesNotUseBackingField, accessorToBlame.Keyword, [accessorToBlame.Keyword.ValueText, symbol]);
+                }
             }
 
             return symbol;
