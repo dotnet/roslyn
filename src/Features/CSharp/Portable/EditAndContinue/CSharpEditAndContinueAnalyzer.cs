@@ -1200,10 +1200,10 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
                     //   int P => expr;
                     //   int P { get => expr; } = init
                     //
-                    // Note: An update of a partial property/indexer definition can only affect its attributes. The partial definition does not have a body.
-                    // In that case we do not need to update/analyze the accessors since attribute update has no impact on them.
+                    // Note: An update of a partial property/indexer definition can only affect its attributes and accessibility. The partial definition does not have a body.
+                    // In that case we do not need to update/analyze the accessors since attribute/accessibility update has no impact on them.
                     //
-                    // 2) Property/indexer declarations differ in readonly keyword.
+                    // 2) Property/indexer declarations differ in readonly keyword or accessibility.
                     // 3) Property signature changes
                     // 4) Property name changes
 
@@ -1216,7 +1216,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
                     {
                         if (oldHasExpressionBody ||
                             newHasExpressionBody ||
-                            DiffersInReadOnlyModifier(oldPropertySymbol.GetMethod, newPropertySymbol.GetMethod) ||
+                            DiffersInReadOnlyOrAccessibilityModifiers(oldPropertySymbol.GetMethod, newPropertySymbol.GetMethod) ||
                             IsMemberOrDelegateReplaced(oldPropertySymbol, newPropertySymbol))
                         {
                             result.Add((oldPropertySymbol.GetMethod, newPropertySymbol.GetMethod, editKind));
@@ -1225,7 +1225,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
 
                     if (oldPropertySymbol.SetMethod != null || newPropertySymbol.SetMethod != null)
                     {
-                        if (DiffersInReadOnlyModifier(oldPropertySymbol.SetMethod, newPropertySymbol.SetMethod) ||
+                        if (DiffersInReadOnlyOrAccessibilityModifiers(oldPropertySymbol.SetMethod, newPropertySymbol.SetMethod) ||
                             IsMemberOrDelegateReplaced(oldPropertySymbol, newPropertySymbol))
                         {
                             result.Add((oldPropertySymbol.SetMethod, newPropertySymbol.SetMethod, editKind));
@@ -1237,7 +1237,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
 
                 if (oldSymbol is IEventSymbol oldEventSymbol && newSymbol is IEventSymbol newEventSymbol)
                 {
-                    // 1) Event declarations differ in readonly keyword.
+                    // 1) Event declarations differ in readonly keyword or accessibility.
                     // 2) Event signature changes
                     // 3) Event name changes
 
@@ -1245,7 +1245,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
 
                     if (oldEventSymbol.AddMethod != null || newEventSymbol.AddMethod != null)
                     {
-                        if (DiffersInReadOnlyModifier(oldEventSymbol.AddMethod, newEventSymbol.AddMethod) ||
+                        if (DiffersInReadOnlyOrAccessibilityModifiers(oldEventSymbol.AddMethod, newEventSymbol.AddMethod) ||
                             IsMemberOrDelegateReplaced(oldEventSymbol, newEventSymbol))
                         {
                             result.Add((oldEventSymbol.AddMethod, newEventSymbol.AddMethod, editKind));
@@ -1254,7 +1254,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
 
                     if (oldEventSymbol.RemoveMethod != null || newEventSymbol.RemoveMethod != null)
                     {
-                        if (DiffersInReadOnlyModifier(oldEventSymbol.RemoveMethod, newEventSymbol.RemoveMethod) ||
+                        if (DiffersInReadOnlyOrAccessibilityModifiers(oldEventSymbol.RemoveMethod, newEventSymbol.RemoveMethod) ||
                             IsMemberOrDelegateReplaced(oldEventSymbol, newEventSymbol))
                         {
                             result.Add((oldEventSymbol.RemoveMethod, newEventSymbol.RemoveMethod, editKind));
@@ -1264,8 +1264,10 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
                     return;
                 }
 
-                static bool DiffersInReadOnlyModifier(IMethodSymbol? oldMethod, IMethodSymbol? newMethod)
-                    => oldMethod != null && newMethod != null && oldMethod.IsReadOnly != newMethod.IsReadOnly;
+                static bool DiffersInReadOnlyOrAccessibilityModifiers(IMethodSymbol? oldMethod, IMethodSymbol? newMethod)
+                    => oldMethod != null &&
+                       newMethod != null &&
+                       (oldMethod.IsReadOnly != newMethod.IsReadOnly || oldMethod.DeclaredAccessibility != newMethod.DeclaredAccessibility);
 
                 // Update to a type declaration with primary constructor may also need to update
                 // the primary constructor, copy-constructor and/or synthesized record auto-properties.

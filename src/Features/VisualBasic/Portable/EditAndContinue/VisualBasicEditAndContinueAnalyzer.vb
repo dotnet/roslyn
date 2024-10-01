@@ -828,13 +828,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         result.Add((oldPropertySymbol, newPropertySymbol, EditKind.Update))
 
                         If oldPropertySymbol.GetMethod IsNot Nothing OrElse newPropertySymbol.GetMethod IsNot Nothing Then
-                            If IsMemberOrDelegateReplaced(oldPropertySymbol, newPropertySymbol) Then
+                            If DiffersInAccessibilityModifiers(oldPropertySymbol.GetMethod, newPropertySymbol.GetMethod) OrElse
+                               IsMemberOrDelegateReplaced(oldPropertySymbol, newPropertySymbol) Then
                                 result.Add((oldPropertySymbol.GetMethod, newPropertySymbol.GetMethod, editKind))
                             End If
                         End If
 
                         If oldPropertySymbol.SetMethod IsNot Nothing OrElse newPropertySymbol.SetMethod IsNot Nothing Then
-                            If IsMemberOrDelegateReplaced(oldPropertySymbol, newPropertySymbol) Then
+                            If DiffersInAccessibilityModifiers(oldPropertySymbol.SetMethod, newPropertySymbol.SetMethod) OrElse
+                               IsMemberOrDelegateReplaced(oldPropertySymbol, newPropertySymbol) Then
                                 result.Add((oldPropertySymbol.SetMethod, newPropertySymbol.SetMethod, editKind))
                             End If
                         End If
@@ -848,13 +850,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                         result.Add((oldEventSymbol, newEventSymbol, EditKind.Update))
 
                         If oldEventSymbol.AddMethod IsNot Nothing OrElse newEventSymbol.AddMethod IsNot Nothing Then
-                            If IsMemberOrDelegateReplaced(oldEventSymbol, newEventSymbol) Then
+                            If DiffersInAccessibilityModifiers(oldEventSymbol.AddMethod, newEventSymbol.AddMethod) OrElse
+                               IsMemberOrDelegateReplaced(oldEventSymbol, newEventSymbol) Then
                                 result.Add((oldEventSymbol.AddMethod, newEventSymbol.AddMethod, editKind))
                             End If
                         End If
 
                         If oldEventSymbol.RemoveMethod IsNot Nothing OrElse newEventSymbol.RemoveMethod IsNot Nothing Then
-                            If IsMemberOrDelegateReplaced(oldEventSymbol, newEventSymbol) Then
+                            If DiffersInAccessibilityModifiers(oldEventSymbol.RemoveMethod, newEventSymbol.RemoveMethod) OrElse
+                               IsMemberOrDelegateReplaced(oldEventSymbol, newEventSymbol) Then
                                 result.Add((oldEventSymbol.RemoveMethod, newEventSymbol.RemoveMethod, editKind))
                             End If
                         End If
@@ -887,6 +891,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                     Throw ExceptionUtilities.UnexpectedValue(editKind)
             End Select
         End Sub
+
+        Private Shared Function DiffersInAccessibilityModifiers(oldMethod As IMethodSymbol, newMethod As IMethodSymbol) As Boolean
+            Return oldMethod IsNot Nothing AndAlso
+               newMethod IsNot Nothing AndAlso
+               oldMethod.DeclaredAccessibility <> newMethod.DeclaredAccessibility
+        End Function
 
         Private Function TryGetSyntaxNodesForEdit(
             editKind As EditKind,
