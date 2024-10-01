@@ -7982,9 +7982,9 @@ done:;
         /// Those will instead be parsed out as script-fields/methods.</param>
         private StatementSyntax ParseStatementCore(SyntaxList<AttributeListSyntax> attributes, bool isGlobal)
         {
-            if (canReuseStatement(attributes, isGlobal))
+            if (TryReuseStatement(attributes, isGlobal) is { } reused)
             {
-                return (StatementSyntax)this.EatNode();
+                return reused;
             }
 
             ResetPoint resetPointBeforeStatement = this.GetResetPoint();
@@ -8060,14 +8060,19 @@ done:;
                 _recursionDepth--;
                 this.Release(ref resetPointBeforeStatement);
             }
+        }
 
-            bool canReuseStatement(SyntaxList<AttributeListSyntax> attributes, bool isGlobal)
+        private StatementSyntax TryReuseStatement(SyntaxList<AttributeListSyntax> attributes, bool isGlobal)
+        {
+            if (this.IsIncrementalAndFactoryContextMatches &&
+                this.CurrentNode is Syntax.StatementSyntax &&
+                !isGlobal && // Top-level statements are reused by ParseMemberDeclarationOrStatementCore when possible.
+                attributes.Count == 0)
             {
-                return this.IsIncrementalAndFactoryContextMatches &&
-                       this.CurrentNode is Syntax.StatementSyntax &&
-                       !isGlobal && // Top-level statements are reused by ParseMemberDeclarationOrStatementCore when possible.
-                       attributes.Count == 0;
+                return (StatementSyntax)this.EatNode();
             }
+
+            return null;
         }
 
         private StatementSyntax ParseStatementCoreRest(SyntaxList<AttributeListSyntax> attributes, bool isGlobal, ref ResetPoint resetPointBeforeStatement)
@@ -9581,14 +9586,65 @@ done:;
         {
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.IfKeyword);
 
-            return _syntaxFactory.IfStatement(
-                attributes,
-                this.EatToken(SyntaxKind.IfKeyword),
-                this.EatToken(SyntaxKind.OpenParenToken),
-                this.ParseExpressionCore(),
-                this.EatToken(SyntaxKind.CloseParenToken),
-                this.ParseEmbeddedStatement(),
-                this.ParseElseClauseOpt());
+            var stack = ArrayBuilder<(SyntaxToken, SyntaxToken, ExpressionSyntax, SyntaxToken, StatementSyntax, SyntaxToken)>.GetInstance();
+
+            StatementSyntax alternative = null;
+            while (true)
+            {
+                var ifKeyword = this.EatToken(SyntaxKind.IfKeyword);
+                var openParen = this.EatToken(SyntaxKind.OpenParenToken);
+                var condition = this.ParseExpressionCore();
+                var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
+                var consequence = this.ParseEmbeddedStatement();
+
+                var elseKeyword = this.CurrentToken.Kind != SyntaxKind.ElseKeyword ?
+                    null :
+                    this.EatToken(SyntaxKind.ElseKeyword);
+                stack.Push((ifKeyword, openParen, condition, closeParen, consequence, elseKeyword));
+
+                if (elseKeyword is null)
+                {
+                    alternative = null;
+                    break;
+                }
+
+                if (this.CurrentToken.Kind != SyntaxKind.IfKeyword)
+                {
+                    alternative = this.ParseEmbeddedStatement();
+                    break;
+                }
+
+                alternative = TryReuseStatement(attributes: default, isGlobal: false);
+                if (alternative is not null)
+                {
+                    break;
+                }
+            }
+
+            IfStatementSyntax ifStatement;
+            do
+            {
+                var (ifKeyword, openParen, condition, closeParen, consequence, elseKeyword) = stack.Pop();
+                var elseClause = alternative is null ?
+                    null :
+                    _syntaxFactory.ElseClause(
+                        elseKeyword,
+                        alternative);
+                ifStatement = _syntaxFactory.IfStatement(
+                    attributeLists: stack.Any() ? default : attributes,
+                    ifKeyword,
+                    openParen,
+                    condition,
+                    closeParen,
+                    consequence,
+                    elseClause);
+                alternative = ifStatement;
+            }
+            while (stack.Any());
+
+            stack.Free();
+
+            return ifStatement;
         }
 
         private IfStatementSyntax ParseMisplacedElse(SyntaxList<AttributeListSyntax> attributes)

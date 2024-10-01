@@ -355,12 +355,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddConditionSequencePoint(base.InstrumentForStatementCondition(original, rewrittenCondition, factory), original.Syntax, factory);
         }
 
-        public override BoundStatement InstrumentIfStatement(BoundIfStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentIfStatementConditionalGoto(BoundIfStatement original, BoundStatement rewritten)
         {
             var syntax = (IfStatementSyntax)original.Syntax;
             return new BoundSequencePointWithSpan(
                 syntax,
-                base.InstrumentIfStatement(original, rewritten),
+                base.InstrumentIfStatementConditionalGoto(original, rewritten),
                 TextSpan.FromBounds(
                     syntax.IfKeyword.SpanStart,
                     syntax.CloseParenToken.Span.End),
