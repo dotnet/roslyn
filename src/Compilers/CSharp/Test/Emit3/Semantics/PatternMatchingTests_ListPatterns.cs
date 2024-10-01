@@ -8868,6 +8868,55 @@ if ((b is [var z] and z) is [true])
     }
 
     [Fact, WorkItem(58738, "https://github.com/dotnet/roslyn/issues/58738")]
+    public void ListPattern_AbstractFlowPass_isBoolTest_Multiple()
+    {
+        var source = @"
+var b = new[] { true };
+
+if ((b is [var x] and x or x) is [true])
+{
+}
+
+if ((b is [var z] and z and z) is [true])
+{
+}
+";
+        var comp = CreateCompilationWithIndexAndRangeAndSpan(new[] { source, TestSources.GetSubArray });
+        comp.VerifyEmitDiagnostics(
+            // 0.cs(4,16): error CS8780: A variable may not be declared within a 'not' or 'or' pattern.
+            // if ((b is [var x] and x or x) is [true])
+            Diagnostic(ErrorCode.ERR_DesignatorBeneathPatternCombinator, "x").WithLocation(4, 16),
+            // 0.cs(4,23): error CS0029: Cannot implicitly convert type 'bool' to 'bool[]'
+            // if ((b is [var x] and x or x) is [true])
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("bool", "bool[]").WithLocation(4, 23),
+            // 0.cs(4,23): error CS0165: Use of unassigned local variable 'x'
+            // if ((b is [var x] and x or x) is [true])
+            Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(4, 23),
+            // 0.cs(4,28): error CS0029: Cannot implicitly convert type 'bool' to 'bool[]'
+            // if ((b is [var x] and x or x) is [true])
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("bool", "bool[]").WithLocation(4, 28),
+            // 0.cs(4,34): error CS8985: List patterns may not be used for a value of type 'bool'. No suitable 'Length' or 'Count' property was found.
+            // if ((b is [var x] and x or x) is [true])
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[true]").WithArguments("bool").WithLocation(4, 34),
+            // 0.cs(4,34): error CS0021: Cannot apply indexing with [] to an expression of type 'bool'
+            // if ((b is [var x] and x or x) is [true])
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[true]").WithArguments("bool").WithLocation(4, 34),
+            // 0.cs(8,23): error CS0029: Cannot implicitly convert type 'bool' to 'bool[]'
+            // if ((b is [var z] and z and z) is [true])
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "z").WithArguments("bool", "bool[]").WithLocation(8, 23),
+            // 0.cs(8,29): error CS0029: Cannot implicitly convert type 'bool' to 'bool[]'
+            // if ((b is [var z] and z and z) is [true])
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "z").WithArguments("bool", "bool[]").WithLocation(8, 29),
+            // 0.cs(8,35): error CS8985: List patterns may not be used for a value of type 'bool'. No suitable 'Length' or 'Count' property was found.
+            // if ((b is [var z] and z and z) is [true])
+            Diagnostic(ErrorCode.ERR_ListPatternRequiresLength, "[true]").WithArguments("bool").WithLocation(8, 35),
+            // 0.cs(8,35): error CS0021: Cannot apply indexing with [] to an expression of type 'bool'
+            // if ((b is [var z] and z and z) is [true])
+            Diagnostic(ErrorCode.ERR_BadIndexLHS, "[true]").WithArguments("bool").WithLocation(8, 35)
+            );
+    }
+
+    [Fact, WorkItem(58738, "https://github.com/dotnet/roslyn/issues/58738")]
     public void ListPattern_AbstractFlowPass_patternMatchesNull()
     {
         var source = @"
