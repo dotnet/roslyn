@@ -2064,9 +2064,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.BinaryPattern:
                         {
                             var pat = (BoundBinaryPattern)pattern;
-                            bool def = definitely && !pat.Disjunction;
-                            assignPatternVariablesAndMarkReadFields(pat.Left, def);
-                            assignPatternVariablesAndMarkReadFields(pat.Right, def);
+
+                            if (pat.Left is not BoundBinaryPattern)
+                            {
+                                bool def = definitely && !pat.Disjunction;
+                                assignPatternVariablesAndMarkReadFields(pat.Left, def);
+                                assignPatternVariablesAndMarkReadFields(pat.Right, def);
+                                break;
+                            }
+
+                            // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
+                            var stack = ArrayBuilder<(BoundBinaryPattern pattern, bool def)>.GetInstance();
+
+                            do
+                            {
+                                definitely = definitely && !pat.Disjunction;
+                                stack.Push((pat, definitely));
+                                pat = pat.Left as BoundBinaryPattern;
+                            } while (pat is not null);
+
+                            var patAndDef = stack.Pop();
+                            assignPatternVariablesAndMarkReadFields(patAndDef.pattern.Left, patAndDef.def);
+
+                            do
+                            {
+                                assignPatternVariablesAndMarkReadFields(patAndDef.pattern.Right, patAndDef.def);
+                            } while (stack.TryPop(out patAndDef));
+
+                            stack.Free();
                             break;
                         }
                     default:

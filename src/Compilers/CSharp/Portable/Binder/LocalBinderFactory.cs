@@ -796,6 +796,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public override void VisitBinaryPattern(BinaryPatternSyntax node)
+        {
+            // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
+            while (true)
+            {
+                Visit(node.Right);
+                if (node.Left is not BinaryPatternSyntax binOp)
+                {
+                    Visit(node.Left);
+                    break;
+                }
+
+                node = binOp;
+            }
+        }
+
         public override void VisitIfStatement(IfStatementSyntax node)
         {
             Binder enclosing = _enclosing;

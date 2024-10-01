@@ -111,8 +111,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBinaryPattern(BoundBinaryPattern node)
         {
-            Visit(node.Left);
-            Visit(node.Right);
+            // Users (such as ourselves) can have many, many nested binary patterns. To avoid crashing, do left recursion manually.
+
+            var stack = ArrayBuilder<BoundBinaryPattern>.GetInstance();
+            BoundBinaryPattern current = node;
+            do
+            {
+                stack.Push(current);
+                current = current.Left as BoundBinaryPattern;
+            } while (current != null);
+
+            current = stack.Pop();
+            // We don't need to snapshot on the way down because the left spine of the tree will always have the same span start, and each
+            // call to TakeIncrementalSnapshot would overwrite the previous one with the new state. This can be a _significant_ performance
+            // improvement for deeply nested binary patterns; over 10x faster in some pathological cases.
+            TakeIncrementalSnapshot(current);
+            Debug.Assert(current.Left is not BoundBinaryPattern);
+            Visit(current.Left);
+
+            do
+            {
+                Visit(current.Right);
+            } while (stack.TryPop(out current));
+
+            stack.Free();
             return null;
         }
 
@@ -199,8 +221,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     LearnFromAnyNullPatterns(inputSlot, inputType, p.Negated);
                     break;
                 case BoundBinaryPattern p:
-                    LearnFromAnyNullPatterns(inputSlot, inputType, p.Left);
-                    LearnFromAnyNullPatterns(inputSlot, inputType, p.Right);
+                    // Do not use left recursion because we can have many nested binary patterns.
+                    var current = p;
+                    while (true)
+                    {
+                        // We don't need to visit in order here because we're only moving analysis in one direction:
+                        // towards MaybeNull. Visiting the right or left first has no impact on the final state.
+                        LearnFromAnyNullPatterns(inputSlot, inputType, current.Right);
+                        if (current.Left is BoundBinaryPattern left)
+                        {
+                            current = left;
+                            VisitForRewriting(current);
+                        }
+                        else
+                        {
+                            LearnFromAnyNullPatterns(inputSlot, inputType, current.Left);
+                            break;
+                        }
+                    }
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(pattern);

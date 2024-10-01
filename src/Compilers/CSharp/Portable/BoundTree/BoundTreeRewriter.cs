@@ -78,23 +78,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         [return: NotNullIfNotNull(nameof(node))]
         public override BoundNode? Visit(BoundNode? node)
         {
-            var expression = node as BoundExpression;
-            if (expression != null)
+            if (node is BoundExpression or BoundPattern)
             {
-                return VisitExpressionWithStackGuard(ref _recursionDepth, expression);
+                return VisitExpressionOrPatternWithStackGuard(ref _recursionDepth, node);
             }
 
             return base.Visit(node);
         }
 
-        protected BoundExpression VisitExpressionWithStackGuard(BoundExpression node)
+        protected BoundNode VisitExpressionOrPatternWithStackGuard(BoundNode node)
         {
-            return VisitExpressionWithStackGuard(ref _recursionDepth, node);
+            return VisitExpressionOrPatternWithStackGuard(ref _recursionDepth, node);
         }
 
-        protected sealed override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+        protected sealed override BoundNode VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
         {
-            return (BoundExpression)base.Visit(node);
+            return base.Visit(node);
         }
     }
 
@@ -194,6 +193,51 @@ namespace Microsoft.CodeAnalysis.CSharp
             stack.Free();
 
             return alternative;
+        }
+
+        public sealed override BoundNode? VisitBinaryPattern(BoundBinaryPattern node)
+        {
+            BoundPattern child = node.Left;
+
+            if (child.Kind != BoundKind.BinaryPattern)
+            {
+                return base.VisitBinaryPattern(node);
+            }
+
+            var stack = ArrayBuilder<BoundBinaryPattern>.GetInstance();
+            stack.Push(node);
+
+            BoundBinaryPattern binary = (BoundBinaryPattern)child;
+
+            while (true)
+            {
+                stack.Push(binary);
+                child = binary.Left;
+
+                if (child.Kind != BoundKind.BinaryPattern)
+                {
+                    break;
+                }
+
+                binary = (BoundBinaryPattern)child;
+            }
+
+            var left = (BoundPattern?)this.Visit(child);
+            Debug.Assert(left is { });
+
+            do
+            {
+                binary = stack.Pop();
+                var right = (BoundPattern?)this.Visit(binary.Right);
+                Debug.Assert(right is { });
+                left = binary.Update(binary.Disjunction, left, right, VisitType(binary.InputType), VisitType(binary.NarrowedType));
+            }
+            while (stack.Count > 0);
+
+            Debug.Assert((object)binary == node);
+            stack.Free();
+
+            return left;
         }
     }
 }
