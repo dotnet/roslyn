@@ -1485,7 +1485,14 @@ class C { int Y => 2; }
             }
         };
 
-        var project = solution.AddProject("A", "A", "C#").AddDocument("A.cs", "", filePath: pathA).Project;
+        var project = solution
+            .AddProject("A", "A", "C#")
+            .WithCompilationOutputInfo(new CompilationOutputInfo(
+                assemblyPath: Path.Combine(TempRoot.Root, "proj"),
+                generatedFilesOutputDirectory: null))
+            .AddDocument("A.cs", "", filePath: pathA)
+            .Project;
+
         var projectId = project.Id;
         solution = project.Solution.AddAnalyzerReference(projectId, new TestGeneratorReference(generator));
         project = solution.GetRequiredProject(projectId);
@@ -1639,6 +1646,9 @@ class C { int Y => 2; }
 
         var project = solution
             .AddProject("A", "A", "C#")
+            .WithCompilationOutputInfo(new CompilationOutputInfo(
+                assemblyPath: Path.Combine(TempRoot.Root, "proj"),
+                generatedFilesOutputDirectory: null))
             .AddAdditionalDocument("A.txt", "text", filePath: pathA)
             .Project;
 
@@ -1904,7 +1914,7 @@ class G
         using var _ = CreateWorkspace(out var solution, out var service);
         (solution, var document1) = AddDefaultTestProject(solution, sourceV1, generator);
 
-        var moduleId = EmitLibrary(sourceV1, generator: generator);
+        var moduleId = EmitLibrary(sourceV1, generatorProject: document1.Project);
         LoadLibraryToDebuggee(moduleId);
 
         // attached to processes that doesn't allow creating new types
@@ -2602,15 +2612,16 @@ partial class E { int B = 2; public E(int a, int b) { A = a; B = new System.Func
 
     [Theory]
     [CombinatorialData]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/72331")]
     internal async Task ValidSignificantChange_SourceGenerators_DocumentUpdate_GeneratedDocumentUpdate(SourceGeneratorExecutionPreference executionPreference)
     {
         var sourceV1 = @"
-/* GENERATE: class G { int X => 1; } */
+/* GENERATE: file class G { int X => 1; } */
 
 class C { int Y => 1; }
 ";
         var sourceV2 = @"
-/* GENERATE: class G { int X => 2; } */
+/* GENERATE: file class G { int X => 2; } */
 
 class C { int Y => 2; }
 ";
@@ -2623,7 +2634,7 @@ class C { int Y => 2; }
 
         (solution, var document1) = AddDefaultTestProject(solution, sourceV1, generator);
 
-        var moduleId = EmitLibrary(sourceV1, generator: generator);
+        var moduleId = EmitLibrary(sourceV1, generatorProject: document1.Project);
         LoadLibraryToDebuggee(moduleId);
 
         // Trigger initial source generation before debugging session starts.
@@ -2680,7 +2691,7 @@ class C { int Y => 2; }
 
         (solution, var document1) = AddDefaultTestProject(solution, sourceV1, generator);
 
-        var moduleId = EmitLibrary(sourceV1, generator: generator);
+        var moduleId = EmitLibrary(sourceV1, generatorProject: document1.Project);
         LoadLibraryToDebuggee(moduleId);
 
         // Trigger initial source generation before debugging session starts.
@@ -2700,9 +2711,15 @@ class C { int Y => 2; }
         var results = (await debuggingSession.EmitSolutionUpdateAsync(solution, s_noActiveSpans, CancellationToken.None).ConfigureAwait(false)).Dehydrate();
         var diagnostics = results.GetAllDiagnostics();
 
+        var generatedFilePath = Path.Combine(
+            TempRoot.Root,
+            "Microsoft.CodeAnalysis.Test.Utilities",
+            "Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator",
+            "Generated_test1.cs");
+
         AssertEx.Equal(
         [
-            @"ENC0021: 'Microsoft.CodeAnalysis.Test.Utilities\Roslyn.Test.Utilities.TestGenerators.TestSourceGenerator\Generated_test1.cs' (0,0)-(0,56): " +
+            $@"ENC0021: '{generatedFilePath}' (0,0)-(0,56): " +
             string.Format(FeaturesResources.Adding_0_requires_restarting_the_application, FeaturesResources.attribute),
         ], diagnostics.Select(d => $"{d.Id}: '{d.FilePath}' {d.Span.GetDebuggerDisplay()}: {d.Message}"));
 
@@ -2744,7 +2761,7 @@ class G
         using var _ = CreateWorkspace(out var solution, out var service);
         (solution, var document1) = AddDefaultTestProject(solution, sourceV1, generator);
 
-        var moduleId = EmitLibrary(sourceV1, generator: generator);
+        var moduleId = EmitLibrary(sourceV1, generatorProject: document1.Project);
         LoadLibraryToDebuggee(moduleId);
 
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
@@ -2792,7 +2809,7 @@ partial class C { int X = 1; }
         using var _ = CreateWorkspace(out var solution, out var service);
         (solution, var document1) = AddDefaultTestProject(solution, sourceV1, generator);
 
-        var moduleId = EmitLibrary(sourceV1, generator: generator);
+        var moduleId = EmitLibrary(sourceV1, generatorProject: document1.Project);
         LoadLibraryToDebuggee(moduleId);
 
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
@@ -2839,7 +2856,7 @@ class C { int Y => 1; }
         using var _ = CreateWorkspace(out var solution, out var service);
         (solution, var document) = AddDefaultTestProject(solution, source, generator, additionalFileText: additionalSourceV1);
 
-        var moduleId = EmitLibrary(source, generator: generator, additionalFileText: additionalSourceV1);
+        var moduleId = EmitLibrary(source, generatorProject: document.Project, additionalFileText: additionalSourceV1);
         LoadLibraryToDebuggee(moduleId);
 
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
@@ -2883,7 +2900,7 @@ class C { int Y => 1; }
         using var _ = CreateWorkspace(out var solution, out var service);
         (solution, var document) = AddDefaultTestProject(solution, source, generator, analyzerConfig: configV1);
 
-        var moduleId = EmitLibrary(source, generator: generator, analyzerOptions: configV1);
+        var moduleId = EmitLibrary(source, generatorProject: document.Project, analyzerOptions: configV1);
         LoadLibraryToDebuggee(moduleId);
 
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
@@ -2925,7 +2942,7 @@ class C { int Y => 1; }
         using var _ = CreateWorkspace(out var solution, out var service);
         (solution, var document1) = AddDefaultTestProject(solution, source1, generator);
 
-        var moduleId = EmitLibrary(source1, generator: generator);
+        var moduleId = EmitLibrary(source1, generatorProject: document1.Project);
         LoadLibraryToDebuggee(moduleId);
 
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);
@@ -3631,7 +3648,7 @@ class C
 
         var generatedDocument1 = (await solution.Projects.Single().GetSourceGeneratedDocumentsAsync().ConfigureAwait(false)).Single();
 
-        var moduleId = EmitLibrary(source1, generator: generator, additionalFileText: additionalFileSourceV1);
+        var moduleId = EmitLibrary(source1, generatorProject: document1.Project, additionalFileText: additionalFileSourceV1);
         LoadLibraryToDebuggee(moduleId);
 
         var debuggingSession = await StartDebuggingSessionAsync(service, solution);

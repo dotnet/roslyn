@@ -1,3 +1,5 @@
 Microsoft.CodeAnalysis.ProjectInfo.WithId(Microsoft.CodeAnalysis.ProjectId id) -> Microsoft.CodeAnalysis.ProjectInfo
+Microsoft.CodeAnalysis.Solution.WithProjectGeneratedFilesOutputDirectory(Microsoft.CodeAnalysis.ProjectId projectId, string path) -> Microsoft.CodeAnalysis.Solution
+Microsoft.CodeAnalysis.Workspace.OnGeneratedFilesOutputDirectoryChanged(Microsoft.CodeAnalysis.ProjectId projectId, string outputFilePath) -> void
 virtual Microsoft.CodeAnalysis.Host.HostLanguageServices.Dispose() -> void
 virtual Microsoft.CodeAnalysis.Host.HostWorkspaceServices.Dispose() -> void

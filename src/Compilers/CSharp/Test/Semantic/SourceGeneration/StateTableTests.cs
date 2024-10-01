@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
@@ -1352,7 +1353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                     ImmutableArray<GeneratorState>.Empty,
                     previous,
                     SyntaxStore.Empty,
-                    driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps),
+                    driverOptions: new GeneratorDriverOptions(TempRoot.Root, IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps),
                     runtime: TimeSpan.Zero);
 
             return new DriverStateTable.Builder(c, state, SyntaxStore.Empty.ToBuilder(c, ImmutableArray<SyntaxInputNode>.Empty, trackIncrementalGeneratorSteps, cancellationToken: default));

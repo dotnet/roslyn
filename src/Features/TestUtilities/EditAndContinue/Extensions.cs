@@ -6,12 +6,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -89,6 +91,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     NoCompilationConstants.LanguageName => ".noproj",
                     _ => throw ExceptionUtilities.UnexpectedValue(language)
                 })
+                .WithCompilationOutputInfo(new CompilationOutputInfo(
+                    assemblyPath: Path.Combine(TempRoot.Root, projectName + ".dll"),
+                    generatedFilesOutputDirectory: null))
                 .WithTelemetryId(CreateProjectTelemetryId(projectName));
 
     }
