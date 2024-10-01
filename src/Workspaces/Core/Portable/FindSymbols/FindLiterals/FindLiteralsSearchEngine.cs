@@ -15,7 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal class FindLiteralsSearchEngine
+internal sealed class FindLiteralsSearchEngine
 {
     private enum SearchKind
     {

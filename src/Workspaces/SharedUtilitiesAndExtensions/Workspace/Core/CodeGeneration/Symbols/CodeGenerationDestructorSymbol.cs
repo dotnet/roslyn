@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationDestructorSymbol(
+internal sealed class CodeGenerationDestructorSymbol(
     INamedTypeSymbol containingType,
     ImmutableArray<AttributeData> attributes) : CodeGenerationMethodSymbol(containingType,
          attributes,

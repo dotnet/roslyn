@@ -118,7 +118,7 @@ internal sealed class RenamedSpansTracker
     ///     "a", "NS3.a"
     /// 
     /// </summary>
-    private class MutableComplexifiedSpan(
+    private sealed class MutableComplexifiedSpan(
         TextSpan originalSpan, TextSpan newSpan, List<(TextSpan oldSpan, TextSpan newSpan)> modifiedSubSpans)
     {
         public TextSpan OriginalSpan = originalSpan;

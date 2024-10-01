@@ -4,9 +4,9 @@
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
-    private partial class RegularCompilationTracker
+    private sealed partial class RegularCompilationTracker
     {
         /// <param name="Documents">
         /// The best generated documents we have for the current state. 

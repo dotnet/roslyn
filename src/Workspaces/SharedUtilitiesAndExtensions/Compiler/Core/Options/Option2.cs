@@ -33,7 +33,7 @@ internal interface ISingleValuedOption<T> : ISingleValuedOption
 {
 }
 
-internal partial class Option2<T> : ISingleValuedOption<T>
+internal sealed partial class Option2<T> : ISingleValuedOption<T>
 {
     public OptionDefinition<T> Definition { get; }
     public IPublicOption? PublicOption { get; }

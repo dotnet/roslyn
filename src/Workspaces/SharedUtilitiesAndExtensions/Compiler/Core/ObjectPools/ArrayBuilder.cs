@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.PooledObjects;
 
-internal partial class ArrayBuilder<T> : IPooled
+internal sealed partial class ArrayBuilder<T> : IPooled
 {
     public static PooledDisposer<ArrayBuilder<T>> GetInstance(out ArrayBuilder<T> instance)
     {

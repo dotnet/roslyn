@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Formatting;
 /// this class maintain contextual information such as 
 /// indentation of current position, based token to follow in current position and etc.
 /// </summary>
-internal partial class FormattingContext
+internal sealed partial class FormattingContext
 {
     private readonly AbstractFormatEngine _engine;
 

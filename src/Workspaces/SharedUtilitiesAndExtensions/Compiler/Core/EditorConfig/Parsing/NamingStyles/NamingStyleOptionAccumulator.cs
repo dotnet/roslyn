@@ -11,7 +11,7 @@ using static Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles.EditorCon
 
 namespace Microsoft.CodeAnalysis.EditorConfig.Parsing.NamingStyles;
 
-internal class NamingStyleOptionAccumulator : IEditorConfigOptionAccumulator<EditorConfigNamingStyles, NamingStyleOption>
+internal sealed class NamingStyleOptionAccumulator : IEditorConfigOptionAccumulator<EditorConfigNamingStyles, NamingStyleOption>
 {
     private ArrayBuilder<NamingStyleOption>? _rules;
 

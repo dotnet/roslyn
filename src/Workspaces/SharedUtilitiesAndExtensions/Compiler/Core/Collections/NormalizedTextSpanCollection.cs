@@ -623,7 +623,7 @@ internal sealed class NormalizedTextSpanCollection : ReadOnlyCollection<TextSpan
         }
     }
 
-    private class OrderedSpanList : List<TextSpan>
+    private sealed class OrderedSpanList : List<TextSpan>
     {
     }
 

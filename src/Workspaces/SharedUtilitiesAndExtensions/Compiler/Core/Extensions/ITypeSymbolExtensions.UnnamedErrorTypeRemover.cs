@@ -9,9 +9,9 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
-internal partial class ITypeSymbolExtensions
+internal static partial class ITypeSymbolExtensions
 {
-    private class UnnamedErrorTypeRemover(Compilation compilation) : SymbolVisitor<ITypeSymbol>
+    private sealed class UnnamedErrorTypeRemover(Compilation compilation) : SymbolVisitor<ITypeSymbol>
     {
         public override ITypeSymbol DefaultVisit(ISymbol node)
             => throw new NotImplementedException();

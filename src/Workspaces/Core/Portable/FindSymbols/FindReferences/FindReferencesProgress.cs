@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 /// A does-nothing version of the <see cref="IFindReferencesProgress"/>. Useful for
 /// clients that have no need to report progress as they work.
 /// </summary>
-internal class NoOpFindReferencesProgress : IFindReferencesProgress
+internal sealed class NoOpFindReferencesProgress : IFindReferencesProgress
 {
     public static readonly IFindReferencesProgress Instance = new NoOpFindReferencesProgress();
 

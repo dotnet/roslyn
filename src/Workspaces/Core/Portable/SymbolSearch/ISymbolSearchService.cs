@@ -133,7 +133,7 @@ internal sealed class ReferenceAssemblyWithTypeResult(
 }
 
 [ExportWorkspaceService(typeof(ISymbolSearchService)), Shared]
-internal class DefaultSymbolSearchService : ISymbolSearchService
+internal sealed class DefaultSymbolSearchService : ISymbolSearchService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

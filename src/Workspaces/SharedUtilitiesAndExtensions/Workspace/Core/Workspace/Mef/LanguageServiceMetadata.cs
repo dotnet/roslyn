@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     /// <summary>
     /// MEF metadata class used for finding <see cref="ILanguageService"/> and <see cref="ILanguageServiceFactory"/> exports.
     /// </summary>
-    internal class LanguageServiceMetadata(IDictionary<string, object> data) : ILanguageMetadata, ILayeredServiceMetadata
+    internal sealed class LanguageServiceMetadata(IDictionary<string, object> data) : ILanguageMetadata, ILayeredServiceMetadata
     {
         public string Language { get; } = (string)data[nameof(ExportLanguageServiceAttribute.Language)];
         public string ServiceType { get; } = (string)data[nameof(ExportLanguageServiceAttribute.ServiceType)];

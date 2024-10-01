@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageService.TypeInferenceService;
 
-internal partial class AbstractTypeInferenceService : ITypeInferenceService
+internal abstract partial class AbstractTypeInferenceService : ITypeInferenceService
 {
     protected abstract class AbstractTypeInferrer
     {

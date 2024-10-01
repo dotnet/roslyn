@@ -27,7 +27,7 @@ namespace Roslyn.Utilities;
 /// 
 /// as we use soft-crash in more places, we should come up with more general framework.
 /// </summary>
-internal class SoftCrashException : OperationCanceledException
+internal sealed class SoftCrashException : OperationCanceledException
 {
     public SoftCrashException() : base() { }
 

@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationPropertyInfo
+internal sealed class CodeGenerationPropertyInfo
 {
     private static readonly ConditionalWeakTable<IPropertySymbol, CodeGenerationPropertyInfo> s_propertyToInfoMap = new();
 

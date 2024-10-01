@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host;
 
-internal class NoOpPersistentStorage(SolutionKey solutionKey) : IChecksummedPersistentStorage
+internal sealed class NoOpPersistentStorage(SolutionKey solutionKey) : IChecksummedPersistentStorage
 {
     public SolutionKey SolutionKey => solutionKey;
 

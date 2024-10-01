@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers;
 /// </summary>
 [MetadataAttribute]
 [AttributeUsage(AttributeTargets.Class)]
-internal class ExportCodeCleanupProvider : ExportAttribute
+internal sealed class ExportCodeCleanupProvider : ExportAttribute
 {
     public string Name { get; }
     public IEnumerable<string> Languages { get; }

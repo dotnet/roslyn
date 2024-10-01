@@ -112,7 +112,7 @@ internal abstract class FixAllProviderInfo
 
     public abstract bool CanBeFixed(Diagnostic diagnostic);
 
-    private class CodeFixerFixAllProviderInfo(
+    private sealed class CodeFixerFixAllProviderInfo(
         IFixAllProvider fixAllProvider,
         IEnumerable<string> supportedDiagnosticIds,
         ImmutableArray<FixAllScope> supportedScopes) : FixAllProviderInfo(fixAllProvider, supportedScopes)
@@ -121,7 +121,7 @@ internal abstract class FixAllProviderInfo
             => supportedDiagnosticIds.Contains(diagnostic.Id);
     }
 
-    private class SuppressionFixerFixAllProviderInfo(
+    private sealed class SuppressionFixerFixAllProviderInfo(
         IFixAllProvider fixAllProvider,
         IConfigurationFixProvider suppressionFixer,
         ImmutableArray<FixAllScope> supportedScopes) : FixAllProviderInfo(fixAllProvider, supportedScopes)
@@ -132,7 +132,7 @@ internal abstract class FixAllProviderInfo
             => _canBeSuppressedOrUnsuppressed(diagnostic);
     }
 
-    private class CodeRefactoringFixAllProviderInfo(
+    private sealed class CodeRefactoringFixAllProviderInfo(
         IFixAllProvider fixAllProvider,
         ImmutableArray<FixAllScope> supportedScopes) : FixAllProviderInfo(fixAllProvider, supportedScopes)
     {

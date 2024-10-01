@@ -95,7 +95,7 @@ public abstract class FixAllProvider : IFixAllProvider
         => this.GetFixAsync((FixAllContext)fixAllContext);
     #endregion
 
-    private class CallbackDocumentBasedFixAllProvider(
+    private sealed class CallbackDocumentBasedFixAllProvider(
         Func<FixAllContext, Document, ImmutableArray<Diagnostic>, Task<Document?>> fixAllAsync,
         ImmutableArray<FixAllScope> supportedFixAllScopes) : DocumentBasedFixAllProvider(supportedFixAllScopes)
     {

@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
-internal class Matcher
+internal sealed class Matcher
 {
     /// <summary>
     /// Matcher equivalent to (m*)

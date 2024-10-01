@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 
 namespace Microsoft.CodeAnalysis.SQLite.v2;
 
-internal partial class SQLitePersistentStorage
+internal sealed partial class SQLitePersistentStorage
 {
     private readonly struct PooledConnection(SQLitePersistentStorage storage, SqlConnection sqlConnection) : IDisposable
     {

@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
-internal class BottomUpBaseIndentationFinder
+internal sealed class BottomUpBaseIndentationFinder
 {
     private readonly TokenStream? _tokenStream;
     private readonly ChainedFormattingRules _formattingRules;

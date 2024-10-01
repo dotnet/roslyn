@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.Storage;
 
-internal class StorageDatabaseLogger
+internal sealed class StorageDatabaseLogger
 {
     private const string Kind = nameof(Kind);
     private const string Reason = nameof(Reason);

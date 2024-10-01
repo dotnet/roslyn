@@ -25,7 +25,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal partial class SymbolTreeInfo
+internal sealed partial class SymbolTreeInfo
 {
     /// <summary>
     /// Cache the symbol tree infos for assembly symbols produced from a particular <see

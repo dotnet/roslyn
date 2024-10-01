@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal partial class FindReferencesSearchEngine
+internal sealed partial class FindReferencesSearchEngine
 {
     /// <summary>
     /// A symbol set used when the find refs caller does not want cascading.  This is a trivial impl that basically

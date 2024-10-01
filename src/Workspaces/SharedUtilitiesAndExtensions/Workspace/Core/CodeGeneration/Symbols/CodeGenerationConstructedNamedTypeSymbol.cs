@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationConstructedNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
+internal sealed class CodeGenerationConstructedNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
 {
     private readonly CodeGenerationNamedTypeSymbol _constructedFrom;
     private readonly ImmutableArray<ITypeSymbol> _typeArguments;

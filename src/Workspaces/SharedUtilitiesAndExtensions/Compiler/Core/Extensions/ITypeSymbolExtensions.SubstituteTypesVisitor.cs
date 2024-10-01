@@ -10,9 +10,9 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
-internal partial class ITypeSymbolExtensions
+internal static partial class ITypeSymbolExtensions
 {
-    private class SubstituteTypesVisitor<TType1, TType2> : SymbolVisitor<ITypeSymbol>
+    private sealed class SubstituteTypesVisitor<TType1, TType2> : SymbolVisitor<ITypeSymbol>
         where TType1 : ITypeSymbol
         where TType2 : ITypeSymbol
     {

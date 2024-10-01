@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editing;
 
-internal class GenerationOptions
+internal sealed class GenerationOptions
 {
     public static readonly PerLanguageOption2<bool> PlaceSystemNamespaceFirst = new(
         "dotnet_sort_system_directives_first",

@@ -633,7 +633,7 @@ internal abstract class AbstractCodeCleanerService : ICodeCleanerService
     /// <summary>
     /// Internal annotation type to mark span location in the tree.
     /// </summary>
-    private class SpanMarker
+    private sealed class SpanMarker
     {
         /// <summary>
         /// Indicates the current marker type

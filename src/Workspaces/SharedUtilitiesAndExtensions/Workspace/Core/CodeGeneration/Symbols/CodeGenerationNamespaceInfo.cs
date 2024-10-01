@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationNamespaceInfo
+internal sealed class CodeGenerationNamespaceInfo
 {
     private static readonly ConditionalWeakTable<INamespaceSymbol, CodeGenerationNamespaceInfo> s_namespaceToInfoMap = new();
 

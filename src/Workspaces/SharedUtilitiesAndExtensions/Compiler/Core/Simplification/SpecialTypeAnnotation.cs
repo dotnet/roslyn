@@ -7,7 +7,7 @@ using System.Collections.Concurrent;
 
 namespace Microsoft.CodeAnalysis.Simplification;
 
-internal class SpecialTypeAnnotation
+internal sealed class SpecialTypeAnnotation
 {
     public const string Kind = "SpecialType";
 

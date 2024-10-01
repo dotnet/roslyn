@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes;
 /// <summary>
 /// Helper to merge many disparate text changes to a single document together into a total set of changes.
 /// </summary>
-internal class TextChangeMerger
+internal sealed class TextChangeMerger
 {
     private readonly struct IntervalIntrospector : IIntervalIntrospector<TextChange>
     {

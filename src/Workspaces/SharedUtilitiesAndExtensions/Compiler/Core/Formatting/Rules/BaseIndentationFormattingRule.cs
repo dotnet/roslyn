@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules;
 
-internal class BaseIndentationFormattingRule : AbstractFormattingRule
+internal sealed class BaseIndentationFormattingRule : AbstractFormattingRule
 {
     private readonly AbstractFormattingRule? _vbHelperFormattingRule;
     private readonly int _baseIndentation;

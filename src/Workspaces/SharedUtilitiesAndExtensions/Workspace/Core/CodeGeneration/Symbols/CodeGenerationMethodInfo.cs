@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationMethodInfo
+internal sealed class CodeGenerationMethodInfo
 {
     private static readonly ConditionalWeakTable<IMethodSymbol, CodeGenerationMethodInfo> s_methodToInfoMap = new();
 

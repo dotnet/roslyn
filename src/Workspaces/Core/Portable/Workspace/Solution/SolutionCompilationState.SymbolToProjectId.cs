@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
     internal DocumentState? GetDocumentState(SyntaxTree? syntaxTree, ProjectId? projectId)
     {

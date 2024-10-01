@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.PatternMatching;
 
-internal partial class PatternMatcher
+internal abstract partial class PatternMatcher
 {
     private sealed partial class ContainerPatternMatcher : PatternMatcher
     {

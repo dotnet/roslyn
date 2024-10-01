@@ -236,7 +236,7 @@ internal partial struct SymbolKey
         }
     }
 
-    private class RemoveAssemblySymbolKeysReader : Reader<object>
+    private sealed class RemoveAssemblySymbolKeysReader : Reader<object>
     {
         private readonly StringBuilder _builder = new();
 

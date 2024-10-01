@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine;
 /// check if the semantics have been changes (conflict detection).
 /// </summary>
 /// <remarks>This annotation should be put on tokens only.</remarks>
-internal class RenameActionAnnotation(
+internal sealed class RenameActionAnnotation(
     TextSpan originalSpan,
     bool isRenameLocation,
     string prefix,

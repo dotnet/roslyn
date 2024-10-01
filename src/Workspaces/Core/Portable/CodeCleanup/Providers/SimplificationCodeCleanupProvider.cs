@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeCleanup.Providers;
 
-internal class SimplificationCodeCleanupProvider : ICodeCleanupProvider
+internal sealed class SimplificationCodeCleanupProvider : ICodeCleanupProvider
 {
     public string Name => PredefinedCodeCleanupProviderNames.Simplification;
 

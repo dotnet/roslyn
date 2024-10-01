@@ -6,9 +6,9 @@ using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
-internal partial class Matcher<T>
+internal abstract partial class Matcher<T>
 {
-    private class SequenceMatcher(params Matcher<T>[] matchers) : Matcher<T>
+    private sealed class SequenceMatcher(params Matcher<T>[] matchers) : Matcher<T>
     {
         public override bool TryMatch(IList<T> sequence, ref int index)
         {

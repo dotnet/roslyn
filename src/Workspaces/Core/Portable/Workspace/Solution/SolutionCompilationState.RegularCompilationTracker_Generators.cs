@@ -22,9 +22,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
-    private partial class RegularCompilationTracker : ICompilationTracker
+    private sealed partial class RegularCompilationTracker : ICompilationTracker
     {
         private async Task<(Compilation compilationWithGeneratedFiles, CompilationTrackerGeneratorInfo nextGeneratorInfo)> AddExistingOrComputeNewGeneratorInfoAsync(
             CreationPolicy creationPolicy,
