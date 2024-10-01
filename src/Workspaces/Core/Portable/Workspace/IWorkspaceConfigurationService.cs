@@ -32,7 +32,7 @@ internal sealed class DefaultWorkspaceConfigurationService() : IWorkspaceConfigu
 /// when devenv connects to the ServiceHub process.
 /// </summary>
 [DataContract]
-internal sealed record class WorkspaceConfigurationOptions(
+internal readonly record struct WorkspaceConfigurationOptions(
     [property: DataMember(Order = 0)] SourceGeneratorExecutionPreference SourceGeneratorExecution = SourceGeneratorExecutionPreference.Automatic,
     [property: DataMember(Order = 1)] bool ReloadChangedAnalyzerReferences = true,
     [property: DataMember(Order = 2)] bool ValidateCompilationTrackerStates =
@@ -43,11 +43,11 @@ internal sealed record class WorkspaceConfigurationOptions(
 #endif
     )
 {
-    public static readonly WorkspaceConfigurationOptions Default = new();
+    public static readonly WorkspaceConfigurationOptions Default = new(SourceGeneratorExecution: SourceGeneratorExecutionPreference.Automatic);
 
     /// <summary>
     /// These values are such that the correctness of remote services is not affected if these options are changed from defaults
     /// to non-defaults while the services have already been executing.
     /// </summary>
-    public static readonly WorkspaceConfigurationOptions RemoteDefault = new();
+    public static readonly WorkspaceConfigurationOptions RemoteDefault = new(SourceGeneratorExecution: SourceGeneratorExecutionPreference.Automatic);
 }
