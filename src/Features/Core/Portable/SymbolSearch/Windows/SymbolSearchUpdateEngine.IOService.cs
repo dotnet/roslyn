@@ -8,9 +8,9 @@ using System.IO;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch;
 
-internal partial class SymbolSearchUpdateEngine
+internal sealed partial class SymbolSearchUpdateEngine
 {
-    private class IOService : IIOService
+    private sealed class IOService : IIOService
     {
         public void Create(DirectoryInfo directory) => directory.Create();
 

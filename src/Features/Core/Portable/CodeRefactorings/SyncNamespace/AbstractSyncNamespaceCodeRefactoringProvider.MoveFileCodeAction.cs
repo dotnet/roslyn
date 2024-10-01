@@ -121,7 +121,7 @@ internal abstract partial class AbstractSyncNamespaceCodeRefactoringProvider<TNa
             return builder.ToImmutableAndFree();
         }
 
-        private class FolderInfo
+        private sealed class FolderInfo
         {
             private readonly Dictionary<string, FolderInfo> _childFolders;
 

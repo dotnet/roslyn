@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.AddImport;
 
 internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    private partial class SymbolReferenceFinder
+    private sealed partial class SymbolReferenceFinder
     {
         private const string AttributeSuffix = nameof(Attribute);
 
@@ -571,7 +571,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             return GetNamespaceSymbolReferences(searchScope, namespaceSymbols);
         }
 
-        protected bool ExpressionBinds(
+        private bool ExpressionBinds(
             TSimpleNameSyntax nameNode, bool checkForExtensionMethods, CancellationToken cancellationToken)
         {
             // See if the name binds to something other then the error type. If it does, there's nothing further we need to do.

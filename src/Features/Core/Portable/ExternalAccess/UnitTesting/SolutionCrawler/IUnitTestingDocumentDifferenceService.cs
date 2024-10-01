@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
 
-internal class UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons changeType, SyntaxNode? changedMember = null)
+internal sealed class UnitTestingDocumentDifferenceResult(UnitTestingInvocationReasons changeType, SyntaxNode? changedMember = null)
 {
     public UnitTestingInvocationReasons ChangeType { get; } = changeType;
     public SyntaxNode? ChangedMember { get; } = changedMember;

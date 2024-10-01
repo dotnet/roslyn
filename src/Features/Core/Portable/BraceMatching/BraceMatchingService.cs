@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.BraceMatching;
 [Export(typeof(IBraceMatchingService)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class BraceMatchingService(
+internal sealed class BraceMatchingService(
     [ImportMany] IEnumerable<Lazy<IBraceMatcher, LanguageMetadata>> braceMatchers) : IBraceMatchingService
 {
     private readonly ImmutableArray<Lazy<IBraceMatcher, LanguageMetadata>> _braceMatchers = braceMatchers.ToImmutableArray();

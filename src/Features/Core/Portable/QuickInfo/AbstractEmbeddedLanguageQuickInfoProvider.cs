@@ -58,7 +58,7 @@ internal abstract class AbstractEmbeddedLanguageQuickInfoProvider : CommonQuickI
     /// have multiple inheritance, we'll create a separate class here and delegate to the protected methods. We can remove this if we
     /// switch Quick Info over to a pattern like the rest of our features.
     /// </summary>
-    private class EmbeddedLanguageProviderFeatureService :
+    private sealed class EmbeddedLanguageProviderFeatureService :
         AbstractEmbeddedLanguageFeatureService<IEmbeddedLanguageQuickInfoProvider>
     {
         public EmbeddedLanguageProviderFeatureService(string languageName, EmbeddedLanguageInfo info, ISyntaxKinds syntaxKinds, IEnumerable<Lazy<IEmbeddedLanguageQuickInfoProvider, EmbeddedLanguageMetadata>> allServices)

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.AddImport;
 
 internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    private partial class SymbolReferenceFinder
+    private sealed partial class SymbolReferenceFinder
     {
         internal async Task FindNugetOrReferenceAssemblyReferencesAsync(
             ConcurrentQueue<Reference> allReferences, CancellationToken cancellationToken)

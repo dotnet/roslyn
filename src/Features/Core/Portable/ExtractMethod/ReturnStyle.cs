@@ -6,7 +6,7 @@
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
-internal class ReturnStyle
+internal sealed class ReturnStyle
 {
     public ParameterBehavior ParameterBehavior { get; private set; }
     public ReturnBehavior ReturnBehavior { get; private set; }

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace;
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.MoveToNamespace), Shared]
 [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.SyncNamespace)]
 [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.MoveTypeToFile)]
-internal class MoveToNamespaceCodeActionProvider : CodeRefactoringProvider
+internal sealed class MoveToNamespaceCodeActionProvider : CodeRefactoringProvider
 {
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

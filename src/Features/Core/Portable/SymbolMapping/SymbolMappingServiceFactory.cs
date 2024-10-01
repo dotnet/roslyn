@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.SymbolMapping;
 
 [ExportWorkspaceService(typeof(ISymbolMappingService), ServiceLayer.Default), Shared]
-internal class DefaultSymbolMappingService : ISymbolMappingService
+internal sealed class DefaultSymbolMappingService : ISymbolMappingService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

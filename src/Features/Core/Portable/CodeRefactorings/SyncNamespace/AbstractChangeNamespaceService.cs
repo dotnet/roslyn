@@ -849,7 +849,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         return mergeResult.MergedSolution;
     }
 
-    private class SyntaxNodeSpanStartComparer : IComparer<SyntaxNode>
+    private sealed class SyntaxNodeSpanStartComparer : IComparer<SyntaxNode>
     {
         private SyntaxNodeSpanStartComparer()
         {

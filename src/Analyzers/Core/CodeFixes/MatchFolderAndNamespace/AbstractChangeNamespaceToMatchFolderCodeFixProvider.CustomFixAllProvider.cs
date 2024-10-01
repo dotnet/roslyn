@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.MatchFolderAndNamespace;
 /// </summary>
 internal abstract partial class AbstractChangeNamespaceToMatchFolderCodeFixProvider
 {
-    private class CustomFixAllProvider : FixAllProvider
+    private sealed class CustomFixAllProvider : FixAllProvider
     {
         public static readonly CustomFixAllProvider Instance = new();
 

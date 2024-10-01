@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractClass;
 
-internal class ExtractClassWithDialogCodeAction(
+internal sealed class ExtractClassWithDialogCodeAction(
     Document document,
     TextSpan span,
     IExtractClassOptionsService service,

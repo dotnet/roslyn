@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface;
 
 internal abstract partial class AbstractImplementInterfaceService
 {
-    private partial class ImplementInterfaceGenerator
+    private sealed partial class ImplementInterfaceGenerator
     {
         private IEnumerable<ISymbol?> GeneratePropertyMembers(
             Compilation compilation,

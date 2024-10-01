@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
    Name = PredefinedCodeRefactoringProviderNames.ReplacePropertyWithMethods), Shared]
-internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
+internal sealed class ReplacePropertyWithMethodsCodeRefactoringProvider :
     CodeRefactoringProvider,
     IEqualityComparer<(IPropertySymbol property, ReferenceLocation location)>
 {

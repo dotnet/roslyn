@@ -7,6 +7,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.QuickInfo;
 
-internal class QuickInfoProviderMetadata(IDictionary<string, object> data) : OrderableLanguageMetadata(data)
+internal sealed class QuickInfoProviderMetadata(IDictionary<string, object> data) : OrderableLanguageMetadata(data)
 {
 }

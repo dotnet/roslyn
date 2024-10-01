@@ -10,9 +10,9 @@ using Microsoft.CodeAnalysis.DocumentationComments;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
-internal partial class AbstractMetadataAsSourceService
+internal abstract partial class AbstractMetadataAsSourceService
 {
-    private class WrappedMethodSymbol(IMethodSymbol methodSymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService) : AbstractWrappedSymbol(methodSymbol, canImplementImplicitly, docCommentFormattingService), IMethodSymbol
+    private sealed class WrappedMethodSymbol(IMethodSymbol methodSymbol, bool canImplementImplicitly, IDocumentationCommentFormattingService docCommentFormattingService) : AbstractWrappedSymbol(methodSymbol, canImplementImplicitly, docCommentFormattingService), IMethodSymbol
     {
         private readonly IMethodSymbol _symbol = methodSymbol;
 

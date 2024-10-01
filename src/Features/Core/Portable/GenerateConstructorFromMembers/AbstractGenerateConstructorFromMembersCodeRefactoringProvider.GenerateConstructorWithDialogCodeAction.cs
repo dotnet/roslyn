@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers;
 
 internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider : AbstractGenerateFromMembersCodeRefactoringProvider
 {
-    private class GenerateConstructorWithDialogCodeAction(
+    private sealed class GenerateConstructorWithDialogCodeAction(
         AbstractGenerateConstructorFromMembersCodeRefactoringProvider service,
         Document document,
         TextSpan textSpan,

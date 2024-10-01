@@ -28,7 +28,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
 {
     protected abstract bool IsConversionImplicit(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType);
 
-    private partial class Editor
+    private sealed partial class Editor
     {
         private readonly TService _service;
         private TargetProjectChangeInLanguage _targetProjectChangeInLanguage = TargetProjectChangeInLanguage.NoChange;

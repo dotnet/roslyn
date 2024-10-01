@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
 
-internal partial class UnitTestingSolutionCrawlerRegistrationService
+internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 {
     internal sealed partial class UnitTestingWorkCoordinator : IUnitTestingWorkCoordinator
     {

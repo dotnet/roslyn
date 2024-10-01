@@ -28,7 +28,7 @@ internal sealed class InstallWithPackageManagerCodeAction(
             new InstallWithPackageManagerCodeActionOperation(this)));
     }
 
-    private class InstallWithPackageManagerCodeActionOperation(
+    private sealed class InstallWithPackageManagerCodeActionOperation(
         InstallWithPackageManagerCodeAction codeAction) : CodeActionOperation
     {
         private readonly InstallWithPackageManagerCodeAction _codeAction = codeAction;

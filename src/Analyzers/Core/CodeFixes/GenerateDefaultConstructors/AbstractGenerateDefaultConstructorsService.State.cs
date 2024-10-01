@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors;
 
 internal abstract partial class AbstractGenerateDefaultConstructorsService<TService>
 {
-    private class State
+    private sealed class State
     {
         public INamedTypeSymbol? ClassType { get; private set; }
 

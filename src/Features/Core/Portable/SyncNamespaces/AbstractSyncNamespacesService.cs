@@ -146,7 +146,7 @@ internal abstract class AbstractSyncNamespacesService<TSyntaxKind, TNamespaceSyn
         return applyChangesOperation.ChangedSolution;
     }
 
-    private class DiagnosticProvider : FixAllContext.DiagnosticProvider
+    private sealed class DiagnosticProvider : FixAllContext.DiagnosticProvider
     {
         private static readonly Task<IEnumerable<Diagnostic>> EmptyDiagnosticResult = Task.FromResult(Enumerable.Empty<Diagnostic>());
 

@@ -31,7 +31,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                 new InstallWithPackageManagerCodeActionOperation(_installerService, _packageName)));
         }
 
-        private class InstallWithPackageManagerCodeActionOperation(
+        private sealed class InstallWithPackageManagerCodeActionOperation(
             IPackageInstallerService installerService,
             string packageName) : CodeActionOperation
         {

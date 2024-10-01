@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo;
 
 internal abstract partial class CommonSemanticQuickInfoProvider
 {
-    private class ErrorVisitor : SymbolVisitor<bool>
+    private sealed class ErrorVisitor : SymbolVisitor<bool>
     {
         private static readonly ErrorVisitor s_instance = new();
 

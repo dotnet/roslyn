@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
     Name = PredefinedCodeRefactoringProviderNames.ExtractInterface), Shared]
-internal class ExtractInterfaceCodeRefactoringProvider : CodeRefactoringProvider
+internal sealed class ExtractInterfaceCodeRefactoringProvider : CodeRefactoringProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

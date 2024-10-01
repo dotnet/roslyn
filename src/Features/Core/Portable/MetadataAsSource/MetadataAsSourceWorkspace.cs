@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
-internal class MetadataAsSourceWorkspace(MetadataAsSourceFileService fileService, HostServices hostServices) : Workspace(hostServices, WorkspaceKind.MetadataAsSource)
+internal sealed class MetadataAsSourceWorkspace(MetadataAsSourceFileService fileService, HostServices hostServices) : Workspace(hostServices, WorkspaceKind.MetadataAsSource)
 {
     public readonly MetadataAsSourceFileService FileService = fileService;
 }

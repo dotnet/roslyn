@@ -13,9 +13,9 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
-internal partial class AbstractMetadataAsSourceService
+internal abstract partial class AbstractMetadataAsSourceService
 {
-    internal class DocCommentFormatter
+    internal sealed class DocCommentFormatter
     {
         private const int s_indentSize = 2;
         private const int s_wrapLength = 80;

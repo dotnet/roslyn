@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 
 namespace Microsoft.CodeAnalysis.ChangeSignature;
 
-internal class ChangeSignatureLogger
+internal sealed class ChangeSignatureLogger
 {
     private const string Maximum = nameof(Maximum);
     private const string Minimum = nameof(Minimum);

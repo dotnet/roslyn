@@ -9,9 +9,9 @@ using Microsoft.CodeAnalysis.Elfie.Model;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch;
 
-internal partial class SymbolSearchUpdateEngine
+internal sealed partial class SymbolSearchUpdateEngine
 {
-    private class DatabaseFactoryService : IDatabaseFactoryService
+    private sealed class DatabaseFactoryService : IDatabaseFactoryService
     {
         public AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes)
         {

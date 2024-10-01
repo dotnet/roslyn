@@ -9,9 +9,9 @@ using Microsoft.CodeAnalysis.DocumentationComments;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
-internal partial class AbstractMetadataAsSourceService
+internal abstract partial class AbstractMetadataAsSourceService
 {
-    private class WrappedFieldSymbol(IFieldSymbol fieldSymbol, IDocumentationCommentFormattingService docCommentFormattingService) : AbstractWrappedSymbol(fieldSymbol, canImplementImplicitly: false, docCommentFormattingService: docCommentFormattingService), IFieldSymbol
+    private sealed class WrappedFieldSymbol(IFieldSymbol fieldSymbol, IDocumentationCommentFormattingService docCommentFormattingService) : AbstractWrappedSymbol(fieldSymbol, canImplementImplicitly: false, docCommentFormattingService: docCommentFormattingService), IFieldSymbol
     {
         private readonly IFieldSymbol _symbol = fieldSymbol;
 

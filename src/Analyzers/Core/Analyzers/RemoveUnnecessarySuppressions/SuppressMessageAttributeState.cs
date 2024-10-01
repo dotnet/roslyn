@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
 
-internal partial class SuppressMessageAttributeState(Compilation compilation, INamedTypeSymbol suppressMessageAttributeType)
+internal sealed partial class SuppressMessageAttributeState(Compilation compilation, INamedTypeSymbol suppressMessageAttributeType)
 {
     internal const string SuppressMessageScope = "Scope";
     internal const string SuppressMessageTarget = "Target";

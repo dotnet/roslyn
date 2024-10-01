@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.MoveToNamespace;
 
-internal class MoveToNamespaceResult
+internal sealed class MoveToNamespaceResult
 {
     public static readonly MoveToNamespaceResult Failed = new();
 

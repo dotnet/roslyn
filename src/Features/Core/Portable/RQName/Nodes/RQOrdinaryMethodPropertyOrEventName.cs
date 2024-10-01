@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
 namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
 
-internal class RQOrdinaryMethodPropertyOrEventName : RQMethodPropertyOrEventName
+internal sealed class RQOrdinaryMethodPropertyOrEventName : RQMethodPropertyOrEventName
 {
     // the construct type should always match the containing member.
     // I don't think we need to expose this, shouldn't you know this from your containing member?

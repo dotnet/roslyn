@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting;
 /// <summary>
 /// Use this attribute to export a <see cref="IEmbeddedLanguageDocumentHighlighter"/>.
 /// </summary>
-internal class ExportEmbeddedLanguageDocumentHighlighterAttribute(
+internal sealed class ExportEmbeddedLanguageDocumentHighlighterAttribute(
     string name, string[] languages, bool supportsUnannotatedAPIs, params string[] identifiers) : ExportEmbeddedLanguageFeatureServiceAttribute(typeof(IEmbeddedLanguageDocumentHighlighter), name, languages, supportsUnannotatedAPIs, identifiers)
 {
     public ExportEmbeddedLanguageDocumentHighlighterAttribute(

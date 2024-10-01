@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp;
 
-internal class SignatureHelpItems
+internal sealed class SignatureHelpItems
 {
     /// <summary>
     /// The list of items to present to the user.

@@ -6,9 +6,9 @@ using Microsoft.CodeAnalysis.CodeCleanup;
 
 namespace Microsoft.CodeAnalysis.IntroduceVariable;
 
-internal partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
+internal abstract partial class AbstractIntroduceVariableService<TService, TExpressionSyntax, TTypeSyntax, TTypeDeclarationSyntax, TQueryExpressionSyntax, TNameSyntax>
 {
-    private class IntroduceVariableAllOccurrenceCodeAction(
+    private sealed class IntroduceVariableAllOccurrenceCodeAction(
         TService service,
         SemanticDocument document,
         CodeCleanupOptions options,

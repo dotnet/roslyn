@@ -20,11 +20,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
 
-internal partial class UnitTestingSolutionCrawlerRegistrationService
+internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 {
-    internal partial class UnitTestingWorkCoordinator
+    internal sealed partial class UnitTestingWorkCoordinator
     {
-        private partial class UnitTestingIncrementalAnalyzerProcessor
+        private sealed partial class UnitTestingIncrementalAnalyzerProcessor
         {
             private static readonly Func<int, object, bool, string> s_enqueueLogger = EnqueueLogger;
 
@@ -281,7 +281,7 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
                 }
             }
 
-            private class UnitTestingAnalyzersGetter(IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders)
+            private sealed class UnitTestingAnalyzersGetter(IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders)
             {
                 private readonly List<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> _analyzerProviders = analyzerProviders.ToList();
                 private readonly Dictionary<(string workspaceKind, SolutionServices services), ImmutableArray<IUnitTestingIncrementalAnalyzer>> _analyzerMap = [];

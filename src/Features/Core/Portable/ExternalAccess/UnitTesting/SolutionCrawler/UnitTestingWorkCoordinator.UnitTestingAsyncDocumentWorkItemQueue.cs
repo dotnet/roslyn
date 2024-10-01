@@ -9,11 +9,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
 
-internal partial class UnitTestingSolutionCrawlerRegistrationService
+internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 {
-    internal partial class UnitTestingWorkCoordinator
+    internal sealed partial class UnitTestingWorkCoordinator
     {
-        private class UnitTestingAsyncDocumentWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter) : UnitTestingAsyncWorkItemQueue<DocumentId>(progressReporter)
+        private sealed class UnitTestingAsyncDocumentWorkItemQueue(UnitTestingSolutionCrawlerProgressReporter progressReporter) : UnitTestingAsyncWorkItemQueue<DocumentId>(progressReporter)
         {
             private readonly Dictionary<ProjectId, Dictionary<DocumentId, UnitTestingWorkItem>> _documentWorkQueue = [];
 

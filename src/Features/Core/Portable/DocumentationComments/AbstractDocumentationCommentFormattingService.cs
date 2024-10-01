@@ -25,7 +25,7 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
         Table,
     }
 
-    private class FormatterState
+    private sealed class FormatterState
     {
         private bool _anyNonWhitespaceSinceLastPara;
         private bool _pendingParagraphBreak;

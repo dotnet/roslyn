@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource;
 [ExportMetadataAsSourceFileProvider(ProviderName), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class DecompilationMetadataAsSourceFileProvider(IImplementationAssemblyLookupService implementationAssemblyLookupService) : IMetadataAsSourceFileProvider
+internal sealed class DecompilationMetadataAsSourceFileProvider(IImplementationAssemblyLookupService implementationAssemblyLookupService) : IMetadataAsSourceFileProvider
 {
     internal const string ProviderName = "Decompilation";
 
@@ -390,7 +390,7 @@ internal class DecompilationMetadataAsSourceFileProvider(IImplementationAssembly
         }
     }
 
-    private class UniqueDocumentKey : IEquatable<UniqueDocumentKey>
+    private sealed class UniqueDocumentKey : IEquatable<UniqueDocumentKey>
     {
         private static readonly IEqualityComparer<SymbolKey> s_symbolIdComparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: true);
 

@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace;
 
 internal abstract partial class AbstractMoveToNamespaceCodeAction
 {
-    private class MoveTypeToNamespaceCodeAction(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
+    private sealed class MoveTypeToNamespaceCodeAction(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
         : AbstractMoveToNamespaceCodeAction(changeNamespaceService, analysisResult)
     {
         public override string Title => FeaturesResources.Move_to_namespace;

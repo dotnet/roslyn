@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch;
 /// This implementation also spawns a task which will attempt to keep that database up to
 /// date by downloading patches on a daily basis.
 /// </summary>
-internal partial class SymbolSearchUpdateEngine
+internal sealed partial class SymbolSearchUpdateEngine
 {
     // Internal for testing purposes.
     internal const string ContentAttributeName = "content";

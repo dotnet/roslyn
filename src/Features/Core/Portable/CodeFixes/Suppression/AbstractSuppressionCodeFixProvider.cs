@@ -253,7 +253,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
         return result.ToImmutableAndFree();
     }
 
-    internal class SuppressionTargetInfo
+    internal sealed class SuppressionTargetInfo
     {
         public ISymbol TargetSymbol { get; set; }
         public SyntaxToken StartToken { get; set; }

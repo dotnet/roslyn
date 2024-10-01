@@ -17,7 +17,7 @@ internal interface IPickMembersService : IWorkspaceService
         bool selectAll = true);
 }
 
-internal class PickMembersOption(string id, string title, bool value)
+internal sealed class PickMembersOption(string id, string title, bool value)
 {
     public string Id { get; } = id;
     public string Title { get; } = title;

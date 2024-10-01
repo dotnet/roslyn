@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors;
 /// </summary>
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
     Name = PredefinedCodeRefactoringProviderNames.GenerateDefaultConstructors), Shared]
-internal class GenerateDefaultConstructorsCodeRefactoringProvider : CodeRefactoringProvider
+internal sealed class GenerateDefaultConstructorsCodeRefactoringProvider : CodeRefactoringProvider
 {
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]

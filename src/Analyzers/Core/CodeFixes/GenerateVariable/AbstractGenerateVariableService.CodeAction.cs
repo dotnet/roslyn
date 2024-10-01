@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 
 internal abstract partial class AbstractGenerateVariableService<TService, TSimpleNameSyntax, TExpressionSyntax>
 {
-    private partial class GenerateVariableCodeAction : CodeAction
+    private sealed partial class GenerateVariableCodeAction : CodeAction
     {
         private readonly State _state;
         private readonly bool _generateProperty;

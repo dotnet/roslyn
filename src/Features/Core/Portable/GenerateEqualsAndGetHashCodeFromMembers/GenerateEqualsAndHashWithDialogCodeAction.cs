@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 
-internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
+internal sealed partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
 {
     private sealed class GenerateEqualsAndGetHashCodeWithDialogCodeAction(
         GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,

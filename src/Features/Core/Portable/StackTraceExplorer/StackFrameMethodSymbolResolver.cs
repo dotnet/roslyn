@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 
 namespace Microsoft.CodeAnalysis.StackTraceExplorer;
 
-internal class StackFrameMethodSymbolResolver : AbstractStackTraceSymbolResolver
+internal sealed class StackFrameMethodSymbolResolver : AbstractStackTraceSymbolResolver
 {
     public override Task<IMethodSymbol?> TryGetBestMatchAsync(Project project,
         INamedTypeSymbol type,

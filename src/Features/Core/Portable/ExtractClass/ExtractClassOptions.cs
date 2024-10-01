@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.ExtractClass;
 
-internal class ExtractClassOptions(
+internal sealed class ExtractClassOptions(
     string fileName,
     string typeName,
     bool sameFile,
@@ -20,7 +20,7 @@ internal class ExtractClassOptions(
     public ImmutableArray<ExtractClassMemberAnalysisResult> MemberAnalysisResults { get; } = memberAnalysisResults;
 }
 
-internal class ExtractClassMemberAnalysisResult(
+internal sealed class ExtractClassMemberAnalysisResult(
     ISymbol member,
     bool makeAbstract)
 {

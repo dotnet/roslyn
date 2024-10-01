@@ -35,7 +35,7 @@ internal abstract partial class AbstractChainedExpressionWrapper<
     /// if wrap-long produces the same results as wrap-each, then the caller will
     /// filter it out.
     /// </summary>
-    private class CallExpressionCodeActionComputer :
+    private sealed class CallExpressionCodeActionComputer :
         AbstractCodeActionComputer<AbstractChainedExpressionWrapper<TNameSyntax, TBaseArgumentListSyntax>>
     {
         /// <summary>

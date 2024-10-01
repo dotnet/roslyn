@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.AddImport;
 
 internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    private partial class AssemblyReference(
+    private sealed partial class AssemblyReference(
         AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
         SearchResult searchResult,
         ReferenceAssemblyWithTypeResult referenceAssemblyWithType) : Reference(provider, searchResult)

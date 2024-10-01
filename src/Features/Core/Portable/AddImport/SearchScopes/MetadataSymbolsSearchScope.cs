@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.AddImport;
 
 internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    private class MetadataSymbolsSearchScope(
+    private sealed class MetadataSymbolsSearchScope(
         AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
         Project assemblyProject,
         IAssemblySymbol assembly,
