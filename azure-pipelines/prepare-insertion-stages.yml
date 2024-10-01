@@ -5,70 +5,74 @@ parameters:
 - name: RealSign
   displayName: Real sign?
   type: boolean
+- name: PackagePush
+  type: boolean
+  default: false # Switch to true to enable the push job below
 
 stages:
-- stage: release
-  displayName: Publish
-  jobs:
-  - ${{ if parameters.ArchiveSymbols }}:
-    - job: symbol_archive
-      displayName: Archive symbols
-      pool: VSEngSS-MicroBuild2022-1ES
-      steps:
-      - checkout: none
-      - download: current
-        artifact: Variables-Windows
-        displayName: 🔻 Download Variables-Windows artifact
-      - powershell: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
-        displayName: ⚙️ Set pipeline variables based on artifacts
-      - download: current
-        artifact: symbols-legacy
-        displayName: 🔻 Download symbols-legacy artifact
-      - task: MicroBuildArchiveSymbols@5
-        displayName: 🔣 Archive symbols to Symweb
-        inputs:
-          SymbolsFeatureName: $(SymbolsFeatureName)
-          SymbolsProject: VS
-          SymbolsAgentPath: $(Pipeline.Workspace)/symbols-legacy
+- ${{ if or(parameters.ArchiveSymbols, parameters.PackagePush) }}:
+  - stage: release
+    displayName: Publish
+    jobs:
+    - ${{ if parameters.ArchiveSymbols }}:
+      - job: symbol_archive
+        displayName: Archive symbols
+        pool: VSEngSS-MicroBuild2022-1ES
+        steps:
+        - checkout: none
+        - download: current
+          artifact: Variables-Windows
+          displayName: 🔻 Download Variables-Windows artifact
+        - powershell: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
+          displayName: ⚙️ Set pipeline variables based on artifacts
+        - download: current
+          artifact: symbols-legacy
+          displayName: 🔻 Download symbols-legacy artifact
+        - task: MicroBuildArchiveSymbols@5
+          displayName: 🔣 Archive symbols to Symweb
+          inputs:
+            SymbolsFeatureName: $(SymbolsFeatureName)
+            SymbolsProject: VS
+            SymbolsAgentPath: $(Pipeline.Workspace)/symbols-legacy
 
-  - ${{ if false }}: # Switch to true to enable, but leave the condition to avoid merge conflicts later.
-    - job: push
-      ${{ if parameters.RealSign }}:
-        displayName: azure-public/vs-impl feed
-      ${{ else }}:
-        displayName: devdiv/vs-impl feed # Leave this as-is, since non-signed builds must not be pushed to public feeds.
-      ${{ if parameters.ArchiveSymbols }}:
-        dependsOn: symbol_archive
-      pool:
-        name: AzurePipelines-EO
-        demands:
-        - ImageOverride -equals 1ESPT-Ubuntu22.04
-        os: Linux
-      templateContext:
-        outputs:
-        - output: nuget
-          displayName: 📦 Push nuget packages
-          packagesToPush: '$(Pipeline.Workspace)/deployables-Windows/NuGet/*.nupkg'
-          packageParentPath: $(Pipeline.Workspace)/deployables-Windows/NuGet
-          allowPackageConflicts: true
-          ${{ if parameters.RealSign }}:
-            nuGetFeedType: external
-            publishFeedCredentials: azure-public/vs-impl
-          ${{ else }}:
-            nuGetFeedType: internal
-            publishVstsFeed: vs-impl # Leave this as-is, since non-signed builds must not be pushed to public feeds.
-      steps:
-      - checkout: none
-      - download: current
-        artifact: Variables-Windows
-        displayName: 🔻 Download Variables-Windows artifact
-      - powershell: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
-        displayName: ⚙️ Set pipeline variables based on artifacts
-      - download: current
-        artifact: deployables-Windows
-        displayName: 🔻 Download deployables-Windows artifact
-      - ${{ if parameters.RealSign }}:
-        - template: WIFtoPATauth.yml
-          parameters:
-            wifServiceConnectionName: azure-public/vside package push
-            deadPATServiceConnectionId: 207efd62-fd0f-43e7-aeae-17c4febcc660 # azure-public/vs-impl
+    - ${{ if parameters.PackagePush }}:
+      - job: push
+        ${{ if parameters.RealSign }}:
+          displayName: azure-public/vs-impl feed
+        ${{ else }}:
+          displayName: devdiv/vs-impl feed # Leave this as-is, since non-signed builds must not be pushed to public feeds.
+        ${{ if parameters.ArchiveSymbols }}:
+          dependsOn: symbol_archive
+        pool:
+          name: AzurePipelines-EO
+          demands:
+          - ImageOverride -equals 1ESPT-Ubuntu22.04
+          os: Linux
+        templateContext:
+          outputs:
+          - output: nuget
+            displayName: 📦 Push nuget packages
+            packagesToPush: '$(Pipeline.Workspace)/deployables-Windows/NuGet/*.nupkg'
+            packageParentPath: $(Pipeline.Workspace)/deployables-Windows/NuGet
+            allowPackageConflicts: true
+            ${{ if parameters.RealSign }}:
+              nuGetFeedType: external
+              publishFeedCredentials: azure-public/vs-impl
+            ${{ else }}:
+              nuGetFeedType: internal
+              publishVstsFeed: vs-impl # Leave this as-is, since non-signed builds must not be pushed to public feeds.
+        steps:
+        - checkout: none
+        - download: current
+          artifact: Variables-Windows
+          displayName: 🔻 Download Variables-Windows artifact
+        - powershell: $(Pipeline.Workspace)/Variables-Windows/_pipelines.ps1
+          displayName: ⚙️ Set pipeline variables based on artifacts
+        - download: current
+          artifact: deployables-Windows
+          displayName: 🔻 Download deployables-Windows artifact
+        - ${{ if parameters.RealSign }}:
+          - template: WIFtoPATauth.yml
+            parameters:
+              wifServiceConnectionName: azure-public/vside package push
+              deadPATServiceConnectionId: 207efd62-fd0f-43e7-aeae-17c4febcc660 # azure-public/vs-impl
