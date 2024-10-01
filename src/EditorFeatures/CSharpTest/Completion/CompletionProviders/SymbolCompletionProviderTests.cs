@@ -6756,6 +6756,168 @@ public class Goo
             referencedLanguage: LanguageNames.CSharp);
     }
 
+    [Fact]
+    public async Task EditorBrowsable_TypeLibFunc_Hidden_PropertyGetter()
+    {
+        var markup = @"
+class Program
+{
+    void M()
+    {
+        new Goo().$$
+    }
+}";
+
+        var referencedCode = @"
+public class Goo
+{
+    public int Bar
+    {
+        [System.Runtime.InteropServices.TypeLibFunc(System.Runtime.InteropServices.TypeLibFuncFlags.FHidden)]
+        get => 1;
+    }
+}";
+        await VerifyItemInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            item: "Bar",
+            expectedSymbolsSameSolution: 1,
+            expectedSymbolsMetadataReference: 0,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
+    }
+
+    [Fact]
+    public async Task EditorBrowsable_TypeLibFunc_Hidden_PropertySetter()
+    {
+        var markup = @"
+class Program
+{
+    void M()
+    {
+        new Goo().$$
+    }
+}";
+
+        var referencedCode = @"
+public class Goo
+{
+    public int Bar
+    {
+        [System.Runtime.InteropServices.TypeLibFunc(System.Runtime.InteropServices.TypeLibFuncFlags.FHidden)]
+        set { }
+    }
+}";
+        await VerifyItemInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            item: "Bar",
+            expectedSymbolsSameSolution: 1,
+            expectedSymbolsMetadataReference: 0,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
+    }
+
+    [Fact]
+    public async Task EditorBrowsable_TypeLibFunc_Hidden_Property_GetterAndSetter()
+    {
+        var markup = @"
+class Program
+{
+    void M()
+    {
+        new Goo().$$
+    }
+}";
+
+        var referencedCode = @"
+public class Goo
+{
+    public int Bar
+    {
+        [System.Runtime.InteropServices.TypeLibFunc(System.Runtime.InteropServices.TypeLibFuncFlags.FHidden)]
+        get => 1;
+
+        [System.Runtime.InteropServices.TypeLibFunc(System.Runtime.InteropServices.TypeLibFuncFlags.FHidden)]
+        set { }
+    }
+}";
+        await VerifyItemInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            item: "Bar",
+            expectedSymbolsSameSolution: 1,
+            expectedSymbolsMetadataReference: 0,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
+    }
+
+    [Fact]
+    public async Task EditorBrowsable_TypeLibFunc_Hidden_Property_GetterVisible()
+    {
+        var markup = @"
+class Program
+{
+    void M()
+    {
+        new Goo().$$
+    }
+}";
+
+        var referencedCode = @"
+public class Goo
+{
+    public int Bar
+    {
+        get => 1;
+
+        [System.Runtime.InteropServices.TypeLibFunc(System.Runtime.InteropServices.TypeLibFuncFlags.FHidden)]
+        set { }
+    }
+}";
+        await VerifyItemInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            item: "Bar",
+            expectedSymbolsSameSolution: 1,
+            expectedSymbolsMetadataReference: 1,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
+    }
+
+    [Fact]
+    public async Task EditorBrowsable_TypeLibFunc_Hidden_Property_SetterVisible()
+    {
+        var markup = @"
+class Program
+{
+    void M()
+    {
+        new Goo().$$
+    }
+}";
+
+        var referencedCode = @"
+public class Goo
+{
+    public int Bar
+    {
+        [System.Runtime.InteropServices.TypeLibFunc(System.Runtime.InteropServices.TypeLibFuncFlags.FHidden)]
+        get => 1;
+
+        set { }
+    }
+}";
+        await VerifyItemInEditorBrowsableContextsAsync(
+            markup: markup,
+            referencedCode: referencedCode,
+            item: "Bar",
+            expectedSymbolsSameSolution: 1,
+            expectedSymbolsMetadataReference: 1,
+            sourceLanguage: LanguageNames.CSharp,
+            referencedLanguage: LanguageNames.CSharp);
+    }
+
     [Fact, WorkItem(7336, "DevDiv_Projects/Roslyn")]
     public async Task EditorBrowsable_TypeLibFunc_NotHidden_Int16Constructor()
     {
