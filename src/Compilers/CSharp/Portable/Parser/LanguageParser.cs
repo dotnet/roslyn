@@ -7373,9 +7373,9 @@ done:
                                 // T?[
                                 //
                                 // This could be a array of nullable types (e.g. `is T?[]` or `is T?[,]`) or it's a
-                                // conditional with a collection expression (e.g. `is T ? [...] :`)
+                                // conditional with a collection expression or lambda (e.g. `is T ? [...] :` or `is T ? [Attr]() => ...`)
                                 //
-                                // Not: `is T?[]` could be the start of either.  So we have to look to see if we have a
+                                // Note: `is T?[]` could be the start of either.  So we have to look to see if we have a
                                 // `:` to know which case we're in.
                                 if (mode == ParseTypeMode.AfterIs)
                                 {
