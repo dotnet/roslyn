@@ -3,9 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -17,7 +17,7 @@ internal static class IndentationHelper
 {
     /// <summary>
     /// Recomputes span segments so that all text lines appear to have the same reduction in indentation.
-    /// This operation is typically used to align text for display when the initial span does not include all of the first line's indentation.
+    /// This operation is typically used to align text for display when the initial span does not include all of the first line's identation.
     /// This operation will potentially split spans that cover multiple lines into separate spans.
     /// </summary>
     /// <param name="text"></param>
@@ -29,55 +29,56 @@ internal static class IndentationHelper
         ImmutableArray<ClassifiedSpan> classifiedSpans,
         int tabSize)
     {
-        if (classifiedSpans.IsDefaultOrEmpty)
+        if (!classifiedSpans.IsDefault && classifiedSpans.Length > 0)
         {
-            return [];
-        }
+            // We need to figure out the shortest indentation level of the exposed lines.  We'll
+            // then remove that indentation from all lines.
+            var indentationColumn = DetermineIndentationColumn(text, classifiedSpans, tabSize);
+            var adjustedClassifiedSpans = new List<ClassifiedSpan>();
 
-        // We need to figure out the shortest indentation level of the exposed lines.  We'll
-        // then remove that indentation from all lines.
-        var indentationColumn = DetermineIndentationColumn(text, classifiedSpans, tabSize);
-        using var adjustedClassifiedSpans = TemporaryArray<ClassifiedSpan>.Empty;
-
-        var lines = text.Lines;
-
-        foreach (var classifiedSpan in classifiedSpans)
-        {
-            var spanClassificationType = classifiedSpan.ClassificationType;
-            var span = classifiedSpan.TextSpan;
-
-            var startLineNumber = lines.GetLineFromPosition(span.Start).LineNumber;
-            var endLineNumber = lines.GetLineFromPosition(span.End).LineNumber;
-
-            for (var lineNumber = startLineNumber; lineNumber <= endLineNumber; lineNumber++)
+            for (var i = 0; i < classifiedSpans.Length; i++)
             {
-                var line = lines[lineNumber];
-                var lineOffsetOfColumn = line.GetLineOffsetFromColumn(indentationColumn, tabSize);
+                var classifiedSpan = classifiedSpans[i];
+                var spanClassificationType = classifiedSpan.ClassificationType;
+                var span = classifiedSpan.TextSpan;
 
-                var deletion = TextSpan.FromBounds(line.Start, line.Start + lineOffsetOfColumn);
+                var startLineNumber = text.Lines.GetLineFromPosition(span.Start).LineNumber;
+                var endLineNumber = text.Lines.GetLineFromPosition(span.End).LineNumber;
 
-                if (deletion.Start > span.Start)
+                for (var lineNumber = startLineNumber; lineNumber <= endLineNumber; lineNumber++)
                 {
-                    var spanBeforeDeletion = TextSpan.FromBounds(span.Start, Math.Min(span.End, deletion.Start));
-                    if (spanBeforeDeletion.Length > 0)
+                    var line = text.Lines[lineNumber];
+                    var lineOffsetOfColumn = line.GetLineOffsetFromColumn(indentationColumn, tabSize);
+
+                    var deletion = TextSpan.FromBounds(line.Start, line.Start + lineOffsetOfColumn);
+
+                    if (deletion.Start > span.Start)
                     {
-                        adjustedClassifiedSpans.Add(new(spanClassificationType, spanBeforeDeletion));
+                        var spanBeforeDeletion = TextSpan.FromBounds(span.Start, Math.Min(span.End, deletion.Start));
+                        if (spanBeforeDeletion.Length > 0)
+                        {
+                            adjustedClassifiedSpans.Add(new ClassifiedSpan(spanClassificationType, spanBeforeDeletion));
+                        }
+                    }
+
+                    if (deletion.End > span.Start)
+                    {
+                        span = TextSpan.FromBounds(Math.Min(deletion.End, span.End), span.End);
                     }
                 }
 
-                if (deletion.End > span.Start)
+                if (span.Length > 0)
                 {
-                    span = TextSpan.FromBounds(Math.Min(deletion.End, span.End), span.End);
+                    adjustedClassifiedSpans.Add(new ClassifiedSpan(spanClassificationType, span));
                 }
             }
 
-            if (span.Length > 0)
-            {
-                adjustedClassifiedSpans.Add(new(spanClassificationType, span));
-            }
+            return [.. adjustedClassifiedSpans];
         }
-
-        return adjustedClassifiedSpans.ToImmutableAndClear();
+        else
+        {
+            return [];
+        }
     }
 
     private static int DetermineIndentationColumn(
@@ -85,13 +86,11 @@ internal static class IndentationHelper
         ImmutableArray<ClassifiedSpan> spans,
         int tabSize)
     {
-        var lines = text.Lines;
         int? indentationColumn = null;
-
         foreach (var span in spans)
         {
-            var startLineNumber = lines.GetLineFromPosition(span.TextSpan.Start).LineNumber;
-            var endLineNumber = lines.GetLineFromPosition(span.TextSpan.End).LineNumber;
+            var startLineNumber = text.Lines.GetLineFromPosition(span.TextSpan.Start).LineNumber;
+            var endLineNumber = text.Lines.GetLineFromPosition(span.TextSpan.End).LineNumber;
 
             // If the span starts after the first non-whitespace of the first line, we'll
             // exclude that line to avoid throwing off the calculation. Otherwise, the
@@ -107,22 +106,22 @@ internal static class IndentationHelper
             //
             // Without throwing out the first line in the example above, the indentation column
             // used will be 4, rather than 8.
-            var startLineFirstNonWhitespace = lines[startLineNumber].GetFirstNonWhitespacePosition();
-            if (startLineFirstNonWhitespace is int value && value < span.TextSpan.Start)
+            var startLineFirstNonWhitespace = text.Lines[startLineNumber].GetFirstNonWhitespacePosition();
+            if (startLineFirstNonWhitespace.HasValue && startLineFirstNonWhitespace.Value < span.TextSpan.Start)
             {
                 startLineNumber++;
             }
 
             for (var lineNumber = startLineNumber; lineNumber <= endLineNumber; lineNumber++)
             {
-                var line = lines[lineNumber];
+                var line = text.Lines[lineNumber];
                 if (line.IsEmptyOrWhitespace())
                 {
                     continue;
                 }
 
-                indentationColumn = indentationColumn is int currentValue
-                    ? Math.Min(currentValue, line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(tabSize))
+                indentationColumn = indentationColumn.HasValue
+                    ? Math.Min(indentationColumn.Value, line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(tabSize))
                     : line.GetColumnOfFirstNonWhitespaceCharacterOrEndOfLine(tabSize);
             }
         }

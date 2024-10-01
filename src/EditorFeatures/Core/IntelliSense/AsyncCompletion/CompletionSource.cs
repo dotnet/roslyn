@@ -12,8 +12,10 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
@@ -478,9 +480,11 @@ internal sealed class CompletionSource : IAsyncExpandingCompletionSource
         if (description == null)
             return null;
 
-        var navigationActionFactory = new NavigationActionFactory(document, _threadingContext, _operationExecutor, _asyncListener, _streamingPresenter);
+        var lineFormattingOptions = snapshot.TextBuffer.GetLineFormattingOptions(_editorOptionsService, explicitFormat: false);
+        var context = new IntellisenseQuickInfoBuilderContext(
+            document, displayOptions.ClassificationOptions, lineFormattingOptions, _threadingContext, _operationExecutor, _asyncListener, _streamingPresenter);
 
-        var elements = description.TaggedParts.ToInteractiveVsTextAdornments(navigationActionFactory);
+        var elements = IntelliSense.Helpers.BuildInteractiveTextElements(description.TaggedParts, context).ToArray();
         if (elements.Length == 0)
             return new ClassifiedTextElement();
 

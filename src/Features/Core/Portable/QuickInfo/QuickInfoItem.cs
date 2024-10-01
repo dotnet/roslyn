@@ -30,20 +30,20 @@ public sealed class QuickInfoItem
     /// </summary>
     public ImmutableArray<TextSpan> RelatedSpans { get; }
 
-    internal OnTheFlyDocsInfo? OnTheFlyDocsInfo { get; }
+    internal OnTheFlyDocsElement? OnTheFlyDocsElement { get; }
 
     private QuickInfoItem(
         TextSpan span,
         ImmutableArray<string> tags,
         ImmutableArray<QuickInfoSection> sections,
         ImmutableArray<TextSpan> relatedSpans,
-        OnTheFlyDocsInfo? onTheFlyDocsInfo)
+        OnTheFlyDocsElement? onTheFlyDocsElement)
     {
         Span = span;
         Tags = tags.IsDefault ? [] : tags;
         Sections = sections.IsDefault ? [] : sections;
         RelatedSpans = relatedSpans.IsDefault ? [] : relatedSpans;
-        OnTheFlyDocsInfo = onTheFlyDocsInfo;
+        OnTheFlyDocsElement = onTheFlyDocsElement;
     }
 
     public static QuickInfoItem Create(
@@ -52,7 +52,7 @@ public sealed class QuickInfoItem
         ImmutableArray<QuickInfoSection> sections = default,
         ImmutableArray<TextSpan> relatedSpans = default)
     {
-        return Create(span, tags, sections, relatedSpans, onTheFlyDocsInfo: null);
+        return Create(span, tags, sections, relatedSpans, onTheFlyDocsElement: null);
     }
 
     internal static QuickInfoItem Create(
@@ -60,8 +60,8 @@ public sealed class QuickInfoItem
         ImmutableArray<string> tags,
         ImmutableArray<QuickInfoSection> sections,
         ImmutableArray<TextSpan> relatedSpans,
-        OnTheFlyDocsInfo? onTheFlyDocsInfo)
+        OnTheFlyDocsElement? onTheFlyDocsElement)
     {
-        return new QuickInfoItem(span, tags, sections, relatedSpans, onTheFlyDocsInfo);
+        return new QuickInfoItem(span, tags, sections, relatedSpans, onTheFlyDocsElement);
     }
 }

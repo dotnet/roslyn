@@ -61,10 +61,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var position = await document.GetPositionFromLinePositionAsync(
                 ProtocolConversions.PositionToLinePosition(referenceParams.Position), cancellationToken).ConfigureAwait(false);
 
-            var clientCapabilities = context.GetRequiredClientCapabilities();
-
             var findUsagesContext = new FindUsagesLSPContext(
-                progress, workspace, document, position, _metadataAsSourceFileService, _asyncListener, _globalOptions, clientCapabilities, cancellationToken);
+                progress, workspace, document, position, _metadataAsSourceFileService, _asyncListener, _globalOptions, cancellationToken);
 
             // Finds the references for the symbol at the specific position in the document, reporting them via streaming to the LSP client.
             var classificationOptions = _globalOptions.GetClassificationOptionsProvider();
