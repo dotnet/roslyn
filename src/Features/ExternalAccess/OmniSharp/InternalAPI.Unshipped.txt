@@ -2,15 +2,6 @@
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers.OmnisharpAnalyzerAssemblyLoaderFactory
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Analyzers.OmniSharpWorkspaceAnalyzerOptionsFactory
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions
-Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions.Deconstruct(out Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions ImplementTypeOptions, out Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpLineFormattingOptions! LineFormattingOptions) -> void
-Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions.Equals(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions other) -> bool
-Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions.GetCodeActionOptions(Microsoft.CodeAnalysis.Host.LanguageServices! languageServices) -> Microsoft.CodeAnalysis.CodeActions.CodeActionOptions!
-Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions.ImplementTypeOptions.get -> Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions
-Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions.ImplementTypeOptions.init -> void
-Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions.LineFormattingOptions.get -> Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpLineFormattingOptions!
-Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions.LineFormattingOptions.init -> void
-Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions.OmniSharpCodeActionOptions() -> void
-Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions.OmniSharpCodeActionOptions(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions ImplementTypeOptions, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Options.OmniSharpLineFormattingOptions! LineFormattingOptions) -> void
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeFixContextFactory
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeRefactorings.WorkspaceServices.IOmniSharpSymbolRenamedCodeActionOperationFactoryWorkspaceService
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeRefactorings.WorkspaceServices.IOmniSharpSymbolRenamedCodeActionOperationFactoryWorkspaceService.CreateSymbolRenamedOperation(Microsoft.CodeAnalysis.ISymbol! symbol, string! newName, Microsoft.CodeAnalysis.Solution! startingSolution, Microsoft.CodeAnalysis.Solution! updatedSolution) -> Microsoft.CodeAnalysis.CodeActions.CodeActionOperation!
@@ -72,14 +63,6 @@ Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplement
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeInsertionBehavior.AtTheEnd = 1 -> Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeInsertionBehavior
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind = 0 -> Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeInsertionBehavior
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions
-Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions.Deconstruct(out Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeInsertionBehavior InsertionBehavior, out Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypePropertyGenerationBehavior PropertyGenerationBehavior) -> void
-Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions.Equals(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions other) -> bool
-Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions.InsertionBehavior.get -> Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeInsertionBehavior
-Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions.InsertionBehavior.init -> void
-Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions.OmniSharpImplementTypeOptions() -> void
-Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions.OmniSharpImplementTypeOptions(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeInsertionBehavior InsertionBehavior, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypePropertyGenerationBehavior PropertyGenerationBehavior) -> void
-Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions.PropertyGenerationBehavior.get -> Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypePropertyGenerationBehavior
-Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions.PropertyGenerationBehavior.init -> void
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypePropertyGenerationBehavior
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypePropertyGenerationBehavior.PreferAutoProperties = 1 -> Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypePropertyGenerationBehavior
 Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypePropertyGenerationBehavior.PreferThrowingProperties = 0 -> Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypePropertyGenerationBehavior
@@ -275,7 +258,6 @@ Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Workspace.OmniSharpDocumentId
 override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.CodeActions.OmniSharpCodeActionOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion.OmniSharpCompletionOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting.OmniSharpSyntaxFormattingOptionsWrapper.GetHashCode() -> int
-override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints.OmniSharpInlineHintsOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints.OmniSharpInlineParameterHintsOptions.GetHashCode() -> int
 override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints.OmniSharpInlineTypeHintsOptions.GetHashCode() -> int
@@ -318,8 +300,8 @@ static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting.OmniSharpSynta
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting.OmniSharpSyntaxFormattingOptionsWrapper.operator !=(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting.OmniSharpSyntaxFormattingOptionsWrapper left, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting.OmniSharpSyntaxFormattingOptionsWrapper right) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting.OmniSharpSyntaxFormattingOptionsWrapper.operator ==(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting.OmniSharpSyntaxFormattingOptionsWrapper left, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting.OmniSharpSyntaxFormattingOptionsWrapper right) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.GoToDefinition.OmniSharpFindDefinitionService.FindDefinitionsAsync(Microsoft.CodeAnalysis.Document! document, int position, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Navigation.OmniSharpNavigableItem>>!
-static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions.operator !=(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions left, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions right) -> bool
-static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions.operator ==(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions left, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions right) -> bool
+static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions.InsertionBehavior -> Microsoft.CodeAnalysis.Options.IOption!
+static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions.PropertyGenerationBehavior -> Microsoft.CodeAnalysis.Options.IOption!
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints.OmniSharpInlineHintsOptions.operator !=(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints.OmniSharpInlineHintsOptions left, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints.OmniSharpInlineHintsOptions right) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints.OmniSharpInlineHintsOptions.operator ==(Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints.OmniSharpInlineHintsOptions left, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints.OmniSharpInlineHintsOptions right) -> bool
 static Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints.OmniSharpInlineHintsService.GetInlineHintsAsync(Microsoft.CodeAnalysis.Document! document, Microsoft.CodeAnalysis.Text.TextSpan textSpan, Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints.OmniSharpInlineHintsOptions options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints.OmniSharpInlineHint>>!
@@ -364,8 +346,6 @@ virtual Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.NavigateTo.OmniSharpNavi
 ~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Completion.OmniSharpCompletionOptions.ToString() -> string
 ~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting.OmniSharpSyntaxFormattingOptionsWrapper.Equals(object obj) -> bool
 ~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Formatting.OmniSharpSyntaxFormattingOptionsWrapper.ToString() -> string
-~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions.Equals(object obj) -> bool
-~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.ImplementType.OmniSharpImplementTypeOptions.ToString() -> string
 ~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints.OmniSharpInlineHintsOptions.Equals(object obj) -> bool
 ~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints.OmniSharpInlineHintsOptions.ToString() -> string
 ~override Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.InlineHints.OmniSharpInlineParameterHintsOptions.Equals(object obj) -> bool
