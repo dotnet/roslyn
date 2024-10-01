@@ -290,12 +290,10 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
         {
             foreach (var initialReference in analyzerReferences)
             {
-#pragma warning disable CA1416 // Validate platform compatibility
                 // Can ignore all other analyzer reference types.  This is only about analyzer references changing on disk.
                 var analyzerReference = GetUnderlyingAnalyzerReference(initialReference);
                 if (analyzerReference is AnalyzerFileReference analyzerFileReference)
-                    pathToMvidMap[analyzerFileReference.FullPath] = SerializerService.TryGetAnalyzerFileReferenceMvid(analyzerFileReference);
-#pragma warning restore CA1416 // Validate platform compatibility
+                    pathToMvidMap[analyzerFileReference.FullPath] = TryGetAnalyzerFileReferenceMvid(analyzerFileReference);
             }
         }
     }

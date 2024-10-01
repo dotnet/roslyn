@@ -31,7 +31,7 @@ internal partial class SerializerService
     private static readonly object s_analyzerImageReferenceMapGate = new();
     private static IBidirectionalMap<AnalyzerImageReference, Guid> s_analyzerImageReferenceMap = BidirectionalMap<AnalyzerImageReference, Guid>.Empty;
 
-    public static bool TryGetAnalyzerImageReferenceGuid(AnalyzerImageReference imageReference, out Guid guid)
+    private static bool TryGetAnalyzerImageReferenceGuid(AnalyzerImageReference imageReference, out Guid guid)
     {
         lock (s_analyzerImageReferenceMapGate)
             return s_analyzerImageReferenceMap.TryGetValue(imageReference, out guid);
@@ -70,7 +70,7 @@ internal partial class SerializerService
             {
                 case AnalyzerFileReference fileReference:
                     writer.WriteString(fileReference.FullPath);
-                    writer.WriteGuid(TryGetAnalyzerFileReferenceMvid(fileReference));
+                    writer.WriteGuid(IsolatedAnalyzerReferenceSet.TryGetAnalyzerFileReferenceMvid(fileReference));
                     break;
 
                 case AnalyzerImageReference analyzerImageReference:
@@ -499,20 +499,6 @@ internal partial class SerializerService
             // We have a reference but the file the reference is pointing to might not actually exist on disk. In that
             // case, rather than crashing, we will handle it gracefully.
             return null;
-        }
-    }
-
-    public static Guid TryGetAnalyzerFileReferenceMvid(AnalyzerFileReference file)
-    {
-        try
-        {
-            return AssemblyUtilities.ReadMvid(file.FullPath);
-        }
-        catch
-        {
-            // We have a reference but the file the reference is pointing to might not actually exist on disk. In that
-            // case, rather than crashing, we will handle it gracefully.
-            return Guid.Empty;
         }
     }
 

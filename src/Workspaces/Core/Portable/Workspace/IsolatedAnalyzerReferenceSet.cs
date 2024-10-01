@@ -50,4 +50,18 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
     {
         return await getReferencesAsync().ConfigureAwait(false);
     }
+
+    public static Guid TryGetAnalyzerFileReferenceMvid(AnalyzerFileReference file)
+    {
+        try
+        {
+            return AssemblyUtilities.ReadMvid(file.FullPath);
+        }
+        catch
+        {
+            // We have a reference but the file the reference is pointing to might not actually exist on disk. In that
+            // case, rather than crashing, we will handle it gracefully.
+            return Guid.Empty;
+        }
+    }
 }
