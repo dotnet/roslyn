@@ -168,7 +168,6 @@ internal static class SourceMarkers
         return result.ToImmutableArray();
     }
 
-
     public static int IndexOfDifferent(ReadOnlySpan<char> span, char c)
     {
         for (var i = 0; i < span.Length; i++)
