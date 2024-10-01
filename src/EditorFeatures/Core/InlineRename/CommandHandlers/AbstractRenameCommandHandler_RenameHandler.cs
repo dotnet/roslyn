@@ -82,7 +82,7 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             else
             {
                 // Otherwise, complete the existing session and start a new one.
-                CompleteActiveSession(editorOperationContext, invalidEditCommandInvoked: true);
+                CommitOrCancel(editorOperationContext, invalidEditCommandInvoked: true);
             }
         }
 

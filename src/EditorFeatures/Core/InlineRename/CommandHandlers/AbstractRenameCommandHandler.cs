@@ -98,7 +98,7 @@ internal abstract partial class AbstractRenameCommandHandler(
         {
             var selection = args.TextView.Selection.VirtualSelectedSpans.First();
 
-            CompleteActiveSession(operationContext, invalidEditCommandInvoked);
+            CommitOrCancel(operationContext, invalidEditCommandInvoked);
 
             var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
             args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
@@ -106,7 +106,7 @@ internal abstract partial class AbstractRenameCommandHandler(
         }
     }
 
-    private void CompleteActiveSession(IUIThreadOperationContext operationContext, bool invalidEditCommandInvoked)
+    private void CommitOrCancel(IUIThreadOperationContext operationContext, bool invalidEditCommandInvoked)
     {
         RoslynDebug.AssertNotNull(renameService.ActiveSession);
         if (invalidEditCommandInvoked && globalOptionService.ShouldCommitAsynchronously())
