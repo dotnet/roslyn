@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // if (condition)
                     //     consequence;
                     // else 
-                    //     alternative
+                    //     alternative;
                     //
                     // becomes
                     //
@@ -120,59 +120,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             BoundExpression rewrittenCondition,
             BoundStatement rewrittenConsequence,
-            BoundStatement? rewrittenAlternativeOpt,
             bool hasErrors)
         {
             var afterif = new GeneratedLabelSymbol("afterif");
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
 
-            if (rewrittenAlternativeOpt == null)
-            {
-                // if (condition) 
-                //   consequence;  
-                //
-                // becomes
-                //
-                // GotoIfFalse condition afterif;
-                // consequence;
-                // afterif:
+            // if (condition) 
+            //   consequence;  
+            //
+            // becomes
+            //
+            // GotoIfFalse condition afterif;
+            // consequence;
+            // afterif:
 
-                builder.Add(new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, false, afterif));
-                builder.Add(rewrittenConsequence);
-                builder.Add(BoundSequencePoint.CreateHidden());
-                builder.Add(new BoundLabelStatement(syntax, afterif));
-                var statements = builder.ToImmutableAndFree();
-                return new BoundStatementList(syntax, statements, hasErrors);
-            }
-            else
-            {
-                // if (condition)
-                //     consequence;
-                // else 
-                //     alternative
-                //
-                // becomes
-                //
-                // GotoIfFalse condition alt;
-                // consequence
-                // goto afterif;
-                // alt:
-                // alternative;
-                // afterif:
-
-                var alt = new GeneratedLabelSymbol("alternative");
-
-                builder.Add(new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, false, alt));
-                builder.Add(rewrittenConsequence);
-                builder.Add(BoundSequencePoint.CreateHidden());
-                builder.Add(new BoundGotoStatement(syntax, afterif));
-                builder.Add(new BoundLabelStatement(syntax, alt));
-                builder.Add(rewrittenAlternativeOpt);
-                builder.Add(BoundSequencePoint.CreateHidden());
-                builder.Add(new BoundLabelStatement(syntax, afterif));
-                return new BoundStatementList(syntax, builder.ToImmutableAndFree(), hasErrors);
-            }
-
+            builder.Add(new BoundConditionalGoto(rewrittenCondition.Syntax, rewrittenCondition, false, afterif));
+            builder.Add(rewrittenConsequence);
+            builder.Add(BoundSequencePoint.CreateHidden());
+            builder.Add(new BoundLabelStatement(syntax, afterif));
+            var statements = builder.ToImmutableAndFree();
+            return new BoundStatementList(syntax, statements, hasErrors);
         }
     }
 }

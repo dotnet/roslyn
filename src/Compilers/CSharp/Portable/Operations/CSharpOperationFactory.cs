@@ -1809,11 +1809,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 stack.Push(boundIfStatement);
 
                 var alternative = boundIfStatement.AlternativeOpt;
-                if (alternative is null)
-                {
-                    whenFalse = null;
-                    break;
-                }
 
                 if (alternative is BoundIfStatement elseIfStatement)
                 {

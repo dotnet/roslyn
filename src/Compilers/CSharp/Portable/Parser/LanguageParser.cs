@@ -8020,20 +8020,15 @@ done:;
 
         private StatementSyntax TryReuseStatement(SyntaxList<AttributeListSyntax> attributes, bool isGlobal)
         {
-            if (canReuseStatement(attributes, isGlobal))
+            if (this.IsIncrementalAndFactoryContextMatches &&
+                this.CurrentNode is Syntax.StatementSyntax &&
+                !isGlobal && // Top-level statements are reused by ParseMemberDeclarationOrStatementCore when possible.
+                attributes.Count == 0)
             {
                 return (StatementSyntax)this.EatNode();
             }
 
             return null;
-
-            bool canReuseStatement(SyntaxList<AttributeListSyntax> attributes, bool isGlobal)
-            {
-                return this.IsIncrementalAndFactoryContextMatches &&
-                       this.CurrentNode is Syntax.StatementSyntax &&
-                       !isGlobal && // Top-level statements are reused by ParseMemberDeclarationOrStatementCore when possible.
-                       attributes.Count == 0;
-            }
         }
 
         private StatementSyntax ParseStatementCoreRest(SyntaxList<AttributeListSyntax> attributes, bool isGlobal, ref ResetPoint resetPointBeforeStatement)
