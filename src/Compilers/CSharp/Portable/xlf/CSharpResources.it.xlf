@@ -1154,7 +1154,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
         <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="needs-review-translation">La funzionalità sperimentale 'intercettori' non è abilitata in questo spazio dei nomi. Aggiungere '{0}' al progetto.</target>
+        <target state="new">The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
@@ -3654,7 +3654,7 @@ target:module               Compila un modulo che può essere aggiunto ad altro
                               -t:appcontainerexe)
 -target:winmdobj               Consente di compilare un file intermedio Windows Runtime che
                               viene utilizzato da WinMDExp (forma breve: -t:winmdobj)
--doc:&lt;file&gt;                       Genera un file di documentazione XML per generare
+-doc:&lt;file&gt;                       Genera un file di documentazione XML per generare 
 -refout:&lt;file&gt;                    Output dell'assembly di riferimento da generare
 -platform:&lt;string&gt;                Limita le piattaforme in cui è possibile eseguire questo codice su x86,
                               Itanium, x64, arm, arm64, anycpu32bitpreferred o
@@ -12176,7 +12176,7 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
         <source>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</source>
-        <target state="needs-review-translation">Solo le proprietà implementate automaticamente possono avere inizializzatori.</target>
+        <target state="new">Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyMustHaveGetAccessor">

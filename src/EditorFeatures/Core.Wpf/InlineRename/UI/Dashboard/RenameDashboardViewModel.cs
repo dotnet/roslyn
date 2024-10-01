@@ -10,29 +10,55 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.InlineRename;
+using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal class RenameDashboardViewModel : INotifyPropertyChanged, IDisposable
     {
+        private readonly IThreadingContext _threadingContext;
+        private readonly IWpfTextView _textView;
         private RenameDashboardSeverity _severity = RenameDashboardSeverity.None;
         private int _resolvableConflictCount;
         private int _unresolvableConflictCount;
         private bool _isReplacementTextValid;
+        private Visibility _visibility;
 
-        public RenameDashboardViewModel(InlineRenameSession session)
+        public RenameDashboardViewModel(InlineRenameSession session, IThreadingContext threadingContext, IWpfTextView wpfTextView)
         {
             Session = session;
             SearchText = EditorFeaturesResources.Searching;
+            _textView = wpfTextView;
 
             Session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             Session.ReplacementsComputed += OnReplacementsComputed;
             Session.ReplacementTextChanged += OnReplacementTextChanged;
+            Session.CommitStateChange += CommitStateChange;
+
+            _textView.GotAggregateFocus += GotAggregateFocus;
+            _textView.LostAggregateFocus += LostAggregateFocus;
 
             // Set the flag to true by default if we're showing the option.
             _isReplacementTextValid = true;
+            _threadingContext = threadingContext;
+            RefreshVisibility();
         }
+
+        private void LostAggregateFocus(object sender, EventArgs _)
+            => RefreshVisibility();
+
+        private void GotAggregateFocus(object sender, EventArgs _)
+            => RefreshVisibility();
+
+        private void CommitStateChange(object sender, EventArgs _)
+            => RefreshVisibility();
+
+        private void RefreshVisibility()
+            => Visibility = !Session.IsCommitInProgress && _textView.HasAggregateFocus
+            ? Visibility.Visible : Visibility.Collapsed;
 
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -152,6 +178,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             InlineRenameFileRenameInfo.TypeWithMultipleLocations => EditorFeaturesResources.Rename_file_partial_type,
             _ => EditorFeaturesResources.Rename_symbols_file
         };
+
+        public Visibility Visibility
+        {
+            get
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                return _visibility;
+            }
+            set
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                if (_visibility != value)
+                {
+                    _visibility = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
 
         public string HeaderText
         {
@@ -292,6 +336,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             Session.ReplacementTextChanged -= OnReplacementTextChanged;
             Session.ReferenceLocationsChanged -= OnReferenceLocationsChanged;
             Session.ReplacementsComputed -= OnReplacementsComputed;
+            Session.CommitStateChange -= CommitStateChange;
+            _textView.GotAggregateFocus -= GotAggregateFocus;
+            _textView.LostAggregateFocus -= LostAggregateFocus;
         }
     }
 }

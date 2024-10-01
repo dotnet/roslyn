@@ -1154,7 +1154,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
         <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="needs-review-translation">Das experimentelle Feature "Interceptors" ist nicht in diesem Namespace aktiviert. Fügen Sie Ihrem Projekt "{0}" hinzu.</target>
+        <target state="new">The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
@@ -12176,7 +12176,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
         <source>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</source>
-        <target state="needs-review-translation">Nur automatisch implementierte Eigenschaften können Initialisierer aufweisen.</target>
+        <target state="new">Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyMustHaveGetAccessor">
