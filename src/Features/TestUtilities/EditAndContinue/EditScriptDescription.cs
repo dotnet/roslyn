@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Differencing;
@@ -25,7 +26,7 @@ internal readonly struct EditScriptDescription(string oldMarkedSource, string ne
         => new(OldMarkedSource, NewMarkedSource, Match);
 
     public void VerifyEdits()
-        => AssertEx.Equal(expected, Array.Empty<string>());
+        => VerifyEdits(Array.Empty<string>());
 
     public void VerifyEdits(params string[] expected)
         => AssertEx.Equal(expected, Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
