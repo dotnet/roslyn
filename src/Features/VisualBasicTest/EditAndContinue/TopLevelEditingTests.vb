@@ -120,18 +120,9 @@ Imports System.Collections.Generic
 
             Dim edits = GetTopEdits(src1, src2)
 
-            ' TODO: https://github.com/dotnet/roslyn/issues/51374
-            ' Should be following:
-            'edits.VerifyEdits(
-            '    "Update [Imports X1 = System.Collections]@30 -> [Imports X2 = System.Collections]@30",
-            '    "Update [Imports <xmlns=""http://roslyn/default1"">]@28 -> [Imports <xmlns=""http://roslyn/default2"">]@28")
-            '
-            'edits.VerifySemanticDiagnostics(
-            '    Diagnostic(RudeEditKind.Update, "Imports X2 = System.Collections", VBFeaturesResources.import),
-            '    Diagnostic(RudeEditKind.Update, "Imports <xmlns=""http://roslyn/default2"">", VBFeaturesResources.import))
-
             edits.VerifyEdits(
-                "Update [Imports X1 = System.Collections]@30 -> [Imports X2 = System.Collections]@30")
+                "Update [Imports X1 = System.Collections]@30 -> [Imports X2 = System.Collections]@30",
+                "Update [Imports <xmlns=""http://roslyn/default1"">]@63 -> [Imports <xmlns=""http://roslyn/default2"">]@63"
 
             edits.VerifySemanticDiagnostics()
         End Sub
