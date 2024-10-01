@@ -36,6 +36,7 @@ internal abstract partial class AbstractRenameCommandHandler :
 
         if (renameService.ActiveSession.IsCommitInProgress)
         {
+            // Handle the command to prevent the work from changing during commit is in-progress
             return true;
         }
 
