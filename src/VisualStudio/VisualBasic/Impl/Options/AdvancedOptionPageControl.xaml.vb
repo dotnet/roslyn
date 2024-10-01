@@ -98,7 +98,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                          End Function)
 
             ' Rename
-            BindToOption(Rename_asynchronously_exerimental, InlineRenameSessionOptionsStorage.RenameAsynchronously)
+            BindToOption(Rename_asynchronously_exerimental, InlineRenameSessionOptionsStorage.CommitRenameAsynchronously,
+                        Function()
+                            Return optionStore.GetOption(InlineRenameSessionOptionsStorage.CommitRenameAsynchronouslyFeatureFlag)
+                        End Function)
             BindToOption(Rename_UI_setting, InlineRenameUIOptionsStorage.UseInlineAdornment, label:=Rename_UI_setting_label)
 
             ' Import directives
