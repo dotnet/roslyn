@@ -392,6 +392,31 @@
       <Analyzer Remove="@(Analyzer)" Condition="'%(FileName)' == 'Microsoft.Interop.JavaScript.JSImportGenerator' AND '%(Analyzer.NuGetPackageId)' == 'Microsoft.NETCore.App.Ref'" />
     </ItemGroup>
   </Target>
+  
+    <!-- BEGIN workaround for https://github.com/dotnet/sdk/issues/43339; remove after updated to VS 17.12 or a future 17.11 patch -->
+  <Target Name="WorkaroundDotnetSdk43339" BeforeTargets="ResolvePackageAssets" Condition=" '$(MSBuildRuntimeType)' == 'Full' and $([MSBuild]::VersionLessThan($(MSBuildVersion), 17.12.0))">
+    <PrimeSystemTextJson804 />
+  </Target>
+  <UsingTask
+    TaskName="PrimeSystemTextJson804"
+    TaskFactory="RoslynCodeTaskFactory"
+    AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.Core.dll" >
+    <Task>
+      <Code Type="Fragment" Language="cs">
+<![CDATA[
+try
+{
+    System.Reflection.Assembly.LoadFrom(@"$(MicrosoftNETBuildTasksDirectoryRoot)\..\..\..\DotnetTools\dotnet-format\BuildHost-net472\System.Text.Json.dll");
+}
+catch
+{
+    // Best effort: if something moves in the SDK don't break the build.
+}
+]]>
+      </Code>
+    </Task>
+  </UsingTask>
+  <!-- END workaround for https://github.com/dotnet/sdk/issues/43339 -->
 
   <!-- Workaround for an issue where nested targets (e.g. GetCopyToPublishDirectoryItems in the SDK) call _SplitProjectReferencesByFileExistence without calling implict prerequisite AssignProjectConfiguration -->
   <Target Name="Workaround_SplitProjectReferencesByFileExistence" BeforeTargets="_SplitProjectReferencesByFileExistence" DependsOnTargets="AssignProjectConfiguration" />
