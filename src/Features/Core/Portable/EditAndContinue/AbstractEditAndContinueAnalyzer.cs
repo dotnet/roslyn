@@ -5677,7 +5677,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         {
             var rudeEdits = closureRudeEdits.ToImmutableSegmentedDictionary(
                 static item => item.Key,
-                static item => new RuntimeRudeEdit(item.Value.ToDiagnostic(item.Key.SyntaxTree).ToString()));
+                static item => new RuntimeRudeEdit(item.Value.ToDiagnostic(item.Key.SyntaxTree).ToString(), (int)item.Value.Kind));
 
             runtimeRudeEdits = node => rudeEdits.TryGetValue(node, out var message) ? message : null;
             return;

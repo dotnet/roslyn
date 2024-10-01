@@ -5,7 +5,6 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.EncapsulateField
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Host.Mef
@@ -13,9 +12,9 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
-    <ExportLanguageService(GetType(AbstractEncapsulateFieldService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicEncapsulateFieldService
-        Inherits AbstractEncapsulateFieldService
+    <ExportLanguageService(GetType(IEncapsulateFieldService), LanguageNames.VisualBasic), [Shared]>
+    Friend NotInheritable Class VisualBasicEncapsulateFieldService
+        Inherits AbstractEncapsulateFieldService(Of ConstructorBlockSyntax)
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
@@ -129,10 +128,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
             Return NameGenerator.GenerateUniqueName(propertyName, containingTypeMemberNames.ToSet(), StringComparer.OrdinalIgnoreCase)
         End Function
 
-        Protected Overrides Function GetConstructorNodes(containingType As INamedTypeSymbol) As IEnumerable(Of SyntaxNode)
-            Return containingType.Constructors.SelectMany(Function(c As IMethodSymbol)
-                                                              Return c.DeclaringSyntaxReferences.Select(Function(d) d.GetSyntax().Parent)
-                                                          End Function)
+        Protected Overrides Function GetConstructorNodes(containingType As INamedTypeSymbol) As IEnumerable(Of ConstructorBlockSyntax)
+            Return containingType.Constructors.
+                SelectMany(Function(c As IMethodSymbol) c.DeclaringSyntaxReferences.Select(Function(d) d.GetSyntax().Parent)).
+                OfType(Of ConstructorBlockSyntax)()
         End Function
     End Class
 End Namespace

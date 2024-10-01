@@ -27,6 +27,49 @@ namespace Microsoft.CodeAnalysis.CSharp
             return VisitBinaryOperatorBase(node);
         }
 
+        public override BoundNode? VisitIfStatement(BoundIfStatement node)
+        {
+            var stack = ArrayBuilder<(BoundIfStatement, BoundExpression, BoundStatement)>.GetInstance();
+
+            BoundStatement? rewrittenAlternative;
+            while (true)
+            {
+                var rewrittenCondition = (BoundExpression)Visit(node.Condition);
+                var rewrittenConsequence = (BoundStatement)Visit(node.Consequence);
+                Debug.Assert(rewrittenConsequence is { });
+                stack.Push((node, rewrittenCondition, rewrittenConsequence));
+
+                var alternative = node.AlternativeOpt;
+                if (alternative is null)
+                {
+                    rewrittenAlternative = null;
+                    break;
+                }
+
+                if (alternative is BoundIfStatement elseIfStatement)
+                {
+                    node = elseIfStatement;
+                }
+                else
+                {
+                    rewrittenAlternative = (BoundStatement)Visit(alternative);
+                    break;
+                }
+            }
+
+            BoundStatement result;
+            do
+            {
+                var (ifStatement, rewrittenCondition, rewrittenConsequence) = stack.Pop();
+                result = ifStatement.Update(rewrittenCondition, rewrittenConsequence, rewrittenAlternative);
+                rewrittenAlternative = result;
+            }
+            while (stack.Any());
+
+            stack.Free();
+            return result;
+        }
+
         private BoundNode VisitBinaryOperatorBase(BoundBinaryOperatorBase binaryOperator)
         {
             // Use an explicit stack to avoid blowing the managed stack when visiting deeply-recursive

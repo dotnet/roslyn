@@ -5,14 +5,12 @@
 #nullable disable
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Diagnostics;
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -311,6 +309,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
             {
                 throw ExceptionUtilities.Unreachable();
+            }
+
+            public override BoundNode VisitIfStatement(BoundIfStatement node)
+            {
+                while (true)
+                {
+                    this.Visit(node.Condition);
+                    this.Visit(node.Consequence);
+
+                    var alternative = node.AlternativeOpt;
+                    if (alternative is null)
+                    {
+                        break;
+                    }
+
+                    if (alternative is BoundIfStatement elseIfStatement)
+                    {
+                        node = elseIfStatement;
+                        if (ShouldAddNode(node))
+                        {
+                            _map.Add(node.Syntax, node);
+                        }
+                    }
+                    else
+                    {
+                        this.Visit(alternative);
+                        break;
+                    }
+                }
+
+                return null;
             }
 
             protected override bool ConvertInsufficientExecutionStackExceptionToCancelledByStackGuardException()

@@ -1801,15 +1801,44 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IConditionalOperation CreateBoundIfStatementOperation(BoundIfStatement boundIfStatement)
         {
-            IOperation condition = Create(boundIfStatement.Condition);
-            IOperation whenTrue = Create(boundIfStatement.Consequence);
-            IOperation? whenFalse = Create(boundIfStatement.AlternativeOpt);
-            bool isRef = false;
-            SyntaxNode syntax = boundIfStatement.Syntax;
-            ITypeSymbol? type = null;
-            ConstantValue? constantValue = null;
-            bool isImplicit = boundIfStatement.WasCompilerGenerated;
-            return new ConditionalOperation(condition, whenTrue, whenFalse, isRef, _semanticModel, syntax, type, constantValue, isImplicit);
+            var stack = ArrayBuilder<BoundIfStatement>.GetInstance();
+
+            IOperation? whenFalse;
+            while (true)
+            {
+                stack.Push(boundIfStatement);
+
+                var alternative = boundIfStatement.AlternativeOpt;
+
+                if (alternative is BoundIfStatement elseIfStatement)
+                {
+                    boundIfStatement = elseIfStatement;
+                }
+                else
+                {
+                    whenFalse = Create(alternative);
+                    break;
+                }
+            }
+
+            ConditionalOperation result;
+            do
+            {
+                boundIfStatement = stack.Pop();
+                IOperation condition = Create(boundIfStatement.Condition);
+                IOperation whenTrue = Create(boundIfStatement.Consequence);
+                bool isRef = false;
+                SyntaxNode syntax = boundIfStatement.Syntax;
+                ITypeSymbol? type = null;
+                ConstantValue? constantValue = null;
+                bool isImplicit = boundIfStatement.WasCompilerGenerated;
+                result = new ConditionalOperation(condition, whenTrue, whenFalse, isRef, _semanticModel, syntax, type, constantValue, isImplicit);
+                whenFalse = result;
+            }
+            while (stack.Any());
+
+            stack.Free();
+            return result;
         }
 
         private IWhileLoopOperation CreateBoundWhileStatementOperation(BoundWhileStatement boundWhileStatement)

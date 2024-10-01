@@ -2,12 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Composition;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.Completion;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
@@ -23,59 +25,92 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// <remarks>
     /// This isn't a <see cref="ILspServiceDocumentRequestHandler{TRequest, TResponse}" /> because it could return null.
     /// </remarks>
+    [ExportCSharpVisualBasicStatelessLspService(typeof(CompletionResolveHandler)), Shared]
     [Method(LSP.Methods.TextDocumentCompletionResolveName)]
     internal sealed class CompletionResolveHandler : ILspServiceRequestHandler<LSP.CompletionItem, LSP.CompletionItem>, ITextDocumentIdentifierHandler<LSP.CompletionItem, LSP.TextDocumentIdentifier?>
     {
-        private readonly CompletionListCache _completionListCache;
         private readonly IGlobalOptionService _globalOptions;
 
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
 
-        public CompletionResolveHandler(IGlobalOptionService globalOptions, CompletionListCache completionListCache)
+        [ImportingConstructor]
+        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        public CompletionResolveHandler(IGlobalOptionService globalOptions)
         {
             _globalOptions = globalOptions;
-            _completionListCache = completionListCache;
         }
 
         public LSP.TextDocumentIdentifier? GetTextDocumentIdentifier(LSP.CompletionItem request)
-            => CompletionResolveHandler.GetTextDocumentCacheEntry(request);
+            => GetTextDocumentCacheEntry(request);
 
-        public async Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
+        public Task<LSP.CompletionItem> HandleRequestAsync(LSP.CompletionItem completionItem, RequestContext context, CancellationToken cancellationToken)
         {
-            var cacheEntry = GetCompletionListCacheEntry(completionItem);
-            if (cacheEntry == null)
+            var completionListCache = context.GetRequiredLspService<CompletionListCache>();
+
+            if (!completionListCache.TryGetCompletionListCacheEntry(completionItem, out var cacheEntry))
             {
                 // Don't have a cache associated with this completion item, cannot resolve.
                 context.TraceInformation("No cache entry found for the provided completion item at resolve time.");
-                return completionItem;
+                return Task.FromResult(completionItem);
             }
 
             var document = context.GetRequiredDocument();
-            var completionService = document.Project.Services.GetRequiredService<CompletionService>();
+            var capabilityHelper = new CompletionCapabilityHelper(context.GetRequiredClientCapabilities());
 
-            // Find the matching completion item in the completion list
-            var selectedItem = cacheEntry.CompletionList.ItemsList.FirstOrDefault(cachedCompletionItem => MatchesLSPCompletionItem(completionItem, cachedCompletionItem));
+            return ResolveCompletionItemAsync(
+                completionItem, cacheEntry.CompletionList, document, _globalOptions, capabilityHelper, cancellationToken);
+        }
 
-            var completionOptions = _globalOptions.GetCompletionOptions(document.Project.Language);
-            var symbolDescriptionOptions = _globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
-
-            if (selectedItem is not null)
+        public static Task<LSP.CompletionItem> ResolveCompletionItemAsync(
+            LSP.CompletionItem completionItem,
+            Document document,
+            IGlobalOptionService globalOptions,
+            CompletionCapabilityHelper capabilityHelper,
+            CompletionListCache completionListCache,
+            CancellationToken cancellationToken)
+        {
+            if (!completionListCache.TryGetCompletionListCacheEntry(completionItem, out var cacheEntry))
             {
-                var creationService = document.Project.Solution.Services.GetRequiredService<ILspCompletionResultCreationService>();
-                await creationService.ResolveAsync(
-                    completionItem,
-                    selectedItem,
-                    ProtocolConversions.DocumentToTextDocumentIdentifier(document),
-                    document,
-                    new CompletionCapabilityHelper(context.GetRequiredClientCapabilities()),
-                    completionService,
-                    completionOptions,
-                    symbolDescriptionOptions,
-                    cancellationToken).ConfigureAwait(false);
+                // Don't have a cache associated with this completion item, cannot resolve.
+                return Task.FromResult(completionItem);
             }
 
-            return completionItem;
+            return ResolveCompletionItemAsync(
+                completionItem, cacheEntry.CompletionList, document, globalOptions, capabilityHelper, cancellationToken);
+        }
+
+        private static async Task<LSP.CompletionItem> ResolveCompletionItemAsync(
+            LSP.CompletionItem completionItem,
+            CompletionList cachedCompletionList,
+            Document document,
+            IGlobalOptionService globalOptions,
+            CompletionCapabilityHelper capabilityHelper,
+            CancellationToken cancellationToken)
+        {
+            // Find the matching completion item in the completion list
+            var roslynItem = cachedCompletionList.ItemsList
+                .FirstOrDefault(cachedCompletionItem => MatchesLSPCompletionItem(completionItem, cachedCompletionItem));
+
+            if (roslynItem is null)
+            {
+                return completionItem;
+            }
+
+            var completionOptions = globalOptions.GetCompletionOptions(document.Project.Language);
+            var symbolDescriptionOptions = globalOptions.GetSymbolDescriptionOptions(document.Project.Language);
+            var completionService = document.Project.Services.GetRequiredService<CompletionService>();
+
+            return await CompletionResultFactory.ResolveAsync(
+                completionItem,
+                roslynItem,
+                ProtocolConversions.DocumentToTextDocumentIdentifier(document),
+                document,
+                capabilityHelper,
+                completionService,
+                completionOptions,
+                symbolDescriptionOptions,
+                cancellationToken).ConfigureAwait(false);
         }
 
         private static bool MatchesLSPCompletionItem(LSP.CompletionItem lspCompletionItem, CompletionItem completionItem)
@@ -98,26 +133,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
 
             return resolveData.TextDocument;
-        }
-
-        private CompletionListCache.CacheEntry? GetCompletionListCacheEntry(LSP.CompletionItem request)
-        {
-            Contract.ThrowIfNull(request.Data);
-            var resolveData = JsonSerializer.Deserialize<CompletionResolveData>((JsonElement)request.Data, ProtocolConversions.LspJsonSerializerOptions);
-            if (resolveData?.ResultId == null)
-            {
-                Contract.Fail("Result id should always be provided when resolving a completion item we returned.");
-                return null;
-            }
-
-            var cacheEntry = _completionListCache.GetCachedEntry(resolveData.ResultId);
-            if (cacheEntry == null)
-            {
-                // No cache for associated completion item. Log some telemetry so we can understand how frequently this actually happens.
-                Logger.Log(FunctionId.LSP_CompletionListCacheMiss, KeyValueLogMessage.NoProperty);
-            }
-
-            return cacheEntry;
         }
     }
 }

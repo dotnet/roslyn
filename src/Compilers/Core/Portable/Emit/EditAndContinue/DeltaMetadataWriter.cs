@@ -34,13 +34,8 @@ namespace Microsoft.CodeAnalysis.Emit
         /// </summary>
         private readonly List<ITypeDefinition> _changedTypeDefs;
 
-        /// <summary>
-        /// Cache of type definitions used in signatures of deleted members. Used so that if a method 'C M(C c)' is deleted
-        /// we use the same <see cref="DeletedSourceTypeDefinition"/> instance for the method return type, and the parameter type.
-        /// </summary>
-        private readonly Dictionary<ITypeDefinition, DeletedSourceTypeDefinition> _typesUsedByDeletedMembers;
-
         private readonly Dictionary<ITypeDefinition, ImmutableArray<IMethodDefinition>> _deletedTypeMembers;
+        private readonly IReadOnlyDictionary<ITypeDefinition, ArrayBuilder<IMethodDefinition>> _deletedMethodDefs;
 
         private readonly DefinitionIndex<ITypeDefinition> _typeDefs;
         private readonly DefinitionIndex<IEventDefinition> _eventDefs;
@@ -80,6 +75,7 @@ namespace Microsoft.CodeAnalysis.Emit
             Guid encId,
             DefinitionMap definitionMap,
             SymbolChanges changes,
+            IReadOnlyDictionary<ITypeDefinition, ArrayBuilder<IMethodDefinition>> deletedMethodDefs,
             CancellationToken cancellationToken)
             : base(metadata: MakeTablesBuilder(previousGeneration),
                    debugMetadataOpt: (context.Module.DebugInformationFormat == DebugInformationFormat.PortablePdb) ? new MetadataBuilder() : null,
@@ -104,8 +100,8 @@ namespace Microsoft.CodeAnalysis.Emit
             var sizes = previousGeneration.TableSizes;
 
             _changedTypeDefs = new List<ITypeDefinition>();
-            _typesUsedByDeletedMembers = new Dictionary<ITypeDefinition, DeletedSourceTypeDefinition>(ReferenceEqualityComparer.Instance);
             _deletedTypeMembers = new Dictionary<ITypeDefinition, ImmutableArray<IMethodDefinition>>(ReferenceEqualityComparer.Instance);
+            _deletedMethodDefs = deletedMethodDefs;
             _typeDefs = new DefinitionIndex<ITypeDefinition>(this.TryGetExistingTypeDefIndex, sizes[(int)TableIndex.TypeDef]);
             _eventDefs = new DefinitionIndex<IEventDefinition>(this.TryGetExistingEventDefIndex, sizes[(int)TableIndex.Event]);
             _fieldDefs = new DefinitionIndex<IFieldDefinition>(this.TryGetExistingFieldDefIndex, sizes[(int)TableIndex.Field]);
@@ -496,6 +492,101 @@ namespace Microsoft.CodeAnalysis.Emit
             module.OnCreatedIndices(this.Context.Diagnostics);
         }
 
+        internal static IReadOnlyDictionary<ITypeDefinition, ArrayBuilder<IMethodDefinition>> CreateDeletedMethodsDefs(EmitContext context, SymbolChanges changes)
+        {
+            var result = new Dictionary<ITypeDefinition, ArrayBuilder<IMethodDefinition>>(ReferenceEqualityComparer.Instance);
+            var typesUsedByDeletedMembers = new Dictionary<ITypeDefinition, DeletedSourceTypeDefinition>(ReferenceEqualityComparer.Instance);
+
+            foreach (var typeDef in context.Module.GetTopLevelTypeDefinitions(context))
+            {
+                recurse(typeDef);
+            }
+
+            return result;
+
+            void recurse(ITypeDefinition typeDef)
+            {
+                var deletedMethodDefs = getDeletedMethodDefs(typeDef);
+                if (deletedMethodDefs?.Count > 0)
+                {
+                    result.Add(typeDef, deletedMethodDefs);
+                }
+
+                foreach (var nestedType in typeDef.GetNestedTypes(context))
+                {
+                    recurse(nestedType);
+                }
+            }
+
+            ArrayBuilder<IMethodDefinition>? getDeletedMethodDefs(ITypeDefinition typeDef)
+            {
+                if (typeDef.GetInternalSymbol() is INamedTypeSymbolInternal typeSymbol &&
+                    (changes.DeletedMembers.TryGetValue(typeSymbol, out var deletedMembers) |
+                     changes.UpdatedMethods.TryGetValue(typeSymbol, out var updatedMethods)))
+                {
+                    // create representations of the old deleted methods in this compilation:
+
+                    var newMethodDefs = ArrayBuilder<IMethodDefinition>.GetInstance();
+
+                    ImmutableArray<byte>? lazyDeletedMethodIL = null;
+                    ImmutableArray<byte>? lazyDeletedLambdaIL = null;
+
+                    foreach (var deletedMember in deletedMembers.NullToEmpty())
+                    {
+                        if (deletedMember is IMethodSymbolInternal deletedMethod)
+                        {
+                            var deletedMethodHandle = changes.DefinitionMap.GetPreviousMethodHandle(deletedMethod);
+                            var deletedMethodDef = (IMethodDefinition)deletedMethod.GetCciAdapter();
+
+                            lazyDeletedMethodIL ??= DeletedMethodBody.GetIL(context, rudeEdit: null, isLambdaOrLocalFunction: false);
+
+                            newMethodDefs.Add(new DeletedSourceMethodDefinition(deletedMethodDef, deletedMethodHandle, lazyDeletedMethodIL.Value, typesUsedByDeletedMembers));
+
+                            addDeletedClosureMethods(deletedMethod, currentLambdas: ImmutableArray<EncLambdaInfo>.Empty, ImmutableArray<LambdaRuntimeRudeEditInfo>.Empty);
+                        }
+                    }
+
+                    foreach (var (oldMethod, newMethod) in updatedMethods.NullToEmpty())
+                    {
+                        var newMethodDef = (IMethodDefinition)newMethod.GetCciAdapter();
+
+                        var (currentLambdas, rudeEdits) = (newMethodDef.HasBody && newMethodDef.GetBody(context) is { } body) ?
+                            (body.LambdaDebugInfo, body.OrderedLambdaRuntimeRudeEdits) :
+                            (ImmutableArray<EncLambdaInfo>.Empty, ImmutableArray<LambdaRuntimeRudeEditInfo>.Empty);
+
+                        addDeletedClosureMethods(oldMethod, currentLambdas, rudeEdits);
+                    }
+
+                    void addDeletedClosureMethods(IMethodSymbolInternal oldMethod, ImmutableArray<EncLambdaInfo> currentLambdas, ImmutableArray<LambdaRuntimeRudeEditInfo> orderedLambdaRuntimeRudeEdits)
+                    {
+                        foreach (var (lambdaId, deletedClosureMethod) in changes.DefinitionMap.GetDeletedSynthesizedMethods(oldMethod, currentLambdas))
+                        {
+                            var rudeEditIndex = orderedLambdaRuntimeRudeEdits.BinarySearch(lambdaId, static (rudeEdit, lambdaId) => rudeEdit.LambdaId.CompareTo(lambdaId));
+
+                            var il = (rudeEditIndex >= 0)
+                                ? DeletedMethodBody.GetIL(context, orderedLambdaRuntimeRudeEdits[rudeEditIndex].RudeEdit, isLambdaOrLocalFunction: true)
+                                : lazyDeletedLambdaIL ??= DeletedMethodBody.GetIL(context, rudeEdit: null, isLambdaOrLocalFunction: true);
+
+                            if (deletedClosureMethod.MetadataToken != 0)
+                            {
+                                newMethodDefs.Add(new DeletedPEMethodDefinition(deletedClosureMethod, il));
+                            }
+                            else
+                            {
+                                var deletedClosureMethodDef = (IMethodDefinition)deletedClosureMethod.GetCciAdapter();
+                                var deletedClosureMethodHandle = changes.DefinitionMap.GetPreviousMethodHandle(deletedClosureMethod);
+                                newMethodDefs.Add(new DeletedSourceMethodDefinition(deletedClosureMethodDef, deletedClosureMethodHandle, il, typesUsedByDeletedMembers));
+                            }
+                        }
+                    }
+
+                    return newMethodDefs;
+                }
+
+                return null;
+            }
+        }
+
         protected override void CreateIndicesForNonTypeMembers(ITypeDefinition typeDef)
         {
             var change = _changes.GetChange(typeDef);
@@ -563,77 +654,15 @@ namespace Microsoft.CodeAnalysis.Emit
                 CreateIndicesForMethod(methodDef, methodChange);
             }
 
-            if (typeDef.GetInternalSymbol() is INamedTypeSymbolInternal typeSymbol &&
-                (_changes.DeletedMembers.TryGetValue(typeSymbol, out var deletedMembers) |
-                 _changes.UpdatedMethods.TryGetValue(typeSymbol, out var updatedMethods)))
+            if (_deletedMethodDefs.TryGetValue(typeDef, out var newMethodDefs))
             {
-                // create representations of the old deleted methods in this compilation:
-                var newMethodDefs = ArrayBuilder<IMethodDefinition>.GetInstance();
-
-                ImmutableArray<byte>? lazyDeletedMethodIL = null;
-                ImmutableArray<byte>? lazyDeletedLambdaIL = null;
-
-                foreach (var deletedMember in deletedMembers.NullToEmpty())
+                // Assign the deleted method and its parameters row ids in the delta metadata:
+                foreach (var newMethodDef in newMethodDefs)
                 {
-                    if (deletedMember is IMethodSymbolInternal deletedMethod)
-                    {
-                        var deletedMethodHandle = _definitionMap.GetPreviousMethodHandle(deletedMethod);
-                        var deletedMethodDef = (IMethodDefinition)deletedMethod.GetCciAdapter();
-
-                        lazyDeletedMethodIL ??= DeletedMethodBody.GetIL(Context, rudeEdit: null, isLambdaOrLocalFunction: false);
-
-                        newMethodDefs.Add(new DeletedSourceMethodDefinition(deletedMethodDef, deletedMethodHandle, lazyDeletedMethodIL.Value, _typesUsedByDeletedMembers));
-
-                        addDeletedClosureMethods(deletedMethod, currentLambdas: ImmutableArray<EncLambdaInfo>.Empty, ImmutableArray<LambdaRuntimeRudeEditInfo>.Empty);
-                    }
+                    _methodDefs.AddUpdated(newMethodDef);
                 }
 
-                foreach (var (oldMethod, newMethod) in updatedMethods.NullToEmpty())
-                {
-                    var newMethodDef = (IMethodDefinition)newMethod.GetCciAdapter();
-
-                    var (currentLambdas, rudeEdits) = (newMethodDef.HasBody && newMethodDef.GetBody(Context) is { } body) ?
-                        (body.LambdaDebugInfo, body.OrderedLambdaRuntimeRudeEdits) :
-                        (ImmutableArray<EncLambdaInfo>.Empty, ImmutableArray<LambdaRuntimeRudeEditInfo>.Empty);
-
-                    addDeletedClosureMethods(oldMethod, currentLambdas, rudeEdits);
-                }
-
-                void addDeletedClosureMethods(IMethodSymbolInternal oldMethod, ImmutableArray<EncLambdaInfo> currentLambdas, ImmutableArray<LambdaRuntimeRudeEditInfo> orderedLambdaRuntimeRudeEdits)
-                {
-                    foreach (var (lambdaId, deletedClosureMethod) in _definitionMap.GetDeletedSynthesizedMethods(oldMethod, currentLambdas))
-                    {
-                        var rudeEditIndex = orderedLambdaRuntimeRudeEdits.BinarySearch(lambdaId, static (rudeEdit, lambdaId) => rudeEdit.LambdaId.CompareTo(lambdaId));
-
-                        var il = (rudeEditIndex >= 0)
-                            ? DeletedMethodBody.GetIL(Context, orderedLambdaRuntimeRudeEdits[rudeEditIndex].RudeEdit, isLambdaOrLocalFunction: true)
-                            : lazyDeletedLambdaIL ??= DeletedMethodBody.GetIL(Context, rudeEdit: null, isLambdaOrLocalFunction: true);
-
-                        if (deletedClosureMethod.MetadataToken != 0)
-                        {
-                            newMethodDefs.Add(new DeletedPEMethodDefinition(deletedClosureMethod, il));
-                        }
-                        else
-                        {
-                            var deletedClosureMethodDef = (IMethodDefinition)deletedClosureMethod.GetCciAdapter();
-                            var deletedClosureMethodHandle = _definitionMap.GetPreviousMethodHandle(deletedClosureMethod);
-                            newMethodDefs.Add(new DeletedSourceMethodDefinition(deletedClosureMethodDef, deletedClosureMethodHandle, il, _typesUsedByDeletedMembers));
-                        }
-                    }
-                }
-
-                if (newMethodDefs is not [])
-                {
-                    // Assign the deleted method and its parameters row ids in the delta metadata:
-                    foreach (var newMethodDef in newMethodDefs)
-                    {
-                        _methodDefs.AddUpdated(newMethodDef);
-                    }
-
-                    _deletedTypeMembers.Add(typeDef, newMethodDefs.ToImmutable());
-                }
-
-                newMethodDefs.Free();
+                _deletedTypeMembers.Add(typeDef, newMethodDefs.ToImmutable());
             }
 
             foreach (var propertyDef in typeDef.GetProperties(this.Context))
@@ -1803,6 +1832,11 @@ namespace Microsoft.CodeAnalysis.Emit
             public override void Visit(CommonPEModuleBuilder module)
             {
                 Visit(module.GetTopLevelTypeDefinitions(metadataWriter.Context));
+
+                if (module.GetUsedSynthesizedHotReloadExceptionType() is { } hotReloadException)
+                {
+                    Visit((INamedTypeDefinition)hotReloadException.GetCciAdapter());
+                }
             }
 
             public override void Visit(IEventDefinition eventDefinition)

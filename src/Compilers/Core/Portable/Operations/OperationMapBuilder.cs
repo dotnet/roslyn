@@ -54,6 +54,27 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
+            public override object? VisitConditional(IConditionalOperation operation, Dictionary<SyntaxNode, IOperation> argument)
+            {
+                while (true)
+                {
+                    RecordOperation(operation, argument);
+                    Visit(operation.Condition, argument);
+                    Visit(operation.WhenTrue, argument);
+                    if (operation.WhenFalse is IConditionalOperation nested)
+                    {
+                        operation = nested;
+                    }
+                    else
+                    {
+                        Visit(operation.WhenFalse, argument);
+                        break;
+                    }
+                }
+
+                return null;
+            }
+
             public override object? VisitBinaryPattern(IBinaryPatternOperation operation, Dictionary<SyntaxNode, IOperation> argument)
             {
                 // In order to handle very large nested patterns, we implement manual iteration here. Our operations are not order sensitive,

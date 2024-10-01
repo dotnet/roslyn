@@ -1192,7 +1192,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="NET_Code_Actions">
         <source>.NET Code Actions</source>
-        <target state="new">.NET Code Actions</target>
+        <target state="translated">.NET Kod Eylemleri</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_expected">
@@ -2632,7 +2632,7 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="Symbol_search">
         <source>Symbol search</source>
-        <target state="new">Symbol search</target>
+        <target state="translated">Sembol araması</target>
         <note />
       </trans-unit>
       <trans-unit id="Symbols">
@@ -2922,7 +2922,7 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application">
         <source>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</source>
-        <target state="new">Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</target>
+        <target state="translated">Etkin bir deyim etrafında {0} türünün ('{1}' değerinden '{2}' değerine) güncelleştirilmesi uygulamanın yeniden başlatılmasını gerektirir.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">

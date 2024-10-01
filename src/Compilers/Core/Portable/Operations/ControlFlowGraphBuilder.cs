@@ -1536,51 +1536,57 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             if (operation == _currentStatement)
             {
-                if (operation.WhenFalse == null)
-                {
-                    // if (condition)
-                    //   consequence;
-                    //
-                    // becomes
-                    //
-                    // GotoIfFalse condition afterif;
-                    // consequence;
-                    // afterif:
+                // if (condition)
+                //   consequence;
+                //
+                // becomes
+                //
+                // GotoIfFalse condition afterif;
+                // consequence;
+                // afterif:
 
-                    BasicBlockBuilder? afterIf = null;
-                    VisitConditionalBranch(operation.Condition, ref afterIf, jumpIfTrue: false);
-                    VisitStatement(operation.WhenTrue);
-                    AppendNewBlock(afterIf);
-                }
-                else
-                {
-                    // if (condition)
-                    //     consequence;
-                    // else
-                    //     alternative
-                    //
-                    // becomes
-                    //
-                    // GotoIfFalse condition alt;
-                    // consequence
-                    // goto afterif;
-                    // alt:
-                    // alternative;
-                    // afterif:
+                // if (condition)
+                //     consequence;
+                // else
+                //     alternative
+                //
+                // becomes
+                //
+                // GotoIfFalse condition alt;
+                // consequence
+                // goto afterif;
+                // alt:
+                // alternative;
+                // afterif:
 
+                var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
+
+                while (true)
+                {
                     BasicBlockBuilder? whenFalse = null;
                     VisitConditionalBranch(operation.Condition, ref whenFalse, jumpIfTrue: false);
-
+                    Debug.Assert(whenFalse is { });
                     VisitStatement(operation.WhenTrue);
-
-                    var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
                     UnconditionalBranch(afterIf);
 
                     AppendNewBlock(whenFalse);
-                    VisitStatement(operation.WhenFalse);
 
-                    AppendNewBlock(afterIf);
+                    if (operation.WhenFalse is IConditionalOperation nested)
+                    {
+                        operation = nested;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
+
+                if (operation.WhenFalse is not null)
+                {
+                    VisitStatement(operation.WhenFalse);
+                }
+
+                AppendNewBlock(afterIf);
 
                 return null;
             }

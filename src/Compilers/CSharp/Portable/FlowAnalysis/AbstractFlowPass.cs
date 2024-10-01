@@ -1752,22 +1752,54 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
-        public override BoundNode VisitIfStatement(BoundIfStatement node)
+        public sealed override BoundNode VisitIfStatement(BoundIfStatement node)
         {
             // 5.3.3.5 If statements
-            VisitCondition(node.Condition);
-            TLocalState trueState = StateWhenTrue;
-            TLocalState falseState = StateWhenFalse;
-            SetState(trueState);
-            VisitStatement(node.Consequence);
-            trueState = this.State;
-            SetState(falseState);
-            if (node.AlternativeOpt != null)
+
+            var stack = ArrayBuilder<(TLocalState, BoundIfStatement)>.GetInstance();
+
+            TLocalState trueState;
+            while (true)
             {
-                VisitStatement(node.AlternativeOpt);
+                VisitCondition(node.Condition);
+                trueState = StateWhenTrue;
+                TLocalState falseState = StateWhenFalse;
+                SetState(trueState);
+                VisitStatement(node.Consequence);
+                trueState = this.State;
+                SetState(falseState);
+
+                var alternative = node.AlternativeOpt;
+                if (alternative is null)
+                {
+                    break;
+                }
+
+                if (alternative is BoundIfStatement elseIfStatement)
+                {
+                    node = elseIfStatement;
+                    stack.Push((trueState, node));
+                    EnterRegionIfNeeded(node);
+                }
+                else
+                {
+                    VisitStatement(alternative);
+                    break;
+                }
             }
 
-            Join(ref this.State, ref trueState);
+            while (true)
+            {
+                Join(ref this.State, ref trueState);
+                if (!stack.Any())
+                {
+                    break;
+                }
+                (trueState, node) = stack.Pop();
+                LeaveRegionIfNeeded(node);
+            }
+
+            stack.Free();
             return null;
         }
 
