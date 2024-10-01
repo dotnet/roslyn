@@ -55,6 +55,11 @@ internal abstract partial class AbstractRenameCommandHandler(
             return;
         }
 
+        if (renameService.ActiveSession.IsCommitInProgress)
+        {
+            return;
+        }
+
         var selectedSpans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
 
         if (selectedSpans.Count > 1)
