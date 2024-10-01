@@ -23,7 +23,7 @@ internal abstract partial class AbstractRenameCommandHandler :
             return true;
         }
 
-        CompleteActiveSessionAndMoveCaret(args, context.OperationContext, invalidEditCommandInvoked: true);
+        CommitOrCancelIfActive(args, context.OperationContext, invalidEditCommandInvoked: true);
         return false;
     }
 
@@ -37,7 +37,7 @@ internal abstract partial class AbstractRenameCommandHandler :
             return true;
         }
 
-        CompleteActiveSessionAndMoveCaret(args, context.OperationContext, invalidEditCommandInvoked: true);
+        CommitOrCancelIfActive(args, context.OperationContext, invalidEditCommandInvoked: true);
         return false;
     }
 
@@ -51,7 +51,7 @@ internal abstract partial class AbstractRenameCommandHandler :
             return true;
         }
 
-        CompleteActiveSessionAndMoveCaret(args, context.OperationContext, invalidEditCommandInvoked: true);
+        CommitOrCancelIfActive(args, context.OperationContext, invalidEditCommandInvoked: true);
         return false;
     }
 
@@ -65,7 +65,7 @@ internal abstract partial class AbstractRenameCommandHandler :
             return true;
         }
 
-        CompleteActiveSessionAndMoveCaret(args, context.OperationContext, invalidEditCommandInvoked: true);
+        CommitOrCancelIfActive(args, context.OperationContext, invalidEditCommandInvoked: true);
         return false;
     }
 }

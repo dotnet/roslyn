@@ -15,7 +15,7 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<S
 
     public bool ExecuteCommand(SaveCommandArgs args, CommandExecutionContext context)
     {
-        if (renameService.ActiveSession != null && !globalOptionService.ShouldCommitAsynchronously())
+        if (renameService.ActiveSession != null)
         {
             if (globalOptionService.ShouldCommitAsynchronously())
             {

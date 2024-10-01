@@ -18,7 +18,7 @@ internal abstract partial class AbstractRenameCommandHandler :
         if (renameService.ActiveSession?.IsCommitInProgress is true)
             return true;
 
-        CompleteActiveSessionAndMoveCaret(args, context.OperationContext, invalidEditCommandInvoked: true);
+        CommitOrCancelIfActive(args, context.OperationContext, invalidEditCommandInvoked: true);
         return false;
     }
 
@@ -30,7 +30,7 @@ internal abstract partial class AbstractRenameCommandHandler :
         if (renameService.ActiveSession?.IsCommitInProgress is true)
             return true;
 
-        CompleteActiveSessionAndMoveCaret(args, context.OperationContext, invalidEditCommandInvoked: true);
+        CommitOrCancelIfActive(args, context.OperationContext, invalidEditCommandInvoked: true);
         return false;
     }
 }

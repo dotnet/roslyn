@@ -82,7 +82,7 @@ internal abstract partial class AbstractRenameCommandHandler(
         else if (renameService.ActiveSession.IsInOpenTextBuffer(singleSpan.Start))
         {
             // It's in a read-only area that is open. Cancel or commit the session.
-            CompleteActiveSessionAndMoveCaret(args, operationContext, invalidEditCommandInvoked: true);
+            CommitOrCancelIfActive(args, operationContext, invalidEditCommandInvoked: true);
             nextHandler();
         }
         else
@@ -92,7 +92,7 @@ internal abstract partial class AbstractRenameCommandHandler(
         }
     }
 
-    private void CompleteActiveSessionAndMoveCaret(EditorCommandArgs args, IUIThreadOperationContext operationContext, bool invalidEditCommandInvoked)
+    private void CommitOrCancelIfActive(EditorCommandArgs args, IUIThreadOperationContext operationContext, bool invalidEditCommandInvoked)
     {
         if (renameService.ActiveSession != null)
         {
