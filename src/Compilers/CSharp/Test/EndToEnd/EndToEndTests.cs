@@ -726,17 +726,19 @@ $@"        if (F({i}))
                 step => Assert.True(step.Outputs.Single().Value is ClassDeclarationSyntax { Identifier.ValueText: "C1" }));
         }
 
-        [Fact]
-        public void ManyBinaryPatterns()
+        [Theory]
+        [InlineData("or", "1")]
+        [InlineData("and not", "0")]
+        public void ManyBinaryPatterns(string pattern, string expectedOutput)
         {
             const string preamble = $"""
                 int i = 2;
 
                 System.Console.Write(i is
                 """;
-            const string append = $"""
+            string append = $"""
 
-                or 
+                {pattern} 
                 """;
             const string postscript = """
 
@@ -764,7 +766,7 @@ $@"        if (F({i}))
             RunInThread(() =>
             {
                 var comp = CreateCompilation(source, options: TestOptions.DebugExe.WithConcurrentBuild(false));
-                CompileAndVerify(comp, expectedOutput: "1");
+                CompileAndVerify(comp, expectedOutput: expectedOutput);
 
                 var tree = comp.SyntaxTrees[0];
                 var isPattern = tree.GetRoot().DescendantNodes().OfType<IsPatternExpressionSyntax>().Single();

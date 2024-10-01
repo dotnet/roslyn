@@ -1758,7 +1758,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = bindBinaryPattern(
                     result,
                     this,
-                    binaryPatternAndPermitDesignations,
+                    binaryPatternAndPermitDesignations.pat,
+                    binaryPatternAndPermitDesignations.permitDesignations,
                     inputType,
                     narrowedTypeCandidates,
                     hasErrors,
@@ -1772,13 +1773,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             static BoundPattern bindBinaryPattern(
                 BoundPattern preboundLeft,
                 Binder binder,
-                (BinaryPatternSyntax pat, bool permitDesignations) patternAndPermitDesignations,
+                BinaryPatternSyntax node,
+                bool permitDesignations,
                 TypeSymbol inputType,
                 ArrayBuilder<TypeSymbol> narrowedTypeCandidates,
                 bool hasErrors,
                 BindingDiagnosticBag diagnostics)
             {
-                (BinaryPatternSyntax node, bool permitDesignations) = patternAndPermitDesignations;
                 bool isDisjunction = node.Kind() == SyntaxKind.OrPattern;
                 if (isDisjunction)
                 {
