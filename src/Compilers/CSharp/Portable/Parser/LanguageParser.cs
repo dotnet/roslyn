@@ -7367,10 +7367,43 @@ done:
                             // More expensive tests are in `EatNullableQualifierIfApplicable`
                             if (type.Kind == SyntaxKind.NullableType || type.Kind == SyntaxKind.PointerType)
                                 return false;
+
                             if (this.PeekToken(1).Kind == SyntaxKind.OpenBracketToken)
+                            {
+                                // T?[
+                                //
+                                // This could be a array of nullable types (e.g. `is T?[]` or `is T?[,]`) or it's a
+                                // conditional with a collection expression (e.g. `is T ? [...] :`)
+                                //
+                                // Not: `is T?[]` could be the start of either.  So we have to look to see if we have a
+                                // `:` to know which case we're in.
+                                if (mode == ParseTypeMode.AfterIs)
+                                {
+                                    switch (this.PeekToken(2).Kind)
+                                    {
+                                        // `is T?[,]`.  Definitely an array of nullable type.
+                                        case SyntaxKind.CommaToken:
+                                            return true;
+
+                                        // `is T?[]`.  Could be an array of a nullable type, or a conditional.  Have to
+                                        // see if it is followed by `:` to find out.  If there is a colon, it's a
+                                        // conditional.
+                                        case SyntaxKind.CloseBracketToken:
+                                            return this.PeekToken(3).Kind != SyntaxKind.ColonToken;
+
+                                        // `is T ? [...`.  Not an array.  This is a conditional with a collection expr
+                                        // or attributed lambda.
+                                        default:
+                                            return false;
+                                    }
+                                }
+
                                 return true;
+                            }
+
                             if (mode == ParseTypeMode.DefinitePattern)
                                 return true; // Permit nullable type parsing and report while binding for a better error message
+
                             if (mode == ParseTypeMode.NewExpression && type.Kind == SyntaxKind.TupleType &&
                                 this.PeekToken(1).Kind is not SyntaxKind.OpenParenToken and not SyntaxKind.OpenBraceToken)
                             {
