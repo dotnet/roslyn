@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
@@ -243,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
                 else if (string.Equals(e.Key, RenameShortcutKey.Apply, StringComparison.OrdinalIgnoreCase))
                 {
-                    this.Commit();
+                    _ = this.CommitAsync();
                 }
             }
         }
@@ -318,13 +319,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         private void Apply_Click(object sender, RoutedEventArgs e)
-            => Commit();
+            => _ = CommitAsync();
 
-        private void Commit()
+        private async Task CommitAsync()
         {
             try
             {
-                _model.Session.Commit();
+                //.ConfigureAwait(true) to make sure Exceptions could be shown in UI.
+                await _model.Session.CommitAsync(previewChanges: false).ConfigureAwait(true);
                 _textView.VisualElement.Focus();
             }
             catch (NotSupportedException ex)
