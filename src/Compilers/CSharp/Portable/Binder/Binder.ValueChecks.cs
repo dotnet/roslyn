@@ -1398,6 +1398,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (RequiresRefOrOut(valueKind))
+            {
+                switch (fieldSymbol.RefKind)
+                {
+                    case RefKind.None:
+                        break;
+                    case RefKind.Ref:
+                        // ref/out access to a ref field is fine regardless of the receiver
+                        return true;
+                    case RefKind.RefReadOnly:
+                        ReportReadOnlyError(fieldSymbol, node, valueKind, checkingReceiver, diagnostics);
+                        return false;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(fieldSymbol.RefKind);
+                }
+            }
+
+            if (RequiresReferenceToLocation(valueKind))
+            {
+                switch (fieldSymbol.RefKind)
+                {
+                    case RefKind.None:
+                        break;
+                    case RefKind.Ref:
+                    case RefKind.RefReadOnly:
+                        // ref readonly access to a ref (readonly) field is fine regardless of the receiver
+                        return true;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(fieldSymbol.RefKind);
+                }
+            }
+
             // r/w fields that are static or belong to reference types are writeable and returnable
             if (fieldSymbol.IsStatic || fieldSymbol.ContainingType.IsReferenceType)
             {
