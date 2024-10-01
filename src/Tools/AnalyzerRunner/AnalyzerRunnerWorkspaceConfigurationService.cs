@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace AnalyzerRunner;
+namespace AnalyzerRunner
 {
     [ExportWorkspaceService(typeof(IWorkspaceConfigurationService), ServiceLayer.Host), Shared]
     internal sealed class AnalyzerRunnerWorkspaceConfigurationService : IWorkspaceConfigurationService
