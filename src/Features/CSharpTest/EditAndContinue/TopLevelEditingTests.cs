@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
+using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.EditAndContinue.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
@@ -3018,7 +3019,7 @@ record struct C(int X)
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
-             Diagnostic(RudeEditKind.InsertIntoStruct, "_y = 0", FeaturesResources.field, CSharpFeaturesResources.record_struct));
+             Diagnostic(RudeEditKind.InsertOrMoveStructMember, "_y = 0", FeaturesResources.field, CSharpFeaturesResources.record_struct));
     }
 
     [Fact]
@@ -3037,7 +3038,7 @@ record struct C(int X)
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
-             Diagnostic(RudeEditKind.InsertIntoStruct, "public int Y", GetResource("auto-property"), GetResource("record struct")));
+             Diagnostic(RudeEditKind.InsertOrMoveStructMember, "public int Y", GetResource("auto-property"), GetResource("record struct")));
     }
 
     [Fact]
@@ -3374,6 +3375,27 @@ record C(int X)
                 SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true)
             ],
             capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType);
+    }
+
+    [Fact]
+    public void Record_EventField_Insert_WithInitializer()
+    {
+        var src1 = "record C(int X) { }";
+        var src2 = "record C(int X) { event System.Action E = null; }";
+        var syntaxMap = GetSyntaxMap(src1, src2);
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.PrintMembers")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetSpecializedEqualsOverload("C")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.GetHashCode")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetCopyConstructor("C")),
+                SemanticEdit(SemanticEditKind.Insert, c => c.GetMember("C.E")),
+                SemanticEdit(SemanticEditKind.Update, c => c.GetPrimaryConstructor("C"), preserveLocalVariables: true)
+            ],
+            capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
     }
 
     [Fact]
@@ -3856,7 +3878,7 @@ record C(int X)
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
-            [Diagnostic(RudeEditKind.InsertIntoStruct, "int P", GetResource("auto-property"), GetResource("record struct"))],
+            [Diagnostic(RudeEditKind.InsertOrMoveStructMember, "int P", GetResource("auto-property"), GetResource("record struct"))],
             capabilities: EditAndContinueCapabilities.AddInstanceFieldToExistingType | EditAndContinueCapabilities.AddMethodToExistingType);
     }
 
@@ -8390,17 +8412,161 @@ class C
     }
 
     [Fact]
-    public void MethodReorder1()
+    public void Method_Reorder()
     {
-        var src1 = "class C { void f(int a, int b) { a = b; } void g() { } }";
-        var src2 = "class C { void g() { } void f(int a, int b) { a = b; } }";
+        var src1 = """
+            class C
+            {
+
+                void F() {}
+                void G() {}
+                void H() {}
+            }
+            """;
+
+        var src2 = """
+            class C
+            {
+                void H() {}
+                void F() {}
+                void G() {}
+
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
-        edits.VerifyEdits("Reorder [void g() { }]@42 -> @10");
+
+        edits.VerifyEdits(EditKind.Reorder);
+
+        edits.VerifySemantics([SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.H"))]);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void Method_Reorder_Interface(bool isStatic)
+    {
+        var (modifier, body) = isStatic ? ("static", ";") : ("", " {}");
+
+        var src1 = $$"""
+            interface I
+            {
+                {{modifier}} void F(){{body}}
+                {{modifier}} void G(){{body}}
+                {{modifier}} void H(){{body}}
+            }
+            """;
+
+        var src2 = $$"""
+            interface I
+            {
+                {{modifier}} void H(){{body}}
+                {{modifier}} void F(){{body}}
+                {{modifier}} void G(){{body}}
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(EditKind.Reorder);
+
+        edits.VerifySemantics([SemanticEdit(SemanticEditKind.Update, c => c.GetMember("I.H"))]);
+    }
+
+    [Theory]
+    [InlineData("static extern ")] // static method must be extern in COM interface
+    [InlineData("")]
+    public void Method_Reorder_Interface_ComImport(string modifier)
+    {
+        var src1 = $$"""
+            using System.Runtime.InteropServices;
+            [ComImport]
+            [Guid("DBE8A85B-7883-4657-83FD-1FA27A9561EB")]
+            interface I
+            {
+                {{modifier}}void F();
+                {{modifier}}void G();
+                {{modifier}}void H();
+            }
+            """;
+
+        var src2 = $$"""
+            using System.Runtime.InteropServices;
+            [ComImport]
+            [Guid("DBE8A85B-7883-4657-83FD-1FA27A9561EB")]
+            interface I
+            {
+                {{modifier}}void H();
+                {{modifier}}void F();
+                {{modifier}}void G();
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(EditKind.Reorder);
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.InsertOrMoveComInterfaceMember, modifier + "void H()", GetResource("method")));
     }
 
     [Fact]
-    public void MethodInsertDelete1()
+    public void Method_Insert_Interface_ComImport()
+    {
+        var src1 = $$"""
+            using System.Runtime.InteropServices;
+            [ComImport]
+            [Guid("DBE8A85B-7883-4657-83FD-1FA27A9561EB")]
+            interface I
+            {
+            }
+            """;
+
+        var src2 = $$"""
+            using System.Runtime.InteropServices;
+            [ComImport]
+            [Guid("DBE8A85B-7883-4657-83FD-1FA27A9561EB")]
+            interface I
+            {
+                void F();
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.InsertVirtual, "void F()", GetResource("method")),
+            Diagnostic(RudeEditKind.InsertOrMoveComInterfaceMember, "void F()", GetResource("method")));
+    }
+
+    [Fact]
+    public void Method_Insert_Interface_ComImport_Static()
+    {
+        var src1 = $$"""
+            [System.Runtime.InteropServices.ComImport]
+            [Guid("DBE8A85B-7883-4657-83FD-1FA27A9561EB")]
+            interface I
+            {
+            }
+            """;
+
+        var src2 = $$"""
+            [System.Runtime.InteropServices.ComImport]
+            [Guid("DBE8A85B-7883-4657-83FD-1FA27A9561EB")]
+            interface I
+            {
+                extern static void F();
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(RudeEditKind.InsertExtern, "extern static void F()", GetResource("method")),
+            Diagnostic(RudeEditKind.InsertOrMoveComInterfaceMember, "extern static void F()", GetResource("method")));
+    }
+
+    [Fact]
+    public void Method_InsertDelete()
     {
         var src1 = "class C { class D { } void f(int a, int b) { a = b; } }";
         var src2 = "class C { class D { void f(int a, int b) { a = b; } } }";
@@ -10936,7 +11102,7 @@ class C
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
-            [Diagnostic(RudeEditKind.InsertIntoStruct, "int x", GetResource("auto-property"), GetResource("record struct"))],
+            [Diagnostic(RudeEditKind.InsertOrMoveStructMember, "int x", GetResource("auto-property"), GetResource("record struct"))],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
     }
 
@@ -11431,7 +11597,7 @@ class C(int x)
         edits.VerifySemanticDiagnostics(
             [
                 Diagnostic(RudeEditKind.CapturingPrimaryConstructorParameter, "b", GetResource("struct"), "b"),
-                Diagnostic(RudeEditKind.InsertIntoStruct, "int b", GetResource("parameter"), GetResource("struct"))
+                Diagnostic(RudeEditKind.InsertOrMoveStructMember, "int b", GetResource("parameter"), GetResource("struct"))
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
     }
@@ -11481,7 +11647,7 @@ record C(int X, int Y) { }
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "int Y", GetResource("auto-property"), GetResource("record")));
+            Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "int Y", GetResource("auto-property"), GetResource("record")));
     }
 
     [Fact]
@@ -11500,7 +11666,7 @@ record struct C(int x, int y)
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.InsertIntoStruct, "int y", GetResource("auto-property"), GetResource("record struct")));
+            Diagnostic(RudeEditKind.InsertOrMoveStructMember, "int y", GetResource("auto-property"), GetResource("record struct")));
     }
 
     [Fact]
@@ -11729,7 +11895,7 @@ class C(int x, int y)
         edits.VerifySemanticDiagnostics(
         [
             Diagnostic(RudeEditKind.CapturingPrimaryConstructorParameter, "y", GetResource("class with explicit or sequential layout"), "y"),
-            Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "int y", GetResource("parameter"), GetResource("class"))
+            Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "int y", GetResource("parameter"), GetResource("class"))
         ]);
     }
 
@@ -11761,7 +11927,7 @@ class C(int x, int y)
         edits.VerifySemanticDiagnostics(
         [
             Diagnostic(RudeEditKind.CapturingPrimaryConstructorParameter, "y", GetResource("class with explicit or sequential layout"), "y"),
-            Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "int y", GetResource("parameter"), GetResource("class"))
+            Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "int y", GetResource("parameter"), GetResource("class"))
         ]);
     }
 
@@ -11791,7 +11957,7 @@ class C(int x, int y)
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
-            [Diagnostic(RudeEditKind.InsertIntoStruct, "byte y", GetResource("auto-property"), GetResource("record struct"))],
+            [Diagnostic(RudeEditKind.InsertOrMoveStructMember, "byte y", GetResource("auto-property"), GetResource("record struct"))],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
     }
 
@@ -11803,7 +11969,7 @@ class C(int x, int y)
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
-            [Diagnostic(RudeEditKind.InsertIntoStruct, "byte y", GetResource("parameter"), GetResource("struct"))],
+            [Diagnostic(RudeEditKind.InsertOrMoveStructMember, "byte y", GetResource("parameter"), GetResource("struct"))],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
     }
 
@@ -11843,11 +12009,8 @@ class C(int x, int y)
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.x")),
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_x")),
             SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_x")),
-            // TODO: y should also be updated (to update sequence points to the new location)
-            // https://github.com/dotnet/roslyn/issues/69894
-            // SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.y")),
-            // SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_y")),
-            // SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_y")),
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.get_y")),
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.set_y")),
 
         ],
         capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
@@ -12704,7 +12867,7 @@ partial class C
 
         edits.VerifySemanticDiagnostics(
             [
-                Diagnostic(RudeEditKind.InsertIntoStruct, "int X", GetResource("auto-property"), GetResource("record struct"))
+                Diagnostic(RudeEditKind.InsertOrMoveStructMember, "int X", GetResource("auto-property"), GetResource("record struct"))
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
     }
@@ -14445,7 +14608,7 @@ public class C
     }
 
     [Fact]
-    public void MemberInitializer_Update_Field_Event()
+    public void MemberInitializer_Update_EventField()
     {
         var src1 = "class C { event System.Action a = F(0); static System.Action F(int a) => null; }";
         var src2 = "class C { event System.Action a = F(1); static System.Action F(int a) => null; }";
@@ -16485,7 +16648,7 @@ partial class C
     }
 
     [Fact]
-    public void Field_Event_VariableDeclarator_Update()
+    public void EventField_VariableDeclarator_Update()
     {
         var src1 = "class C { event Action a; }";
         var src2 = "class C { event Action a = () => { }; }";
@@ -16504,16 +16667,211 @@ partial class C
     [Fact]
     public void Field_Reorder()
     {
-        var src1 = "class C { int a = 0; int b = 1; int c = 2; }";
-        var src2 = "class C { int c = 2; int a = 0; int b = 1; }";
+        var src1 = """
+            class C
+            {
+
+                int a = 0;
+                int b = 1;
+                int c;
+            }
+            """;
+
+        var src2 = """
+            class C
+            {
+                int c;
+                int a = 0;
+                int b = 1;
+
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
-        edits.VerifyEdits(
-            "Reorder [int c = 2;]@32 -> @10");
+        edits.VerifyEdits(EditKind.Reorder);
+
+        edits.VerifySemantics();
+    }
+
+    [Fact]
+    public void Field_Reorder_WithInitializer()
+    {
+        var src1 = """
+            class C
+            {
+
+                int a = 0;
+                int b = 1;
+                int c = 2;
+            }
+            """;
+
+        var src2 = """
+            class C
+            {
+                int c = 2;
+                int a = 0;
+                int b = 1;
+
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(EditKind.Reorder);
+
+        edits.VerifySemantics([SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)]);
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void Field_Reorder_WithInitializer_RemoveOrAdd(bool remove)
+    {
+        var src1 = $$"""
+            class C
+            {
+
+                int a = 0;
+                int b = 1;
+                int c{{(remove ? " = 2" : "")}};
+            }
+            """;
+
+        var src2 = $$"""
+            class C
+            {
+                int c{{(remove ? "" : " = 2")}};
+                int a = 0;
+                int b = 1;
+
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(EditKind.Reorder, EditKind.Update);
+
+        edits.VerifySemantics([SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)]);
+    }
+
+    [Fact]
+    public void Field_Reorder_Modifiers_Update()
+    {
+        var src1 = """
+            class C
+            {
+
+                int a = 0;
+                int b = 1;
+                static int c;
+            }
+            """;
+
+        var src2 = """
+            class C
+            {
+                int c;
+                int a = 0;
+                int b = 1;
+
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(EditKind.Reorder, EditKind.Update);
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.Move, "int c = 2", FeaturesResources.field));
+            Diagnostic(RudeEditKind.ModifiersUpdate, "int c", GetResource("field")));
+    }
+
+    [Fact]
+    public void Field_Reorder_Attribute_Update()
+    {
+        var attributeDecl = """
+            class A : System.Attribute {}
+        """;
+
+        var src1 = attributeDecl + """
+            class C
+            {
+
+                int a = 0;
+                int b = 1;
+                int c;
+            }
+            """;
+
+        var src2 = attributeDecl + """
+            class C
+            {
+                [A]int c;
+                int a = 0;
+                int b = 1;
+
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(EditKind.Reorder, EditKind.Update);
+
+        edits.VerifySemantics(
+            [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.c"))],
+            capabilities: EditAndContinueCapabilities.ChangeCustomAttributes);
+    }
+
+    [Theory]
+    [InlineData("", "struct", RudeEditKind.InsertOrMoveStructMember)]
+    [InlineData("", "record struct", RudeEditKind.InsertOrMoveStructMember)]
+    [InlineData("[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]", "class", RudeEditKind.InsertOrMoveTypeWithLayoutMember)]
+    [InlineData("[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]", "record class", RudeEditKind.InsertOrMoveTypeWithLayoutMember)]
+    internal void Field_Reorder_TypeLayout(string attribute, string keyword, RudeEditKind rudeEditKind)
+    {
+        var src1 = attribute + keyword + " C { int a = 0; int b = 1; int c = 2; }";
+        var src2 = attribute + keyword + " C { int c = 2; int a = 0; int b = 1; }";
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(EditKind.Reorder);
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(rudeEditKind, "int c = 2", GetResource("field"), GetResource(keyword)));
+    }
+
+    [Fact]
+    public void Field_Reorder_Reloadable()
+    {
+        var src1 = ReloadableAttributeSrc + """
+            [CreateNewOnMetadataUpdate]
+            struct C
+            {
+
+                int a = 0;
+                int b = 1;
+                int c;
+            }
+            """;
+
+        var src2 = ReloadableAttributeSrc + """
+            [CreateNewOnMetadataUpdate]
+            struct C
+            {
+                int c;
+                int a = 0;
+                int b = 1;
+
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(EditKind.Reorder);
+
+        edits.VerifySemantics(
+            [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))],
+            capabilities: EditAndContinueCapabilities.NewTypeDefinition);
     }
 
     [Fact]
@@ -16564,10 +16922,10 @@ struct S
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.InsertIntoStruct, "b", FeaturesResources.field, CSharpFeaturesResources.struct_),
-            Diagnostic(RudeEditKind.InsertIntoStruct, "c", FeaturesResources.field, CSharpFeaturesResources.struct_),
-            Diagnostic(RudeEditKind.InsertIntoStruct, "f = 1", FeaturesResources.field, CSharpFeaturesResources.struct_),
-            Diagnostic(RudeEditKind.InsertIntoStruct, "d", CSharpFeaturesResources.event_field, CSharpFeaturesResources.struct_));
+            Diagnostic(RudeEditKind.InsertOrMoveStructMember, "b", GetResource("field"), GetResource("struct")),
+            Diagnostic(RudeEditKind.InsertOrMoveStructMember, "c", GetResource("field"), GetResource("struct")),
+            Diagnostic(RudeEditKind.InsertOrMoveStructMember, "f = 1", GetResource("field"), GetResource("struct")),
+            Diagnostic(RudeEditKind.InsertOrMoveStructMember, "d", GetResource("event field"), GetResource("struct")));
     }
 
     [Fact]
@@ -16640,9 +16998,9 @@ class C
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b", FeaturesResources.field, FeaturesResources.class_),
-            Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c", FeaturesResources.field, FeaturesResources.class_),
-            Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d", FeaturesResources.field, FeaturesResources.class_));
+            Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "b", GetResource("field"), GetResource("class")),
+            Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "c", GetResource("field"), GetResource("class")),
+            Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "d", GetResource("field"), GetResource("class")));
     }
 
     [Fact]
@@ -16673,9 +17031,9 @@ class C
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "b", FeaturesResources.field, FeaturesResources.class_),
-            Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c", FeaturesResources.field, FeaturesResources.class_),
-            Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "d", FeaturesResources.field, FeaturesResources.class_));
+            Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "b", GetResource("field"), GetResource("class")),
+            Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "c", GetResource("field"), GetResource("class")),
+            Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "d", GetResource("field"), GetResource("class")));
     }
 
     [Fact]
@@ -17127,7 +17485,6 @@ class C
             "Delete [H]@20");
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.Move, "G", FeaturesResources.field),
             Diagnostic(RudeEditKind.TypeUpdate, "string G, F", FeaturesResources.field),
             Diagnostic(RudeEditKind.TypeUpdate, "string G, F", FeaturesResources.field),
             Diagnostic(RudeEditKind.TypeUpdate, "double V, U", FeaturesResources.field),
@@ -17675,53 +18032,153 @@ class C
     }
 
     [Fact]
-    public void Property_Reorder1()
+    public void Property_Reorder_Auto()
     {
-        var src1 = "class C { int P { get { return 1; } } int Q { get { return 1; } }  }";
-        var src2 = "class C { int Q { get { return 1; } } int P { get { return 1; } }  }";
+        var src1 = """
+            class C
+            {
+
+                int P { get; } = 0;
+                int Q { get; } = 1;
+                int R { get; }
+            }
+            """;
+
+        var src2 = """
+            class C
+            {
+                int R { get; }
+                int P { get; } = 0;
+                int Q { get; } = 1;
+
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
-        edits.VerifyEdits(
-            "Reorder [int Q { get { return 1; } }]@38 -> @10");
+        edits.VerifyEdits(EditKind.Reorder);
 
-        // TODO: we can allow the move since the property doesn't have a backing field
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.Move, "int Q", FeaturesResources.property_));
+        edits.VerifySemantics();
     }
 
     [Fact]
-    public void Property_Reorder_Auto_Class()
+    public void Property_Reorder_Auto_WithInitializer()
     {
-        var src1 = "class C { int P { get; set; } int Q { get; set; }  }";
-        var src2 = "class C { int Q { get; set; } int P { get; set; }  }";
+        var src1 = """
+            class C
+            {
+
+                int P { get; } = 0;
+                int Q { get; } = 1;
+                int R { get; } = 2;
+            }
+            """;
+
+        var src2 = """
+            class C
+            {
+                int R { get; } = 2;
+                int P { get; } = 0;
+                int Q { get; } = 1;
+
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
-        edits.VerifyEdits(
-            "Reorder [int Q { get; set; }]@30 -> @10");
+        edits.VerifyEdits(EditKind.Reorder);
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.Move, "int Q", FeaturesResources.auto_property));
+        edits.VerifySemantics([SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)]);
     }
 
-    [Fact]
-    public void Property_Reorder_Auto_Struct()
+    [Theory]
+    [InlineData("", "struct")]
+    [InlineData("", "record struct")]
+    [InlineData("[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]", "class")]
+    [InlineData("[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]", "record class")]
+    internal void Property_Reorder_TypeLayout(string attribute, string keyword)
     {
-        var src1 = "struct C { int P { get; set; } byte Q { get; set; }  }";
-        var src2 = "struct C { byte Q { get; set; } int P { get; set; }  }";
+        var src1 = attribute + keyword + """
+             C
+            {
+
+                int P => 0;
+                int Q => 1;
+                int R => 2;
+            }
+            """;
+
+        var src2 = attribute + keyword + """
+             C
+            {
+                int R => 2;
+                int P => 0;
+                int Q => 1;
+
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
-        edits.VerifyEdits(
-            "Reorder [byte Q { get; set; }]@31 -> @11");
+        edits.VerifyEdits(EditKind.Reorder);
+
+        edits.VerifySemantics();
+    }
+
+    [Theory]
+    [InlineData("", "struct", RudeEditKind.InsertOrMoveStructMember)]
+    [InlineData("", "record struct", RudeEditKind.InsertOrMoveStructMember)]
+    [InlineData("[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]", "class", RudeEditKind.InsertOrMoveTypeWithLayoutMember)]
+    [InlineData("[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]", "record class", RudeEditKind.InsertOrMoveTypeWithLayoutMember)]
+    internal void Property_Reorder_Auto_TypeLayout(string attribute, string keyword, RudeEditKind rudeEditKind)
+    {
+        var src1 = attribute + keyword + " C { int P { get; } int Q { get; } int R { get; } }";
+        var src2 = attribute + keyword + " C { int R { get; } int P { get; } int Q { get; } }";
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(EditKind.Reorder);
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.Move, "byte Q", FeaturesResources.auto_property));
+            Diagnostic(rudeEditKind, "int R", GetResource("auto-property"), GetResource(keyword)));
     }
 
     [Fact]
-    public void PropertyAccessorReorder_GetSet()
+    public void Property_Reorder_Auto_Reloadable()
+    {
+        var src1 = ReloadableAttributeSrc + """
+            [CreateNewOnMetadataUpdate]
+            struct C
+            {
+
+                int P { get; } = 0;
+                int Q { get; } = 1;
+                int R { get; }
+            }
+            """;
+
+        var src2 = ReloadableAttributeSrc + """
+            [CreateNewOnMetadataUpdate]
+            struct C
+            {
+                int R { get; }
+                int P { get; } = 0;
+                int Q { get; } = 1;
+
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(EditKind.Reorder);
+
+        edits.VerifySemantics(
+            [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))],
+            capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+    }
+
+    [Fact]
+    public void PropertyAccessor_Reorder_GetSet()
     {
         var src1 = "class C { int P { get { return 1; } set { } } }";
         var src2 = "class C { int P { set { } get { return 1; } } }";
@@ -17735,7 +18192,7 @@ class C
     }
 
     [Fact]
-    public void PropertyAccessorReorder_GetInit()
+    public void PropertyAccessor_Reorder_GetInit()
     {
         var src1 = "class C { int P { get { return 1; } init { } } }";
         var src2 = "class C { int P { init { } get { return 1; } } }";
@@ -17824,7 +18281,7 @@ class C
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
-            [Diagnostic(RudeEditKind.InsertIntoStruct, "long P", GetResource("auto-property"), GetResource("struct"))],
+            [Diagnostic(RudeEditKind.InsertOrMoveStructMember, "long P", GetResource("auto-property"), GetResource("struct"))],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
     }
 
@@ -17987,8 +18444,44 @@ class C
             Diagnostic(RudeEditKind.InsertExtern, "private static extern int P3", FeaturesResources.property_));
     }
 
+    [Theory]
+    [InlineData("", "struct", RudeEditKind.InsertOrMoveStructMember)]
+    [InlineData("[System.Runtime.InteropServices.StructLayoutAttribute(System.Runtime.InteropServices.LayoutKind.Sequential)]", "class", RudeEditKind.InsertOrMoveTypeWithLayoutMember)]
+    internal void Property_Insert_TypeLayout(string attribute, string type, RudeEditKind rudeEditKind)
+    {
+        var src1 = attribute + type + """
+             S
+            {
+                public int a; 
+
+                public S(int z) { a = z; } 
+            }
+            """;
+        var src2 = attribute + type + """
+             S
+            {
+                public int a;
+                int c { get; set; }
+                int e { get { return 0; } set { } }
+                int g { get; } = 1;
+                int i { get; set; } = 1;
+                int k => 1;
+                int l { get => 1; set {} }
+                int m { get => 1; set => k; }
+                public S(int z) { a = z; }
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(rudeEditKind, "int c", GetResource("auto-property"), GetResource(type)),
+            Diagnostic(rudeEditKind, "int g", GetResource("auto-property"), GetResource(type)),
+            Diagnostic(rudeEditKind, "int i", GetResource("auto-property"), GetResource(type)));
+    }
+
     [Fact]
-    public void Property_Insert_IntoStruct()
+    public void Property_Insert_IntoStruct_Static()
     {
         var src1 = @"
 struct S 
@@ -18002,13 +18495,13 @@ struct S
 struct S 
 { 
     public int a; 
-    private static int c { get; set; } 
-    private static int e { get { return 0; } set { } } 
-    private static int g { get; } = 1;
-    private static int i { get; set; } = 1;
-    private static int k => 1;
-    private static int l { get => 1; set {} }
-    private static int m { get => 1; set => k; }
+    static int c { get; set; } 
+    static int e { get { return 0; } set { } } 
+    static int g { get; } = 1;
+    static int i { get; set; } = 1;
+    static int k => 1;
+    static int l { get => 1; set {} }
+    static int m { get => 1; set => k; }
     public S(int z) { a = z; }
 }
 ";
@@ -18016,56 +18509,9 @@ struct S
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.InsertIntoStruct, "private static int c", GetResource("auto-property"), GetResource("struct")),
-            Diagnostic(RudeEditKind.InsertIntoStruct, "private static int g", GetResource("auto-property"), GetResource("struct")),
-            Diagnostic(RudeEditKind.InsertIntoStruct, "private static int i", GetResource("auto-property"), GetResource("struct")));
-    }
-
-    [Fact]
-    public void Property_Insert_IntoLayoutClass_Sequential()
-    {
-        var src1 = @"
-using System.Runtime.InteropServices;
-
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C 
-{ 
-    private int a; 
-}
-";
-        var src2 = @"
-using System.Runtime.InteropServices;
-
-[StructLayoutAttribute(LayoutKind.Sequential)]
-class C 
-{ 
-    private int a; 
-    private int b { get; set; }
-    private static int c { get; set; } 
-    private int d { get { return 0; } set { } }
-    private static int e { get { return 0; } set { } } 
-    private int f { get; } = 1;
-    private static int g { get; } = 1;
-    private int h { get; set; } = 1;
-    private static int i { get; set; } = 1;
-    private int j => 1;
-    private static int k => 1;
-    private int l { get => 1; set { } }
-    private static int m { get => 1; set { } }
-    private int n { get { return 1; } set => a; }
-    private static int o { get { return 1; } set => a; }
-}    
-";
-
-        var edits = GetTopEdits(src1, src2);
-
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private int b", GetResource("auto-property"), GetResource("class")),
-            Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private static int c", GetResource("auto-property"), GetResource("class")),
-            Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private int f", GetResource("auto-property"), GetResource("class")),
-            Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private static int g", GetResource("auto-property"), GetResource("class")),
-            Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private int h", GetResource("auto-property"), GetResource("class")),
-            Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "private static int i", GetResource("auto-property"), GetResource("class")));
+            Diagnostic(RudeEditKind.InsertOrMoveStructMember, "static int c", GetResource("auto-property"), GetResource("struct")),
+            Diagnostic(RudeEditKind.InsertOrMoveStructMember, "static int g", GetResource("auto-property"), GetResource("struct")),
+            Diagnostic(RudeEditKind.InsertOrMoveStructMember, "static int i", GetResource("auto-property"), GetResource("struct")));
     }
 
     [Fact]
@@ -20359,7 +20805,7 @@ readonly struct S
     }
 
     [Fact]
-    public void Event_Delete_CustomAccessors()
+    public void Event_Delete()
     {
         var src1 = "class C { event int E { remove { } add { } } }";
         var src2 = "class C { }";
@@ -20376,7 +20822,7 @@ readonly struct S
     }
 
     [Fact]
-    public void Event_Delete_SynthesizedAccessors()
+    public void EventField_Delete()
     {
         var src1 = "class C { event System.Action E; }";
         var src2 = "class C { }";
@@ -20389,7 +20835,7 @@ readonly struct S
     }
 
     [Fact]
-    public void Event_Insert_TypeLayout_CustomAccessors()
+    public void Event_Insert_TypeLayout()
     {
         var src1 = @"
 using System;
@@ -20417,7 +20863,7 @@ class C
     }
 
     [Fact]
-    public void Event_Insert_TypeLayout_SynthesizedAccessors()
+    public void EventField_Insert_TypeLayout()
     {
         var src1 = @"
 using System;
@@ -20442,7 +20888,7 @@ class C
         var edits = GetTopEdits(src1, src2);
 
         edits.VerifySemanticDiagnostics(
-            [Diagnostic(RudeEditKind.InsertIntoClassWithLayout, "c", GetResource("event field"), GetResource("class"))],
+            [Diagnostic(RudeEditKind.InsertOrMoveTypeWithLayoutMember, "c", GetResource("event field"), GetResource("class"))],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.AddInstanceFieldToExistingType);
     }
 
@@ -20574,7 +21020,7 @@ readonly struct S
     }
 
     [Fact]
-    public void Event_Attribute_Add_SynthesizedAccessors()
+    public void EventField_Attribute_Add()
     {
         var src1 = @"
 class C
@@ -20664,7 +21110,7 @@ class C
     }
 
     [Fact]
-    public void Field_Event_Attribute_Delete()
+    public void EventField_Attribute_Delete()
     {
         var src1 = @"
 class C
@@ -20788,7 +21234,7 @@ class C
     }
 
     [Fact]
-    public void Event_Rename_CustomAcccessors()
+    public void Event_Rename()
     {
         var src1 = "class C { event System.Action E { remove { } add { } } }";
         var src2 = "class C { event System.Action F { remove { } add { } } }";
@@ -20812,7 +21258,7 @@ class C
     }
 
     [Fact]
-    public void Event_Rename_SynthesizedAccessors()
+    public void EventField_Rename()
     {
         var src1 = "class C { event System.Action E; }";
         var src2 = "class C { event System.Action F; }";
@@ -20825,7 +21271,7 @@ class C
     }
 
     [Fact]
-    public void Event_Update_Type_CustomAcccessors()
+    public void Event_Update_Type()
     {
         var src1 = "class C { event System.Action<long> E { remove { } add { } } }";
         var src2 = "class C { event System.Action<byte> E { remove { } add { } } }";
@@ -20848,7 +21294,7 @@ class C
     }
 
     [Fact]
-    public void Event_Update_Type_SynthesizedAcccessors_RuntimeTypeChanged()
+    public void EventField_Update_Type_RuntimeTypeChanged()
     {
         var src1 = "class C { event System.Action<long> E; }";
         var src2 = "class C { event System.Action<byte> E; }";
@@ -20864,7 +21310,7 @@ class C
     [InlineData("string", "string?")]
     [InlineData("object", "dynamic")]
     [InlineData("(int a, int b)", "(int a, int c)")]
-    public void Event_Update_Type_SynthesizedAcccessors_RuntimeTypeUnchanged(string oldType, string newType)
+    public void EventField_Update_Type_RuntimeTypeUnchanged(string oldType, string newType)
     {
         var src1 = "class C { event System.Action<" + oldType + "> F, G; }";
         var src2 = "class C { event System.Action<" + newType + "> F, G; }";
@@ -20877,22 +21323,142 @@ class C
     }
 
     [Fact]
-    public void Event_Reorder_SynthesizedAccessors()
+    public void EventField_Reorder()
     {
-        var src1 = "class C { int a = 0; int b = 1; event System.Action c = 2; }";
-        var src2 = "class C { event System.Action c = 2; int a = 0; int b = 1; }";
+        var src1 = """
+            using System;
+            class C
+            {
+
+                event Action a = null;
+                event Action b = null;
+                event Action c;
+            }
+            """;
+
+        var src2 = """
+            using System;
+            class C
+            {
+                event Action c;
+                event Action a = null;
+                event Action b = null;
+
+            }
+            """;
 
         var edits = GetTopEdits(src1, src2);
 
-        edits.VerifyEdits(
-            "Reorder [event System.Action c = 2;]@32 -> @10");
+        edits.VerifyEdits(EditKind.Reorder);
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.Move, "event System.Action c = 2", CSharpFeaturesResources.event_field));
+        edits.VerifySemantics();
     }
 
     [Fact]
-    public void Event_Partial_InsertDelete_SynthesizedAccessors()
+    public void EventField_Reorder_WithInitializer()
+    {
+        var src1 = """
+            using System;
+            class C
+            {
+
+                event Action a = null;
+                event Action b = null;
+                event Action c = null;
+            }
+            """;
+
+        var src2 = """
+            using System;
+            class C
+            {
+                event Action c = null;
+                event Action a = null;
+                event Action b = null;
+
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(EditKind.Reorder);
+
+        edits.VerifySemantics([SemanticEdit(SemanticEditKind.Update, c => c.GetParameterlessConstructor("C"), preserveLocalVariables: true)]);
+    }
+
+    [Theory]
+    [InlineData("", "struct", RudeEditKind.InsertOrMoveStructMember)]
+    [InlineData("", "record struct", RudeEditKind.InsertOrMoveStructMember)]
+    [InlineData("[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]", "class", RudeEditKind.InsertOrMoveTypeWithLayoutMember)]
+    [InlineData("[System.Runtime.InteropServices.StructLayout(System.Runtime.InteropServices.LayoutKind.Sequential)]", "record class", RudeEditKind.InsertOrMoveTypeWithLayoutMember)]
+    internal void EventField_Reorder_TypeLayout(string attribute, string keyword, RudeEditKind rudeEditKind)
+    {
+        var src1 = $$"""
+            using System;
+            {{attribute}}{{keyword}} C
+            {
+
+                event Action a;
+                event Action b;
+                event Action c;
+            }
+            """;
+
+        var src2 = $$"""
+            using System;
+            {{attribute}}{{keyword}} C
+            {
+                event Action c;
+                event Action a;
+                event Action b;
+
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(EditKind.Reorder);
+
+        edits.VerifySemanticDiagnostics(
+            Diagnostic(rudeEditKind, "event Action c", GetResource("event field"), GetResource(keyword)));
+    }
+
+    [Fact]
+    public void EventField_Reorder_Reloadable()
+    {
+        var src1 = "using System;" + ReloadableAttributeSrc + """
+            [CreateNewOnMetadataUpdate]
+            class C
+            {
+
+                event Action a = null;
+                event Action b = null;
+                event Action c;
+            }
+            """;
+
+        var src2 = "using System;" + ReloadableAttributeSrc + """
+            [CreateNewOnMetadataUpdate]
+            class C
+            {
+                event Action c;
+                event Action a = null;
+                event Action b = null;
+
+            }
+            """;
+
+        var edits = GetTopEdits(src1, src2);
+
+        edits.VerifyEdits(EditKind.Reorder);
+
+        edits.VerifySemantics(
+            [SemanticEdit(SemanticEditKind.Replace, c => c.GetMember("C"))],
+            capabilities: EditAndContinueCapabilities.NewTypeDefinition);
+    }
+
+    [Fact]
+    public void EventField_Partial_InsertDelete()
     {
         var srcA1 = "partial class C { static void F() {} }";
         var srcB1 = "partial class C { event System.Action E = F; }";
@@ -21137,10 +21703,8 @@ class C
             "Reorder [int b]@31 -> @24");
 
         edits.VerifySemantics(
-           [
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"))
-           ],
-           capabilities: EditAndContinueCapabilities.UpdateParameters);
+            [SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.M"))],
+            capabilities: EditAndContinueCapabilities.UpdateParameters);
 
         edits.VerifySemanticDiagnostics(
             [Diagnostic(RudeEditKind.RenamingNotSupportedByRuntime, "int b", FeaturesResources.parameter)],

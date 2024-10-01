@@ -55,15 +55,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var arg2 = new HashSet<RudeEditKind>()
             {
-                RudeEditKind.InsertIntoStruct,
-                RudeEditKind.InsertIntoStruct,
+                RudeEditKind.InsertOrMoveStructMember,
+                RudeEditKind.InsertOrMoveTypeWithLayoutMember,
                 RudeEditKind.ChangingCapturedVariableType,
                 RudeEditKind.RenamingCapturedVariable,
                 RudeEditKind.ChangingStateMachineShape,
                 RudeEditKind.InternalError,
                 RudeEditKind.MemberBodyInternalError,
                 RudeEditKind.ChangingNonCustomAttribute,
-                RudeEditKind.NotCapturingPrimaryConstructorParameter,
+                RudeEditKind.NotCapturingPrimaryConstructorParameter
             };
 
             var arg3 = new HashSet<RudeEditKind>()

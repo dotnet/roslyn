@@ -3002,9 +3002,17 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                             break;
 
                         case EditKind.Reorder:
+                            Contract.ThrowIfNull(oldModel);
+                            Contract.ThrowIfNull(newModel);
                             Contract.ThrowIfNull(oldSymbol);
                             Contract.ThrowIfNull(newSymbol);
 
+                            // Reordering fields in a type in source doesn't actually result in 
+                            // a metadata update that would reoder them in the runtime type representation.
+                            // The runtime does not allow us to communicate such change in the delta.
+                            // If we allowed reodering fields of a type with sequential/explicit layout
+                            // it might be confusing because after the change the order of the fields
+                            // in the runtime type may not match the source anymore.
                             ReportTypeLayoutUpdateRudeEdits(diagnosticContext, oldSymbol, cancellationToken);
 
                             if (oldSymbol is IParameterSymbol &&
@@ -3012,9 +3020,12 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                                 !capabilities.Grant(EditAndContinueCapabilities.UpdateParameters))
                             {
                                 diagnosticContext.Report(RudeEditKind.RenamingNotSupportedByRuntime, cancellationToken);
+                                continue;
                             }
 
-                            continue;
+                            // The member may also be updated (modifiers, attributes, body, etc.). Continue processing as an update.
+                            editKind = SemanticEditKind.Update;
+                            break;
 
                         default:
                             throw ExceptionUtilities.UnexpectedValue(edit.Kind);
@@ -4989,7 +5000,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             Debug.Assert(newSymbol != null);
 
             Report(
-                (newSymbol.ContainingType.TypeKind == TypeKind.Struct) ? RudeEditKind.InsertIntoStruct : RudeEditKind.InsertIntoClassWithLayout,
+                (newSymbol.ContainingType.TypeKind == TypeKind.Struct) ? RudeEditKind.InsertOrMoveStructMember : RudeEditKind.InsertOrMoveTypeWithLayoutMember,
                 cancellationToken,
                 arguments:
                 [
@@ -5009,6 +5020,15 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
     internal void ReportTypeLayoutUpdateRudeEdits(in DiagnosticContext diagnosticContext, ISymbol newSymbol, CancellationToken cancellationToken)
     {
+        // can't modify order of members in a COM interface:
+        if (newSymbol.ContainingType is INamedTypeSymbol { IsComImport: true })
+        {
+            diagnosticContext.Report(RudeEditKind.InsertOrMoveComInterfaceMember, cancellationToken, arguments: [GetDisplayKind(newSymbol)]);
+            return;
+        }
+
+        // Note: static fields do not affect type layout but no runtime supports adding them.
+
         switch (newSymbol.Kind)
         {
             case SymbolKind.Field:
@@ -6679,7 +6699,10 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
     /// </summary>
     private static bool SymbolPresenceAffectsSynthesizedRecordMembers(ISymbol symbol)
         => symbol is { IsStatic: false, ContainingType.IsRecord: true } and
-           (IPropertySymbol { GetMethod.IsImplicitlyDeclared: false, SetMethod: null or { IsImplicitlyDeclared: false } } or IFieldSymbol);
+           (IPropertySymbol { GetMethod.IsImplicitlyDeclared: false, SetMethod: null or { IsImplicitlyDeclared: false } } or
+            IFieldSymbol or
+            // event field:
+            IEventSymbol { AddMethod.IsImplicitlyDeclared: true });
 
     /// <summary>
     /// True if a syntactic delete edit of an <paramref name="oldSymbol"/> in <paramref name="oldCompilation"/>
