@@ -16,7 +16,9 @@ if (!$BuildConfiguration) {
     $BuildConfiguration = 'Debug'
 }
 
-$NuGetPackages = "$RepoRoot/bin/Packages/$BuildConfiguration/NuGet"
+$PackagesRoot = "$RepoRoot/bin/Packages/$BuildConfiguration"
+$NuGetPackages = "$PackagesRoot/NuGet"
+$VsixPackages = "$PackagesRoot/Vsix"
 
 if (!(Test-Path $NuGetPackages)) {
     Write-Warning "Skipping because NuGet packages haven't been built yet."
@@ -27,8 +29,12 @@ $result = @{
     "$NuGetPackages" = (Get-ChildItem $NuGetPackages -Recurse)
 }
 
+if (Test-Path $VsixPackages) {
+    $result["$PackagesRoot"] += Get-ChildItem $VsixPackages -Recurse
+}
+
 if ($env:IsOptProf) {
-    $VSRepoPackages = "$RepoRoot/bin/Packages/$BuildConfiguration/VSRepo"
+    $VSRepoPackages = "$PackagesRoot/VSRepo"
     $result["$VSRepoPackages"] = (Get-ChildItem "$VSRepoPackages\*.VSInsertionMetadata.*.nupkg");
 }
 

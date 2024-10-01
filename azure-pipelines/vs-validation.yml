@@ -73,6 +73,13 @@ extends:
         - download: current
           artifact: VSInsertion-Windows
           displayName: 🔻 Download VSInsertion-Windows artifact
+        - ${{ if eq(variables['ContainsVsix'], 'true') }}:
+          - task: 1ES.MicroBuildVstsDrop@1
+            displayName: 🔺 Upload VSTS Drop
+            inputs:
+              dropFolder: $(Pipeline.Workspace)/VSInsertion-windows/Vsix
+              dropName: $(VstsDropNames)
+              accessToken: $(System.AccessToken)
         - task: 1ES.PublishNuget@1
           displayName: 📦 Push VS-repo packages to VS feed
           inputs:

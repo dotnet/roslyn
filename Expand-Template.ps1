@@ -166,6 +166,10 @@ try {
         'LibraryNoDots' = $LibraryName.Replace('.','');
     }
 
+    Replace-Placeholders -Path "azure-pipelines/variables/InsertJsonValues.ps1" -Replacements @{
+        'LibraryName' = $LibraryName;
+    }
+
     Replace-Placeholders -Path "azure-pipelines/variables/SymbolsFeatureName.ps1" -Replacements @{
         'LibraryName' = $LibraryName;
     }

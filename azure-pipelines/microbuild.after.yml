@@ -13,6 +13,8 @@ steps:
   - task: MicroBuildCodesignVerify@3
     displayName: 🔍 Verify Signed Files
     inputs:
+      ApprovalListPathForSigs: $(Build.SourcesDirectory)\azure-pipelines\no_strongname.txt
+      ApprovalListPathForCerts: $(Build.SourcesDirectory)\azure-pipelines\no_authenticode.txt
       TargetFolders: |
         $(Build.SourcesDirectory)/bin/Packages/$(BuildConfiguration)
     condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT'))
