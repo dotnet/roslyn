@@ -228,9 +228,9 @@ Class C
 End Class
 End Namespace
 "
-            ' Cannot emit native PDB for method 'Public Shared Sub M1()' because its debug metadata size 69328 is over the limit 65536.
+            ' Cannot emit native PDB for method 'Public Shared Sub M1()' because its debug metadata size 69328 is over the limit 65504.
             CreateCompilation(source, options:=TestOptions.DebugDll).VerifyEmitDiagnostics(
-                Diagnostic(ERRID.ERR_PDBWritingFailed).WithArguments(String.Format(CodeAnalysisResources.SymWriterMetadataOverLimit, "Public Shared Sub M1()", 69328, 65536)).WithLocation(1, 1))
+                Diagnostic(ERRID.ERR_PDBWritingFailed).WithArguments(String.Format(CodeAnalysisResources.SymWriterMetadataOverLimit, "Public Shared Sub M1()", 69328, 65504)).WithLocation(1, 1))
         End Sub
 
 #End Region

@@ -13,6 +13,7 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
+using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -370,18 +371,16 @@ public class C
 
         [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/75237")]
-        [InlineData(0x9_999)]
-        [InlineData(0x9_000)]
-        public void NativeWriterLimit_Under(int length)
+        [CombinatorialData]
+        public void NativeWriterLimit_Under([CombinatorialRange(PdbWriter.CustomMetadataByteLimit - 9, 10)] int length)
         {
             CompileWithMockedCustomMetadata(length).Diagnostics.Verify();
         }
 
         [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/75237")]
-        [InlineData(0x10_000)]
-        [InlineData(0x20_000)]
-        public void NativeWriterLimit_Over(int length)
+        [CombinatorialData]
+        public void NativeWriterLimit_Over([CombinatorialRange(PdbWriter.CustomMetadataByteLimit + 1, 10)] int length)
         {
             CompileWithMockedCustomMetadata(length).Diagnostics.Verify(
                 // error CS0041: Unexpected error writing debug information -- 'Insufficient memory to continue the execution of the program.'
@@ -441,8 +440,8 @@ public class C
                 }
                 """;
             CreateCompilation(source, options: TestOptions.DebugDll).VerifyEmitDiagnostics(
-                // error CS0041: Unexpected error writing debug information -- 'Cannot emit native PDB for method 'N.C.M1()' because its debug metadata size 69096 is over the limit 65536.'
-                Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(string.Format(CodeAnalysisResources.SymWriterMetadataOverLimit, "N.C.M1()", 69096, 65536)).WithLocation(1, 1));
+                // error CS0041: Unexpected error writing debug information -- 'Cannot emit native PDB for method 'N.C.M1()' because its debug metadata size 69096 is over the limit 65504.'
+                Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(string.Format(CodeAnalysisResources.SymWriterMetadataOverLimit, "N.C.M1()", 69096, 65504)).WithLocation(1, 1));
         }
 
         [WorkItem(1067635, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1067635")]

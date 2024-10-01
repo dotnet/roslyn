@@ -26,6 +26,7 @@ namespace Microsoft.Cci
     internal sealed class PdbWriter : IDisposable
     {
         internal const uint Age = 1;
+        internal const int CustomMetadataByteLimit = 65_504;
 
         private readonly HashAlgorithmName _hashAlgorithmNameOpt;
         private readonly string _fileName;
@@ -148,14 +149,13 @@ namespace Microsoft.Cci
 
             if (blob.Length > 0)
             {
-                const int limit = 0x10_000;
-                if (blob.Length > limit)
+                if (blob.Length > CustomMetadataByteLimit)
                 {
                     throw new SymUnmanagedWriterException(string.Format(
                         CodeAnalysisResources.SymWriterMetadataOverLimit,
                         methodBody.MethodDefinition,
                         blob.Length,
-                        limit));
+                        CustomMetadataByteLimit));
                 }
 
                 _symWriter.DefineCustomMetadata(blob);
