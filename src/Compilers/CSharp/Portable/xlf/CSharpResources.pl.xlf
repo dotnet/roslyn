@@ -2662,6 +2662,16 @@
         <target state="translated">{0} nie jest prawidłową operacją rozłożenia w języku C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AccessorDoesNotUseBackingField">
+        <source>The '{0}' accessor of property '{1}' should use the backing 'field' because the other accessor is using it.</source>
+        <target state="new">The '{0}' accessor of property '{1}' should use the backing 'field' because the other accessor is using it.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AccessorDoesNotUseBackingField_Title">
+        <source>Property accessor should use the backing 'field' because the other accessor is using it.</source>
+        <target state="new">Property accessor should use the backing 'field' because the other accessor is using it.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
         <target state="translated">Operator „&amp;” nie powinien być używany w parametrach ani zmiennych lokalnych w metodach asynchronicznych.</target>

@@ -560,6 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_PartialPropertySignatureDifference:
                 case ErrorCode.WRN_FieldIsAmbiguous:
                 case ErrorCode.WRN_UninitializedNonNullableBackingField:
+                case ErrorCode.WRN_AccessorDoesNotUseBackingField:
                     return 1;
                 default:
                     return 0;
@@ -2460,6 +2461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember
                 or ErrorCode.ERR_PartialPropertyDuplicateInitializer
                 or ErrorCode.WRN_UninitializedNonNullableBackingField
+                or ErrorCode.WRN_AccessorDoesNotUseBackingField
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

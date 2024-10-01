@@ -2662,6 +2662,16 @@
         <target state="translated">{0} není platná operace šíření v jazyce C#</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AccessorDoesNotUseBackingField">
+        <source>The '{0}' accessor of property '{1}' should use the backing 'field' because the other accessor is using it.</source>
+        <target state="new">The '{0}' accessor of property '{1}' should use the backing 'field' because the other accessor is using it.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AccessorDoesNotUseBackingField_Title">
+        <source>Property accessor should use the backing 'field' because the other accessor is using it.</source>
+        <target state="new">Property accessor should use the backing 'field' because the other accessor is using it.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
         <target state="translated">Operátor „&amp;“ by se neměl používat u parametrů nebo místních proměnných v asynchronních metodách.</target>

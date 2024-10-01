@@ -2662,6 +2662,16 @@
         <target state="translated">{0}은(는) 유효한 C# 확산 작업이 아닙니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AccessorDoesNotUseBackingField">
+        <source>The '{0}' accessor of property '{1}' should use the backing 'field' because the other accessor is using it.</source>
+        <target state="new">The '{0}' accessor of property '{1}' should use the backing 'field' because the other accessor is using it.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AccessorDoesNotUseBackingField_Title">
+        <source>Property accessor should use the backing 'field' because the other accessor is using it.</source>
+        <target state="new">Property accessor should use the backing 'field' because the other accessor is using it.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
         <target state="translated">'&amp;' 연산자는 비동기 메서드의 매개 변수 또는 지역 변수에 사용하면 안 됩니다.</target>

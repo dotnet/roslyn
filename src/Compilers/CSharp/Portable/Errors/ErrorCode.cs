@@ -2346,6 +2346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialPropertyDuplicateInitializer = 9263,
 
         WRN_UninitializedNonNullableBackingField = 9264,
+        WRN_AccessorDoesNotUseBackingField = 9265,
 
         // Note: you will need to do the following after adding errors:
         //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)

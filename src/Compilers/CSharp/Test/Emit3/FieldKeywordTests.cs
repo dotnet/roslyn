@@ -182,6 +182,78 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void MigratingToFieldKeyword_01()
+        {
+            string source = """
+                class C
+                {
+                    object _field;
+                    object P1
+                    {
+                        get { return _field; } // 1
+                        set { field = value; }
+                    }
+                    
+                    object P2
+                    {
+                        get { return field; }
+                        set { _field = value; } // 2
+                    }
+                    
+                    object P3
+                    {
+                        get { return _field; }
+                        set { _field = value; }
+                    }
+                    
+                    object P4
+                    {
+                        get { return field; }
+                        set { field = value; }
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,9): warning CS9265: The 'get' accessor of property 'C.P1' should use the backing 'field' because the other accessor is using it.
+                //         get { return _field; } // 1
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "C.P1").WithLocation(6, 9),
+                // (13,9): warning CS9265: The 'set' accessor of property 'C.P2' should use the backing 'field' because the other accessor is using it.
+                //         set { _field = value; } // 2
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "C.P2").WithLocation(13, 9));
+        }
+
+        [Fact]
+        public void MigratingToFieldKeyword_02()
+        {
+            string source = """
+                class C
+                {
+                    object _field;
+                    object P1
+                    {
+                        get { return _field; } // 1
+                        set;
+                    }
+                    
+                    object P2
+                    {
+                        get;
+                        set { _field = value; } // 2
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,9): warning CS9265: The 'get' accessor of property 'C.P1' should use the backing 'field' because the other accessor is using it.
+                //         get { return _field; } // 1
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "C.P1").WithLocation(6, 9),
+                // (13,9): warning CS9265: The 'set' accessor of property 'C.P2' should use the backing 'field' because the other accessor is using it.
+                //         set { _field = value; } // 2
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "C.P2").WithLocation(13, 9));
+        }
+
+        [Fact]
         public void FieldReference_01()
         {
             string source = """
@@ -197,6 +269,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
+                // (6,9): warning CS9265: The 'get' accessor of property 'C.P' should use the backing 'field' because the other accessor is using it.
+                //         get { return _other.field; }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "C.P").WithLocation(6, 9),
                 // (6,29): error CS1061: 'C' does not contain a definition for 'field' and no accessible extension method 'field' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         get { return _other.field; }
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "field").WithArguments("C", "field").WithLocation(6, 29));
@@ -217,6 +292,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
+                // (5,9): warning CS9265: The 'get' accessor of property 'C.P' should use the backing 'field' because the other accessor is using it.
+                //         get { return null; }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "C.P").WithLocation(5, 9),
                 // (6,29): error CS1061: 'C' does not contain a definition for 'field' and no accessible extension method 'field' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         set { field = value.field; }
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "field").WithArguments("C", "field").WithLocation(6, 29));
@@ -247,6 +325,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
+                // (6,9): warning CS9265: The 'set' accessor of property 'C.P' should use the backing 'field' because the other accessor is using it.
+                //         set { _ = this is { field: 0 }; }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "C.P").WithLocation(6, 9),
                 // (6,29): error CS0117: 'C' does not contain a definition for 'field'
                 //         set { _ = this is { field: 0 }; }
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "field").WithArguments("C", "field").WithLocation(6, 29));
@@ -1108,6 +1189,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (8,20): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     object P1 { [A(field)] get { return null; } set { } }
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(8, 20),
+                // (8,49): warning CS9265: The 'set' accessor of property 'B.P1' should use the backing 'field' because the other accessor is using it.
+                //     object P1 { [A(field)] get { return null; } set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "B.P1").WithLocation(8, 49),
+                // (9,17): warning CS9265: The 'get' accessor of property 'B.P2' should use the backing 'field' because the other accessor is using it.
+                //     object P2 { get { return null; } [A(field)] set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "B.P2").WithLocation(9, 17),
                 // (9,41): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     object P2 { get { return null; } [A(field)] set { } }
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(9, 41),
@@ -1116,7 +1203,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(14, 20),
                 // (14,20): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     object P3 { [A(field)] get { return null; } set { } }
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(14, 20));
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(14, 20),
+                // (14,49): warning CS9265: The 'set' accessor of property 'C.P3' should use the backing 'field' because the other accessor is using it.
+                //     object P3 { [A(field)] get { return null; } set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "C.P3").WithLocation(14, 49));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -1194,6 +1284,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (18,37): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
                 //     public static object P5 { get; [field: A(5)] set; }
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, param, return").WithLocation(18, 37),
+                // (20,81): warning CS9265: The 'set' accessor of property 'B.Q2' should use the backing 'field' because the other accessor is using it.
+                //     [field: A(2)][field: A(-2)] public static object Q2 { get { return field; } set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "B.Q2").WithLocation(20, 81),
+                // (21,60): warning CS9265: The 'init' accessor of property 'B.Q3' should use the backing 'field' because the other accessor is using it.
+                //     [field: A(3)] public object Q3 { get { return field; } init { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "init").WithArguments("init", "B.Q3").WithLocation(21, 60),
                 // (22,25): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
                 //     public object Q4 { [field: A(4)] get => field; }
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, return").WithLocation(22, 25),
@@ -1282,6 +1378,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 C.<P2>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, System.ObsoleteAttribute,
                 """);
             verifier.VerifyDiagnostics(
+                // (5,63): warning CS9265: The 'set' accessor of property 'C.P1' should use the backing 'field' because the other accessor is using it.
+                //     [Obsolete]        public static object P1 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "C.P1").WithLocation(5, 63),
+                // (6,63): warning CS9265: The 'set' accessor of property 'C.P2' should use the backing 'field' because the other accessor is using it.
+                //     [field: Obsolete] public static object P2 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "C.P2").WithLocation(6, 63),
+                // (7,56): warning CS9265: The 'set' accessor of property 'C.P3' should use the backing 'field' because the other accessor is using it.
+                //     [Obsolete]        public object P3 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "C.P3").WithLocation(7, 56),
+                // (8,56): warning CS9265: The 'set' accessor of property 'C.P4' should use the backing 'field' because the other accessor is using it.
+                //     [field: Obsolete] public object P4 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "C.P4").WithLocation(8, 56),
                 // (15,13): warning CS0612: 'C.P1' is obsolete
                 //         _ = C.P1;
                 Diagnostic(ErrorCode.WRN_DeprecatedSymbol, "C.P1").WithArguments("C.P1").WithLocation(15, 13),
@@ -1327,7 +1435,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Skipped,
                 expectedOutput: IncludeExpectedOutput("(1, 2, 3, 4, 0, 6, 7, 9)"));
-            verifier.VerifyDiagnostics();
+            verifier.VerifyDiagnostics(
+                // (7,42): warning CS9265: The 'set' accessor of property 'C.P4' should use the backing 'field' because the other accessor is using it.
+                //     public static int P4 { get => field; set { } } = 4;
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "C.P4").WithLocation(7, 42));
             verifier.VerifyIL("C..cctor", """
                 {
                   // Code size       56 (0x38)
@@ -1416,7 +1527,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Skipped,
                 expectedOutput: IncludeExpectedOutput("(1, 2, 3, 4, 0, 6, 7, 9)"));
-            verifier.VerifyDiagnostics();
+            verifier.VerifyDiagnostics(
+                // (7,42): warning CS9265: The 'set' accessor of property 'C.P4' should use the backing 'field' because the other accessor is using it.
+                //     public static int P4 { get => field; set { } } = 4;
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "C.P4").WithLocation(7, 42));
             verifier.VerifyIL("C..cctor", """
                 {
                   // Code size       56 (0x38)
@@ -1477,7 +1591,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 targetFramework: GetTargetFramework(useInit),
                 verify: Verification.Skipped,
                 expectedOutput: IncludeExpectedOutput(useInit, "(1, 2, 3, 4, 0, 6, 7, 9)"));
-            verifier.VerifyDiagnostics();
+            verifier.VerifyDiagnostics(
+                // (7,35): warning CS9265: The 'set' accessor of property 'C.P4' should use the backing 'field' because the other accessor is using it.
+                //     public int P4 { get => field; set { } } = 4;
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, setter).WithArguments(setter, "C.P4").WithLocation(7, 35));
             verifier.VerifyIL("C..ctor", """
                 {
                   // Code size       71 (0x47)
@@ -1582,7 +1699,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 targetFramework: GetTargetFramework(useInit),
                 verify: Verification.Skipped,
                 expectedOutput: IncludeExpectedOutput(useInit, "(1, 2, 3, 4, 0, 6, 7, 9)"));
-            verifier.VerifyDiagnostics();
+            verifier.VerifyDiagnostics(
+                // (7,35): warning CS9265: The 'set' accessor of property 'C.P4' should use the backing 'field' because the other accessor is using it.
+                //     public int P4 { get => field; set { } } = 4;
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, setter).WithArguments(setter, "C.P4").WithLocation(7, 35));
             verifier.VerifyIL("C..ctor", """
                 {
                   // Code size       65 (0x41)
@@ -1684,6 +1804,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (7,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P4 { get => field; set { } } = 4;
                 Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P4").WithLocation(7, 16),
+                // (7,35): warning CS9265: The 'set' accessor of property 'I.P4' should use the backing 'field' because the other accessor is using it.
+                //     public int P4 { get => field; set { } } = 4;
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, setter).WithArguments(setter, "I.P4").WithLocation(7, 35),
                 // (8,16): error CS8053: Instance properties in interfaces cannot have initializers.
                 //     public int P5 { get => 0; set; } = 5;
                 Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P5").WithLocation(8, 16),
@@ -1809,7 +1932,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Skipped,
                 expectedOutput: IncludeExpectedOutput("(0, 0, 3, 0, 0, 6, 0, 9)"));
-            verifier.VerifyDiagnostics();
+            verifier.VerifyDiagnostics(
+                // (7,42): warning CS9265: The 'set' accessor of property 'I.P4' should use the backing 'field' because the other accessor is using it.
+                //     public static int P4 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "I.P4").WithLocation(7, 42));
 
             var comp = (CSharpCompilation)verifier.Compilation;
             var containingType = comp.GetMember<NamedTypeSymbol>("I");
@@ -1874,6 +2000,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,16): error CS0525: Interfaces cannot contain instance fields
                 //            int P4 { get => field; set { } }
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P4").WithLocation(6, 16),
+                // (6,35): warning CS9265: The 'set' accessor of property 'I.P4' should use the backing 'field' because the other accessor is using it.
+                //            int P4 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, setter).WithArguments(setter, "I.P4").WithLocation(6, 35),
                 // (7,16): error CS0525: Interfaces cannot contain instance fields
                 //            int P5 { get => 0; set; }
                 Diagnostic(ErrorCode.ERR_InterfacesCantContainFields, "P5").WithLocation(7, 16),
@@ -2001,7 +2130,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Skipped,
                 expectedOutput: IncludeExpectedOutput("(1, 2, 3, 0, 0, 6, 0, 9)"));
-            verifier.VerifyDiagnostics();
+            verifier.VerifyDiagnostics(
+                // (7,42): warning CS9265: The 'set' accessor of property 'C.P4' should use the backing 'field' because the other accessor is using it.
+                //     public static int P4 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "C.P4").WithLocation(7, 42));
             verifier.VerifyIL("C..cctor", """
                 {
                   // Code size       56 (0x38)
@@ -2121,7 +2253,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 targetFramework: GetTargetFramework(useInit),
                 verify: Verification.Skipped,
                 expectedOutput: IncludeExpectedOutput(useInit, "(1, 2, 3, 0, 0, 6, 0, 9)"));
-            verifier.VerifyDiagnostics();
+            verifier.VerifyDiagnostics(
+                // (27,35): warning CS9265: The 'set' accessor of property 'C4.P4' should use the backing 'field' because the other accessor is using it.
+                //     public int P4 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, setter).WithArguments(setter, "C4.P4").WithLocation(27, 35));
             if (typeKind == "class")
             {
                 verifier.VerifyIL("C1..ctor(int)", $$"""
@@ -3437,6 +3572,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
+                // (6,50): warning CS9265: The 'set' accessor of property 'A.P5' should use the backing 'field' because the other accessor is using it.
+                //     public static int P5 { get => field; private set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "A.P5").WithLocation(6, 50),
                 // (13,9): error CS0272: The property or indexer 'A.P1' cannot be used in this context because the set accessor is inaccessible
                 //         P1 = 1;
                 Diagnostic(ErrorCode.ERR_InaccessibleSetter, "P1").WithArguments("A.P1").WithLocation(13, 9),
@@ -3484,6 +3622,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
+                // (8,43): warning CS9265: The 'set' accessor of property 'A.P5' should use the backing 'field' because the other accessor is using it.
+                //     public int P5 { get => field; private set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "A.P5").WithLocation(8, 43),
+                // (9,43): warning CS9265: The 'init' accessor of property 'A.P6' should use the backing 'field' because the other accessor is using it.
+                //     public int P6 { get => field; private init { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "init").WithArguments("init", "A.P6").WithLocation(9, 43),
                 // (17,9): error CS0272: The property or indexer 'A.P1' cannot be used in this context because the set accessor is inaccessible
                 //         P1 = 1;
                 Diagnostic(ErrorCode.ERR_InaccessibleSetter, "P1").WithArguments("A.P1").WithLocation(17, 9),
@@ -3588,7 +3732,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var verifier = CompileAndVerify(source, expectedOutput: "(1, 2, 3, 0)");
-            verifier.VerifyDiagnostics();
+            verifier.VerifyDiagnostics(
+                // (7,42): warning CS9265: The 'set' accessor of property 'C.P4' should use the backing 'field' because the other accessor is using it.
+                //     public static int P4 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "C.P4").WithLocation(7, 42));
             verifier.VerifyIL("C..cctor", """
                 {
                   // Code size       39 (0x27)
@@ -4175,7 +4322,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source, targetFramework: GetTargetFramework(useInit));
             if (useInit)
             {
-                comp.VerifyEmitDiagnostics();
+                comp.VerifyEmitDiagnostics(
+                    // (6,40): warning CS9265: The 'init' accessor of property 'S.P4' should use the backing 'field' because the other accessor is using it.
+                    //              object P4 { get => field; init { } }
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "init").WithArguments("init", "S.P4").WithLocation(6, 40),
+                    // (10,26): warning CS9265: The 'get' accessor of property 'S.P8' should use the backing 'field' because the other accessor is using it.
+                    //              object P8 { get => null; init { _ = field; } }
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "S.P8").WithLocation(10, 26));
             }
             else if (useReadOnlyType)
             {
@@ -4183,9 +4336,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (5,21): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
                     //              object P3 { get => field; set; }
                     Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P3").WithLocation(5, 21),
+                    // (6,40): warning CS9265: The 'set' accessor of property 'S.P4' should use the backing 'field' because the other accessor is using it.
+                    //              object P4 { get => field; set { } }
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P4").WithLocation(6, 40),
                     // (8,21): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
                     //              object P6 { get => null; set; }
                     Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P6").WithLocation(8, 21),
+                    // (10,26): warning CS9265: The 'get' accessor of property 'S.P8' should use the backing 'field' because the other accessor is using it.
+                    //              object P8 { get => null; set { _ = field; } }
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "S.P8").WithLocation(10, 26),
                     // (11,21): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
                     //              object P9 { get; set; }
                     Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P9").WithLocation(11, 21),
@@ -4202,9 +4361,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (5,21): error CS8659: Auto-implemented property 'S.P3' cannot be marked 'readonly' because it has a 'set' accessor.
                     //     readonly object P3 { get => field; set; }
                     Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "P3").WithArguments("S.P3").WithLocation(5, 21),
+                    // (6,40): warning CS9265: The 'set' accessor of property 'S.P4' should use the backing 'field' because the other accessor is using it.
+                    //     readonly object P4 { get => field; set { } }
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P4").WithLocation(6, 40),
                     // (8,21): error CS8659: Auto-implemented property 'S.P6' cannot be marked 'readonly' because it has a 'set' accessor.
                     //     readonly object P6 { get => null; set; }
                     Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "P6").WithArguments("S.P6").WithLocation(8, 21),
+                    // (10,26): warning CS9265: The 'get' accessor of property 'S.P8' should use the backing 'field' because the other accessor is using it.
+                    //     readonly object P8 { get => null; set { _ = field; } }
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "S.P8").WithLocation(10, 26),
                     // (11,21): error CS8659: Auto-implemented property 'S.P9' cannot be marked 'readonly' because it has a 'set' accessor.
                     //     readonly object P9 { get; set; }
                     Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "P9").WithArguments("S.P9").WithLocation(11, 21),
@@ -4217,7 +4382,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             else
             {
-                comp.VerifyEmitDiagnostics();
+                comp.VerifyEmitDiagnostics(
+                    // (6,40): warning CS9265: The 'set' accessor of property 'S.P4' should use the backing 'field' because the other accessor is using it.
+                    //              object P4 { get => field; set { } }
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P4").WithLocation(6, 40),
+                    // (10,26): warning CS9265: The 'get' accessor of property 'S.P8' should use the backing 'field' because the other accessor is using it.
+                    //              object P8 { get => null; set { _ = field; } }
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "S.P8").WithLocation(10, 26));
             }
             var actualMembers = comp.GetMember<NamedTypeSymbol>("S").GetMembers().OfType<FieldSymbol>().Select(f => $"{f.ToTestDisplayString()}: {f.IsReadOnly}");
             var expectedMembers = new[]
@@ -4267,9 +4438,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         // (3,12): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
                         //     object P3 { readonly get => field;          set; }
                         Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P3").WithLocation(3, 12),
+                        // (4,49): warning CS9265: The 'set' accessor of property 'S.P4' should use the backing 'field' because the other accessor is using it.
+                        //     object P4 { readonly get => field;          set { } }
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P4").WithLocation(4, 49),
                         // (5,12): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
                         //     object P6 { readonly get => null;          set; }
                         Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P6").WithLocation(5, 12),
+                        // (7,26): warning CS9265: The 'get' accessor of property 'S.P8' should use the backing 'field' because the other accessor is using it.
+                        //     object P8 { readonly get => null;          set { _ = field; } }
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "S.P8").WithLocation(7, 26),
                         // (8,12): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
                         //     object P9 { readonly get;          set; }
                         Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P9").WithLocation(8, 12),
@@ -4286,12 +4463,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         // (3,49): error CS8658: Auto-implemented 'set' accessor 'S.P3.set' cannot be marked 'readonly'.
                         //     object P3 {          get => field; readonly set; }
                         Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P3.set").WithLocation(3, 49),
+                        // (4,49): warning CS9265: The 'set' accessor of property 'S.P4' should use the backing 'field' because the other accessor is using it.
+                        //     object P4 {          get => field; readonly set { } }
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P4").WithLocation(4, 49),
                         // (5,12): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
                         //     object P6 {          get => null; readonly set; }
                         Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P6").WithLocation(5, 12),
                         // (5,48): error CS8658: Auto-implemented 'set' accessor 'S.P6.set' cannot be marked 'readonly'.
                         //     object P6 {          get => null; readonly set; }
                         Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P6.set").WithLocation(5, 48),
+                        // (7,26): warning CS9265: The 'get' accessor of property 'S.P8' should use the backing 'field' because the other accessor is using it.
+                        //     object P8 {          get => null; readonly set { _ = field; } }
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "S.P8").WithLocation(7, 26),
                         // (8,12): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
                         //     object P9 {          get; readonly set; }
                         Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P9").WithLocation(8, 12),
@@ -4307,7 +4490,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 if (useReadOnlyOnGet)
                 {
-                    comp.VerifyEmitDiagnostics();
+                    comp.VerifyEmitDiagnostics(
+                        // (4,49): warning CS9265: The 'set' accessor of property 'S.P4' should use the backing 'field' because the other accessor is using it.
+                        //     object P4 { readonly get => field;          set { } }
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P4").WithLocation(4, 49),
+                        // (7,26): warning CS9265: The 'get' accessor of property 'S.P8' should use the backing 'field' because the other accessor is using it.
+                        //     object P8 { readonly get => null;          set { _ = field; } }
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "S.P8").WithLocation(7, 26));
                 }
                 else
                 {
@@ -4315,9 +4504,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         // (3,49): error CS8658: Auto-implemented 'set' accessor 'S.P3.set' cannot be marked 'readonly'.
                         //     object P3 {          get => field; readonly set; }
                         Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P3.set").WithLocation(3, 49),
+                        // (4,49): warning CS9265: The 'set' accessor of property 'S.P4' should use the backing 'field' because the other accessor is using it.
+                        //     object P4 {          get => field; readonly set { } }
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P4").WithLocation(4, 49),
                         // (5,48): error CS8658: Auto-implemented 'set' accessor 'S.P6.set' cannot be marked 'readonly'.
                         //     object P6 {          get => null; readonly set; }
                         Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P6.set").WithLocation(5, 48),
+                        // (7,26): warning CS9265: The 'get' accessor of property 'S.P8' should use the backing 'field' because the other accessor is using it.
+                        //     object P8 {          get => null; readonly set { _ = field; } }
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "S.P8").WithLocation(7, 26),
                         // (8,40): error CS8658: Auto-implemented 'set' accessor 'S.P9.set' cannot be marked 'readonly'.
                         //     object P9 {          get; readonly set; }
                         Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P9.set").WithLocation(8, 40),
@@ -4553,7 +4748,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, "Q5").WithArguments("S.Q5").WithLocation(12, 12),
                     // (12,49): error CS8903: 'init' accessors cannot be marked 'readonly'. Mark 'S.Q5' readonly instead.
                     //     object Q5 { readonly get => field; readonly init { } }
-                    Diagnostic(ErrorCode.ERR_InitCannotBeReadonly, "init").WithArguments("S.Q5").WithLocation(12, 49));
+                    Diagnostic(ErrorCode.ERR_InitCannotBeReadonly, "init").WithArguments("S.Q5").WithLocation(12, 49),
+                    // (12,49): warning CS9265: The 'init' accessor of property 'S.Q5' should use the backing 'field' because the other accessor is using it.
+                    //     object Q5 { readonly get => field; readonly init { } }
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "init").WithArguments("init", "S.Q5").WithLocation(12, 49));
             }
             else
             {
@@ -4587,7 +4785,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "Q2").WithArguments("S.Q2").WithLocation(9, 12),
                     // (12,12): error CS8661: Cannot specify 'readonly' modifiers on both accessors of property or indexer 'S.Q5'. Instead, put a 'readonly' modifier on the property itself.
                     //     object Q5 { readonly get => field; readonly set { } }
-                    Diagnostic(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, "Q5").WithArguments("S.Q5").WithLocation(12, 12));
+                    Diagnostic(ErrorCode.ERR_DuplicatePropertyReadOnlyMods, "Q5").WithArguments("S.Q5").WithLocation(12, 12),
+                    // (12,49): warning CS9265: The 'set' accessor of property 'S.Q5' should use the backing 'field' because the other accessor is using it.
+                    //     object Q5 { readonly get => field; readonly set { } }
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.Q5").WithLocation(12, 49));
             }
             var actualMembers = comp.GetMember<NamedTypeSymbol>("S").GetMembers().OfType<FieldSymbol>().Select(f => $"{f.ToTestDisplayString()}: {f.IsReadOnly}");
             var expectedMembers = new[]
@@ -4779,12 +4980,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (7,25): error CS8145: Auto-implemented properties cannot return by reference
                 //     ref          object P5 { get => ref field; set { } }
                 Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P5").WithLocation(7, 25),
+                // (7,48): warning CS9265: The 'set' accessor of property 'S.P5' should use the backing 'field' because the other accessor is using it.
+                //     ref          object P5 { get => ref field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P5").WithLocation(7, 48),
                 // (7,48): error CS8147: Properties which return by reference cannot have set accessors
                 //     ref          object P5 { get => ref field; set { } }
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(7, 48),
                 // (8,25): error CS8145: Auto-implemented properties cannot return by reference
                 //     ref          object P6 { get => ref field; init { } }
                 Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P6").WithLocation(8, 25),
+                // (8,48): warning CS9265: The 'init' accessor of property 'S.P6' should use the backing 'field' because the other accessor is using it.
+                //     ref          object P6 { get => ref field; init { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "init").WithArguments("init", "S.P6").WithLocation(8, 48),
                 // (8,48): error CS8147: Properties which return by reference cannot have set accessors
                 //     ref          object P6 { get => ref field; init { } }
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithLocation(8, 48),
@@ -4803,12 +5010,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (12,25): error CS8145: Auto-implemented properties cannot return by reference
                 //     ref          object PC { get => throw null; set { _ = field; } }
                 Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PC").WithLocation(12, 25),
+                // (12,30): warning CS9265: The 'get' accessor of property 'S.PC' should use the backing 'field' because the other accessor is using it.
+                //     ref          object PC { get => throw null; set { _ = field; } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "S.PC").WithLocation(12, 30),
                 // (12,49): error CS8147: Properties which return by reference cannot have set accessors
                 //     ref          object PC { get => throw null; set { _ = field; } }
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(12, 49),
                 // (13,25): error CS8145: Auto-implemented properties cannot return by reference
                 //     ref          object PD { get => throw null; init { _ = field; } }
                 Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PD").WithLocation(13, 25),
+                // (13,30): warning CS9265: The 'get' accessor of property 'S.PD' should use the backing 'field' because the other accessor is using it.
+                //     ref          object PD { get => throw null; init { _ = field; } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "S.PD").WithLocation(13, 30),
                 // (13,49): error CS8147: Properties which return by reference cannot have set accessors
                 //     ref          object PD { get => throw null; init { _ = field; } }
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithLocation(13, 49),
@@ -4888,6 +5101,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,32): error CS8145: Auto-implemented properties cannot return by reference
                 //     static ref          object P5 { get => ref field; set { } }
                 Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P5").WithLocation(6, 32),
+                // (6,55): warning CS9265: The 'set' accessor of property 'S.P5' should use the backing 'field' because the other accessor is using it.
+                //     static ref          object P5 { get => ref field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P5").WithLocation(6, 55),
                 // (6,55): error CS8147: Properties which return by reference cannot have set accessors
                 //     static ref          object P5 { get => ref field; set { } }
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(6, 55),
@@ -4900,6 +5116,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (9,32): error CS8145: Auto-implemented properties cannot return by reference
                 //     static ref          object PC { get => throw null; set { _ = field; } }
                 Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PC").WithLocation(9, 32),
+                // (9,37): warning CS9265: The 'get' accessor of property 'S.PC' should use the backing 'field' because the other accessor is using it.
+                //     static ref          object PC { get => throw null; set { _ = field; } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "S.PC").WithLocation(9, 37),
                 // (9,56): error CS8147: Properties which return by reference cannot have set accessors
                 //     static ref          object PC { get => throw null; set { _ = field; } }
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(9, 56),
@@ -4943,7 +5162,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_RefReadonly, "field").WithLocation(4, 33),
                 // (5,45): error CS1605: Cannot use 'field' as a ref or out value because it is read-only
                 //     object P3 { readonly get { return F(ref field); } set { } }
-                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "field").WithArguments("field").WithLocation(5, 45));
+                Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "field").WithArguments("field").WithLocation(5, 45),
+                // (5,55): warning CS9265: The 'set' accessor of property 'S.P3' should use the backing 'field' because the other accessor is using it.
+                //     object P3 { readonly get { return F(ref field); } set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P3").WithLocation(5, 55));
         }
 
         [Fact]
@@ -4960,7 +5182,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (5,54): warning CS9265: The 'set' accessor of property 'S.P3' should use the backing 'field' because the other accessor is using it.
+                //     object P3 { readonly get { return F(in field); } set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P3").WithLocation(5, 54));
         }
 
         [Fact]
@@ -4977,7 +5202,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (5,51): warning CS9265: The 'set' accessor of property 'S.P3' should use the backing 'field' because the other accessor is using it.
+                //     object P3 { readonly get { return F(field); } set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P3").WithLocation(5, 51));
         }
 
         [Fact]
@@ -5002,6 +5230,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
+                // (5,40): warning CS9265: The 'set' accessor of property 'S.P3' should use the backing 'field' because the other accessor is using it.
+                //     object P3 { readonly get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P3").WithLocation(5, 40),
                 // (9,15): error CS0206: A non ref-returning property or indexer may not be used as an out or ref value
                 //         F(ref P1);
                 Diagnostic(ErrorCode.ERR_RefProperty, "P1").WithLocation(9, 15),
@@ -7043,7 +7274,19 @@ class C<T>
             comp.VerifyEmitDiagnostics(
                 // (3,25): error CS8051: Auto-implemented properties must have get accessors.
                 //            object P02 { set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, setter).WithLocation(3, 25));
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, setter).WithLocation(3, 25),
+                // (12,39): warning CS9265: The 'set' accessor of property 'C.P23' should use the backing 'field' because the other accessor is using it.
+                //            object P23 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, setter).WithArguments(setter, "C.P23").WithLocation(12, 39),
+                // (17,25): warning CS9265: The 'get' accessor of property 'C.P34' should use the backing 'field' because the other accessor is using it.
+                //            object P34 { get => null; set { field = value; } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "C.P34").WithLocation(17, 25),
+                // (20,47): warning CS9265: The 'set' accessor of property 'C.P43' should use the backing 'field' because the other accessor is using it.
+                //            object P43 { get { return field; } set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, setter).WithArguments(setter, "C.P43").WithLocation(20, 47),
+                // (25,25): warning CS9265: The 'get' accessor of property 'C.P54' should use the backing 'field' because the other accessor is using it.
+                //            object P54 { get { return null; } set { field = value; } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "C.P54").WithLocation(25, 25));
         }
 
         [Theory]
@@ -7113,6 +7356,12 @@ class C<T>
                 """;
             comp = CreateCompilation([sourceA, sourceB2], targetFramework: targetFramework);
             comp.VerifyEmitDiagnostics(
+                // (3,47): warning CS9265: The 'set' accessor of property 'B2.P1' should use the backing 'field' because the other accessor is using it.
+                //     public override object P1 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, setter).WithArguments(setter, "B2.P1").WithLocation(3, 47),
+                // (4,47): warning CS9265: The 'set' accessor of property 'B2.P2' should use the backing 'field' because the other accessor is using it.
+                //     public override object P2 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, setter).WithArguments(setter, "B2.P2").WithLocation(4, 47),
                 // (4,47): error CS0546: 'B2.P2.set': cannot override because 'A.P2' does not have an overridable set accessor
                 //     public override object P2 { get => field; set { } }
                 Diagnostic(ErrorCode.ERR_NoSetToOverride, setter).WithArguments($"B2.P2.{setter}", "A.P2").WithLocation(4, 47),
@@ -7121,7 +7370,10 @@ class C<T>
                 Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, setter).WithLocation(5, 32),
                 // (5,33): error CS0545: 'B2.P3.get': cannot override because 'A.P3' does not have an overridable get accessor
                 //     public override object P3 { get => field; set { } }
-                Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("B2.P3.get", "A.P3").WithLocation(5, 33));
+                Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("B2.P3.get", "A.P3").WithLocation(5, 33),
+                // (5,47): warning CS9265: The 'set' accessor of property 'B2.P3' should use the backing 'field' because the other accessor is using it.
+                //     public override object P3 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, setter).WithArguments(setter, "B2.P3").WithLocation(5, 47));
 
             string sourceB3 = $$"""
                 class B3 : A
@@ -7237,12 +7489,21 @@ class C<T>
                 """;
             comp = CreateCompilation([sourceA, sourceB2], targetFramework: targetFramework);
             comp.VerifyEmitDiagnostics(
+                // (3,47): warning CS9265: The 'set' accessor of property 'B2.P1' should use the backing 'field' because the other accessor is using it.
+                //     public override object P1 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, setter).WithArguments(setter, "B2.P1").WithLocation(3, 47),
+                // (4,47): warning CS9265: The 'set' accessor of property 'B2.P2' should use the backing 'field' because the other accessor is using it.
+                //     public override object P2 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, setter).WithArguments(setter, "B2.P2").WithLocation(4, 47),
                 // (4,47): error CS0546: 'B2.P2.set': cannot override because 'A.P2' does not have an overridable set accessor
                 //     public override object P2 { get => field; set { } }
                 Diagnostic(ErrorCode.ERR_NoSetToOverride, setter).WithArguments($"B2.P2.{setter}", "A.P2").WithLocation(4, 47),
                 // (5,33): error CS0545: 'B2.P3.get': cannot override because 'A.P3' does not have an overridable get accessor
                 //     public override object P3 { get => field; set { } }
-                Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("B2.P3.get", "A.P3").WithLocation(5, 33));
+                Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("B2.P3.get", "A.P3").WithLocation(5, 33),
+                // (5,47): warning CS9265: The 'set' accessor of property 'B2.P3' should use the backing 'field' because the other accessor is using it.
+                //     public override object P3 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, setter).WithArguments(setter, "B2.P3").WithLocation(5, 47));
 
             string sourceB3 = $$"""
                 class B3 : A
@@ -7344,7 +7605,16 @@ class C<T>
             comp.VerifyEmitDiagnostics(
                 // (5,32): error CS8051: Auto-implemented properties must have get accessors.
                 //     public virtual object P3 { set; }
-                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, setter).WithLocation(5, 32));
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, setter).WithLocation(5, 32),
+                // (21,42): warning CS9265: The 'set' accessor of property 'B2.P1' should use the backing 'field' because the other accessor is using it.
+                //     public new object P1 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, setter).WithArguments(setter, "B2.P1").WithLocation(21, 42),
+                // (22,42): warning CS9265: The 'set' accessor of property 'B2.P2' should use the backing 'field' because the other accessor is using it.
+                //     public new object P2 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, setter).WithArguments(setter, "B2.P2").WithLocation(22, 42),
+                // (23,42): warning CS9265: The 'set' accessor of property 'B2.P3' should use the backing 'field' because the other accessor is using it.
+                //     public new object P3 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, setter).WithArguments(setter, "B2.P3").WithLocation(23, 42));
         }
 
         [Theory]
@@ -7540,7 +7810,10 @@ class C<T>
                 Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "TypedReference").WithArguments("System.TypedReference").WithLocation(7, 12),
                 // (8,5): error CS0610: Field or property cannot be of type 'ArgIterator'
                 //     ArgIterator Q2 { get { return field; } set { } }
-                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(8, 5));
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(8, 5),
+                // (8,44): warning CS9265: The 'set' accessor of property 'C.Q2' should use the backing 'field' because the other accessor is using it.
+                //     ArgIterator Q2 { get { return field; } set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "C.Q2").WithLocation(8, 44));
         }
 
         [Theory]
@@ -8267,7 +8540,13 @@ class C<T>
                 targetFramework: TargetFramework.Net80);
             if (useStatic)
             {
-                comp.VerifyEmitDiagnostics();
+                comp.VerifyEmitDiagnostics(
+                    // (5,46): warning CS9265: The 'set' accessor of property 'I.P3' should use the backing 'field' because the other accessor is using it.
+                    //     static partial object P3 { get => field; set { } }
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "I.P3").WithLocation(5, 46),
+                    // (6,32): warning CS9265: The 'get' accessor of property 'I.P4' should use the backing 'field' because the other accessor is using it.
+                    //     static partial object P4 { get => null; set { field = value; } } = 4;
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "I.P4").WithLocation(6, 32));
             }
             else
             {
@@ -8281,9 +8560,15 @@ class C<T>
                     // (5,27): error CS8053: Instance properties in interfaces cannot have initializers.
                     //            partial object P3 { get; set; } = 3;
                     Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P3").WithLocation(5, 27),
+                    // (5,46): warning CS9265: The 'set' accessor of property 'I.P3' should use the backing 'field' because the other accessor is using it.
+                    //            partial object P3 { get => field; set { } }
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "I.P3").WithLocation(5, 46),
                     // (6,27): error CS8053: Instance properties in interfaces cannot have initializers.
                     //            partial object P4 { get => null; set { field = value; } } = 4;
-                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P4").WithLocation(6, 27));
+                    Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P4").WithLocation(6, 27),
+                    // (6,32): warning CS9265: The 'get' accessor of property 'I.P4' should use the backing 'field' because the other accessor is using it.
+                    //            partial object P4 { get => null; set { field = value; } } = 4;
+                    Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "I.P4").WithLocation(6, 32));
             }
 
             var containingType = comp.GetMember<NamedTypeSymbol>("I");
@@ -9017,7 +9302,13 @@ class C<T>
             switch (useReadOnlyDefinition, useReadOnlyImplementation)
             {
                 case (false, false):
-                    comp.VerifyEmitDiagnostics();
+                    comp.VerifyEmitDiagnostics(
+                        // (10,48): warning CS9265: The 'set' accessor of property 'S.P8' should use the backing 'field' because the other accessor is using it.
+                        //     partial object P8 {          get => field; set { } }
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P8").WithLocation(10, 48),
+                        // (11,48): warning CS9265: The 'set' accessor of property 'S.P9' should use the backing 'field' because the other accessor is using it.
+                        //     partial object P9 { get => field;          set { } }
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P9").WithLocation(11, 48));
                     break;
                 case (false, true):
                     comp.VerifyEmitDiagnostics(
@@ -9045,6 +9336,12 @@ class C<T>
                         // (10,34): error CS8663: Both partial member declarations must be readonly or neither may be readonly
                         //     partial object P8 { readonly get => field; set { } }
                         Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "get").WithLocation(10, 34),
+                        // (10,48): warning CS9265: The 'set' accessor of property 'S.P8' should use the backing 'field' because the other accessor is using it.
+                        //     partial object P8 { readonly get => field; set { } }
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P8").WithLocation(10, 48),
+                        // (11,48): warning CS9265: The 'set' accessor of property 'S.P9' should use the backing 'field' because the other accessor is using it.
+                        //     partial object P9 { get => field; readonly set { } }
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P9").WithLocation(11, 48),
                         // (11,48): error CS8663: Both partial member declarations must be readonly or neither may be readonly
                         //     partial object P9 { get => field; readonly set { } }
                         Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "set").WithLocation(11, 48));
@@ -9081,6 +9378,12 @@ class C<T>
                         // (10,34): error CS8663: Both partial member declarations must be readonly or neither may be readonly
                         //     partial object P8 {          get => field; set { } }
                         Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "get").WithLocation(10, 34),
+                        // (10,48): warning CS9265: The 'set' accessor of property 'S.P8' should use the backing 'field' because the other accessor is using it.
+                        //     partial object P8 {          get => field; set { } }
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P8").WithLocation(10, 48),
+                        // (11,48): warning CS9265: The 'set' accessor of property 'S.P9' should use the backing 'field' because the other accessor is using it.
+                        //     partial object P9 { get => field;          set { } }
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P9").WithLocation(11, 48),
                         // (11,48): error CS8663: Both partial member declarations must be readonly or neither may be readonly
                         //     partial object P9 { get => field;          set { } }
                         Diagnostic(ErrorCode.ERR_PartialMemberReadOnlyDifference, "set").WithLocation(11, 48));
@@ -9092,7 +9395,13 @@ class C<T>
                         Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P3").WithArguments("S.P3").WithLocation(5, 20),
                         // (6,20): error CS8664: 'S.P4': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
                         //     partial object P4 { readonly set; }
-                        Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P4").WithArguments("S.P4").WithLocation(6, 20));
+                        Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P4").WithArguments("S.P4").WithLocation(6, 20),
+                        // (10,48): warning CS9265: The 'set' accessor of property 'S.P8' should use the backing 'field' because the other accessor is using it.
+                        //     partial object P8 { readonly get => field; set { } }
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P8").WithLocation(10, 48),
+                        // (11,48): warning CS9265: The 'set' accessor of property 'S.P9' should use the backing 'field' because the other accessor is using it.
+                        //     partial object P9 { get => field; readonly set { } }
+                        Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "S.P9").WithLocation(11, 48));
                     break;
             }
 
@@ -9157,6 +9466,9 @@ class C<T>
                 // (3,35): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //            partial object P1 { [A(field)] get { return null; } }
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(3, 35),
+                // (4,32): warning CS9265: The 'get' accessor of property 'B.P2' should use the backing 'field' because the other accessor is using it.
+                //            partial object P2 { get { return null; } [A(field)] set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "get").WithArguments("get", "B.P2").WithLocation(4, 32),
                 // (4,56): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //            partial object P2 { get { return null; } [A(field)] set { } }
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(4, 56),
@@ -9296,9 +9608,15 @@ class C<T>
                 // (3,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
                 //     [field: A] partial object P1 { get; set; }
                 Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(3, 6),
+                // (4,50): warning CS9265: The 'set' accessor of property 'B.P2' should use the backing 'field' because the other accessor is using it.
+                //                partial object P2 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "B.P2").WithLocation(4, 50),
                 // (6,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
                 //     [field: A] partial object Q1 { get => null; set { } }
-                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(6, 6));
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "property").WithLocation(6, 6),
+                // (7,50): warning CS9265: The 'set' accessor of property 'B.Q2' should use the backing 'field' because the other accessor is using it.
+                //     [field: A] partial object Q2 { get => field; set { } }
+                Diagnostic(ErrorCode.WRN_AccessorDoesNotUseBackingField, "set").WithArguments("set", "B.Q2").WithLocation(7, 50));
 
             var containingType = comp.GetMember<NamedTypeSymbol>("B");
             var actualFields = containingType.GetMembers().OfType<FieldSymbol>().ToImmutableArray();

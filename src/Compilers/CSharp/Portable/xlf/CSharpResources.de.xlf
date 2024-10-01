@@ -2662,6 +2662,16 @@
         <target state="translated">{0} ist kein gültiger C#-Überfüllungsvorgang.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_AccessorDoesNotUseBackingField">
+        <source>The '{0}' accessor of property '{1}' should use the backing 'field' because the other accessor is using it.</source>
+        <target state="new">The '{0}' accessor of property '{1}' should use the backing 'field' because the other accessor is using it.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_AccessorDoesNotUseBackingField_Title">
+        <source>Property accessor should use the backing 'field' because the other accessor is using it.</source>
+        <target state="new">Property accessor should use the backing 'field' because the other accessor is using it.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_AddressOfInAsync">
         <source>The '&amp;' operator should not be used on parameters or local variables in async methods.</source>
         <target state="translated">Der Operator '&amp;' sollte nicht für Parameter oder lokale Variablen in asynchronen Methoden verwendet werden.</target>
