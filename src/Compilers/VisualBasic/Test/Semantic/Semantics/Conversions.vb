@@ -729,10 +729,7 @@ End Class
 
                                 Assert.True(gotException)
 
-                                ' Conditioned due to https://github.com/dotnet/roslyn/issues/74026
-                                If numericType IsNot byteType AndAlso CType(mv.Value, Double) <> CDbl(&HF000000000000000UL) Then
-                                    Assert.Equal(UncheckedConvert(intermediate, numericType), resultValue.Value)
-                                End If
+                                Assert.Equal(UncheckedConvert(mv.Value, numericType), resultValue.Value)
                             End If
                         Else
                             Assert.NotNull(resultValue)
@@ -1293,10 +1290,7 @@ End Class
 
                                 Assert.True(gotException)
 
-                                ' Conditioned due to https://github.com/dotnet/roslyn/issues/74026
-                                If numericType IsNot byteType AndAlso CType(mv.Value, Double) <> CDbl(&HF000000000000000UL) Then
-                                    Assert.Equal(UncheckedConvert(intermediate, numericType), resultValue.Value)
-                                End If
+                                Assert.Equal(UncheckedConvert(mv.Value, numericType), resultValue.Value)
                             End If
                         Else
                             Assert.NotNull(resultValue)
@@ -1399,6 +1393,22 @@ End Class
                         Case System_UInt16 : Return UncheckedCUShort(val)
                         Case System_Int32 : Return UncheckedCInt(val)
                         Case System_UInt32 : Return UncheckedCUInt(val)
+                        Case System_Int64 : Return UncheckedCLng(val)
+                        Case System_UInt64 : Return UncheckedCULng(val)
+                        Case Else
+                            Throw New NotSupportedException()
+                    End Select
+
+                Case TypeCode.Single, TypeCode.Double
+                    Dim val As Double = Convert.ToDouble(value)
+
+                    Select Case type.SpecialType
+                        Case System_Byte : Return UncheckedCByte(UncheckedCLng(val))
+                        Case System_SByte : Return UncheckedCSByte(UncheckedCLng(val))
+                        Case System_Int16 : Return UncheckedCShort(UncheckedCLng(val))
+                        Case System_UInt16 : Return UncheckedCUShort(UncheckedCLng(val))
+                        Case System_Int32 : Return UncheckedCInt(UncheckedCLng(val))
+                        Case System_UInt32 : Return UncheckedCUInt(UncheckedCLng(val))
                         Case System_Int64 : Return UncheckedCLng(val)
                         Case System_UInt64 : Return UncheckedCULng(val)
                         Case Else

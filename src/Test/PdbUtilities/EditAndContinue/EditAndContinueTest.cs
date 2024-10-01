@@ -13,11 +13,13 @@ using System.Text;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    internal abstract partial class EditAndContinueTest<TSelf>(Verification? verification = null) : IDisposable
+    internal abstract partial class EditAndContinueTest<TSelf>(ITestOutputHelper? output = null, Verification? verification = null) : IDisposable
         where TSelf : EditAndContinueTest<TSelf>
     {
         private readonly Verification _verification = verification ?? Verification.Passes;
@@ -45,13 +47,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var verifier = new CompilationVerifier(compilation);
 
+            output?.WriteLine($"Emitting baseline");
+
             verifier.Emit(
                 expectedOutput: null,
                 trimOutput: false,
                 expectedReturnCode: null,
                 args: null,
                 manifestResources: null,
-                emitOptions: EmitOptions.Default,
+                emitOptions: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
                 peVerify: _verification,
                 expectedSignatures: null);
 
@@ -70,6 +74,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             => AddGeneration(source, _ => edits, validator);
 
         internal TSelf AddGeneration(string source, Func<SourceWithMarkedNodes, SemanticEditDescription[]> edits, Action<GenerationVerifier> validator)
+            => AddGeneration(source, edits, validator, expectedErrors: []);
+
+        internal TSelf AddGeneration(string source, SemanticEditDescription[] edits, DiagnosticDescription[] expectedErrors)
+            => AddGeneration(source, _ => edits, validator: static _ => { }, expectedErrors);
+
+        private TSelf AddGeneration(string source, Func<SourceWithMarkedNodes, SemanticEditDescription[]> edits, Action<GenerationVerifier> validator, DiagnosticDescription[] expectedErrors)
         {
             _hasVerified = false;
 
@@ -85,9 +95,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var semanticEdits = GetSemanticEdits(edits(markedSource), previousGeneration.Compilation, previousSource, compilation, markedSource, unmappedNodes);
 
+            output?.WriteLine($"Emitting generation #{_generations.Count}");
+
             CompilationDifference diff = compilation.EmitDifference(previousGeneration.Baseline, semanticEdits);
 
-            Assert.Empty(diff.EmitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
+            diff.EmitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Verify(expectedErrors);
+            if (expectedErrors is not [])
+            {
+                return This;
+            }
 
             var md = diff.GetMetadata();
             _disposables.Add(md);

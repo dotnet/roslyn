@@ -818,7 +818,7 @@
   <data name="ERR_ModuleEmitFailure" xml:space="preserve">
     <value>Failed to emit module '{0}': {1}</value>
   </data>
-  <data name="ERR_EncUpdateFailedMissingAttribute" xml:space="preserve">
+  <data name="ERR_EncUpdateFailedMissingSymbol" xml:space="preserve">
     <value>Cannot update '{0}'; attribute '{1}' is missing.</value>
   </data>
   <data name="ERR_OverrideNotNeeded3" xml:space="preserve">
@@ -5706,5 +5706,8 @@
   </data>
   <data name="ERR_InvalidVersionFormatDeterministic" xml:space="preserve">
     <value>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</value>
+  </data>
+  <data name="ERR_TypeReserved" xml:space="preserve">
+    <value>The type name '{0}' is reserved to be used by the compiler.</value>
   </data>
 </root>

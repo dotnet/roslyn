@@ -354,11 +354,6 @@ namespace Roslyn.Test.Utilities
             solution = solution.WithAnalyzerReferences([analyzerReferencesByLanguage]);
             await workspace.ChangeSolutionAsync(solution);
 
-            // Important: We must wait for workspace creation operations to finish.
-            // Otherwise we could have a race where workspace change events triggered by creation are changing the state
-            // created by the initial test steps. This can interfere with the expected test state.
-            await WaitForWorkspaceOperationsAsync(workspace);
-
             return await TestLspServer.CreateAsync(workspace, initializationOptions, TestOutputLspLogger);
         }
 
@@ -375,10 +370,6 @@ namespace Roslyn.Test.Utilities
             workspace.InitializeDocuments(XElement.Parse(xmlContent), openDocuments: false);
             workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([CreateTestAnalyzersReference()]));
 
-            // Important: We must wait for workspace creation operations to finish.
-            // Otherwise we could have a race where workspace change events triggered by creation are changing the state
-            // created by the initial test steps. This can interfere with the expected test state.
-            await WaitForWorkspaceOperationsAsync(workspace);
             return await TestLspServer.CreateAsync(workspace, lspOptions, TestOutputLspLogger);
         }
 
@@ -564,6 +555,11 @@ namespace Roslyn.Test.Utilities
 
             internal static async Task<TestLspServer> CreateAsync(EditorTestWorkspace testWorkspace, InitializationOptions initializationOptions, AbstractLspLogger logger)
             {
+                // Important: We must wait for workspace creation operations to finish.
+                // Otherwise we could have a race where workspace change events triggered by creation are changing the state
+                // created by the initial test steps. This can interfere with the expected test state.
+                await WaitForWorkspaceOperationsAsync(testWorkspace);
+
                 var locations = await GetAnnotatedLocationsAsync(testWorkspace, testWorkspace.CurrentSolution);
 
                 var (clientStream, serverStream) = FullDuplexStream.CreatePair();

@@ -414,7 +414,7 @@ public abstract class EditAndContinueWorkspaceTestBase : TestBase
         const string ClosingMarker = "*/";
 
         var index = markedSource.IndexOf(OpeningMarker);
-        if (index > 0)
+        if (index >= 0)
         {
             index += OpeningMarker.Length;
             var closing = markedSource.IndexOf(ClosingMarker, index);

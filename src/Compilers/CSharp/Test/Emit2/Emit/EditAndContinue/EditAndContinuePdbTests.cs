@@ -274,6 +274,7 @@ public class C
                     SemanticEdit.Create(SemanticEditKind.Insert, null, b2)));
 
             diff2.VerifySynthesizedMembers(
+                "System.Runtime.CompilerServices.HotReloadException",
                 "C: {<>c}",
                 "C.<>c: {<>9__3_3#1, <>9__3_1, <G>b__3_1, <G>b__3_3#1, <>9__3_0, <>9__3_2, <G>b__3_0, <G>b__3_2}");
 
@@ -282,6 +283,9 @@ public class C
             CheckEncLogDefinitions(reader2,
                 Row(5, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                 Row(6, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                Row(6, TableIndex.Field, EditAndContinueOperation.Default),
                 Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
@@ -290,7 +294,10 @@ public class C
                 Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default),
                 Row(2, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
-                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default));
+                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.TypeDef, EditAndContinueOperation.AddMethod),
+                Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
 
             if (format == DebugInformationFormat.PortablePdb)
             {
@@ -304,7 +311,8 @@ public class C
                     Handle(9, TableIndex.MethodDebugInformation),
                     Handle(10, TableIndex.MethodDebugInformation),
                     Handle(11, TableIndex.MethodDebugInformation),
-                    Handle(12, TableIndex.MethodDebugInformation));
+                    Handle(12, TableIndex.MethodDebugInformation),
+                    Handle(13, TableIndex.MethodDebugInformation));
             }
 
             diff2.VerifyPdb(Enumerable.Range(0x06000001, 20), @"

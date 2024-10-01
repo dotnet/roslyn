@@ -634,7 +634,7 @@
       </trans-unit>
       <trans-unit id="_0_declarations_and_interceptors">
         <source>'{0}' declarations and interceptors</source>
-        <target state="new">'{0}' declarations and interceptors</target>
+        <target state="translated">'{0}' 선언 및 인터셉터</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_implemented_members">

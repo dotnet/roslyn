@@ -91,7 +91,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="DiffPlex" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary" />
     <PackageReference Include="Microsoft.DiaSymReader.Converter.Xml" />
     <PackageReference Include="Microsoft.Metadata.Visualizer" />
     <PackageReference Include="Microsoft.NETCore.Platforms" />

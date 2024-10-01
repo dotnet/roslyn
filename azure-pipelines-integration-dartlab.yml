@@ -27,10 +27,10 @@ resources:
 parameters:
   - name: prNumber
     type: string
-    default: ''
+    default: 'None'
   - name: sha
     type: string
-    default: ''
+    default: 'None'
 
 variables:
 - name: XUNIT_LOGS
@@ -41,7 +41,7 @@ variables:
   value: true
 
 stages:
-- ${{ if ne(parameters.prNumber, '') }}:
+- ${{ if ne(parameters.prNumber, 'None') }}:
   - stage: GitHubCommentFirst
     jobs:
       - job: GitHubCommentFirstJob
@@ -98,7 +98,7 @@ stages:
         lspEditor: false
         skipCheckout: true
 
-- ${{ if ne(parameters.prNumber, '') }}:
+- ${{ if ne(parameters.prNumber, 'None') }}:
   - stage: GitHubCommentCompleted
     condition: always()
     dependsOn: VSIntegration

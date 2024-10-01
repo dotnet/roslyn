@@ -42,6 +42,11 @@
         <target state="translated">'System.Runtime.CompilerServices.RequiredMemberAttribute' está reservado somente para uso do compilador.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_EncUpdateFailedMissingSymbol">
+        <source>Cannot update '{0}'; attribute '{1}' is missing.</source>
+        <target state="new">Cannot update '{0}'; attribute '{1}' is missing.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidExperimentalDiagID">
         <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
         <target state="translated">O argumento diagnosticId para o atributo 'Experimental' deve ser um identificador válido</target>
@@ -49,7 +54,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormatDeterministic">
         <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
-        <target state="new">The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</target>
+        <target state="translated">A cadeia de caracteres da versão especificada contém curingas, que não são compatíveis com o determinismo. Remova os curingas da cadeia de caracteres da versão ou desabilite o determinismo da compilação</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_LockTypeUnsupported">
@@ -110,6 +115,11 @@
       <trans-unit id="ERR_SymbolDefinedInAssembly">
         <source>'{0}' is defined in assembly '{1}'.</source>
         <target state="translated">'{0}' é definido no assembly '{1}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TypeReserved">
+        <source>The type name '{0}' is reserved to be used by the compiler.</source>
+        <target state="new">The type name '{0}' is reserved to be used by the compiler.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_UnimplementedSharedMember">
@@ -1760,11 +1770,6 @@
       <trans-unit id="ERR_ModuleEmitFailure">
         <source>Failed to emit module '{0}': {1}</source>
         <target state="translated">Falha ao emitir o módulo '{0}': {1}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_EncUpdateFailedMissingAttribute">
-        <source>Cannot update '{0}'; attribute '{1}' is missing.</source>
-        <target state="translated">Não é possível atualizar '{0}'; o atributo '{1}' está ausente.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_OverrideNotNeeded3">
@@ -7698,7 +7703,7 @@
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
         <source>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</source>
-        <target state="needs-review-translation">A cadeia de caracteres de versão especificada não está de acordo com o formato recomendado - major.minor.build.revision</target>
+        <target state="translated">A cadeia de versão especificada não está em conformidade com o formato recomendado - major.minor.build.revision (sem caracteres curinga)</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyCultureForExe">

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -33,18 +34,24 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.TextDocumentPositionParams request) => request.TextDocument;
 
-        public async Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
+        public Task<LSP.Location[]> HandleRequestAsync(LSP.TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.GetRequiredDocument();
-            var clientCapabilities = context.GetRequiredClientCapabilities();
+            var supportsVisualStudioExtensions = context.GetRequiredClientCapabilities().HasVisualStudioLspCapability();
+            var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
+            var classificationOptions = _globalOptions.GetClassificationOptionsProvider();
 
+            return FindImplementationsAsync(document, linePosition, classificationOptions, supportsVisualStudioExtensions, cancellationToken);
+        }
+
+        internal static async Task<LSP.Location[]> FindImplementationsAsync(Document document, LinePosition linePosition, OptionsProvider<ClassificationOptions> classificationOptions, bool supportsVisualStudioExtensions, CancellationToken cancellationToken)
+        {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
 
             var findUsagesService = document.GetRequiredLanguageService<IFindUsagesLSPService>();
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var position = await document.GetPositionFromLinePositionAsync(linePosition, cancellationToken).ConfigureAwait(false);
 
             var findUsagesContext = new SimpleFindUsagesContext();
-            var classificationOptions = _globalOptions.GetClassificationOptionsProvider();
             await findUsagesService.FindImplementationsAsync(findUsagesContext, document, position, classificationOptions, cancellationToken).ConfigureAwait(false);
 
             foreach (var definition in findUsagesContext.GetDefinitions())
@@ -52,7 +59,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 var text = definition.GetClassifiedText();
                 foreach (var sourceSpan in definition.SourceSpans)
                 {
-                    if (clientCapabilities.HasVisualStudioLspCapability() == true)
+                    if (supportsVisualStudioExtensions)
                     {
                         locations.AddIfNotNull(await ProtocolConversions.DocumentSpanToLocationWithTextAsync(sourceSpan, text, cancellationToken).ConfigureAwait(false));
                     }

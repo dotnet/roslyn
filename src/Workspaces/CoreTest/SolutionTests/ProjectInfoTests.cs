@@ -182,6 +182,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var documentInfo = DocumentInfo.Create(DocumentId.CreateNewId(projectId), "doc");
             var instance = ProjectInfo.Create(name: "Name", id: ProjectId.CreateNewId(), version: VersionStamp.Default, assemblyName: "AssemblyName", language: "C#");
 
+            SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithId(value), opt => opt.Id, ProjectId.CreateNewId(), defaultThrows: true);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithVersion(value), opt => opt.Version, VersionStamp.Create());
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithName(value), opt => opt.Name, "New", defaultThrows: true);
             SolutionTestHelpers.TestProperty(instance, (old, value) => old.WithAssemblyName(value), opt => opt.AssemblyName, "New", defaultThrows: true);

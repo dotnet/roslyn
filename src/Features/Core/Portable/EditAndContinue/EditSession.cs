@@ -423,7 +423,7 @@ internal sealed class EditSession
         return false;
     }
 
-    internal static async Task PopulateChangedAndAddedDocumentsAsync(Project oldProject, Project newProject, ArrayBuilder<Document> changedOrAddedDocuments, CancellationToken cancellationToken)
+    internal static async Task PopulateChangedAndAddedDocumentsAsync(Project oldProject, Project newProject, ArrayBuilder<Document> changedOrAddedDocuments, ArrayBuilder<ProjectDiagnostics> diagnostics, CancellationToken cancellationToken)
     {
         changedOrAddedDocuments.Clear();
 
@@ -432,13 +432,11 @@ internal sealed class EditSession
             return;
         }
 
+        var oldSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(oldProject, diagnostics, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var oldSourceGeneratedDocumentStates = await oldProject.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(oldProject.State, cancellationToken).ConfigureAwait(false);
-
+        var newSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(newProject, diagnostics, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-
-        var newSourceGeneratedDocumentStates = await newProject.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(newProject.State, cancellationToken).ConfigureAwait(false);
 
         foreach (var documentId in newSourceGeneratedDocumentStates.GetChangedStateIds(oldSourceGeneratedDocumentStates, ignoreUnchangedContent: true))
         {
@@ -461,6 +459,23 @@ internal sealed class EditSession
 
             changedOrAddedDocuments.Add(newProject.GetOrCreateSourceGeneratedDocument(newState));
         }
+    }
+
+    private static async ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(Project project, ArrayBuilder<ProjectDiagnostics>? diagnostics, CancellationToken cancellationToken)
+    {
+        var generatorDiagnostics = await project.Solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(project.State, cancellationToken).ConfigureAwait(false);
+
+        if (generatorDiagnostics is not [])
+        {
+            diagnostics?.Add(new ProjectDiagnostics(project.Id, generatorDiagnostics));
+        }
+
+        foreach (var generatorDiagnostic in generatorDiagnostics)
+        {
+            EditAndContinueService.Log.Write("Source generator failed: {0}", generatorDiagnostic);
+        }
+
+        return await project.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -496,13 +511,11 @@ internal sealed class EditSession
             yield break;
         }
 
+        var oldSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(oldProject, diagnostics: null, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
 
-        var oldSourceGeneratedDocumentStates = await oldProject.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(oldProject.State, cancellationToken).ConfigureAwait(false);
-
+        var newSourceGeneratedDocumentStates = await GetSourceGeneratedDocumentStatesAsync(newProject, diagnostics: null, cancellationToken).ConfigureAwait(false);
         cancellationToken.ThrowIfCancellationRequested();
-
-        var newSourceGeneratedDocumentStates = await newProject.Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(newProject.State, cancellationToken).ConfigureAwait(false);
 
         foreach (var documentId in newSourceGeneratedDocumentStates.GetChangedStateIds(oldSourceGeneratedDocumentStates, ignoreUnchangedContent: true))
         {
@@ -830,7 +843,7 @@ internal sealed class EditSession
                     continue;
                 }
 
-                await PopulateChangedAndAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments, cancellationToken).ConfigureAwait(false);
+                await PopulateChangedAndAddedDocumentsAsync(oldProject, newProject, changedOrAddedDocuments, diagnostics, cancellationToken).ConfigureAwait(false);
                 if (changedOrAddedDocuments.IsEmpty)
                 {
                     continue;

@@ -7,9 +7,9 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
@@ -37,23 +37,14 @@ internal partial class CSharpUseCollectionInitializerCodeFixProvider() :
         Document document,
         BaseObjectCreationExpressionSyntax objectCreation,
         bool useCollectionExpression,
-        ImmutableArray<Match<StatementSyntax>> matches,
+        ImmutableArray<CollectionMatch<SyntaxNode>> preMatches,
+        ImmutableArray<CollectionMatch<SyntaxNode>> postMatches,
         CancellationToken cancellationToken)
     {
-        var newObjectCreation = await GetNewObjectCreationAsync(
-            document, objectCreation, useCollectionExpression, matches, cancellationToken).ConfigureAwait(false);
-        return (objectCreation, newObjectCreation);
-    }
+        ExpressionSyntax newObjectCreation = useCollectionExpression
+            ? await CreateCollectionExpressionAsync(document, objectCreation, preMatches, postMatches, cancellationToken).ConfigureAwait(false)
+            : CreateObjectInitializerExpression(objectCreation, postMatches);
 
-    private static async Task<ExpressionSyntax> GetNewObjectCreationAsync(
-        Document document,
-        BaseObjectCreationExpressionSyntax objectCreation,
-        bool useCollectionExpression,
-        ImmutableArray<Match<StatementSyntax>> matches,
-        CancellationToken cancellationToken)
-    {
-        return useCollectionExpression
-            ? await CreateCollectionExpressionAsync(document, objectCreation, matches, cancellationToken).ConfigureAwait(false)
-            : CreateObjectInitializerExpression(objectCreation, matches);
+        return (objectCreation, newObjectCreation);
     }
 }

@@ -69,7 +69,8 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
         var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
         // Get the expressions that we're going to fill the new collection expression with.
-        var arguments = await GetArgumentsAsync(document, analysisResult.Matches, cancellationToken).ConfigureAwait(false);
+        var allMatches = analysisResult.PreMatches.Concat(analysisResult.PostMatches);
+        var arguments = await GetArgumentsAsync(document, allMatches, cancellationToken).ConfigureAwait(false);
 
         var argumentListTrailingTrivia = analysisResult.ExistingInitializer is null
             ? default
@@ -86,30 +87,31 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
             semanticDocument.Root.ReplaceNode(invocationExpression, dummyObjectCreation), cancellationToken).ConfigureAwait(false);
         dummyObjectCreation = (ImplicitObjectCreationExpressionSyntax)newSemanticDocument.Root.GetAnnotatedNodes(dummyObjectAnnotation).Single();
 
-        var matches = CreateMatches(dummyObjectCreation.ArgumentList.Arguments, analysisResult.Matches);
+        var preMatches = CreateMatches(dummyObjectCreation.ArgumentList.Arguments, analysisResult.PreMatches, index: 0);
+        var postMatches = CreateMatches(dummyObjectCreation.ArgumentList.Arguments, analysisResult.PostMatches, index: preMatches.Length);
 
         var collectionExpression = await CreateCollectionExpressionAsync(
             newSemanticDocument.Document,
             dummyObjectCreation,
-            matches,
+            preMatches,
+            postMatches,
             static o => o.Initializer,
             static (o, i) => o.WithInitializer(i),
             cancellationToken).ConfigureAwait(false);
 
         editor.ReplaceNode(invocationExpression, collectionExpression);
 
-        static ImmutableArray<CollectionExpressionMatch<ExpressionSyntax>> CreateMatches(
+        static ImmutableArray<CollectionMatch<ExpressionSyntax>> CreateMatches(
             SeparatedSyntaxList<ArgumentSyntax> arguments,
-            ImmutableArray<CollectionExpressionMatch<ArgumentSyntax>> matches)
+            ImmutableArray<CollectionMatch<ArgumentSyntax>> matches,
+            int index)
         {
-            Contract.ThrowIfTrue(arguments.Count != matches.Length);
+            using var result = TemporaryArray<CollectionMatch<ExpressionSyntax>>.Empty;
 
-            using var result = TemporaryArray<CollectionExpressionMatch<ExpressionSyntax>>.Empty;
-
-            for (int i = 0, n = arguments.Count; i < n; i++)
+            for (int i = 0, n = matches.Length; i < n; i++)
             {
-                var argument = arguments[i];
                 var match = matches[i];
+                var argument = arguments[i + index];
 
                 // If we're going to spread a collection expression, just take the values *within* that collection expression
                 // and make them arguments to the collection expression we're creating.
@@ -138,7 +140,7 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
 
         static async Task<SeparatedSyntaxList<ArgumentSyntax>> GetArgumentsAsync(
             Document document,
-            ImmutableArray<CollectionExpressionMatch<ArgumentSyntax>> matches,
+            ImmutableArray<CollectionMatch<ArgumentSyntax>> matches,
             CancellationToken cancellationToken)
         {
             if (matches.IsEmpty)

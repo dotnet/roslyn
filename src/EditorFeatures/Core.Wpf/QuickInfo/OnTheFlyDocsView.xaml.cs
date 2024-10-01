@@ -11,11 +11,11 @@ using System.Windows;
 using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Copilot;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.QuickInfo.Presentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
@@ -37,7 +37,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     private readonly IAsyncQuickInfoSession _asyncQuickInfoSession;
     private readonly IThreadingContext _threadingContext;
     private readonly Document _document;
-    private readonly OnTheFlyDocsElement _onTheFlyDocsElement;
+    private readonly OnTheFlyDocsInfo _onTheFlyDocsInfo;
     private readonly ContentControl _responseControl = new();
     private readonly CancellationTokenSource _cancellationTokenSource = new();
 
@@ -58,15 +58,15 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
     public string OnTheFlyDocumentation => EditorFeaturesResources.On_the_fly_documentation;
 #pragma warning restore CA1822 // Mark members as static
 
-    public OnTheFlyDocsView(ITextView textView, IViewElementFactoryService viewElementFactoryService, IAsynchronousOperationListenerProvider listenerProvider, IAsyncQuickInfoSession asyncQuickInfoSession, IThreadingContext threadingContext, EditorFeaturesOnTheFlyDocsElement editorFeaturesOnTheFlyDocsElement)
+    public OnTheFlyDocsView(ITextView textView, IViewElementFactoryService viewElementFactoryService, IAsynchronousOperationListenerProvider listenerProvider, IAsyncQuickInfoSession asyncQuickInfoSession, IThreadingContext threadingContext, QuickInfoOnTheFlyDocsElement onTheFlyDocsElement)
     {
         _textView = textView;
         _viewElementFactoryService = viewElementFactoryService;
         _asyncListener = listenerProvider.GetListener(FeatureAttribute.OnTheFlyDocs);
         _asyncQuickInfoSession = asyncQuickInfoSession;
         _threadingContext = threadingContext;
-        _onTheFlyDocsElement = editorFeaturesOnTheFlyDocsElement.OnTheFlyDocsElement;
-        _document = editorFeaturesOnTheFlyDocsElement.Document;
+        _onTheFlyDocsInfo = onTheFlyDocsElement.Info;
+        _document = onTheFlyDocsElement.Document;
 
         var sparkle = new ImageElement(new VisualStudio.Core.Imaging.ImageId(CopilotConstants.CopilotIconMonikerGuid, CopilotConstants.CopilotIconSparkleId));
 
@@ -137,7 +137,7 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
 
         try
         {
-            var response = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsElement.SymbolSignature, _onTheFlyDocsElement.DeclarationCode, _onTheFlyDocsElement.Language, cancellationToken).ConfigureAwait(false);
+            var response = await copilotService.GetOnTheFlyDocsAsync(_onTheFlyDocsInfo.SymbolSignature, _onTheFlyDocsInfo.DeclarationCode, _onTheFlyDocsInfo.Language, cancellationToken).ConfigureAwait(false);
             var copilotRequestTime = stopwatch.Elapsed;
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -202,12 +202,12 @@ internal sealed partial class OnTheFlyDocsView : UserControl, INotifyPropertyCha
         CurrentState = OnTheFlyDocsState.Loading;
         Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Loading_State_Entered, KeyValueLogMessage.Create(m =>
         {
-            m["SymbolHeaderText"] = _onTheFlyDocsElement.SymbolSignature;
-            m["HasDocumentationComments"] = _onTheFlyDocsElement.HasComments;
+            m["SymbolHeaderText"] = _onTheFlyDocsInfo.SymbolSignature;
+            m["HasDocumentationComments"] = _onTheFlyDocsInfo.HasComments;
         }, LogLevel.Information));
 
         OnTheFlyDocsLogger.LogOnTheFlyDocsResultsRequested();
-        if (_onTheFlyDocsElement.HasComments)
+        if (_onTheFlyDocsInfo.HasComments)
         {
             OnTheFlyDocsLogger.LogOnTheFlyDocsResultsRequestedWithDocComments();
         }

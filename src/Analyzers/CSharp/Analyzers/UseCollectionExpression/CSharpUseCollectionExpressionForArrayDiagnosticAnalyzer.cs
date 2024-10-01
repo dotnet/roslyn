@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -57,7 +58,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         ReportArrayCreationDiagnostics(context, syntaxTree, option.Notification, arrayCreationExpression, changesSemantics);
     }
 
-    public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches(
+    public static ImmutableArray<CollectionMatch<StatementSyntax>> TryGetMatches(
         SemanticModel semanticModel,
         ArrayCreationExpressionSyntax expression,
         CollectionExpressionSyntax replacementExpression,
@@ -114,7 +115,7 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
         return matches;
     }
 
-    public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches(
+    public static ImmutableArray<CollectionMatch<StatementSyntax>> TryGetMatches(
         SemanticModel semanticModel,
         ImplicitArrayCreationExpressionSyntax expression,
         CollectionExpressionSyntax replacementExpression,

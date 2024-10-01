@@ -18983,5 +18983,24 @@ literal:literal
                 Diagnostic(ErrorCode.ERR_ConversionWithInterface, "C1").WithArguments("C1.implicit operator C1(System.IFormattable)").WithLocation(18, 37)
             );
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74677")]
+        public void StackOverflow()
+        {
+            var source = """
+                using System;
+
+                [Obsolete($"{Test2}")]
+                class Test2
+                {
+                }
+                """;
+
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (3,14): error CS0119: 'Test2' is a type, which is not valid in the given context
+                // [Obsolete($"{Test2}")]
+                Diagnostic(ErrorCode.ERR_BadSKunknown, "Test2").WithArguments("Test2", "type").WithLocation(3, 14)
+                );
+        }
     }
 }

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -51,6 +52,12 @@ internal static class RudeEditExtensions
 
     internal static bool IsBlocking(this RudeEditKind kind)
         => kind.GetSeverity() == DiagnosticSeverity.Error;
+
+    internal static bool IsBlockingRudeEdit(this Diagnostic diagnostic)
+        => diagnostic.Descriptor.DefaultSeverity == DiagnosticSeverity.Error;
+
+    public static bool HasBlockingRudeEdits(this ImmutableArray<Diagnostic> diagnostics)
+        => diagnostics.Any(IsBlockingRudeEdit);
 
     public static bool HasBlockingRudeEdits(this IEnumerable<RudeEditDiagnostic> diagnostics)
         => diagnostics.Any(static e => e.Kind.IsBlocking());

@@ -3245,22 +3245,24 @@ class C { }
         [WorkItem(59190, "https://github.com/dotnet/roslyn/issues/59190")]
         public void LongBinaryExpression()
         {
-            var source = @"
-class C {
-public static readonly string F = ""a""
-";
-
-            for (int i = 0; i < 7000; i++)
+            const int count = 7000;
+            const string header = """
+                class C {
+                    public static readonly string F = "a"
+                """;
+            const string expr = @" + ""a""";
+            var capacity = header.Length + (expr.Length * count) + 5;
+            var builder = new StringBuilder(capacity);
+            builder.Append(header);
+            for (int i = 0; i < count; i++)
             {
-                source += @" + ""a""
-";
+                builder.Append(expr);
             }
-
-            source += @";
-}
-";
+            builder.AppendLine(";");
+            builder.Append("}");
+            Assert.True(capacity >= builder.Capacity);
             var parseOptions = TestOptions.RegularPreview;
-            Compilation compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+            Compilation compilation = CreateCompilation(builder.ToString(), options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
             compilation.VerifyDiagnostics();
             Assert.Single(compilation.SyntaxTrees);
 

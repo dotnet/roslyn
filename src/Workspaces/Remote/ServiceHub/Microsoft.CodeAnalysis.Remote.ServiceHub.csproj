@@ -44,14 +44,13 @@
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery" Partner="UnitTesting" Key="$(UnitTestingKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.UnitTesting.SourceBasedTestDiscovery.Core" Partner="UnitTesting" Key="$(UnitTestingKey)" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.UnitTests" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.UnitTests" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.ServiceHub.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.Completion.Tests" Key="$(IntelliCodeCSharpKey)" WorkItem="https://github.com/dotnet/roslyn/issues/35081" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.IntelliCode.CSharp.Extraction" Partner="Pythia" Key="$(IntelliCodeCSharpKey)" />
