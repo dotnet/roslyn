@@ -7462,7 +7462,7 @@ done:
                         // conditional.
                         case SyntaxKind.CloseBracketToken:
                             {
-                                using var innerResetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
+                                using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
 
                                 // Consume the expression after the `?`.
                                 var whenTrue = this.ParsePossibleRefExpression();
