@@ -18530,4 +18530,22 @@ class C
         }
         EOF();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    public void CollectionExpression_ConditionalExpressionAmbiguity_RealWorld()
+    {
+        // Ensure that even though `DayOfWeek.Friday` will be parsed as a type, that binding will understand that it
+        // should also be viewed as a constant pattern.
+        CreateCompilation("""
+            using System;
+
+            class C
+            {
+                void M()
+                {
+                    int[] nextDayOffSet = DateTime.Today.DayOfWeek is DayOfWeek.Friday ? [1, 2, 3] : [1];
+                }
+            }
+            """).VerifyDiagnostics();
+    }
 }
