@@ -75,8 +75,8 @@ internal abstract partial class AbstractRenameCommandHandler(
         {
             // It's in a read-only area that is open, so let's commit the rename 
             // and then let the character go through
-
-            CommitIfActiveAndCallNextHandler(args, nextHandler, operationContext);
+            CommitIfActive(args, operationContext);
+            nextHandler();
         }
         else
         {
@@ -97,12 +97,6 @@ internal abstract partial class AbstractRenameCommandHandler(
             args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
             args.TextView.Caret.MoveTo(translatedSelection.End);
         }
-    }
-
-    private void CommitIfActiveAndCallNextHandler(EditorCommandArgs args, Action nextHandler, IUIThreadOperationContext operationContext)
-    {
-        CommitIfActive(args, operationContext);
-        nextHandler();
     }
 
     private void Commit(IUIThreadOperationContext operationContext)
