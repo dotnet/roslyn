@@ -28,15 +28,19 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
     private static readonly ObjectPool<Dictionary<string, Guid>> s_pathToMvidMapPool = new(() => new(SolutionState.FilePathComparer));
 
     /// <summary>
-    /// Gate around <see cref="s_checksumToReferenceSet"/> to ensure it is only accessed and updated atomically.
+    /// Gate around virtually all the data (static and instance) in this type to ensure it is only accessed and updated
+    /// atomically.  Specifically, we want to ensure that the static data (<see cref="s_checksumToReferenceSet"/> and
+    /// <see cref="s_lastCreatedAnalyzerReferenceSet"/>) is only updated atomically.  And, also, when we're looking at
+    /// <see cref="s_lastCreatedAnalyzerReferenceSet"/> to mutate it, that it itself is only mutated atomically.
     /// </summary>
-    private static readonly SemaphoreSlim s_isolatedReferenceSetGate = new(initialCount: 1);
+    private static readonly SemaphoreSlim s_gate = new(initialCount: 1);
 
     /// <summary>
     /// Mapping from checksum for a particular set of assembly references, to the dedicated ALC and actual assembly
     /// references corresponding to it.  As long as it is alive, we will try to reuse what is in memory.  But once it is
     /// dropped from memory, we'll clean things up and produce a new one.
     /// </summary>
+    /// <remarks>Guarded by <see cref="s_gate"/></remarks>
     private static readonly Dictionary<Checksum, WeakReference<IsolatedAnalyzerReferenceSet>> s_checksumToReferenceSet = [];
 
     /// <summary>
@@ -51,6 +55,7 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
     /// the set was created.  When trying to reuse the set, we see if any of the references we now have has a different
     /// mvid from that creation point.  If so, we have a conflict and we make a new set.
     /// </remarks>
+    /// <remarks>Guarded by <see cref="s_gate"/></remarks>
     private static IsolatedAnalyzerReferenceSet? s_lastCreatedAnalyzerReferenceSet;
 
     private static int s_sweepCount = 0;
@@ -66,12 +71,18 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
     /// reference set.  As long as the references we see at those paths have the same mvids, we'll keep using this 
     /// set instance.
     /// </summary>
+    /// <remarks>Guarded by <see cref="s_gate"/>.  Note that while the gate is static, this is instance data on the <see
+    /// cref="s_lastCreatedAnalyzerReferenceSet"/>.  And we only want to mutate that instance data from one thread at a
+    /// time.</remarks>
     private readonly Dictionary<string, Guid> _analyzerFileReferencePathToMvid = [];
 
     /// <summary>
     /// Mapping from synchronization checksum to the isolated analyzer references created for them.  Used to help oop
     /// synchronization retrieve the same set if multiple projects have the same analyzer references (a common case).
     /// </summary>
+    /// <remarks>Guarded by <see cref="s_gate"/>.  Note that while the gate is static, this is instance data on the <see
+    /// cref="s_lastCreatedAnalyzerReferenceSet"/>.  And we only want to mutate that instance data from one thread at a
+    /// time.</remarks>
     private readonly Dictionary<Checksum, ImmutableArray<AnalyzerReference>> _analyzerReferences = [];
 
     private IsolatedAnalyzerReferenceSet(
@@ -91,7 +102,7 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
 
     private static void GarbageCollectReleaseReferences_NoLock()
     {
-        Contract.ThrowIfTrue(s_isolatedReferenceSetGate.CurrentCount != 0, "Lock must be held");
+        Contract.ThrowIfTrue(s_gate.CurrentCount != 0, "Lock must be held");
 
         // When we've done some reasonable number of mutations to the dictionary, we'll do a sweep to see if there are
         // entries we can remove.
@@ -134,7 +145,7 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
         Dictionary<string, Guid> filePathToMvid)
     {
         Contract.ThrowIfTrue(_analyzerReferences.ContainsKey(checksum));
-        Contract.ThrowIfTrue(s_isolatedReferenceSetGate.CurrentCount != 0, "Lock must be held");
+        Contract.ThrowIfTrue(s_gate.CurrentCount != 0, "Lock must be held");
 
         var builder = new FixedSizeArrayBuilder<AnalyzerReference>(references.Length);
         foreach (var initialReference in references)
@@ -227,8 +238,8 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
 
         // First, see if these were already computed and stored.
         using (useAsync
-            ? await s_isolatedReferenceSetGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false)
-            : s_isolatedReferenceSetGate.DisposableWait(cancellationToken))
+            ? await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false)
+            : s_gate.DisposableWait(cancellationToken))
         {
             if (s_checksumToReferenceSet.TryGetValue(checksum, out var weakIsolatedReferenceSet) &&
                 weakIsolatedReferenceSet.TryGetTarget(out var isolatedAssemblyReferenceSet))
@@ -242,8 +253,8 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
         var assemblyLoaderProvider = solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
 
         using (useAsync
-           ? await s_isolatedReferenceSetGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false)
-           : s_isolatedReferenceSetGate.DisposableWait(cancellationToken))
+           ? await s_gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false)
+           : s_gate.DisposableWait(cancellationToken))
         {
             // Check again to see if another thread beat us.
             if (s_checksumToReferenceSet.TryGetValue(checksum, out var weakIsolatedReferenceSet) &&
