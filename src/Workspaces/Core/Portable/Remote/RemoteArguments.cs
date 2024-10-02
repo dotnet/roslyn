@@ -198,7 +198,7 @@ internal readonly struct SerializableReferenceLocation(
 }
 
 [DataContract]
-internal class SerializableSymbolGroup(HashSet<SerializableSymbolAndProjectId> symbols) : IEquatable<SerializableSymbolGroup>
+internal sealed class SerializableSymbolGroup(HashSet<SerializableSymbolAndProjectId> symbols) : IEquatable<SerializableSymbolGroup>
 {
     [DataMember(Order = 0)]
     public readonly HashSet<SerializableSymbolAndProjectId> Symbols = new HashSet<SerializableSymbolAndProjectId>(symbols);

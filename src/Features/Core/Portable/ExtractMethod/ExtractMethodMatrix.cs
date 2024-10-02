@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
-internal class ExtractMethodMatrix
+internal sealed class ExtractMethodMatrix
 {
     private static readonly Dictionary<Key, VariableStyle> s_matrix;
 
