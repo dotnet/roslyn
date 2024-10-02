@@ -45,6 +45,8 @@ namespace System
             this.Length = length;
         }
 
+        public static Span<T> Empty => default;
+
         public void CopyTo(Span<T> other)
         {
             Array.Copy(arr, start, other.arr, other.start, Length);
@@ -129,6 +131,8 @@ namespace System
             this.start = start;
             this.Length = length;
         }
+
+        public static ReadOnlySpan<T> Empty => default;
 
         public void CopyTo(Span<T> other)
         {
