@@ -1044,7 +1044,8 @@ outerDefault:
 
             // Second, we need to determine if the method is applicable in its normal form or its expanded form.
             bool disallowExpandedNonArrayParams = (options & Options.DisallowExpandedNonArrayParams) != 0;
-            var normalResult = ((options & Options.IgnoreNormalFormIfHasValidParamsParameter) != 0 && IsValidParams(_binder, leastOverriddenMember, disallowExpandedNonArrayParams, out _))
+            bool skipNormalResult = ((options & Options.IgnoreNormalFormIfHasValidParamsParameter) != 0 && IsValidParams(_binder, leastOverriddenMember, disallowExpandedNonArrayParams, out _));
+            var normalResult = skipNormalResult
                 ? default(MemberResolutionResult<TMember>)
                 : IsMemberApplicableInNormalForm(
                     member,
@@ -1063,6 +1064,7 @@ outerDefault:
                 // tricks you can pull to make overriding methods [indexers] inconsistent with overridden
                 // methods [indexers] (or implementing methods [indexers] inconsistent with interfaces). 
 
+                Debug.Assert((options & Options.IgnoreNormalFormIfHasValidParamsParameter) == 0 || (options & Options.IsMethodGroupConversion) == 0);
                 if ((options & Options.IsMethodGroupConversion) == 0 && IsValidParams(_binder, leastOverriddenMember, disallowExpandedNonArrayParams, out TypeWithAnnotations definitionElementType))
                 {
                     var expandedResult = IsMemberApplicableInExpandedForm(
@@ -1076,7 +1078,7 @@ outerDefault:
                         dynamicConvertsToAnything: (options & Options.DynamicConvertsToAnything) != 0,
                         useSiteInfo: ref useSiteInfo);
 
-                    if (PreferExpandedFormOverNormalForm(normalResult, expandedResult))
+                    if (skipNormalResult || PreferExpandedFormOverNormalForm(normalResult, expandedResult))
                     {
                         result = expandedResult;
                     }
@@ -1141,9 +1143,6 @@ outerDefault:
                     }
 
                     break;
-
-                case MemberResolutionKind.None:
-                    return true;
             }
             return false;
 
