@@ -369,6 +369,9 @@ public class C
             Assert.False(result.Success);
         }
 
+        /// <summary>
+        /// Verifies the constant <see cref="PdbWriter.CustomMetadataByteLimit"/> against the external sym writer library we depend on.
+        /// </summary>
         [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/75237")]
         [CombinatorialData]
@@ -377,6 +380,9 @@ public class C
             CompileWithMockedCustomMetadata(length).Diagnostics.Verify();
         }
 
+        /// <summary>
+        /// Verifies the constant <see cref="PdbWriter.CustomMetadataByteLimit"/> against the external sym writer library we depend on.
+        /// </summary>
         [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/75237")]
         [CombinatorialData]

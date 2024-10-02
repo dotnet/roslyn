@@ -26,6 +26,8 @@ namespace Microsoft.Cci
     internal sealed class PdbWriter : IDisposable
     {
         internal const uint Age = 1;
+
+        // This constant is verified in PDBTests.NativeWriterLimit_Under and NativeWriterLimit_Over.
         internal const int CustomMetadataByteLimit = 65_504;
 
         private readonly HashAlgorithmName _hashAlgorithmNameOpt;
