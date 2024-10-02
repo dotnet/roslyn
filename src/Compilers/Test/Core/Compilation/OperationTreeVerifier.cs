@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             // Note: we rely on ArrayPool.Shared's rounding up capacity to power of 2 for efficient implementation here (this works up to 2^30, at which point there will be other issues not far off anyway)
             static void ResizeArrayPoolBuffer<T>(ref T[] buffer, int currentLength, int requiredCapacity) where T : unmanaged
             {
-                Debug.Assert(buffer?.Length ?? 0 < requiredCapacity);
+                Debug.Assert((buffer?.Length ?? 0) < requiredCapacity);
                 Debug.Assert(currentLength < requiredCapacity);
                 T[] oldBuffer = buffer;
                 T[] newBuffer = ArrayPool<T>.Shared.Rent(requiredCapacity);
