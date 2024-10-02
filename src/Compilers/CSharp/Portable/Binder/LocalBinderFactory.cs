@@ -946,7 +946,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitVariableDeclarator(VariableDeclaratorSyntax node)
         {
             Visit(node.ArgumentList);
-            Visit(node.Initializer?.Value);
+
+            if (node.Initializer is { } initializer)
+            {
+                var oldEnclosing = _enclosing;
+                var localInProgressBinder = new LocalInProgressBinder(initializer, _enclosing);
+                AddToMap(initializer, localInProgressBinder);
+
+                _enclosing = localInProgressBinder;
+                Visit(initializer.Value);
+                _enclosing = oldEnclosing;
+            }
         }
 
         public override void VisitReturnStatement(ReturnStatementSyntax node)

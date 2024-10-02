@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(initializer != null);
 
                 _initializer = initializer;
-                _initializerBinder = initializerBinder;
+                _initializerBinder = initializerBinder.GetBinder(initializer);
             }
 
             protected override TypeWithAnnotations InferTypeOfVarVariable(BindingDiagnosticBag diagnostics)
@@ -563,12 +563,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var type = this.Type;
                     if (boundInitValue == null)
                     {
-                        var inProgressBinder = new LocalInProgressBinder(this, this._initializerBinder);
-                        boundInitValue = inProgressBinder.BindVariableOrAutoPropInitializerValue(_initializer, this.RefKind, type, diagnostics);
+                        recordLocalInBinderChain(this, _initializer, this._initializerBinder);
+                        boundInitValue = this._initializerBinder.BindVariableOrAutoPropInitializerValue(_initializer, this.RefKind, type, diagnostics);
                     }
 
                     value = ConstantValueUtils.GetAndValidateConstantValue(boundInitValue, this, type, _initializer.Value, diagnostics);
                     Interlocked.CompareExchange(ref _constantTuple, new EvaluatedConstant(value, diagnostics.ToReadOnlyAndFree()), null);
+                }
+
+                static void recordLocalInBinderChain(LocalSymbol local, EqualsValueClauseSyntax initializer, Binder initializerBinder)
+                {
+                    for (var binder = initializerBinder; binder != null; binder = binder.Next)
+                    {
+                        if (binder is LocalInProgressBinder localInProgressBinder && localInProgressBinder.InitializerSyntax == initializer)
+                        {
+                            localInProgressBinder.SetLocalSymbol(local);
+                            return;
+                        }
+                    }
+
+                    throw ExceptionUtilities.Unreachable();
                 }
             }
 
