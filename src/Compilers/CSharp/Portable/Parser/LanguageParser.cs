@@ -11287,7 +11287,7 @@ done:;
                 }
             }
 
-            // https://github.com/dotnet/csharpstandard/blob/standard-v6/standard/expressions.md?rgh-link-date=2024-10-02T19%3A11%3A19Z#1115-conditional-operator:
+            // https://github.com/dotnet/csharpstandard/blob/standard-v6/standard/expressions.md#1115-conditional-operator:
             //
             // conditional_expression
             //     : null_coalescing_expression
