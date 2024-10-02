@@ -18,7 +18,12 @@ internal abstract partial class AbstractRenameCommandHandler :
 
     public bool ExecuteCommand(ReorderParametersCommandArgs args, CommandExecutionContext context)
     {
-        CommitIfActive(args, context.OperationContext);
+        if (renameService.ActiveSession?.IsCommitInProgress is true)
+        {
+            return true;
+        }
+
+        CommitOrCancelIfActive(args, context.OperationContext, invalidEditCommandInvoked: true);
         return false;
     }
 
@@ -27,7 +32,12 @@ internal abstract partial class AbstractRenameCommandHandler :
 
     public bool ExecuteCommand(RemoveParametersCommandArgs args, CommandExecutionContext context)
     {
-        CommitIfActive(args, context.OperationContext);
+        if (renameService.ActiveSession?.IsCommitInProgress is true)
+        {
+            return true;
+        }
+
+        CommitOrCancelIfActive(args, context.OperationContext, invalidEditCommandInvoked: true);
         return false;
     }
 
@@ -36,7 +46,12 @@ internal abstract partial class AbstractRenameCommandHandler :
 
     public bool ExecuteCommand(ExtractInterfaceCommandArgs args, CommandExecutionContext context)
     {
-        CommitIfActive(args, context.OperationContext);
+        if (renameService.ActiveSession?.IsCommitInProgress is true)
+        {
+            return true;
+        }
+
+        CommitOrCancelIfActive(args, context.OperationContext, invalidEditCommandInvoked: true);
         return false;
     }
 
@@ -45,7 +60,12 @@ internal abstract partial class AbstractRenameCommandHandler :
 
     public bool ExecuteCommand(EncapsulateFieldCommandArgs args, CommandExecutionContext context)
     {
-        CommitIfActive(args, context.OperationContext);
+        if (renameService.ActiveSession?.IsCommitInProgress is true)
+        {
+            return true;
+        }
+
+        CommitOrCancelIfActive(args, context.OperationContext, invalidEditCommandInvoked: true);
         return false;
     }
 }
