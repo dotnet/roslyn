@@ -72,7 +72,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Run_code_analysis_in_separate_process, RemoteHostOptionsStorage.OOP64Bit)
             BindToOption(Automatically_reload_updated_analyzers_and_generators, WorkspaceConfigurationOptionsStorage.ReloadChangedAnalyzerReferences,
                          Function()
-                             ' If the option has Not been set by the user, check if the option Is enabled from
+                             ' If the option has not been set by the user, check if the option is enabled from
                              ' experimentation. If so, default to that.
                              Return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.ReloadChangedAnalyzerReferencesFeatureFlag)
                          End Function)
