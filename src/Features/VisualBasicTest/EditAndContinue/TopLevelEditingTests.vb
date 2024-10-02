@@ -122,7 +122,7 @@ Imports System.Collections.Generic
 
             edits.VerifyEdits(
                 "Update [Imports X1 = System.Collections]@30 -> [Imports X2 = System.Collections]@30",
-                "Update [Imports <xmlns=""http://roslyn/default1"">]@63 -> [Imports <xmlns=""http://roslyn/default2"">]@63"
+                "Update [Imports <xmlns=""http://roslyn/default1"">]@63 -> [Imports <xmlns=""http://roslyn/default2"">]@63")
 
             edits.VerifySemanticDiagnostics()
         End Sub
