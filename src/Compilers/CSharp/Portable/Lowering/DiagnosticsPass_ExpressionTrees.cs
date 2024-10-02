@@ -1072,5 +1072,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return null;
         }
+
+        public override BoundNode VisitInterpolatedString(BoundInterpolatedString node)
+        {
+            Visit(node.InterpolationData?.Construction);
+            return base.VisitInterpolatedString(node);
+        }
     }
 }

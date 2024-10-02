@@ -1141,6 +1141,9 @@ outerDefault:
                     }
 
                     break;
+
+                case MemberResolutionKind.None: // TODO: Temporarily including fix from https://github.com/dotnet/roslyn/pull/75305. Intend to remove before merging.
+                    return true;
             }
             return false;
 

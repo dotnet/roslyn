@@ -2253,8 +2253,14 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private IInterpolatedStringOperation CreateBoundInterpolatedStringExpressionOperation(BoundInterpolatedString boundInterpolatedString, ImmutableArray<(bool IsLiteral, bool HasAlignment, bool HasFormat)>? positionInfo = null)
         {
-            Debug.Assert(positionInfo == null || boundInterpolatedString.InterpolationData == null);
-            ImmutableArray<IInterpolatedStringContentOperation> parts = CreateBoundInterpolatedStringContentOperation(boundInterpolatedString.Parts, positionInfo ?? boundInterpolatedString.InterpolationData?.PositionInfo[0]);
+            Debug.Assert(positionInfo == null || boundInterpolatedString.InterpolationData is null or { BuilderType: null });
+
+            if (positionInfo is null && boundInterpolatedString.InterpolationData is { BuilderType: not null, PositionInfo: var info })
+            {
+                positionInfo = info[0];
+            }
+
+            ImmutableArray<IInterpolatedStringContentOperation> parts = CreateBoundInterpolatedStringContentOperation(boundInterpolatedString.Parts, positionInfo);
             SyntaxNode syntax = boundInterpolatedString.Syntax;
             ITypeSymbol? type = boundInterpolatedString.GetPublicTypeSymbol();
             ConstantValue? constantValue = boundInterpolatedString.ConstantValueOpt;
