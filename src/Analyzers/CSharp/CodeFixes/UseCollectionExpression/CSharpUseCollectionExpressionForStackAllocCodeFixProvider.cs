@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForStackAlloc), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider()
+internal sealed partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider()
     : AbstractUseCollectionExpressionCodeFixProvider<ExpressionSyntax>(
         CSharpCodeFixesResources.Use_collection_expression,
         IDEDiagnosticIds.UseCollectionExpressionForStackAllocDiagnosticId)

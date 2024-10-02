@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExportCompletionProvider(nameof(NamedParameterCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(AttributeNamedParameterCompletionProvider))]
 [Shared]
-internal partial class NamedParameterCompletionProvider : LSPCompletionProvider, IEqualityComparer<IParameterSymbol>
+internal sealed partial class NamedParameterCompletionProvider : LSPCompletionProvider, IEqualityComparer<IParameterSymbol>
 {
     private const string ColonString = ":";
 
