@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 
 namespace Microsoft.CodeAnalysis.UseCollectionInitializer;
 
@@ -34,6 +35,10 @@ internal abstract class AbstractObjectCreationExpressionAnalyzer<
         TMatch,
         TAnalyzer>, new()
 {
+    public readonly record struct AnalysisResult(
+        ImmutableArray<TMatch> PreMatches,
+        ImmutableArray<TMatch> PostMatches);
+
     protected UpdateExpressionState<TExpressionSyntax, TStatementSyntax> State;
 
     protected TObjectCreationExpressionSyntax _objectCreationExpression = null!;
@@ -75,7 +80,7 @@ internal abstract class AbstractObjectCreationExpressionAnalyzer<
         _analyzeForCollectionExpression = false;
     }
 
-    protected (ImmutableArray<TMatch> preMatches, ImmutableArray<TMatch> postMatches) AnalyzeWorker(CancellationToken cancellationToken)
+    protected AnalysisResult AnalyzeWorker(CancellationToken cancellationToken)
     {
         if (!ShouldAnalyze(cancellationToken))
             return default;
@@ -85,7 +90,7 @@ internal abstract class AbstractObjectCreationExpressionAnalyzer<
         if (!TryAddMatches(preMatches, postMatches, cancellationToken))
             return default;
 
-        return (preMatches.ToImmutableAndClear(), postMatches.ToImmutableAndClear());
+        return new(preMatches.ToImmutableAndClear(), postMatches.ToImmutableAndClear());
     }
 
     protected UpdateExpressionState<TExpressionSyntax, TStatementSyntax>? TryInitializeState(

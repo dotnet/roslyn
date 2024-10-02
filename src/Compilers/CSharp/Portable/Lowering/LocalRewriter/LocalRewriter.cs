@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var visited = VisitExpressionWithStackGuard(node);
+            var visited = (BoundExpression)VisitExpressionOrPatternWithStackGuard(node);
 
             // If you *really* need to change the type, consider using an indirect method
             // like compound assignment does (extra flag only passed when it is an expression

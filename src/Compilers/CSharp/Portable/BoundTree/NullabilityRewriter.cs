@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class NullabilityRewriter : BoundTreeRewriter
     {
-        protected override BoundExpression? VisitExpressionWithoutStackGuard(BoundExpression node)
+        protected override BoundNode? VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
         {
-            return (BoundExpression)Visit(node);
+            return Visit(node);
         }
 
         public override BoundNode? VisitBinaryOperator(BoundBinaryOperator node)

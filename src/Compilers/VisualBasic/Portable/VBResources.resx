@@ -5541,7 +5541,7 @@
     <value>Type is for evaluation purposes only and is subject to change or removal in future updates.</value>
   </data>
   <data name="ERR_InvalidDebugInfo" xml:space="preserve">
-    <value>Unable to read debug information of method '{0}' (token 0x{1}) from assembly '{2}'</value>
+    <value>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</value>
   </data>
   <data name="IConversionExpressionIsNotVisualBasicConversion" xml:space="preserve">
     <value>{0} is not a valid Visual Basic conversion expression</value>
