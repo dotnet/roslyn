@@ -940,6 +940,7 @@ outerDefault:
             where TMember : Symbol
         {
             Debug.Assert(checkOverriddenOrHidden || containingTypeMapOpt is null);
+            Debug.Assert((options & Options.IgnoreNormalFormIfHasValidParamsParameter) == 0 || (options & Options.IsMethodGroupConversion) == 0);
 
             // SPEC VIOLATION:
             //
@@ -1064,7 +1065,6 @@ outerDefault:
                 // tricks you can pull to make overriding methods [indexers] inconsistent with overridden
                 // methods [indexers] (or implementing methods [indexers] inconsistent with interfaces). 
 
-                Debug.Assert((options & Options.IgnoreNormalFormIfHasValidParamsParameter) == 0 || (options & Options.IsMethodGroupConversion) == 0);
                 if ((options & Options.IsMethodGroupConversion) == 0 && IsValidParams(_binder, leastOverriddenMember, disallowExpandedNonArrayParams, out TypeWithAnnotations definitionElementType))
                 {
                     var expandedResult = IsMemberApplicableInExpandedForm(
