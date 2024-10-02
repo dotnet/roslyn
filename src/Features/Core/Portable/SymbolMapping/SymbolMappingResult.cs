@@ -6,7 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SymbolMapping;
 
-internal class SymbolMappingResult
+internal sealed class SymbolMappingResult
 {
     public Project Project { get; }
     public ISymbol Symbol { get; }

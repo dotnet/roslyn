@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
     /// <summary>
     /// An implementation of <see cref="ICompilationTracker"/> that takes a compilation from another compilation tracker

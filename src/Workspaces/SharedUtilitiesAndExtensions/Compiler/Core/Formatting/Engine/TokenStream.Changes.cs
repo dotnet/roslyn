@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
-internal partial class TokenStream
+internal sealed partial class TokenStream
 {
     /// <summary>
     /// Thread-safe collection that holds onto changes

@@ -8,7 +8,7 @@ using System.Reflection.Metadata.Ecma335;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal partial class SymbolTreeInfo
+internal sealed partial class SymbolTreeInfo
 {
     /// <summary>
     /// Used to produce the simple-full-name components of a type from metadata.
@@ -18,7 +18,7 @@ internal partial class SymbolTreeInfo
     /// are added.  For example, for the type "X.Y.O`1.I`2, we will produce [X, Y, O, I]
     /// 
     /// </summary>
-    private class FirstEntityHandleProvider : ISignatureTypeProvider<EntityHandle, object?>
+    private sealed class FirstEntityHandleProvider : ISignatureTypeProvider<EntityHandle, object?>
     {
         public static readonly FirstEntityHandleProvider Instance = new();
 

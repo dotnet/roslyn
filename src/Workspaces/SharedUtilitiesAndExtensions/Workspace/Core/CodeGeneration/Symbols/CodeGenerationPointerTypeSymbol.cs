@@ -6,7 +6,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationPointerTypeSymbol(ITypeSymbol pointedAtType) : CodeGenerationTypeSymbol(null, null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None, NullableAnnotation.None), IPointerTypeSymbol
+internal sealed class CodeGenerationPointerTypeSymbol(ITypeSymbol pointedAtType) : CodeGenerationTypeSymbol(null, null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None, NullableAnnotation.None), IPointerTypeSymbol
 {
     public ITypeSymbol PointedAtType { get; } = pointedAtType;
 

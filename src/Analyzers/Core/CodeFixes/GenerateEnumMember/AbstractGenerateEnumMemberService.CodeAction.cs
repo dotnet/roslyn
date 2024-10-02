@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember;
 
 internal abstract partial class AbstractGenerateEnumMemberService<TService, TSimpleNameSyntax, TExpressionSyntax>
 {
-    private partial class GenerateEnumMemberCodeAction(Document document, State state) : CodeAction
+    private sealed partial class GenerateEnumMemberCodeAction(Document document, State state) : CodeAction
     {
         private readonly Document _document = document;
         private readonly State _state = state;

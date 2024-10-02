@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
-internal class UniqueNameGenerator
+internal sealed class UniqueNameGenerator
 {
     private readonly SemanticModel _semanticModel;
 

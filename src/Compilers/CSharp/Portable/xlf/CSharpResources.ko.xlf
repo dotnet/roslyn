@@ -12995,8 +12995,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidDebugInfo">
-        <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}'</source>
-        <target state="translated">'{2}' 어셈블리에서 '{0}' 메서드(토큰 0x{1:X8})의 디버그 정보를 읽을 수 없습니다.</target>
+        <source>Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</source>
+        <target state="new">Unable to read debug information of method '{0}' (token 0x{1:X8}) from assembly '{2}': {3}</target>
         <note />
       </trans-unit>
       <trans-unit id="IConversionExpressionIsNotCSharpConversion">

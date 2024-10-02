@@ -8,13 +8,13 @@ using Microsoft.CodeAnalysis.LanguageService;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
 
-internal partial class AbstractGenerateEqualsAndGetHashCodeService
+internal abstract partial class AbstractGenerateEqualsAndGetHashCodeService
 {
     /// <summary>
     /// Specialized formatter for the "return a == obj.a &amp;&amp; b == obj.b &amp;&amp; c == obj.c &amp;&amp; ...
     /// code that we spit out.
     /// </summary>
-    private class FormatLargeBinaryExpressionRule(ISyntaxFactsService syntaxFacts) : AbstractFormattingRule
+    private sealed class FormatLargeBinaryExpressionRule(ISyntaxFactsService syntaxFacts) : AbstractFormattingRule
     {
         private readonly ISyntaxFactsService _syntaxFacts = syntaxFacts;
 

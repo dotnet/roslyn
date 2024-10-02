@@ -6,9 +6,9 @@
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
-internal partial class ITypeSymbolExtensions
+internal static partial class ITypeSymbolExtensions
 {
-    private class CompilationTypeGenerator(Compilation compilation) : ITypeGenerator
+    private sealed class CompilationTypeGenerator(Compilation compilation) : ITypeGenerator
     {
         public ITypeSymbol CreateArrayTypeSymbol(ITypeSymbol elementType, int rank)
             => compilation.CreateArrayTypeSymbol(elementType, rank);

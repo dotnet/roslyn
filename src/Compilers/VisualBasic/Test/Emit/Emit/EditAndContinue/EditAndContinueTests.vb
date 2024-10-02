@@ -20,6 +20,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class EditAndContinueTests
         Inherits EditAndContinueTestBase
 
+        <Theory>
+        <InlineData(GetType(IOException))>
+        <InlineData(GetType(BadImageFormatException))>
+        <InlineData(GetType(InvalidDataException))>
+        Public Sub SymReaderErrors(exceptionType As Type)
+            Using New EditAndContinueTest(assemblyName:="test").
+                AddBaseline(
+                    source:="
+                    Class C
+                        Sub F()
+                            Dim x = 1
+                        End Sub
+                    End Class
+                    ",
+                    debugInformationProvider:=Function(method)
+                                                  Throw DirectCast(Activator.CreateInstance(exceptionType, {"bug!"}), Exception)
+                                              End Function).
+                AddGeneration(' 1
+                    source:="
+                    Class C
+                        Sub F()
+                            Dim x = 2
+                        End Sub
+                    End Class
+                    ",
+                    edits:=
+                    {
+                        Edit(SemanticEditKind.Update, Function(c) c.GetMember("C.F"), preserveLocalVariables:=True)
+                    },
+                    expectedErrors:=
+                    {
+                        Diagnostic(ERRID.ERR_InvalidDebugInfo, "F").WithArguments("Public Sub F()", &H6000002, "test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "bug!").WithLocation(3, 29)
+                    }).
+                Verify()
+            End Using
+        End Sub
+
         <Fact>
         Public Sub SemanticErrors_MethodBody()
             Dim source0 = MarkedSource("
