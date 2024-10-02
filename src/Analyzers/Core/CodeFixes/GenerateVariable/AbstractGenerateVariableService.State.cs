@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 
 internal abstract partial class AbstractGenerateVariableService<TService, TSimpleNameSyntax, TExpressionSyntax>
 {
-    private partial class State
+    private sealed partial class State
     {
         private readonly TService _service;
         private readonly SemanticDocument _document;

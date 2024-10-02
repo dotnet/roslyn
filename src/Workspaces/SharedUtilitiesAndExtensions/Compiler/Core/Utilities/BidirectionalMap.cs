@@ -10,7 +10,7 @@ using System.Linq;
 
 namespace Roslyn.Utilities;
 
-internal class BidirectionalMap<TKey, TValue> : IBidirectionalMap<TKey, TValue>
+internal sealed class BidirectionalMap<TKey, TValue> : IBidirectionalMap<TKey, TValue>
     where TKey : notnull
     where TValue : notnull
 {

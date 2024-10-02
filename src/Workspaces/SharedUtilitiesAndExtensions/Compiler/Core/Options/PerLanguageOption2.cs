@@ -25,7 +25,7 @@ internal interface IPerLanguageValuedOption<T> : IPerLanguageValuedOption
 /// An option that can be specified once per language.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-internal partial class PerLanguageOption2<T> : IPerLanguageValuedOption<T>
+internal sealed partial class PerLanguageOption2<T> : IPerLanguageValuedOption<T>
 {
     public OptionDefinition<T> Definition { get; }
     public IPublicOption? PublicOption { get; }

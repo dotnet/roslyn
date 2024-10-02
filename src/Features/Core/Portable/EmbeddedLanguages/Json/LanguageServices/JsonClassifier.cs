@@ -113,7 +113,7 @@ internal sealed class JsonClassifier : IEmbeddedLanguageClassifier
         }
     }
 
-    private class Visitor : IJsonNodeVisitor
+    private sealed class Visitor : IJsonNodeVisitor
     {
         public EmbeddedLanguageClassificationContext Context;
 

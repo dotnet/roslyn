@@ -8,7 +8,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractMethod;
 
-internal class InsertionPoint
+internal sealed class InsertionPoint
 {
     private readonly SyntaxAnnotation _annotation;
     private readonly Lazy<SyntaxNode?> _context;

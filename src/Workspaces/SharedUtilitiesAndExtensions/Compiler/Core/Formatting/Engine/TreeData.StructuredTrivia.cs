@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Formatting;
 
 internal abstract partial class TreeData
 {
-    private class StructuredTrivia : TreeData
+    private sealed class StructuredTrivia : TreeData
     {
         private readonly int _initialColumn;
         private readonly SyntaxTrivia _trivia;

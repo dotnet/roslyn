@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers;
 
 internal abstract partial class AbstractOverrideCompletionProvider
 {
-    private partial class ItemGetter
+    private sealed partial class ItemGetter
     {
         private readonly CancellationToken _cancellationToken;
         private readonly int _position;

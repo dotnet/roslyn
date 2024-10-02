@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.GenerateConstructorFromMembers;
 
 internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefactoringProvider
 {
-    private class State
+    private sealed class State
     {
         public TextSpan TextSpan { get; private set; }
         public IMethodSymbol? MatchingConstructor { get; private set; }

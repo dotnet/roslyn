@@ -376,7 +376,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
         return renameTable.ToImmutableDictionary();
     }
 
-    private class LocalVariableDeclarationVisitor : OperationWalker
+    private sealed class LocalVariableDeclarationVisitor : OperationWalker
     {
         private readonly CancellationToken _cancellationToken;
         private readonly HashSet<ISymbol> _allSymbols = [];

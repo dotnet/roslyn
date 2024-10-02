@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SolutionCompilationState
+    internal sealed partial class SolutionCompilationState
     {
         /// <summary>
         /// Tracks the changes made to a project and provides the facility to get a lazily built

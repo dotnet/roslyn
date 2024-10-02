@@ -13,9 +13,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
-internal partial class AbstractMetadataAsSourceService
+internal abstract partial class AbstractMetadataAsSourceService
 {
-    private class WrappedNamedTypeSymbol : AbstractWrappedNamespaceOrTypeSymbol, INamedTypeSymbol
+    private sealed class WrappedNamedTypeSymbol : AbstractWrappedNamespaceOrTypeSymbol, INamedTypeSymbol
     {
         private readonly INamedTypeSymbol _symbol;
         private readonly ImmutableArray<ISymbol> _members;

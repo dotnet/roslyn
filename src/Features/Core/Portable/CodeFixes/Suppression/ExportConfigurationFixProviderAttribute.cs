@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes;
 /// </summary>
 [MetadataAttribute]
 [AttributeUsage(AttributeTargets.Class)]
-internal class ExportConfigurationFixProviderAttribute : ExportAttribute
+internal sealed class ExportConfigurationFixProviderAttribute : ExportAttribute
 {
     /// <summary>
     /// The name of the <see cref="IConfigurationFixProvider"/>.  
