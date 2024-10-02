@@ -700,33 +700,45 @@ namespace Roslyn.Test.Utilities
                     if (pooledAlloc.Length < allocSize + newChars)
                     {
                         char[] newArr = ArrayPool<char>.Shared.Rent(allocSize + newChars);
-                        pooledAlloc.AsSpan().Slice(0, allocSize).CopyTo(newArr.AsSpan().Slice(0, allocSize));
+                        pooledAlloc.AsSpan(0, allocSize).CopyTo(newArr.AsSpan(0, allocSize));
                         ArrayPool<char>.Shared.Return(pooledAlloc);
                         pooledAlloc = newArr;
                     }
 
                     // Copy new text into buffer
-                    pooledAlloc.AsSpan().Slice(allocSize, spacesToAppend).Fill(' ');
+                    pooledAlloc.AsSpan(allocSize, spacesToAppend).Fill(' ');
                     allocSize += spacesToAppend;
-                    trimmedLine.CopyTo(pooledAlloc.AsSpan().Slice(allocSize, trimmedLine.Length));
+                    trimmedLine.CopyTo(pooledAlloc.AsSpan(allocSize, trimmedLine.Length));
                     allocSize += trimmedLine.Length;
-                    Environment.NewLine.AsSpan().CopyTo(pooledAlloc.AsSpan().Slice(allocSize, Environment.NewLine.Length));
+                    Environment.NewLine.AsSpan().CopyTo(pooledAlloc.AsSpan(allocSize, Environment.NewLine.Length));
                     allocSize += Environment.NewLine.Length;
                 }
 
                 // Exit if done
-                if (next == input.Length) break;
+                if (next == input.Length)
+                {
+                    break;
+                }
 
                 // Find next section
                 prev = next + 1;
                 next = input.Slice(prev).IndexOfAny("\r\n".AsSpan());
-                if (next >= 0) next += prev;
-                else next = input.Length;
+                if (next >= 0)
+                {
+                    next += prev;
+                }
+                else
+                {
+                    next = input.Length;
+                }
             }
 
             // Return the valid part of our allocation
-            if (pooledAlloc == null) return default;
-            return pooledAlloc.AsMemory().Slice(0, allocSize);
+            if (pooledAlloc == null)
+            {
+                return default;
+            }
+            return pooledAlloc.AsMemory(0, allocSize);
         }
 
         public static string GetAssertMessage(string expected, string actual, string prefix = null, bool escapeQuotes = false, string expectedValueSourcePath = null, int expectedValueSourceLine = 0)
