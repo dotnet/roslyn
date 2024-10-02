@@ -54,14 +54,14 @@ internal static class ITextImageHelpers
         if (changes == null)
             return [];
 
-        var builder = ArrayBuilder<TextChangeRange>.GetInstance(changes.Count);
+        var builder = new FixedSizeArrayBuilder<TextChangeRange>(changes.Count);
         for (var i = 0; i < changes.Count; i++)
         {
             var change = changes[i];
             builder.Add(forward ? s_forwardTextChangeRange(change) : s_backwardTextChangeRange(change));
         }
 
-        return builder.ToImmutableAndFree();
+        return builder.MoveToImmutable();
     }
 
     private static TextChangeRange GetChangeRanges(ITextImageVersion oldVersion, ITextImageVersion newVersion, bool forward)
