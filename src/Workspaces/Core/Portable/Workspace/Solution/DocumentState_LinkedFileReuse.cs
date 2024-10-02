@@ -69,8 +69,11 @@ internal partial class DocumentState
         // We only need to look one deep here as we'll pull that tree source forward to our level.  If another link is
         // later added to us, it will do the same thing.
         var originalTreeSource = this.TreeSource;
-        if (originalTreeSource is LinkedFileReuseTreeAndVersionSource linkedFileTreeAndVersionSource)
+        if (originalTreeSource is LinkedFileReuseTreeAndVersionSource linkedFileTreeAndVersionSource
+            && !linkedFileTreeAndVersionSource.TryGetValue(out var _))
+        {
             originalTreeSource = linkedFileTreeAndVersionSource.OriginalTreeSource;
+        }
 
         // Always pass along the sibling text.  We will always be in sync with that.
 
