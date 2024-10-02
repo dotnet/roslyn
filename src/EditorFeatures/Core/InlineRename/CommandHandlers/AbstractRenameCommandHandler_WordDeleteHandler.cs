@@ -29,12 +29,12 @@ internal abstract partial class AbstractRenameCommandHandler :
 
     private bool HandleWordDeleteCommand(ITextBuffer subjectBuffer, ITextView view, bool deleteToStart)
     {
-        if (renameService.ActiveSession == null)
+        if (_renameService.ActiveSession == null)
         {
             return false;
         }
 
-        if (renameService.ActiveSession.IsCommitInProgress)
+        if (_renameService.ActiveSession.IsCommitInProgress)
         {
             // When rename commit is in progress, handle the command so it won't change the workspace
             return true;
@@ -43,7 +43,7 @@ internal abstract partial class AbstractRenameCommandHandler :
         var caretPoint = view.GetCaretPoint(subjectBuffer);
         if (caretPoint.HasValue)
         {
-            if (renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out var span))
+            if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out var span))
             {
                 int start = caretPoint.Value;
                 int end = caretPoint.Value;

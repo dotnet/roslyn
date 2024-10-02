@@ -16,11 +16,22 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
-internal abstract partial class AbstractRenameCommandHandler(
-    IThreadingContext threadingContext,
-    InlineRenameService renameService,
-    IAsynchronousOperationListener listener)
+internal abstract partial class AbstractRenameCommandHandler
 {
+    private readonly IThreadingContext _threadingContext;
+    private readonly InlineRenameService _renameService;
+    private readonly IAsynchronousOperationListener _listener;
+
+    protected AbstractRenameCommandHandler(
+        IThreadingContext threadingContext,
+        InlineRenameService renameService,
+        IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
+    {
+        _threadingContext = threadingContext;
+        _renameService = renameService;
+        _listener = asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Rename);
+    }
+
     public string DisplayName => EditorFeaturesResources.Rename;
 
     protected abstract bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView);
@@ -35,7 +46,7 @@ internal abstract partial class AbstractRenameCommandHandler(
 
     private CommandState GetCommandState(Func<CommandState> nextHandler)
     {
-        if (renameService.ActiveSession != null)
+        if (_renameService.ActiveSession != null)
         {
             return CommandState.Available;
         }
@@ -44,18 +55,18 @@ internal abstract partial class AbstractRenameCommandHandler(
     }
 
     private CommandState GetCommandState()
-        => renameService.ActiveSession != null ? CommandState.Available : CommandState.Unspecified;
+        => _renameService.ActiveSession != null ? CommandState.Available : CommandState.Unspecified;
 
     private void HandlePossibleTypingCommand<TArgs>(TArgs args, Action nextHandler, IUIThreadOperationContext operationContext, Action<InlineRenameSession, IUIThreadOperationContext, SnapshotSpan> actionIfInsideActiveSpan)
         where TArgs : EditorCommandArgs
     {
-        if (renameService.ActiveSession == null)
+        if (_renameService.ActiveSession == null)
         {
             nextHandler();
             return;
         }
 
-        if (renameService.ActiveSession.IsCommitInProgress)
+        if (_renameService.ActiveSession.IsCommitInProgress)
         {
             return;
         }
@@ -71,12 +82,12 @@ internal abstract partial class AbstractRenameCommandHandler(
         }
 
         var singleSpan = selectedSpans.Single();
-        if (renameService.ActiveSession.TryGetContainingEditableSpan(singleSpan.Start, out var containingSpan) &&
+        if (_renameService.ActiveSession.TryGetContainingEditableSpan(singleSpan.Start, out var containingSpan) &&
             containingSpan.Contains(singleSpan))
         {
-            actionIfInsideActiveSpan(renameService.ActiveSession, operationContext, containingSpan);
+            actionIfInsideActiveSpan(_renameService.ActiveSession, operationContext, containingSpan);
         }
-        else if (renameService.ActiveSession.IsInOpenTextBuffer(singleSpan.Start))
+        else if (_renameService.ActiveSession.IsInOpenTextBuffer(singleSpan.Start))
         {
             // It's in a read-only area that is open, so let's commit the rename 
             // and then let the character go through
@@ -92,7 +103,7 @@ internal abstract partial class AbstractRenameCommandHandler(
 
     private void CommitIfActive(EditorCommandArgs args, IUIThreadOperationContext operationContext)
     {
-        if (renameService.ActiveSession != null)
+        if (_renameService.ActiveSession != null)
         {
             var selection = args.TextView.Selection.VirtualSelectedSpans.First();
 
@@ -112,10 +123,10 @@ internal abstract partial class AbstractRenameCommandHandler(
 
     private void Commit(IUIThreadOperationContext operationContext)
     {
-        RoslynDebug.AssertNotNull(renameService.ActiveSession);
-        renameService.ActiveSession.Commit(previewChanges: false, operationContext);
+        RoslynDebug.AssertNotNull(_renameService.ActiveSession);
+        _renameService.ActiveSession.Commit(previewChanges: false, operationContext);
     }
 
     private bool IsRenameCommitInProgress()
-        => renameService.ActiveSession?.IsCommitInProgress is true;
+        => _renameService.ActiveSession?.IsCommitInProgress is true;
 }

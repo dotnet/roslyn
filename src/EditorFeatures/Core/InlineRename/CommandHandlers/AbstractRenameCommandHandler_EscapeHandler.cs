@@ -14,9 +14,9 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<E
 
     public bool ExecuteCommand(EscapeKeyCommandArgs args, CommandExecutionContext context)
     {
-        if (renameService.ActiveSession != null)
+        if (_renameService.ActiveSession != null)
         {
-            renameService.ActiveSession.Cancel();
+            _renameService.ActiveSession.Cancel();
             SetFocusToTextView(args.TextView);
             return true;
         }

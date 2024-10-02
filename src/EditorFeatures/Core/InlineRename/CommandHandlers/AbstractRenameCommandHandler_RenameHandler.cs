@@ -43,14 +43,14 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             return false;
         }
 
-        var token = listener.BeginAsyncOperation(nameof(ExecuteCommand));
+        var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
         _ = ExecuteCommandAsync(args, context.OperationContext).CompletesAsyncOperation(token);
         return true;
     }
 
     private async Task ExecuteCommandAsync(RenameCommandArgs args, IUIThreadOperationContext editorOperationContext)
     {
-        threadingContext.ThrowIfNotOnUIThread();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (!args.SubjectBuffer.TryGetWorkspace(out var workspace))
         {
@@ -65,13 +65,13 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
         }
 
         // If there is already an active session, commit it first
-        if (renameService.ActiveSession != null)
+        if (_renameService.ActiveSession != null)
         {
-            if (renameService.ActiveSession.IsCommitInProgress)
+            if (_renameService.ActiveSession.IsCommitInProgress)
             {
                 return;
             }
-            else if (renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out _))
+            else if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out _))
             {
                 // Is the caret within any of the rename fields in this buffer?
                 // If so, focus the dashboard
@@ -115,7 +115,7 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             return;
         }
 
-        var sessionInfo = await renameService.StartInlineSessionAsync(document, selectedSpans.Single().Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+        var sessionInfo = await _renameService.StartInlineSessionAsync(document, selectedSpans.Single().Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
         if (!sessionInfo.CanRename)
         {
             await ShowErrorDialogAsync(workspace, sessionInfo.LocalizedErrorMessage).ConfigureAwait(false);
@@ -135,7 +135,7 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
 
     private async Task ShowErrorDialogAsync(Workspace workspace, string message)
     {
-        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
         var notificationService = workspace.Services.GetService<INotificationService>();
         notificationService.SendNotification(message, title: EditorFeaturesResources.Rename, severity: NotificationSeverity.Error);
     }
