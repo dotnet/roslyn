@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.Cci;
 using Microsoft.DiaSymReader;
 
 namespace Roslyn.Test.PdbUtilities;
@@ -10,8 +11,8 @@ internal sealed class CustomMetadataSymUnmanagedWriter(SymUnmanagedWriter target
 {
     private readonly byte[] _customMetadata = customMetadata;
 
-    public override void DefineCustomMetadata(byte[] metadata)
+    public override void DefineCustomMetadata(byte[] metadata, IMethodDefinition methodDefinition)
     {
-        base.DefineCustomMetadata(_customMetadata);
+        base.DefineCustomMetadata(_customMetadata, methodDefinition);
     }
 }

@@ -27,9 +27,6 @@ namespace Microsoft.Cci
     {
         internal const uint Age = 1;
 
-        // This constant is verified in PDBTests.NativeWriterLimit_Under and NativeWriterLimit_Over.
-        internal const int CustomMetadataByteLimit = 65_504;
-
         private readonly HashAlgorithmName _hashAlgorithmNameOpt;
         private readonly string _fileName;
         private readonly Func<ISymWriterMetadataProvider, SymUnmanagedWriter> _symWriterFactory;
@@ -151,16 +148,7 @@ namespace Microsoft.Cci
 
             if (blob.Length > 0)
             {
-                if (blob.Length > CustomMetadataByteLimit)
-                {
-                    throw new SymUnmanagedWriterException(string.Format(
-                        CodeAnalysisResources.SymWriterMetadataOverLimit,
-                        methodBody.MethodDefinition,
-                        blob.Length,
-                        CustomMetadataByteLimit));
-                }
-
-                _symWriter.DefineCustomMetadata(blob);
+                _symWriter.DefineCustomMetadata(blob, methodBody.MethodDefinition);
             }
 
             CloseMethod(methodBody.IL.Length);

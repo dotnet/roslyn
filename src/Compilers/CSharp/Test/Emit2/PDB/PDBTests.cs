@@ -5,7 +5,6 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -13,13 +12,13 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.DiaSymReader;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
@@ -370,27 +369,27 @@ public class C
         }
 
         /// <summary>
-        /// Verifies the constant <see cref="PdbWriter.CustomMetadataByteLimit"/> against the external sym writer library we depend on.
+        /// Verifies the constant <c>SymUnmanagedWriterImpl.CustomMetadataByteLimit</c> against the external sym writer library we depend on.
         /// </summary>
         [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/75237")]
         [CombinatorialData]
-        public void NativeWriterLimit_Under([CombinatorialRange(PdbWriter.CustomMetadataByteLimit - 9, 10)] int length)
+        public void NativeWriterLimit_Under([CombinatorialRange(SymUnmanagedWriterImpl.CustomMetadataByteLimit - 9, 10)] int length)
         {
             CompileWithMockedCustomMetadata(length).Diagnostics.Verify();
         }
 
         /// <summary>
-        /// Verifies the constant <see cref="PdbWriter.CustomMetadataByteLimit"/> against the external sym writer library we depend on.
+        /// Verifies the constant <c>SymUnmanagedWriterImpl.CustomMetadataByteLimit</c> against the external sym writer library we depend on.
         /// </summary>
         [ConditionalTheory(typeof(WindowsOnly), Reason = ConditionalSkipReason.NativePdbRequiresDesktop)]
         [WorkItem("https://github.com/dotnet/roslyn/issues/75237")]
         [CombinatorialData]
-        public void NativeWriterLimit_Over([CombinatorialRange(PdbWriter.CustomMetadataByteLimit + 1, 10)] int length)
+        public void NativeWriterLimit_Over([CombinatorialRange(SymUnmanagedWriterImpl.CustomMetadataByteLimit + 1, 10)] int length)
         {
             CompileWithMockedCustomMetadata(length).Diagnostics.Verify(
-                // error CS0041: Unexpected error writing debug information -- 'Insufficient memory to continue the execution of the program.'
-                Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(new OutOfMemoryException().Message).WithLocation(1, 1));
+                // error CS0041: Unexpected error writing debug information -- 'Cannot emit native PDB for method 'C.M()' because its debug metadata size 65505 is over the limit 65504.'
+                Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(string.Format(CodeAnalysisResources.SymWriterMetadataOverLimit, "C.M()", length, 65504)).WithLocation(1, 1));
         }
 
         private static EmitResult CompileWithMockedCustomMetadata(int length)
