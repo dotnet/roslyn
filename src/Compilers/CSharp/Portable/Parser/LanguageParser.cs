@@ -7427,17 +7427,6 @@ done:
             if (typeParsedSoFar.Kind is SyntaxKind.NullableType or SyntaxKind.PointerType)
                 return null;
 
-            // If we have `new (tuple, type)?` then this is only allowed if we're writing `new (int, int)?(t)` (passing
-            // constructor parameters) or `new (int, int)?[...`.  creation an array of nullable tuples.
-            //
-            // Anything else will be seen as a conditional expression.
-            if (mode == ParseTypeMode.NewExpression &&
-                typeParsedSoFar.Kind == SyntaxKind.TupleType &&
-                this.PeekToken(1).Kind is not SyntaxKind.OpenParenToken and not SyntaxKind.OpenBraceToken)
-            {
-                return null;
-            }
-
             using var outerResetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
 
             var questionToken = this.EatToken();

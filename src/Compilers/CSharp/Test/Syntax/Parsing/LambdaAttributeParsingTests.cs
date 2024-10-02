@@ -2247,7 +2247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
         public void NullableType_Is_03()
         {
             string source = "_ = x is string ? [] y => y : z";
