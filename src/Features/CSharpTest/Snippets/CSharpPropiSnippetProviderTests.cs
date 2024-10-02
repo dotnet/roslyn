@@ -60,7 +60,7 @@ public sealed class CSharpPropiSnippetProviderTests : AbstractCSharpAutoProperty
             }
             """);
     }
-    
+
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
     public async Task InsertSnippetAfterAccessibilityModifierTest(string modifier)
