@@ -7427,10 +7427,15 @@ done:
             if (typeParsedSoFar.Kind is SyntaxKind.NullableType or SyntaxKind.PointerType)
                 return null;
 
-            if (typeParsedSoFar.Kind == SyntaxKind.TupleType &&
+            // If we have `new (tuple, type)?` then this is only allowed if we're writing `new (int, int)?(t)` (passing
+            // constructor parameters) or `new (int, int)?[...`.  creation an array of nullable tuples.
+            //
+            // Anything else will be seen as a conditional expression.
+            if (mode == ParseTypeMode.NewExpression &&
+                typeParsedSoFar.Kind == SyntaxKind.TupleType &&
                 this.PeekToken(1).Kind is not SyntaxKind.OpenParenToken and not SyntaxKind.OpenBraceToken)
             {
-                return null; // Permit `new (int, int)?(t)` (creation) and `new (int, int) ? x : y` (conditional)
+                return null;
             }
 
             using var outerResetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
@@ -7447,48 +7452,48 @@ done:
 
             bool canFollowNullableType()
             {
+                if (mode == ParseTypeMode.AfterIs && this.CurrentToken.Kind is SyntaxKind.OpenBracketToken)
+                {
+                    // T?[
+                    //
+                    // This could be a array of nullable types (e.g. `is T?[]` or `is T?[,]`) or it's a
+                    // conditional with a collection expression or lambda (e.g. `is T ? [...] :` or `is T ? [Attr]() => ...`)
+                    //
+                    // Note: `is T?[]` could be the start of either.  So we have to look to see if we have a
+                    // `:` to know which case we're in.
+
+                    switch (this.PeekToken(1).Kind)
+                    {
+                        // `is T?[,]`.  Definitely an array of nullable type.
+                        case SyntaxKind.CommaToken:
+                            return true;
+
+                        // `is T?[]`.  Could be an array of a nullable type, or a conditional.  Have to
+                        // see if it is followed by `:` to find out.  If there is a colon, it's a
+                        // conditional.
+                        case SyntaxKind.CloseBracketToken:
+                            {
+                                using var innerResetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
+
+                                // Consume the expression after the `?`.
+                                var whenTrue = this.ParsePossibleRefExpression();
+
+                                // Now see if we have a ':' following.  If so, this is a conditional.  If not, it's a nullable type.
+                                return this.CurrentToken.Kind != SyntaxKind.ColonToken;
+                            }
+
+                        // `is T ? [...`.  Not an array.  This is a conditional with a collection expr
+                        // or attributed lambda.
+                        default:
+                            return false;
+                    }
+                }
+
                 switch (mode)
                 {
                     case ParseTypeMode.AfterIs:
                     case ParseTypeMode.DefinitePattern:
                     case ParseTypeMode.AsExpression:
-                        if (mode == ParseTypeMode.AfterIs && this.CurrentToken.Kind is SyntaxKind.OpenBracketToken)
-                        {
-                            // T?[
-                            //
-                            // This could be a array of nullable types (e.g. `is T?[]` or `is T?[,]`) or it's a
-                            // conditional with a collection expression or lambda (e.g. `is T ? [...] :` or `is T ? [Attr]() => ...`)
-                            //
-                            // Note: `is T?[]` could be the start of either.  So we have to look to see if we have a
-                            // `:` to know which case we're in.
-
-                            switch (this.PeekToken(1).Kind)
-                            {
-                                // `is T?[,]`.  Definitely an array of nullable type.
-                                case SyntaxKind.CommaToken:
-                                    return true;
-
-                                // `is T?[]`.  Could be an array of a nullable type, or a conditional.  Have to
-                                // see if it is followed by `:` to find out.  If there is a colon, it's a
-                                // conditional.
-                                case SyntaxKind.CloseBracketToken:
-                                    {
-                                        using var innerResetPoint = this.GetDisposableResetPoint(resetOnDispose: true);
-
-                                        // Consume the expression after the `?`.
-                                        var whenTrue = this.ParsePossibleRefExpression();
-
-                                        // Now see if we have a ':' following.  If so, this is a conditional.  If not, it's a nullable type.
-                                        return this.CurrentToken.Kind != SyntaxKind.ColonToken;
-                                    }
-
-                                // `is T ? [...`.  Not an array.  This is a conditional with a collection expr
-                                // or attributed lambda.
-                                default:
-                                    return false;
-                            }
-                        }
-
                         // We are currently after `?` token after a nullable type pattern and need to decide how to
                         // parse what we see next.  In the case of an identifier (e.g. `x ? a` there are two ways we can
                         // see things
@@ -7564,6 +7569,9 @@ done:
                         // If nothing from above worked permit the nullable qualifier if it is followed by a token that
                         // could not start an expression. If we have `T?[]` we do want to treat that as an array of
                         // nullables (following existing parsing), not a conditional that returns a list.
+                        if (this.CurrentToken.Kind is SyntaxKind.OpenBracketToken)
+                            return true;
+
                         return !CanStartExpression();
                     case ParseTypeMode.NewExpression:
                         // A nullable qualifier is permitted as part of the type in a `new` expression. e.g. `new

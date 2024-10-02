@@ -18440,6 +18440,83 @@ class C
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
     public void CollectionExpression_ConditionalExpressionAmbiguity6()
     {
+        UsingStatement("var v = x is Y ? [] == Complex() : [1];");
+
+        N(SyntaxKind.LocalDeclarationStatement);
+        {
+            N(SyntaxKind.VariableDeclaration);
+            {
+                N(SyntaxKind.IdentifierName);
+                {
+                    N(SyntaxKind.IdentifierToken, "var");
+                }
+                N(SyntaxKind.VariableDeclarator);
+                {
+                    N(SyntaxKind.IdentifierToken, "v");
+                    N(SyntaxKind.EqualsValueClause);
+                    {
+                        N(SyntaxKind.EqualsToken);
+                        N(SyntaxKind.ConditionalExpression);
+                        {
+                            N(SyntaxKind.IsExpression);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "x");
+                                }
+                                N(SyntaxKind.IsKeyword);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Y");
+                                }
+                            }
+                            N(SyntaxKind.QuestionToken);
+                            N(SyntaxKind.EqualsExpression);
+                            {
+                                N(SyntaxKind.CollectionExpression);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                                N(SyntaxKind.EqualsEqualsToken);
+                                N(SyntaxKind.InvocationExpression);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Complex");
+                                    }
+                                    N(SyntaxKind.ArgumentList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                }
+                            }
+                            N(SyntaxKind.ColonToken);
+                            N(SyntaxKind.CollectionExpression);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.ExpressionElement);
+                                {
+                                    N(SyntaxKind.NumericLiteralExpression);
+                                    {
+                                        N(SyntaxKind.NumericLiteralToken, "1");
+                                    }
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                        }
+                    }
+                }
+            }
+            N(SyntaxKind.SemicolonToken);
+        }
+        EOF();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
+    public void CollectionExpression_ConditionalExpressionAmbiguity7()
+    {
         UsingStatement("var v = x is Y ? [Goo]() => B : [Goo]() => C;");
 
         N(SyntaxKind.LocalDeclarationStatement);
