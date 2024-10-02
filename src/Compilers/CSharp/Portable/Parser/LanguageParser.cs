@@ -11287,13 +11287,16 @@ done:;
                 }
             }
 
-            // From the language spec:
+            // https://github.com/dotnet/csharpstandard/blob/standard-v6/standard/expressions.md?rgh-link-date=2024-10-02T19%3A11%3A19Z#1115-conditional-operator:
             //
-            // conditional-expression:
-            //  null-coalescing-expression
-            //  null-coalescing-expression   ?   expression   :   expression
+            // conditional_expression
+            //     : null_coalescing_expression
+            //     | null_coalescing_expression '?' expression ':' expression
+            //     ;
             //
-            // Only take the conditional if we're at or below its precedence.
+            // 1. Only take the conditional part of the expression if we're at or below its precedence.
+            // 2. When parsing the branches of the expression, parse at the highest precedence again ('expression').
+            //    This allows for things like assignments/lambdas in the branches of the conditional.
             if (CurrentToken.Kind != SyntaxKind.QuestionToken || precedence > Precedence.Conditional)
                 return leftOperand;
 
