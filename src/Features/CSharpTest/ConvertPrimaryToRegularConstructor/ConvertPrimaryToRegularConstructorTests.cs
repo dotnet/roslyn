@@ -2717,4 +2717,44 @@ public class ConvertPrimaryToRegularConstructorTests
             LanguageVersion = LanguageVersion.CSharp12,
         }.RunAsync();
     }
+
+    [Fact]
+    public async Task TestClassWithoutBody()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class [|C()|];
+                """,
+            FixedCode = """
+                class C
+                {
+                    public C()
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestClassWithoutBodyWithParameters()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class [|C(int i)|];
+                """,
+            FixedCode = """
+                class C
+                {
+                    public C(int i)
+                    {
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }
