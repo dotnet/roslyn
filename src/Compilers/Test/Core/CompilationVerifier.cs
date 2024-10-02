@@ -549,8 +549,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 var qualifiedName = qualifiedMethodNamesAndExpectedIL[i++];
                 names.Add(qualifiedName);
-                var actualValue = AssertEx.NormalizeWhitespaceROM(VisualizeIL(qualifiedName).AsSpan(), out var pooled1);
-                var expectedValue = AssertEx.NormalizeWhitespaceROM(qualifiedMethodNamesAndExpectedIL[i++].AsSpan(), out var pooled2);
+                var actualValue = AssertEx.NormalizeWhitespace(VisualizeIL(qualifiedName).AsSpan(), out var pooled1);
+                var expectedValue = AssertEx.NormalizeWhitespace(qualifiedMethodNamesAndExpectedIL[i++].AsSpan(), out var pooled2);
                 actual.Add(actualValue);
                 expected.Add(expectedValue);
                 charPooledAllocs.Add(pooled1);

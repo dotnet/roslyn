@@ -570,8 +570,8 @@ namespace Roslyn.Test.Utilities
             [CallerFilePath] string expectedValueSourcePath = null,
             [CallerLineNumber] int expectedValueSourceLine = 0)
         {
-            var normalizedExpected = NormalizeWhitespace(expected, out var pooled1);
-            var normalizedActual = NormalizeWhitespace(actual, out var pooled2);
+            var normalizedExpected = NormalizeWhitespace(expected, out var pooled1).Span;
+            var normalizedActual = NormalizeWhitespace(actual, out var pooled2).Span;
 
             if (!normalizedExpected.SequenceEqual(normalizedActual))
             {
@@ -621,8 +621,8 @@ namespace Roslyn.Test.Utilities
 
         public static void AssertContainsToleratingWhitespaceDifferences(ReadOnlySpan<char> expectedSubString, ReadOnlySpan<char> actualString)
         {
-            expectedSubString = NormalizeWhitespace(expectedSubString, out var pooled1);
-            actualString = NormalizeWhitespace(actualString, out var pooled2);
+            expectedSubString = NormalizeWhitespace(expectedSubString, out var pooled1).Span;
+            actualString = NormalizeWhitespace(actualString, out var pooled2).Span;
 
             if (!actualString.Contains(expectedSubString, StringComparison.Ordinal))
             {
@@ -647,8 +647,8 @@ namespace Roslyn.Test.Utilities
 
         public static void AssertStartsWithToleratingWhitespaceDifferences(ReadOnlySpan<char> expectedSubString, ReadOnlySpan<char> actualString)
         {
-            expectedSubString = NormalizeWhitespace(expectedSubString, out var pooled1);
-            actualString = NormalizeWhitespace(actualString, out var pooled2);
+            expectedSubString = NormalizeWhitespace(expectedSubString, out var pooled1).Span;
+            actualString = NormalizeWhitespace(actualString, out var pooled2).Span;
 
             if (!actualString.StartsWith(expectedSubString, StringComparison.Ordinal))
             {
@@ -666,12 +666,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        internal static ReadOnlySpan<char> NormalizeWhitespace(ReadOnlySpan<char> input, out char[] pooledAlloc)
-        {
-            return NormalizeWhitespaceROM(input, out pooledAlloc).Span;
-        }
-
-        internal static ReadOnlyMemory<char> NormalizeWhitespaceROM(ReadOnlySpan<char> input, out char[] pooledAlloc)
+        internal static ReadOnlyMemory<char> NormalizeWhitespace(ReadOnlySpan<char> input, out char[] pooledAlloc)
         {
             // Setup allocation (start with none)
             pooledAlloc = null;
