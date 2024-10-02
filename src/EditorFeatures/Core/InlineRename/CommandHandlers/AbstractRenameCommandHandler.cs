@@ -115,4 +115,7 @@ internal abstract partial class AbstractRenameCommandHandler(
         RoslynDebug.AssertNotNull(renameService.ActiveSession);
         renameService.ActiveSession.Commit(previewChanges: false, operationContext);
     }
+
+    private bool IsRenameCommitInProgress()
+        => renameService.ActiveSession?.IsCommitInProgress is true;
 }
