@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
 }";
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var rangeToFormat = testLspServer.GetLocations("format").Single();
-            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(rangeToFormat.Uri).Single().GetTextAsync();
+            var documentText = await testLspServer.GetDocumentTextAsync(rangeToFormat.Uri);
 
             var results = await RunFormatDocumentRangeAsync(testLspServer, rangeToFormat);
             var actualText = ApplyTextEdits(results, documentText);
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Formatting
 }";
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
             var rangeToFormat = testLspServer.GetLocations("format").Single();
-            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(rangeToFormat.Uri).Single().GetTextAsync();
+            var documentText = await testLspServer.GetDocumentTextAsync(rangeToFormat.Uri);
 
             var results = await RunFormatDocumentRangeAsync(testLspServer, rangeToFormat, insertSpaces: false, tabSize: 4);
             var actualText = ApplyTextEdits(results, documentText);
