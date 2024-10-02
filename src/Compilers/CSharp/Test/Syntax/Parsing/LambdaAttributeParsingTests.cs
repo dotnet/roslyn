@@ -2202,7 +2202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
         public void NullableType_Is_02()
         {
             string source = "x is string ? [A] y";
@@ -2302,7 +2302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
         public void NullableType_Is_04()
         {
             string source = "_ = x is string ? [A] y => y : z";
@@ -2364,7 +2364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
-        [Fact]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75318")]
         public void NullableType_Is_05()
         {
             string source = "_ = x is string ? [return: A] y => y : z";
