@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -11,7 +12,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
-
+using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTokens;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
@@ -24,6 +25,32 @@ internal sealed class CSharpProprSnippetProvider() : AbstractCSharpAutoPropertyS
     public override string Identifier => CommonSnippetIdentifiers.RequiredProperty;
 
     public override string Description => FeaturesResources.required_property;
+    
+    protected override bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken)
+    {
+        if(!base.IsValidSnippetLocationCore(context, cancellationToken))
+            return false;
+        
+        var syntaxContext = (CSharpSyntaxContext)context.SyntaxContext;
+        var precedingModifiers = syntaxContext.PrecedingModifiers;
+        
+        if (syntaxContext.PrecedingModifiers.IsEmpty())
+            return true;
+
+        // "private" and "private protected" modifiers are NOT valid for required property
+        if (precedingModifiers.Any(syntaxKind => syntaxKind == SyntaxKind.PrivateKeyword))
+            return false;
+        
+        // "protected internal" modifiers are valid for required property
+        if(precedingModifiers.IsSupersetOf([SyntaxKind.ProtectedKeyword, SyntaxKind.InternalKeyword]))
+            return true;
+        
+        // "protected" and "private protected" modifiers are NOT valid for required property
+        if(precedingModifiers.Any(syntaxKind => syntaxKind == SyntaxKind.ProtectedKeyword))
+            return false;
+                
+        return true;
+    }
 
     protected override AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator, CancellationToken cancellationToken)
     {

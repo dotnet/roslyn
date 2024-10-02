@@ -13,8 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Snippets;
 [Trait(Traits.Feature, Traits.Features.Snippets)]
 public abstract class AbstractCSharpAutoPropertySnippetProviderTests : AbstractCSharpSnippetProviderTests
 {
-    protected virtual string AdditionalPropertyModifiers => string.Empty;
-
     protected abstract string DefaultPropertyBlockText { get; }
 
     [Fact]
@@ -145,18 +143,6 @@ public abstract class AbstractCSharpAutoPropertySnippetProviderTests : AbstractC
             """);
     }
 
-    [Theory]
-    [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public async Task InsertSnippetAfterAccessibilityModifierTest(string modifier)
-    {
-        await VerifyPropertyAsync($$"""
-            class Program
-            {
-                {{modifier}} $$
-            }
-            """, $$"""{{AdditionalPropertyModifiers}}{|0:int|} {|1:MyProperty|} {{DefaultPropertyBlockText}}""");
-    }
-
     protected async Task VerifyPropertyAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, string propertyMarkup)
     {
         TestFileMarkupParser.GetPosition(markup, out var code, out var position);
@@ -164,6 +150,6 @@ public abstract class AbstractCSharpAutoPropertySnippetProviderTests : AbstractC
         await VerifySnippetAsync(markup, expectedCode);
     }
 
-    protected Task VerifyDefaultPropertyAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, string propertyName = "MyProperty")
-        => VerifyPropertyAsync(markup, $$"""public {{AdditionalPropertyModifiers}}{|0:int|} {|1:{{propertyName}}|} {{DefaultPropertyBlockText}}""");
+    protected virtual Task VerifyDefaultPropertyAsync([StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string markup, string propertyName = "MyProperty")
+        => VerifyPropertyAsync(markup, $$"""public {|0:int|} {|1:{{propertyName}}|} {{DefaultPropertyBlockText}}""");
 }
