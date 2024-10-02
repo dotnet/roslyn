@@ -1087,8 +1087,6 @@ class Program
         public static IEnumerable<object?[]> GetBaseAndDerivedTypesData()
         {
             yield return getData("internal void F(object x) { }", "internal static new void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // instance and static
-            // https://github.com/dotnet/roslyn/issues/52701: Assert failure: Unexpected value 'LessDerived' of type 'Microsoft.CodeAnalysis.CSharp.MemberResolutionKind'
-#if !DEBUG
             yield return getData("internal void F(object x) { }", "internal static new void F(object x) { }", "this.F", "F",
                 new[]
                 {
@@ -1096,7 +1094,6 @@ class Program
                     //         System.Delegate d = this.F;
                     Diagnostic(ErrorCode.ERR_ObjectProhibited, "this.F").WithArguments("B.F(object)").WithLocation(5, 29)
                 }); // instance and static
-#endif
             yield return getData("internal void F(object x) { }", "internal static new void F(object x) { }", "base.F", "F", null, "System.Action<System.Object>"); // instance and static
             yield return getData("internal static void F(object x) { }", "internal new void F(object x) { }", "F", "F", null, "System.Action<System.Object>"); // static and instance
             yield return getData("internal static void F(object x) { }", "internal new void F(object x) { }", "this.F", "F", null, "System.Action<System.Object>"); // static and instance
@@ -1124,9 +1121,9 @@ class Program
             yield return getData("internal virtual object F() => throw null;", "internal override object F() => throw null;", "F", "F", null, "System.Func<System.Object>"); // override
             yield return getData("internal object F() => throw null;", "internal object F() => throw null;", "F", "F", null, "System.Func<System.Object>"); // hiding
             yield return getData("internal object F() => throw null;", "internal new object F() => throw null;", "F", "F", null, "System.Func<System.Object>"); // hiding
-            yield return getData("internal string F() => throw null;", "internal new object F() => throw null;", "F", "F"); // different return type
-            yield return getData("internal object F() => throw null;", "internal new ref object F() => throw null;", "F", "F"); // different return ref kind
-            yield return getData("internal ref object F() => throw null;", "internal new object F() => throw null;", "F", "F"); // different return ref kind
+            yield return getData("internal string F() => throw null;", "internal new object F() => throw null;", "F", "F", null, "System.Func<System.Object>"); // different return type
+            yield return getData("internal object F() => throw null;", "internal new ref object F() => throw null;", "F", "F", null, "<>F{00000001}<System.Object>"); // different return ref kind
+            yield return getData("internal ref object F() => throw null;", "internal new object F() => throw null;", "F", "F", null, "System.Func<System.Object>"); // different return ref kind
             yield return getData("internal void F(object x) { }", "internal new void F(dynamic x) { }", "F", "F", null, "System.Action<System.Object>"); // object/dynamic
             yield return getData("internal dynamic F() => throw null;", "internal new object F() => throw null;", "F", "F", null, "System.Func<System.Object>"); // object/dynamic
             yield return getData("internal void F((object, int) x) { }", "internal new void F((object a, int b) x) { }", "F", "F", null, "System.Action<System.ValueTuple<System.Object, System.Int32>>"); // tuple names
@@ -1150,8 +1147,6 @@ internal object? F() => throw null!;
             yield return getData("internal void F<T>(T t) { }", "internal new void F<T>(T t) where T : class { }", "F<object>", "F<object>", null, "System.Action<System.Object>"); // different type parameter constraints
             yield return getData("internal void F<T>(T t) { }", "internal new void F<T>(T t) where T : class { }", "base.F<object>", "F<object>", null, "System.Action<System.Object>"); // different type parameter constraints
             yield return getData("internal void F<T>(T t) where T : class { }", "internal new void F<T>(T t) where T : struct { }", "F<int>", "F<int>", null, "System.Action<System.Int32>"); // different type parameter constraints
-            // https://github.com/dotnet/roslyn/issues/52701: Assert failure: Unexpected value 'LessDerived' of type 'Microsoft.CodeAnalysis.CSharp.MemberResolutionKind'
-#if !DEBUG
             yield return getData("internal void F<T>(T t) where T : class { }", "internal new void F<T>(T t) where T : struct { }", "F<object>", "F<object>",
                 new[]
                 {
@@ -1159,7 +1154,6 @@ internal object? F() => throw null!;
                     //         System.Delegate d = F<object>;
                     Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>").WithArguments("B.F<T>(T)", "T", "object").WithLocation(5, 29)
                 }); // different type parameter constraints
-#endif
 
             static object?[] getData(string methodA, string methodB, string methodGroupExpression, string methodGroupOnly, DiagnosticDescription[]? expectedDiagnostics = null, string? expectedType = null)
             {
@@ -6459,6 +6453,935 @@ class Program
 }
 """;
             CompileAndVerify(source, expectedOutput: "1").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_ParamsArray()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long[] a) => Console.Write(a.Length);
+                    static public void Test1(this object p, params long[] a) => Console.Write(a.Length);
+
+                    static public void Test2(this object p, params long[] a) => Console.Write(a.Length);
+                    static public void Test2(this Program p, long[] a) => Console.Write(a.Length);
+                }
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, CSharp.LanguageVersion.CSharp13, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (7,18): error CS8917: The delegate type could not be inferred.
+                    //         var x1 = new Program().Test1;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
+                    // (8,18): error CS8917: The delegate type could not be inferred.
+                    //         var x2 = new Program().Test2;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_ParamsArray_NotLastParameter()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long[] a, long[] b) => Console.Write(a.Length);
+                    static public void Test1(this object p, params long[] a, long[] b) => Console.Write(a.Length);
+
+                    static public void Test2(this object p, params long[] a, long[] b) => Console.Write(a.Length);
+                    static public void Test2(this Program p, long[] a, long[] b) => Console.Write(a.Length);
+                }
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, CSharp.LanguageVersion.CSharp13, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (10,9): error CS7036: There is no argument given that corresponds to the required parameter 'arg1' of 'Action<long[], long[]>'
+                    //         x1();
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "x1").WithArguments("arg1", "System.Action<long[], long[]>").WithLocation(10, 9),
+                    // (11,9): error CS7036: There is no argument given that corresponds to the required parameter 'arg1' of 'Action<long[], long[]>'
+                    //         x2();
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "x2").WithArguments("arg1", "System.Action<long[], long[]>").WithLocation(11, 9),
+                    // (18,45): error CS0231: A params parameter must be the last parameter in a parameter list
+                    //     static public void Test1(this object p, params long[] a, long[] b) => Console.Write(a.Length);
+                    Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] a").WithLocation(18, 45),
+                    // (20,45): error CS0231: A params parameter must be the last parameter in a parameter list
+                    //     static public void Test2(this object p, params long[] a, long[] b) => Console.Write(a.Length);
+                    Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] a").WithLocation(20, 45));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_ParamsArray_NotLastParameter_02()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long[] a, params long[] b) => Console.Write(a.Length);
+                    static public void Test1(this object p, params long[] a, long[] b) => Console.Write(a.Length);
+
+                    static public void Test2(this object p, params long[] a, long[] b) => Console.Write(a.Length);
+                    static public void Test2(this Program p, long[] a, params long[] b) => Console.Write(a.Length);
+                }
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, CSharp.LanguageVersion.CSharp13, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (7,18): error CS8917: The delegate type could not be inferred.
+                    //         var x1 = new Program().Test1;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
+                    // (8,18): error CS8917: The delegate type could not be inferred.
+                    //         var x2 = new Program().Test2;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18),
+                    // (18,45): error CS0231: A params parameter must be the last parameter in a parameter list
+                    //     static public void Test1(this object p, params long[] a, long[] b) => Console.Write(a.Length);
+                    Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] a").WithLocation(18, 45),
+                    // (20,45): error CS0231: A params parameter must be the last parameter in a parameter list
+                    //     static public void Test2(this object p, params long[] a, long[] b) => Console.Write(a.Length);
+                    Diagnostic(ErrorCode.ERR_ParamsLast, "params long[] a").WithLocation(20, 45));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_ParamsArray_NotArray_01()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long a) => Console.Write(a);
+                    static public void Test1(this object p, params long a) => Console.Write(a);
+
+                    static public void Test2(this object p, params long a) => Console.Write(a);
+                    static public void Test2(this Program p, long a) => Console.Write(a);
+                }
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, CSharp.LanguageVersion.CSharp13, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (10,9): error CS7036: There is no argument given that corresponds to the required parameter 'obj' of 'Action<long>'
+                    //         x1();
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "x1").WithArguments("obj", "System.Action<long>").WithLocation(10, 9),
+                    // (11,9): error CS7036: There is no argument given that corresponds to the required parameter 'obj' of 'Action<long>'
+                    //         x2();
+                    Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "x2").WithArguments("obj", "System.Action<long>").WithLocation(11, 9),
+                    // (18,45): error CS0225: The params parameter must have a valid collection type
+                    //     static public void Test1(this object p, params long a) => Console.Write(a);
+                    Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(18, 45),
+                    // (20,45): error CS0225: The params parameter must have a valid collection type
+                    //     static public void Test2(this object p, params long a) => Console.Write(a);
+                    Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(20, 45));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_ParamsArray_NotArray_02()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, params long[] a) => Console.Write(a);
+                    static public void Test1(this object p, params long a) => Console.Write(a);
+
+                    static public void Test2(this object p, params long a) => Console.Write(a);
+                    static public void Test2(this Program p, params long[] a) => Console.Write(a);
+                }
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, CSharp.LanguageVersion.CSharp13, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (7,18): error CS8917: The delegate type could not be inferred.
+                    //         var x1 = new Program().Test1;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
+                    // (8,18): error CS8917: The delegate type could not be inferred.
+                    //         var x2 = new Program().Test2;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18),
+                    // (18,45): error CS0225: The params parameter must have a valid collection type
+                    //     static public void Test1(this object p, params long a) => Console.Write(a);
+                    Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(18, 45),
+                    // (20,45): error CS0225: The params parameter must have a valid collection type
+                    //     static public void Test2(this object p, params long a) => Console.Write(a);
+                    Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(20, 45));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_DefaultValue()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long a) => Console.Write(a);
+                    static public void Test1(this object p, long a = 1) => Console.Write(a);
+
+                    static public void Test2(this object p, long a = 2) => Console.Write(a);
+                    static public void Test2(this Program p, long a) => Console.Write(a);
+                }
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, CSharp.LanguageVersion.CSharp13, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (7,18): error CS8917: The delegate type could not be inferred.
+                    //         var x1 = new Program().Test1;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
+                    // (8,18): error CS8917: The delegate type could not be inferred.
+                    //         var x2 = new Program().Test2;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_DefaultValue_DifferentValues()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long a = 1) => Console.Write(a);
+                    static public void Test1(this object p, long a = 2) => Console.Write(a);
+
+                    static public void Test2(this object p, long a = 3) => Console.Write(a);
+                    static public void Test2(this Program p, long a = 4) => Console.Write(a);
+                }
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, CSharp.LanguageVersion.CSharp13, CSharp.LanguageVersion.CSharp12 })
+            {
+                CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
+                    // (7,18): error CS8917: The delegate type could not be inferred.
+                    //         var x1 = new Program().Test1;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test1").WithLocation(7, 18),
+                    // (8,18): error CS8917: The delegate type could not be inferred.
+                    //         var x2 = new Program().Test2;
+                    Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Program().Test2").WithLocation(8, 18));
+            }
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71333")]
+        public void OverloadResolution_CandidateOrdering_DefaultValue_SameValues()
+        {
+            var source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x1 = new Program().Test1;
+                        var x2 = new Program().Test2;
+
+                        x1();
+                        x2();
+                    }
+                }
+
+                static class E
+                {
+                    static public void Test1(this Program p, long a = 1) => Console.Write(a);
+                    static public void Test1(this object p, long a = 1) => Console.Write(a);
+
+                    static public void Test2(this object p, long a = 2) => Console.Write(a);
+                    static public void Test2(this Program p, long a = 2) => Console.Write(a);
+                }
+                """;
+            foreach (var languageVersion in new[] { CSharp.LanguageVersion.Preview, CSharp.LanguageVersion.CSharp13, CSharp.LanguageVersion.CSharp12 })
+            {
+                CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                    expectedOutput: "12").VerifyDiagnostics();
+            }
+        }
+
+        [Fact]
+        public void OverloadResolution_DefaultValue_01()
+        {
+            var source1 = """
+                public class Y<T> : X
+                {
+                    public void M(T x = default) { }
+                    public override void M(int x = 2) => System.Console.WriteLine(x);
+                }
+
+                public abstract class X
+                {
+                    public abstract void M(int x = 1);
+                }
+                """;
+
+            var source2 = """
+                var d1 = new Y<int>().M;
+                System.Console.WriteLine(d1.GetType());
+                d1();
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (1,10): error CS8917: The delegate type could not be inferred.
+                // var d1 = new Y<int>().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new Y<int>().M").WithLocation(1, 10)
+            };
+
+            CreateCompilation([source1, source2], parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation([source1, source2], parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation([source1, source2]).VerifyDiagnostics(expectedDiagnostics);
+
+            var expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                1
+                """;
+
+            var source3 = """
+                var d2 = ((X)new Y<int>()).M;
+                System.Console.WriteLine(d2.GetType());
+                d2();
+                """;
+
+            CompileAndVerify([source1, source3], parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify([source1, source3], parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify([source1, source3], symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke([T1 arg = 1])", m.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void OverloadResolution_DefaultValue_02()
+        {
+            var source = """
+                var d = new Z().M;
+                System.Console.WriteLine(d.GetType());
+                d();
+
+                public class Z : Y<int>
+                {
+                    public new void M(int x = 3) => System.Console.Write(x);
+                }
+
+                public abstract class Y<T> : X
+                {
+                    public virtual void M(T x = default) { }
+                    public override void M(int x = 2) { }
+                }
+
+                public abstract class X
+                {
+                    public abstract void M(int x = 1);
+                }
+                """;
+
+            var expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                3
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke([T1 arg = 3])", m.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void OverloadResolution_DefaultValue_03()
+        {
+            var source = """
+                new B().M();
+
+                partial class B
+                {
+                    internal void M()
+                    {
+                        System.Delegate d = F;
+                        System.Console.WriteLine(d.GetType());
+                        d.DynamicInvoke(3);
+                    }
+                }
+                abstract class A
+                {
+                    internal void F(int x = 1) => System.Console.WriteLine("A" + x);
+                }
+                partial class B : A
+                {
+                    internal static new void F(int x = 2) => System.Console.WriteLine("B" + x);
+                }
+                """;
+
+            var expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                B3
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke([T1 arg = 2])", m.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void OverloadResolution_DefaultValue_04()
+        {
+            var source = """
+                new B().M();
+
+                partial class B
+                {
+                    internal void M()
+                    {
+                        var d = F;
+                        System.Console.WriteLine(d.GetType());
+                        d(3);
+                    }
+                }
+                abstract class A
+                {
+                    internal void F(int x = 1) => System.Console.WriteLine("A" + x);
+                }
+                partial class B : A
+                {
+                    internal static new void F(int x = 2) => System.Console.WriteLine("B" + x);
+                }
+                """;
+
+            var expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                B3
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke([T1 arg = 2])", m.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void Params_ExtensionScopes_01()
+        {
+            var source = """
+                using System;
+
+                static class E1
+                {
+                    public static void M(this N.C c, int[] x) => Console.Write(3);
+                }
+
+                namespace N
+                {
+                    static class E2
+                    {
+                        public static void M(this C c, params int[] x) => Console.Write(2);
+                    }
+
+                    class C
+                    {
+                        public void M(params int[] x) => Console.Write(1);
+                        public static void Main()
+                        {
+                            var d = new C().M;
+                            Console.WriteLine(d.GetType());
+                            d();
+                        }
+                    }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (20,21): error CS8917: The delegate type could not be inferred.
+                //             var d = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(20, 21));
+
+            var expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                1
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void Params_ExtensionScopes_02()
+        {
+            var source = """
+                using System;
+
+                static class E1
+                {
+                    public static void M(this N.C c, params int[] x) => Console.Write(3);
+                }
+
+                namespace N
+                {
+                    static class E2
+                    {
+                        public static void M(this C c, params int[] x) => Console.Write(2);
+                    }
+
+                    class C
+                    {
+                        public void M(params int[] x) => Console.Write(1);
+                        public static void Main()
+                        {
+                            var d = new C().M;
+                            Console.WriteLine(d.GetType());
+                            d();
+                        }
+                    }
+                }
+                """;
+
+            var expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                1
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void Params_ExtensionScopes_03()
+        {
+            var source = """
+                using System;
+
+                static class E1
+                {
+                    public static void M(this N.C c, int[] x) => Console.Write(3);
+                }
+
+                namespace N
+                {
+                    static class E2
+                    {
+                        public static void M(this C c, int[] x) => Console.Write(2);
+                    }
+
+                    class C
+                    {
+                        public void M(int[] x) => Console.Write(1);
+                        public static void Main()
+                        {
+                            var d = new C().M;
+                            Console.WriteLine(d.GetType());
+                            d(default);
+                        }
+                    }
+                }
+                """;
+
+            var expectedOutput = """
+                System.Action`1[System.Int32[]]
+                1
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Params_ExtensionScopes_04()
+        {
+            var source = """
+                using System;
+
+                static class E1
+                {
+                    public static void M(this N.C c, params int[] x) => Console.Write(3);
+                }
+
+                namespace N
+                {
+                    static class E2
+                    {
+                        public static void M(this C c, int[] x) => Console.Write(2);
+                    }
+
+                    class C
+                    {
+                        public void M(int[] x) => Console.Write(1);
+                        public static void Main()
+                        {
+                            var d = new C().M;
+                            Console.WriteLine(d.GetType());
+                            d(default);
+                        }
+                    }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (20,21): error CS8917: The delegate type could not be inferred.
+                //             var d = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(20, 21));
+
+            var expectedOutput = """
+                System.Action`1[System.Int32[]]
+                1
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Params_ExtensionScopes_05()
+        {
+            var source = """
+                using System;
+
+                static class E
+                {
+                    public static void M(this C c, params int[] x) => Console.Write(2);
+                }
+
+                class C
+                {
+                    public void M(int[] x) => Console.Write(1);
+                    public static void Main()
+                    {
+                        var d = new C().M;
+                        Console.WriteLine(d.GetType());
+                        d(default);
+                    }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (13,17): error CS8917: The delegate type could not be inferred.
+                //         var d = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(13, 17));
+
+            var expectedOutput = """
+                System.Action`1[System.Int32[]]
+                1
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Params_ExtensionScopes_06()
+        {
+            var source = """
+                using System;
+
+                static class E
+                {
+                    public static void M(this C c, int[] x) => Console.Write(2);
+                }
+
+                class C
+                {
+                    public void M(params int[] x) => Console.Write(1);
+                    public static void Main()
+                    {
+                        var d = new C().M;
+                        Console.WriteLine(d.GetType());
+                        d();
+                    }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (13,17): error CS8917: The delegate type could not be inferred.
+                //         var d = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(13, 17));
+
+            var expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                1
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void Params_ExtensionScopes_07()
+        {
+            var source = """
+                using System;
+
+                static class E1
+                {
+                    public static void M(this N.C c, params int[] x) => Console.Write(1);
+                }
+
+                namespace N
+                {
+                    static class E2
+                    {
+                        public static void M(this C c, int[] x) => Console.Write(2);
+                    }
+
+                    class C
+                    {
+                        public static void Main()
+                        {
+                            var d = new C().M;
+                            Console.WriteLine(d.GetType());
+                            d(default);
+                        }
+                    }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (19,21): error CS8917: The delegate type could not be inferred.
+                //             var d = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(19, 21));
+
+            var expectedOutput = """
+                System.Action`1[System.Int32[]]
+                2
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Params_ExtensionScopes_08()
+        {
+            var source = """
+                using System;
+
+                static class E1
+                {
+                    public static void M(this N.C c, int[] x) => Console.Write(1);
+                }
+
+                namespace N
+                {
+                    static class E2
+                    {
+                        public static void M(this C c, params int[] x) => Console.Write(2);
+                    }
+
+                    class C
+                    {
+                        public static void Main()
+                        {
+                            var d = new C().M;
+                            Console.WriteLine(d.GetType());
+                            d();
+                        }
+                    }
+                }
+                """;
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (19,21): error CS8917: The delegate type could not be inferred.
+                //             var d = new C().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new C().M").WithLocation(19, 21));
+
+            var expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                2
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void Params_ReducedExtensionMethod_ErrorSource()
+        {
+            var source = """
+                static class E
+                {
+                    public static void M<T>(this T x, params T y)
+                    {
+                    }
+                }
+                class C
+                {
+                    void M(System.Collections.Generic.List<int> col)
+                    {
+                        var d = col.M;
+                        d(1, 2, 3);
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (3,39): error CS0225: The params parameter must have a valid collection type
+                //     public static void M<T>(this T x, params T y)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(3, 39),
+                // (12,9): error CS1593: Delegate 'Action<List<int>>' does not take 3 arguments
+                //         d(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "d").WithArguments("System.Action<System.Collections.Generic.List<int>>", "3").WithLocation(12, 9));
+        }
+
+        [Fact]
+        public void Params_ReducedExtensionMethod_Metadata()
+        {
+            /*
+                public static class E
+                {
+                    public static void M<T>(this T x, params T y)
+                    {
+                    }
+                }
+             */
+            var ilSource = """
+                .class public auto ansi abstract sealed beforefieldinit E extends System.Object
+                {
+                    .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (01 00 00 00)
+                    .method public hidebysig static void M<T>(!!T x, !!T y) cil managed 
+                    {
+                        .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = (01 00 00 00)
+                        .param [2] .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = (01 00 00 00)
+                        .maxstack 8
+                        ret
+                    }
+                }
+                """;
+            var source = """
+                class C
+                {
+                    void M(int[] arr)
+                    {
+                        var d = arr.M;
+                        d(1, 2, 3);
+                    }
+                }
+                """;
+            CreateCompilationWithIL(source, ilSource).VerifyDiagnostics(
+                // (6,9): error CS1593: Delegate 'Action<int[]>' does not take 3 arguments
+                //         d(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_BadDelArgCount, "d").WithArguments("System.Action<int[]>", "3").WithLocation(6, 9));
         }
 
         [Fact]
@@ -12484,6 +13407,88 @@ class Program
         }
 
         [Fact]
+        public void SynthesizedDelegateTypes_DefaultParameterValues_LeastOverriddenMethod()
+        {
+            var source = """
+                var c = ((C)new D()).M;
+                System.Console.WriteLine(c.GetType());
+                var d = new D().M;
+                System.Console.WriteLine(d.GetType());
+
+                public class D : C
+                {
+                    public override void M(int x) { }
+                }
+
+                public abstract class C
+                {
+                    public abstract void M(int x = 42);
+                }
+                """;
+
+            var expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                System.Action`1[System.Int32]
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.Equal(42, cm.Parameters.Single().ExplicitDefaultValue);
+            var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
+            Assert.False(dm.Parameters.Single().HasExplicitDefaultValue);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke([T1 arg = 42])", m.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_DefaultParameterValues_MostOverriddenMethod()
+        {
+            var source = """
+                var c = ((C)new D()).M;
+                System.Console.WriteLine(c.GetType());
+                var d = new D().M;
+                System.Console.WriteLine(d.GetType());
+
+                public class D : C
+                {
+                    public override void M(int x = 42) { }
+                }
+
+                public abstract class C
+                {
+                    public abstract void M(int x);
+                }
+                """;
+
+            var expectedOutput = """
+                System.Action`1[System.Int32]
+                <>f__AnonymousDelegate0`1[System.Int32]
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.False(cm.Parameters.Single().HasExplicitDefaultValue);
+            var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
+            Assert.Equal(42, dm.Parameters.Single().ExplicitDefaultValue);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke([T1 arg = 42])", m.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
         public void SynthesizedDelegateTypes_ParamsArray_DifferentElementTypes()
         {
             var source = """
@@ -12494,10 +13499,494 @@ class Program
                 var lam2 = (params string[] ys) => { };
                 Report(lam2);
                 """;
-            CompileAndVerify(source, expectedOutput: $"""
+
+            var expectedOutput = """
                 <>f__AnonymousDelegate0`1[System.Int32]
                 <>f__AnonymousDelegate0`1[System.String]
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_LeastOverriddenMethod()
+        {
+            var source = """
+                var c = ((C)new D()).M;
+                System.Console.WriteLine(c.GetType());
+                var d = new D().M;
+                System.Console.WriteLine(d.GetType());
+
+                public class D : C
+                {
+                    public override void M(int[] xs) { }
+                }
+
+                public abstract class C
+                {
+                    public abstract void M(params int[] xs);
+                }
+                """;
+
+            var expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                <>f__AnonymousDelegate0`1[System.Int32]
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.True(cm.Parameters.Single().IsParams);
+            var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
+            Assert.True(dm.Parameters.Single().IsParams);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_LeastOverriddenMethod_Different()
+        {
+            var source1a = """
+                public abstract class C
+                {
+                    public abstract void M(int[] xs);
+                }
+                """;
+            var comp1a = CreateCompilation(source1a, assemblyName: "Lib1").VerifyDiagnostics();
+            var comp1aRef = comp1a.EmitToImageReference();
+
+            var source2 = """
+                public class D : C
+                {
+                    public override void M(int[] xs) { }
+                }
+                """;
+            var comp2 = CreateCompilation(source2, [comp1aRef]).VerifyDiagnostics();
+            var comp2Ref = comp2.EmitToImageReference();
+
+            var source3 = """
+                var c = ((C)new D()).M;
+                System.Console.WriteLine(c.GetType());
+                var d = new D().M;
+                System.Console.WriteLine(d.GetType());
+                """;
+            var verifier = CompileAndVerify(source3, [comp2Ref, comp1aRef],
+                expectedOutput: """
+                System.Action`1[System.Int32[]]
+                System.Action`1[System.Int32[]]
                 """).VerifyDiagnostics();
+
+            var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.False(cm.Parameters.Single().IsParams);
+            var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
+            Assert.False(dm.Parameters.Single().IsParams);
+
+            var source1b = """
+                public abstract class C
+                {
+                    public abstract void M(params int[] xs);
+                }
+                """;
+            var comp1b = CreateCompilation(source1b, assemblyName: "Lib1").VerifyDiagnostics();
+
+            var expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                <>f__AnonymousDelegate0`1[System.Int32]
+                """;
+
+            CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()], parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()], parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            verifier = CompileAndVerify(source3, [comp2Ref, comp1b.EmitToImageReference()], symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.True(cm.Parameters.Single().IsParams);
+            dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
+            Assert.False(dm.Parameters.Single().IsParams);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_LeastOverriddenMethod_Generic_01()
+        {
+            var source = """
+                var c = ((C<long>)new D()).M;
+                System.Console.WriteLine(c.GetType());
+                c(null);
+                var m = new D().M;
+                System.Console.WriteLine(m.GetType());
+                m(null);
+
+                abstract class C<T>
+                {
+                    public abstract void M(params T[] xs);
+                }
+
+                class D : C<long>
+                {
+                    public override void M(long[] xs) => System.Console.WriteLine("A");
+                    public void M<T>(T[] xs) => System.Console.WriteLine("B");
+                }
+                """;
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (4,9): error CS8917: The delegate type could not be inferred.
+                // var m = new D().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new D().M").WithLocation(4, 9));
+
+            var expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int64]
+                A
+                <>f__AnonymousDelegate0`1[System.Int64]
+                B
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.True(cm.Parameters.Single().IsParams);
+            var dm = verifier.Compilation.GetMembers<IMethodSymbol>("D.M").Single(m => m.OverriddenMethod is not null);
+            Assert.True(dm.Parameters.Single().IsParams);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_LeastOverriddenMethod_Different_Generic_01()
+        {
+            var source1a = """
+                public abstract class C<T>
+                {
+                    public abstract void M(T[] xs);
+                }
+                """;
+            var comp1a = CreateCompilation(source1a, assemblyName: "Lib1").VerifyDiagnostics();
+            var comp1aRef = comp1a.EmitToImageReference();
+
+            var source2 = """
+                public class D : C<long>
+                {
+                    public override void M(long[] xs) => System.Console.WriteLine("A");
+                    public void M<T>(T[] xs) => System.Console.WriteLine("B");
+                }
+                """;
+            var comp2 = CreateCompilation(source2, [comp1aRef]).VerifyDiagnostics();
+            var comp2Ref = comp2.EmitToImageReference();
+
+            var source1b = """
+                public abstract class C<T>
+                {
+                    public abstract void M(params T[] xs);
+                }
+                """;
+            var comp1b = CreateCompilation(source1b, assemblyName: "Lib1").VerifyDiagnostics();
+            var comp1bRef = comp1b.EmitToImageReference();
+
+            var source3 = """
+                var c = ((C<long>)new D()).M;
+                System.Console.WriteLine(c.GetType());
+                c(null);
+                var d = new D().M;
+                System.Console.WriteLine(d.GetType());
+                d(null);
+                """;
+
+            CreateCompilation(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (4,9): error CS8917: The delegate type could not be inferred.
+                // var d = new D().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new D().M").WithLocation(4, 9));
+
+            var expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int64]
+                A
+                <>f__AnonymousDelegate0`1[System.Int64]
+                B
+                """;
+
+            CompileAndVerify(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source3, [comp2Ref, comp1bRef], symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.True(cm.Parameters.Single().IsParams);
+            var dm = verifier.Compilation.GetMembers<IMethodSymbol>("D.M").Single(m => m.OverriddenMethod is not null);
+            Assert.False(dm.Parameters.Single().IsParams);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_LeastOverriddenMethod_Generic_02()
+        {
+            var source1 = """
+                abstract class C
+                {
+                    public abstract void M<T>(params T[] xs);
+                }
+
+                class D<T2> : C
+                {
+                    public override void M<T>(T[] xs) => System.Console.WriteLine("A");
+                    public void M(T2[] xs) => System.Console.WriteLine("B");
+                }
+                """;
+
+            var source2 = """
+                var d = new D<long>().M;
+                System.Console.WriteLine(d.GetType());
+                d(null);
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var d = new D<long>().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new D<long>().M").WithLocation(1, 9)
+            };
+
+            CreateCompilation([source1, source2], parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+
+            var expectedOutput = """
+                System.Action`1[System.Int64[]]
+                B
+                """;
+
+            CompileAndVerify([source1, source2], parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify([source1, source2], expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var source3 = """
+                var c = ((C)new D<long>()).M<long>;
+                System.Console.WriteLine(c.GetType());
+                c(null);
+                """;
+
+            expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int64]
+                A
+                """;
+
+            CompileAndVerify([source1, source3], parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify([source1, source3], parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify([source1, source3], symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.True(cm.Parameters.Single().IsParams);
+            var dm = verifier.Compilation.GetMembers<IMethodSymbol>("D.M").Single(m => m.OverriddenMethod is not null);
+            Assert.True(dm.Parameters.Single().IsParams);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_LeastOverriddenMethod_Different_Generic_02()
+        {
+            var source1a = """
+                public abstract class C
+                {
+                    public abstract void M<T>(T[] xs);
+                }
+                """;
+            var comp1a = CreateCompilation(source1a, assemblyName: "Lib1").VerifyDiagnostics();
+            var comp1aRef = comp1a.EmitToImageReference();
+
+            var source2 = """
+                public class D<T2> : C
+                {
+                    public override void M<T>(T[] xs) => System.Console.WriteLine("A");
+                    public void M(T2[] xs) => System.Console.WriteLine("B");
+                }
+                """;
+            var comp2 = CreateCompilation(source2, [comp1aRef]).VerifyDiagnostics();
+            var comp2Ref = comp2.EmitToImageReference();
+
+            var source1b = """
+                public abstract class C
+                {
+                    public abstract void M<T>(params T[] xs);
+                }
+                """;
+            var comp1b = CreateCompilation(source1b, assemblyName: "Lib1").VerifyDiagnostics();
+            var comp1bRef = comp1b.EmitToImageReference();
+
+            var source3 = """
+                var d = new D<long>().M;
+                System.Console.WriteLine(d.GetType());
+                d(null);
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (1,9): error CS8917: The delegate type could not be inferred.
+                // var d = new D<long>().M;
+                Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "new D<long>().M").WithLocation(1, 9)
+            };
+
+            CreateCompilation(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
+
+            var expectedOutput = """
+                System.Action`1[System.Int64[]]
+                B
+                """;
+
+            CompileAndVerify(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source3, [comp2Ref, comp1bRef], expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var source4 = """
+                var c = ((C)new D<long>()).M<long>;
+                System.Console.WriteLine(c.GetType());
+                c(null);
+                """;
+
+            expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int64]
+                A
+                """;
+
+            CompileAndVerify(source4, [comp2Ref, comp1bRef], parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source4, [comp2Ref, comp1bRef], parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source4, [comp2Ref, comp1bRef], symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.True(cm.Parameters.Single().IsParams);
+            var dm = verifier.Compilation.GetMembers<IMethodSymbol>("D.M").Single(m => m.OverriddenMethod is not null);
+            Assert.False(dm.Parameters.Single().IsParams);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_MostOverriddenMethod()
+        {
+            var source = """
+                var c = ((C)new D()).M;
+                System.Console.WriteLine(c.GetType());
+                var d = new D().M;
+                System.Console.WriteLine(d.GetType());
+
+                public class D : C
+                {
+                    public override void M(params int[] xs) { }
+                }
+
+                public abstract class C
+                {
+                    public abstract void M(int[] xs);
+                }
+                """;
+
+            var expectedOutput = """
+                System.Action`1[System.Int32[]]
+                System.Action`1[System.Int32[]]
+                """;
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.False(cm.Parameters.Single().IsParams);
+            var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
+            Assert.False(dm.Parameters.Single().IsParams);
+        }
+
+        [Fact]
+        public void SynthesizedDelegateTypes_ParamsArray_MostOverriddenMethod_Different()
+        {
+            var source1a = """
+                public abstract class C
+                {
+                    public abstract void M(params int[] xs);
+                }
+                """;
+            var comp1a = CreateCompilation(source1a, assemblyName: "Lib1").VerifyDiagnostics();
+            var comp1aRef = comp1a.EmitToImageReference();
+
+            var source2 = """
+                public class D : C
+                {
+                    public override void M(int[] xs) { }
+                }
+                """;
+            var comp2 = CreateCompilation(source2, [comp1aRef]).VerifyDiagnostics();
+            var comp2Ref = comp2.EmitToImageReference();
+
+            var source3 = """
+                var c = ((C)new D()).M;
+                System.Console.WriteLine(c.GetType());
+                var d = new D().M;
+                System.Console.WriteLine(d.GetType());
+                """;
+
+            var expectedOutput = """
+                <>f__AnonymousDelegate0`1[System.Int32]
+                <>f__AnonymousDelegate0`1[System.Int32]
+                """;
+
+            CompileAndVerify(source3, [comp2Ref, comp1aRef], parseOptions: TestOptions.Regular12, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source3, [comp2Ref, comp1aRef], parseOptions: TestOptions.Regular13, symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+            var verifier = CompileAndVerify(source3, [comp2Ref, comp1aRef], symbolValidator: validateSymbols, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            var cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.True(cm.Parameters.Single().IsParams);
+            var dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
+            Assert.True(dm.Parameters.Single().IsParams);
+
+            static void validateSymbols(ModuleSymbol module)
+            {
+                var m = module.GlobalNamespace.GetMember<MethodSymbol>("<>f__AnonymousDelegate0.Invoke");
+                Assert.Equal("void <>f__AnonymousDelegate0<T1>.Invoke(params T1[] arg)", m.ToTestDisplayString());
+            }
+
+            var source1b = """
+                public abstract class C
+                {
+                    public abstract void M(int[] xs);
+                }
+                """;
+            var comp1b = CreateCompilation(source1b, assemblyName: "Lib1").VerifyDiagnostics();
+            var comp1bRef = comp1b.EmitToImageReference();
+
+            expectedOutput = """
+                System.Action`1[System.Int32[]]
+                System.Action`1[System.Int32[]]
+                """;
+
+            CompileAndVerify(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.Regular12, expectedOutput: expectedOutput).VerifyDiagnostics();
+            CompileAndVerify(source3, [comp2Ref, comp1bRef], parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput).VerifyDiagnostics();
+            verifier = CompileAndVerify(source3, [comp2Ref, comp1bRef], expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            cm = verifier.Compilation.GetMember<IMethodSymbol>("C.M");
+            Assert.False(cm.Parameters.Single().IsParams);
+            dm = verifier.Compilation.GetMember<IMethodSymbol>("D.M");
+            Assert.True(dm.Parameters.Single().IsParams);
         }
 
         [Fact]
