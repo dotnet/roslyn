@@ -24,7 +24,9 @@ internal partial class DocumentState
         ITreeAndVersionSource originalTreeSource,
         AsyncLazy<TreeAndVersion> lazyComputation) : ITreeAndVersionSource
     {
-        // Used as a fallback value in GetComputedTreeAndVersionSource to avoid long lazy chain evaluations.
+        /// <summary>
+        /// Used as a fallback value in GetComputedTreeAndVersionSource to avoid long lazy chain evaluations.
+        /// </summary>
         private readonly ITreeAndVersionSource _originalTreeSource = originalTreeSource;
 
         /// <summary>
@@ -37,13 +39,8 @@ internal partial class DocumentState
         /// If the lazy computation has not completed, we don't wish to pass back an object using it, as doing so might
         /// lead to a long chain of lazy evaluations. Instead, use the originalTreeSource passed into this object.
         /// </remarks>
-        public ITreeAndVersionSource GetNonChainedTreeAndVersionSource()
-        {
-            if (TryGetValue(out _))
-                return this;
-
-            return _originalTreeSource;
-        }
+        public ITreeAndVersionSource GetNonChainedTreeAndVersionSource() 
+            => TryGetValue(out _) ? this : _originalTreeSource;
 
         public Task<TreeAndVersion> GetValueAsync(CancellationToken cancellationToken)
             => lazyComputation.GetValueAsync(cancellationToken);
