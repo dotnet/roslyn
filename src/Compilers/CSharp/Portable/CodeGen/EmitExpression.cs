@@ -1664,31 +1664,36 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitStaticCallExpression(BoundCall call, UseKind useKind)
         {
             var method = call.Method;
-            var receiver = call.ReceiverOpt;
             var arguments = call.Arguments;
-
             Debug.Assert(method.IsStatic);
 
             EmitArguments(arguments, method.Parameters, call.ArgumentRefKindsOpt);
-            int stackBehavior = GetCallStackBehavior(method, arguments);
 
-            if (method.IsAbstract || method.IsVirtual)
+            newMethod(call, useKind, method, arguments);
+
+            void newMethod(BoundCall call, UseKind useKind, MethodSymbol method, ImmutableArray<BoundExpression> arguments)
             {
-                if (receiver is not BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } })
+                var receiver = call.ReceiverOpt;
+
+                if (method.IsAbstract || method.IsVirtual)
                 {
-                    throw ExceptionUtilities.Unreachable();
+                    if (receiver is not BoundTypeExpression { Type: { TypeKind: TypeKind.TypeParameter } })
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+
+                    _builder.EmitOpCode(ILOpCode.Constrained);
+                    EmitSymbolToken(receiver.Type, receiver.Syntax);
                 }
 
-                _builder.EmitOpCode(ILOpCode.Constrained);
-                EmitSymbolToken(receiver.Type, receiver.Syntax);
+                int stackBehavior = GetCallStackBehavior(method, arguments);
+                _builder.EmitOpCode(ILOpCode.Call, stackBehavior);
+
+                EmitSymbolToken(method, call.Syntax,
+                                method.IsVararg ? (BoundArgListOperator)arguments[arguments.Length - 1] : null);
+
+                EmitCallCleanup(call.Syntax, useKind, method);
             }
-
-            _builder.EmitOpCode(ILOpCode.Call, stackBehavior);
-
-            EmitSymbolToken(method, call.Syntax,
-                            method.IsVararg ? (BoundArgListOperator)arguments[arguments.Length - 1] : null);
-
-            EmitCallCleanup(call.Syntax, useKind, method);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]

@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
             int numberFluentCalls = (IntPtr.Size, ExecutionConditionUtil.Configuration, RuntimeUtilities.IsDesktopRuntime, RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) switch
             {
                 (8, ExecutionConfiguration.Debug, false, false) => 750,
-                (8, ExecutionConfiguration.Release, false, false) => 750, // Should be ~3_400, but is flaky.
+                (8, ExecutionConfiguration.Release, false, false) => 2500,
                 (4, ExecutionConfiguration.Debug, true, false) => 450,
                 (4, ExecutionConfiguration.Release, true, false) => 1_600,
                 (8, ExecutionConfiguration.Debug, true, false) => 1_100,
