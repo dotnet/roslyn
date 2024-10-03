@@ -39,7 +39,7 @@ internal partial class DocumentState
         /// If the lazy computation has not completed, we don't wish to pass back an object using it, as doing so might
         /// lead to a long chain of lazy evaluations. Instead, use the originalTreeSource passed into this object.
         /// </remarks>
-        public ITreeAndVersionSource GetNonChainedTreeAndVersionSource() 
+        public ITreeAndVersionSource GetNonChainedTreeAndVersionSource()
             => TryGetValue(out _) ? this : _originalTreeSource;
 
         public Task<TreeAndVersion> GetValueAsync(CancellationToken cancellationToken)
