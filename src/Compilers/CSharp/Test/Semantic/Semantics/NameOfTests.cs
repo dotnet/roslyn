@@ -2451,7 +2451,6 @@ class Attr : System.Attribute { public Attr(string s) {} }";
             CompileAndVerify(
                 CreateCompilation("""
                     using System;
-                    using System.Collections.Generic;
                     
                     var v = nameof(A<>.B<int>);
                     Console.WriteLine(v);
@@ -2467,7 +2466,6 @@ class Attr : System.Attribute { public Attr(string s) {} }";
             CompileAndVerify(
                 CreateCompilation("""
                     using System;
-                    using System.Collections.Generic;
                     
                     var v = nameof(A<int>.B<>);
                     Console.WriteLine(v);
@@ -2483,7 +2481,6 @@ class Attr : System.Attribute { public Attr(string s) {} }";
             CompileAndVerify(
                 CreateCompilation("""
                     using System;
-                    using System.Collections.Generic;
                     
                     var v = nameof(A<>.B<>);
                     Console.WriteLine(v);
@@ -2516,7 +2513,13 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                 var v = nameof(Dictionary<>);
                 Console.WriteLine(v);
-                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                    // (2,1): hidden CS8019: Unnecessary using directive.
+                    // using System.Collections.Generic;
+                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(2, 1),
+                    // (4,16): error CS0305: Using the generic type 'Dictionary<TKey, TValue>' requires 2 type arguments
+                    // var v = nameof(Dictionary<>);
+                    Diagnostic(ErrorCode.ERR_BadArity, "Dictionary<>").WithArguments("System.Collections.Generic.Dictionary<TKey, TValue>", "type", "2").WithLocation(4, 16));
         }
 
         [Fact]
@@ -2528,7 +2531,13 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                 var v = nameof(List<,>);
                 Console.WriteLine(v);
-                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using System.Collections.Generic;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Collections.Generic;").WithLocation(2, 1),
+                // (4,16): error CS0305: Using the generic type 'List<T>' requires 1 type arguments
+                // var v = nameof(List<,>);
+                Diagnostic(ErrorCode.ERR_BadArity, "List<,>").WithArguments("System.Collections.Generic.List<T>", "type", "1").WithLocation(4, 16));
         }
 
         [Fact]
