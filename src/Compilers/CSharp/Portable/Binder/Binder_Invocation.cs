@@ -2273,6 +2273,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckFeatureAvailability(node, MessageID.IDS_FeatureNameof, diagnostics);
             var argument = node.ArgumentList.Arguments[0].Expression;
+
+            validateOpenGenericNames(argument, topLevel: true);
+
             var boundArgument = BindExpression(argument, diagnostics);
 
             bool syntaxIsOk = CheckSyntaxForNameofArgument(argument, out string name, boundArgument.HasAnyErrors ? BindingDiagnosticBag.Discarded : diagnostics);
@@ -2297,6 +2300,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             boundArgument = BindToNaturalType(boundArgument, diagnostics, reportNoTargetType: false);
             return new BoundNameOfOperator(node, boundArgument, ConstantValue.Create(name), Compilation.GetSpecialType(SpecialType.System_String));
+
+            void validateOpenGenericNames(SyntaxNode current, bool topLevel)
+            {
+                if (current is TypeArgumentListSyntax typeArgumentList)
+                {
+                    if (!topLevel)
+                    {
+                        foreach (var typeArgument in typeArgumentList.Arguments)
+                        {
+                            if (typeArgument.Kind() == SyntaxKind.OmittedTypeArgument)
+                                diagnostics.Add(ErrorCode.ERR_NestedUnboundTypeNotAllowedInNameofExpression, typeArgumentList.Parent);
+                        }
+                    }
+
+                    // Once we hit a type argument list, we're no longer at the top level, and we want to report errors
+                    // for any omitted type arguments we see at a deeper level.
+                    topLevel = false;
+                }
+
+                foreach (var child in current.ChildNodesAndTokens())
+                {
+                    if (child.IsNode)
+                        validateOpenGenericNames(child.AsNode(), topLevel);
+                }
+            }
         }
 
         private void EnsureNameofExpressionSymbols(BoundMethodGroup methodGroup, BindingDiagnosticBag diagnostics)

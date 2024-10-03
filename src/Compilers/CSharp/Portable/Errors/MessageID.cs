@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureAllowsRefStructConstraint = MessageBase + 12847,
         IDS_OverloadResolutionPriority = MessageBase + 12848,
 
-        IDS_FeatureOpenTypeInNameof = MessageBase + 12849,
+        IDS_FeatureUnboundGenericTypesInNameof = MessageBase + 12849,
     }
 
     // Message IDs may refer to strings that need to be localized.

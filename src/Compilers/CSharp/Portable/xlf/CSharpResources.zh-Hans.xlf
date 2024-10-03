@@ -1452,6 +1452,11 @@
         <target state="translated">内联数组访问可能没有命名参数说明符</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NestedUnboundTypeNotAllowedInNameofExpression">
+        <source>Nested unbound generic type not allowed in 'nameof' operator</source>
+        <target state="new">Nested unbound generic type not allowed in 'nameof' operator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">"new()" 约束不能与 "unmanaged" 约束一起使用</target>
@@ -2497,11 +2502,6 @@
         <target state="translated">内插中的换行符</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureOpenTypeInNameof">
-        <source>Open generic types in nameof operator</source>
-        <target state="new">Open generic types in nameof operator</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
         <source>parameterless struct constructors</source>
         <target state="translated">参数结构构造函数</target>
@@ -2575,6 +2575,11 @@
       <trans-unit id="IDS_FeatureStructFieldInitializers">
         <source>struct field initializers</source>
         <target state="translated">结构字段初始化表达式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
+        <source>Unbound generic types in nameof operator</source>
+        <target state="new">Unbound generic types in nameof operator</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">

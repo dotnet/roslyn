@@ -4926,8 +4926,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureNameof" xml:space="preserve">
     <value>nameof operator</value>
   </data>
-  <data name="IDS_FeatureOpenTypeInNameof" xml:space="preserve">
-    <value>Open generic types in nameof operator</value>
+  <data name="IDS_FeatureUnboundGenericTypesInNameof" xml:space="preserve">
+    <value>Unbound generic types in nameof operator</value>
   </data>
   <data name="IDS_FeatureDictionaryInitializer" xml:space="preserve">
     <value>dictionary initializer</value>
@@ -8004,5 +8004,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_UninitializedNonNullableBackingField_Title" xml:space="preserve">
     <value>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</value>
+  </data>
+  <data name="ERR_NestedUnboundTypeNotAllowedInNameofExpression">
+    <value>Nested unbound generic type not allowed in 'nameof' operator</value>
   </data>
 </root>

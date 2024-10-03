@@ -1452,6 +1452,11 @@
         <target state="translated">Un accesso a matrice inline non può includere un identificatore di argomento denominato</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NestedUnboundTypeNotAllowedInNameofExpression">
+        <source>Nested unbound generic type not allowed in 'nameof' operator</source>
+        <target state="new">Nested unbound generic type not allowed in 'nameof' operator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">Non è possibile usare il vincolo 'new()' con il vincolo 'unmanaged'</target>
@@ -2497,11 +2502,6 @@
         <target state="translated">nuove linee nelle interpolazioni</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureOpenTypeInNameof">
-        <source>Open generic types in nameof operator</source>
-        <target state="new">Open generic types in nameof operator</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
         <source>parameterless struct constructors</source>
         <target state="translated">costruttori struct senza parametri</target>
@@ -2575,6 +2575,11 @@
       <trans-unit id="IDS_FeatureStructFieldInitializers">
         <source>struct field initializers</source>
         <target state="translated">inizializzatori di campo struct</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
+        <source>Unbound generic types in nameof operator</source>
+        <target state="new">Unbound generic types in nameof operator</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">

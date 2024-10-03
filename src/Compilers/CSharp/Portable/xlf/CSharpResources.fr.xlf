@@ -1452,6 +1452,11 @@
         <target state="translated">Un accès au tableau en ligne peut ne pas avoir de spécificateur d'argument nommé</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_NestedUnboundTypeNotAllowedInNameofExpression">
+        <source>Nested unbound generic type not allowed in 'nameof' operator</source>
+        <target state="new">Nested unbound generic type not allowed in 'nameof' operator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_NewBoundWithUnmanaged">
         <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
         <target state="translated">La contrainte 'new()' ne peut pas être utilisée avec la contrainte 'unmanaged'</target>
@@ -2497,11 +2502,6 @@
         <target state="translated">sauts de ligne dans les interpolations</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureOpenTypeInNameof">
-        <source>Open generic types in nameof operator</source>
-        <target state="new">Open generic types in nameof operator</target>
-        <note />
-      </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
         <source>parameterless struct constructors</source>
         <target state="translated">constructeurs de struct sans paramètre</target>
@@ -2575,6 +2575,11 @@
       <trans-unit id="IDS_FeatureStructFieldInitializers">
         <source>struct field initializers</source>
         <target state="translated">initialiseurs de champ de struct</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnboundGenericTypesInNameof">
+        <source>Unbound generic types in nameof operator</source>
+        <target state="new">Unbound generic types in nameof operator</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureUnsignedRightShift">
