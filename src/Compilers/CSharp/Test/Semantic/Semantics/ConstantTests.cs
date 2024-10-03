@@ -3389,6 +3389,9 @@ class C
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
+    // (6,51): error CS0110: The evaluation of the constant value for 'a' involves a circular definition
+    //         const Func<int> a = () => { const int b = a(); return 1; };
+    Diagnostic(ErrorCode.ERR_CircConstValue, "a").WithArguments("a").WithLocation(6, 51),
     // (6,51): error CS0133: The expression being assigned to 'b' must be constant
     //         const Func<int> a = () => { const int b = a(); return 1; };
     Diagnostic(ErrorCode.ERR_NotConstantExpression, "a()").WithArguments("b").WithLocation(6, 51)
@@ -3517,9 +3520,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib40(source, references: new[] { LinqAssemblyRef });
             comp.VerifyDiagnostics(
-                // (9,9): error CS0029: Cannot implicitly convert type 'System.Collections.Generic.IEnumerable<<anonymous type: int E>>' to 'int'
+                // (9,33): error CS0110: The evaluation of the constant value for 'F' involves a circular definition
                 //         c.Select(o => new { E = F });
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "c.Select(o => new { E = F })").WithArguments("System.Collections.Generic.IEnumerable<<anonymous type: int E>>", "int").WithLocation(9, 9)
+                Diagnostic(ErrorCode.ERR_CircConstValue, "F").WithArguments("F").WithLocation(9, 33)
                 );
         }
 
