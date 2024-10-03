@@ -762,35 +762,34 @@ namespace Microsoft.CodeAnalysis
                     // partway through the logic in BuildInProgressStateFromNoCompilationStateAsync.  If so, move those
                     // parsed documents over to the new project state so we can preserve as much information as
                     // possible.
-
-                    // Note: this count may be inaccurate as parsing may be going on in the background.  However, it
-                    // acts as a reasonable lower bound for the number of documents we'll be adding.
-                    var alreadyParsedCount = this.ProjectState.DocumentStates.States.Count(static s => s.Value.TryGetSyntaxTree(out _));
-
-                    // Specifically an ImmutableArray.Builder as we can presize reasonably and we want to convert to an
-                    // ImmutableArray at the end.
-                    var documentsWithTreesBuilder = ImmutableArray.CreateBuilder<DocumentState>(alreadyParsedCount);
-                    var alreadyParsedTreesBuilder = ImmutableArray.CreateBuilder<SyntaxTree>(alreadyParsedCount);
+                    using var _1 = ArrayBuilder<DocumentState>.GetInstance(out var documentsWithTreesBuilder);
 
                     foreach (var documentState in this.ProjectState.DocumentStates.GetStatesInCompilationOrder())
                     {
-                        if (documentState.TryGetSyntaxTree(out var alreadyParsedTree))
-                        {
+                        if (documentState.TryGetSyntaxTree(out _))
                             documentsWithTreesBuilder.Add(documentState);
-                            alreadyParsedTreesBuilder.Add(alreadyParsedTree);
-                        }
                     }
 
                     // Transition us to a state that only has documents for the files we've already parsed.
+                    var documentsWithTrees = documentsWithTreesBuilder.ToImmutableAndClear();
                     var frozenProjectState = this.ProjectState
                         .RemoveAllNormalDocuments()
-                        .AddDocuments(documentsWithTreesBuilder.ToImmutableAndClear());
+                        .AddDocuments(documentsWithTrees);
 
                     // Defer creating these compilations.  It's common to freeze projects (as part of a solution freeze)
                     // that are then never examined.  Creating compilations can be a little costly, so this saves doing
                     // that to the point where it is truly needed.
-                    var alreadyParsedTrees = alreadyParsedTreesBuilder.ToImmutableAndClear();
-                    var lazyCompilationWithoutGeneratedDocuments = new Lazy<Compilation>(() => this.CreateEmptyCompilation().AddSyntaxTrees(alreadyParsedTrees));
+                    var lazyCompilationWithoutGeneratedDocuments = new Lazy<Compilation>(() =>
+                    {
+                        using var _ = ArrayBuilder<SyntaxTree>.GetInstance(documentsWithTrees.Length, out var alreadyParsedTrees);
+                        foreach (var documentState in documentsWithTrees)
+                        {
+                            if (documentState.TryGetSyntaxTree(out var alreadyParsedTree))
+                                alreadyParsedTrees.Add(alreadyParsedTree);
+                        }
+
+                        return this.CreateEmptyCompilation().AddSyntaxTrees(alreadyParsedTrees);
+                    });
 
                     var lazyCompilationWithGeneratedDocuments = new CancellableLazy<Compilation?>(cancellationToken => lazyCompilationWithoutGeneratedDocuments.Value);
 
