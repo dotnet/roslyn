@@ -109,6 +109,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             """
             static partial class CollectionExtensions
             {
+                internal static void ReportSpan<T>(this in Span<T> s)
+                {
+                    Report((ReadOnlySpan<T>)s);
+                }
                 internal static void Report<T>(this in ReadOnlySpan<T> s)
                 {
                     var builder = new StringBuilder();
@@ -1960,8 +1964,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp = CreateCompilation(
                 new[] { sourceA, sourceB2 },
                 parseOptions: TestOptions.RegularPreview,
+                options: TestOptions.ReleaseExe,
                 targetFramework: TargetFramework.Net80);
-            comp.VerifyEmitDiagnostics(expectedDiagnostic);
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("Span<string>")).VerifyDiagnostics();
 
             comp = CreateCompilation(
                 new[] { sourceA, sourceB2 },
@@ -2042,9 +2047,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class Program
                 {
                     static void F1(int[] x, int[] y) { throw null; }
-                    static void F1(Span<object> x, ReadOnlySpan<int> y) { x.Report(); y.Report(); }
+                    static void F1(Span<object> x, ReadOnlySpan<int> y) { x.ReportSpan(); y.Report(); }
                     static void F2(object x, string[] y) { throw null; }
-                    static void F2(string x, Span<object> y) { y.Report(); }
+                    static void F2(string x, Span<object> y) { y.ReportSpan(); }
                     static void Main()
                     {
                         F1([1], [2]);
