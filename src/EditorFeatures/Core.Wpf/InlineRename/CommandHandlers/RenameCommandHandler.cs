@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -90,11 +91,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        protected override void CommitAndSetFocus(InlineRenameSession activeSession, ITextView textView, IUIThreadOperationContext operationContext)
+        protected override async Task CommitAndSetFocusAsync(InlineRenameSession activeSession, ITextView textView, IUIThreadOperationContext operationContext)
         {
             try
             {
-                base.CommitAndSetFocus(activeSession, textView, operationContext);
+                // ConfigureAwait(true) to show notification when error occurs.
+                await base.CommitAndSetFocusAsync(activeSession, textView, operationContext).ConfigureAwait(true);
             }
             catch (NotSupportedException ex)
             {

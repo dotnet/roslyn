@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -19,16 +21,19 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
     {
         if (renameService.ActiveSession != null)
         {
-            CommitAndSetFocus(renameService.ActiveSession, args.TextView, context.OperationContext);
+            var token = listener.BeginAsyncOperation(nameof(CommitAndSetFocusAsync));
+            _ = CommitAndSetFocusAsync(renameService.ActiveSession, args.TextView, context.OperationContext)
+                .ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
             return true;
         }
 
         return false;
     }
 
-    protected virtual void CommitAndSetFocus(InlineRenameSession activeSession, ITextView textView, IUIThreadOperationContext operationContext)
+    protected virtual async Task CommitAndSetFocusAsync(InlineRenameSession activeSession, ITextView textView, IUIThreadOperationContext operationContext)
     {
-        _ = activeSession.CommitAsync(previewChanges: false, operationContext).ReportNonFatalErrorAsync();
+        // ConfigureAwait(true) because UI thread is needed to change the focus of text view.
+        await activeSession.CommitAsync(previewChanges: false, operationContext).ConfigureAwait(true);
         SetFocusToTextView(textView);
     }
 }

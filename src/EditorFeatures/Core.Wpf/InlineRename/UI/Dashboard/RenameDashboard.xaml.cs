@@ -248,6 +248,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
                 else if (string.Equals(e.Key, RenameShortcutKey.Apply, StringComparison.OrdinalIgnoreCase))
                 {
+                    // CommitAsync catch & report all the exceptions.
                     _ = this.CommitAsync();
                 }
             }
@@ -325,6 +326,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private void Apply_Click(object sender, RoutedEventArgs e)
             => _ = CommitAsync();
 
+        /// <remarks>
+        /// CommitAsync is non-throwing.
+        /// </remarks>
         private async Task CommitAsync()
         {
             try

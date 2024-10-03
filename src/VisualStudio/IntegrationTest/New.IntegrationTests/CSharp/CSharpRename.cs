@@ -748,7 +748,7 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
             """, HangMitigatingCancellationToken);
     }
 
-    [IdeFact(Skip = "https://github.com/dotnet/roslyn/issues/73630"), WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1903953/")]
+    [IdeFact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1903953/")]
     public async Task VerifyRenameLinkedDocumentsAsync()
     {
         var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
