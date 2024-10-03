@@ -2394,13 +2394,15 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         {
             CreateCompilation("""
                 using System;
-                using System.Collections.Generic;
                 
                 var v = nameof(A<>.B<int>);
                 Console.WriteLine(v);
 
                 class A<X> { public class B<Y>; }
-                """, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
+                """, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+                    // (3,16): error CS8652: The feature 'Open generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // var v = nameof(A<>.B<int>);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "A<>").WithArguments("Open generic types in nameof operator").WithLocation(3, 16));
         }
 
         [Fact]
@@ -2408,13 +2410,15 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         {
             CreateCompilation("""
                 using System;
-                using System.Collections.Generic;
                 
                 var v = nameof(A<int>.B<>);
                 Console.WriteLine(v);
 
                 class A<X> { public class B<Y>; }
-                """, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
+                """, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+                // (3,23): error CS8652: The feature 'Open generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // var v = nameof(A<int>.B<>);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "B<>").WithArguments("Open generic types in nameof operator").WithLocation(3, 23));
         }
 
         [Fact]
@@ -2422,13 +2426,18 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         {
             CreateCompilation("""
                 using System;
-                using System.Collections.Generic;
                 
                 var v = nameof(A<>.B<>);
                 Console.WriteLine(v);
 
-                class A<X> { class B<Y>; }
-                """, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
+                class A<X> { public class B<Y>; }
+                """, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+                    // (3,16): error CS8652: The feature 'Open generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // var v = nameof(A<>.B<>);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "A<>").WithArguments("Open generic types in nameof operator").WithLocation(3, 16),
+                    // (3,20): error CS8652: The feature 'Open generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // var v = nameof(A<>.B<>);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "B<>").WithArguments("Open generic types in nameof operator").WithLocation(3, 20));
         }
 
         [Fact]
