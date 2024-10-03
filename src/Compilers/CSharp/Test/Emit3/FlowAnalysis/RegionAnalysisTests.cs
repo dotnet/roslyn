@@ -14109,6 +14109,9 @@ class B
                 """,
                 targetFramework: TargetFramework.NetCoreApp);
             comp.VerifyEmitDiagnostics(
+                // (3,13): warning CS0649: Field 'RS.ri' is never assigned to, and will always have its default value (null reference)
+                //     ref int ri;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "ri").WithArguments("RS.ri", "(null reference)").WithLocation(3, 13),
                 // (4,20): warning CS9201: Ref field 'ri' should be ref-assigned before use.
                 //     public RS() => ri = 0;
                 Diagnostic(ErrorCode.WRN_UseDefViolationRefField, "ri").WithArguments("ri").WithLocation(4, 20));
