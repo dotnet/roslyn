@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             try
             {
-                //.ConfigureAwait(true) to make sure Exceptions could be shown in UI.
+                //.ConfigureAwait(true) because UI thread is need to change focus
                 await _model.Session.CommitAsync(previewChanges: false).ConfigureAwait(true);
                 _textView.VisualElement.Focus();
             }
