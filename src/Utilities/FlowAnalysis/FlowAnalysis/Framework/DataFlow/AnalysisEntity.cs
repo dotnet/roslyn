@@ -186,8 +186,8 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis.DataFlow
 
         public bool HasConstantValue => Symbol switch
         {
-            IFieldSymbol field => field.HasConstantValue,
-            ILocalSymbol local => local.HasConstantValue,
+            IFieldSymbol fieldSymbol => fieldSymbol.HasConstantValue,
+            ILocalSymbol localSymbol => localSymbol.HasConstantValue,
             _ => false,
         };
 
