@@ -25,7 +25,7 @@ using static UseCollectionExpressionHelpers;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForArray), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider()
+internal sealed partial class CSharpUseCollectionExpressionForArrayCodeFixProvider()
     : AbstractUseCollectionExpressionCodeFixProvider<ExpressionSyntax>(
         CSharpCodeFixesResources.Use_collection_expression,
         IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId)

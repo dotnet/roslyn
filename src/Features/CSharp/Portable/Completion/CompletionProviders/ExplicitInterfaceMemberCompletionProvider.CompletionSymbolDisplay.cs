@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-internal partial class ExplicitInterfaceMemberCompletionProvider
+internal sealed partial class ExplicitInterfaceMemberCompletionProvider
 {
     private static class CompletionSymbolDisplay
     {
