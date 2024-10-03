@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class NameofTests : CSharpTestBase
+    public sealed class NameofTests : CSharpTestBase
     {
         [Fact]
         public void TestGoodNameofInstances()
@@ -2372,6 +2372,141 @@ class Attr : System.Attribute { public Attr(string s) {} }";
             CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.Regular11).VerifyDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_CSharp13()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<>);
+                Console.WriteLine(v);
+                """, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_BaseCase()
+        {
+            CompileAndVerify(
+                CreateCompilation("""
+                    using System;
+                    using System.Collections.Generic;
+
+                    var v = nameof(List<>);
+                    Console.WriteLine(v);
+                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                expectedOutput: "List");
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_MultipleTypeArguments()
+        {
+            CompileAndVerify(
+                CreateCompilation("""
+                    using System;
+                    using System.Collections.Generic;
+
+                    var v = nameof(Dictionary<,>);
+                    Console.WriteLine(v);
+                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                expectedOutput: "Dictionary");
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_NoNestedOpenTypes()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<List<>>);
+                Console.WriteLine(v);
+                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_NoPartialOpenTypes()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(Dictionary<,int>);
+                Console.WriteLine(v);
+                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_MemberAccessThatDoesNotUseTypeArgument()
+        {
+            CompileAndVerify(
+                CreateCompilation("""
+                    using System;
+                    using System.Collections.Generic;
+
+                    var v = nameof(List<>.Count);
+                    Console.WriteLine(v);
+                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                expectedOutput: "Count");
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_MemberAccessThatDoesUseTypeArgument()
+        {
+            CompileAndVerify(
+                CreateCompilation("""
+                    using System;
+                    using System.Collections.Generic;
+
+                    interface IGoo<T>
+                    {
+                        T Count { get; }
+                    }
+
+                    var v = nameof(IGoo<>.Count);
+                    Console.WriteLine(v);
+                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                expectedOutput: "Count");
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_MemberAccessThatDoesUseTypeArgument_ReferenceObjectMember()
+        {
+            CompileAndVerify(
+                CreateCompilation("""
+                    using System;
+                    using System.Collections.Generic;
+
+                    interface IGoo<T>
+                    {
+                        T Count { get; }
+                    }
+
+                    var v = nameof(IGoo<>.Count.ToString);
+                    Console.WriteLine(v);
+                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                expectedOutput: "ToString");
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_MemberAccessThatDoesUseTypeArgument_ReferenceConstraintMember()
+        {
+            CompileAndVerify(
+                CreateCompilation("""
+                    using System;
+                    using System.Collections.Generic;
+
+                    interface IGoo<T> where T : IComparable<T>
+                    {
+                        T X { get; }
+                    }
+
+                    var v = nameof(IGoo<>.Count.X.CompareTo);
+                    Console.WriteLine(v);
+                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                expectedOutput: "CompareTo");
         }
     }
 }
