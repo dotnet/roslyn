@@ -561,6 +561,8 @@ class D : B
                 Dim configService = workspace.ExportProvider.GetExportedValue(Of TestWorkspaceConfigurationService)
                 configService.Options = New WorkspaceConfigurationOptions(SourceGeneratorExecution:=executionPreference)
 
+                Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider)().Value
+
                 Dim cursorDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value
 
@@ -591,7 +593,8 @@ class D : B
                 Using dashboard = New RenameDashboard(
                     New RenameDashboardViewModel(DirectCast(sessionInfo.Session, InlineRenameSession), threadingContext, textView),
                     editorFormatMapService:=Nothing,
-                    textView:=cursorDocument.GetTextView())
+                    textView:=cursorDocument.GetTextView(),
+                    listenerProvider)
 
                     Await WaitForRename(workspace)
 
@@ -625,7 +628,6 @@ class D : B
                 End Using
 
                 Dim TestQuickInfoBroker = New TestQuickInfoBroker()
-                Dim listenerProvider = workspace.ExportProvider.GetExport(Of IAsynchronousOperationListenerProvider)().Value
                 Dim editorFormatMapService = workspace.ExportProvider.GetExport(Of IEditorFormatMapService)().Value
 
                 Using flyout = New RenameFlyout(

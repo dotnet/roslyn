@@ -16,6 +16,7 @@ using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename.HighlightTags;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private readonly RenameDashboardViewModel _model;
         private readonly IWpfTextView _textView;
         private readonly IAdornmentLayer _findAdornmentLayer;
+        private readonly IAsynchronousOperationListener _listener;
         private PresentationSource _presentationSource;
         private DependencyObject _rootDependencyObject;
         private IInputElement _rootInputElement;
@@ -48,7 +50,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public RenameDashboard(
             RenameDashboardViewModel model,
             IEditorFormatMapService editorFormatMapService,
-            IWpfTextView textView)
+            IWpfTextView textView,
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _model = model;
             InitializeComponent();
@@ -56,6 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _tabNavigableChildren = [this.OverloadsCheckbox, this.CommentsCheckbox, this.StringsCheckbox, this.FileRenameCheckbox, this.PreviewChangesCheckbox, this.ApplyButton, this.CloseButton];
 
             _textView = textView;
+            _listener = listenerProvider.GetListener(FeatureAttribute.Rename);
             this.DataContext = model;
 
             _textView.GotAggregateFocus += OnTextViewGotAggregateFocus;
@@ -325,6 +329,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             try
             {
+                using var token = _listener.BeginAsyncOperation(nameof(CommitAsync));
                 //.ConfigureAwait(true) to make sure Exceptions could be shown in UI.
                 await _model.Session.CommitAsync(previewChanges: false).ConfigureAwait(true);
                 _textView.VisualElement.Focus();
