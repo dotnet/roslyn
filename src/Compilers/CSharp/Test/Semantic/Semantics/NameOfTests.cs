@@ -249,9 +249,6 @@ class Test<T>
                 // (17,66): error CS1031: Type expected
                 //         s = nameof(System.Collections.Generic.Dictionary<Program,>.KeyCollection);
                 Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(17, 66),
-                // (11,27): error CS0305: Using the generic type 'Action<T>' requires 1 type arguments
-                //         s = nameof(System.Action<>);
-                Diagnostic(ErrorCode.ERR_BadArity, "Action<>").WithArguments("System.Action<T>", "type", "1").WithLocation(11, 27),
                 // (16,20): error CS0103: The name 'List' does not exist in the current context
                 //         s = nameof(List<int>.Enumerator);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "List<int>").WithArguments("List").WithLocation(16, 20),
@@ -282,9 +279,6 @@ class Test<T>
                 // (31,20): error CS8083: An alias-qualified name is not an expression.
                 //         s = nameof(global::Program); // not an expression
                 Diagnostic(ErrorCode.ERR_AliasQualifiedNameNotAnExpression, "global::Program").WithLocation(31, 20),
-                // (32,20): error CS0305: Using the generic type 'Test<T>' requires 1 type arguments
-                //         s = nameof(Test<>.s); // inaccessible
-                Diagnostic(ErrorCode.ERR_BadArity, "Test<>").WithArguments("Test<T>", "type", "1").WithLocation(32, 20),
                 // (32,27): error CS0122: 'Test<T>.s' is inaccessible due to its protection level
                 //         s = nameof(Test<>.s); // inaccessible
                 Diagnostic(ErrorCode.ERR_BadAccess, "s").WithArguments("Test<T>.s").WithLocation(32, 27),
@@ -2632,7 +2626,6 @@ class Attr : System.Attribute { public Attr(string s) {} }";
             CompileAndVerify(
                 CreateCompilation("""
                     using System;
-                    using System.Collections.Generic;
                     
                     var v = nameof(IGoo<>.Count.ToString);
                     Console.WriteLine(v);
@@ -2653,7 +2646,7 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                     using System;
                     using System.Collections.Generic;
                     
-                    var v = nameof(IGoo<>.Count.X.CompareTo);
+                    var v = nameof(IGoo<>.X.CompareTo);
                     Console.WriteLine(v);
 
                     interface IGoo<T> where T : IComparable<T>
