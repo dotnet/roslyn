@@ -248,8 +248,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 }
                 else if (string.Equals(e.Key, RenameShortcutKey.Apply, StringComparison.OrdinalIgnoreCase))
                 {
+                    var token = _listener.BeginAsyncOperation($"{nameof(OnAccessKey)}.{nameof(RenameShortcutKey.Apply)}");
                     // CommitAsync catch & report all the exceptions.
-                    _ = this.CommitAsync();
+                    _ = this.CommitAsync().CompletesAsyncOperation(token);
                 }
             }
         }
@@ -324,7 +325,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         private void Apply_Click(object sender, RoutedEventArgs e)
-            => _ = CommitAsync();
+        {
+            var token = _listener.BeginAsyncOperation(nameof(Apply_Click));
+            // CommitAsync catch & report all the exceptions.
+            _ = CommitAsync().CompletesAsyncOperation(token);
+        }
 
         /// <remarks>
         /// CommitAsync is non-throwing.
@@ -333,7 +338,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             try
             {
-                using var token = _listener.BeginAsyncOperation(nameof(CommitAsync));
                 //.ConfigureAwait(true) to make sure Exceptions could be shown in UI.
                 await _model.Session.CommitAsync(previewChanges: false).ConfigureAwait(true);
                 _textView.VisualElement.Focus();
