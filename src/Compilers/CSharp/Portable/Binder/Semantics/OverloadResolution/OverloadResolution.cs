@@ -1054,6 +1054,7 @@ outerDefault:
             where TMember : Symbol
         {
             Debug.Assert(checkOverriddenOrHidden || containingTypeMapOpt is null);
+            Debug.Assert((options & Options.IgnoreNormalFormIfHasValidParamsParameter) == 0 || (options & Options.IsMethodGroupConversion) == 0);
 
             // SPEC VIOLATION:
             //
@@ -1158,7 +1159,8 @@ outerDefault:
 
             // Second, we need to determine if the method is applicable in its normal form or its expanded form.
             bool disallowExpandedNonArrayParams = (options & Options.DisallowExpandedNonArrayParams) != 0;
-            var normalResult = ((options & Options.IgnoreNormalFormIfHasValidParamsParameter) != 0 && IsValidParams(_binder, leastOverriddenMember, disallowExpandedNonArrayParams, out _))
+            bool skipNormalResult = ((options & Options.IgnoreNormalFormIfHasValidParamsParameter) != 0 && IsValidParams(_binder, leastOverriddenMember, disallowExpandedNonArrayParams, out _));
+            var normalResult = skipNormalResult
                 ? default(MemberResolutionResult<TMember>)
                 : IsMemberApplicableInNormalForm(
                     member,
@@ -1190,7 +1192,7 @@ outerDefault:
                         dynamicConvertsToAnything: (options & Options.DynamicConvertsToAnything) != 0,
                         useSiteInfo: ref useSiteInfo);
 
-                    if (PreferExpandedFormOverNormalForm(normalResult, expandedResult))
+                    if (skipNormalResult || PreferExpandedFormOverNormalForm(normalResult, expandedResult))
                     {
                         result = expandedResult;
                     }
