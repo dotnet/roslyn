@@ -2614,15 +2614,14 @@ class Attr : System.Attribute { public Attr(string s) {} }";
             CompileAndVerify(
                 CreateCompilation("""
                     using System;
-                    using System.Collections.Generic;
+                    
+                    var v = nameof(IGoo<>.Count);
+                    Console.WriteLine(v);
 
                     interface IGoo<T>
                     {
                         T Count { get; }
                     }
-
-                    var v = nameof(IGoo<>.Count);
-                    Console.WriteLine(v);
                     """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
                 expectedOutput: "Count");
         }
@@ -2634,14 +2633,14 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 CreateCompilation("""
                     using System;
                     using System.Collections.Generic;
+                    
+                    var v = nameof(IGoo<>.Count.ToString);
+                    Console.WriteLine(v);
 
                     interface IGoo<T>
                     {
                         T Count { get; }
                     }
-
-                    var v = nameof(IGoo<>.Count.ToString);
-                    Console.WriteLine(v);
                     """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
                 expectedOutput: "ToString");
         }
@@ -2653,14 +2652,14 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 CreateCompilation("""
                     using System;
                     using System.Collections.Generic;
+                    
+                    var v = nameof(IGoo<>.Count.X.CompareTo);
+                    Console.WriteLine(v);
 
                     interface IGoo<T> where T : IComparable<T>
                     {
                         T X { get; }
                     }
-
-                    var v = nameof(IGoo<>.Count.X.CompareTo);
-                    Console.WriteLine(v);
                     """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
                 expectedOutput: "CompareTo");
         }
