@@ -205,8 +205,13 @@ internal sealed class DiagnosticData(
         if (diagnosticsLspClientName != null)
         {
             additionalProperties ??= ImmutableDictionary.Create<string, string?>();
-
             additionalProperties = additionalProperties.Add(nameof(documentPropertiesService.DiagnosticsLspClientName), diagnosticsLspClientName);
+        }
+
+        if (project.IsSubmission)
+        {
+            additionalProperties ??= ImmutableDictionary.Create<string, string?>();
+            additionalProperties = additionalProperties.Add(DiagnosticPropertyConstants.IsInteractiveSubmission, null);
         }
 
         return Create(diagnostic,

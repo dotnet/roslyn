@@ -28,7 +28,7 @@ internal static partial class ProtocolConversions
     /// <param name="globalOptionService">The global options service</param>
     public static ImmutableArray<LSP.Diagnostic> ConvertDiagnostic(DiagnosticData diagnosticData, bool supportsVisualStudioExtensions, Project project, bool isLiveSource, bool potentialDuplicate, IGlobalOptionService globalOptionService)
     {
-        if (!ShouldIncludeHiddenDiagnostic(diagnosticData, supportsVisualStudioExtensions))
+        if (!ShouldIncludeDiagnostic(diagnosticData, supportsVisualStudioExtensions))
         {
             return [];
         }
@@ -158,7 +158,7 @@ internal static partial class ProtocolConversions
         };
     }
 
-    private static bool ShouldIncludeHiddenDiagnostic(DiagnosticData diagnosticData, bool supportsVisualStudioExtensions)
+    private static bool ShouldIncludeDiagnostic(DiagnosticData diagnosticData, bool supportsVisualStudioExtensions)
     {
         // VS can handle us reporting any kind of diagnostic using VS custom tags.
         if (supportsVisualStudioExtensions == true)
@@ -233,6 +233,10 @@ internal static partial class ProtocolConversions
             result.Add(VSDiagnosticTags.HiddenInEditor);
             result.Add(VSDiagnosticTags.HiddenInErrorList);
             result.Add(VSDiagnosticTags.SuppressEditorToolTip);
+        }
+        else if (diagnosticData.Properties.ContainsKey(DiagnosticPropertyConstants.IsInteractiveSubmission))
+        {
+            result.Add(VSDiagnosticTags.HiddenInErrorList);
         }
         else
         {
