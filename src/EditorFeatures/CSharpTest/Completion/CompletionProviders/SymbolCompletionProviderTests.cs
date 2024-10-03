@@ -12868,6 +12868,122 @@ public static class Extension
         await VerifyItemExistsAsync(markup, "Method", displayTextSuffix: "<>");
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75350")]
+    public async Task SwitchExpressionEnumColorColor_01()
+    {
+        //lang=c#-test
+        const string source = """
+            public sealed record OrderModel(int Id, Status Status)
+            {
+                public string StatusDisplay
+                {
+                    get
+                    {
+                        return Status switch
+                        {
+                            Status.$$
+                        };
+                    }
+                }
+            }
+
+            public enum Status
+            {
+                Undisclosed,
+                Open,
+                Closed,
+            }
+            """;
+        await VerifyItemExistsAsync(source, "Undisclosed");
+        await VerifyItemIsAbsentAsync(source, "ToString");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75350")]
+    public async Task SwitchExpressionEnumColorColor_02()
+    {
+        //lang=c#-test
+        const string source = """
+            public sealed record OrderModel(int Id, Status Status)
+            {
+                public string StatusDisplay
+                {
+                    get
+                    {
+                        return this switch
+                        {
+                            { Status: Status.$$ }
+                        };
+                    }
+                }
+            }
+
+            public enum Status
+            {
+                Undisclosed,
+                Open,
+                Closed,
+            }
+            """;
+        await VerifyItemExistsAsync(source, "Undisclosed");
+        await VerifyItemIsAbsentAsync(source, "ToString");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75350")]
+    public async Task ConstantPatternExpressionEnumColorColor_01()
+    {
+        //lang=c#-test
+        const string source = """
+            public sealed record OrderModel(int Id, Status Status)
+            {
+                public string StatusDisplay
+                {
+                    get
+                    {
+                        if (Status is Status.$$)
+                            ;
+                    }
+                }
+            }
+
+            public enum Status
+            {
+                Undisclosed,
+                Open,
+                Closed,
+            }
+            """;
+        await VerifyItemExistsAsync(source, "Undisclosed");
+        await VerifyItemIsAbsentAsync(source, "ToString");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75350")]
+    public async Task ConstantPatternExpressionEnumColorColor_02()
+    {
+        //lang=c#-test
+        const string source = """
+            public sealed record OrderModel(int Id, Status Status)
+            {
+                public string StatusDisplay
+                {
+                    get
+                    {
+                        if (Status is (Status.$$)
+                            ;
+                    }
+                }
+            }
+
+            public enum Status
+            {
+                Undisclosed,
+                Open,
+                Closed,
+            }
+            """;
+        await VerifyItemExistsAsync(source, "Undisclosed");
+        await VerifyItemIsAbsentAsync(source, "ToString");
+    }
+
     #region Collection expressions
 
     [Fact]
