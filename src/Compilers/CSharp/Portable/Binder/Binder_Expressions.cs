@@ -10401,13 +10401,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable enable
         internal NamedTypeSymbol? GetMethodGroupDelegateType(BoundMethodGroup node)
         {
-            var method = GetUniqueSignatureFromMethodGroup(node);
+            var method = GetUniqueSignatureFromMethodGroup(node, out bool useParams);
             if (method is null)
             {
                 return null;
             }
 
-            return GetMethodGroupOrLambdaDelegateType(node.Syntax, method);
+            return GetMethodGroupOrLambdaDelegateType(node.Syntax, method, hasParams: useParams);
         }
 
         /// <summary>
@@ -10415,9 +10415,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// have the same signature, ignoring parameter names and custom modifiers. The particular
         /// method returned is not important since the caller is interested in the signature only.
         /// </summary>
-        private MethodSymbol? GetUniqueSignatureFromMethodGroup_CSharp10(BoundMethodGroup node)
+        /// <param name="useParams">
+        /// Whether the last parameter of the signature should have the <see langword="params"/> modifier.
+        /// </param>
+        private MethodSymbol? GetUniqueSignatureFromMethodGroup_CSharp10(BoundMethodGroup node, out bool useParams)
         {
             MethodSymbol? method = null;
+            var methods = ArrayBuilder<MethodSymbol>.GetInstance(capacity: node.Methods.Length);
             foreach (var m in node.Methods)
             {
                 switch (node.ReceiverOpt)
@@ -10432,37 +10436,92 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (m.IsStatic) continue;
                         break;
                 }
+                methods.Add(m);
+            }
+
+            if (!OverloadResolution.FilterMethodsForUniqueSignature(methods, out useParams))
+            {
+                methods.Free();
+                return null;
+            }
+
+            var seenAnyApplicableCandidates = methods.Count != 0;
+
+            foreach (var m in methods)
+            {
                 if (!isCandidateUnique(ref method, m))
                 {
+                    methods.Free();
+                    useParams = false;
                     return null;
                 }
             }
+
             if (node.SearchExtensionMethods)
             {
                 var receiver = node.ReceiverOpt!;
                 foreach (var scope in new ExtensionMethodScopes(this))
                 {
+                    methods.Clear();
                     var methodGroup = MethodGroup.GetInstance();
                     PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, node.TypeArgumentsOpt, BindingDiagnosticBag.Discarded);
                     foreach (var m in methodGroup.Methods)
                     {
-                        if (m.ReduceExtensionMethod(receiver.Type, Compilation) is { } reduced &&
-                            !isCandidateUnique(ref method, reduced))
+                        if (m.ReduceExtensionMethod(receiver.Type, Compilation) is { } reduced)
                         {
-                            methodGroup.Free();
-                            return null;
+                            methods.Add(reduced);
                         }
                     }
                     methodGroup.Free();
+
+                    if (methods.Count == 0)
+                    {
+                        continue;
+                    }
+
+                    if (!OverloadResolution.FilterMethodsForUniqueSignature(methods, out bool useParamsForScope))
+                    {
+                        methods.Free();
+                        useParams = false;
+                        return null;
+                    }
+
+                    Debug.Assert(methods.Count != 0);
+
+                    // If we had some candidates that differ in `params` from the current scope, we don't have a unique signature.
+                    if (seenAnyApplicableCandidates && useParamsForScope != useParams)
+                    {
+                        methods.Free();
+                        useParams = false;
+                        return null;
+                    }
+
+                    useParams = useParamsForScope;
+                    seenAnyApplicableCandidates = true;
+
+                    foreach (var reduced in methods)
+                    {
+                        if (!isCandidateUnique(ref method, reduced))
+                        {
+                            methods.Free();
+                            useParams = false;
+                            return null;
+                        }
+                    }
                 }
             }
+
+            methods.Free();
+
             if (method is null)
             {
+                useParams = false;
                 return null;
             }
             int n = node.TypeArgumentsOpt.IsDefaultOrEmpty ? 0 : node.TypeArgumentsOpt.Length;
             if (method.Arity != n)
             {
+                useParams = false;
                 return null;
             }
             else if (n > 0)
@@ -10492,17 +10551,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// in the nearest scope, have the same signature ignoring parameter names and custom modifiers.
         /// The particular method returned is not important since the caller is interested in the signature only.
         /// </summary>
-        private MethodSymbol? GetUniqueSignatureFromMethodGroup(BoundMethodGroup node)
+        /// <param name="useParams">
+        /// Whether the last parameter of the signature should have the <see langword="params"/> modifier.
+        /// </param>
+        private MethodSymbol? GetUniqueSignatureFromMethodGroup(BoundMethodGroup node, out bool useParams)
         {
             if (Compilation.LanguageVersion < LanguageVersion.CSharp13)
             {
-                return GetUniqueSignatureFromMethodGroup_CSharp10(node);
+                return GetUniqueSignatureFromMethodGroup_CSharp10(node, out useParams);
             }
 
+            useParams = false;
             MethodSymbol? foundMethod = null;
             var typeArguments = node.TypeArgumentsOpt;
             if (node.ResultKind == LookupResultKind.Viable)
             {
+                var methods = ArrayBuilder<MethodSymbol>.GetInstance(capacity: node.Methods.Length);
                 foreach (var memberMethod in node.Methods)
                 {
                     switch (node.ReceiverOpt)
@@ -10532,11 +10596,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
+                    methods.Add(substituted);
+                }
+
+                if (!OverloadResolution.FilterMethodsForUniqueSignature(methods, out useParams))
+                {
+                    methods.Free();
+                    return null;
+                }
+
+                foreach (var substituted in methods)
+                {
                     if (!isCandidateUnique(ref foundMethod, substituted))
                     {
+                        methods.Free();
+                        useParams = false;
                         return null;
                     }
                 }
+
+                methods.Free();
 
                 if (foundMethod is not null)
                 {
@@ -10552,6 +10631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     methodGroup.Clear();
                     PopulateExtensionMethodsFromSingleBinder(scope, methodGroup, node.Syntax, receiver, node.Name, typeArguments, BindingDiagnosticBag.Discarded);
+                    var methods = ArrayBuilder<MethodSymbol>.GetInstance(capacity: methodGroup.Methods.Count);
                     foreach (var extensionMethod in methodGroup.Methods)
                     {
                         var substituted = typeArguments.IsDefaultOrEmpty ? extensionMethod : extensionMethod.Construct(typeArguments);
@@ -10573,13 +10653,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                             continue;
                         }
 
-                        var wasUnique = isCandidateUnique(ref foundMethod, reduced);
-                        if (!wasUnique)
+                        methods.Add(reduced);
+                    }
+
+                    if (!OverloadResolution.FilterMethodsForUniqueSignature(methods, out useParams))
+                    {
+                        methods.Free();
+                        methodGroup.Free();
+                        return null;
+                    }
+
+                    foreach (var reduced in methods)
+                    {
+                        if (!isCandidateUnique(ref foundMethod, reduced))
                         {
+                            methods.Free();
                             methodGroup.Free();
+                            useParams = false;
                             return null;
                         }
                     }
+
+                    methods.Free();
 
                     if (foundMethod is not null)
                     {
@@ -10590,6 +10685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodGroup.Free();
             }
 
+            useParams = false;
             return null;
 
             static bool isCandidateUnique(ref MethodSymbol? foundMethod, MethodSymbol candidate)
@@ -10635,6 +10731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal NamedTypeSymbol? GetMethodGroupOrLambdaDelegateType(
             SyntaxNode syntax,
             MethodSymbol methodSymbol,
+            bool hasParams,
             ImmutableArray<ScopedKind>? parameterScopesOverride = null,
             ImmutableArray<bool>? parameterHasUnscopedRefAttributesOverride = null,
             RefKind? returnRefKindOverride = null,
@@ -10652,8 +10749,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parameterDefaultValues = parameters.Any(p => p.HasExplicitDefaultValue) ?
                 parameters.SelectAsArray(p => p.ExplicitDefaultConstantValue) :
                 default;
-
-            var hasParams = OverloadResolution.IsValidParams(this, methodSymbol, disallowExpandedNonArrayParams: false, out _);
 
             Debug.Assert(ContainingMemberOrLambda is { });
             Debug.Assert(parameterRefKinds.IsDefault || parameterRefKinds.Length == parameterTypes.Length);

@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal partial class AbstractSyntaxIndex<TIndex>
+internal abstract partial class AbstractSyntaxIndex<TIndex>
 {
     private static readonly string s_persistenceName = typeof(TIndex).Name;
 

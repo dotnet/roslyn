@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
-internal class CodeGenerationNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
+internal sealed class CodeGenerationNamedTypeSymbol : CodeGenerationAbstractNamedTypeSymbol
 {
     private readonly ImmutableArray<ITypeParameterSymbol> _typeParameters;
     private readonly ImmutableArray<INamedTypeSymbol> _interfaces;

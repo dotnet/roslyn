@@ -15,9 +15,9 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddConstructorParametersFromMembers;
 
-internal partial class AddConstructorParametersFromMembersCodeRefactoringProvider
+internal sealed partial class AddConstructorParametersFromMembersCodeRefactoringProvider
 {
-    private class State
+    private sealed class State
     {
         public ImmutableArray<ConstructorCandidate> ConstructorCandidates { get; private set; }
 

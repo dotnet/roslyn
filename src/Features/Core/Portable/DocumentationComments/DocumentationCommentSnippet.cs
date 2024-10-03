@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.DocumentationComments;
 
-internal class DocumentationCommentSnippet
+internal sealed class DocumentationCommentSnippet
 {
     /// <summary>
     /// The span in the original text that should be replaced with the documentation comment.

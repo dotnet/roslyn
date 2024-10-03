@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
-internal partial class ISymbolExtensions2
+internal static partial class ISymbolExtensions2
 {
     [Obsolete("Use overload without ISymbolDisplayService")]
     public static ImmutableArray<TSymbol> Sort<TSymbol>(

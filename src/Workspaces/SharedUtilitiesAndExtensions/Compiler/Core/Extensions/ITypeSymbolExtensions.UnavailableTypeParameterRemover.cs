@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class ITypeSymbolExtensions
 {
-    private class UnavailableTypeParameterRemover(Compilation compilation, ISet<string> availableTypeParameterNames) : SymbolVisitor<ITypeSymbol>
+    private sealed class UnavailableTypeParameterRemover(Compilation compilation, ISet<string> availableTypeParameterNames) : SymbolVisitor<ITypeSymbol>
     {
         public override ITypeSymbol DefaultVisit(ISymbol node)
             => throw new NotImplementedException();
