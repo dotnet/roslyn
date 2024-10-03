@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             { PropertyNames.DesignTimeBuild, bool.TrueString },
 
             // this will force CoreCompile task to execute even if all inputs and outputs are up to date
-#if NETCOREAPP
+#if NET
             { PropertyNames.NonExistentFile, "__NonExistentSubDir__\\__NonExistentFile__" },
 #else
             // Setting `BuildingInsideVisualStudio` indirectly sets NonExistentFile:

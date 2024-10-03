@@ -8,12 +8,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
 
-#if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
-#else
-using Microsoft.CodeAnalysis.Editing;
-#endif
-
 namespace Microsoft.CodeAnalysis.LanguageService;
 
 /// <summary>
@@ -409,9 +403,9 @@ internal interface ISyntaxFacts
     SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false);
 
     // Violation.  This is a feature level API.
-    List<SyntaxNode> GetTopLevelAndMethodLevelMembers(SyntaxNode? root);
+    PooledObject<List<SyntaxNode>> GetTopLevelAndMethodLevelMembers(SyntaxNode? root);
     // Violation.  This is a feature level API.
-    List<SyntaxNode> GetMethodLevelMembers(SyntaxNode? root);
+    PooledObject<List<SyntaxNode>> GetMethodLevelMembers(SyntaxNode? root);
     SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
 
     // Violation.  This is a feature level API.

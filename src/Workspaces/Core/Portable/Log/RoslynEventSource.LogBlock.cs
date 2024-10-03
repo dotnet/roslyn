@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Internal.Log;
 
-internal partial class RoslynEventSource
+internal sealed partial class RoslynEventSource
 {
     /// <summary>
     /// Logs an informational block with given <paramref name="entity"/>'s <see cref="object.ToString"/> representation as the message

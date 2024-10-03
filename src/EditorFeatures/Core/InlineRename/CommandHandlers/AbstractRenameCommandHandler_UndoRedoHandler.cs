@@ -18,11 +18,11 @@ internal abstract partial class AbstractRenameCommandHandler :
 
     public bool ExecuteCommand(UndoCommandArgs args, CommandExecutionContext context)
     {
-        if (_renameService.ActiveSession != null)
+        if (renameService.ActiveSession != null)
         {
-            for (var i = 0; i < args.Count && _renameService.ActiveSession != null; i++)
+            for (var i = 0; i < args.Count && renameService.ActiveSession != null; i++)
             {
-                _renameService.ActiveSession.UndoManager.Undo(args.SubjectBuffer);
+                renameService.ActiveSession.UndoManager.Undo(args.SubjectBuffer);
             }
 
             return true;
@@ -33,11 +33,11 @@ internal abstract partial class AbstractRenameCommandHandler :
 
     public bool ExecuteCommand(RedoCommandArgs args, CommandExecutionContext context)
     {
-        if (_renameService.ActiveSession != null)
+        if (renameService.ActiveSession != null)
         {
-            for (var i = 0; i < args.Count && _renameService.ActiveSession != null; i++)
+            for (var i = 0; i < args.Count && renameService.ActiveSession != null; i++)
             {
-                _renameService.ActiveSession.UndoManager.Redo(args.SubjectBuffer);
+                renameService.ActiveSession.UndoManager.Redo(args.SubjectBuffer);
             }
 
             return true;

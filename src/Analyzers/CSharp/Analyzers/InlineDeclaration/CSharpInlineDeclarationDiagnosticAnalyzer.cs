@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Linq.Expressions;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration;
 /// 
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpInlineDeclarationDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpInlineDeclarationDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
     private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
 
@@ -179,10 +180,9 @@ internal class CSharpInlineDeclarationDiagnosticAnalyzer : AbstractBuiltInCodeSt
         // for references to the local to make sure that no reads/writes happen before
         // the out-argument.  If there are any reads/writes we can't inline as those
         // accesses will become invalid.
-        if (localStatement.Parent is not BlockSyntax enclosingBlockOfLocalStatement)
-        {
+        var enclosingBlockOfLocalStatement = GetEnclosingPseudoBlock(localStatement.Parent);
+        if (enclosingBlockOfLocalStatement is null)
             return;
-        }
 
         if (argumentExpression.IsInExpressionTree(semanticModel, expressionType, cancellationToken))
         {
@@ -223,8 +223,8 @@ internal class CSharpInlineDeclarationDiagnosticAnalyzer : AbstractBuiltInCodeSt
 
         // See if inlining this variable would make it so that some variables were no
         // longer definitely assigned.
-        if (WouldCauseDefiniteAssignmentErrors(semanticModel, localStatement,
-                                               enclosingBlockOfLocalStatement, outLocalSymbol))
+        if (WouldCauseDefiniteAssignmentErrors(
+                semanticModel, localStatement, enclosingBlockOfLocalStatement, outLocalSymbol))
         {
             return;
         }
@@ -251,10 +251,38 @@ internal class CSharpInlineDeclarationDiagnosticAnalyzer : AbstractBuiltInCodeSt
             properties: null));
     }
 
+    public static SyntaxNode? GetEnclosingPseudoBlock(SyntaxNode? parent)
+    {
+        if (parent is BlockSyntax)
+            return parent;
+
+        if (parent is SwitchSectionSyntax)
+            return parent;
+
+        if (parent is GlobalStatementSyntax)
+            return parent.Parent as CompilationUnitSyntax;
+
+        return null;
+    }
+
+    private static StatementSyntax GetLastStatement(SyntaxNode enclosingBlock)
+    {
+        if (enclosingBlock is BlockSyntax block)
+            return block.Statements.Last();
+
+        if (enclosingBlock is SwitchSectionSyntax switchSection)
+            return switchSection.Statements.Last();
+
+        if (enclosingBlock is CompilationUnitSyntax compilationUnit)
+            return compilationUnit.Members.OfType<GlobalStatementSyntax>().Last().Statement;
+
+        throw ExceptionUtilities.Unreachable();
+    }
+
     private static bool WouldCauseDefiniteAssignmentErrors(
         SemanticModel semanticModel,
         LocalDeclarationStatementSyntax localStatement,
-        BlockSyntax enclosingBlock,
+        SyntaxNode enclosingBlock,
         ILocalSymbol outLocalSymbol)
     {
         // See if we have something like:
@@ -272,7 +300,7 @@ internal class CSharpInlineDeclarationDiagnosticAnalyzer : AbstractBuiltInCodeSt
 
         var dataFlow = semanticModel.AnalyzeDataFlow(
             nextStatement,
-            enclosingBlock.Statements.Last());
+            GetLastStatement(enclosingBlock));
         Contract.ThrowIfNull(dataFlow);
         return dataFlow.DataFlowsIn.Contains(outLocalSymbol);
     }
@@ -332,7 +360,7 @@ internal class CSharpInlineDeclarationDiagnosticAnalyzer : AbstractBuiltInCodeSt
     private static bool IsAccessed(
         SemanticModel semanticModel,
         ISymbol outSymbol,
-        BlockSyntax enclosingBlockOfLocalStatement,
+        SyntaxNode enclosingBlockOfLocalStatement,
         LocalDeclarationStatementSyntax localStatement,
         ArgumentSyntax argumentNode,
         CancellationToken cancellationToken)

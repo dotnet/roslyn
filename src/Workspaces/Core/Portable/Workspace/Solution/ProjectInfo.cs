@@ -326,6 +326,9 @@ public sealed class ProjectInfo
             newHostObjectType);
     }
 
+    public ProjectInfo WithId(ProjectId id)
+        => With(attributes: Attributes.With(id: id ?? throw new ArgumentNullException(nameof(id))));
+
     public ProjectInfo WithVersion(VersionStamp version)
         => With(attributes: Attributes.With(version: version));
 
@@ -511,6 +514,7 @@ public sealed class ProjectInfo
             }, this);
 
         public ProjectAttributes With(
+            ProjectId? id = null,
             VersionStamp? version = null,
             string? name = null,
             string? assemblyName = null,
@@ -525,6 +529,7 @@ public sealed class ProjectInfo
             Optional<bool> runAnalyzers = default,
             Optional<Guid> telemetryId = default)
         {
+            var newId = id ?? Id;
             var newVersion = version ?? Version;
             var newName = name ?? Name;
             var newAssemblyName = assemblyName ?? AssemblyName;
@@ -539,7 +544,8 @@ public sealed class ProjectInfo
             var newRunAnalyzers = runAnalyzers.HasValue ? runAnalyzers.Value : RunAnalyzers;
             var newTelemetryId = telemetryId.HasValue ? telemetryId.Value : TelemetryId;
 
-            if (newVersion == Version &&
+            if (newId == Id &&
+                newVersion == Version &&
                 newName == Name &&
                 newAssemblyName == AssemblyName &&
                 newFilePath == FilePath &&
@@ -557,7 +563,7 @@ public sealed class ProjectInfo
             }
 
             return new ProjectAttributes(
-                Id,
+                newId,
                 newVersion,
                 newName,
                 newAssemblyName,

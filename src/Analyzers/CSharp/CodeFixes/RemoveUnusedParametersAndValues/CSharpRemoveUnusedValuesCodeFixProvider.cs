@@ -30,7 +30,7 @@ internal sealed class CSharpRemoveUnusedValuesCodeFixProvider()
         ExpressionStatementSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax,
         ForEachStatementSyntax, SwitchSectionSyntax, SwitchLabelSyntax, CatchClauseSyntax, CatchClauseSyntax>
 {
-    protected override ISyntaxFormatting GetSyntaxFormatting()
+    protected override ISyntaxFormatting SyntaxFormatting
         => CSharpSyntaxFormatting.Instance;
 
     protected override BlockSyntax WrapWithBlockIfNecessary(IEnumerable<StatementSyntax> statements)

@@ -28,19 +28,19 @@ public class CrefCompletionProviderTests : AbstractCSharpCompletionProviderTests
         => typeof(CrefCompletionProvider);
 
     private protected override async Task VerifyWorkerAsync(string code, int position, string expectedItemOrNull,
-        string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger,
+        string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, char? deletedCharTrigger,
         bool checkForAbsence, int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
         string displayTextPrefix, string? inlineDescription = null, bool? isComplexTextEdit = null,
         List<CompletionFilter>? matchingFilters = null, CompletionItemFlags? flags = null,
         CompletionOptions? options = null, bool skipSpeculation = false)
     {
         await VerifyAtPositionAsync(
-            code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
+            code, position, usePreviousCharAsTrigger, deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
             checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription,
             isComplexTextEdit, matchingFilters, flags, options);
 
         await VerifyAtEndOfFileAsync(
-            code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
+            code, position, usePreviousCharAsTrigger, deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind,
             checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix, displayTextPrefix, inlineDescription,
             isComplexTextEdit, matchingFilters, flags, options);
 
@@ -49,12 +49,12 @@ public class CrefCompletionProviderTests : AbstractCSharpCompletionProviderTests
         if (!checkForAbsence && expectedItemOrNull != null)
         {
             await VerifyAtPosition_ItemPartiallyWrittenAsync(
-                code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
+                code, position, usePreviousCharAsTrigger, deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
                 displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags: null, options);
 
             await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(
-                code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull,
+                code, position, usePreviousCharAsTrigger, deletedCharTrigger, expectedItemOrNull, expectedDescriptionOrNull,
                 sourceCodeKind, checkForAbsence, glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
                 displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags: null, options);
         }
@@ -441,7 +441,7 @@ public class CrefCompletionProviderTests : AbstractCSharpCompletionProviderTests
             {
             }
             """;
-        using var workspace = EditorTestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), new[] { text }, composition: GetComposition());
+        using var workspace = EditorTestWorkspace.Create(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), [text], composition: GetComposition());
         var called = false;
 
         var hostDocument = workspace.DocumentWithCursor;

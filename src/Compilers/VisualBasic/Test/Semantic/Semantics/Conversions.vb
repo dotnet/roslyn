@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.ConversionsTests.Parameters
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -41,7 +41,7 @@ End Class
             Dim vbConversionsRef = TestReferences.SymbolsTests.VBConversions
             Dim modifiersRef = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll
 
-            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.mscorlib, vbConversionsRef, modifiersRef})
+            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.References.mscorlib, vbConversionsRef, modifiersRef})
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)
             Dim methodDeclSymbol = DirectCast(sourceModule.GlobalNamespace.GetTypeMembers("C1").Single().GetMembers("MethodDecl").Single(), SourceMethodSymbol)
@@ -220,7 +220,7 @@ End Class
 </file>
             Dim dummyTree = VisualBasicSyntaxTree.ParseText(dummyCode.Value)
 
-            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.mscorlib})
+            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.References.mscorlib})
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)
             Dim methodDeclSymbol = DirectCast(sourceModule.GlobalNamespace.GetTypeMembers("C1").Single().GetMembers("MethodDecl").Single(), SourceMethodSymbol)
@@ -729,10 +729,7 @@ End Class
 
                                 Assert.True(gotException)
 
-                                ' Conditioned due to https://github.com/dotnet/roslyn/issues/74026
-                                If numericType IsNot byteType AndAlso CType(mv.Value, Double) <> CDbl(&HF000000000000000UL) Then
-                                    Assert.Equal(UncheckedConvert(intermediate, numericType), resultValue.Value)
-                                End If
+                                Assert.Equal(UncheckedConvert(mv.Value, numericType), resultValue.Value)
                             End If
                         Else
                             Assert.NotNull(resultValue)
@@ -1074,7 +1071,7 @@ End Class
 </file>
             Dim dummyTree = VisualBasicSyntaxTree.ParseText(dummyCode.Value)
 
-            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.mscorlib},
+            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.References.mscorlib},
                                         options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)
@@ -1293,10 +1290,7 @@ End Class
 
                                 Assert.True(gotException)
 
-                                ' Conditioned due to https://github.com/dotnet/roslyn/issues/74026
-                                If numericType IsNot byteType AndAlso CType(mv.Value, Double) <> CDbl(&HF000000000000000UL) Then
-                                    Assert.Equal(UncheckedConvert(intermediate, numericType), resultValue.Value)
-                                End If
+                                Assert.Equal(UncheckedConvert(mv.Value, numericType), resultValue.Value)
                             End If
                         Else
                             Assert.NotNull(resultValue)
@@ -1405,6 +1399,22 @@ End Class
                             Throw New NotSupportedException()
                     End Select
 
+                Case TypeCode.Single, TypeCode.Double
+                    Dim val As Double = Convert.ToDouble(value)
+
+                    Select Case type.SpecialType
+                        Case System_Byte : Return UncheckedCByte(UncheckedCLng(val))
+                        Case System_SByte : Return UncheckedCSByte(UncheckedCLng(val))
+                        Case System_Int16 : Return UncheckedCShort(UncheckedCLng(val))
+                        Case System_UInt16 : Return UncheckedCUShort(UncheckedCLng(val))
+                        Case System_Int32 : Return UncheckedCInt(UncheckedCLng(val))
+                        Case System_UInt32 : Return UncheckedCUInt(UncheckedCLng(val))
+                        Case System_Int64 : Return UncheckedCLng(val)
+                        Case System_UInt64 : Return UncheckedCULng(val)
+                        Case Else
+                            Throw New NotSupportedException()
+                    End Select
+
                 Case Else
                     Throw New NotSupportedException()
             End Select
@@ -1445,7 +1455,7 @@ End Class
             Dim vbConversionsRef = TestReferences.SymbolsTests.VBConversions
             Dim modifiersRef = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll
 
-            Dim c1 = VisualBasicCompilation.Create("Test", references:={Net40.mscorlib, vbConversionsRef, modifiersRef})
+            Dim c1 = VisualBasicCompilation.Create("Test", references:={Net40.References.mscorlib, vbConversionsRef, modifiersRef})
 
             Dim asmVBConversions = c1.GetReferencedAssemblySymbol(vbConversionsRef)
             Dim asmModifiers = c1.GetReferencedAssemblySymbol(modifiersRef)
@@ -2027,7 +2037,7 @@ End Class
         <Fact()>
         Public Sub BuiltIn()
 
-            Dim c1 = VisualBasicCompilation.Create("Test", references:={Net40.mscorlib})
+            Dim c1 = VisualBasicCompilation.Create("Test", references:={Net40.References.mscorlib})
 
             Dim nullable = c1.GetSpecialType(System_Nullable_T)
 

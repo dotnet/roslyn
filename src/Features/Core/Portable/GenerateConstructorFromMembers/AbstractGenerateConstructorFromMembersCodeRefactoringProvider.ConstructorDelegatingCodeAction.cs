@@ -62,6 +62,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
                     factory.IdentifierName(symbolName));
 
                 factory.AddAssignmentStatements(
+                    factory.SyntaxGeneratorInternal,
                     semanticModel, parameter, fieldAccess,
                     _addNullChecks, useThrowExpressions,
                     nullCheckStatements, assignStatements);

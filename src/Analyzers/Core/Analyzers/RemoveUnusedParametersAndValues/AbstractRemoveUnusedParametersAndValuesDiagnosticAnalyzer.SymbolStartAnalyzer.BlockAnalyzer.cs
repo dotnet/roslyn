@@ -485,6 +485,8 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
                 hasBlockWithAllUsedSymbolWrites = false;
                 hasUnknownOperationNoneDescendant = false;
 
+                var interpolatedStringHandlerAttribute = context.Compilation.InterpolatedStringHandlerAttributeType();
+
                 foreach (var operationBlock in context.OperationBlocks)
                 {
                     if (!ShouldAnalyze(operationBlock, context.OwningSymbol, ref hasUnknownOperationNoneDescendant))
@@ -559,7 +561,7 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
 
                                 if (shouldReport)
                                 {
-                                    _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options, cancellationToken: context.CancellationToken);
+                                    _symbolStartAnalyzer.ReportUnusedParameterDiagnostic(unusedParameter, hasReference, context.ReportDiagnostic, context.Options, interpolatedStringHandlerAttribute, context.CancellationToken);
                                 }
                             }
 

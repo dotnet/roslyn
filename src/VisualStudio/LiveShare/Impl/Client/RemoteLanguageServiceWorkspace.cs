@@ -98,8 +98,6 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
 
         void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy? hierarchy) => NotifyOnDocumentOpened(moniker, textBuffer);
 
-        void IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame) { }
-
         void IOpenTextBufferEventListener.OnCloseDocument(string moniker) => NotifyOnDocumentClosing(moniker);
 
         void IOpenTextBufferEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
@@ -111,6 +109,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare.Client
         {
             // Handled by Add/Remove.
         }
+
+        void IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame) { }
+
+        void IOpenTextBufferEventListener.OnSaveDocument(string moniker) { }
 
         public async Task SetSessionAsync(CollaborationSession session)
         {

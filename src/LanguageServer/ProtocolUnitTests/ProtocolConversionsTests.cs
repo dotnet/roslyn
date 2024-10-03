@@ -167,27 +167,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests
             Assert.Equal(url, ProtocolConversions.CreateAbsoluteUri(url).AbsoluteUri);
         }
 
-        [ConditionalTheory(typeof(WindowsOnly))]
-        [InlineData("a\\b", "source-generated:///a/b")]
-        [InlineData("a//b", "source-generated:///a//b")]
-        [InlineData("a/b", "source-generated:///a/b")]
-        [InlineData("%25\ue25b//\u0089\uC7BD/a", "source-generated:///%2525%EE%89%9B//%C2%89%EC%9E%BD/a")]
-        [InlineData("%25\ue25b\\\u0089\uC7BD", "source-generated:///%2525%EE%89%9B/%C2%89%EC%9E%BD")]
-        public void GetUriFromSourceGeneratedFilePath_Windows(string filePath, string expectedAbsoluteUri)
-        {
-            var url = ProtocolConversions.CreateUriFromSourceGeneratedFilePath(filePath);
-            Assert.Equal(expectedAbsoluteUri, url.AbsoluteUri);
-        }
-
-        [ConditionalTheory(typeof(UnixLikeOnly))]
-        [InlineData("a/b", "source-generated:///a/b")]
-        [InlineData("%25\ue25b/\u0089\uC7BD", "source-generated:///%2525%EE%89%9B/%C2%89%EC%9E%BD")]
-        public void GetUriFromSourceGeneratedFilePath_Unix(string filePath, string expectedAbsoluteUri)
-        {
-            var url = ProtocolConversions.CreateUriFromSourceGeneratedFilePath(filePath);
-            Assert.Equal(expectedAbsoluteUri, url.AbsoluteUri);
-        }
-
         [Fact]
         public void CompletionItemKind_DoNotUseMethodAndFunction()
         {

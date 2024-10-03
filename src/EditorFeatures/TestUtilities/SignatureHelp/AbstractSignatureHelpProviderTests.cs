@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         private static async Task<SignatureHelpState?> GetArgumentStateAsync(int cursorPosition, Document document, ISignatureHelpProvider signatureHelpProvider, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options)
         {
             var items = await signatureHelpProvider.GetItemsAsync(document, cursorPosition, triggerInfo, options, CancellationToken.None);
-            return items == null ? null : new SignatureHelpState(items.ArgumentIndex, items.ArgumentCount, items.ArgumentName, argumentNames: default);
+            return items == null ? null : new SignatureHelpState(items.SemanticParameterIndex, items.SyntacticArgumentCount, items.ArgumentName, ArgumentNames: default);
         }
 
         private async Task VerifyCurrentParameterNameWorkerAsync(string markup, string expectedParameterName, SourceCodeKind sourceCodeKind)
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
             if (expectedTestItem.CurrentParameterIndex != null)
             {
-                Assert.True(expectedTestItem.CurrentParameterIndex == items.ArgumentIndex, $"The current parameter is {items.ArgumentIndex}, but we expected {expectedTestItem.CurrentParameterIndex}");
+                Assert.True(expectedTestItem.CurrentParameterIndex == items.SemanticParameterIndex, $"The current parameter is {items.SemanticParameterIndex}, but we expected {expectedTestItem.CurrentParameterIndex}");
             }
 
             if (expectedTestItem.Description != null)

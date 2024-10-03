@@ -8,29 +8,20 @@ using System.Text.Json.Serialization;
 
 /// <summary>
 /// Diagnostic registration options.
-///
-/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#diagnosticRegistrationOptions">Language Server Protocol specification</see> for additional information.
+/// <para>
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#diagnosticRegistrationOptions">Language Server Protocol specification</see> for additional information.
+/// </para>
 /// </summary>
+/// <remarks>Since LSP 3.17</remarks>
 internal class DiagnosticRegistrationOptions : DiagnosticOptions, IStaticRegistrationOptions, ITextDocumentRegistrationOptions
 {
-    /// <summary>
-    /// Gets or sets the document filters for this registration option.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonPropertyName("documentSelector")]
-    public DocumentFilter[]? DocumentSelector
-    {
-        get;
-        set;
-    }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DocumentFilter[]? DocumentSelector { get; set; }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether work done progress is supported.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonPropertyName("id")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? Id
-    {
-        get;
-        set;
-    }
+    public string? Id { get; set; }
 }

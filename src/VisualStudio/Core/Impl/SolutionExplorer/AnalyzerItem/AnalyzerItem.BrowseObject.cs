@@ -7,52 +7,25 @@
 using System.ComponentModel;
 using Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
+
+internal partial class AnalyzerItem
 {
-    internal partial class AnalyzerItem
+    internal sealed class BrowseObject(AnalyzerItem analyzerItem) : LocalizableProperties
     {
-        internal class BrowseObject : LocalizableProperties
-        {
-            private readonly AnalyzerItem _analyzerItem;
+        [Browsable(false)]
+        public AnalyzerItem AnalyzerItem { get; } = analyzerItem;
 
-            public BrowseObject(AnalyzerItem analyzerItem)
-            {
-                _analyzerItem = analyzerItem;
-            }
+        [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Name))]
+        public string Name => AnalyzerItem.AnalyzerReference.Display;
 
-            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Name))]
-            public string Name
-            {
-                get
-                {
-                    return _analyzerItem.AnalyzerReference.Display;
-                }
-            }
+        [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Path))]
+        public string Path => AnalyzerItem.AnalyzerReference.FullPath;
 
-            [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Path))]
-            public string Path
-            {
-                get
-                {
-                    return _analyzerItem.AnalyzerReference.FullPath;
-                }
-            }
+        public override string GetClassName()
+            => SolutionExplorerShim.Analyzer_Properties;
 
-            public override string GetClassName()
-            {
-                return SolutionExplorerShim.Analyzer_Properties;
-            }
-
-            public override string GetComponentName()
-            {
-                return _analyzerItem.Text;
-            }
-
-            [Browsable(false)]
-            public AnalyzerItem AnalyzerItem
-            {
-                get { return _analyzerItem; }
-            }
-        }
+        public override string GetComponentName()
+            => AnalyzerItem.Text;
     }
 }

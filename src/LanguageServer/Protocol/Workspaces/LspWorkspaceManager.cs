@@ -44,6 +44,56 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// </remarks>
 internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 {
+    private class LspUriComparer : IEqualityComparer<Uri>
+    {
+        public static readonly LspUriComparer Instance = new();
+        public bool Equals(Uri? x, Uri? y)
+        {
+            // Compare the absolute URIs to handle the case where one URI is encoded and the other is not.
+            // By default, Uri.Equals will not consider the encoded version of a URI equal to the unencoded version.
+            //
+            // The client is expected to be consistent in how it sends the URIs (either encoded or unencoded).
+            // So we normally can safely store the URIs as they send us in our map and expect subsequent requests to be encoded in the same way and match.
+            // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#uri
+            //
+            // However when we serialize URIs to the client, we serialize the AbsoluteUri property which is always % encoded (no matter the original representation).
+            // For some requests, the client sends us exactly back what we sent (e.g. the data in a codelens/resolve request).
+            // This means that for these requests, the URI we will get from the client is the encoded version (that we sent).
+            // If the client sent us an unencoded URI originally, Uri.Equals will not consider it equal to the encoded version and we will fail to find the document
+            //
+            // So in order to resolve the encoded URI to the correct text, we can compare the AbsoluteUri properties (which are always encoded).
+            if (x is not null && y is not null && x.IsAbsoluteUri && y.IsAbsoluteUri && x.AbsoluteUri == y.AbsoluteUri)
+            {
+                return true;
+            }
+            else
+            {
+                return Uri.Equals(x, y);
+            }
+        }
+
+        public int GetHashCode(Uri obj)
+        {
+            if (obj.IsAbsoluteUri)
+            {
+                // Since the Uri type does not consider an encoded Uri equal to an unencoded Uri, we need to handle this ourselves.
+                // The AbsoluteUri property is always encoded, so we can use this to compare the URIs (see Equals above).
+                //
+                // However, depending on the kind of URI, case sensitivity in AbsoluteUri should be ignored.
+                // Uri.GetHashCode normally handles this internally, but the parameters it uses to determine which comparison to use are not exposed.
+                //
+                // Instead, we will always create the hash code ignoring case, and will rely on the Equals implementation
+                // to handle collisions (between two Uris with different casing).  This should be very rare in practice.
+                // Collisions can happen for non UNC URIs (e.g. `git:/blah` vs `git:/Blah`).
+                return StringComparer.OrdinalIgnoreCase.GetHashCode(obj.AbsoluteUri);
+            }
+            else
+            {
+                return obj.GetHashCode();
+            }
+        }
+    }
+
     /// <summary>
     /// A cache from workspace to the last solution we returned for LSP.
     /// <para/> The forkedFromVersion is not null when the solution was created from a fork of the workspace with LSP
@@ -61,7 +111,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// the URI.
     /// <para/> Access to this is guaranteed to be serial by the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    private ImmutableDictionary<Uri, (SourceText Text, string LanguageId)> _trackedDocuments = ImmutableDictionary<Uri, (SourceText, string)>.Empty;
+    private ImmutableDictionary<Uri, (SourceText Text, string LanguageId)> _trackedDocuments = ImmutableDictionary<Uri, (SourceText, string)>.Empty.WithComparers(LspUriComparer.Instance);
 
     private readonly ILspLogger _logger;
     private readonly LspMiscellaneousFilesWorkspace? _lspMiscellaneousFilesWorkspace;
@@ -145,8 +195,8 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // If LSP changed, we need to compare against the workspace again to get the updated solution.
         _cachedLspSolutions.Clear();
 
-        // Also remove it from our loose files workspace if it is still there.
-        _lspMiscellaneousFilesWorkspace?.TryRemoveMiscellaneousDocument(uri);
+        // Also remove it from our loose files or metadata workspace if it is still there.
+        _lspMiscellaneousFilesWorkspace?.TryRemoveMiscellaneousDocument(uri, removeFromMetadataWorkspace: true);
 
         LspTextChanged?.Invoke(this, EventArgs.Empty);
 
@@ -160,8 +210,17 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             var registeredWorkspaces = _lspWorkspaceRegistrationService.GetAllRegistrations();
             foreach (var workspace in registeredWorkspaces)
             {
-                await ApplyChangeToMutatingWorkspaceAsync(workspace, uri, (_, documentId) =>
-                    workspace.TryOnDocumentClosedAsync(documentId, cancellationToken)).ConfigureAwait(false);
+                await ApplyChangeToMutatingWorkspaceAsync(workspace, uri, async (_, documentId) =>
+                {
+                    if (documentId.IsSourceGenerated)
+                    {
+                        // Source generated documents cannot go through OnDocumentOpened/Closed.
+                        // There is a separate OnSourceGeneratedDocumentOpened/Closed method, but there is no need
+                        // for us to call it in LSP - it deals with mapping TextBuffers to text containers.
+                        return;
+                    }
+                    await workspace.TryOnDocumentClosedAsync(documentId, cancellationToken).ConfigureAwait(false);
+                }).ConfigureAwait(false);
             }
         }
     }
@@ -224,11 +283,9 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         // Find the matching document from the LSP solutions.
         foreach (var (workspace, lspSolution, isForked) in lspSolutions)
         {
-            var documents = lspSolution.GetTextDocuments(textDocumentIdentifier.Uri);
-            if (documents.Any())
+            var document = await lspSolution.GetTextDocumentAsync(textDocumentIdentifier, cancellationToken).ConfigureAwait(false);
+            if (document != null)
             {
-                var document = documents.FindDocumentInProjectContext(textDocumentIdentifier, (sln, id) => sln.GetRequiredTextDocument(id));
-
                 // Record metadata on how we got this document.
                 var workspaceKind = document.Project.Solution.WorkspaceKind;
                 _requestTelemetryLogger.UpdateFindDocumentTelemetryData(success: true, workspaceKind);
@@ -238,7 +295,10 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 // As we found the document in a non-misc workspace, also attempt to remove it from the misc workspace
                 // if it happens to be in there as well.
                 if (workspace != _lspMiscellaneousFilesWorkspace)
-                    _lspMiscellaneousFilesWorkspace?.TryRemoveMiscellaneousDocument(uri);
+                {
+                    // Do not attempt to remove the file from the metadata workspace (the document is still open).
+                    _lspMiscellaneousFilesWorkspace?.TryRemoveMiscellaneousDocument(uri, removeFromMetadataWorkspace: false);
+                }
 
                 return (workspace, document.Project.Solution, document);
             }
@@ -255,7 +315,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         {
             var miscDocument = _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(uri, trackedDocument.Text, trackedDocument.LanguageId, _logger);
             if (miscDocument is not null)
-                return (_lspMiscellaneousFilesWorkspace, miscDocument.Project.Solution, miscDocument);
+                return (miscDocument.Project.Solution.Workspace, miscDocument.Project.Solution, miscDocument);
         }
 
         return default;
@@ -329,8 +389,23 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             workspaceCurrentSolution = workspace.CurrentSolution;
 
             // Step 3: Check to see if the LSP text matches the workspace text.
+
             var documentsInWorkspace = GetDocumentsForUris(_trackedDocuments.Keys.ToImmutableArray(), workspaceCurrentSolution);
-            if (await DoesAllTextMatchWorkspaceSolutionAsync(documentsInWorkspace, cancellationToken).ConfigureAwait(false))
+            var sourceGeneratedDocuments =
+                _trackedDocuments.Keys.Where(static uri => uri.Scheme == SourceGeneratedDocumentUri.Scheme)
+                    .Select(uri => (identity: SourceGeneratedDocumentUri.DeserializeIdentity(workspaceCurrentSolution, uri), _trackedDocuments[uri].Text))
+                    .Where(tuple => tuple.identity.HasValue)
+                    .SelectAsArray(tuple => (tuple.identity!.Value, DateTime.Now, tuple.Text));
+
+            // First we check if normal document text matches the workspace solution.
+            // This does not look at source generated documents.
+            var doesAllTextMatch = await DoesAllTextMatchWorkspaceSolutionAsync(documentsInWorkspace, cancellationToken).ConfigureAwait(false);
+
+            // Then we check if source generated document text matches the workspace solution.
+            // This is intentionally done differently from normal documents because the normal method will cause
+            // source generators to run which we do not want to do in queue dispatch.
+            var doesAllSourceGeneratedTextMatch = DoesAllSourceGeneratedTextMatchWorkspaceSolution(sourceGeneratedDocuments, workspaceCurrentSolution);
+            if (doesAllTextMatch && doesAllSourceGeneratedTextMatch)
             {
                 // Remember that the current LSP text matches the text in this workspace solution.
                 _cachedLspSolutions[workspace] = (forkedFromVersion: null, workspaceCurrentSolution);
@@ -343,8 +418,18 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 
             // Step 5: Fork a new solution from the workspace with the LSP text applied.
             var lspSolution = workspaceCurrentSolution;
-            foreach (var (uri, workspaceDocuments) in documentsInWorkspace)
-                lspSolution = lspSolution.WithDocumentText(workspaceDocuments.Select(d => d.Id), _trackedDocuments[uri].Text);
+            // If the workspace text matched we can leave the normal documents as-is
+            if (!doesAllTextMatch)
+            {
+                foreach (var (uri, workspaceDocuments) in documentsInWorkspace)
+                    lspSolution = lspSolution.WithDocumentText(workspaceDocuments.Select(d => d.Id), _trackedDocuments[uri].Text);
+            }
+
+            // If the source generated documents matched we can leave the source generated documents as-is
+            if (!doesAllSourceGeneratedTextMatch)
+            {
+                lspSolution = lspSolution.WithFrozenSourceGeneratedDocuments(sourceGeneratedDocuments);
+            }
 
             // Remember this forked solution and the workspace version it was forked from.
             _cachedLspSolutions[workspace] = (workspaceCurrentSolution.WorkspaceVersion, lspSolution);
@@ -357,6 +442,13 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             {
                 await ApplyChangeToMutatingWorkspaceAsync(workspace, uri, async (mutatingWorkspace, documentId) =>
                 {
+                    if (documentId.IsSourceGenerated)
+                    {
+                        // Source generated documents cannot go through OnDocumentOpened/Closed.
+                        // There is a separate OnSourceGeneratedDocumentOpened/Closed method, but there is no need
+                        // for us to call it in LSP - it deals with mapping TextBuffers to text containers.
+                        return;
+                    }
                     // This may be the first time this workspace is hearing that this document is open from LSP's
                     // perspective. Attempt to open it there.
                     //
@@ -375,6 +467,34 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 }).ConfigureAwait(false);
             }
         }
+    }
+
+    /// <summary>
+    /// Checks if the open source generator document contents matches the contents of the workspace solution.
+    /// This looks at the source generator state explicitly to avoid actually running source generators
+    /// </summary>
+    private static bool DoesAllSourceGeneratedTextMatchWorkspaceSolution(
+        ImmutableArray<(SourceGeneratedDocumentIdentity Identity, DateTime Generated, SourceText Text)> sourceGenereatedDocuments,
+        Solution workspaceSolution)
+    {
+        var compilationState = workspaceSolution.CompilationState;
+        foreach (var (identity, _, text) in sourceGenereatedDocuments)
+        {
+            var existingState = compilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(identity.DocumentId);
+            if (existingState is null)
+            {
+                // We don't have existing state for at least one of the documents, so the text cannot match.
+                return false;
+            }
+
+            var newState = existingState.WithText(text);
+            if (newState != existingState)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -420,8 +540,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
             languageId = trackedDocument.LanguageId;
         }
 
-        var documentFilePath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
-        return _languageInfoProvider.GetLanguageInformation(documentFilePath, languageId).LanguageName;
+        return _languageInfoProvider.GetLanguageInformation(uri, languageId).LanguageName;
     }
 
     /// <summary>

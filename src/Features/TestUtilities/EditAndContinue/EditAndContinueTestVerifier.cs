@@ -322,12 +322,11 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                         // Symbol key will happily resolve to a definition part that has no implementation, so we validate that
                         // differently
-                        // https://github.com/dotnet/roslyn/issues/73772: what about deletion of partial property?
-                        if (expectedOldSymbol is IMethodSymbol { IsPartialDefinition: true } &&
-                            symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol is IMethodSymbol resolvedMethod)
+                        if (expectedOldSymbol.IsPartialDefinition() &&
+                            symbolKey.Resolve(oldCompilation, ignoreAssemblyKey: true).Symbol is ISymbol resolvedSymbol)
                         {
-                            Assert.Equal(expectedOldSymbol, resolvedMethod.PartialDefinitionPart);
-                            Assert.Equal(null, resolvedMethod.PartialImplementationPart);
+                            Assert.Equal(expectedOldSymbol, resolvedSymbol.PartialDefinitionPart());
+                            Assert.Equal(null, resolvedSymbol.PartialImplementationPart());
                         }
                         else
                         {
@@ -522,7 +521,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
     internal static class EditScriptTestUtils
     {
+        public static void VerifyEdits<TNode>(this EditScript<TNode> actual)
+            => VerifyEdits(actual, Array.Empty<string>());
+
         public static void VerifyEdits<TNode>(this EditScript<TNode> actual, params string[] expected)
             => AssertEx.Equal(expected, actual.Edits.Select(e => e.GetDebuggerDisplay()), itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
+
+        public static void VerifyEdits<TNode>(this EditScript<TNode> actual, params EditKind[] expected)
+            => AssertEx.Equal(expected, actual.Edits.Select(e => e.Kind));
     }
 }

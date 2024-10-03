@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
+using StreamJsonRpc;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
@@ -50,6 +51,12 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public Task OnInitializedAsync(ClientCapabilities clientCapabilities, RequestContext context, CancellationToken cancellationToken)
         {
+            Initialize(clientCapabilities);
+            return Task.CompletedTask;
+        }
+
+        public void Initialize(ClientCapabilities clientCapabilities)
+        {
             if (_refreshQueue is null && GetRefreshSupport(clientCapabilities) is true)
             {
                 // Only send a refresh notification to the client every 2s (if needed) in order to avoid
@@ -66,11 +73,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 _isQueueCreated = true;
                 _lspWorkspaceRegistrationService.LspSolutionChanged += OnLspSolutionChanged;
             }
-
-            return Task.CompletedTask;
         }
 
-        private void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
+        protected virtual void OnLspSolutionChanged(object? sender, WorkspaceChangeEventArgs e)
         {
             if (e.DocumentId is not null && e.Kind is WorkspaceChangeKind.DocumentChanged)
             {
@@ -109,7 +114,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             {
                 if (documentUri is null || !trackedDocuments.ContainsKey(documentUri))
                 {
-                    return notificationManager.SendRequestAsync(GetWorkspaceRefreshName(), cancellationToken);
+                    try
+                    {
+                        return notificationManager.SendRequestAsync(GetWorkspaceRefreshName(), cancellationToken);
+                    }
+                    catch (Exception ex) when (ex is ObjectDisposedException or ConnectionLostException)
+                    {
+                        // It is entirely possible that we're shutting down and the connection is lost while we're trying to send a notification
+                        // as this runs outside of the guaranteed ordering in the queue. We can safely ignore this exception.
+                    }
                 }
             }
 

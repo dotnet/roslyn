@@ -60,6 +60,6 @@ internal sealed partial class CSharpUseConditionalExpressionForReturnCodeFixProv
     protected override ExpressionSyntax ConvertToExpression(IThrowOperation throwOperation)
         => CSharpUseConditionalExpressionHelpers.ConvertToExpression(throwOperation);
 
-    protected override ISyntaxFormatting GetSyntaxFormatting()
+    protected override ISyntaxFormatting SyntaxFormatting
         => CSharpSyntaxFormatting.Instance;
 }

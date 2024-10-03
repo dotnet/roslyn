@@ -14,9 +14,9 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<S
 
     public bool ExecuteCommand(SaveCommandArgs args, CommandExecutionContext context)
     {
-        if (_renameService.ActiveSession != null)
+        if (renameService.ActiveSession != null)
         {
-            _renameService.ActiveSession.Commit();
+            Commit(context.OperationContext);
             SetFocusToTextView(args.TextView);
         }
 

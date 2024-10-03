@@ -1021,39 +1021,49 @@ class C : ILErrors.InterfaceEvents
         [Fact, WorkItem(531090, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531090")]
         public void Constructor()
         {
-            string srcLib1 = @"
-using System;
+            string delSource = """
+                using System;
 
-public sealed class A
-{
-    public A(int a, Func<string, string> example) {}
-    public A(Func<string, string> example) {}
-}
-";
+                public delegate string MyFunc(string arg);
+                """;
+            var delComp = CreateEmptyCompilation(
+                delSource,
+                assemblyName: "Delegate.Util",
+                references: [NetFramework.mscorlib],
+                options: TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 
-            var lib1 = CreateEmptyCompilation(
-                new[] { Parse(srcLib1) },
-                new[] { TestMetadata.Net20.mscorlib, TestMetadata.Net35.SystemCore },
+            string lib1Source = """
+                using System;
+
+                public sealed class A
+                {
+                    public A(int a, MyFunc example) {}
+                    public A(MyFunc example) {}
+                }
+                """;
+            var lib1Comp = CreateEmptyCompilation(
+                lib1Source,
+                references: [NetFramework.mscorlib, delComp.ToMetadataReference()],
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 
-            string srcLib2 = @"
-class Program
-{
-    static void Main()
-    {
-        new A(x => x);
-    }
-}
-";
-            var lib2 = CreateEmptyCompilation(
-                new[] { Parse(srcLib2) },
-                new[] { MscorlibRef, new CSharpCompilationReference(lib1) },
+            string lib2Source = """
+                class Program
+                {
+                    static void Main()
+                    {
+                        new A(x => x);
+                    }
+                }
+                """;
+            var lib2Comp = CreateEmptyCompilation(
+                lib2Source,
+                references: [NetFramework.mscorlib, lib1Comp.ToMetadataReference()],
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 
-            lib2.VerifyDiagnostics(
-                // (6,13): error CS0012: The type 'System.Func<,>' is defined in an assembly that is not referenced. You must add a reference to assembly 'System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.
+            lib2Comp.VerifyDiagnostics(
+                // (5,13): error CS0012: The type 'MyFunc' is defined in an assembly that is not referenced. You must add a reference to assembly 'Delegate.Util, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         new A(x => x);
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "A").WithArguments("System.Func<,>", "System.Core, Version=3.5.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"));
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "A").WithArguments("MyFunc", "Delegate.Util, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(5, 13));
         }
 
         [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]

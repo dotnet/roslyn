@@ -9,9 +9,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
@@ -40,14 +43,14 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             return false;
         }
 
-        var token = _listener.BeginAsyncOperation(nameof(ExecuteCommand));
-        _ = ExecuteCommandAsync(args).CompletesAsyncOperation(token);
+        var token = listener.BeginAsyncOperation(nameof(ExecuteCommand));
+        _ = ExecuteCommandAsync(args, context.OperationContext).CompletesAsyncOperation(token);
         return true;
     }
 
-    private async Task ExecuteCommandAsync(RenameCommandArgs args)
+    private async Task ExecuteCommandAsync(RenameCommandArgs args, IUIThreadOperationContext editorOperationContext)
     {
-        _threadingContext.ThrowIfNotOnUIThread();
+        threadingContext.ThrowIfNotOnUIThread();
 
         if (!args.SubjectBuffer.TryGetWorkspace(out var workspace))
         {
@@ -61,18 +64,12 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             return;
         }
 
-        var backgroundWorkIndicatorFactory = workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-        using var context = backgroundWorkIndicatorFactory.Create(
-            args.TextView,
-            args.TextView.GetTextElementSpan(caretPoint.Value),
-            EditorFeaturesResources.Finding_token_to_rename);
-
         // If there is already an active session, commit it first
-        if (_renameService.ActiveSession != null)
+        if (renameService.ActiveSession != null)
         {
             // Is the caret within any of the rename fields in this buffer?
             // If so, focus the dashboard
-            if (_renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out _))
+            if (renameService.ActiveSession.TryGetContainingEditableSpan(caretPoint.Value, out _))
             {
                 SetFocusToAdornment(args.TextView);
                 return;
@@ -80,9 +77,15 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             else
             {
                 // Otherwise, commit the existing session and start a new one.
-                _renameService.ActiveSession.Commit();
+                Commit(editorOperationContext);
             }
         }
+
+        var backgroundWorkIndicatorFactory = workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+        using var context = backgroundWorkIndicatorFactory.Create(
+            args.TextView,
+            args.TextView.GetTextElementSpan(caretPoint.Value),
+            EditorFeaturesResources.Finding_token_to_rename);
 
         var cancellationToken = context.UserCancellationToken;
 
@@ -108,7 +111,7 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             return;
         }
 
-        var sessionInfo = await _renameService.StartInlineSessionAsync(document, selectedSpans.Single().Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
+        var sessionInfo = await renameService.StartInlineSessionAsync(document, selectedSpans.Single().Span.ToTextSpan(), cancellationToken).ConfigureAwait(false);
         if (!sessionInfo.CanRename)
         {
             await ShowErrorDialogAsync(workspace, sessionInfo.LocalizedErrorMessage).ConfigureAwait(false);
@@ -120,12 +123,15 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
     {
         return args.SubjectBuffer.TryGetWorkspace(out var workspace) &&
             workspace.CanApplyChange(ApplyChangesKind.ChangeDocument) &&
+            args.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges() is Document document &&
+            document.GetLanguageService<IEditorInlineRenameService>() is IEditorInlineRenameService inlineRenameService &&
+            inlineRenameService.IsEnabled &&
             args.SubjectBuffer.SupportsRename() && !args.SubjectBuffer.IsInLspEditorContext();
     }
 
     private async Task ShowErrorDialogAsync(Workspace workspace, string message)
     {
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
+        await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
         var notificationService = workspace.Services.GetService<INotificationService>();
         notificationService.SendNotification(message, title: EditorFeaturesResources.Rename, severity: NotificationSeverity.Error);
     }

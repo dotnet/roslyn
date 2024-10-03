@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
             using var _1 = Classifier.GetPooledList(out var classifiedSpans);
             using var _2 = Classifier.GetPooledList(out var updatedClassifiedSpans);
 
-            // We either calculate the tokens for the full document span, or the user 
+            // We either calculate the tokens for the full document span, or the user
             // can pass in a range from the full document if they wish.
             ImmutableArray<TextSpan> textSpans;
             if (spans.Length == 0)
@@ -337,6 +337,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
                 {
                     // 6. Token modifiers - each set bit will be looked up in SemanticTokensLegend.tokenModifiers
                     modifierBits |= TokenModifiers.Deprecated;
+                }
+                else if (classificationType == ClassificationTypeNames.TestCode)
+                {
+                    // Skip additive types that are not being converted to token modifiers.
                 }
                 else
                 {

@@ -15,7 +15,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplacePropertyWithMethods;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
-public class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTest_NoEditor
+public sealed class ReplacePropertyWithMethodsTests : AbstractCSharpCodeActionTest_NoEditor
 {
     private OptionsCollection PreferExpressionBodiedMethods
         => new(GetLanguage()) { { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement } };
@@ -2487,6 +2487,31 @@ options: PreferExpressionBodiedMethods);
                 [OtherAttribute]
                 private static void SetSomeValue(int value)
                 { }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75135")]
+    public async Task TestMatchInPropertyPattern()
+    {
+        await TestInRegularAndScriptAsync("""
+            class C
+            {
+                public int [||]Property { get { return 0; } }
+                public bool M()
+                {
+                    return this is { Property: 1 };
+                }
+            }
+            """, """
+            class C
+            {
+                public int GetProperty()
+                { return 0; }
+                public bool M()
+                {
+                    return this is { {|Conflict:Property|}: 1 };
+                }
             }
             """);
     }

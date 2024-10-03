@@ -24,7 +24,7 @@ namespace Roslyn.Utilities;
 /// 
 /// also, note that this table is not thread safe.
 /// </summary>
-internal class AnnotationTable<TAnnotation>(string annotationKind) where TAnnotation : class
+internal sealed class AnnotationTable<TAnnotation>(string annotationKind) where TAnnotation : class
 {
     private int _globalId;
 

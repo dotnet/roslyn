@@ -9,9 +9,9 @@ using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -31,6 +31,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.AsyncStreams)]
     public class CodeGenAsyncIteratorTests : EmitMetadataTestBase
     {
+        internal static string ExpectedOutput(string output)
+        {
+            return ExecutionConditionUtil.IsMonoOrCoreClr ? output : null;
+        }
+
         /// <summary>
         /// Enumerates `C.M()` a given number of iterations.
         /// </summary>
@@ -6475,7 +6480,7 @@ class C
         [Fact]
         public void TestWellKnownMembers()
         {
-            var comp = CreateCompilation(AsyncStreamsTypes, references: new[] { TestMetadata.SystemThreadingTasksExtensions.NetStandard20Lib }, targetFramework: TargetFramework.NetStandard20);
+            var comp = CreateCompilation(AsyncStreamsTypes, references: new[] { NetStandard20.ExtraReferences.SystemThreadingTasksExtensions }, targetFramework: TargetFramework.NetStandard20);
             comp.VerifyDiagnostics();
 
             verifyType(WellKnownType.System_Threading_Tasks_Sources_ManualResetValueTaskSourceCore_T,
@@ -8457,6 +8462,209 @@ class AsyncReader<T> : IAsyncEnumerable<T>
 ";
             var comp = CreateCompilationWithAsyncIterator(source);
             CompileAndVerify(comp, expectedOutput: "RAN RAN RAN CLEARED");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74362")]
+        public void AwaitForeachInLocalFunctionInAccessor()
+        {
+            var src = """
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+foreach (var x in X.ValuesViaLocalFunction)
+{
+    Console.WriteLine(x);
+}
+
+public class X
+{
+    public static async IAsyncEnumerable<int> GetValues()
+    {
+        await Task.Yield();
+        yield return 42;
+    }
+
+    public static IEnumerable<int> ValuesViaLocalFunction
+    {
+        get
+        {
+            foreach (var b in Do().ToBlockingEnumerable())
+            {
+                yield return b;
+            }
+
+            async IAsyncEnumerable<int> Do()
+            {
+                await foreach (var v in GetValues())
+                {
+                    yield return v;
+                }
+            }
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.FailsPEVerify);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74362")]
+        public void AwaitForeachInMethod()
+        {
+            var src = """
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+await foreach (var x in X.Do())
+{
+    Console.WriteLine(x);
+}
+
+public class X
+{
+    public static async IAsyncEnumerable<int> GetValues()
+    {
+        await Task.Yield();
+        yield return 42;
+    }
+
+    public static async IAsyncEnumerable<int> Do()
+    {
+        await foreach (var v in GetValues())
+        {
+            yield return v;
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.FailsPEVerify);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74362")]
+        public void AwaitInForeachInLocalFunctionInAccessor()
+        {
+            var src = """
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+public class C
+{
+    public static void Main()
+    {
+        Console.Write(Property);
+    }
+
+    public static int Property
+    {
+        get
+        {
+            return Do().GetAwaiter().GetResult();
+
+            async Task<int> Do()
+            {
+                IEnumerable<int> a = [42];
+                foreach (var v in a)
+                {
+                    await Task.Yield();
+                    return v;
+                }
+
+                return 0;
+            }
+        }
+    }
+}
+""";
+            var comp = CreateCompilation(src, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+            comp.VerifyEmitDiagnostics();
+            CompileAndVerify(comp, expectedOutput: ExpectedOutput("42"), verify: Verification.FailsPEVerify);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73563")]
+        public void IsMetadataVirtual_01()
+        {
+            var src1 = @"
+using System.Collections.Generic;
+using System.Threading;
+
+public struct S : IAsyncEnumerable<int>
+{
+    public IAsyncEnumerator<int> GetAsyncEnumerator(CancellationToken token = default) => throw null;
+
+    void M()
+    {
+        GetAsyncEnumerator();
+    }
+}
+";
+
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net80);
+
+            var src2 = @"
+using System.Threading.Tasks;
+
+class C
+{
+    static async Task Main()
+    {
+        await foreach (var i in new S())
+        {
+        }
+    }
+}
+";
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80);
+            comp2.VerifyEmitDiagnostics(); // Indirectly calling IsMetadataVirtual on S.GetAsyncEnumerator (a read which causes the lock to be set)
+            comp1.VerifyEmitDiagnostics(); // Would call EnsureMetadataVirtual on S.GetAsyncEnumerator and would therefore assert if S was not already ForceCompleted
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73563")]
+        public void IsMetadataVirtual_02()
+        {
+            var src1 = @"
+using System;
+using System.Threading.Tasks;
+
+public struct S2 : IAsyncDisposable
+{
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
+    }
+
+    void M()
+    {
+        DisposeAsync();
+    }
+}
+";
+
+            var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.Net80);
+
+            var src2 = @"
+class C
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        await using (new S2())
+        {
+        }
+
+        await using (var s = new S2())
+        {
+        }
+    }
+}
+";
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80);
+            comp2.VerifyEmitDiagnostics(); // Indirectly calling IsMetadataVirtual on S.DisposeAsync (a read which causes the lock to be set)
+            comp1.VerifyEmitDiagnostics(); // Would call EnsureMetadataVirtual on S.DisposeAsync and would therefore assert if S was not already ForceCompleted
         }
     }
 }

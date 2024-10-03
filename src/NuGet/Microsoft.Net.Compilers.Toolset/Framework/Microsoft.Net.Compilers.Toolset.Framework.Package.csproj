@@ -7,7 +7,7 @@
     <NuspecPackageId>Microsoft.Net.Compilers.Toolset.Framework</NuspecPackageId>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <DevelopmentDependency>true</DevelopmentDependency>
-    <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
+    <ExcludeFromSourceOnlyBuild>true</ExcludeFromSourceOnlyBuild>
     <PackageDescription>
       .NET Framework Compilers Toolset Package
 

@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Formatting;
 /// <summary>
 /// data that will be used in an interval tree related to suppressing spacing operations.
 /// </summary>
-internal class SuppressSpacingData(TextSpan textSpan)
+internal sealed class SuppressSpacingData(TextSpan textSpan)
 {
     public TextSpan TextSpan { get; } = textSpan;
 }

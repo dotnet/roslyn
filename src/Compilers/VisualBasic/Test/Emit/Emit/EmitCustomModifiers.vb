@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 
@@ -20,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 
         <Fact>
         Public Sub Test1()
-            Dim mscorlibRef = TestMetadata.Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
 
             Dim source As String = <text> 
 Public Class A

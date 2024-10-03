@@ -100,7 +100,7 @@ End Class</code>)
         End Sub
 
         <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/712977")>
-        <WpfFact()>
+        <WpfFact>
         Public Sub TestDim3()
             Test(<code>Class C
     Sub Method()

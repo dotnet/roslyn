@@ -138,6 +138,9 @@
   <data name="Class1" xml:space="preserve">
     <value>class</value>
   </data>
+  <data name="Attribute" xml:space="preserve">
+    <value>attribute</value>
+  </data>
   <data name="Constructor" xml:space="preserve">
     <value>constructor</value>
   </data>
@@ -784,5 +787,8 @@
   </data>
   <data name="SigningTempPathUnavailable" xml:space="preserve">
     <value>The temporary path for legacy file signing is unavailable.</value>
+  </data>
+  <data name="Type0DoesNotHaveExpectedConstructor" xml:space="preserve">
+    <value>'{0}' type does not have the expected constructor</value>
   </data>
 </root>

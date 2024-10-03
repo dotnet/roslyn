@@ -87,7 +87,7 @@ name: "TestProject",
 assemblyName: "TestProject.dll",
 language: LanguageNames.CSharp);
 
-            var sinfo = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default, projects: new ProjectInfo[] { pinfo });
+            var sinfo = SolutionInfo.Create(SolutionId.CreateNewId(), VersionStamp.Default, projects: [pinfo]);
 
             var solution = ws.AddSolution(sinfo);
 

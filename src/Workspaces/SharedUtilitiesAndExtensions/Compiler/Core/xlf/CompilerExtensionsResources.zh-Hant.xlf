@@ -52,6 +52,11 @@
         <target state="translated">欄位喜好設定</target>
         <note />
       </trans-unit>
+      <trans-unit id="Instantiated_parts_threw_exceptions_from_IDisposable_Dispose">
+        <source>Instantiated part(s) threw exception(s) from IDisposable.Dispose().</source>
+        <target state="translated">從 IDisposable.Dispose() 執行個體化的部分擲回的例外狀況。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Interface">
         <source>Interface</source>
         <target state="new">Interface</target>

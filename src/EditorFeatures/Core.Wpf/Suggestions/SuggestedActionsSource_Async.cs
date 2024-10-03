@@ -211,8 +211,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 var workspace = document.Project.Solution.Workspace;
                 var supportsFeatureService = workspace.Services.GetRequiredService<ITextBufferSupportsFeatureService>();
 
-                var options = GlobalOptions.GetCodeActionOptionsProvider();
-
                 var fixesTask = GetCodeFixesAsync();
                 var refactoringsTask = GetRefactoringsAsync();
 
@@ -242,7 +240,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                         workspace, owner._codeFixService, document, range.Span.ToTextSpan(),
-                        priorityProvider, options, cancellationToken).ConfigureAwait(false);
+                        priorityProvider, cancellationToken).ConfigureAwait(false);
                 }
 
                 async Task<ImmutableArray<UnifiedSuggestedActionSet>> GetRefactoringsAsync()
@@ -273,7 +271,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     var filterOutsideSelection = !requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring);
 
                     return await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                        workspace, owner._codeRefactoringService, document, selection.Value, priorityProvider.Priority, options,
+                        workspace, owner._codeRefactoringService, document, selection.Value, priorityProvider.Priority,
                         filterOutsideSelection, cancellationToken).ConfigureAwait(false);
                 }
 

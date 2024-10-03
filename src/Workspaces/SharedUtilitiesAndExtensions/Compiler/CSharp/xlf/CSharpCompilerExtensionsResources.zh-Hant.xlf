@@ -7,6 +7,11 @@
         <target state="translated">程式碼區塊喜好設定</target>
         <note />
       </trans-unit>
+      <trans-unit id="EditorConfig_option_0_contains_unrecognized_value_1">
+        <source>EditorConfig option '{0}' contains unrecognized value '{1}'</source>
+        <target state="translated">EditorConfig 選項 '{0}' 包含無法辨識的值 '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expected_string_or_char_literal">
         <source>Expected string or char literal</source>
         <target state="translated">必須是字串或字元常值</target>
