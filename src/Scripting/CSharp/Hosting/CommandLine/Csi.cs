@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.IO;
 using System.Reflection;
@@ -16,18 +14,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
     internal sealed class CSharpInteractiveCompiler : CSharpCompiler
     {
-        internal CSharpInteractiveCompiler(string responseFile, BuildPaths buildPaths, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
+        private readonly Func<CSharpCommandLineArguments, TouchedFileLogger?, MetadataReferenceResolver> _createResolverFunc;
+
+        internal CSharpInteractiveCompiler(
+            string? responseFile,
+            BuildPaths buildPaths,
+            string[] args,
+            IAnalyzerAssemblyLoader analyzerLoader,
+            Func<CSharpCommandLineArguments, TouchedFileLogger?, MetadataReferenceResolver>? createResolverFunc = null)
             // Unlike C# compiler we do not use LIB environment variable. It's only supported for historical reasons.
-            : base(CSharpCommandLineParser.Script, responseFile, args, buildPaths, null, analyzerLoader)
+            : base(CSharpCommandLineParser.Script, responseFile, args, buildPaths, additionalReferenceDirectories: null, analyzerLoader)
         {
+            _createResolverFunc = createResolverFunc ?? CommandLineRunner.GetMetadataReferenceResolver;
         }
 
         internal override Type Type => typeof(CSharpInteractiveCompiler);
 
-        internal override MetadataReferenceResolver GetCommandLineMetadataReferenceResolver(TouchedFileLogger loggerOpt)
-        {
-            return CommandLineRunner.GetMetadataReferenceResolver(Arguments, loggerOpt);
-        }
+        internal override MetadataReferenceResolver GetCommandLineMetadataReferenceResolver(TouchedFileLogger? loggerOpt) =>
+           _createResolverFunc(Arguments, loggerOpt);
 
         public override void PrintLogo(TextWriter consoleOutput)
         {

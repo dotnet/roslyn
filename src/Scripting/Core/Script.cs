@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             {
                 if (Previous == null)
                 {
-                    var corLib = MetadataReference.CreateFromAssemblyInternal(typeof(object).GetTypeInfo().Assembly);
+                    var corLib = Options.CreateFromAssemblyFunc(typeof(object).GetTypeInfo().Assembly, default);
                     references.Add(corLib);
 
                     if (GlobalsType != null)
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                         // the host has to add reference to the metadata where globals type is located explicitly.
                         if (MetadataReference.HasMetadata(globalsAssembly))
                         {
-                            references.Add(MetadataReference.CreateFromAssemblyInternal(globalsAssembly, HostAssemblyReferenceProperties));
+                            references.Add(Options.CreateFromAssemblyFunc(globalsAssembly, HostAssemblyReferenceProperties));
                         }
                     }
 

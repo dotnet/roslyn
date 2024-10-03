@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 #pragma warning disable 436 // The type 'RelativePathResolver' conflicts with imported type
 
 using System;
@@ -13,6 +11,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
@@ -24,8 +23,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     {
         private readonly ScriptCompiler _scriptCompiler;
         private readonly ObjectFormatter _objectFormatter;
+        private readonly Func<Assembly, MetadataReferenceProperties, MetadataImageReference>? _createFromAssemblyFunc;
 
-        internal CommandLineRunner(ConsoleIO console, CommonCompiler compiler, ScriptCompiler scriptCompiler, ObjectFormatter objectFormatter)
+        internal CommandLineRunner(
+            ConsoleIO console,
+            CommonCompiler compiler,
+            ScriptCompiler scriptCompiler,
+            ObjectFormatter objectFormatter,
+            Func<Assembly, MetadataReferenceProperties, MetadataImageReference>? createFromAssemblyFunc = null)
         {
             Debug.Assert(console != null);
             Debug.Assert(compiler != null);
@@ -36,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             Compiler = compiler;
             _scriptCompiler = scriptCompiler;
             _objectFormatter = objectFormatter;
+            _createFromAssemblyFunc = createFromAssemblyFunc;
         }
 
         // for testing:
@@ -47,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// </summary>
         internal int RunInteractive()
         {
-            SarifErrorLogger errorLogger = null;
+            SarifErrorLogger? errorLogger = null;
             if (Compiler.Arguments.ErrorLogOptions?.Path != null)
             {
                 errorLogger = Compiler.GetErrorLogger(Console.Error);
@@ -66,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         /// <summary>
         /// csi.exe and vbi.exe entry point.
         /// </summary>
-        private int RunInteractiveCore(ErrorLogger errorLogger)
+        private int RunInteractiveCore(ErrorLogger? errorLogger)
         {
             Debug.Assert(Compiler.Arguments.IsScriptRunner);
 
@@ -100,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 return 0;
             }
 
-            SourceText code = null;
+            SourceText? code = null;
 
             var diagnosticsInfos = new List<DiagnosticInfo>();
 
@@ -120,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             var emitDebugInformation = !Compiler.Arguments.InteractiveMode;
 
             var scriptPathOpt = sourceFiles.IsEmpty ? null : sourceFiles[0].Path;
-            var scriptOptions = GetScriptOptions(Compiler.Arguments, scriptPathOpt, Compiler.MessageProvider, diagnosticsInfos, emitDebugInformation);
+            var scriptOptions = GetScriptOptions(Compiler.Arguments, scriptPathOpt, Compiler.MessageProvider, diagnosticsInfos, emitDebugInformation, _createFromAssemblyFunc);
 
             var errors = Compiler.Arguments.Errors.Concat(diagnosticsInfos.Select(Diagnostic.Create));
             if (Compiler.ReportDiagnostics(errors, Console.Error, errorLogger, compilation: null))
@@ -141,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
         }
 
-        private static ScriptOptions GetScriptOptions(CommandLineArguments arguments, string scriptPathOpt, CommonMessageProvider messageProvider, List<DiagnosticInfo> diagnostics, bool emitDebugInformation)
+        private static ScriptOptions? GetScriptOptions(CommandLineArguments arguments, string? scriptPathOpt, CommonMessageProvider messageProvider, List<DiagnosticInfo> diagnostics, bool emitDebugInformation, Func<Assembly, MetadataReferenceProperties, MetadataImageReference>? createFromAssemblyFunc)
         {
             var touchedFilesLoggerOpt = (arguments.TouchedFilesPath != null) ? new TouchedFileLogger() : null;
 
@@ -167,10 +173,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 allowUnsafe: true,
                 checkOverflow: false,
                 warningLevel: 4,
-                parseOptions: arguments.ParseOptions);
+                parseOptions: arguments.ParseOptions,
+                createFromAssemblyFunc: createFromAssemblyFunc);
         }
 
-        internal static MetadataReferenceResolver GetMetadataReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
+#nullable enable
+
+        internal static MetadataReferenceResolver GetMetadataReferenceResolver(CommandLineArguments arguments, TouchedFileLogger? loggerOpt)
         {
             return RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(
                 arguments.ReferencePaths,
@@ -181,6 +190,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                     return MetadataReference.CreateFromFile(path, properties);
                 });
         }
+
+#nullable disable
 
         internal static SourceReferenceResolver GetSourceReferenceResolver(CommandLineArguments arguments, TouchedFileLogger loggerOpt)
         {

@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -112,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// Specifies the encoding to be used when debugging scripts loaded from a file, or saved to a file for debugging purposes.
         /// If it's null, the compiler will attempt to detect the necessary encoding for debugging
         /// </summary>
-        public Encoding FileEncoding { get; private set; }
+        public Encoding? FileEncoding { get; private set; }
 
         /// <summary>
         /// The path to the script source if it originated from a file, empty otherwise.
@@ -139,7 +137,9 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// </summary>
         public int WarningLevel { get; private set; }
 
-        internal ParseOptions ParseOptions { get; private set; }
+        internal ParseOptions? ParseOptions { get; private set; }
+
+        internal Func<Assembly, MetadataReferenceProperties, MetadataImageReference> CreateFromAssemblyFunc { get; private set; }
 
         internal ScriptOptions(
             string filePath,
@@ -148,12 +148,13 @@ namespace Microsoft.CodeAnalysis.Scripting
             MetadataReferenceResolver metadataResolver,
             SourceReferenceResolver sourceResolver,
             bool emitDebugInformation,
-            Encoding fileEncoding,
+            Encoding? fileEncoding,
             OptimizationLevel optimizationLevel,
             bool checkOverflow,
             bool allowUnsafe,
             int warningLevel,
-            ParseOptions parseOptions)
+            ParseOptions? parseOptions,
+            Func<Assembly, MetadataReferenceProperties, MetadataImageReference>? createFromAssemblyFunc = null)
         {
             Debug.Assert(filePath != null);
             Debug.Assert(!references.IsDefault);
@@ -173,6 +174,18 @@ namespace Microsoft.CodeAnalysis.Scripting
             AllowUnsafe = allowUnsafe;
             WarningLevel = warningLevel;
             ParseOptions = parseOptions;
+            CreateFromAssemblyFunc = createFromAssemblyFunc ?? createFromAssemblyDefault;
+
+            // Having a local function makes it much easier to identify cases in our unit tests
+            // that are implicitly using ScriptOptions.Default. Doing so leads to pressure on the
+            // finalizer queue because CreateFromAssemblyInternal passively frees resources. Tests
+            // should use a version of ScriptOptions that hook this member and actively free
+            // the resources.
+            //
+            // This local function lets us set a breakpoint, run tests under the debugger and
+            // identify places the hook was not set.
+            static MetadataImageReference createFromAssemblyDefault(Assembly assembly, MetadataReferenceProperties metadataReferenceProperties) =>
+                MetadataReference.CreateFromAssemblyInternal(assembly, metadataReferenceProperties);
         }
 
         private ScriptOptions(ScriptOptions other)
@@ -187,7 +200,8 @@ namespace Microsoft.CodeAnalysis.Scripting
                    checkOverflow: other.CheckOverflow,
                    allowUnsafe: other.AllowUnsafe,
                    warningLevel: other.WarningLevel,
-                   parseOptions: other.ParseOptions)
+                   parseOptions: other.ParseOptions,
+                   createFromAssemblyFunc: other.CreateFromAssemblyFunc)
         {
         }
 
@@ -262,10 +276,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         public ScriptOptions AddReferences(IEnumerable<Assembly> references)
             => AddReferences(SelectChecked(references, nameof(references), CreateReferenceFromAssembly));
 
-        private static MetadataReference CreateReferenceFromAssembly(Assembly assembly)
-        {
-            return MetadataReference.CreateFromAssemblyInternal(assembly, s_assemblyReferenceProperties);
-        }
+        private MetadataReference CreateReferenceFromAssembly(Assembly assembly) => CreateFromAssemblyFunc(assembly, s_assemblyReferenceProperties);
 
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with references added.
@@ -388,5 +399,8 @@ namespace Microsoft.CodeAnalysis.Scripting
 
         internal ScriptOptions WithParseOptions(ParseOptions parseOptions)
             => parseOptions == ParseOptions ? this : new ScriptOptions(this) { ParseOptions = parseOptions };
+
+        internal ScriptOptions WithCreateAssemblyFunc(Func<Assembly, MetadataReferenceProperties, MetadataImageReference> createAssemblyFunc)
+            => new ScriptOptions(this) { CreateFromAssemblyFunc = createAssemblyFunc };
     }
 }
