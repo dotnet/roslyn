@@ -2497,6 +2497,11 @@
         <target state="translated">Zeilenumbrüche in Interpolationen</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureOpenTypeInNameof">
+        <source>Open generic types in nameof operator</source>
+        <target state="new">Open generic types in nameof operator</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureParameterlessStructConstructors">
         <source>parameterless struct constructors</source>
         <target state="translated">Parameterlose Strukturkonstruktoren</target>

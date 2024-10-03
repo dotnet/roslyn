@@ -1212,7 +1212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (isUnboundTypeExpr)
             {
-                if (!IsUnboundTypeAllowed(node))
+                if (!IsInsideNameof && !IsUnboundTypeAllowed(node))
                 {
                     // If we already have an error type then skip reporting that the unbound type is illegal.
                     if (!unconstructedType.IsErrorType())
@@ -1373,22 +1373,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (typeArgumentsSyntax.Any(SyntaxKind.OmittedTypeArgument))
             {
-                // Note: lookup won't have reported this, since the arity was correct.
-                // CONSIDER: the text of this error message makes sense, but we might want to add a separate code.
-                Error(diagnostics, ErrorCode.ERR_BadArity, typeSyntax, type, MessageID.IDS_SK_TYPE.Localize(), typeArgumentsSyntax.Count);
+                if (this.IsInsideNameof)
+                {
+                    // Inside a nameof an open-generic type is acceptable.  Fall through and bind the remainder accordingly.
+                    CheckFeatureAvailability(typeSyntax, MessageID.IDS_FeatureOpenTypeInNameof, diagnostics);
+                    typeArguments = UnboundArgumentErrorTypeSymbol.CreateTypeArguments(
+                        type.TypeParameters,
+                        type.TypeParameters.Length,
+                        errorInfo: null);
+                }
+                else
+                {
+                    // Note: lookup won't have reported this, since the arity was correct.
+                    // CONSIDER: the text of this error message makes sense, but we might want to add a separate code.
+                    Error(diagnostics, ErrorCode.ERR_BadArity, typeSyntax, type, MessageID.IDS_SK_TYPE.Localize(), typeArgumentsSyntax.Count);
 
-                // If the syntax looks like an unbound generic type, then they probably wanted the definition.
-                // Give an error indicating that the syntax is incorrect and then use the definition.
-                // CONSIDER: we could construct an unbound generic type symbol, but that would probably be confusing
-                // outside a typeof.
-                return type;
+                    // If the syntax looks like an unbound generic type, then they probably wanted the definition.
+                    // Give an error indicating that the syntax is incorrect and then use the definition.
+                    // CONSIDER: we could construct an unbound generic type symbol, but that would probably be confusing
+                    // outside a typeof.
+                    return type;
+                }
             }
-            else
-            {
-                // we pass an empty basesBeingResolved here because this invocation is not on any possible path of
-                // infinite recursion in binding base clauses.
-                return ConstructNamedType(type, typeSyntax, typeArgumentsSyntax, typeArguments, basesBeingResolved: null, diagnostics: diagnostics);
-            }
+
+            // we pass an empty basesBeingResolved here because this invocation is not on any possible path of
+            // infinite recursion in binding base clauses.
+            return ConstructNamedType(type, typeSyntax, typeArgumentsSyntax, typeArguments, basesBeingResolved: null, diagnostics: diagnostics);
         }
 
         /// <remarks>

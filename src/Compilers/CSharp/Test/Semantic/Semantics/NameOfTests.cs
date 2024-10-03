@@ -2383,6 +2383,51 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                 var v = nameof(List<>);
                 Console.WriteLine(v);
+                """, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+                    // (4,16): error CS8652: The feature 'Open generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // var v = nameof(List<>);
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "List<>").WithArguments("Open generic types in nameof operator").WithLocation(4, 16));
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_CSharp13_Nested1()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+                
+                var v = nameof(A<>.B<int>);
+                Console.WriteLine(v);
+
+                class A<X> { public class B<Y>; }
+                """, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_CSharp13_Nested2()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+                
+                var v = nameof(A<int>.B<>);
+                Console.WriteLine(v);
+
+                class A<X> { public class B<Y>; }
+                """, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_CSharp13_Nested3()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+                
+                var v = nameof(A<>.B<>);
+                Console.WriteLine(v);
+
+                class A<X> { class B<Y>; }
                 """, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
         }
 
@@ -2401,6 +2446,54 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         }
 
         [Fact]
+        public void OpenTypeInNameof_Nested1()
+        {
+            CompileAndVerify(
+                CreateCompilation("""
+                    using System;
+                    using System.Collections.Generic;
+                    
+                    var v = nameof(A<>.B<int>);
+                    Console.WriteLine(v);
+
+                    class A<X> { public class B<Y>; }
+                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                expectedOutput: "B");
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_Nested2()
+        {
+            CompileAndVerify(
+                CreateCompilation("""
+                    using System;
+                    using System.Collections.Generic;
+                    
+                    var v = nameof(A<int>.B<>);
+                    Console.WriteLine(v);
+
+                    class A<X> { public class B<Y>; }
+                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                expectedOutput: "B");
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_Nested3()
+        {
+            CompileAndVerify(
+                CreateCompilation("""
+                    using System;
+                    using System.Collections.Generic;
+                    
+                    var v = nameof(A<>.B<>);
+                    Console.WriteLine(v);
+
+                    class A<X> { public class B<Y>; }
+                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                expectedOutput: "B");
+        }
+
+        [Fact]
         public void OpenTypeInNameof_MultipleTypeArguments()
         {
             CompileAndVerify(
@@ -2412,6 +2505,30 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                     Console.WriteLine(v);
                     """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
                 expectedOutput: "Dictionary");
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_IncorrectTypeArgumentCount1()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(Dictionary<>);
+                Console.WriteLine(v);
+                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_IncorrectTypeArgumentCount2()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(List<,>);
+                Console.WriteLine(v);
+                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2427,13 +2544,25 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         }
 
         [Fact]
-        public void OpenTypeInNameof_NoPartialOpenTypes()
+        public void OpenTypeInNameof_NoPartialOpenTypes_1()
         {
             CreateCompilation("""
                 using System;
                 using System.Collections.Generic;
 
                 var v = nameof(Dictionary<,int>);
+                Console.WriteLine(v);
+                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_NoPartialOpenTypes_2()
+        {
+            CreateCompilation("""
+                using System;
+                using System.Collections.Generic;
+
+                var v = nameof(Dictionary<int,>);
                 Console.WriteLine(v);
                 """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
         }
