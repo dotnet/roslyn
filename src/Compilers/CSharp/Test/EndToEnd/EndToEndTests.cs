@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EndToEnd
             };
 
             // Un-comment the call below to figure out the new limits.
-            //testLimits();
+            testLimits();
 
             try
             {
