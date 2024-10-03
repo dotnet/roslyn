@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     unconvertedSource.HasErrors);
             }
 
-            return BindUnconvertedInterpolatedExpressionToFactory(unconvertedSource, parts, stringFactory, "Create", destination, diagnostics);
+            return BindUnconvertedInterpolatedExpressionToFactory(unconvertedSource, parts, stringFactory, factoryMethod: "Create", destination, diagnostics);
         }
 
         private static void CheckInlineArrayTypeIsSupported(SyntaxNode syntax, TypeSymbol inlineArrayType, TypeSymbol elementType, BindingDiagnosticBag diagnostics)

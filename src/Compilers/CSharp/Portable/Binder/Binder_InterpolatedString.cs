@@ -246,7 +246,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return constructWithoutData(BindInterpolatedStringParts(unconvertedInterpolatedString, diagnostics));
             }
 
-            // Case 2. Attempt to see if all parts are strings.
             if ((unconvertedInterpolatedString.Parts.Length > 4 || !AllInterpolatedStringPartsAreStrings(unconvertedInterpolatedString.Parts)) &&
                 tryBindAsHandlerType(out var result))
             {
@@ -254,8 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            // The specifics of 4 vs 5 aren't necessary for this stage of binding. The only thing that matters is that every part needs to be convertible
-            // object.
+            // Case 2, 4, 5
             ImmutableArray<BoundExpression> parts = BindInterpolatedStringPartsForFactory(unconvertedInterpolatedString, diagnostics, out bool haveErrors);
 
             if (unconvertedInterpolatedString.Type.IsErrorType() || haveErrors || canLowerToStringConcatenation(parts))
@@ -263,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return constructWithoutData(parts);
             }
 
-            return BindUnconvertedInterpolatedExpressionToFactory(unconvertedInterpolatedString, parts, (NamedTypeSymbol)unconvertedInterpolatedString.Type, "Format", unconvertedInterpolatedString.Type, diagnostics);
+            return BindUnconvertedInterpolatedExpressionToFactory(unconvertedInterpolatedString, parts, (NamedTypeSymbol)unconvertedInterpolatedString.Type, factoryMethod: "Format", unconvertedInterpolatedString.Type, diagnostics);
 
             BoundInterpolatedString constructWithoutData(ImmutableArray<BoundExpression> parts)
                 => new BoundInterpolatedString(
@@ -333,8 +331,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundInterpolatedString BindUnconvertedInterpolatedExpressionToFactory(
             BoundUnconvertedInterpolatedString unconvertedSource,
             ImmutableArray<BoundExpression> parts,
-            NamedTypeSymbol stringFactory,
-            string name,
+            NamedTypeSymbol factoryType,
+            string factoryMethod,
             TypeSymbol destination,
             BindingDiagnosticBag diagnostics)
         {
@@ -343,8 +341,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression construction = MakeInvocationExpression(
                 syntax,
-                new BoundTypeExpression(syntax, null, stringFactory) { WasCompilerGenerated = true },
-                name,
+                new BoundTypeExpression(syntax, null, factoryType) { WasCompilerGenerated = true },
+                factoryMethod,
                 expressions,
                 diagnostics,
                 typeArgs: default(ImmutableArray<TypeWithAnnotations>),
@@ -353,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 disallowExpandedNonArrayParams: InExpressionTree);
 
             // We do not verify expected return type of the chosen factory method.
-            // This is technically a spec violation because there is no guaranty what
+            // This is technically a spec violation because there is no guarantee what
             // conversion we might accept here. Could be even a user-defined conversion.
             construction = GenerateConversionForAssignment(
                 destination,
@@ -409,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(part is BoundLiteral && part.ConstantValueOpt?.StringValue != null);
                         // this is one of the literal parts.  If it contains a { or } then we need to escape those so that
                         // they're treated the same way in string.Format.
-                        stringBuilder.Append(escapeInterpolatedStringLiteral(part.ConstantValueOpt.StringValue));
+                        escapeAndAppendInterpolatedStringLiteral(stringBuilder, part.ConstantValueOpt.StringValue);
                     }
                 }
 
@@ -417,10 +415,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return expressions.ToImmutableAndFree();
             }
 
-            static string escapeInterpolatedStringLiteral(string value)
+            static void escapeAndAppendInterpolatedStringLiteral(System.Text.StringBuilder stringBuilder, string value)
             {
-                var builder = PooledStringBuilder.GetInstance();
-                var stringBuilder = builder.Builder;
                 foreach (var c in value)
                 {
                     stringBuilder.Append(c);
@@ -429,14 +425,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         stringBuilder.Append(c);
                     }
                 }
-
-                // Avoid unnecessary allocation in the common case of nothing to escape.
-                var result = builder.Length == value.Length
-                    ? value
-                    : builder.Builder.ToString();
-                builder.Free();
-
-                return result;
             }
         }
 
@@ -896,7 +884,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(part is BoundLiteral { Type: { SpecialType: SpecialType.System_String } });
+                    Debug.Assert(part is BoundLiteral { Type: { SpecialType: SpecialType.System_String }, ConstantValueOpt.IsString: true });
                     partsBuilder?.Add(part);
                 }
             }
