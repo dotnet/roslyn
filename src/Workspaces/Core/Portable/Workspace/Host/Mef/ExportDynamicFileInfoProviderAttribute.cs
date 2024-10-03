@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef;
 /// </summary>
 [MetadataAttribute]
 [AttributeUsage(AttributeTargets.Class)]
-internal class ExportDynamicFileInfoProviderAttribute : ExportAttribute
+internal sealed class ExportDynamicFileInfoProviderAttribute : ExportAttribute
 {
     /// <summary>
     /// file extensions this <see cref="IDynamicFileInfoProvider"/> can handle such as cshtml

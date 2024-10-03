@@ -27,7 +27,7 @@ internal static partial class ConflictResolver
     /// Helper class to track the state necessary for finding/resolving conflicts in a 
     /// rename session.
     /// </summary>
-    private class Session
+    private sealed class Session
     {
         // Set of All Locations that will be renamed (does not include non-reference locations that need to be checked for conflicts)
         private readonly SymbolicRenameLocations _renameLocationSet;

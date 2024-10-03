@@ -3126,7 +3126,6 @@ class C
         var active = GetActiveStatements(src1, src2);
 
         edits.VerifySemanticDiagnostics(active,
-            Diagnostic(RudeEditKind.Move, "int c", GetResource("field")),
             Diagnostic(RudeEditKind.DeleteActiveStatement, "class C", GetResource("field", "C.a")),
             Diagnostic(RudeEditKind.Delete, "class C", GetResource("field", "a")));
     }

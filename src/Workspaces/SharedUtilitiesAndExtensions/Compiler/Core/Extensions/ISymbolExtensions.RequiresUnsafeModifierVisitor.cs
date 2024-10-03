@@ -8,14 +8,14 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
-internal partial class ISymbolExtensions
+internal static partial class ISymbolExtensions
 {
     /// <summary>
     /// Visits types or members that have signatures (i.e. methods, fields, etc.) and determines
     /// if any of them reference a pointer type and should thus have the <see
     /// langword="unsafe"/> modifier on them.
     /// </summary>
-    private class RequiresUnsafeModifierVisitor : SymbolVisitor<bool>
+    private sealed class RequiresUnsafeModifierVisitor : SymbolVisitor<bool>
     {
         private readonly HashSet<ISymbol> _visited = [];
 

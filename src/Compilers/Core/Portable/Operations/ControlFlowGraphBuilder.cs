@@ -7565,15 +7565,43 @@ oneMoreTime:
 
         public override IOperation VisitBinaryPattern(IBinaryPatternOperation operation, int? argument)
         {
-            return new BinaryPatternOperation(
-                operatorKind: operation.OperatorKind,
-                leftPattern: (IPatternOperation)VisitRequired(operation.LeftPattern),
-                rightPattern: (IPatternOperation)VisitRequired(operation.RightPattern),
-                inputType: operation.InputType,
-                narrowedType: operation.NarrowedType,
-                semanticModel: null,
-                syntax: operation.Syntax,
-                isImplicit: IsImplicit(operation));
+            if (operation.LeftPattern is not IBinaryPatternOperation)
+            {
+                return createOperation(this, operation, (IPatternOperation)VisitRequired(operation.LeftPattern));
+            }
+
+            // Use a manual stack to avoid overflowing on deeply-nested binary patterns
+            var stack = ArrayBuilder<IBinaryPatternOperation>.GetInstance();
+            IBinaryPatternOperation? current = operation;
+
+            do
+            {
+                stack.Push(current);
+                current = current.LeftPattern as IBinaryPatternOperation;
+            } while (current != null);
+
+            current = stack.Pop();
+            var result = (IPatternOperation)VisitRequired(current.LeftPattern);
+            do
+            {
+                result = createOperation(this, current, result);
+            } while (stack.TryPop(out current));
+
+            stack.Free();
+            return result;
+
+            static BinaryPatternOperation createOperation(ControlFlowGraphBuilder @this, IBinaryPatternOperation operation, IPatternOperation left)
+            {
+                return new BinaryPatternOperation(
+                            operatorKind: operation.OperatorKind,
+                            leftPattern: left,
+                            rightPattern: (IPatternOperation)@this.VisitRequired(operation.RightPattern),
+                            inputType: operation.InputType,
+                            narrowedType: operation.NarrowedType,
+                            semanticModel: null,
+                            syntax: operation.Syntax,
+                            isImplicit: @this.IsImplicit(operation));
+            }
         }
 
         public override IOperation VisitNegatedPattern(INegatedPatternOperation operation, int? argument)

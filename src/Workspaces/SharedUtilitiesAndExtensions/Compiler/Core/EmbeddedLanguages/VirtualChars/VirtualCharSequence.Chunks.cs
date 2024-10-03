@@ -34,7 +34,7 @@ internal readonly partial struct VirtualCharSequence
     /// This will be the common construct we generate when getting the
     /// <see cref="Chunk"/> for a string token that has escapes in it.
     /// </summary>
-    private class ImmutableSegmentedListChunk(ImmutableSegmentedList<VirtualChar> array) : Chunk
+    private sealed class ImmutableSegmentedListChunk(ImmutableSegmentedList<VirtualChar> array) : Chunk
     {
         public override int Length => array.Count;
         public override VirtualChar this[int index] => array[index];
@@ -78,7 +78,7 @@ internal readonly partial struct VirtualCharSequence
     /// do not want that should then ask for an appropriate <see cref="VirtualCharSequence.GetSubSequence"/>
     /// back that does not include those characters.
     /// </param>
-    private class StringChunk(int firstVirtualCharPosition, string data) : Chunk
+    private sealed class StringChunk(int firstVirtualCharPosition, string data) : Chunk
     {
         public override int Length => data.Length;
 

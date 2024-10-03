@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             }
 
             var languageInfoProvider = lspServices.GetRequiredService<ILanguageInfoProvider>();
-            var languageInformation = languageInfoProvider.GetLanguageInformation(documentFilePath, languageId);
+            var languageInformation = languageInfoProvider.GetLanguageInformation(uri, languageId);
             if (languageInformation == null)
             {
                 // Only log here since throwing here could take down the LSP server.

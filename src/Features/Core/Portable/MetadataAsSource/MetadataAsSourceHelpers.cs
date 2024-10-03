@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource;
 /// <summary>
 /// Helpers shared by both the text service and the editor service
 /// </summary>
-internal class MetadataAsSourceHelpers
+internal sealed class MetadataAsSourceHelpers
 {
 
 #if false

@@ -354,8 +354,8 @@
   <data name="Changing_the_declaration_scope_of_a_captured_variable_0_requires_restarting_the_application" xml:space="preserve">
     <value>Changing the declaration scope of a captured variable '{0}' requires restarting the application.</value>
   </data>
-  <data name="Adding_0_into_a_1_requires_restarting_the_application" xml:space="preserve">
-    <value>Adding {0} into a {1} requires restarting the application.</value>
+  <data name="Adding_or_moving_0_of_1_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding or moving {0} of {1} requires restarting the application.</value>
   </data>
   <data name="Adding_0_into_an_interface_requires_restarting_the_application" xml:space="preserve">
     <value>Adding {0} into an interface requires restarting the application.</value>
@@ -363,8 +363,11 @@
   <data name="Adding_0_into_an_interface_method_requires_restarting_the_application" xml:space="preserve">
     <value>Adding {0} into an interface method requires restarting the application.</value>
   </data>
-  <data name="Adding_0_into_a_class_with_explicit_or_sequential_layout_requires_restarting_the_application" xml:space="preserve">
-    <value>Adding {0} into a class with explicit or sequential layout requires restarting the application.</value>
+  <data name="Adding_or_moving_0_of_1_with_explicit_or_sequential_layout_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding or moving {0} of {1} with explicit or sequential layout requires restarting the application.</value>
+  </data>
+  <data name="Adding_or_moving_0_of_a_COM_interface_requires_restarting_the_application" xml:space="preserve">
+    <value>Adding or moving {0} of a COM interface requires restarting the application.</value>
   </data>
   <data name="Updating_the_modifiers_of_0_requires_restarting_the_application" xml:space="preserve">
     <value>Updating the modifiers of {0} requires restarting the application.</value>

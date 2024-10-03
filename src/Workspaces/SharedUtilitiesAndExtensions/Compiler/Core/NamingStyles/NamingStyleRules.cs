@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 
-internal class NamingStyleRules(ImmutableArray<NamingRule> namingRules)
+internal sealed class NamingStyleRules(ImmutableArray<NamingRule> namingRules)
 {
     public ImmutableArray<NamingRule> NamingRules { get; } = namingRules;
 

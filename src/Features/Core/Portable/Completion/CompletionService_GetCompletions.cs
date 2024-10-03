@@ -340,7 +340,7 @@ public abstract partial class CompletionService
         return context;
     }
 
-    private class DisplayNameToItemsMap(CompletionService service) : IEnumerable<CompletionItem>, IDisposable
+    private sealed class DisplayNameToItemsMap(CompletionService service) : IEnumerable<CompletionItem>, IDisposable
     {
         // We might need to handle large amount of items with import completion enabled,
         // so use a dedicated pool to minimize array allocations. Set the size of pool to a small

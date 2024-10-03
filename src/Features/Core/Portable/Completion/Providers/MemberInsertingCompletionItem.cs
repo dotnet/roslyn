@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
-internal class MemberInsertionCompletionItem
+internal sealed class MemberInsertionCompletionItem
 {
     public static CompletionItem Create(
         string displayText,
