@@ -805,4 +805,51 @@ public class Class2 { static void Main(string [] args) { } }$$", HangMitigatingC
         // Make sure the file is renamed. If the file is not found, this call would throw exception
         await TestServices.SolutionExplorer.GetProjectItemAsync(projectName, "MyTestClass.cs", HangMitigatingCancellationToken);
     }
+
+    [CombinatorialData]
+    [IdeTheory]
+    public async Task VerifyAsyncRename(bool useInlineRename)
+    {
+        var globalOptions = await TestServices.Shell.GetComponentModelServiceAsync<IGlobalOptionService>(HangMitigatingCancellationToken);
+        globalOptions.SetGlobalOption(InlineRenameSessionOptionsStorage.CommitRenameAsynchronously, true);
+
+        if (!useInlineRename)
+            globalOptions.SetGlobalOption(InlineRenameUIOptionsStorage.UseInlineAdornment, false);
+
+        var markup = """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    int x = 100;
+                    Te$$stMethod(x);
+                }
+
+                static void TestMethod(int y)
+                {
+
+                }
+            }
+            """;
+        await SetUpEditorAsync(markup, HangMitigatingCancellationToken);
+        await TestServices.InlineRename.InvokeAsync(HangMitigatingCancellationToken);
+        await TestServices.Input.SendWithoutActivateAsync(["AsyncRenameMethod", VirtualKeyCode.RETURN], HangMitigatingCancellationToken);
+        await TestServices.Workspace.WaitForRenameAsync(HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.TextEqualsAsync(
+            """
+            class Program
+            {
+                static void Main(string[] args)
+                {
+                    int x = 100;
+                    AsyncRenameMethod$$(x);
+                }
+
+                static void AsyncRenameMethod(int y)
+                {
+
+                }
+            }
+            """, HangMitigatingCancellationToken);
+    }
 }
