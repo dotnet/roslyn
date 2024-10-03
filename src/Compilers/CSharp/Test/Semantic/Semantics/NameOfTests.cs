@@ -2561,7 +2561,10 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                 var v = nameof(Dictionary<,int>);
                 Console.WriteLine(v);
-                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                    // (4,27): error CS1031: Type expected
+                    // var v = nameof(Dictionary<,int>);
+                    Diagnostic(ErrorCode.ERR_TypeExpected, ",").WithLocation(4, 27));
         }
 
         [Fact]
@@ -2573,7 +2576,10 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                 var v = nameof(Dictionary<int,>);
                 Console.WriteLine(v);
-                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                // (4,31): error CS1031: Type expected
+                // var v = nameof(Dictionary<int,>);
+                Diagnostic(ErrorCode.ERR_TypeExpected, ">").WithLocation(4, 31));
         }
 
         [Fact]

@@ -6104,6 +6104,15 @@ parse_member_name:;
                     return result;
                 }
 
+                // Allow for any chain of errant commas in teh generic name.  like `Dictionary<,int>` or
+                // `Dictionary<int,,>` We still want to think of these as generics, just with missing type-arguments, vs
+                // some invalid tree-expression that we would otherwise form.
+                if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                {
+                    lastScannedType = default;
+                    continue;
+                }
+
                 lastScannedType = this.ScanType(out _);
                 switch (lastScannedType)
                 {
