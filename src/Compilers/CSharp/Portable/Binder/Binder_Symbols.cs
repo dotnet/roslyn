@@ -1376,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (this.IsInsideNameof)
                 {
                     // Inside a nameof an open-generic type is acceptable.  Fall through and bind the remainder accordingly.
-                    CheckFeatureAvailability(typeSyntax, MessageID.IDS_FeatureOpenTypeInNameof, diagnostics);
+                    CheckFeatureAvailability(typeSyntax, MessageID.IDS_FeatureUnboundGenericTypesInNameof, diagnostics);
                     typeArguments = UnboundArgumentErrorTypeSymbol.CreateTypeArguments(
                         type.TypeParameters,
                         type.TypeParameters.Length,

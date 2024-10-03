@@ -2384,9 +2384,9 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                 var v = nameof(List<>);
                 Console.WriteLine(v);
                 """, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                    // (4,16): error CS8652: The feature 'Open generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,16): error CS8652: The feature 'Unbound generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     // var v = nameof(List<>);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "List<>").WithArguments("Open generic types in nameof operator").WithLocation(4, 16));
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "List<>").WithArguments("Unbound generic types in nameof operator").WithLocation(4, 16));
         }
 
         [Fact]
@@ -2400,9 +2400,9 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                 class A<X> { public class B<Y>; }
                 """, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                    // (3,16): error CS8652: The feature 'Open generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    // var v = nameof(A<>.B<int>);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "A<>").WithArguments("Open generic types in nameof operator").WithLocation(3, 16));
+                // (3,16): error CS8652: The feature 'Unbound generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // var v = nameof(A<>.B<int>);
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "A<>").WithArguments("Unbound generic types in nameof operator").WithLocation(3, 16));
         }
 
         [Fact]
@@ -2416,9 +2416,9 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                 class A<X> { public class B<Y>; }
                 """, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                // (3,23): error CS8652: The feature 'Open generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (3,23): error CS8652: The feature 'Unbound generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                 // var v = nameof(A<int>.B<>);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "B<>").WithArguments("Open generic types in nameof operator").WithLocation(3, 23));
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "B<>").WithArguments("Unbound generic types in nameof operator").WithLocation(3, 23));
         }
 
         [Fact]
@@ -2432,12 +2432,12 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                 class A<X> { public class B<Y>; }
                 """, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                    // (3,16): error CS8652: The feature 'Open generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (3,16): error CS8652: The feature 'Unbound generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     // var v = nameof(A<>.B<>);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "A<>").WithArguments("Open generic types in nameof operator").WithLocation(3, 16),
-                    // (3,20): error CS8652: The feature 'Open generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "A<>").WithArguments("Unbound generic types in nameof operator").WithLocation(3, 16),
+                    // (3,20): error CS8652: The feature 'Unbound generic types in nameof operator' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     // var v = nameof(A<>.B<>);
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "B<>").WithArguments("Open generic types in nameof operator").WithLocation(3, 20));
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "B<>").WithArguments("Unbound generic types in nameof operator").WithLocation(3, 20));
         }
 
         [Fact]
@@ -2558,7 +2558,10 @@ class Attr : System.Attribute { public Attr(string s) {} }";
 
                 var v = nameof(List<List<>>);
                 Console.WriteLine(v);
-                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics();
+                """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(
+                    // (4,21): error CS9270: Nested unbound generic type not allowed in 'nameof' operator
+                    // var v = nameof(List<List<>>);
+                    Diagnostic(ErrorCode.ERR_NestedUnboundTypeNotAllowedInNameofExpression, "List<>").WithLocation(4, 21));
         }
 
         [Fact]
