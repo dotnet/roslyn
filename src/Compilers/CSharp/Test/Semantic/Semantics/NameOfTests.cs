@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -2639,12 +2638,11 @@ class Attr : System.Attribute { public Attr(string s) {} }";
         }
 
         [Fact]
-        public void OpenTypeInNameof_MemberAccessThatDoesUseTypeArgument_ReferenceConstraintMember()
+        public void OpenTypeInNameof_MemberAccessThatDoesUseTypeArgument_ReferenceConstraintMember_Interface()
         {
             CompileAndVerify(
                 CreateCompilation("""
                     using System;
-                    using System.Collections.Generic;
                     
                     var v = nameof(IGoo<>.X.CompareTo);
                     Console.WriteLine(v);
@@ -2655,6 +2653,47 @@ class Attr : System.Attribute { public Attr(string s) {} }";
                     }
                     """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
                 expectedOutput: "CompareTo");
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_MemberAccessThatDoesUseTypeArgument_ReferenceConstraintMember_ThroughTypeParameter()
+        {
+            CompileAndVerify(
+                CreateCompilation("""
+                    using System;
+                    
+                    var v = nameof(IGoo<,>.X.CompareTo);
+                    Console.WriteLine(v);
+
+                    interface IGoo<T,U> where T : U where U : IComparable<T>
+                    {
+                        T X { get; }
+                    }
+                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                expectedOutput: "CompareTo");
+        }
+
+        [Fact]
+        public void OpenTypeInNameof_MemberAccessThatDoesUseTypeArgument_ReferenceConstraintMember_Class()
+        {
+            CompileAndVerify(
+                CreateCompilation("""
+                    using System;
+                    
+                    var v = nameof(IGoo<>.X.Z);
+                    Console.WriteLine(v);
+
+                    class Base
+                    {
+                        public int Z { get; }
+                    }
+
+                    interface IGoo<T> where T : Base
+                    {
+                        T X { get; }
+                    }
+                    """, parseOptions: TestOptions.RegularPreview).VerifyDiagnostics(),
+                expectedOutput: "Z");
         }
     }
 }
