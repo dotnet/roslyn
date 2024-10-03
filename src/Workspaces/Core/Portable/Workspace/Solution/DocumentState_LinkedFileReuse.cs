@@ -24,7 +24,26 @@ internal partial class DocumentState
         ITreeAndVersionSource originalTreeSource,
         AsyncLazy<TreeAndVersion> lazyComputation) : ITreeAndVersionSource
     {
-        public readonly ITreeAndVersionSource OriginalTreeSource = originalTreeSource;
+        // Used as a fallback value in GetComputedTreeAndVersionSource to avoid long lazy chain evaluations.
+        private readonly ITreeAndVersionSource _originalTreeSource = originalTreeSource;
+
+        /// <summary>
+        /// Provides an ITreeAndVersionSource, returning either this instance or _originalTreeSource.
+        /// </summary>
+        /// <remarks>
+        /// If the lazy computation has already completed, then this object passes back itself as it uses that
+        /// computation in it's ITreeAndVersionSource implementation.
+        /// 
+        /// If the lazy computation has not completed, we don't wish to pass back an object using it, as doing so might
+        /// lead to a long chain of lazy evaluations. Instead, use the originalTreeSource passed into this object.
+        /// </remarks>
+        public ITreeAndVersionSource GetNonChainedTreeAndVersionSource()
+        {
+            if (TryGetValue(out _))
+                return this;
+
+            return _originalTreeSource;
+        }
 
         public Task<TreeAndVersion> GetValueAsync(CancellationToken cancellationToken)
             => lazyComputation.GetValueAsync(cancellationToken);
@@ -69,11 +88,8 @@ internal partial class DocumentState
         // We only need to look one deep here as we'll pull that tree source forward to our level.  If another link is
         // later added to us, it will do the same thing.
         var originalTreeSource = this.TreeSource;
-        if (originalTreeSource is LinkedFileReuseTreeAndVersionSource linkedFileTreeAndVersionSource
-            && !linkedFileTreeAndVersionSource.TryGetValue(out var _))
-        {
-            originalTreeSource = linkedFileTreeAndVersionSource.OriginalTreeSource;
-        }
+        if (originalTreeSource is LinkedFileReuseTreeAndVersionSource linkedFileTreeAndVersionSource)
+            originalTreeSource = linkedFileTreeAndVersionSource.GetNonChainedTreeAndVersionSource();
 
         // Always pass along the sibling text.  We will always be in sync with that.
 
