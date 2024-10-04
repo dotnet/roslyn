@@ -465,9 +465,14 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">La modification du type de retour de {0} requiert le redémarrage de l’application.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application">
+        <source>Changing the signature of {0} requires restarting the application.</source>
+        <target state="new">Changing the signature of {0} requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
         <source>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</source>
-        <target state="translated">La modification de la signature de {0} nécessite le redémarrage de l'application car elle n'est pas prise en charge par le runtime.</target>
+        <target state="new">Changing the signature of {0} requires restarting the application because is not supported by the runtime.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application">
