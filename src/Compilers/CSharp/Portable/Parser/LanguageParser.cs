@@ -10207,10 +10207,14 @@ done:
                 return scopedKeyword;
 
             // (scoped a) =>    (scoped a, ...) =>   is legal in a lambda.
+
+            // This is an unusual use of LangVersion. In this case we are effectively making a language breaking change
+            // to consider "scoped" a modifier in all ambiguous cases. To avoid breaking older code that is not
+            // using this version we conditionally parse based on langversion
             if (isLambdaParameter &&
                 IsTrueIdentifier(this.CurrentToken) &&
-                this.CurrentToken.ContextualKind != SyntaxKind.ScopedKeyword &&
-                this.PeekToken(1).Kind is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken)
+                this.PeekToken(1).Kind is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken &&
+                IsFeatureEnabled(MessageID.IDS_FeatureSimpleLambdaParameterModifiers))
             {
                 return scopedKeyword;
             }
@@ -10221,10 +10225,14 @@ done:
             if (ScanType() is not ScanTypeFlags.NotType &&
                 isValidScopedTypeCase())
             {
+                // We had a Type syntax in a supported production.  Roll back to just after the scoped-keyword and
+                // return it successfully.
                 afterScopedResetPoint.Reset();
                 return scopedKeyword;
             }
 
+            // We didn't see a type, or it wasn't a legal usage of a type.  This is not a scoped-keyword.  Rollback to
+            // before the keyword so the caller has to handle it.
             beforeScopedResetPoint.Reset();
             return null;
 

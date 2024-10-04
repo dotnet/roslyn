@@ -5604,7 +5604,38 @@ class C {
         }
 
         [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
-        public void ScopedAsParameterName_06()
+        public void ScopedAsParameterName_06_CSharp13()
+        {
+            string source = "(scoped scoped) => { }";
+            UsingExpression(source, TestOptions.Regular13);
+
+            N(SyntaxKind.ParenthesizedLambdaExpression);
+            {
+                N(SyntaxKind.ParameterList);
+                {
+                    N(SyntaxKind.OpenParenToken);
+                    N(SyntaxKind.Parameter);
+                    {
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "scoped");
+                        }
+                        N(SyntaxKind.IdentifierToken, "scoped");
+                    }
+                    N(SyntaxKind.CloseParenToken);
+                }
+                N(SyntaxKind.EqualsGreaterThanToken);
+                N(SyntaxKind.Block);
+                {
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem(63469, "https://github.com/dotnet/roslyn/issues/63469")]
+        public void ScopedAsParameterName_06_Latest()
         {
             string source = "(scoped scoped) => { }";
             UsingExpression(source);
@@ -5936,7 +5967,7 @@ class C {
         public void TestParameterModifierNoType4()
         {
             string source = "(scoped a) => { }";
-            UsingExpression(source);
+            UsingExpression(source, TestOptions.RegularPreview);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
@@ -5964,7 +5995,7 @@ class C {
         public void TestParameterModifierNoType4_a()
         {
             string source = "(a, scoped b) => { }";
-            UsingExpression(source);
+            UsingExpression(source, TestOptions.RegularPreview);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
