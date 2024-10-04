@@ -5754,7 +5754,7 @@ class C {
         }
 
         [Fact]
-        public void TestParameterModifierNoType2()
+        public void TestParameterModifierNoType1_a()
         {
             string source = "(a, ref b) => { }";
             UsingExpression(source);
@@ -5763,7 +5763,7 @@ class C {
         }
 
         [Fact]
-        public void TestParameterModifierNoType3()
+        public void TestParameterModifierNoType2()
         {
             string source = "(ref readonly a) => { }";
             UsingExpression(source);
@@ -5772,7 +5772,16 @@ class C {
         }
 
         [Fact]
-        public void TestParameterModifierNoType4()
+        public void TestParameterModifierNoType2_a()
+        {
+            string source = "(a, ref readonly b) => { }";
+            UsingExpression(source);
+
+            EOF();
+        }
+
+        [Fact]
+        public void TestParameterModifierNoType3()
         {
             string source = "(readonly ref a) => { }";
             UsingExpression(source);
@@ -5781,7 +5790,16 @@ class C {
         }
 
         [Fact]
-        public void TestParameterModifierNoType5()
+        public void TestParameterModifierNoType3_A()
+        {
+            string source = "(a, readonly ref b) => { }";
+            UsingExpression(source);
+
+            EOF();
+        }
+
+        [Fact]
+        public void TestParameterModifierNoType4()
         {
             string source = "(scoped a) => { }";
             UsingExpression(source);
@@ -5790,7 +5808,16 @@ class C {
         }
 
         [Fact]
-        public void TestParameterModifierNoType6()
+        public void TestParameterModifierNoType4_a()
+        {
+            string source = "(a, scoped b) => { }";
+            UsingExpression(source);
+
+            EOF();
+        }
+
+        [Fact]
+        public void TestParameterModifierNoType5()
         {
             string source = "(scoped out a) => { }";
             UsingExpression(source);
@@ -5799,7 +5826,16 @@ class C {
         }
 
         [Fact]
-        public void TestParameterModifierNoType7()
+        public void TestParameterModifierNoType5_a()
+        {
+            string source = "(a, scoped out b) => { }";
+            UsingExpression(source);
+
+            EOF();
+        }
+
+        [Fact]
+        public void TestParameterModifierNoType6()
         {
             string source = "(ref a = 1) => { }";
             UsingExpression(source);
@@ -5808,7 +5844,7 @@ class C {
         }
 
         [Fact]
-        public void TestParameterModifierNoType8()
+        public void TestParameterModifierNoType6_a()
         {
             string source = "(a, ref b = 1) => { }";
             UsingExpression(source);
@@ -5817,7 +5853,7 @@ class C {
         }
 
         [Fact]
-        public void TestParameterModifierNoType9()
+        public void TestParameterModifierNoType7()
         {
             string source = "([Attr] ref a) => { }";
             UsingExpression(source);
@@ -5826,7 +5862,7 @@ class C {
         }
 
         [Fact]
-        public void TestParameterModifierNoType10()
+        public void TestParameterModifierNoType7_a()
         {
             string source = "(a, [Attr] ref a) => { }";
             UsingExpression(source);

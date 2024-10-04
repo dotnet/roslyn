@@ -4116,31 +4116,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.RefKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "a");
-                        }
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "a");
                     }
                     N(SyntaxKind.CommaToken);
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.OutKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "b");
-                        }
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "b");
                     }
                     N(SyntaxKind.CommaToken);
                     N(SyntaxKind.Parameter);
                     {
                         N(SyntaxKind.InKeyword);
-                        N(SyntaxKind.IdentifierName);
-                        {
-                            N(SyntaxKind.IdentifierToken, "c");
-                        }
-                        M(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "c");
                     }
                     N(SyntaxKind.CloseParenToken);
                 }
