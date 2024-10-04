@@ -331,6 +331,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             parameter.Identifier.GetLocation(), parameter.Identifier.Text);
                     }
                 }
+
+                // Check if `(ref i) => ...` is supported by this language version.
+                if (parameter.Modifiers.Count > 0 && parameter.Type is null)
+                {
+                    CheckFeatureAvailability(parameter, MessageID.IDS_FeatureSimpleLambdaParameterModifiers, diagnostics);
+                }
             }
         }
 
@@ -343,6 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var data = lambda.Data;
 
             int firstDefault = -1;
+            var hasExplicitTypes = lambda.HasExplicitlyTypedParameterList;
             for (int i = 0; i < lambda.ParameterCount; i++)
             {
                 // paramSyntax should not be null here; we should always be operating on an anonymous function which
@@ -358,8 +365,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var isParams = paramsKeyword.Kind() != SyntaxKind.None;
 
                 // UNDONE: Where do we report improper use of pointer types?
-                ParameterHelpers.ReportParameterErrors(owner: null, paramSyntax, ordinal: i, lastParameterIndex: lambda.ParameterCount - 1, isParams: isParams, lambda.ParameterTypeWithAnnotations(i),
-                        lambda.RefKind(i), containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
+
+                // Note: it's fine to not pass a type here in the case where the user wrote `(ref i) => ```. The point
+                // of passing this type is to validate the user is referencing a valid type as a parameter (e.g. no
+                // static types).  Since there is no type specified, there's no need to validate that part here.
+                var parameterType = hasExplicitTypes ? lambda.ParameterTypeWithAnnotations(i) : default;
+                ParameterHelpers.ReportParameterErrors(
+                    owner: null, paramSyntax, ordinal: i, lastParameterIndex: lambda.ParameterCount - 1, isParams: isParams, parameterType,
+                    lambda.RefKind(i), containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
             }
 
             // Parser will only have accepted static/async as allowed modifiers on this construct.

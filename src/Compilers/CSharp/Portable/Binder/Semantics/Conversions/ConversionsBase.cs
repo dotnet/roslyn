@@ -1492,15 +1492,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // SPEC: and modifiers as the corresponding parameter in F.
                 // SPEC: If F has an implicitly typed parameter list, D has no ref or out parameters.
 
+                for (int p = 0; p < delegateParameters.Length; ++p)
+                {
+                    if (!OverloadResolution.AreRefsCompatibleForMethodConversion(
+                            candidateMethodParameterRefKind: anonymousFunction.RefKind(p),
+                            delegateParameterRefKind: delegateParameters[p].RefKind,
+                            compilation))
+                    {
+                        return LambdaConversionResult.MismatchedParameterType;
+                    }
+                }
+
                 if (anonymousFunction.HasExplicitlyTypedParameterList)
                 {
                     for (int p = 0; p < delegateParameters.Length; ++p)
                     {
-                        if (!OverloadResolution.AreRefsCompatibleForMethodConversion(
-                                candidateMethodParameterRefKind: anonymousFunction.RefKind(p),
-                                delegateParameterRefKind: delegateParameters[p].RefKind,
-                                compilation) ||
-                            !delegateParameters[p].Type.Equals(anonymousFunction.ParameterType(p), TypeCompareKind.AllIgnoreOptions))
+                        if (!delegateParameters[p].Type.Equals(anonymousFunction.ParameterType(p), TypeCompareKind.AllIgnoreOptions))
                         {
                             return LambdaConversionResult.MismatchedParameterType;
                         }
@@ -1508,14 +1515,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    for (int p = 0; p < delegateParameters.Length; ++p)
-                    {
-                        if (delegateParameters[p].RefKind != RefKind.None)
-                        {
-                            return LambdaConversionResult.RefInImplicitlyTypedLambda;
-                        }
-                    }
-
                     // In C# it is not possible to make a delegate type
                     // such that one of its parameter types is a static type. But static types are 
                     // in metadata just sealed abstract types; there is nothing stopping someone in
