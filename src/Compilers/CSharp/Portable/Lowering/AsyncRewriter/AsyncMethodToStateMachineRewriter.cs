@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -121,8 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        protected sealed override string EncMissingStateMessage
-            => CodeAnalysisResources.EncCannotResumeSuspendedAsyncMethod;
+        protected sealed override HotReloadExceptionCode EncMissingStateErrorCode
+            => HotReloadExceptionCode.CannotResumeSuspendedAsyncMethod;
 
         protected sealed override StateMachineState FirstIncreasingResumableState
             => StateMachineState.FirstResumableAsyncState;

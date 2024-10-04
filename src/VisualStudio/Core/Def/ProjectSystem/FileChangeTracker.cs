@@ -23,7 +23,6 @@ internal sealed class FileChangeTracker : IVsFreeThreadedFileChangeEvents2, IDis
     private static readonly AsyncLazy<uint?> s_none = AsyncLazy.Create(value: (uint?)null);
 
     private readonly IVsFileChangeEx _fileChangeService;
-    private readonly string _filePath;
     private readonly _VSFILECHANGEFLAGS _fileChangeFlags;
     private bool _disposed;
 
@@ -56,7 +55,7 @@ internal sealed class FileChangeTracker : IVsFreeThreadedFileChangeEvents2, IDis
     public FileChangeTracker(IVsFileChangeEx fileChangeService, string filePath, _VSFILECHANGEFLAGS fileChangeFlags = DefaultFileChangeFlags)
     {
         _fileChangeService = fileChangeService;
-        _filePath = filePath;
+        FilePath = filePath;
         _fileChangeFlags = fileChangeFlags;
         _fileChangeCookie = s_none;
     }
@@ -69,10 +68,7 @@ internal sealed class FileChangeTracker : IVsFreeThreadedFileChangeEvents2, IDis
         }
     }
 
-    public string FilePath
-    {
-        get { return _filePath; }
-    }
+    public string FilePath { get; }
 
     /// <summary>
     /// Returns true if a previous call to <see cref="StartFileChangeListeningAsync"/> has completed.
@@ -113,7 +109,7 @@ internal sealed class FileChangeTracker : IVsFreeThreadedFileChangeEvents2, IDis
                 try
                 {
                     // TODO: Should we pass in cancellationToken here instead of CancellationToken.None?
-                    uint? result = await ((IVsAsyncFileChangeEx2)self._fileChangeService).AdviseFileChangeAsync(self._filePath, self._fileChangeFlags, self, CancellationToken.None).ConfigureAwait(false);
+                    uint? result = await ((IVsAsyncFileChangeEx2)self._fileChangeService).AdviseFileChangeAsync(self.FilePath, self._fileChangeFlags, self, CancellationToken.None).ConfigureAwait(false);
                     return result;
                 }
                 catch (Exception e) when (ReportException(e))
@@ -126,7 +122,7 @@ internal sealed class FileChangeTracker : IVsFreeThreadedFileChangeEvents2, IDis
                 try
                 {
                     Marshal.ThrowExceptionForHR(
-                        self._fileChangeService.AdviseFileChange(self._filePath, (uint)self._fileChangeFlags, self, out var newCookie));
+                        self._fileChangeService.AdviseFileChange(self.FilePath, (uint)self._fileChangeFlags, self, out var newCookie));
                     return newCookie;
                 }
                 catch (Exception e) when (ReportException(e))

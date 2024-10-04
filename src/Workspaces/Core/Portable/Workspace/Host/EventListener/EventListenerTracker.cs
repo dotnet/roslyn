@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// currently, this helper only supports services whose lifetime is same as Host (ex, VS)
     /// </summary>
     /// <typeparam name="TService">TService for <see cref="IEventListener{TService}"/></typeparam>
-    internal class EventListenerTracker<TService>(
+    internal sealed class EventListenerTracker<TService>(
         IEnumerable<Lazy<IEventListener, EventListenerMetadata>> eventListeners, string kind)
     {
         /// <summary>

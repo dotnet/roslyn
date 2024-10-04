@@ -76,11 +76,9 @@ internal class CodeActionResolveHandler : ILspServiceDocumentRequestHandler<LSP.
 
         var document = context.GetRequiredTextDocument();
         var solution = document.Project.Solution;
-        var options = _globalOptions.GetCodeActionOptionsProvider();
         var codeActions = await CodeActionHelpers.GetCodeActionsAsync(
             document,
             data.Range,
-            options,
             _codeFixService,
             _codeRefactoringService,
             fixAllScope: null,

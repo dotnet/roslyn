@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.Suppression;
 
-internal partial class AbstractSuppressionCodeFixProvider
+internal abstract partial class AbstractSuppressionCodeFixProvider
 {
     /// <summary>
     /// Helper methods for pragma suppression add/remove batch fixers.

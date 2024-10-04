@@ -4,6 +4,7 @@
 
 using Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph;
 using Roslyn.LanguageServer.Protocol;
+using Moniker = Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.Graph.Moniker;
 
 namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.ResultSetTracking
 {

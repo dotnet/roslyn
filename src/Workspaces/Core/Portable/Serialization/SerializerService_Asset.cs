@@ -64,10 +64,8 @@ internal partial class SerializerService
         return service.ReadParseOptionsFrom(reader, cancellationToken);
     }
 
-    private static void SerializeProjectReference(ProjectReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+    private static void SerializeProjectReference(ProjectReference reference, ObjectWriter writer)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         reference.ProjectId.WriteTo(writer);
         writer.WriteArray(reference.Aliases, static (w, a) => w.WriteString(a));
         writer.WriteBoolean(reference.EmbedInteropTypes);
@@ -84,27 +82,15 @@ internal partial class SerializerService
         return new ProjectReference(projectId, aliases.ToImmutableArrayOrEmpty(), embedInteropTypes);
     }
 
-    private void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        WriteMetadataReferenceTo(reference, writer, cancellationToken);
-    }
+    private void SerializeMetadataReference(MetadataReference reference, ObjectWriter writer)
+        => WriteMetadataReferenceTo(reference, writer);
 
-    private MetadataReference DeserializeMetadataReference(ObjectReader reader, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        return ReadMetadataReferenceFrom(reader, cancellationToken);
-    }
+    private MetadataReference DeserializeMetadataReference(ObjectReader reader)
+        => ReadMetadataReferenceFrom(reader);
 
-    private void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        WriteAnalyzerReferenceTo(reference, writer, cancellationToken);
-    }
+    private void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer)
+        => WriteAnalyzerReferenceTo(reference, writer);
 
-    private AnalyzerReference DeserializeAnalyzerReference(ObjectReader reader, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        return ReadAnalyzerReferenceFrom(reader, cancellationToken);
-    }
+    private AnalyzerReference DeserializeAnalyzerReference(ObjectReader reader)
+        => ReadAnalyzerReferenceFrom(reader);
 }

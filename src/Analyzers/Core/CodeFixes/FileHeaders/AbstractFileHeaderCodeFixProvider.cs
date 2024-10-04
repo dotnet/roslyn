@@ -48,7 +48,7 @@ internal abstract class AbstractFileHeaderCodeFixProvider : CodeFixProvider
 
     private async Task<SyntaxNode> GetTransformedSyntaxRootAsync(Document document, CancellationToken cancellationToken)
     {
-        var options = await document.GetCodeFixOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var options = await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
         var newLineTrivia = generator.EndOfLine(options.NewLine);
 

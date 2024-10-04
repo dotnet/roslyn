@@ -1201,7 +1201,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        or MethodKind.Constructor
                        or MethodKind.UserDefinedOperator
                        or MethodKind.ReducedExtension
-                       or MethodKind.LocalFunction
             && !IsOverride;
 
         #region IMethodSymbolInternal

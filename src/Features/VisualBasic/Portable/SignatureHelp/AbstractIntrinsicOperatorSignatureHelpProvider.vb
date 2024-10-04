@@ -95,9 +95,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
             ' Count how many commas are before us
             Return New SignatureHelpState(
-                argumentIndex:=commaTokens.Where(Function(token) token.SpanStart < position).Count(),
-                argumentCount:=commaTokens.Count() + 1,
-                argumentName:=Nothing, argumentNames:=Nothing)
+                SemanticParameterIndex:=commaTokens.Where(Function(token) token.SpanStart < position).Count(),
+                SyntacticArgumentCount:=commaTokens.Count() + 1,
+                ArgumentName:=Nothing,
+                ArgumentNames:=Nothing)
         End Function
 
         Private Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState

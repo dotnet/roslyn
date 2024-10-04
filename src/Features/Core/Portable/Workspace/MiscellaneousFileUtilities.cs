@@ -101,7 +101,7 @@ internal static class MiscellaneousFileUtilities
     }
 }
 
-internal class LanguageInformation(string languageName, string scriptExtension)
+internal sealed class LanguageInformation(string languageName, string scriptExtension)
 {
     public string LanguageName { get; } = languageName;
     public string ScriptExtension { get; } = scriptExtension;

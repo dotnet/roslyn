@@ -3,16 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Options;
-
-#if !CODE_STYLE
-using Microsoft.CodeAnalysis.Host;
-#endif
 
 namespace Microsoft.CodeAnalysis.AddImport;
 
@@ -37,24 +28,4 @@ internal sealed record class AddImportPlacementOptions
     public bool PlaceImportsInsideNamespaces => UsingDirectivePlacement.Value == AddImportPlacement.InsideNamespace;
 
     public static readonly AddImportPlacementOptions Default = new();
-}
-
-internal static partial class AddImportPlacementOptionsProviders
-{
-#if !CODE_STYLE
-    public static AddImportPlacementOptions GetAddImportPlacementOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowInHiddenRegions)
-        => languageServices.GetRequiredService<IAddImportsService>().GetAddImportOptions(options, allowInHiddenRegions ?? AddImportPlacementOptions.Default.AllowInHiddenRegions);
-
-    public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, CancellationToken cancellationToken)
-    {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetAddImportPlacementOptions(document.Project.Services, document.AllowImportsInHiddenRegions());
-    }
-
-    // Normally we don't allow generation into a hidden region in the file.  However, if we have a
-    // modern span mapper at our disposal, we do allow it as that host span mapper can handle mapping
-    // our edit to their domain appropriate.
-    public static bool AllowImportsInHiddenRegions(this Document document)
-        => document.Services.GetService<ISpanMappingService>()?.SupportsMappingImportDirectives == true;
-#endif
 }

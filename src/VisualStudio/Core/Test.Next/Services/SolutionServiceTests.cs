@@ -290,7 +290,7 @@ public class SolutionServiceTests
     {
         var code = @"class Test { void Method() { } }";
 
-        await VerifySolutionUpdate(code, s => s.WithDocumentFolders(s.Projects.First().Documents.First().Id, new[] { "test" }));
+        await VerifySolutionUpdate(code, s => s.WithDocumentFolders(s.Projects.First().Documents.First().Id, ["test"]));
     }
 
     [Fact]
@@ -548,7 +548,7 @@ public class SolutionServiceTests
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices);
 
         // Do the initial full sync
         await solution.AppendAssetMapAsync(map, CancellationToken.None);
@@ -589,7 +589,7 @@ public class SolutionServiceTests
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices);
 
         // Syncing project 1 should just since it over.
         await solution.AppendAssetMapAsync(map, project1.Id, CancellationToken.None);
@@ -631,7 +631,7 @@ public class SolutionServiceTests
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices);
 
         await solution.AppendAssetMapAsync(map, project2.Id, CancellationToken.None);
         var project2Checksum = await solution.CompilationState.GetChecksumAsync(project2.Id, CancellationToken.None);
@@ -664,7 +664,7 @@ public class SolutionServiceTests
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices);
 
         // syncing P3 should since project P2 as well because of the p2p ref
         await solution.AppendAssetMapAsync(map, project3.Id, CancellationToken.None);
@@ -706,7 +706,7 @@ public class SolutionServiceTests
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices);
 
         // syncing project3 should since project2 and project1 as well because of the p2p ref
         await solution.AppendAssetMapAsync(map, project3.Id, CancellationToken.None);
@@ -746,7 +746,7 @@ public class SolutionServiceTests
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices);
 
         // syncing project3 should since project2 and project1 as well because of the p2p ref
         await solution.AppendAssetMapAsync(map, project3.Id, CancellationToken.None);
@@ -784,7 +784,7 @@ public class SolutionServiceTests
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices);
 
         // Syncing over project1 should give us 1 set of options on the OOP side.
         await solution.AppendAssetMapAsync(map, project1.Id, CancellationToken.None);
@@ -817,7 +817,7 @@ public class SolutionServiceTests
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices);
 
         // Do the initial full sync
         await solution.AppendAssetMapAsync(map, CancellationToken.None);
@@ -872,7 +872,7 @@ public class SolutionServiceTests
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices);
 
         // Do the initial full sync
         await solution.AppendAssetMapAsync(map, CancellationToken.None);
@@ -941,7 +941,7 @@ public class SolutionServiceTests
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.GetService<ISerializerService>());
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(), new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map), remoteWorkspace.Services.SolutionServices);
 
         // Do the initial full sync
         await solution.AppendAssetMapAsync(map, CancellationToken.None);
@@ -1277,6 +1277,6 @@ public class SolutionServiceTests
         var storage = new SolutionAssetCache();
         var assetSource = new SimpleAssetSource(workspace.Services.GetRequiredService<ISerializerService>(), map);
 
-        return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetRequiredService<ISerializerService>());
+        return new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.SolutionServices);
     }
 }

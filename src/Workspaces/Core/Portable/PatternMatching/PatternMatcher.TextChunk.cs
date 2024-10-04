@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.PatternMatching;
 
-internal partial class PatternMatcher
+internal abstract partial class PatternMatcher
 {
     /// <summary>
     /// Information about a chunk of text from the pattern.  The chunk is a piece of text, with 

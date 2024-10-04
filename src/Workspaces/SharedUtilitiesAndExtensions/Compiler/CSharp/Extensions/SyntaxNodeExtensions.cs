@@ -757,15 +757,29 @@ internal static partial class SyntaxNodeExtensions
             _ => null,
         };
 
-    public static IEnumerable<MemberDeclarationSyntax> GetMembers(this SyntaxNode? node)
-        => node switch
+    public static void ForEachMember<TArg>(this SyntaxNode? node, Action<MemberDeclarationSyntax, TArg> callback, TArg arg)
+    {
+        // Separated out to allow for struct-based enumeration.
+        switch (node)
         {
-            CompilationUnitSyntax compilation => compilation.Members,
-            BaseNamespaceDeclarationSyntax @namespace => @namespace.Members,
-            TypeDeclarationSyntax type => type.Members,
-            EnumDeclarationSyntax @enum => @enum.Members,
-            _ => [],
-        };
+            case CompilationUnitSyntax compilation:
+                foreach (var member in compilation.Members)
+                    callback(member, arg);
+                break;
+            case BaseNamespaceDeclarationSyntax @namespace:
+                foreach (var member in @namespace.Members)
+                    callback(member, arg);
+                break;
+            case TypeDeclarationSyntax type:
+                foreach (var member in type.Members)
+                    callback(member, arg);
+                break;
+            case EnumDeclarationSyntax @enum:
+                foreach (var member in @enum.Members)
+                    callback(member, arg);
+                break;
+        }
+    }
 
     public static bool IsInExpressionTree(
         [NotNullWhen(true)] this SyntaxNode? node,

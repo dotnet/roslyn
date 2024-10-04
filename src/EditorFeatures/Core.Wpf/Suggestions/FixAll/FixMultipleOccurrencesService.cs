@@ -35,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             Workspace workspace,
             CodeFixProvider fixProvider,
             FixAllProvider fixAllProvider,
-            CodeActionOptionsProvider optionsProvider,
             string equivalenceKey,
             string waitDialogTitle,
             string waitDialogMessage,
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             CancellationToken cancellationToken)
         {
             var fixMultipleState = FixAllState.Create(
-                fixAllProvider, diagnosticsToFix, fixProvider, equivalenceKey, optionsProvider);
+                fixAllProvider, diagnosticsToFix, fixProvider, equivalenceKey);
 
             return GetFixedSolution(
                 fixMultipleState, workspace, waitDialogTitle, waitDialogMessage, progress, cancellationToken);
@@ -54,7 +53,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             Workspace workspace,
             CodeFixProvider fixProvider,
             FixAllProvider fixAllProvider,
-            CodeActionOptionsProvider optionsProvider,
             string equivalenceKey,
             string waitDialogTitle,
             string waitDialogMessage,
@@ -62,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             CancellationToken cancellationToken)
         {
             var fixMultipleState = FixAllState.Create(
-                fixAllProvider, diagnosticsToFix, fixProvider, equivalenceKey, optionsProvider);
+                fixAllProvider, diagnosticsToFix, fixProvider, equivalenceKey);
 
             return GetFixedSolution(
                 fixMultipleState, workspace, waitDialogTitle, waitDialogMessage, progress, cancellationToken);

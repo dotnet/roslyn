@@ -38,13 +38,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style
         private readonly string _languageName;
         private readonly INotificationService _notificationService;
 
-        private readonly NotificationOptionViewModel[] _notifications = new[]
-        {
+        private readonly NotificationOptionViewModel[] _notifications =
+        [
             new NotificationOptionViewModel(NotificationOption2.Silent, KnownMonikers.None),
             new NotificationOptionViewModel(NotificationOption2.Suggestion, KnownMonikers.StatusInformation),
             new NotificationOptionViewModel(NotificationOption2.Warning, KnownMonikers.StatusWarning),
             new NotificationOptionViewModel(NotificationOption2.Error, KnownMonikers.StatusError)
-        };
+        ];
 
         internal NamingStyleOptionPageControl(OptionStore optionStore, INotificationService notificationService, string languageName)
             : base(optionStore)

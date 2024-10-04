@@ -178,7 +178,7 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
             _encService.CommitSolutionUpdate(sessionId);
         }
 
-        var diagnostics = await results.GetAllDiagnosticsAsync(solution, cancellationToken).ConfigureAwait(false);
+        var diagnostics = results.GetAllDiagnostics();
 
         var projectsToRestart = new HashSet<Project>();
         var projectsToRebuild = new HashSet<Project>();
@@ -205,6 +205,10 @@ internal sealed class WatchHotReloadService(SolutionServices services, Func<Valu
         _encService.EndDebuggingSession(GetDebuggingSession());
         _sessionId = default;
     }
+
+    // access to internal API:
+    public static Solution WithProjectInfo(Solution solution, ProjectInfo info)
+        => solution.WithProjectInfo(info);
 
     internal TestAccessor GetTestAccessor()
         => new(this);

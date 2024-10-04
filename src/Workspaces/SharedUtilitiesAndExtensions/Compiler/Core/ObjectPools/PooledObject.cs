@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -17,23 +18,22 @@ internal struct PooledObject<T> : IDisposable where T : class
 {
     private readonly Action<ObjectPool<T>, T> _releaser;
     private readonly ObjectPool<T> _pool;
-    private T _pooledObject;
 
     public PooledObject(ObjectPool<T> pool, Func<ObjectPool<T>, T> allocator, Action<ObjectPool<T>, T> releaser) : this()
     {
         _pool = pool;
-        _pooledObject = allocator(pool);
+        Object = allocator(pool);
         _releaser = releaser;
     }
 
-    public readonly T Object => _pooledObject;
+    public T Object { get; private set; }
 
     public void Dispose()
     {
-        if (_pooledObject != null)
+        if (Object != null)
         {
-            _releaser(_pool, _pooledObject);
-            _pooledObject = null!;
+            _releaser(_pool, Object);
+            Object = null!;
         }
     }
 
@@ -65,6 +65,14 @@ internal struct PooledObject<T> : IDisposable where T : class
     public static PooledObject<HashSet<TItem>> Create<TItem>(ObjectPool<HashSet<TItem>> pool)
     {
         return new PooledObject<HashSet<TItem>>(
+            pool,
+            static p => Allocator(p),
+            static (p, v) => Releaser(p, v));
+    }
+
+    public static PooledObject<ConcurrentSet<TItem>> Create<TItem>(ObjectPool<ConcurrentSet<TItem>> pool) where TItem : notnull
+    {
+        return new PooledObject<ConcurrentSet<TItem>>(
             pool,
             static p => Allocator(p),
             static (p, v) => Releaser(p, v));
@@ -119,7 +127,13 @@ internal struct PooledObject<T> : IDisposable where T : class
     private static HashSet<TItem> Allocator<TItem>(ObjectPool<HashSet<TItem>> pool)
         => pool.AllocateAndClear();
 
+    private static ConcurrentSet<TItem> Allocator<TItem>(ObjectPool<ConcurrentSet<TItem>> pool) where TItem : notnull
+        => pool.AllocateAndClear();
+
     private static void Releaser<TItem>(ObjectPool<HashSet<TItem>> pool, HashSet<TItem> obj)
+        => pool.ClearAndFree(obj);
+
+    private static void Releaser<TItem>(ObjectPool<ConcurrentSet<TItem>> pool, ConcurrentSet<TItem> obj) where TItem : notnull
         => pool.ClearAndFree(obj);
 
     private static Dictionary<TKey, TValue> Allocator<TKey, TValue>(ObjectPool<Dictionary<TKey, TValue>> pool)

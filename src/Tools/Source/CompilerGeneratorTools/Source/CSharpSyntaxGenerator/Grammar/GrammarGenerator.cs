@@ -5,7 +5,7 @@
 #nullable disable
 
 // We only support grammar generation in the command line version for now which is the netcoreapp target
-#if NETCOREAPP
+#if NET
 
 using System;
 using System.Collections.Generic;

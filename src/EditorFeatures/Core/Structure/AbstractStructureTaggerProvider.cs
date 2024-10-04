@@ -206,9 +206,13 @@ internal abstract partial class AbstractStructureTaggerProvider(
         ImmutableArray<BlockSpan> spans)
     {
         var snapshot = snapshotSpan.Snapshot;
-        spans = GetMultiLineRegions(outliningService, spans, snapshot);
 
-        foreach (var span in spans)
+        // Use the returned enumerable directly instead of allocating into an array. The returned
+        // enumeration can contain a fairly large number of items for large files, so even
+        // using an ArrayBuilder could result in allocation issues without using a custom pool.
+        var multiLineSpans = GetMultiLineRegions(outliningService, spans, snapshot);
+
+        foreach (var span in multiLineSpans)
         {
             var tag = new StructureTag(this, span, snapshot);
             context.AddTag(new TagSpan<IContainerStructureTag>(span.TextSpan.ToSnapshotSpan(snapshot), tag));
@@ -226,12 +230,11 @@ internal abstract partial class AbstractStructureTaggerProvider(
 
     private static bool s_exceptionReported = false;
 
-    private static ImmutableArray<BlockSpan> GetMultiLineRegions(
+    private static IEnumerable<BlockSpan> GetMultiLineRegions(
         BlockStructureService service,
         ImmutableArray<BlockSpan> regions, ITextSnapshot snapshot)
     {
         // Remove any spans that aren't multiline.
-        var multiLineRegions = ArrayBuilder<BlockSpan>.GetInstance();
         foreach (var region in regions)
         {
             if (region.TextSpan.Length > 0)
@@ -262,12 +265,10 @@ internal abstract partial class AbstractStructureTaggerProvider(
                 var endLine = snapshot.GetLineNumberFromPosition(region.TextSpan.End);
                 if (startLine != endLine)
                 {
-                    multiLineRegions.Add(region);
+                    yield return region;
                 }
             }
         }
-
-        return multiLineRegions.ToImmutableAndFree();
     }
 
     #region Creating Preview Buffers

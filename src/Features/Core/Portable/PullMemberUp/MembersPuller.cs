@@ -386,7 +386,6 @@ internal static class MembersPuller
         var destinationDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(
             destinationEditor.GetChangedDocument(),
             node => node.HasAnnotation(s_removableImportAnnotation),
-            options.CleanupOptions.FormattingOptions,
             cancellationToken).ConfigureAwait(false);
 
         // Format whitespace trivia within the import statements we pull up

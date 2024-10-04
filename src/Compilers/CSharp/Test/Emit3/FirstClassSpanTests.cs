@@ -7078,17 +7078,12 @@ public class FirstClassSpanTests : CSharpTestBase
 
             static class C
             {
-                public static void M(string[] x) { }
-                public static void M(ReadOnlySpan<object> x) { }
+                public static void M(string[] x) => Console.Write(" s" + x[0]);
+                public static void M(ReadOnlySpan<object> x) => Console.Write(" o" + x[0]);
             }
             """;
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
-            // (4,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(string[])' and 'C.M(ReadOnlySpan<object>)'
-            // C.M([..a]);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(string[])", "C.M(System.ReadOnlySpan<object>)").WithLocation(4, 3),
-            // (5,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(string[])' and 'C.M(ReadOnlySpan<object>)'
-            // C.M(["a"]);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(string[])", "C.M(System.ReadOnlySpan<object>)").WithLocation(5, 3));
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "sa sa").VerifyDiagnostics();
     }
 
     [Fact]
@@ -7292,17 +7287,12 @@ public class FirstClassSpanTests : CSharpTestBase
 
             static class C
             {
-                public static void M(params string[] x) { }
-                public static void M(params ReadOnlySpan<object> x) { }
+                public static void M(params string[] x) => Console.Write(" s" + x[0]);
+                public static void M(params ReadOnlySpan<object> x) => Console.Write(" o" + x[0]);
             }
             """;
-        CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(
-            // (4,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params string[])' and 'C.M(params ReadOnlySpan<object>)'
-            // C.M([..a]);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(params string[])", "C.M(params System.ReadOnlySpan<object>)").WithLocation(4, 3),
-            // (5,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M(params string[])' and 'C.M(params ReadOnlySpan<object>)'
-            // C.M(["a"]);
-            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M(params string[])", "C.M(params System.ReadOnlySpan<object>)").WithLocation(5, 3));
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        CompileAndVerify(comp, expectedOutput: "sa sa").VerifyDiagnostics();
     }
 
     [Fact]

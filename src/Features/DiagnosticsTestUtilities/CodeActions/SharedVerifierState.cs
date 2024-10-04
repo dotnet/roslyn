@@ -47,9 +47,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         /// </summary>
         internal OptionsCollection Options { get; }
 
-#if !CODE_STYLE
-        internal CodeActionOptionsProvider CodeActionOptions { get; set; } = CodeAnalysis.CodeActions.CodeActionOptions.DefaultProvider;
-#endif
         internal void Apply()
         {
             var analyzerConfigSource = CodeFixVerifierHelper.ConvertOptionsToAnalyzerConfig(_defaultFileExt, EditorConfig, Options);

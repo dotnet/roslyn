@@ -4540,7 +4540,7 @@ Class C
         c.Select(Function(i) i)
     End Function
 End Class"
-            Dim c = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
+            Dim c = CreateCompilationWithMscorlib461AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
 
             ' Note: since the method is first, it is recording the imports (rather than using an importsforward)
             c.VerifyPdb("C+VB$StateMachine_1_F.MoveNext",
@@ -4597,7 +4597,7 @@ Class C
             End Sub
     End Sub
 End Class"
-            Dim c = CreateCompilationWithMscorlib45AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
+            Dim c = CreateCompilationWithMscorlib461AndVBRuntime({Parse(source)}, options:=TestOptions.DebugDll, references:={SystemCoreRef})
             c.VerifyPdb("C+_Closure$__+VB$StateMachine___Lambda$__1-0.MoveNext",
 <symbols>
     <files>

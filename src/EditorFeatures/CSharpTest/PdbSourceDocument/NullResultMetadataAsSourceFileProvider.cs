@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
@@ -47,8 +48,9 @@ internal class NullResultMetadataAsSourceFileProvider : IMetadataAsSourceFilePro
         return null;
     }
 
-    public bool TryAddDocumentToWorkspace(MetadataAsSourceWorkspace workspace, string filePath, Text.SourceTextContainer sourceTextContainer)
+    public bool TryAddDocumentToWorkspace(MetadataAsSourceWorkspace workspace, string filePath, Text.SourceTextContainer sourceTextContainer, [NotNullWhen(true)] out DocumentId? documentId)
     {
+        documentId = null!;
         return true;
     }
 

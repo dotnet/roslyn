@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -15,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a property or indexer.
     /// </summary>
-    internal abstract partial class PropertySymbol : Symbol
+    internal abstract partial class PropertySymbol : Symbol, IPropertySymbolInternal
     {
         /// <summary>
         /// As a performance optimization, cache parameter types and refkinds - overload resolution uses them a lot.
@@ -320,6 +321,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Properties imported from metadata can explicitly implement more than one property.
         /// </remarks>
         public abstract ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations { get; }
+
+#nullable enable
+        internal virtual PropertySymbol? PartialImplementationPart => null;
+        internal virtual PropertySymbol? PartialDefinitionPart => null;
+
+        IPropertySymbolInternal? IPropertySymbolInternal.PartialImplementationPart => PartialImplementationPart;
+        IPropertySymbolInternal? IPropertySymbolInternal.PartialDefinitionPart => PartialDefinitionPart;
+#nullable disable
 
         /// <summary>
         /// Gets the kind of this symbol.

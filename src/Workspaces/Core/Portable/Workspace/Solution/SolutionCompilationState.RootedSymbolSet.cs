@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis;
 
 using SecondaryReferencedSymbol = (int hashCode, ISymbol symbol, SolutionCompilationState.MetadataReferenceInfo referenceInfo);
 
-internal partial class SolutionCompilationState
+internal sealed partial class SolutionCompilationState
 {
     internal readonly record struct MetadataReferenceInfo(MetadataReferenceProperties Properties, string? FilePath)
     {

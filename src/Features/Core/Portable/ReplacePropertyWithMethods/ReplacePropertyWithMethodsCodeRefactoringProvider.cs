@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
    Name = PredefinedCodeRefactoringProviderNames.ReplacePropertyWithMethods), Shared]
-internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
+internal sealed class ReplacePropertyWithMethodsCodeRefactoringProvider :
     CodeRefactoringProvider,
     IEqualityComparer<(IPropertySymbol property, ReferenceLocation location)>
 {
@@ -271,6 +271,11 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
                         ConflictAnnotation.Create(FeaturesResources.Property_referenced_implicitly)));
                 }
                 else if (syntaxFacts.IsMemberInitializerNamedAssignmentIdentifier(parent))
+                {
+                    editor.ReplaceNode(parent, parent.WithAdditionalAnnotations(
+                        ConflictAnnotation.Create(FeaturesResources.Property_reference_cannot_be_updated)));
+                }
+                else if (syntaxFacts.IsNameOfSubpattern(parent))
                 {
                     editor.ReplaceNode(parent, parent.WithAdditionalAnnotations(
                         ConflictAnnotation.Create(FeaturesResources.Property_reference_cannot_be_updated)));

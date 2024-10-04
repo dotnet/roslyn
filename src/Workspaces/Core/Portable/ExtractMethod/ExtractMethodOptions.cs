@@ -26,8 +26,8 @@ internal readonly record struct ExtractMethodGenerationOptions
     public static ExtractMethodGenerationOptions GetDefault(LanguageServices languageServices)
         => new()
         {
-            CodeGenerationOptions = CodeGenerationOptions.GetDefault(languageServices),
-            CodeCleanupOptions = CodeCleanupOptions.GetDefault(languageServices),
+            CodeGenerationOptions = CodeGenerationOptionsProviders.GetDefault(languageServices),
+            CodeCleanupOptions = CodeCleanupOptionsProviders.GetDefault(languageServices),
         };
 
     public ExtractMethodGenerationOptions()

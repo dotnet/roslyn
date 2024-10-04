@@ -1362,7 +1362,7 @@ Class C
             ' explicitly test only the "nothing typed" case.
             ' This is also the Dev12 behavior for suggesting labels.
             Await VerifyAtPositionAsync(
-                text, position, usePreviousCharAsTrigger:=True,
+                text, position, usePreviousCharAsTrigger:=True, deletedCharTrigger:=Nothing,
                 expectedItemOrNull:="10", expectedDescriptionOrNull:=Nothing,
                 sourceCodeKind:=SourceCodeKind.Regular, checkForAbsence:=False,
                 glyph:=Nothing, matchPriority:=Nothing, hasSuggestionItem:=Nothing,
@@ -7654,10 +7654,10 @@ End Namespace
             Using workspace = EditorTestWorkspace.Create(input, composition:=GetComposition())
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.DocumentWithCursor.Id)
                 Dim position = workspace.DocumentWithCursor.CursorPosition.Value
-                Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
+                Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, deletedCharTrigger:=Nothing, checkForAbsence:=False,
                                         glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, displayTextPrefix:=Nothing, inlineDescription:=Nothing,
                                         isComplexTextEdit:=Nothing, matchingFilters:=Nothing, flags:=Nothing, options:=Nothing)
-                Await CheckResultsAsync(document, position, "SharedMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,
+                Await CheckResultsAsync(document, position, "SharedMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, deletedCharTrigger:=Nothing, checkForAbsence:=False,
                                         glyph:=Nothing, matchPriority:=Nothing, hasSuggestionModeItem:=Nothing, displayTextSuffix:=Nothing, displayTextPrefix:=Nothing, inlineDescription:=Nothing,
                                         isComplexTextEdit:=Nothing, matchingFilters:=Nothing, flags:=Nothing, options:=Nothing)
             End Using

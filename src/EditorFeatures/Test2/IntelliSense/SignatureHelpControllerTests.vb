@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             slowProvider.Setup(Function(p) p.IsTriggerCharacter(" "c)).Returns(True)
             slowProvider.Setup(Function(p) p.IsRetriggerCharacter(" "c)).Returns(True)
             slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), options, It.IsAny(Of CancellationToken))) _
-                .Returns(Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)))
+                .Returns(Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, semanticParameterIndex:=0, syntacticArgumentCount:=0, argumentName:=Nothing)))
             Dim controller = CreateController(CreateWorkspace(), provider:=slowProvider.Object, waitForPresentation:=True)
 
             ' Now force an update to the model that will result in stopping the session
@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), options, It.IsAny(Of CancellationToken))) _
                 .Returns(Function()
                              mre.WaitOne()
-                             Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing))
+                             Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, semanticParameterIndex:=0, syntacticArgumentCount:=0, argumentName:=Nothing))
                          End Function)
 
             GetMocks(controller).PresenterSession.Setup(Sub(p) p.Dismiss())
@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), options, It.IsAny(Of CancellationToken))) _
                 .Returns(Function()
                              mre.WaitOne()
-                             Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing))
+                             Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, semanticParameterIndex:=0, syntacticArgumentCount:=0, argumentName:=Nothing))
                          End Function)
 
             GetMocks(controller).PresenterSession.Setup(Sub(p) p.Dismiss())
@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                              slowProvider.Setup(Function(p) p.IsTriggerCharacter(" "c)).Returns(True)
                              slowProvider.Setup(Function(p) p.IsRetriggerCharacter(" "c)).Returns(True)
                              slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), options, It.IsAny(Of CancellationToken))) _
-                                 .Returns(Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)))
+                                 .Returns(Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, semanticParameterIndex:=0, syntacticArgumentCount:=0, argumentName:=Nothing)))
 
                              Await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync()
                              Dim controller = CreateController(workspace, provider:=slowProvider.Object, waitForPresentation:=True)
@@ -168,7 +168,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                              slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), options, It.IsAny(Of CancellationToken))) _
                                  .Returns(Function()
                                               checkpoint.Task.Wait()
-                                              Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 2), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing))
+                                              Return Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 2), selectedItem:=0, semanticParameterIndex:=0, syntacticArgumentCount:=0, argumentName:=Nothing))
                                           End Function)
 
                              Await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync()
@@ -355,7 +355,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Public Function GetItemsAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, options As MemberDisplayOptions, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems) Implements ISignatureHelpProvider.GetItemsAsync
                 GetItemsCount += 1
                 Return Task.FromResult(If(_items.Any(),
-                                       New SignatureHelpItems(_items, TextSpan.FromBounds(position, position), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing),
+                                       New SignatureHelpItems(_items, TextSpan.FromBounds(position, position), selectedItem:=0, semanticParameterIndex:=0, syntacticArgumentCount:=0, argumentName:=Nothing),
                                        Nothing))
             End Function
 

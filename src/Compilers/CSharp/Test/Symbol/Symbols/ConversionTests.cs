@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         [Fact]
         public void Test1()
         {
-            var mscorlibRef = TestMetadata.Net40.mscorlib;
+            var mscorlibRef = Net40.References.mscorlib;
             var compilation = CSharpCompilation.Create("Test", references: new MetadataReference[] { mscorlibRef });
             var sys = compilation.GlobalNamespace.ChildNamespace("System");
             Conversions c = new BuckStopsHereBinder(compilation, associatedFileIdentifier: null).Conversions;
@@ -221,7 +222,7 @@ class X {
     O<dynamic> f10;
 }
 ";
-            var mscorlibRef = TestMetadata.Net40.mscorlib;
+            var mscorlibRef = Net40.References.mscorlib;
             var compilation = CSharpCompilation.Create("Test", new[] { Parse(code) }, new[] { mscorlibRef });
             var global = compilation.GlobalNamespace;
 

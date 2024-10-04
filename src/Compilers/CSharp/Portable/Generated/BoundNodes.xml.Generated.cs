@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         UnconvertedConditionalOperator,
         ConditionalOperator,
         ArrayAccess,
+        RefArrayAccess,
         ArrayLength,
         AwaitableInfo,
         AwaitExpression,
@@ -2068,6 +2069,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression != this.Expression || indices != this.Indices || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
                 var result = new BoundArrayAccess(this.Syntax, expression, indices, type, this.HasErrors);
+                result.CopyAttributes(this);
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundRefArrayAccess : BoundExpression
+    {
+        public BoundRefArrayAccess(SyntaxNode syntax, BoundArrayAccess arrayAccess, bool hasErrors = false)
+            : base(BoundKind.RefArrayAccess, syntax, null, hasErrors || arrayAccess.HasErrors())
+        {
+
+            RoslynDebug.Assert(arrayAccess is object, "Field 'arrayAccess' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
+
+            this.ArrayAccess = arrayAccess;
+        }
+
+        public new TypeSymbol? Type => base.Type;
+        public BoundArrayAccess ArrayAccess { get; }
+
+        [DebuggerStepThrough]
+        public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitRefArrayAccess(this);
+
+        public BoundRefArrayAccess Update(BoundArrayAccess arrayAccess)
+        {
+            if (arrayAccess != this.ArrayAccess)
+            {
+                var result = new BoundRefArrayAccess(this.Syntax, arrayAccess, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -7304,7 +7334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundPropertyAccess : BoundExpression
     {
-        public BoundPropertyAccess(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, PropertySymbol propertySymbol, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
+        public BoundPropertyAccess(SyntaxNode syntax, BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, PropertySymbol propertySymbol, AccessorKind autoPropertyAccessorKind, LookupResultKind resultKind, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.PropertyAccess, syntax, type, hasErrors || receiverOpt.HasErrors())
         {
 
@@ -7314,6 +7344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ReceiverOpt = receiverOpt;
             this.InitialBindingReceiverIsSubjectToCloning = initialBindingReceiverIsSubjectToCloning;
             this.PropertySymbol = propertySymbol;
+            this.AutoPropertyAccessorKind = autoPropertyAccessorKind;
             this.ResultKind = resultKind;
         }
 
@@ -7321,16 +7352,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression? ReceiverOpt { get; }
         public ThreeState InitialBindingReceiverIsSubjectToCloning { get; }
         public PropertySymbol PropertySymbol { get; }
+        public AccessorKind AutoPropertyAccessorKind { get; }
         public override LookupResultKind ResultKind { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitPropertyAccess(this);
 
-        public BoundPropertyAccess Update(BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, PropertySymbol propertySymbol, LookupResultKind resultKind, TypeSymbol type)
+        public BoundPropertyAccess Update(BoundExpression? receiverOpt, ThreeState initialBindingReceiverIsSubjectToCloning, PropertySymbol propertySymbol, AccessorKind autoPropertyAccessorKind, LookupResultKind resultKind, TypeSymbol type)
         {
-            if (receiverOpt != this.ReceiverOpt || initialBindingReceiverIsSubjectToCloning != this.InitialBindingReceiverIsSubjectToCloning || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(propertySymbol, this.PropertySymbol) || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (receiverOpt != this.ReceiverOpt || initialBindingReceiverIsSubjectToCloning != this.InitialBindingReceiverIsSubjectToCloning || !Symbols.SymbolEqualityComparer.ConsiderEverything.Equals(propertySymbol, this.PropertySymbol) || autoPropertyAccessorKind != this.AutoPropertyAccessorKind || resultKind != this.ResultKind || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
             {
-                var result = new BoundPropertyAccess(this.Syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, propertySymbol, resultKind, type, this.HasErrors);
+                var result = new BoundPropertyAccess(this.Syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, propertySymbol, autoPropertyAccessorKind, resultKind, type, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -8895,6 +8927,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitConditionalOperator((BoundConditionalOperator)node, arg);
                 case BoundKind.ArrayAccess:
                     return VisitArrayAccess((BoundArrayAccess)node, arg);
+                case BoundKind.RefArrayAccess:
+                    return VisitRefArrayAccess((BoundRefArrayAccess)node, arg);
                 case BoundKind.ArrayLength:
                     return VisitArrayLength((BoundArrayLength)node, arg);
                 case BoundKind.AwaitableInfo:
@@ -9316,6 +9350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual R VisitUnconvertedConditionalOperator(BoundUnconvertedConditionalOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitConditionalOperator(BoundConditionalOperator node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitArrayAccess(BoundArrayAccess node, A arg) => this.DefaultVisit(node, arg);
+        public virtual R VisitRefArrayAccess(BoundRefArrayAccess node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitArrayLength(BoundArrayLength node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitAwaitableInfo(BoundAwaitableInfo node, A arg) => this.DefaultVisit(node, arg);
         public virtual R VisitAwaitExpression(BoundAwaitExpression node, A arg) => this.DefaultVisit(node, arg);
@@ -9551,6 +9586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public virtual BoundNode? VisitUnconvertedConditionalOperator(BoundUnconvertedConditionalOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitConditionalOperator(BoundConditionalOperator node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitArrayAccess(BoundArrayAccess node) => this.DefaultVisit(node);
+        public virtual BoundNode? VisitRefArrayAccess(BoundRefArrayAccess node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitArrayLength(BoundArrayLength node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitAwaitableInfo(BoundAwaitableInfo node) => this.DefaultVisit(node);
         public virtual BoundNode? VisitAwaitExpression(BoundAwaitExpression node) => this.DefaultVisit(node);
@@ -9933,6 +9969,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.Visit(node.Expression);
             this.VisitList(node.Indices);
+            return null;
+        }
+        public override BoundNode? VisitRefArrayAccess(BoundRefArrayAccess node)
+        {
+            this.Visit(node.ArrayAccess);
             return null;
         }
         public override BoundNode? VisitArrayLength(BoundArrayLength node)
@@ -11059,6 +11100,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol? type = this.VisitType(node.Type);
             return node.Update(expression, indices, type);
         }
+        public override BoundNode? VisitRefArrayAccess(BoundRefArrayAccess node)
+        {
+            BoundArrayAccess arrayAccess = (BoundArrayAccess)this.Visit(node.ArrayAccess);
+            TypeSymbol? type = this.VisitType(node.Type);
+            return node.Update(arrayAccess);
+        }
         public override BoundNode? VisitArrayLength(BoundArrayLength node)
         {
             BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
@@ -11893,7 +11940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression? receiverOpt = (BoundExpression?)this.Visit(node.ReceiverOpt);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, node.PropertySymbol, node.ResultKind, type);
+            return node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, node.PropertySymbol, node.AutoPropertyAccessorKind, node.ResultKind, type);
         }
         public override BoundNode? VisitEventAccess(BoundEventAccess node)
         {
@@ -12863,6 +12910,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 updatedNode = node.Update(expression, indices, node.Type);
+            }
+            return updatedNode;
+        }
+
+        public override BoundNode? VisitRefArrayAccess(BoundRefArrayAccess node)
+        {
+            BoundArrayAccess arrayAccess = (BoundArrayAccess)this.Visit(node.ArrayAccess);
+            BoundRefArrayAccess updatedNode;
+
+            if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
+            {
+                updatedNode = node.Update(arrayAccess);
+                updatedNode.TopLevelNullability = infoAndType.Info;
+            }
+            else
+            {
+                updatedNode = node.Update(arrayAccess);
             }
             return updatedNode;
         }
@@ -14388,12 +14452,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, propertySymbol, node.ResultKind, infoAndType.Type!);
+                updatedNode = node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, propertySymbol, node.AutoPropertyAccessorKind, node.ResultKind, infoAndType.Type!);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, propertySymbol, node.ResultKind, node.Type);
+                updatedNode = node.Update(receiverOpt, node.InitialBindingReceiverIsSubjectToCloning, propertySymbol, node.AutoPropertyAccessorKind, node.ResultKind, node.Type);
             }
             return updatedNode;
         }
@@ -15350,6 +15414,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
             new TreeDumperNode("indices", null, from x in node.Indices select Visit(x, null)),
+            new TreeDumperNode("type", node.Type, null),
+            new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
+            new TreeDumperNode("hasErrors", node.HasErrors, null)
+        }
+        );
+        public override TreeDumperNode VisitRefArrayAccess(BoundRefArrayAccess node, object? arg) => new TreeDumperNode("refArrayAccess", null, new TreeDumperNode[]
+        {
+            new TreeDumperNode("arrayAccess", null, new TreeDumperNode[] { Visit(node.ArrayAccess, null) }),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),
             new TreeDumperNode("hasErrors", node.HasErrors, null)
@@ -16652,6 +16724,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             new TreeDumperNode("receiverOpt", null, new TreeDumperNode[] { Visit(node.ReceiverOpt, null) }),
             new TreeDumperNode("initialBindingReceiverIsSubjectToCloning", node.InitialBindingReceiverIsSubjectToCloning, null),
             new TreeDumperNode("propertySymbol", node.PropertySymbol, null),
+            new TreeDumperNode("autoPropertyAccessorKind", node.AutoPropertyAccessorKind, null),
             new TreeDumperNode("resultKind", node.ResultKind, null),
             new TreeDumperNode("type", node.Type, null),
             new TreeDumperNode("isSuppressed", node.IsSuppressed, null),

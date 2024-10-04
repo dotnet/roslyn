@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -89,8 +90,8 @@ internal sealed class AddInheritdocCodeFixProvider() : SyntaxEditorBasedCodeFixP
 
             if (newLine == null)
             {
-                var optionsProvider = await document.GetCodeFixOptionsAsync(cancellationToken).ConfigureAwait(false);
-                newLine = optionsProvider.GetLineFormattingOptions().NewLine;
+                var options = await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+                newLine = options.NewLine;
             }
 
             // We can safely assume, that there is no leading doc comment, because that is what CS1591 is telling us.

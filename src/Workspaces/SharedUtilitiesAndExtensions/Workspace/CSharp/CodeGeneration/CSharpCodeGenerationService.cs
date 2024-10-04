@@ -25,13 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
-internal partial class CSharpCodeGenerationService : AbstractCodeGenerationService<CSharpCodeGenerationContextInfo>
+internal sealed partial class CSharpCodeGenerationService(LanguageServices languageServices)
+    : AbstractCodeGenerationService<CSharpCodeGenerationContextInfo>(languageServices)
 {
-    public CSharpCodeGenerationService(LanguageServices languageServices)
-        : base(languageServices)
-    {
-    }
-
     public override CodeGenerationOptions DefaultOptions
         => CSharpCodeGenerationOptions.Default;
 

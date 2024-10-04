@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ValueTracking;
 
-internal class ValueTrackedItem
+internal sealed class ValueTrackedItem
 {
     public SymbolKey SymbolKey { get; }
     public ValueTrackedItem? Parent { get; }

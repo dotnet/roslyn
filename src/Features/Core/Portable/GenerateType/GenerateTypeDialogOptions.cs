@@ -6,7 +6,7 @@
 
 namespace Microsoft.CodeAnalysis.GenerateType;
 
-internal class GenerateTypeDialogOptions(
+internal sealed class GenerateTypeDialogOptions(
     bool isPublicOnlyAccessibility = false,
     TypeKindOptions typeKindOptions = TypeKindOptions.AllOptions,
     bool isAttribute = false)

@@ -45,6 +45,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
             var preferThrowExpression = await _service.PrefersThrowExpressionAsync(_document, cancellationToken).ConfigureAwait(false);
 
             var members = factory.CreateMemberDelegatingConstructor(
+                factory.SyntaxGeneratorInternal,
                 semanticModel,
                 _state.ContainingType.Name,
                 _state.ContainingType,
@@ -87,12 +88,12 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
 
                 if (_state.DelegatedConstructor == null)
                 {
-                    return string.Format(FeaturesResources.Generate_constructor_0_1,
+                    return string.Format(CodeFixesResources.Generate_constructor_0_1,
                         _state.ContainingType.Name, parameterString);
                 }
                 else
                 {
-                    return string.Format(FeaturesResources.Generate_field_assigning_constructor_0_1,
+                    return string.Format(CodeFixesResources.Generate_field_assigning_constructor_0_1,
                         _state.ContainingType.Name, parameterString);
                 }
             }

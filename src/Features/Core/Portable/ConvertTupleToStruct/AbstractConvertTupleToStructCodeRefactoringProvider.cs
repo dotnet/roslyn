@@ -938,6 +938,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
         });
 
         var assignmentStatements = generator.CreateAssignmentStatements(
+            generator.SyntaxGeneratorInternal,
             semanticModel, parameters, parameterToPropMap, ImmutableDictionary<string, string>.Empty,
             addNullChecks: false, preferThrowExpression: false);
 

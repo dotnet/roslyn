@@ -4,7 +4,7 @@
 
 #nullable disable
 
-#if NETCOREAPP
+#if NET
 
 using System;
 using System.IO;

@@ -38,14 +38,11 @@ internal abstract class AbstractRemoveUnnecessaryImportsCodeFixProvider : CodeFi
 
     protected abstract string GetTitle();
 
-    private async Task<Document> RemoveUnnecessaryImportsAsync(
+    private static async Task<Document> RemoveUnnecessaryImportsAsync(
         Document document,
         CancellationToken cancellationToken)
     {
         var service = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
-
-        var options = await document.GetCodeFixOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var formattingOptions = options.GetFormattingOptions(GetSyntaxFormatting());
-        return await service.RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
+        return await service.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
     }
 }
