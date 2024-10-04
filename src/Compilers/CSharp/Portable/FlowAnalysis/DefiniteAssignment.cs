@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // All primary constructor parameters are definitely assigned outside of the primary constructor
                         foreach (var parameter in primaryConstructor.Parameters)
                         {
-                            NoteWrite(parameter, value: null, read: true, isRef: false);
+                            NoteWrite(parameter, value: null, read: true, isRef: parameter.RefKind != RefKind.None);
                         }
 
                         CurrentSymbol = save;
@@ -1881,7 +1881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // this code has no effect except in region analysis APIs such as DataFlowsOut where we unassign things
                 if (slot > 0) SetSlotState(slot, true);
-                NoteWrite(parameter, value: null, read: true, isRef: false);
+                NoteWrite(parameter, value: null, read: true, isRef: parameter.RefKind != RefKind.None);
             }
 
             if (parameter is SourceComplexParameterSymbolBase { ContainingSymbol: LocalFunctionSymbol or LambdaSymbol } sourceComplexParam)
@@ -2765,7 +2765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 int slot = GetOrCreateSlot(iterationVariable);
                 if (slot > 0) SetSlotAssigned(slot);
                 // NOTE: do not report unused iteration variables. They are always considered used.
-                NoteWrite(iterationVariable, null, read: true, isRef: false);
+                NoteWrite(iterationVariable, null, read: true, isRef: iterationVariable.RefKind != RefKind.None);
             }
         }
 
