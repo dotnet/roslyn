@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var namesBuilder = ArrayBuilder<string>.GetInstance();
             ImmutableArray<bool> discardsOpt = default;
-            SeparatedSyntaxList<ParameterSyntax>? parameterSyntaxList = null;
+            SeparatedSyntaxList<ParameterSyntax>? parameterSyntaxListOpt = null;
             bool hasSignature;
 
             var isAnonymousMethod = syntax.IsKind(SyntaxKind.AnonymousMethodExpression);
@@ -83,8 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (returnRefKind, returnType) = BindExplicitLambdaReturnType(returnTypeSyntax, diagnostics);
                     }
 
-                    parameterSyntaxList = paren.ParameterList.Parameters;
-                    CheckParenthesizedLambdaParameters(parameterSyntaxList.Value, diagnostics);
+                    parameterSyntaxListOpt = paren.ParameterList.Parameters;
+                    CheckParenthesizedLambdaParameters(parameterSyntaxListOpt.Value, diagnostics);
                     break;
                 case SyntaxKind.AnonymousMethodExpression:
                     // delegate (int x) { }
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasSignature = anon.ParameterList != null;
                     if (hasSignature)
                     {
-                        parameterSyntaxList = anon.ParameterList!.Parameters;
+                        parameterSyntaxListOpt = anon.ParameterList!.Parameters;
                     }
 
                     break;
@@ -118,9 +118,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (parameterSyntaxList != null)
+            if (parameterSyntaxListOpt != null)
             {
-                var hasExplicitlyTypedParameterList = parameterSyntaxList.Value.All(static p => p.Type != null);
+                var parameterSyntaxList = parameterSyntaxListOpt.Value;
+                var hasExplicitlyTypedParameterList = parameterSyntaxList.All(static p => p.Type != null);
 
                 var typesBuilder = ArrayBuilder<TypeWithAnnotations>.GetInstance();
                 var refKindsBuilder = ArrayBuilder<RefKind>.GetInstance();
@@ -138,10 +139,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 int parameterCount = 0;
                 int underscoresCount = 0;
-                foreach (var p in parameterSyntaxList.Value)
+                int firstDefault = -1;
+                for (int i = 0, n = parameterSyntaxList.Count; i < n; i++)
                 {
                     parameterCount++;
 
+                    var p = parameterSyntaxList[i];
                     if (p.Identifier.IsUnderscoreToken())
                     {
                         underscoresCount++;
@@ -151,6 +154,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (p.Default != null)
                     {
+                        if (firstDefault == -1)
+                        {
+                            firstDefault = i;
+                        }
+
                         if (isAnonymousMethod)
                         {
                             Error(diagnostics, ErrorCode.ERR_DefaultValueNotAllowed, p.Default.EqualsToken);
@@ -170,12 +178,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var type = p.Type is not null ? BindType(p.Type, diagnostics) : default;
 
                     var refKind = ParameterHelpers.GetModifiers(p.Modifiers, out _, out var paramsKeyword, out _, out var scope);
+                    var isParams = paramsKeyword.Kind() != SyntaxKind.None;
 
                     ParameterHelpers.CheckParameterModifiers(p, diagnostics, parsingFunctionPointerParams: false,
                         parsingLambdaParams: !isAnonymousMethod,
                         parsingAnonymousMethodParams: isAnonymousMethod);
 
-                    var isLastParameter = parameterCount == parameterSyntaxList.Value.Count;
+                    ParameterHelpers.ReportParameterErrors(
+                        owner: null, p, ordinal: i, lastParameterIndex: n - 1, isParams: isParams, type,
+                        refKind, containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
+
+                    var isLastParameter = parameterCount == parameterSyntaxListOpt.Value.Count;
                     if (isLastParameter && paramsKeyword.Kind() != SyntaxKind.None && !type.IsDefault && type.IsSZArray())
                     {
                         ReportUseSiteDiagnosticForSynthesizedAttribute(Compilation,
@@ -192,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     defaultValueBuilder.Add(p.Default);
                 }
 
-                discardsOpt = computeDiscards(parameterSyntaxList.Value, underscoresCount);
+                discardsOpt = computeDiscards(parameterSyntaxListOpt.Value, underscoresCount);
 
                 // Only include the types if *all* the parameters had types.  Otherwise, if there were no parameter
                 // types (or a mix of typed and untyped parameters) include no types.  Note, in the latter case we will
@@ -236,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             namesBuilder.Free();
 
-            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, scopes, types, names, discardsOpt, parameterSyntaxList, defaultValues, isAsync: isAsync, isStatic: isStatic);
+            return UnboundLambda.Create(syntax, this, diagnostics.AccumulatesDependencies, returnRefKind, returnType, parameterAttributes, refKinds, scopes, types, names, discardsOpt, parameterSyntaxListOpt, defaultValues, isAsync: isAsync, isStatic: isStatic);
 
             static ImmutableArray<bool> computeDiscards(SeparatedSyntaxList<ParameterSyntax> parameters, int underscoresCount)
             {
@@ -347,43 +360,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var lambda = AnalyzeAnonymousFunction(syntax, diagnostics);
             var data = lambda.Data;
-
-            var parameterList = syntax switch
-            {
-                AnonymousMethodExpressionSyntax anonymousMethodExpression => anonymousMethodExpression.ParameterList,
-                ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression => parenthesizedLambdaExpression.ParameterList,
-                _ => null,
-            };
-
-            if (parameterList != null)
-            {
-                int firstDefault = -1;
-                var hasExplicitTypes = lambda.HasExplicitlyTypedParameterList;
-                for (int i = 0; i < parameterList.Parameters.Count; i++)
-                {
-                    // paramSyntax should not be null here; we should always be operating on an anonymous function which
-                    // will have parameter information.  Note the parameter may or may not have a type specified here though.
-                    var paramSyntax = parameterList.Parameters[i];
-                    Debug.Assert(paramSyntax is { });
-                    if (paramSyntax.Default != null && firstDefault == -1)
-                    {
-                        firstDefault = i;
-                    }
-
-                    ParameterHelpers.GetModifiers(paramSyntax.Modifiers, refnessKeyword: out _, out var paramsKeyword, thisKeyword: out _, scope: out _);
-                    var isParams = paramsKeyword.Kind() != SyntaxKind.None;
-
-                    // UNDONE: Where do we report improper use of pointer types?
-
-                    // Note: it's fine to not pass a type here in the case where the user wrote `(ref i) => ```. The point
-                    // of passing this type is to validate the user is referencing a valid type as a parameter (e.g. no
-                    // static types).  Since there is no type specified, there's no need to validate that part here.
-                    var parameterType = hasExplicitTypes ? lambda.ParameterTypeWithAnnotations(i) : default;
-                    ParameterHelpers.ReportParameterErrors(
-                        owner: null, paramSyntax, ordinal: i, lastParameterIndex: lambda.ParameterCount - 1, isParams: isParams, parameterType,
-                        lambda.RefKind(i), containingSymbol: null, thisKeyword: default, paramsKeyword: paramsKeyword, firstDefault, diagnostics);
-                }
-            }
 
             // Parser will only have accepted static/async as allowed modifiers on this construct.
             // However, it may have accepted duplicates of those modifiers.  Ensure that any dupes
