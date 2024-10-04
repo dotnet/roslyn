@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// Logs metadata on LSP requests (duration, success / failure metrics)
 /// for this particular LSP server instance.
 /// </summary>
-internal sealed class RequestTelemetryLogger : IDisposable, ILspService
+internal class RequestTelemetryLogger : IDisposable, ILspService
 {
     private readonly string _serverTypeName;
 
@@ -46,8 +46,13 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
 
         if (workspaceKindTelemetryProperty != null)
         {
-            _findDocumentResults.IncreaseCount(workspaceKindTelemetryProperty);
+            IncreaseFindDocumentCount(workspaceKindTelemetryProperty);
         }
+    }
+
+    protected virtual void IncreaseFindDocumentCount(string workspaceInfo)
+    {
+        _findDocumentResults.IncreaseCount(workspaceInfo);
     }
 
     public void UpdateUsedForkedSolutionCounter(bool usedForkedSolution)
@@ -103,6 +108,22 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
         TelemetryLogging.Flushed -= OnFlushed;
     }
 
+    protected virtual void ReportFindDocumentCounter()
+    {
+        if (!_findDocumentResults.IsEmpty)
+        {
+            TelemetryLogging.Log(FunctionId.LSP_FindDocumentInWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
+            {
+                m["server"] = _serverTypeName;
+                foreach (var kvp in _findDocumentResults)
+                {
+                    var info = kvp.Key.ToString()!;
+                    m[info] = kvp.Value.GetCount();
+                }
+            }));
+        }
+    }
+
     private void OnFlushed(object? sender, EventArgs e)
     {
         foreach (var kvp in _requestCounters)
@@ -118,18 +139,7 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
             }));
         }
 
-        if (!_findDocumentResults.IsEmpty)
-        {
-            TelemetryLogging.Log(FunctionId.LSP_FindDocumentInWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
-            {
-                m["server"] = _serverTypeName;
-                foreach (var kvp in _findDocumentResults)
-                {
-                    var info = kvp.Key.ToString()!;
-                    m[info] = kvp.Value.GetCount();
-                }
-            }));
-        }
+        ReportFindDocumentCounter();
 
         if (!_usedForkedSolutionCounter.IsEmpty)
         {
@@ -149,7 +159,7 @@ internal sealed class RequestTelemetryLogger : IDisposable, ILspService
         _usedForkedSolutionCounter.Clear();
     }
 
-    private class Counter
+    protected class Counter
     {
         private int _succeededCount;
         private int _failedCount;
