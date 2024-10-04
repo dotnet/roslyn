@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler;
 /// </summary>
 internal class RequestTelemetryLogger : IDisposable, ILspService
 {
-    private readonly string _serverTypeName;
+    protected readonly string ServerTypeName;
 
     /// <summary>
     /// Store request counters in a concurrent dictionary as non-mutating LSP requests can
@@ -32,7 +32,7 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
 
     public RequestTelemetryLogger(string serverTypeName)
     {
-        _serverTypeName = serverTypeName;
+        ServerTypeName = serverTypeName;
         _requestCounters = new();
         _findDocumentResults = new();
         _usedForkedSolutionCounter = new();
@@ -70,20 +70,20 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
         // Store the request time metrics per LSP method.
         TelemetryLogging.LogAggregated(FunctionId.LSP_TimeInQueue, KeyValueLogMessage.Create(m =>
         {
-            m[TelemetryLogging.KeyName] = _serverTypeName;
+            m[TelemetryLogging.KeyName] = ServerTypeName;
             m[TelemetryLogging.KeyValue] = (int)queuedDuration.TotalMilliseconds;
             m[TelemetryLogging.KeyMetricName] = "TimeInQueue";
-            m["server"] = _serverTypeName;
+            m["server"] = ServerTypeName;
             m["method"] = methodName;
             m["language"] = language;
         }));
 
         TelemetryLogging.LogAggregated(FunctionId.LSP_RequestDuration, KeyValueLogMessage.Create(m =>
         {
-            m[TelemetryLogging.KeyName] = _serverTypeName + "." + methodName;
+            m[TelemetryLogging.KeyName] = ServerTypeName + "." + methodName;
             m[TelemetryLogging.KeyValue] = (int)requestDuration.TotalMilliseconds;
             m[TelemetryLogging.KeyMetricName] = "RequestDuration";
-            m["server"] = _serverTypeName;
+            m["server"] = ServerTypeName;
             m["method"] = methodName;
             m["language"] = language;
         }));
@@ -114,7 +114,7 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
         {
             TelemetryLogging.Log(FunctionId.LSP_FindDocumentInWorkspace, KeyValueLogMessage.Create(LogType.Trace, m =>
             {
-                m["server"] = _serverTypeName;
+                m["server"] = ServerTypeName;
                 foreach (var kvp in _findDocumentResults)
                 {
                     var info = kvp.Key.ToString()!;
@@ -130,7 +130,7 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
         {
             TelemetryLogging.Log(FunctionId.LSP_RequestCounter, KeyValueLogMessage.Create(LogType.Trace, m =>
             {
-                m["server"] = _serverTypeName;
+                m["server"] = ServerTypeName;
                 m["method"] = kvp.Key.Method;
                 m["language"] = kvp.Key.Language;
                 m["successful"] = kvp.Value.SucceededCount;
@@ -145,7 +145,7 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
         {
             TelemetryLogging.Log(FunctionId.LSP_UsedForkedSolution, KeyValueLogMessage.Create(LogType.Trace, m =>
             {
-                m["server"] = _serverTypeName;
+                m["server"] = ServerTypeName;
                 foreach (var kvp in _usedForkedSolutionCounter)
                 {
                     var info = kvp.Key.ToString()!;
@@ -159,7 +159,7 @@ internal class RequestTelemetryLogger : IDisposable, ILspService
         _usedForkedSolutionCounter.Clear();
     }
 
-    protected class Counter
+    private class Counter
     {
         private int _succeededCount;
         private int _failedCount;

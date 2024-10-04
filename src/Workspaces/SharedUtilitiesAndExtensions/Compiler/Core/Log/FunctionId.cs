@@ -636,6 +636,7 @@ internal enum FunctionId
     Copilot_On_The_Fly_Docs_Content_Excluded = 816,
     Copilot_Rename = 851,
 
-    VSCode_Project_Load_Started = 860,
-    VSCode_Projects_Load_Completed = 861,
+    VSCode_LanguageServer_Started = 860,
+    VSCode_Project_Load_Started = 861,
+    VSCode_Projects_Load_Completed = 862,
 }
