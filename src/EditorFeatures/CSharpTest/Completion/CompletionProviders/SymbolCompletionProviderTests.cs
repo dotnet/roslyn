@@ -12993,6 +12993,39 @@ public static class Extension
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75350")]
+    public async Task SwitchExpressionEnumColorColor_05()
+    {
+        //lang=c#-test
+        const string source = """
+            using Status = StatusEn;
+
+            public sealed record OrderModel(int Id, StatusEn Status)
+            {
+                public string StatusDisplay
+                {
+                    get
+                    {
+                        const StatusEn Status = StatusEn.Undisclosed;
+                        return this switch
+                        {
+                            { Status: Status.$$ }
+                        };
+                    }
+                }
+            }
+
+            public enum StatusEn
+            {
+                Undisclosed,
+                Open,
+                Closed,
+            }
+            """;
+        await VerifyItemExistsAsync(source, "Undisclosed");
+        await VerifyItemIsAbsentAsync(source, "ToString");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75350")]
     public async Task ConstantPatternExpressionEnumColorColor_01()
     {
         //lang=c#-test
@@ -13091,6 +13124,37 @@ public static class Extension
                 {
                     get
                     {
+                        if (Status is (Status.$$)
+                            ;
+                    }
+                }
+            }
+
+            public enum StatusEn
+            {
+                Undisclosed,
+                Open,
+                Closed,
+            }
+            """;
+        await VerifyItemExistsAsync(source, "Undisclosed");
+        await VerifyItemIsAbsentAsync(source, "ToString");
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75350")]
+    public async Task ConstantPatternExpressionEnumColorColor_05()
+    {
+        //lang=c#-test
+        const string source = """
+            using Status = StatusEn;
+
+            public sealed record OrderModel(int Id, StatusEn Status)
+            {
+                public string StatusDisplay
+                {
+                    get
+                    {
+                        const StatusEn Status = StatusEn.Undisclosed;
                         if (Status is (Status.$$)
                             ;
                     }
