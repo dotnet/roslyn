@@ -1362,7 +1362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     if (!forAccessors)
                     {
-                        SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter: false);
+                        SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter: false, isLambdaParameter: false);
 
                         if (scopedKeyword != null)
                         {
@@ -4667,7 +4667,7 @@ parse_member_name:;
             var attributes = this.ParseAttributeDeclarations(inExpressionContext: false);
 
             var modifiers = _pool.Allocate();
-            this.ParseParameterModifiers(modifiers, isFunctionPointerParameter: false);
+            this.ParseParameterModifiers(modifiers, isFunctionPointerParameter: false, isLambdaParameter: false);
 
             if (this.CurrentToken.Kind == SyntaxKind.ArgListKeyword)
             {
@@ -4789,6 +4789,9 @@ parse_member_name:;
 
 #nullable disable
 
+        private static bool IsParameterModifierIncludingScoped(SyntaxToken token)
+            => IsParameterModifierExcludingScoped(token) || token.ContextualKind == SyntaxKind.ScopedKeyword;
+
         private static bool IsParameterModifierExcludingScoped(SyntaxToken token)
         {
             switch (token.Kind)
@@ -4805,9 +4808,9 @@ parse_member_name:;
             return false;
         }
 
-        private void ParseParameterModifiers(SyntaxListBuilder modifiers, bool isFunctionPointerParameter)
+        private void ParseParameterModifiers(SyntaxListBuilder modifiers, bool isFunctionPointerParameter, bool isLambdaParameter)
         {
-            bool tryScoped = true;
+            var tryScoped = true;
 
             while (IsParameterModifierExcludingScoped(this.CurrentToken))
             {
@@ -4821,7 +4824,7 @@ parse_member_name:;
 
             if (tryScoped)
             {
-                SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter);
+                SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter, isLambdaParameter);
 
                 if (scopedKeyword != null)
                 {
@@ -7221,7 +7224,7 @@ done:
             {
                 do
                 {
-                    ParseParameterModifiers(ignoredModifiers, isFunctionPointerParameter: true);
+                    ParseParameterModifiers(ignoredModifiers, isFunctionPointerParameter: true, isLambdaParameter: false);
                     ignoredModifiers.Clear();
 
                     _ = ScanType(out _);
@@ -7780,7 +7783,7 @@ done:
                 {
                     var modifiers = _pool.Allocate<SyntaxToken>();
 
-                    ParseParameterModifiers(modifiers, isFunctionPointerParameter: true);
+                    ParseParameterModifiers(modifiers, isFunctionPointerParameter: true, isLambdaParameter: false);
 
                     types.Add(SyntaxFactory.FunctionPointerParameter(
                         attributeLists: default,
@@ -8275,7 +8278,7 @@ done:
         private bool IsPossibleScopedKeyword(bool isFunctionPointerParameter)
         {
             using var _ = this.GetDisposableResetPoint(resetOnDispose: true);
-            return ParsePossibleScopedKeyword(isFunctionPointerParameter) != null;
+            return ParsePossibleScopedKeyword(isFunctionPointerParameter, isLambdaParameter: false) != null;
         }
 
         private bool IsPossibleFirstTypedIdentifierInLocaDeclarationStatement(bool isGlobalScriptLevel)
@@ -9975,7 +9978,7 @@ done:
             }
             else
             {
-                SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter: false);
+                SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter: false, isLambdaParameter: false);
 
                 if (scopedKeyword != null)
                 {
@@ -10117,7 +10120,7 @@ done:
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
             try
             {
-                SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter: false);
+                SyntaxToken scopedKeyword = ParsePossibleScopedKeyword(isFunctionPointerParameter: false, isLambdaParameter: false);
 
                 // For local functions, 'scoped' is a modifier in LocalFunctionStatementSyntax
                 if (scopedKeyword != null)
@@ -10188,34 +10191,61 @@ done:
             }
         }
 
-        private SyntaxToken ParsePossibleScopedKeyword(bool isFunctionPointerParameter)
+        private SyntaxToken ParsePossibleScopedKeyword(
+            bool isFunctionPointerParameter,
+            bool isLambdaParameter)
         {
-            if (this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
+            if (this.CurrentToken.ContextualKind != SyntaxKind.ScopedKeyword)
+                return null;
+
+            using var beforeScopedResetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
+
+            var scopedKeyword = this.EatContextualToken(SyntaxKind.ScopedKeyword);
+
+            // trivial case.  scoped ref/out/in  is definitely the scoped keyword.
+            if (this.CurrentToken.Kind is (SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword))
+                return scopedKeyword;
+
+            // (scoped a) =>    (scoped a, ...) =>   is legal in a lambda.
+            if (isLambdaParameter &&
+                IsTrueIdentifier(this.CurrentToken) &&
+                this.CurrentToken.ContextualKind != SyntaxKind.ScopedKeyword &&
+                this.PeekToken(1).Kind is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken)
             {
-                using var beforeScopedResetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
-
-                SyntaxToken scopedKeyword = this.EatContextualToken(SyntaxKind.ScopedKeyword);
-
-                if (this.CurrentToken.Kind is not (SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword))
-                {
-                    using var afterScopedResetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
-
-                    if (ScanType() == ScanTypeFlags.NotType ||
-                        (isFunctionPointerParameter
-                            ? this.CurrentToken.Kind is not (SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken)
-                            : this.CurrentToken.Kind != SyntaxKind.IdentifierToken))
-                    {
-                        beforeScopedResetPoint.Reset();
-                        return null;
-                    }
-
-                    afterScopedResetPoint.Reset();
-                }
-
                 return scopedKeyword;
             }
 
+            // More complex cases.  We have to check for `scoped Type ...` now.
+            using var afterScopedResetPoint = this.GetDisposableResetPoint(resetOnDispose: false);
+
+            if (ScanType() is not ScanTypeFlags.NotType &&
+                isValidScopedTypeCase())
+            {
+                afterScopedResetPoint.Reset();
+                return scopedKeyword;
+            }
+
+            beforeScopedResetPoint.Reset();
             return null;
+
+            bool isValidScopedTypeCase()
+            {
+                // Had `scoped Type ...`
+                //
+                // 1. This is a function pointer `delegate<T1, scoped T2>`
+                // 2. this is a parameter `scoped T x`.
+
+                if (isFunctionPointerParameter)
+                {
+                    return this.CurrentToken.Kind is SyntaxKind.CommaToken or SyntaxKind.GreaterThanToken;
+                }
+                else if (this.CurrentToken.Kind == SyntaxKind.IdentifierToken)
+                {
+                    return true;
+                }
+
+                return false;
+            }
         }
 
         private VariableDesignationSyntax ParseDesignation(bool forPattern)
@@ -12239,7 +12269,7 @@ done:
                 while (true)
                 {
                     var token = this.PeekToken(index);
-                    if (IsParameterModifierExcludingScoped(token) || token.ContextualKind is SyntaxKind.ScopedKeyword)
+                    if (IsParameterModifierIncludingScoped(token))
                     {
                         index++;
                         continue;
@@ -12278,10 +12308,10 @@ done:
 
                 ParseAttributeDeclarations(inExpressionContext: true);
 
-                if (IsParameterModifierExcludingScoped(this.CurrentToken) || this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
+                if (IsParameterModifierIncludingScoped(this.CurrentToken))
                 {
                     SyntaxListBuilder modifiers = _pool.Allocate();
-                    ParseParameterModifiers(modifiers, isFunctionPointerParameter: false);
+                    ParseParameterModifiers(modifiers, isFunctionPointerParameter: false, isLambdaParameter: false);
                     _pool.Free(modifiers);
                 }
 
@@ -13490,9 +13520,9 @@ done:
             // Params are actually illegal in a lambda, but we'll allow it for error recovery purposes and
             // give the "params unexpected" error at semantic analysis time.
             SyntaxListBuilder modifiers = _pool.Allocate();
-            if (IsParameterModifierExcludingScoped(this.CurrentToken) || this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
+            if (IsParameterModifierIncludingScoped(this.CurrentToken))
             {
-                ParseParameterModifiers(modifiers, isFunctionPointerParameter: false);
+                ParseParameterModifiers(modifiers, isFunctionPointerParameter: false, isLambdaParameter: true);
             }
 
             var paramType = ShouldParseLambdaParameterType()
