@@ -4828,7 +4828,7 @@ parse_member_name:;
                     modifiers.Add(scopedKeyword);
 
                     // Look if ref/out/in/readonly are next
-                    while (this.CurrentToken.Kind is (SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword or SyntaxKind.ReadOnlyKeyword))
+                    while (this.CurrentToken.Kind is SyntaxKind.RefKeyword or SyntaxKind.OutKeyword or SyntaxKind.InKeyword or SyntaxKind.ReadOnlyKeyword)
                     {
                         modifiers.Add(this.EatToken());
                     }
@@ -12120,61 +12120,73 @@ done:
         {
             Debug.Assert(CurrentToken.Kind == SyntaxKind.OpenParenToken);
 
-            if (!(precedence <= Precedence.Lambda))
+            if (precedence > Precedence.Lambda)
             {
                 return false;
             }
 
-            //  case 1:  ( x ,
-            if (isParenVarCommaSyntax())
+            //  case 1:  ( x ,      or       ( ref x ,
+            if (isParenVarCommaSyntax(out var currentTokenIndex))
             {
                 // Make sure it really looks like a lambda, not just a tuple
-                int curTk = 3;
                 while (true)
                 {
-                    var tk = this.PeekToken(curTk++);
+                    var token = this.PeekToken(currentTokenIndex++);
 
-                    // skip  identifiers commas and predefined types in any combination for error recovery
-                    if (tk.Kind is not SyntaxKind.IdentifierToken and not SyntaxKind.CommaToken
-                        && !SyntaxFacts.IsPredefinedType(tk.Kind)
-                        && (this.IsInQuery || !IsTokenQueryContextualKeyword(tk)))
+                    // Keep skipping modifiers, commas, and identifiers to consume the rest of the lambda arguments.
+                    if (this.IsTrueIdentifier(token) ||
+                        token.Kind is SyntaxKind.CommaToken or SyntaxKind.ScopedKeyword ||
+                        IsParameterModifierExcludingScoped(token))
                     {
-                        break;
-                    };
+                        continue;
+                    }
+
+                    break;
+                    //// skip  identifiers commas and predefined types in any combination for error recovery
+                    //if (tk.Kind is not SyntaxKind.IdentifierToken and not SyntaxKind.CommaToken
+                    //    && !SyntaxFacts.IsPredefinedType(tk.Kind)
+                    //    && (this.IsInQuery || !IsTokenQueryContextualKeyword(tk)))
+                    //{
+                    //    break;
+                    //};
                 }
 
                 // ) =>
-                return this.PeekToken(curTk - 1).Kind == SyntaxKind.CloseParenToken &&
-                       this.PeekToken(curTk).Kind == SyntaxKind.EqualsGreaterThanToken;
+                return this.PeekToken(currentTokenIndex - 1).Kind == SyntaxKind.CloseParenToken &&
+                       this.PeekToken(currentTokenIndex).Kind == SyntaxKind.EqualsGreaterThanToken;
             }
 
-            //  case 2:  ( x ) =>
-            if (IsTrueIdentifier(this.PeekToken(1)))
+            //  case 2:  ( x ) =>       or    ( ref x ) => 
             {
-                // allow for       a) =>      or     a!!) =>
-                var skipIndex = 2;
-                if (PeekToken(skipIndex).Kind == SyntaxKind.ExclamationToken
-                    && this.PeekToken(skipIndex + 1).Kind == SyntaxKind.ExclamationToken)
-                {
-                    skipIndex += 2;
-                }
+                var index = 1;
+                skipParameterModifiers(ref index);
 
-                // Must have:     ) => 
-                if (this.PeekToken(skipIndex).Kind == SyntaxKind.CloseParenToken
-                    && this.PeekToken(skipIndex + 1).Kind == SyntaxKind.EqualsGreaterThanToken)
+                if (IsTrueIdentifier(this.PeekToken(index++)))
                 {
-                    return true;
+                    // allow for       a) =>      or     a!!) =>
+                    if (PeekToken(index).Kind == SyntaxKind.ExclamationToken
+                        && this.PeekToken(index + 1).Kind == SyntaxKind.ExclamationToken)
+                    {
+                        index += 2;
+                    }
+
+                    // Must have:     ) => 
+                    if (this.PeekToken(index).Kind == SyntaxKind.CloseParenToken
+                        && this.PeekToken(index + 1).Kind == SyntaxKind.EqualsGreaterThanToken)
+                    {
+                        return true;
+                    }
                 }
             }
 
-            //  case 3:  ( ) =>
+            //  case 4:  ( ) =>
             if (this.PeekToken(1).Kind == SyntaxKind.CloseParenToken
                 && this.PeekToken(2).Kind == SyntaxKind.EqualsGreaterThanToken)
             {
                 return true;
             }
 
-            // case 4:  ( params
+            // case 5:  ( params
             // This case is interesting in that it is not legal; this error could be caught at parse time but we would rather
             // recover from the error and let the semantic analyzer deal with it.
             if (this.PeekToken(1).Kind == SyntaxKind.ParamsKeyword)
@@ -12184,35 +12196,57 @@ done:
 
             return false;
 
-            bool isParenVarCommaSyntax()
+            bool isParenVarCommaSyntax(out int afterCommaIndex)
             {
-                var token1 = this.PeekToken(1);
+                Debug.Assert(CurrentToken.Kind == SyntaxKind.OpenParenToken);
+
+                afterCommaIndex = 0;
+
+                var index = 1;
+                skipParameterModifiers(ref index);
+
+                var token1 = this.PeekToken(index++);
 
                 // Ensure next token is a variable
-                if (token1.Kind == SyntaxKind.IdentifierToken)
+                if (this.IsTrueIdentifier(token1))
                 {
-                    if (!this.IsInQuery || !IsTokenQueryContextualKeyword(token1))
+                    // Variable must be directly followed by a comma if not followed by exclamation
+                    var token2 = this.PeekToken(index++);
+                    // ( x , [...]
+                    if (token2.Kind == SyntaxKind.CommaToken)
                     {
-                        // Variable must be directly followed by a comma if not followed by exclamation
-                        var token2 = this.PeekToken(2);
-                        // ( x , [...]
-                        if (token2.Kind == SyntaxKind.CommaToken)
-                        {
-                            return true;
-                        }
+                        afterCommaIndex = index;
+                        return true;
+                    }
 
-                        var token3 = this.PeekToken(3);
-                        // ( x!! , [...]
-                        // https://github.com/dotnet/roslyn/issues/58335: https://github.com/dotnet/roslyn/pull/46520#discussion_r466650228
-                        if (token2.Kind == SyntaxKind.ExclamationToken
-                            && token3.Kind == SyntaxKind.ExclamationToken
-                            && this.PeekToken(4).Kind == SyntaxKind.CommaToken)
-                        {
-                            return true;
-                        }
+                    var token3 = this.PeekToken(index++);
+                    // ( x!! , [...]
+                    // https://github.com/dotnet/roslyn/issues/58335: https://github.com/dotnet/roslyn/pull/46520#discussion_r466650228
+                    if (token2.Kind == SyntaxKind.ExclamationToken
+                        && token3.Kind == SyntaxKind.ExclamationToken
+                        && this.PeekToken(index++).Kind == SyntaxKind.CommaToken)
+                    {
+                        afterCommaIndex = index;
+                        return true;
                     }
                 }
+
                 return false;
+            }
+
+            void skipParameterModifiers(ref int index)
+            {
+                while (true)
+                {
+                    var token = this.PeekToken(index);
+                    if (IsParameterModifierExcludingScoped(token) || token.ContextualKind is SyntaxKind.ScopedKeyword)
+                    {
+                        index++;
+                        continue;
+                    }
+
+                    break;
+                }
             }
         }
 
@@ -12220,7 +12254,7 @@ done:
         {
             Debug.Assert(CurrentToken.Kind == SyntaxKind.OpenParenToken);
 
-            if (!(precedence <= Precedence.Lambda))
+            if (precedence > Precedence.Lambda)
             {
                 return false;
             }
@@ -12244,30 +12278,17 @@ done:
 
                 ParseAttributeDeclarations(inExpressionContext: true);
 
-                bool hasModifier = false;
                 if (IsParameterModifierExcludingScoped(this.CurrentToken) || this.CurrentToken.ContextualKind == SyntaxKind.ScopedKeyword)
                 {
                     SyntaxListBuilder modifiers = _pool.Allocate();
                     ParseParameterModifiers(modifiers, isFunctionPointerParameter: false);
-                    hasModifier = modifiers.Count != 0;
                     _pool.Free(modifiers);
                 }
 
-                if (hasModifier || ShouldParseLambdaParameterType())
+                if (ShouldParseLambdaParameterType() &&
+                    this.ScanType() == ScanTypeFlags.NotType)
                 {
-                    if (hasModifier)
-                    {
-                        // Also support just `ref x,` or `ref x)` as an implicit lambda parameter
-                        if (this.IsTrueIdentifier() && this.PeekToken(1).Kind is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken)
-                        {
-                            return true;
-                        }
-                    }
-
-                    if (this.ScanType() == ScanTypeFlags.NotType)
-                    {
-                        return false;
-                    }
+                    return false;
                 }
 
                 // eat the parameter name.
@@ -13474,8 +13495,7 @@ done:
                 ParseParameterModifiers(modifiers, isFunctionPointerParameter: false);
             }
 
-            // If we have "scoped/ref/out/in/params" always try to parse out a type.
-            var paramType = modifiers.Count != 0 || ShouldParseLambdaParameterType()
+            var paramType = ShouldParseLambdaParameterType()
                 ? ParseType(ParseTypeMode.Parameter)
                 : null;
 
@@ -13527,12 +13547,13 @@ done:
                 //
                 // In all other cases, parse out a type.
                 var peek1 = this.PeekToken(1);
-                if (peek1.Kind != SyntaxKind.CommaToken &&
-                    peek1.Kind != SyntaxKind.CloseParenToken &&
-                    peek1.Kind != SyntaxKind.EqualsGreaterThanToken &&
-                    peek1.Kind != SyntaxKind.OpenBraceToken &&
-                    peek1.Kind != SyntaxKind.ExclamationToken &&
-                    peek1.Kind != SyntaxKind.EqualsToken)
+                if (peek1.Kind
+                        is not SyntaxKind.CommaToken
+                        and not SyntaxKind.CloseParenToken
+                        and not SyntaxKind.EqualsGreaterThanToken
+                        and not SyntaxKind.OpenBraceToken
+                        and not SyntaxKind.ExclamationToken
+                        and not SyntaxKind.EqualsToken)
                 {
                     return true;
                 }

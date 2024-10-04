@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class LambdaParameterParsingTests : ParsingTests
+    public sealed class LambdaParameterParsingTests : ParsingTests
     {
         public LambdaParameterParsingTests(ITestOutputHelper output) : base(output) { }
 
@@ -5744,6 +5744,94 @@ class C {
             EOF();
         }
 
-    }
+        [Fact]
+        public void TestParameterModifierNoType1()
+        {
+            string source = "(ref a) => { }";
+            UsingExpression(source);
 
+            EOF();
+        }
+
+        [Fact]
+        public void TestParameterModifierNoType2()
+        {
+            string source = "(a, ref b) => { }";
+            UsingExpression(source);
+
+            EOF();
+        }
+
+        [Fact]
+        public void TestParameterModifierNoType3()
+        {
+            string source = "(ref readonly a) => { }";
+            UsingExpression(source);
+
+            EOF();
+        }
+
+        [Fact]
+        public void TestParameterModifierNoType4()
+        {
+            string source = "(readonly ref a) => { }";
+            UsingExpression(source);
+
+            EOF();
+        }
+
+        [Fact]
+        public void TestParameterModifierNoType5()
+        {
+            string source = "(scoped a) => { }";
+            UsingExpression(source);
+
+            EOF();
+        }
+
+        [Fact]
+        public void TestParameterModifierNoType6()
+        {
+            string source = "(scoped out a) => { }";
+            UsingExpression(source);
+
+            EOF();
+        }
+
+        [Fact]
+        public void TestParameterModifierNoType7()
+        {
+            string source = "(ref a = 1) => { }";
+            UsingExpression(source);
+
+            EOF();
+        }
+
+        [Fact]
+        public void TestParameterModifierNoType8()
+        {
+            string source = "(a, ref b = 1) => { }";
+            UsingExpression(source);
+
+            EOF();
+        }
+
+        [Fact]
+        public void TestParameterModifierNoType9()
+        {
+            string source = "([Attr] ref a) => { }";
+            UsingExpression(source);
+
+            EOF();
+        }
+
+        [Fact]
+        public void TestParameterModifierNoType10()
+        {
+            string source = "(a, [Attr] ref a) => { }";
+            UsingExpression(source);
+
+            EOF();
+        }
+    }
 }

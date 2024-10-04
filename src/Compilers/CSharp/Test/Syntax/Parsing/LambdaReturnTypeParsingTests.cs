@@ -4102,16 +4102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void InvocationOrLambda_11()
         {
             string source = "F(ref a, out b, in c) => { }";
-            UsingExpression(source,
-                // (1,8): error CS1001: Identifier expected
-                // F(ref a, out b, in c) => { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(1, 8),
-                // (1,15): error CS1001: Identifier expected
-                // F(ref a, out b, in c) => { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ",").WithLocation(1, 15),
-                // (1,21): error CS1001: Identifier expected
-                // F(ref a, out b, in c) => { }
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(1, 21));
+            UsingExpression(source);
 
             N(SyntaxKind.ParenthesizedLambdaExpression);
             {
