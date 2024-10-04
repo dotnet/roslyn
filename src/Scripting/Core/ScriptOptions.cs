@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         /// <summary>
         /// Creates a new <see cref="ScriptOptions"/> with the <see cref="FilePath"/> changed.
         /// </summary>
-        public ScriptOptions WithFilePath(string filePath)
+        public ScriptOptions WithFilePath(string? filePath)
             => (FilePath == filePath) ? this : new ScriptOptions(this) { FilePath = filePath ?? "" };
 
         private static MetadataReference CreateUnresolvedReference(string reference)

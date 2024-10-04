@@ -83,12 +83,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             NuGetPackageResolver? packageResolver,
             GacFileResolver? gacFileResolver,
             ImmutableDictionary<string, string> trustedPlatformAssemblies,
-            Func<string,  MetadataReferenceProperties, PortableExecutableReference>? createFromfileFunc = null)
+            Func<string, MetadataReferenceProperties, PortableExecutableReference>? createFromfileFunc = null)
         {
             PathResolver = pathResolver;
             PackageResolver = packageResolver;
             GacFileResolver = gacFileResolver;
-            _createFromFileFunc = createFromfileFunc ?? CreateFromFile;
+            _createFromFileFunc = createFromfileFunc ?? ((path, properties) => Script.CreateFromFile(path, PEStreamOptions.PrefetchEntireImage, properties));
             TrustedPlatformAssemblies = trustedPlatformAssemblies;
         }
 

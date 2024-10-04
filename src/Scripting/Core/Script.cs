@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Scripting
         }
 
         /// <summary>
-        /// <see cref="MetadataReference.CreateFromFile(string, PEStreamOptions, MetadataReferenceProperties)"/>
+        /// <see cref="MetadataReference.CreateFromFile(string, PEStreamOptions, MetadataReferenceProperties, DocumentationProvider)"/>
         /// </summary>
         /// <remarks>
         /// This API exists as the default for reading <see cref="MetadataReference"/> from files. It is handy 

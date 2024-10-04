@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             Compiler = compiler;
             _scriptCompiler = scriptCompiler;
             _objectFormatter = objectFormatter;
-            _createFromFileFunc = createFromFileFunc ?? MetadataReference.CreateFromFile;
+            _createFromFileFunc = createFromFileFunc ?? Script.CreateFromFile;
         }
 
         // for testing:

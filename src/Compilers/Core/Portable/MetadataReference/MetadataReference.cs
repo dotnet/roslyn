@@ -252,19 +252,8 @@ namespace Microsoft.CodeAnalysis
         internal static MetadataImageReference CreateFromFile(
             string path,
             PEStreamOptions options,
-            MetadataReferenceProperties properties) =>
-            CreateFromFile(
-                StandardFileSystem.Instance.OpenFileWithNormalizedException(path, FileMode.Open, FileAccess.Read, FileShare.Read),
-                path,
-                options,
-                properties,
-                documentation: null);
-
-        internal static MetadataImageReference CreateFromFile(
-            string path,
-            PEStreamOptions options,
             MetadataReferenceProperties properties,
-            DocumentationProvider? documentation) =>
+            DocumentationProvider? documentation = null) =>
             CreateFromFile(
                 StandardFileSystem.Instance.OpenFileWithNormalizedException(path, FileMode.Open, FileAccess.Read, FileShare.Read),
                 path,
@@ -275,20 +264,8 @@ namespace Microsoft.CodeAnalysis
         internal static MetadataImageReference CreateFromFile(
             Stream peStream,
             string path,
-            MetadataReferenceProperties properties,
-            DocumentationProvider? documentation) =>
-            CreateFromFile(
-                peStream,
-                path,
-                PEStreamOptions.PrefetchEntireImage,
-                properties,
-                documentation);
-
-        internal static MetadataImageReference CreateFromFile(
-            Stream peStream,
-            string path,
             PEStreamOptions options,
-            MetadataReferenceProperties properties = default,
+            MetadataReferenceProperties properties,
             DocumentationProvider? documentation = null)
         {
             // prefetch image, close stream to avoid locking it:
@@ -389,9 +366,11 @@ namespace Microsoft.CodeAnalysis
             DocumentationProvider? documentation = null)
         {
             var filePath = GetAssemblyFilePath(assembly, properties);
+            var peStream = StandardFileSystem.Instance.OpenFileWithNormalizedException(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+
             // The file is locked by the CLR assembly loader, so we can create a lazily read metadata, 
             // which might also lock the file until the reference is GC'd.
-            return CreateFromFile(filePath, PEStreamOptions.Default, properties, documentation);
+            return CreateFromFile(peStream, filePath, PEStreamOptions.Default, properties, documentation);
         }
 
         internal static bool HasMetadata(Assembly assembly)
