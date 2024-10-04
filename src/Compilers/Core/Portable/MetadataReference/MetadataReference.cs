@@ -272,7 +272,6 @@ namespace Microsoft.CodeAnalysis
                 properties,
                 documentation);
 
-
         internal static MetadataImageReference CreateFromFile(
             Stream peStream,
             string path,

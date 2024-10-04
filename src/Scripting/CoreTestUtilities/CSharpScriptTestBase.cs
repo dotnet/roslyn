@@ -122,12 +122,9 @@ public class CSharpScriptTestBase : TestBase
     public override void Dispose()
     {
         base.Dispose();
-        foreach (var pe in _referenceList)
+        foreach (var reference in _referenceList)
         {
-            if (pe is MetadataImageReference me)
-            {
-                me.GetMetadataNoCopy().Dispose();
-            }
+            reference.GetMetadataNoCopy().Dispose();
         }
     }
 }
