@@ -540,14 +540,23 @@ internal partial class CSharpRecommendationService
                 {
                     var reinterpretedBinding = semanticModel.GetSpeculativeSymbolInfo(identifier.SpanStart, identifier, SpeculativeBindingOption.BindAsTypeOrNamespace);
                     var reinterpretedSymbol = reinterpretedBinding.GetAnySymbol();
+                    var container = _context.SemanticModel.GetTypeInfo(identifier, _cancellationToken).Type;
 
-                    // The reinterpretation must be a type
-                    if (reinterpretedSymbol is not INamedTypeSymbol reinterprettedNamedType)
+                    // The reinterpretation must be a namespace or type, since we cannot have a
+                    // constant expression out of dotting a constant value, like a x.Length
+                    // If all we can bind to is a const local or const field, we cannot offer valid suggestions
+                    if (reinterpretedSymbol is not INamespaceOrTypeSymbol)
                         return default;
 
                     var expression = originalExpression.WalkDownParentheses();
 
-                    return GetSymbolsOffOfBoundExpressionWorker(reinterpretedBinding, originalExpression, expression, reinterprettedNamedType, false, false);
+                    return GetSymbolsOffOfBoundExpressionWorker(
+                        reinterpretedBinding,
+                        originalExpression,
+                        expression,
+                        container,
+                        unwrapNullable: false,
+                        isForDereference: false);
                 }
 
                 return default;
@@ -557,19 +566,16 @@ internal partial class CSharpRecommendationService
             if (containingType == null)
                 return default;
 
-            var symbols = namespaceOrType.GetMembers().WhereAsArray(FilterMember);
-            return new RecommendedSymbols(symbols);
-
             // A constant pattern may only include qualifications to
             // - namespaces (from other namespaces or aliases),
             // - types (from aliases, namespaces or other types),
             // - constant fields (from types)
             // Methods, properties, events, non-constant fields etc. are excluded since they are not constant expressions
-            bool FilterMember(ISymbol symbol)
-            {
-                return symbol is INamespaceOrTypeSymbol or IFieldSymbol { IsConst: true }
-                    && symbol.IsAccessibleWithin(containingType);
-            }
+            var symbols = namespaceOrType
+                .GetMembers()
+                .WhereAsArray(symbol => symbol is INamespaceOrTypeSymbol or IFieldSymbol { IsConst: true }
+                    && symbol.IsAccessibleWithin(containingType));
+            return new RecommendedSymbols(symbols);
         }
 
         private RecommendedSymbols GetSymbolsOffOfExpression(ExpressionSyntax? originalExpression)
