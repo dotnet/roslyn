@@ -504,7 +504,7 @@
       </trans-unit>
       <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
         <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
-        <target state="new">Collection initializer results in an infinite chain of instantiations of collection '{0}'.</target>
+        <target state="translated">Koleksiyon başlatıcısı, '{0}' koleksiyonunun sonsuz sayıda örneklem zinciriyle sonuçlanır.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
@@ -1154,7 +1154,7 @@
       </trans-unit>
       <trans-unit id="ERR_InterceptorsFeatureNotEnabled">
         <source>The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</source>
-        <target state="new">The 'interceptors' feature is not enabled in this namespace. Add '{0}' to your project.</target>
+        <target state="translated">'Engelleyiciler' özelliği bu ad alanında etkin değil. Projenize '{0}' ekleyin.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterceptsLocationDataInvalidFormat">
@@ -1744,7 +1744,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyDuplicateInitializer">
         <source>A partial property cannot have an initializer on both the definition and implementation.</source>
-        <target state="new">A partial property cannot have an initializer on both the definition and implementation.</target>
+        <target state="translated">Kısmi bir özellik hem tanımda hem de uygulama üzerinde başlatıcıya sahip olamaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyInitMismatch">
@@ -2934,12 +2934,12 @@
       </trans-unit>
       <trans-unit id="WRN_FieldIsAmbiguous">
         <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</source>
-        <target state="new">In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</target>
+        <target state="translated">{0} dil sürümünde, 'field' anahtar sözcüğü, özellik için sentezlenmiş bir destek alanına bağlanır. Sentezlenmiş bir destek alanı oluşturmaktan kaçınmak ve mevcut üyeye başvurmak için bunun yerine 'this.field' veya '@field' kullanın.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_FieldIsAmbiguous_Title">
         <source>The 'field' keyword binds to a synthesized backing field for the property.</source>
-        <target state="new">The 'field' keyword binds to a synthesized backing field for the property.</target>
+        <target state="translated">'Field' anahtar sözcüğü, özellik için sentezlenmiş bir destek alanına bağlanır.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
@@ -5290,12 +5290,12 @@
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField">
         <source>Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
-        <target state="new">Non-nullable {0} '{1}' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the {0} as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</target>
+        <target state="translated">Null atanamaz {0} '{1}', oluşturucudan çıkış yaparken null olmayan bir değer içermelidir. 'required' tanımlayıcısını eklemeyi, {0} null atanabilir olarak bildirmeyi veya '[field: MaybeNull, AllowNull]' özniteliklerini eklemeyi düşünün.</target>
         <note>Similar diagnostic message as 'WRN_UninitializedNonNullableField'</note>
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableBackingField_Title">
         <source>Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</source>
-        <target state="new">Non-nullable property must contain a non-null value when exiting constructor. Consider adding the 'required' modifier, or declaring the property as nullable, or adding '[field: MaybeNull, AllowNull]' attributes.</target>
+        <target state="translated">Null atanamaz özelliği, oluşturucudan çıkış yaparken null olmayan bir değer içermelidir. 'required' tanımlayıcısını eklemeyi, özelliği null atanabilir olarak bildirmeyi veya '[field: MaybeNull, AllowNull]' özniteliklerini eklemeyi düşünün.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UninitializedNonNullableField">
@@ -12176,7 +12176,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
         <source>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</source>
-        <target state="new">Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</target>
+        <target state="translated">Yalnızca otomatik olarak uygulanan özellikler veya 'field' anahtar sözcüğünü kullanan özellikler başlatıcılara sahip olabilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyMustHaveGetAccessor">
