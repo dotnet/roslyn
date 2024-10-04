@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         internal readonly RelativePathResolver PathResolver;
         internal readonly NuGetPackageResolver? PackageResolver;
         internal readonly GacFileResolver? GacFileResolver;
-        private readonly Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference> _createFromFileFunc;
+        private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _createFromFileFunc;
 
         // TODO: Look for .winmd, but only if the identity has content WindowsRuntime (https://github.com/dotnet/roslyn/issues/6483)
         // The extensions are in order in which the CLR loader looks for assembly files.
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         internal static RuntimeMetadataReferenceResolver CreateCurrentPlatformResolver(
             ImmutableArray<string> searchPaths = default,
             string? baseDirectory = null,
-            Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference>? createFromFileFunc = null)
+            Func<string, MetadataReferenceProperties, PortableExecutableReference>? createFromFileFunc = null)
         {
             return new RuntimeMetadataReferenceResolver(
                 searchPaths,
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             NuGetPackageResolver? packageResolver = null,
             GacFileResolver? gacFileResolver = null,
             ImmutableArray<string> platformAssemblyPaths = default,
-            Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference>? createFromFileFunc = null)
+            Func<string,  MetadataReferenceProperties, PortableExecutableReference>? createFromFileFunc = null)
             : this(new RelativePathResolver(searchPaths.NullToEmpty(), baseDirectory),
                    packageResolver,
                    gacFileResolver,
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             NuGetPackageResolver? packageResolver,
             GacFileResolver? gacFileResolver,
             ImmutableDictionary<string, string> trustedPlatformAssemblies,
-            Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference>? createFromfileFunc = null)
+            Func<string,  MetadataReferenceProperties, PortableExecutableReference>? createFromfileFunc = null)
         {
             PathResolver = pathResolver;
             PackageResolver = packageResolver;
@@ -135,13 +135,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         }
 
         private PortableExecutableReference CreateFromFile(string filePath, MetadataReferenceProperties properties) =>
-            _createFromFileFunc(filePath, PEStreamOptions.PrefetchEntireImage, properties);
-
-        internal static MetadataImageReference CreateFromFile(string filePath, PEStreamOptions options, MetadataReferenceProperties properties)
-            => MetadataReference.CreateFromFile(filePath, options, properties);
+            _createFromFileFunc(filePath, properties);
 
         private PortableExecutableReference CreateResolvedMissingReference(string fullPath) =>
-            _createFromFileFunc(fullPath, PEStreamOptions.PrefetchEntireImage, s_resolvedMissingAssemblyReferenceProperties);
+            _createFromFileFunc(fullPath, s_resolvedMissingAssemblyReferenceProperties);
 
         public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string? baseFilePath, MetadataReferenceProperties properties)
         {

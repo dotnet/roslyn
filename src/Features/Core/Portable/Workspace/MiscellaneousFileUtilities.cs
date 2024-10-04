@@ -93,7 +93,7 @@ internal static class MiscellaneousFileUtilities
         var referenceResolver = RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(
             searchPaths: [RuntimeEnvironment.GetRuntimeDirectory()],
             baseDirectory: baseDirectory,
-            fileReferenceProvider: metadataService.GetReference);
+            createFromFileFunc: metadataService.GetReference);
 
         return compilationOptions
             .WithMetadataReferenceResolver(referenceResolver)

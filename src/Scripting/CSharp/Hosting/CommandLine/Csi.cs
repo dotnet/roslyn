@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
             // Unlike C# compiler we do not use LIB environment variable. It's only supported for historical reasons.
             : base(CSharpCommandLineParser.Script, responseFile, args, buildPaths, additionalReferenceDirectories: null, analyzerLoader)
         {
-            _createFromFileFunc = createFromFileFunc ?? RuntimeMetadataReferenceResolver.CreateFromFile;
+            _createFromFileFunc = createFromFileFunc ?? Script.CreateFromFile;
         }
 
         internal override Type Type => typeof(CSharpInteractiveCompiler);

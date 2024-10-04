@@ -32,7 +32,7 @@ public class ScriptTestBase : TestBase
         var runtimeMetadataReferenceResolver = RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(
             searchPaths: [],
             baseDirectory: null,
-            CreateFromFile);
+            (path, properties) => CreateFromFile(path, PEStreamOptions.PrefetchEntireImage, properties));
         ScriptMetadataResolver = new ScriptMetadataResolver(runtimeMetadataReferenceResolver);
         ScriptOptions = ScriptOptions.Default
             .WithMetadataResolver(ScriptMetadataResolver)

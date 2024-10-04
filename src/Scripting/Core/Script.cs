@@ -320,6 +320,21 @@ namespace Microsoft.CodeAnalysis.Scripting
             var filePath = MetadataReference.GetAssemblyFilePath(assembly, properties);
             return createFromFileFunc(filePath, PEStreamOptions.Default, properties);
         }
+
+        /// <summary>
+        /// <see cref="MetadataReference.CreateFromFile(string, PEStreamOptions, MetadataReferenceProperties)"/>
+        /// </summary>
+        /// <remarks>
+        /// This API exists as the default for reading <see cref="MetadataReference"/> from files. It is handy 
+        /// to have this separate method when trying to track down unit tests that aren't going through the 
+        /// proper heplers in ScriptTestBase to hook loading from file. Can set a breakpoint here, debug the 
+        /// tests and fix any hits.
+        /// </remarks>
+        internal static MetadataImageReference CreateFromFile(
+            string filePath,
+            PEStreamOptions options,
+            MetadataReferenceProperties properties) =>
+            MetadataReference.CreateFromFile(filePath, options, properties);
     }
 
     public sealed class Script<T> : Script

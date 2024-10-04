@@ -188,10 +188,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             return RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(
                 arguments.ReferencePaths,
                 arguments.BaseDirectory,
-                createFromFileFunc: (path, options, properties) =>
+                createFromFileFunc: (path, properties) =>
                 {
                     loggerOpt?.AddRead(path);
-                    return createFromFileFunc(path, options, properties);
+                    return createFromFileFunc(path, PEStreamOptions.PrefetchEntireImage, properties);
                 });
         }
 

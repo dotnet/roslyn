@@ -6,6 +6,7 @@ Imports System.IO
 Imports System.Reflection
 Imports System.Reflection.PortableExecutable
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Scripting
 Imports Microsoft.CodeAnalysis.Scripting.Hosting
 Imports Microsoft.CodeAnalysis.VisualBasic
 
@@ -19,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.Hosting
         Friend Sub New(responseFile As String, buildPaths As BuildPaths, args As String(), analyzerLoader As IAnalyzerAssemblyLoader, Optional createFromFileFunc As Func(Of String, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference) = Nothing)
             MyBase.New(VisualBasicCommandLineParser.Script, responseFile, args, buildPaths, Nothing, analyzerLoader)
             If createFromFileFunc Is Nothing Then
-                createFromFileFunc = AddressOf RuntimeMetadataReferenceResolver.CreateFromFile
+                createFromFileFunc = AddressOf Script.CreateFromFile
             End If
             _createFromFileFunc = createFromFileFunc
         End Sub

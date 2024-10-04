@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             AllowUnsafe = allowUnsafe;
             WarningLevel = warningLevel;
             ParseOptions = parseOptions;
-            CreateFromFileFunc = createFromFileFunc ?? RuntimeMetadataReferenceResolver.CreateFromFile;
+            CreateFromFileFunc = createFromFileFunc ?? Script.CreateFromFile;
         }
 
         private ScriptOptions(ScriptOptions other)
