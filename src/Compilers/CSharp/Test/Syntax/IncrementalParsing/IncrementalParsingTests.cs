@@ -69,14 +69,8 @@ public class C {
 }";
             var oldTree = this.ParsePreview(text);
             var newTree = oldTree.WithReplaceFirst("?", "");
-            oldTree.GetDiagnostics().Verify(
-                // (4,30): error CS8989: The 'parameter null-checking' feature is not supported.
-                //     public void M(string? x  !!) {
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(4, 30));
-            newTree.GetDiagnostics().Verify(
-                // (4,29): error CS8989: The 'parameter null-checking' feature is not supported.
-                //     public void M(string x  !!) {
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(4, 29));
+            oldTree.GetDiagnostics().Verify();
+            newTree.GetDiagnostics().Verify();
 
             var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,

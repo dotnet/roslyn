@@ -775,10 +775,7 @@ class C {
         [Fact]
         public void TestLambdaWithNullValidation()
         {
-            UsingDeclaration("Func<string, string> func1 = x!! => x + \"1\";", options: TestOptions.RegularPreview,
-                // (1,31): error CS8989: The 'parameter null-checking' feature is not supported.
-                // Func<string, string> func1 = x!! => x + "1";
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 31));
+            UsingDeclaration("Func<string, string> func1 = x!! => x + \"1\";", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -835,10 +832,7 @@ class C {
         [Fact]
         public void TestLambdaWithNullValidationParams()
         {
-            UsingDeclaration("Func<int, int, bool> func1 = (x!!, y) => x == y;", options: TestOptions.RegularPreview,
-                // (1,32): error CS8989: The 'parameter null-checking' feature is not supported.
-                // Func<int, int, bool> func1 = (x!!, y) => x == y;
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 32));
+            UsingDeclaration("Func<int, int, bool> func1 = (x!!, y) => x == y;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -910,10 +904,7 @@ class C {
         [Fact]
         public void TestNullCheckedSingleParamInParens()
         {
-            UsingDeclaration("Func<int, int> func1 = (x!!) => x;", options: TestOptions.RegularPreview,
-                // (1,26): error CS8989: The 'parameter null-checking' feature is not supported.
-                // Func<int, int> func1 = (x!!) => x;
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 26));
+            UsingDeclaration("Func<int, int> func1 = (x!!) => x;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -967,10 +958,7 @@ class C {
         [Fact]
         public void TestNullCheckedSingleParamNoSpaces()
         {
-            UsingDeclaration("Func<int, int> func1 = x!!=>x;", options: TestOptions.RegularPreview,
-                // (1,25): error CS8989: The 'parameter null-checking' feature is not supported.
-                // Func<int, int> func1 = x!!=>x;
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 25));
+            UsingDeclaration("Func<int, int> func1 = x!!=>x;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1019,10 +1007,7 @@ class C {
         [Fact]
         public void TestNullCheckedTypedSingleParamInParen()
         {
-            UsingDeclaration("Func<int, int> func1 = (int x!!) => x;", options: TestOptions.RegularPreview,
-                // (1,30): error CS8989: The 'parameter null-checking' feature is not supported.
-                // Func<int, int> func1 = (int x!!) => x;
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 30));
+            UsingDeclaration("Func<int, int> func1 = (int x!!) => x;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1080,10 +1065,7 @@ class C {
         [Fact]
         public void TestNullCheckedTypedManyParams()
         {
-            UsingDeclaration("Func<int, int, int> func1 = (int x!!, int y) => x;", options: TestOptions.RegularPreview,
-                // (1,35): error CS8989: The 'parameter null-checking' feature is not supported.
-                // Func<int, int, int> func1 = (int x!!, int y) => x;
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 35));
+            UsingDeclaration("Func<int, int, int> func1 = (int x!!, int y) => x;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1155,13 +1137,7 @@ class C {
         [Fact]
         public void TestManyNullCheckedTypedParams()
         {
-            UsingDeclaration("Func<int, int, int> func1 = (int x!!, int y!!) => x;", options: TestOptions.RegularPreview,
-                // (1,35): error CS8989: The 'parameter null-checking' feature is not supported.
-                // Func<int, int, int> func1 = (int x!!, int y!!) => x;
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 35),
-                // (1,44): error CS8989: The 'parameter null-checking' feature is not supported.
-                // Func<int, int, int> func1 = (int x!!, int y!!) => x;
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 44));
+            UsingDeclaration("Func<int, int, int> func1 = (int x!!, int y!!) => x;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1285,10 +1261,7 @@ class C {
         [Fact]
         public void TestNullCheckedDiscard()
         {
-            UsingDeclaration("Func<int, int> func1 = (_!!) => 42;", options: TestOptions.RegularPreview,
-                // (1,26): error CS8989: The 'parameter null-checking' feature is not supported.
-                // Func<int, int> func1 = (_!!) => 42;
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 26));
+            UsingDeclaration("Func<int, int> func1 = (_!!) => 42;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1342,10 +1315,7 @@ class C {
         [Fact]
         public void TestNullCheckedSyntaxCorrection0()
         {
-            UsingDeclaration("Func<string, string> func0 = x!=> x;", options: TestOptions.RegularPreview,
-                // (1,31): error CS8989: The 'parameter null-checking' feature is not supported.
-                // Func<string, string> func0 = x!=> x;
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 31));
+            UsingDeclaration("Func<string, string> func0 = x!=> x;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1397,10 +1367,7 @@ class C {
         [Fact]
         public void TestNullCheckedSyntaxCorrection1()
         {
-            UsingDeclaration("Func<string, string> func1 = x !=> x;", options: TestOptions.RegularPreview,
-                // (1,32): error CS8989: The 'parameter null-checking' feature is not supported.
-                // Func<string, string> func1 = x !=> x;
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 32));
+            UsingDeclaration("Func<string, string> func1 = x !=> x;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1452,13 +1419,7 @@ class C {
         [Fact]
         public void TestNullCheckedSyntaxCorrection2()
         {
-            UsingDeclaration("Func<string, string> func2 = x != > x;", options: TestOptions.RegularPreview,
-                // (1,32): error CS8989: The 'parameter null-checking' feature is not supported.
-                // Func<string, string> func2 = x != > x;
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 32),
-                // (1,33): error CS1003: Syntax error, '=>' expected
-                // Func<string, string> func2 = x != > x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>").WithLocation(1, 33));
+            UsingDeclaration("Func<string, string> func2 = x != > x;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1610,10 +1571,7 @@ class C {
         [Fact]
         public void TestNullCheckedSyntaxCorrection5()
         {
-            UsingDeclaration("Func<string, string> func5 = x !!=> x;", options: TestOptions.RegularPreview,
-                // (1,32): error CS8989: The 'parameter null-checking' feature is not supported.
-                // Func<string, string> func5 = x !!=> x;
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 32));
+            UsingDeclaration("Func<string, string> func5 = x !!=> x;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1664,13 +1622,7 @@ class C {
         [Fact]
         public void TestNullCheckedSyntaxCorrection6()
         {
-            UsingDeclaration("Func<string, string> func6 = x !!= > x;", options: TestOptions.RegularPreview,
-                // (1,32): error CS8989: The 'parameter null-checking' feature is not supported.
-                // Func<string, string> func6 = x !!= > x;
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 32),
-                // (1,34): error CS1003: Syntax error, '=>' expected
-                // Func<string, string> func6 = x !!= > x;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "=").WithArguments("=>").WithLocation(1, 34));
+            UsingDeclaration("Func<string, string> func6 = x !!= > x;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1722,10 +1674,7 @@ class C {
         [Fact]
         public void TestNullCheckedSyntaxCorrection7()
         {
-            UsingDeclaration("Func<string, string> func7 = x!! => x;", options: TestOptions.RegularPreview,
-                // (1,31): error CS8989: The 'parameter null-checking' feature is not supported.
-                // Func<string, string> func7 = x!! => x;
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 31));
+            UsingDeclaration("Func<string, string> func7 = x!! => x;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
@@ -1776,10 +1725,7 @@ class C {
         [Fact]
         public void TestNullCheckedSyntaxCorrection8()
         {
-            UsingDeclaration("Func<string, string> func8 = x! !=> x;", options: TestOptions.RegularPreview,
-                // (1,31): error CS8989: The 'parameter null-checking' feature is not supported.
-                // Func<string, string> func8 = x! !=> x;
-                Diagnostic(ErrorCode.ERR_ParameterNullCheckingNotSupported, "!").WithLocation(1, 31));
+            UsingDeclaration("Func<string, string> func8 = x! !=> x;", options: TestOptions.RegularPreview);
             N(SyntaxKind.FieldDeclaration);
             {
                 N(SyntaxKind.VariableDeclaration);
