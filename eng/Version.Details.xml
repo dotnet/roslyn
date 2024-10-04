@@ -170,9 +170,9 @@
       <Uri>https://github.com/dotnet/runtime</Uri>
       <Sha>5535e31a712343a63f5d7d796cd874e563e5ac14</Sha>
     </Dependency>
-    <Dependency Name="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
+    <Dependency Name="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">
       <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
-      <Sha>22ea6422f85b05ca0793cc3b76375487be407f5d</Sha>
+      <Sha>f2384e61845314d0e8ad74cc0fe67d1bd4e9f102</Sha>
     </Dependency>
     <Dependency Name="Microsoft.CodeAnalysis.AnalyzerUtilities" Version="3.3.0">
       <Uri>https://github.com/dotnet/roslyn-analyzers</Uri>
