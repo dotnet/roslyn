@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             NuGetPackageResolver? packageResolver = null,
             GacFileResolver? gacFileResolver = null,
             ImmutableArray<string> platformAssemblyPaths = default,
-            Func<string,  MetadataReferenceProperties, PortableExecutableReference>? createFromFileFunc = null)
+            Func<string, MetadataReferenceProperties, PortableExecutableReference>? createFromFileFunc = null)
             : this(new RelativePathResolver(searchPaths.NullToEmpty(), baseDirectory),
                    packageResolver,
                    gacFileResolver,
