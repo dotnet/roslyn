@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.GenerateOverrides;
     Name = PredefinedCodeRefactoringProviderNames.GenerateOverrides), Shared]
 [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
 [SuppressMessage("RoslynDiagnosticsReliability", "RS0034:Exported parts should have [ImportingConstructor]", Justification = "Used incorrectly by tests")]
-internal partial class GenerateOverridesCodeRefactoringProvider(IPickMembersService? pickMembersService) : CodeRefactoringProvider
+internal sealed partial class GenerateOverridesCodeRefactoringProvider(IPickMembersService? pickMembersService) : CodeRefactoringProvider
 {
     private readonly IPickMembersService? _pickMembersService_forTestingPurposes = pickMembersService;
 

@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable disable
 
         protected abstract StateMachineState FirstIncreasingResumableState { get; }
-        protected abstract string EncMissingStateMessage { get; }
+        protected abstract HotReloadExceptionCode EncMissingStateErrorCode { get; }
 
         /// <summary>
         /// Generate return statements from the state machine method body.
@@ -264,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected virtual BoundStatement? GenerateMissingStateDispatch()
-            => _resumableStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(cachedState), EncMissingStateMessage);
+            => _resumableStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(cachedState), EncMissingStateErrorCode);
 
 #nullable disable
 #if DEBUG

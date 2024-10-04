@@ -89,6 +89,23 @@ namespace Microsoft.CodeAnalysis.Emit
         /// EnC generation. 0 if the module is not an EnC delta, 1 if it is the first EnC delta, etc.
         /// </summary>
         public int CurrentGenerationOrdinal => (PreviousGeneration?.Ordinal + 1) ?? 0;
+
+        /// <summary>
+        /// Creates the type definition of HotReloadException type if it has not been synthesized yet and returns its constructor.
+        /// </summary>
+        public abstract IMethodSymbolInternal GetOrCreateHotReloadExceptionConstructorDefinition();
+
+        /// <summary>
+        /// Creates the type definition of HotReloadException type if it has not been synthesized yet and the module is an EnC delta.
+        /// Returns the synthesized type definition or null if the module is not an EnC delta or a user-defined type is already defined in the compilation.
+        /// </summary>
+        public abstract INamedTypeSymbolInternal? TryGetOrCreateSynthesizedHotReloadExceptionType();
+
+        /// <summary>
+        /// Returns the HotReloadException type symbol if it has been used in this compilation, null otherwise.
+        /// </summary>
+        public abstract INamedTypeSymbolInternal? GetUsedSynthesizedHotReloadExceptionType();
+
 #nullable disable
 
         /// <summary>
@@ -979,6 +996,18 @@ namespace Microsoft.CodeAnalysis.Emit
                 {
                     builder.Add(entry.Key, entry.Value.ToImmutableArray<ISymbolInternal>());
                 }
+            }
+
+            // Add synthesized HotReloadException if it has been used in emitted code.
+            // We do not add it at the creation time since we don't know if it's going to be used at that point.
+            if (GetUsedSynthesizedHotReloadExceptionType() is { } hotReloadException)
+            {
+                if (!builder.TryGetValue(hotReloadException.ContainingNamespace, out var existingTypes))
+                {
+                    existingTypes = [];
+                }
+
+                builder[hotReloadException.ContainingNamespace] = existingTypes.Add(hotReloadException);
             }
 
             return builder.ToImmutable();

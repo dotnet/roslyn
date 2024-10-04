@@ -3183,7 +3183,7 @@ class C
 
     void F()
     {
-        G1(a => a);
+        G1(<N:0>a => a</N:0>);
     }
 }
 ";
@@ -3197,14 +3197,18 @@ class C
 
     void F()
     {
-        G2(a => a);
+        G2(<N:0>a => a</N:0>);
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingLambdaParameters, "a", CSharpFeaturesResources.lambda));
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+            [
+                RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.NodePosition(0), arguments: [GetResource("lambda")])
+            ]));
     }
 
     [Fact]
@@ -3220,7 +3224,7 @@ class C
 
     void F()
     {
-        G1(a => a);
+        G1(<N:0>a => a</N:0>);
     }
 }
 ";
@@ -3234,14 +3238,18 @@ class C
 
     void F()
     {
-        G2((a, b) => a + b);
+        G2(<N:0>(a, b) => a + b</N:0>);
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingLambdaParameters, "(a, b)", CSharpFeaturesResources.lambda));
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+            [
+                RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.NodePosition(0), arguments: [GetResource("lambda")])
+            ]));
     }
 
     [Fact]
@@ -3257,7 +3265,7 @@ class C
 
     void F()
     {
-        G1(a => a);
+        G1(<N:0>a => a</N:0>);
     }
 }
 ";
@@ -3271,14 +3279,18 @@ class C
 
     void F()
     {
-        G2(a => a);
+        G2(<N:0>a => a</N:0>);
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingLambdaReturnType, "a", CSharpFeaturesResources.lambda));
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+            [
+                RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaReturnType, syntaxMap.NodePosition(0), arguments: [GetResource("lambda")])
+            ]));
     }
 
     [Fact]
@@ -3366,7 +3378,7 @@ class C
 
     void F()
     {
-        G1(a => { return 1; });
+        G1(<N:0>a => { return 1; }</N:0>);
     }
 }
 ";
@@ -3380,26 +3392,59 @@ class C
 
     void F()
     {
-        G2(a => { });
+        G2(<N:0>a => { }</N:0>);
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingLambdaReturnType, "a", CSharpFeaturesResources.lambda));
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+            [
+                RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaReturnType, syntaxMap.NodePosition(0), arguments: [GetResource("lambda")])
+            ]));
     }
 
     [Fact]
     public void Lambdas_Update_Signature_ReturnType2()
     {
-        var src1 = "var x = int (int a) => a;";
-        var src2 = "var x = long (int a) => a;";
+        var src1 = @"
+using System;
 
-        var edits = GetMethodEdits(src1, src2);
+class C
+{
+    void G1(Func<int, int> f) {}
+    void G2(Action<int> f) {}
 
-        GetTopEdits(edits).VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingLambdaReturnType, "(int a)", CSharpFeaturesResources.lambda));
+    void F()
+    {
+        var x = <N:0>int (int a) => a</N:0>;
+    }
+}
+";
+        var src2 = @"
+using System;
+
+class C
+{
+    void G1(Func<int, int> f) {}
+    void G2(Action<int> f) {}
+
+    void F()
+    {
+        var x = <N:0>long (int a) => a</N:0>;
+    }
+}
+";
+        var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
+
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+            [
+                RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaReturnType, syntaxMap.NodePosition(0), arguments: [GetResource("lambda")])
+            ]));
     }
 
     [Fact]
@@ -3412,7 +3457,7 @@ class C
 {
     void F()
     {
-        var x = (int* a, int b) => a;
+        var x = <N:0>(int* a, int b) => a</N:0>;
     }
 }
 ";
@@ -3423,14 +3468,18 @@ class C
 {
     void F()
     {
-        var x = (int* a, int b) => b;
+        var x = <N:0>(int* a, int b) => b</N:0>;
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingLambdaReturnType, "(int* a, int b)", GetResource("lambda")));
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+            [
+                RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaReturnType, syntaxMap.NodePosition(0), arguments: [GetResource("lambda")])
+            ]));
     }
 
     [Fact]
@@ -3521,7 +3570,7 @@ class C
 
     void F()
     {
-        G1((ref int a) => 1);
+        G1(<N:0>(ref int a) => 1</N:0>);
     }
 }
 ";
@@ -3538,14 +3587,18 @@ class C
 
     void F()
     {
-        G2((int a) => 2);
+        G2(<N:0>(int a) => 2</N:0>);
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingLambdaParameters, "(int a)", CSharpFeaturesResources.lambda));
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+            [
+                RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.NodePosition(0), arguments: [GetResource("lambda")])
+            ]));
     }
 
     [Fact]
@@ -3729,7 +3782,7 @@ class C
 
     void F()
     {
-        G1(a => 1);
+        G1(<N:0>a => 1</N:0>);
     }
 }
 ";
@@ -3743,14 +3796,18 @@ class C
 
     void F()
     {
-        G2(a => 2);
+        G2(<N:0>a => 2</N:0>);
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingLambdaParameters, "a", CSharpFeaturesResources.lambda));
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+            [
+                RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.NodePosition(0), arguments: [GetResource("lambda")])
+            ]));
     }
 
     [Fact]
@@ -3853,7 +3910,7 @@ class C
 
     void F()
     {
-        G1(a => a);
+        G1(<N:0>a => a</N:0>);
     }
 }
 ";
@@ -3872,13 +3929,18 @@ class C
 
     void F()
     {
-        G2(a => a);
+        G2(<N:0>a => a</N:0>);
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingLambdaParameters, "a", CSharpFeaturesResources.lambda));
+        var syntaxMap = edits.GetSyntaxMap();
+
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+            [
+                RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.NodePosition(0), arguments: [GetResource("lambda")])
+            ]));
     }
 
     [Fact]
@@ -3899,7 +3961,7 @@ namespace System
 
         void F()
         {
-            G1(a => a);
+            G1(<N:0>a => a</N:0>);
         }
     }
 }
@@ -3919,14 +3981,19 @@ namespace System
 
         void F()
         {
-            G2(a => a);
+            G2(<N:0>a => a</N:0>);
         }
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingLambdaParameters, "a", CSharpFeaturesResources.lambda));
+        var syntaxMap = edits.GetSyntaxMap();
+
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("System.C.F"), syntaxMap, rudeEdits:
+            [
+                RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.NodePosition(0), arguments: [GetResource("lambda")])
+            ]));
     }
 
     [Fact]
@@ -3980,7 +4047,7 @@ class C
 
     void F()
     {
-        G1((a, b) => 1);
+        G1(<N:0>(a, b) => 1</N:0>);
     }
 }
 ";
@@ -3995,13 +4062,18 @@ class C
 
     void F()
     {
-        G2((a, b) => 1);
+        G2(<N:0>(a, b) => 1</N:0>);
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingLambdaParameters, "(a, b)", CSharpFeaturesResources.lambda));
+        var syntaxMap = edits.GetSyntaxMap();
+
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap,
+                    rudeEdits: [RuntimeRudeEdit(marker: 0, RudeEditKind.ChangingLambdaParameters, syntaxMap.NodePosition(0), [GetResource("lambda")])]),
+            ]);
     }
 
     [Fact]
@@ -6011,18 +6083,18 @@ class C
 {
     static void F()
     <N:0>{
-        int X = 1;
+        int <S:0>X</S:0> = 1;
         Func<int> f = () => X;
     }</N:0>
 }";
 
         var edits = GetTopEdits(src1, src2);
-        var syntaxMap = GetSyntaxMap(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
         edits.VerifySemantics(
-            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap[0], rudeEdits:
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
             [
-                RuntimeRudeEdit(0, RudeEditKind.RenamingCapturedVariable, (8, 13), ["x", "X"])
+                RuntimeRudeEdit(0, RudeEditKind.RenamingCapturedVariable, syntaxMap.Position(0), ["x", "X"])
             ]));
     }
 
@@ -6036,7 +6108,7 @@ class C
 {
     static void F()
     <N:0>{
-        int x = 1;
+        int <S:0>x</S:0> = 1;
         Func<int> f = <N:1>() => x</N:1>;
     }</N:0>
 }";
@@ -6047,19 +6119,20 @@ class C
 {
     static void F()
     <N:0>{
-        byte x = 1;
+        byte <S:0>x</S:0> = 1;
         Func<int> f = <N:1>() => x</N:1>;
     }</N:0>
 }";
 
         var edits = GetTopEdits(src1, src2);
-        var syntaxMap = GetSyntaxMap(src1, src2)[0];
+        var syntaxMap = edits.GetSyntaxMap();
+
         edits.VerifySemantics(
             SemanticEdit(
                 SemanticEditKind.Update,
                 c => c.GetMember("C.F"),
                 syntaxMap,
-                rudeEdits: [RuntimeRudeEdit(marker: 0, RudeEditKind.ChangingCapturedVariableType, (8, 14), ["x", "int"])]));
+                rudeEdits: [RuntimeRudeEdit(marker: 0, RudeEditKind.ChangingCapturedVariableType, syntaxMap.Position(0), ["x", "int"])]));
     }
 
     [Fact]
@@ -6080,19 +6153,19 @@ using System;
 
 class C
 {
-    static void F(int X)
+    static void F(int <S:0>X</S:0>)
     <N:0>{
         Func<int> f = <N:1>() => X</N:1>;
     }</N:0>
 }";
 
         var edits = GetTopEdits(src1, src2);
-        var syntaxMap = GetSyntaxMap(src1, src2)[0];
+        var syntaxMap = edits.GetSyntaxMap();
 
         edits.VerifySemantics(
             [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap,
-                    rudeEdits: [RuntimeRudeEdit(marker: 0, RudeEditKind.RenamingCapturedVariable, (6, 23), ["x", "X"])]),
+                    rudeEdits: [RuntimeRudeEdit(marker: 0, RudeEditKind.RenamingCapturedVariable, syntaxMap.Position(0), ["x", "X"])]),
             ],
             capabilities: EditAndContinueCapabilities.UpdateParameters);
     }
@@ -6114,16 +6187,16 @@ using System;
 class C
 {
     static void G(Func<int> f) {}
-    static void F(int X) <N:0>=> G(<N:1>() => X</N:1>)</N:0>;
+    static void F(int <S:0>X</S:0>) <N:0>=> G(<N:1>() => X</N:1>)</N:0>;
 }";
 
         var edits = GetTopEdits(src1, src2);
-        var syntaxMap = GetSyntaxMap(src1, src2)[0];
+        var syntaxMap = edits.GetSyntaxMap();
 
         edits.VerifySemantics(
             [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap,
-                    rudeEdits: [RuntimeRudeEdit(marker: 0, RudeEditKind.RenamingCapturedVariable, (7, 23), ["x", "X"])]),
+                    rudeEdits: [RuntimeRudeEdit(marker: 0, RudeEditKind.RenamingCapturedVariable, syntaxMap.Position(0), ["x", "X"])]),
             ],
             capabilities: EditAndContinueCapabilities.UpdateParameters);
     }
@@ -6159,12 +6232,12 @@ class C
 }";
 
         var edits = GetTopEdits(src1, src2);
-        var syntaxMap = GetSyntaxMap(src1, src2)[0];
+        var syntaxMap = edits.GetSyntaxMap();
 
         edits.VerifySemantics(
             [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap,
-                    rudeEdits: [RuntimeRudeEdit(marker: 2, RudeEditKind.RenamingCapturedVariable, (8, 29), ["x", "X"])]),
+                    rudeEdits: [RuntimeRudeEdit(marker: 2, RudeEditKind.RenamingCapturedVariable, syntaxMap.NodePosition(1), ["x", "X"])]),
             ],
             capabilities: EditAndContinueCapabilities.UpdateParameters);
     }
@@ -6198,12 +6271,12 @@ class C
 }";
 
         var edits = GetTopEdits(src1, src2);
-        var syntaxMap = GetSyntaxMap(src1, src2)[0];
+        var syntaxMap = edits.GetSyntaxMap();
 
         edits.VerifySemantics(
             [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap,
-                    rudeEdits: [RuntimeRudeEdit(marker: 2, RudeEditKind.RenamingCapturedVariable, (10, 39), ["x", "X"])]),
+                    rudeEdits: [RuntimeRudeEdit(marker: 2, RudeEditKind.RenamingCapturedVariable, syntaxMap.NodePosition(1), ["x", "X"])]),
             ],
             capabilities: EditAndContinueCapabilities.UpdateParameters);
     }
@@ -6230,20 +6303,20 @@ class B(Func<int> f);
 
 class C
 {
-    <N:0>C(int X, int Y) : base(() => X)
+    <N:0>C(int <S:0>X</S:0>, int Y) : base(() => X)
     {
         Func<int> g = () => Y;
     }</N:0>
 }";
 
         var edits = GetTopEdits(src1, src2);
-        var syntaxMap = GetSyntaxMap(src1, src2)[0];
+        var syntaxMap = edits.GetSyntaxMap();
 
         edits.VerifySemantics(
             [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"), syntaxMap,
                     // only the first rude edit is reported for each node:
-                    rudeEdits: [RuntimeRudeEdit(marker: 0, RudeEditKind.RenamingCapturedVariable, (8, 16), ["x", "X"])]),
+                    rudeEdits: [RuntimeRudeEdit(marker: 0, RudeEditKind.RenamingCapturedVariable, syntaxMap.Position(0), ["x", "X"])]),
             ],
             capabilities: EditAndContinueCapabilities.UpdateParameters);
     }
@@ -6263,16 +6336,16 @@ using System;
 
 class B(Func<int> f);
 
-<N:0>class C(int X) : B(() => X);</N:0>
+<N:0>class C(int <S:0>X</S:0>) : B(() => X);</N:0>
 ";
 
         var edits = GetTopEdits(src1, src2);
-        var syntaxMap = GetSyntaxMap(src1, src2)[0];
+        var syntaxMap = edits.GetSyntaxMap();
 
         edits.VerifySemantics(
             [
                 SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C..ctor"), syntaxMap,
-                    rudeEdits: [RuntimeRudeEdit(marker: 0, RudeEditKind.RenamingCapturedVariable, (6, 18), ["x", "X"])]),
+                    rudeEdits: [RuntimeRudeEdit(marker: 0, RudeEditKind.RenamingCapturedVariable, syntaxMap.Position(0), ["x", "X"])]),
             ],
             capabilities: EditAndContinueCapabilities.UpdateParameters);
     }
@@ -6915,7 +6988,7 @@ class C
     
     void F()
     {
-        G(a => a);
+        G(<N:0>a => a</N:0>);
     }
 }
 ";
@@ -6928,16 +7001,21 @@ class C
 
     void F()
     {
-        int localF(int a) { return a; }
+        <N:0>int <S:0>localF</S:0>(int a) { return a; }</N:0>
         G(localF);
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        // To be removed when we will enable EnC for local functions
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.SwitchBetweenLambdaAndLocalFunction, "localF"));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.SwitchBetweenLambdaAndLocalFunction, syntaxMap.Position(0), [GetResource("local function")])
+                ])
+            ]);
     }
 
     [Fact]
@@ -6952,7 +7030,7 @@ class C
 
     void F()
     {
-        int localF(int a) { return a; }
+        <N:0>int localF(int a) { return a; }</N:0>
         G(localF);
     }
 }
@@ -6966,15 +7044,19 @@ class C
     
     void F()
     {
-        G(a => a);
+        G(<N:0>a => a</N:0>);
     }
 }
 ";
 
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.SwitchBetweenLambdaAndLocalFunction, "a"));
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+            [
+                RuntimeRudeEdit(0, RudeEditKind.SwitchBetweenLambdaAndLocalFunction, syntaxMap.NodePosition(0), arguments: [])
+            ]));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/21499")]
@@ -7479,7 +7561,7 @@ class C
 {
     void F()
     {
-        int f(int a) => a;
+        <N:0>int f(int a) => a;</N:0>
     }
 }
 ";
@@ -7490,14 +7572,20 @@ class C
 {
     void F()
     {
-        long f(long a) => a;
+        <N:0>long <S:0>f</S:0>(long a) => a;</N:0>
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingLambdaParameters, "f", CSharpFeaturesResources.local_function));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.Position(0), [GetResource("local function")])
+                ])
+            ]);
     }
 
     [Fact]
@@ -7510,7 +7598,7 @@ class C
 {
     void F()
     {
-        int f(int a) => a;
+        <N:0>int f(int a) => a;</N:0>
     }
 }
 ";
@@ -7521,14 +7609,20 @@ class C
 {
     void F()
     {
-        int f(int a, int b) => a + b;
+        <N:0>int <S:0>f</S:0>(int a, int b) => a + b;</N:0>
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingLambdaParameters, "f", CSharpFeaturesResources.local_function));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.Position(0), [GetResource("local function")])
+                ])
+            ]);
     }
 
     [Fact]
@@ -7541,7 +7635,7 @@ class C
 {
     void F()
     {
-        int f(int a) => a;
+        <N:0>int f(int a) => a;</N:0>
     }
 }
 ";
@@ -7552,14 +7646,20 @@ class C
 {
     void F()
     {
-        long f(int a) => a;
+        <N:0>long <S:0>f</S:0>(int a) => a;</N:0>
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingLambdaReturnType, "f", CSharpFeaturesResources.local_function));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaReturnType, syntaxMap.Position(0), [GetResource("local function")])
+                ])
+            ]);
     }
 
     [Fact]
@@ -7572,7 +7672,7 @@ class C
 {
     void F()
     {
-        int f(int a) { return 1; }
+        <N:0>int f(int a) { return 1; }</N:0>
     }
 }
 ";
@@ -7583,14 +7683,20 @@ class C
 {
     void F()
     {
-        void f(int a) { }
+        <N:0>void <S:0>f</S:0>(int a) { }</N:0>
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingLambdaReturnType, "f", CSharpFeaturesResources.local_function));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaReturnType, syntaxMap.Position(0), [GetResource("local function")])
+                ])
+            ]);
     }
 
     [Fact]
@@ -7667,7 +7773,7 @@ class C
 {
     void F()
     {
-        int f(ref int a) => 1;
+        <N:0>int <S:0>f</S:0>(ref int a) => 1;</N:0>
     }
 }
 ";
@@ -7678,14 +7784,20 @@ class C
 {
     void F()
     {
-        int f(int a) => 2;
+        <N:0>int <S:0>f</S:0>(int a) => 2;</N:0>
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingLambdaParameters, "f", CSharpFeaturesResources.local_function));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.Position(0), [GetResource("local function")])
+                ])
+            ]);
     }
 
     [Fact]
@@ -8718,19 +8830,19 @@ class C
 {
     static void F()
     <N:0>{
-        int X = 1;
+        int <S:0>X</S:0> = 1;
         int f() => X;
     }</N:0>
 }";
 
         var edits = GetTopEdits(src1, src2);
-        var syntaxMap = GetSyntaxMap(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
         edits.VerifySemantics(
             [
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap[0], rudeEdits:
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
                 [
-                    RuntimeRudeEdit(0, RudeEditKind.RenamingCapturedVariable, (9, 13), ["x", "X"])
+                    RuntimeRudeEdit(0, RudeEditKind.RenamingCapturedVariable, syntaxMap.Position(0), ["x", "X"])
                 ])
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition);
@@ -8756,20 +8868,20 @@ using System.Diagnostics;
 
 class C
 {
-    static void F(int X)
+    static void F(int <S:0>X</S:0>)
     <N:0>{
         int f() => X;
     }</N:0>
 }";
 
         var edits = GetTopEdits(src1, src2);
-        var syntaxMap = GetSyntaxMap(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
         edits.VerifySemantics(
             [
-                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap[0], rudeEdits:
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
                 [
-                    RuntimeRudeEdit(0, RudeEditKind.RenamingCapturedVariable, (7, 23), ["x", "X"])
+                    RuntimeRudeEdit(0, RudeEditKind.RenamingCapturedVariable, syntaxMap.Position(0), ["x", "X"])
                 ])
             ],
             capabilities: EditAndContinueCapabilities.AddMethodToExistingType | EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.UpdateParameters);
@@ -8838,31 +8950,35 @@ class C
     [Fact]
     public void LocalFunction_In_Parameter_InsertParameter()
     {
-        var src1 = @"class Test { void M() { void local() { throw null; } } }";
-        var src2 = @"class Test { void M() { void local(in int b) { throw null; } } }";
+        var src1 = @"class C { void F() { <N:0>void local() { throw null; }</N:0> } }";
+        var src2 = @"class C { void F() { <N:0>void <S:0>local</S:0>(in int b) { throw null; }</N:0> } }";
 
         var edits = GetTopEdits(src1, src2);
 
-        edits.VerifyEdits(
-            "Update [void M() { void local() { throw null; } }]@13 -> [void M() { void local(in int b) { throw null; } }]@13");
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingLambdaParameters, "local", CSharpFeaturesResources.local_function));
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+            [
+                RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.Position(0), arguments: [GetResource("local function")])
+            ]));
     }
 
     [Fact]
     public void LocalFunction_In_Parameter_Update()
     {
-        var src1 = @"class Test { void M() { void local(int b) { throw null; } } }";
-        var src2 = @"class Test { void M() { void local(in int b) { throw null; } } }";
+        var src1 = @"class C { void F() { <N:0>void local(int b) { throw null; }</N:0> } }";
+        var src2 = @"class C { void F() { <N:0>void <S:0>local</S:0>(in int b) { throw null; }</N:0> } }";
 
         var edits = GetTopEdits(src1, src2);
 
-        edits.VerifyEdits(
-            "Update [void M() { void local(int b) { throw null; } }]@13 -> [void M() { void local(in int b) { throw null; } }]@13");
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingLambdaParameters, "local", CSharpFeaturesResources.local_function));
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+            [
+                RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaParameters, syntaxMap.Position(0), arguments: [GetResource("local function")])
+            ]));
     }
 
     [Fact]
@@ -8883,16 +8999,17 @@ class C
     [Fact]
     public void LocalFunction_ReadOnlyRef_ReturnType_Update()
     {
-        var src1 = @"class Test { void M() { int local() { throw null; } } }";
-        var src2 = @"class Test { void M() { ref readonly int local() { throw null; } } }";
+        var src1 = @"class C { void F() { <N:0>int local() { throw null; }</N:0> } }";
+        var src2 = @"class C { void F() { <N:0>ref readonly int <S:0>local</S:0>() { throw null; }</N:0> } }";
 
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifyEdits(
-            "Update [void M() { int local() { throw null; } }]@13 -> [void M() { ref readonly int local() { throw null; } }]@13");
-
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingLambdaReturnType, "local", CSharpFeaturesResources.local_function));
+        edits.VerifySemantics(
+            SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+            [
+                RuntimeRudeEdit(0, RudeEditKind.ChangingLambdaReturnType, syntaxMap.Position(0), arguments: [GetResource("local function")])
+            ]));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/37128")]
@@ -9268,78 +9385,36 @@ interface I
         GetTopEdits(edits).VerifySemanticDiagnostics();
     }
 
-    [Fact]
-    public void LocalFunctions_TypeParameter_Insert1()
+    [Theory]
+    // insert:
+    [InlineData("void L<A>() {}", "void <S:0>L</S:0><A,B>() {}", new[] { "Update [<A>]@13 -> [<A,B>]@24", "Insert [B]@27" })]
+    [InlineData("void L() {}", "void <S:0>L</S:0><A>() {}", new[] { "Insert [<A>]@24", "Insert [A]@25" })]
+    // delete:
+    [InlineData("void L<A>() {}", "void <S:0>L</S:0>() {}", new[] { "Delete [<A>]@13", "Delete [A]@14" })]
+    [InlineData("void L<A,B>() {}", "void <S:0>L</S:0><B>() {}", new[] { "Update [<A,B>]@13 -> [<B>]@24", "Delete [A]@14" })]
+    // update:
+    [InlineData("void L<A>() {}", "void <S:0>L</S:0><B>() {}", new[] { "Update [A]@14 -> [B]@25" })]
+    // reorder:
+    [InlineData("void L<A,B>() {}", "void <S:0>L</S:0><B,A>() {}", new[] { "Reorder [B]@16 -> @25" })]
+    // reorder and update:
+    [InlineData("void L<A,B>() {}", "void <S:0>L</S:0><B,C>() {}", new[] { "Reorder [B]@16 -> @25", "Update [A]@14 -> [C]@27" })]
+    public void VerifyChangingLocalFunctionTypeParameters(string localFunctionSource1, string localFunctionSource2, string[] expectedMethodEdits)
     {
-        var src1 = @"void L() {}";
-        var src2 = @"void L<A>() {} ";
+        var src1 = $"<N:0>{localFunctionSource1}</N:0>";
+        var src2 = $"<N:0>{localFunctionSource2}</N:0>";
 
-        var edits = GetMethodEdits(src1, src2);
-        edits.VerifyEdits(
-            "Insert [<A>]@8",
-            "Insert [A]@9");
+        GetMethodEdits(src1, src2).VerifyEdits(expectedMethodEdits);
 
-        GetTopEdits(edits).VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
-    }
+        var edits = GetTopEdits(src1, src2, MethodKind.Regular);
+        var syntaxMap = edits.GetSyntaxMap();
 
-    [Fact]
-    public void LocalFunctions_TypeParameter_Insert2()
-    {
-        var src1 = @"void L<A>() {}";
-        var src2 = @"void L<A,B>() {} ";
-
-        var edits = GetMethodEdits(src1, src2);
-        edits.VerifyEdits(
-            "Update [<A>]@8 -> [<A,B>]@8",
-            "Insert [B]@11");
-
-        GetTopEdits(edits).VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
-    }
-
-    [Fact]
-    public void LocalFunctions_TypeParameter_Delete1()
-    {
-        var src1 = @"void L<A>() {}";
-        var src2 = @"void L() {} ";
-
-        var edits = GetMethodEdits(src1, src2);
-        edits.VerifyEdits(
-            "Delete [<A>]@8",
-            "Delete [A]@9");
-
-        GetTopEdits(edits).VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
-    }
-
-    [Fact]
-    public void LocalFunctions_TypeParameter_Delete2()
-    {
-        var src1 = @"void L<A,B>() {}";
-        var src2 = @"void L<B>() {} ";
-
-        var edits = GetMethodEdits(src1, src2);
-        edits.VerifyEdits(
-            "Update [<A,B>]@8 -> [<B>]@8",
-            "Delete [A]@9");
-
-        GetTopEdits(edits).VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
-    }
-
-    [Fact]
-    public void LocalFunctions_TypeParameter_Update()
-    {
-        var src1 = @"void L<A>() {}";
-        var src2 = @"void L<B>() {} ";
-
-        var edits = GetMethodEdits(src1, src2);
-        edits.VerifyEdits(
-            "Update [A]@9 -> [B]@9");
-
-        GetTopEdits(edits).VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingTypeParameters, syntaxMap.Position(0), [GetResource("local function")])
+                ])
+            ]);
     }
 
     [Theory]
@@ -9347,16 +9422,22 @@ interface I
     [InlineData("IDisposable", "IDisposable, new()")]
     public void LocalFunctions_TypeParameter_Constraint_Clause_Update(string oldConstraint, string newConstraint)
     {
-        var src1 = "void L<A>() where A : " + oldConstraint + " {}";
-        var src2 = "void L<A>() where A : " + newConstraint + " {}";
+        var src1 = "<N:0>void L<A>() where A : " + oldConstraint + " {}</N:0>";
+        var src2 = "<N:0>void <S:0>L</S:0><A>() where A : " + newConstraint + " {}</N:0>";
 
-        var edits = GetMethodEdits(src1, src2);
+        GetMethodEdits(src1, src2).VerifyEdits(
+            "Update [where A : " + oldConstraint + "]@19 -> [where A : " + newConstraint + "]@30");
 
-        edits.VerifyEdits(
-            "Update [where A : " + oldConstraint + "]@14 -> [where A : " + newConstraint + "]@14");
+        var edits = GetTopEdits(src1, src2, MethodKind.Regular);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        GetTopEdits(edits).VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingTypeParameters, syntaxMap.Position(0), [GetResource("local function")])
+                ])
+            ]);
     }
 
     [Theory]
@@ -9369,60 +9450,43 @@ interface I
     [InlineData("System.Delegate")]
     public void LocalFunctions_TypeParameter_Constraint_Clause_Delete(string oldConstraint)
     {
-        var src1 = "void L<A>() where A : " + oldConstraint + " {}";
-        var src2 = "void L<A>() {}";
+        var src1 = "<N:0>void L<A>() where A : " + oldConstraint + " {}</N:0>";
+        var src2 = "<N:0>void <S:0>L</S:0><A>() {}</N:0>";
 
-        var edits = GetMethodEdits(src1, src2);
+        GetMethodEdits(src1, src2).VerifyEdits(
+            "Delete [where A : " + oldConstraint + "]@19");
 
-        edits.VerifyEdits(
-            "Delete [where A : " + oldConstraint + "]@14");
+        var edits = GetTopEdits(src1, src2, MethodKind.Regular);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        GetTopEdits(edits).VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingTypeParameters, syntaxMap.Position(0), [GetResource("local function")])
+                ])
+            ]);
     }
 
     [Fact]
     public void LocalFunctions_TypeParameter_Constraint_Clause_Add()
     {
-        var src1 = "void L<A,B>() where A : new() {}";
-        var src2 = "void L<A,B>() where A : new() where B : System.IDisposable {}";
+        var src1 = "<N:0>void L<A,B>() where A : new() {}</N:0>";
+        var src2 = "<N:0>void <S:0>L</S:0><A,B>() where A : new() where B : System.IDisposable {}</N:0>";
 
-        var edits = GetMethodEdits(src1, src2);
+        GetMethodEdits(src1, src2).VerifyEdits(
+            "Insert [where B : System.IDisposable]@48");
 
-        edits.VerifyEdits(
-            "Insert [where B : System.IDisposable]@32");
+        var edits = GetTopEdits(src1, src2, MethodKind.Regular);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        GetTopEdits(edits).VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
-    }
-
-    [Fact]
-    public void LocalFunctions_TypeParameter_Reorder()
-    {
-        var src1 = @"void L<A,B>() {}";
-        var src2 = @"void L<B,A>() {} ";
-
-        var edits = GetMethodEdits(src1, src2);
-        edits.VerifyEdits(
-            "Reorder [B]@11 -> @9");
-
-        GetTopEdits(edits).VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
-    }
-
-    [Fact]
-    public void LocalFunctions_TypeParameter_ReorderAndUpdate()
-    {
-        var src1 = @"void L<A,B>() {}";
-        var src2 = @"void L<B,C>() {} ";
-
-        var edits = GetMethodEdits(src1, src2);
-        edits.VerifyEdits(
-            "Reorder [B]@11 -> @9",
-            "Update [A]@9 -> [C]@11");
-
-        GetTopEdits(edits).VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingTypeParameters, "L", FeaturesResources.local_function));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingTypeParameters, syntaxMap.Position(0), [GetResource("local function")])
+                ])
+            ]);
     }
 
     [Fact]
@@ -9693,7 +9757,7 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} select a;
+        var result = from a in new[] {1} <N:0>select a</N:0>;
     }
 }
 ";
@@ -9705,14 +9769,21 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1.0} select a;
+        var result = from a in new[] {1.0} <N:0>select a</N:0>;
     }
 }
 ";
-        var edits = GetTopEdits(src1, src2);
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingQueryLambdaType, "select", CSharpFeaturesResources.select_clause));
+        var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
+
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.NodePosition(0), [GetResource("select clause")])
+                ])
+            ]);
     }
 
     [Fact]
@@ -9726,7 +9797,7 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} select a;
+        var result = from a in new[] {1} <N:0>select a</N:0>;
     }
 }
 ";
@@ -9738,14 +9809,20 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} select a.ToString();
+        var result = from a in new[] {1} <N:0>select a.ToString()</N:0>;
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingQueryLambdaType, "select", CSharpFeaturesResources.select_clause));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.NodePosition(0), [GetResource("select clause")])
+                ])
+            ]);
     }
 
     [Fact]
@@ -9759,7 +9836,7 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} from b in new[] {2} select b;
+        var result = <N:0>from a in new[] {1}</N:0> from b in new[] {2} select b;
     }
 }
 ";
@@ -9771,14 +9848,20 @@ class C
 {
     void F()
     {
-        var result = from long a in new[] {1} from b in new[] {2} select b;
+        var result = <N:0>from long a in new[] {1}</N:0> from b in new[] {2} select b;
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingQueryLambdaType, "from", CSharpFeaturesResources.from_clause));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.NodePosition(0), [GetResource("from clause")])
+                ])
+            ], capabilities: EditAndContinueCapabilities.AddMethodToExistingType);
     }
 
     [Fact]
@@ -9859,7 +9942,7 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} let b = 1 select a;
+        var result = from a in new[] {1} <N:0>let b = 1</N:0> select a;
     }
 }
 ";
@@ -9872,14 +9955,20 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} let b = 1.0 select a;
+        var result = from a in new[] {1} <N:0>let b = 1.0</N:0> select a;
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingQueryLambdaType, "let", CSharpFeaturesResources.let_clause));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.NodePosition(0), [GetResource("let clause")])
+                ])
+            ]);
     }
 
     [Fact]
@@ -9894,7 +9983,7 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} orderby a + 1 descending, a + 2 ascending select a;
+        var result = from a in new[] {1} orderby <N:0>a + 1 descending</N:0>, a + 2 ascending select a;
     }
 }
 ";
@@ -9907,14 +9996,20 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} orderby a + 1.0 descending, a + 2 ascending select a;
+        var result = from a in new[] {1} orderby <N:0>a + 1.0 descending</N:0>, a + 2 ascending select a;
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingQueryLambdaType, "a + 1.0 descending", CSharpFeaturesResources.orderby_clause));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.NodePosition(0), [GetResource("orderby clause")])
+                ])
+            ]);
     }
 
     [Fact]
@@ -9929,7 +10024,7 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} orderby a + 1 descending, a + 2 ascending select a;
+        var result = from a in new[] {1} orderby a + 1 descending, <N:0>a + 2 ascending</N:0> select a;
     }
 }
 ";
@@ -9942,14 +10037,20 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} orderby a + 1 descending, a + 2.0 ascending select a;
+        var result = from a in new[] {1} orderby a + 1 descending, <N:0>a + 2.0 ascending</N:0> select a;
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingQueryLambdaType, "a + 2.0 ascending", CSharpFeaturesResources.orderby_clause));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.NodePosition(0), [GetResource("orderby clause")])
+                ])
+            ]);
     }
 
     [Fact]
@@ -9964,7 +10065,7 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} join b in new[] {1} on a equals b select b;
+        var result = from a in new[] {1} <N:0>join b in new[] {1} on a equals b</N:0> select b;
     }
 }
 ";
@@ -9977,14 +10078,21 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} join b in new[] {1.0} on a equals b select b;
+        var result = from a in new[] {1} <N:0>join b in new[] {1.0} on a equals b</N:0> select b;
     }
 }
 ";
-        var edits = GetTopEdits(src1, src2);
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingQueryLambdaType, "join", CSharpFeaturesResources.join_clause));
+        var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
+
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.NodePosition(0), [GetResource("join clause")])
+                ])
+            ]);
     }
 
     [Fact]
@@ -9999,7 +10107,7 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} join b in new[] {1} on a equals b select b;
+        var result = from a in new[] {1} <N:0>join b in new[] {1} on a equals b</N:0> select b;
     }
 }
 ";
@@ -10012,14 +10120,20 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} join byte b in new[] {1} on a equals b select b;
+        var result = from a in new[] {1} <N:0>join byte b in new[] {1} on a equals b</N:0> select b;
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingQueryLambdaType, "join", CSharpFeaturesResources.join_clause));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.NodePosition(0), [GetResource("join clause")])
+                ])
+            ]);
     }
 
     [Fact]
@@ -10034,7 +10148,7 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} join b in new[] {1} on a + 1 equals b select b;
+        var result = from a in new[] {1} <N:0>join b in new[] {1} on a + 1 equals b</N:0> select b;
     }
 }
 ";
@@ -10047,14 +10161,20 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} join b in new[] {1} on a + 1.0 equals b select b;
+        var result = from a in new[] {1} <N:0>join b in new[] {1} on a + 1.0 equals b</N:0> select b;
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingQueryLambdaType, "join", CSharpFeaturesResources.join_clause));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.NodePosition(0), [GetResource("join clause")])
+                ])
+            ]);
     }
 
     [Fact]
@@ -10069,7 +10189,7 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} join b in new[] {1} on a equals b + 1 select b;
+        var result = from a in new[] {1} <N:0>join b in new[] {1} on a equals b + 1</N:0> select b;
     }
 }
 ";
@@ -10082,14 +10202,20 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} join b in new[] {1} on a equals b + 1.0 select b;
+        var result = from a in new[] {1} <N:0>join b in new[] {1} on a equals b + 1.0</N:0> select b;
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingQueryLambdaType, "join", CSharpFeaturesResources.join_clause));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.NodePosition(0), [GetResource("join clause")])
+                ])
+            ]);
     }
 
     [Fact]
@@ -10104,7 +10230,7 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} group a + 1 by a into z select z;
+        var result = from a in new[] {1} <N:0>group a + 1 by a</N:0> into z select z;
     }
 }
 ";
@@ -10117,14 +10243,20 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} group a + 1.0 by a into z select z;
+        var result = from a in new[] {1} <N:0>group a + 1.0 by a</N:0> into z select z;
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingQueryLambdaType, "group", CSharpFeaturesResources.groupby_clause));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.NodePosition(0), [GetResource("groupby clause")])
+                ])
+            ]);
     }
 
     [Fact]
@@ -10139,7 +10271,7 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} group a by a into z select z;
+        var result = from a in new[] {1} <N:0>group a by a</N:0> into z select z;
     }
 }
 ";
@@ -10152,14 +10284,20 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} group a by a + 1.0 into z select z;
+        var result = from a in new[] {1} <N:0>group a by a + 1.0</N:0> into z select z;
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingQueryLambdaType, "group", CSharpFeaturesResources.groupby_clause));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.NodePosition(0), [GetResource("groupby clause")])
+                ])
+            ]);
     }
 
     [Fact]
@@ -10217,7 +10355,7 @@ class C
 
     void F()
     {
-        var result = from a in new[] {1} group G1(a) by a into z select z;
+        var result = from a in new[] {1} <N:0>group G1(a) by a</N:0> into z select z;
     }
 }
 ";
@@ -10233,14 +10371,20 @@ class C
     
     void F()
     {
-        var result = from a in new[] {1} group G2(a) by a into z select z;
+        var result = from a in new[] {1} <N:0>group G2(a) by a</N:0> into z select z;
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
+        var syntaxMap = edits.GetSyntaxMap();
 
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingQueryLambdaType, "group", CSharpFeaturesResources.groupby_clause));
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.NodePosition(0), [GetResource("groupby clause")])
+                ])
+            ]);
     }
 
     [Fact]
@@ -10422,7 +10566,7 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} group a by a;
+        var result = from a in new[] {1} <N:0>group a by a</N:0>;
     }
 }
 ";
@@ -10434,13 +10578,20 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} group a + 1.0 by a;
+        var result = from a in new[] {1} <N:0>group a + 1.0 by a</N:0>;
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingQueryLambdaType, "group", CSharpFeaturesResources.groupby_clause));
+        var syntaxMap = edits.GetSyntaxMap();
+
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.NodePosition(0), [GetResource("groupby clause")])
+                ])
+            ]);
     }
 
     [Fact]
@@ -10485,7 +10636,7 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} group a + 1.0 by a;
+        var result = from a in new[] {1} <N:0>group a + 1.0 by a</N:0>;
     }
 }
 ";
@@ -10497,13 +10648,20 @@ class C
 {
     void F()
     {
-        var result = from a in new[] {1} group a by a;
+        var result = from a in new[] {1} <N:0>group a by a</N:0>;
     }
 }
 ";
         var edits = GetTopEdits(src1, src2);
-        edits.VerifySemanticDiagnostics(
-            Diagnostic(RudeEditKind.ChangingQueryLambdaType, "group", CSharpFeaturesResources.groupby_clause));
+        var syntaxMap = edits.GetSyntaxMap();
+
+        edits.VerifySemantics(
+            [
+                SemanticEdit(SemanticEditKind.Update, c => c.GetMember("C.F"), syntaxMap, rudeEdits:
+                [
+                    RuntimeRudeEdit(0, RudeEditKind.ChangingQueryLambdaType, syntaxMap.NodePosition(0), [GetResource("groupby clause")])
+                ])
+            ]);
     }
 
     [Fact]

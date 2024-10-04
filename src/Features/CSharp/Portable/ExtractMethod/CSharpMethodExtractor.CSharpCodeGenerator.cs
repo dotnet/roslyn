@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
-internal partial class CSharpMethodExtractor
+internal sealed partial class CSharpMethodExtractor
 {
     private abstract partial class CSharpCodeGenerator : CodeGenerator<StatementSyntax, SyntaxNode, CSharpCodeGenerationOptions>
     {

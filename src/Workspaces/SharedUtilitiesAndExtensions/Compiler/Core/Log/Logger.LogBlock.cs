@@ -29,7 +29,7 @@ internal static partial class Logger
     /// This tracks the logged message. On instantiation, it logs 'Started block' with other event data.
     /// On dispose, it logs 'Ended block' with the same event data so we can track which block started and ended when looking at logs.
     /// </summary>
-    private class RoslynLogBlock(ObjectPool<RoslynLogBlock> pool) : IDisposable
+    private sealed class RoslynLogBlock(ObjectPool<RoslynLogBlock> pool) : IDisposable
     {
 
         // these need to be cleared before putting back to pool

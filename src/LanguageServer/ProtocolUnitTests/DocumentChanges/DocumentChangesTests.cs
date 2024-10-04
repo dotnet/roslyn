@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
 
                 await DidChange(testLspServer, locationTyped.Uri, (4, 8, "// hi there"));
 
-                var documentTextFromWorkspace = (await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync()).ToString();
+                var documentTextFromWorkspace = (await testLspServer.GetDocumentTextAsync(locationTyped.Uri)).ToString();
 
                 Assert.NotNull(documentTextFromWorkspace);
                 Assert.Equal(documentText, documentTextFromWorkspace);
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
         {
             var testLspServer = await CreateTestLspServerAsync(source, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
             var locationTyped = testLspServer.GetLocations("type").Single();
-            var documentText = await testLspServer.GetCurrentSolution().GetDocuments(locationTyped.Uri).Single().GetTextAsync();
+            var documentText = await testLspServer.GetDocumentTextAsync(locationTyped.Uri);
 
             return (testLspServer, locationTyped, documentText.ToString());
         }

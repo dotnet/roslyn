@@ -18,7 +18,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
 [ExportSignatureHelpProvider(nameof(InitializerExpressionSignatureHelpProvider), LanguageNames.CSharp), Shared]
-internal partial class InitializerExpressionSignatureHelpProvider : AbstractOrdinaryMethodSignatureHelpProvider
+internal sealed partial class InitializerExpressionSignatureHelpProvider : AbstractOrdinaryMethodSignatureHelpProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

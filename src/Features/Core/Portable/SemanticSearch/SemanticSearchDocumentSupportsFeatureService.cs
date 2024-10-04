@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.SemanticSearch;
 [ExportWorkspaceService(typeof(IDocumentSupportsFeatureService), WorkspaceKind.SemanticSearch), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class SemanticSearchDocumentSupportsFeatureService() : IDocumentSupportsFeatureService
+internal sealed class SemanticSearchDocumentSupportsFeatureService() : IDocumentSupportsFeatureService
 {
     public bool SupportsCodeFixes(Document document)
         => SemanticSearchUtilities.IsQueryDocument(document);

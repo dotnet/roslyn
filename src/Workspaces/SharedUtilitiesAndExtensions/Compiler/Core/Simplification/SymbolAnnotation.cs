@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Simplification;
 /// <summary>
 /// An annotation that holds onto information about a type or namespace symbol.
 /// </summary>
-internal class SymbolAnnotation
+internal sealed class SymbolAnnotation
 {
     public const string Kind = "SymbolId";
 

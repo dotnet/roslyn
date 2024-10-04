@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Navigation;
 
 [ExportWorkspaceServiceFactory(typeof(ISymbolNavigationService), ServiceLayer.Default), Shared]
-internal class DefaultSymbolNavigationServiceFactory : IWorkspaceServiceFactory
+internal sealed class DefaultSymbolNavigationServiceFactory : IWorkspaceServiceFactory
 {
     private ISymbolNavigationService _singleton;
 

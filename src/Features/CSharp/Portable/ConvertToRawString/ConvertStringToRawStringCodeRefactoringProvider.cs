@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertToRawString;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertToRawString), Shared]
-internal partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
+internal sealed partial class ConvertStringToRawStringCodeRefactoringProvider : SyntaxEditorBasedCodeRefactoringProvider
 {
     private static readonly BidirectionalMap<ConvertToRawKind, string> s_kindToEquivalenceKeyMap =
         new(

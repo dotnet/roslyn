@@ -15,9 +15,11 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.DiaSymReader.Tools;
 using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
@@ -133,9 +135,33 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         public void VerifySynthesizedMembers(params string[] expectedSynthesizedTypesAndMemberCounts)
+            => VerifySynthesizedMembers(EmitResult.Baseline.SynthesizedMembers, displayTypeKind: false, expectedSynthesizedTypesAndMemberCounts);
+
+        internal static void VerifySynthesizedMembers(IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> actualMembers, bool displayTypeKind, params string[] expected)
         {
-            var actual = EmitResult.Baseline.SynthesizedMembers.Select(e => e.Key.ToString() + ": {" + string.Join(", ", e.Value.Select(v => v.Name)) + "}");
-            AssertEx.SetEqual(expectedSynthesizedTypesAndMemberCounts, actual, itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
+            // Synthesized namespaces are not interesting. Explode them and display types contained in them as separate fully qualified names in the list.
+            var actual = new List<string>();
+            foreach (var (container, members) in actualMembers)
+            {
+                if (container is INamespaceSymbolInternal ns)
+                {
+                    actual.AddRange(members
+                        .Where(m => m is not INamespaceSymbolInternal)
+                        .Select(m => m.GetISymbol().ToDisplayString(SymbolDisplayFormat.TestFormat)));
+                }
+            }
+
+            foreach (var (container, members) in actualMembers)
+            {
+                if (container is not INamespaceSymbolInternal)
+                {
+                    actual.Add(
+                        $"{(displayTypeKind && container is INamedTypeSymbolInternal type ? (type.TypeKind == TypeKind.Struct ? "struct " : "class ") : "")}{container}: " +
+                        $"{{{string.Join(", ", members.Select(v => v.Name))}}}");
+                }
+            }
+
+            AssertEx.SetEqual(expected, actual, itemSeparator: ",\r\n", itemInspector: s => $"\"{s}\"");
         }
 
         public void VerifySynthesizedFields(string typeName, params string[] expectedSynthesizedTypesAndMemberCounts)

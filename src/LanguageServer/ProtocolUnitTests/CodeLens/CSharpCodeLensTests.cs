@@ -418,7 +418,7 @@ public class CSharpCodeLensTests : AbstractCodeLensTests
             }
         });
         var actualCodeLenses = await GetCodeLensAsync(testLspServer);
-        Assert.Empty(actualCodeLenses);
+        AssertEx.Empty(actualCodeLenses);
     }
 
     [Theory, CombinatorialData]

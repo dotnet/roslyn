@@ -17,7 +17,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
-internal partial class UnnamedSymbolCompletionProvider
+internal sealed partial class UnnamedSymbolCompletionProvider
 {
     [Flags]
     private enum OperatorPosition

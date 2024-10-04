@@ -18,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable;
 
-internal partial class CSharpIntroduceVariableService
+internal sealed partial class CSharpIntroduceVariableService
 {
     private static bool IsAnyQueryClause(SyntaxNode node)
         => node is QueryClauseSyntax or SelectOrGroupClauseSyntax;

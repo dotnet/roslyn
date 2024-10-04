@@ -410,7 +410,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax: resourceSyntax,
                     rewrittenCondition: ifCondition,
                     rewrittenConsequence: disposeStatement,
-                    rewrittenAlternativeOpt: null,
                     hasErrors: false);
             }
 

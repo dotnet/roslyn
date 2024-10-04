@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             factory.CurrentFunction = this;
             if (ContainingType.BaseTypeNoUseSiteDiagnostics is MissingMetadataTypeSymbol)
             {
-                // System_Attribute was not found or was inaccessible
+                // Containing type was not found or was inaccessible
                 factory.CloseMethod(factory.Block());
                 return;
             }
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var baseConstructorCall = Binder.GenerateBaseParameterlessConstructorInitializer(this, diagnostics);
             if (baseConstructorCall == null)
             {
-                // Attribute..ctor was not found or was inaccessible
+                // .ctor was not found or was inaccessible
                 factory.CloseMethod(factory.Block());
                 return;
             }
