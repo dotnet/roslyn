@@ -4771,8 +4771,8 @@ Diese Version wird verwendet in: {2}</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_null_checks">
-        <source>Add null checks</source>
-        <target state="translated">NULL-Überprüfungen hinzufügen</target>
+        <source>Add _null checks</source>
+        <target state="needs-review-translation">NULL-Überprüfungen hinzufügen</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_operators">

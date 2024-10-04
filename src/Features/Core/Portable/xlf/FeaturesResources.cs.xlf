@@ -4771,8 +4771,8 @@ Tato verze se používá zde: {2}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_null_checks">
-        <source>Add null checks</source>
-        <target state="translated">Přidat kontroly hodnot null</target>
+        <source>Add _null checks</source>
+        <target state="needs-review-translation">Přidat kontroly hodnot null</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_operators">

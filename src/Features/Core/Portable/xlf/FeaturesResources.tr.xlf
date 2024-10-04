@@ -4771,8 +4771,8 @@ Bu sürüm şurada kullanılır: {2}</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_null_checks">
-        <source>Add null checks</source>
-        <target state="translated">Null denetimleri ekle</target>
+        <source>Add _null checks</source>
+        <target state="needs-review-translation">Null denetimleri ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_operators">

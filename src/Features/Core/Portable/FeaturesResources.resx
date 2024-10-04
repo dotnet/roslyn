@@ -951,7 +951,7 @@ This version used in: {2}</value>
     <value>Initialize property '{0}'</value>
   </data>
   <data name="Add_null_checks" xml:space="preserve">
-    <value>Add null checks</value>
+    <value>Add _null checks</value>
   </data>
   <data name="Generate_operators" xml:space="preserve">
     <value>Generate operators</value>
