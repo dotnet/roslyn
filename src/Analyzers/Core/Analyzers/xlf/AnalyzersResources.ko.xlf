@@ -98,7 +98,7 @@
       </trans-unit>
       <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
         <source>Base classes contain inaccessible unimplemented members</source>
-        <target state="new">Base classes contain inaccessible unimplemented members</target>
+        <target state="translated">기본 클래스에 구현되지 않아 액세스할 수 없는 멤버가 포함되어 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
@@ -153,12 +153,12 @@
       </trans-unit>
       <trans-unit id="Implement_abstract_class">
         <source>Implement abstract class</source>
-        <target state="new">Implement abstract class</target>
+        <target state="translated">추상 클래스 구현</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_through_0">
         <source>Implement through '{0}'</source>
-        <target state="new">Implement through '{0}'</target>
+        <target state="translated">'{0}'을(를) 통해 구현</target>
         <note />
       </trans-unit>
       <trans-unit id="Interpolation_can_be_simplified">

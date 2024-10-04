@@ -950,7 +950,7 @@ internal sealed class CSharpConvertLinqQueryToForEachProvider : AbstractConvertL
             return false;
         }
 
-        private class QueryExpressionProcessingInfo
+        private sealed class QueryExpressionProcessingInfo
         {
             public Stack<CSharpSyntaxNode> Stack { get; private set; }
 

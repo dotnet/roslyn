@@ -3002,9 +3002,17 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                             break;
 
                         case EditKind.Reorder:
+                            Contract.ThrowIfNull(oldModel);
+                            Contract.ThrowIfNull(newModel);
                             Contract.ThrowIfNull(oldSymbol);
                             Contract.ThrowIfNull(newSymbol);
 
+                            // Reordering fields in a type in source doesn't actually result in 
+                            // a metadata update that would reoder them in the runtime type representation.
+                            // The runtime does not allow us to communicate such change in the delta.
+                            // If we allowed reodering fields of a type with sequential/explicit layout
+                            // it might be confusing because after the change the order of the fields
+                            // in the runtime type may not match the source anymore.
                             ReportTypeLayoutUpdateRudeEdits(diagnosticContext, oldSymbol, cancellationToken);
 
                             if (oldSymbol is IParameterSymbol &&
@@ -3012,9 +3020,12 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                                 !capabilities.Grant(EditAndContinueCapabilities.UpdateParameters))
                             {
                                 diagnosticContext.Report(RudeEditKind.RenamingNotSupportedByRuntime, cancellationToken);
+                                continue;
                             }
 
-                            continue;
+                            // The member may also be updated (modifiers, attributes, body, etc.). Continue processing as an update.
+                            editKind = SemanticEditKind.Update;
+                            break;
 
                         default:
                             throw ExceptionUtilities.UnexpectedValue(edit.Kind);
@@ -4943,6 +4954,9 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         /// The rude edit will be associated with the syntax kind of newDeclaration in telemetry.
         /// </summary>
         public void Report(RudeEditKind kind, CancellationToken cancellationToken, TextSpan? span = null, string?[]? arguments = null)
+            => diagnostics.Add(CreateRudeEdit(kind, cancellationToken, span, arguments));
+
+        public RudeEditDiagnostic CreateRudeEdit(RudeEditKind kind, CancellationToken cancellationToken, TextSpan? span = null, string?[]? arguments = null)
         {
             var node = GetDiagnosticNode(out var distance, cancellationToken);
 
@@ -4950,7 +4964,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 ? analyzer.GetDiagnosticSpan(node, (distance > 0 || kind == RudeEditKind.ChangeImplicitMainReturnType) ? EditKind.Delete : EditKind.Update)
                 : diagnosticSpan;
 
-            diagnostics.Add(new RudeEditDiagnostic(
+            return new RudeEditDiagnostic(
                 kind,
                 span.Value,
                 node,
@@ -4963,16 +4977,16 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                     RudeEditKind.SwitchBetweenLambdaAndLocalFunction or
                     RudeEditKind.AccessorKindUpdate or
                     RudeEditKind.InsertConstructorToTypeWithInitializersWithLambdas
-                        => Array.Empty<string>(),
+                        => [],
 
                     RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime
-                        => new[] { CreateNewOnMetadataUpdateAttributeName },
+                        => [CreateNewOnMetadataUpdateAttributeName],
 
                     RudeEditKind.Renamed
-                        => new[] { analyzer.GetDisplayKindAndName(oldSymbol!, fullyQualify: false) },
+                        => [analyzer.GetDisplayKindAndName(oldSymbol!, fullyQualify: false)],
 
-                    _ => new[]
-                    {
+                    _ =>
+                    [
                         // Use name of oldSymbol, in case the symbol we are refering to has been renamed:
                         ((oldSymbol ?? newSymbol) is not { } symbol)
                             ? analyzer.GetDisplayName(node)
@@ -4980,8 +4994,8 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                             : distance > 0
                                 ? analyzer.GetDisplayKindAndName(symbol, fullyQualify: distance > 1)
                                 : analyzer.GetDisplayKind(symbol)
-                    }
-                }));
+                    ]
+                });
         }
 
         public void ReportTypeLayoutUpdateRudeEdits(CancellationToken cancellationToken)
@@ -4989,7 +5003,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             Debug.Assert(newSymbol != null);
 
             Report(
-                (newSymbol.ContainingType.TypeKind == TypeKind.Struct) ? RudeEditKind.InsertIntoStruct : RudeEditKind.InsertIntoClassWithLayout,
+                (newSymbol.ContainingType.TypeKind == TypeKind.Struct) ? RudeEditKind.InsertOrMoveStructMember : RudeEditKind.InsertOrMoveTypeWithLayoutMember,
                 cancellationToken,
                 arguments:
                 [
@@ -5009,6 +5023,15 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
     internal void ReportTypeLayoutUpdateRudeEdits(in DiagnosticContext diagnosticContext, ISymbol newSymbol, CancellationToken cancellationToken)
     {
+        // can't modify order of members in a COM interface:
+        if (newSymbol.ContainingType is INamedTypeSymbol { IsComImport: true })
+        {
+            diagnosticContext.Report(RudeEditKind.InsertOrMoveComInterfaceMember, cancellationToken, arguments: [GetDisplayKind(newSymbol)]);
+            return;
+        }
+
+        // Note: static fields do not affect type layout but no runtime supports adding them.
+
         switch (newSymbol.Kind)
         {
             case SymbolKind.Field:
@@ -5477,9 +5500,10 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         hasLambdaBodyUpdate = false;
         runtimeRudeEdits = null;
 
+        using var _ = PooledDictionary<SyntaxNode, RudeEditDiagnostic>.GetInstance(out var runtimeRudeEditsBuilder);
+
         if (activeOrMatchedLambdas != null)
         {
-            var anySignatureErrors = false;
             var hasUnmatchedLambdas = false;
             foreach (var (oldLambdaBody, newLambdaInfo) in activeOrMatchedLambdas)
             {
@@ -5546,8 +5570,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 // query signatures are analyzed separately:
                 if (isNestedFunction)
                 {
-                    ReportLambdaSignatureRudeEdits(diagnosticContext, oldLambda, newLambda, capabilities, out var hasErrors, cancellationToken);
-                    anySignatureErrors |= hasErrors;
+                    ReportLambdaSignatureRudeEdits(diagnosticContext, oldLambda, newLambda, capabilities, runtimeRudeEditsBuilder, cancellationToken);
                 }
             }
 
@@ -5578,17 +5601,10 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                                                select clausesByQuery.First())
                 {
                     var diagnosticContext = CreateDiagnosticContext(diagnostics, oldSymbol: null, newSymbol: null, newQueryClause, newModel, topMatch: null);
-                    diagnosticContext.Report(RudeEditKind.ChangingQueryLambdaType, cancellationToken);
+                    runtimeRudeEditsBuilder[newQueryClause] = diagnosticContext.CreateRudeEdit(RudeEditKind.ChangingQueryLambdaType, cancellationToken);
                 }
 
                 lazyNewErroneousClauses.Free();
-                anySignatureErrors = true;
-            }
-
-            // only dig into captures if lambda signatures match
-            if (anySignatureErrors)
-            {
-                return;
             }
         }
 
@@ -5657,8 +5673,6 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         // { old capture index -> old closure scope or null for "this" }
         using var _3 = ArrayBuilder<SyntaxNode?>.GetInstance(oldInLambdaCaptures.Length, fillWithValue: null, out var oldCapturesToClosureScopes);
 
-        using var _4 = PooledDictionary<SyntaxNode, RudeEditDiagnostic>.GetInstance(out var closureRudeEdits);
-
         CalculateCapturedVariablesMaps(
             oldInLambdaCaptures,
             oldDeclaration,
@@ -5670,14 +5684,14 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             reverseCapturesMap,
             newCapturesToClosureScopes,
             oldCapturesToClosureScopes,
-            closureRudeEdits,
+            runtimeRudeEditsBuilder,
             cancellationToken);
 
-        if (closureRudeEdits.Any())
+        if (runtimeRudeEditsBuilder.Any())
         {
-            var rudeEdits = closureRudeEdits.ToImmutableSegmentedDictionary(
+            var rudeEdits = runtimeRudeEditsBuilder.ToImmutableSegmentedDictionary(
                 static item => item.Key,
-                static item => new RuntimeRudeEdit(item.Value.ToDiagnostic(item.Key.SyntaxTree).ToString()));
+                static item => new RuntimeRudeEdit(item.Value.ToDiagnostic(item.Key.SyntaxTree).ToString(), (int)item.Value.Kind));
 
             runtimeRudeEdits = node => rudeEdits.TryGetValue(node, out var message) ? message : null;
             return;
@@ -6283,18 +6297,15 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         SyntaxNode oldLambda,
         SyntaxNode newLambda,
         EditAndContinueCapabilitiesGrantor capabilities,
-        out bool hasSignatureErrors,
+        IDictionary<SyntaxNode, RudeEditDiagnostic> runtimeRudeEditsBuilder,
         CancellationToken cancellationToken)
     {
-        hasSignatureErrors = false;
-
         Debug.Assert(IsNestedFunction(newLambda));
         Debug.Assert(IsNestedFunction(oldLambda));
 
         if (IsLocalFunction(oldLambda) != IsLocalFunction(newLambda))
         {
-            diagnosticContext.Report(RudeEditKind.SwitchBetweenLambdaAndLocalFunction, cancellationToken);
-            hasSignatureErrors = true;
+            runtimeRudeEditsBuilder[newLambda] = diagnosticContext.CreateRudeEdit(RudeEditKind.SwitchBetweenLambdaAndLocalFunction, cancellationToken);
             return;
         }
 
@@ -6304,23 +6315,20 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         // signature validation:
         if (!ParameterTypesEquivalent(oldLambdaSymbol.Parameters, newLambdaSymbol.Parameters, exact: false))
         {
-            diagnosticContext.Report(RudeEditKind.ChangingLambdaParameters, cancellationToken);
-            hasSignatureErrors = true;
-        }
-        else if (!ReturnTypesEquivalent(oldLambdaSymbol, newLambdaSymbol, exact: false))
-        {
-            diagnosticContext.Report(RudeEditKind.ChangingLambdaReturnType, cancellationToken);
-            hasSignatureErrors = true;
-        }
-        else if (!TypeParametersEquivalent(oldLambdaSymbol.TypeParameters, newLambdaSymbol.TypeParameters, exact: false) ||
-                 !oldLambdaSymbol.TypeParameters.SequenceEqual(newLambdaSymbol.TypeParameters, static (p, q) => p.Name == q.Name))
-        {
-            diagnosticContext.Report(RudeEditKind.ChangingTypeParameters, cancellationToken);
-            hasSignatureErrors = true;
+            runtimeRudeEditsBuilder[newLambda] = diagnosticContext.CreateRudeEdit(RudeEditKind.ChangingLambdaParameters, cancellationToken);
+            return;
         }
 
-        if (hasSignatureErrors)
+        if (!ReturnTypesEquivalent(oldLambdaSymbol, newLambdaSymbol, exact: false))
         {
+            runtimeRudeEditsBuilder[newLambda] = diagnosticContext.CreateRudeEdit(RudeEditKind.ChangingLambdaReturnType, cancellationToken);
+            return;
+        }
+
+        if (!TypeParametersEquivalent(oldLambdaSymbol.TypeParameters, newLambdaSymbol.TypeParameters, exact: false) ||
+                 !oldLambdaSymbol.TypeParameters.SequenceEqual(newLambdaSymbol.TypeParameters, static (p, q) => p.Name == q.Name))
+        {
+            runtimeRudeEditsBuilder[newLambda] = diagnosticContext.CreateRudeEdit(RudeEditKind.ChangingTypeParameters, cancellationToken);
             return;
         }
 
@@ -6679,7 +6687,10 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
     /// </summary>
     private static bool SymbolPresenceAffectsSynthesizedRecordMembers(ISymbol symbol)
         => symbol is { IsStatic: false, ContainingType.IsRecord: true } and
-           (IPropertySymbol { GetMethod.IsImplicitlyDeclared: false, SetMethod: null or { IsImplicitlyDeclared: false } } or IFieldSymbol);
+           (IPropertySymbol { GetMethod.IsImplicitlyDeclared: false, SetMethod: null or { IsImplicitlyDeclared: false } } or
+            IFieldSymbol or
+            // event field:
+            IEventSymbol { AddMethod.IsImplicitlyDeclared: true });
 
     /// <summary>
     /// True if a syntactic delete edit of an <paramref name="oldSymbol"/> in <paramref name="oldCompilation"/>

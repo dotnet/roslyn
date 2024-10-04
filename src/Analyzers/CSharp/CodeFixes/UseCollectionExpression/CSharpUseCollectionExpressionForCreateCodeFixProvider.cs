@@ -25,7 +25,7 @@ using static SyntaxFactory;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForCreate), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider()
+internal sealed partial class CSharpUseCollectionExpressionForCreateCodeFixProvider()
     : AbstractUseCollectionExpressionCodeFixProvider<InvocationExpressionSyntax>(
         CSharpCodeFixesResources.Use_collection_expression,
         IDEDiagnosticIds.UseCollectionExpressionForCreateDiagnosticId)
@@ -62,11 +62,12 @@ internal partial class CSharpUseCollectionExpressionForCreateCodeFixProvider()
             semanticDocument.Root.ReplaceNode(invocationExpression, dummyObjectCreation), cancellationToken).ConfigureAwait(false);
         dummyObjectCreation = (ImplicitObjectCreationExpressionSyntax)newSemanticDocument.Root.GetAnnotatedNodes(dummyObjectAnnotation).Single();
         var expressions = dummyObjectCreation.ArgumentList.Arguments.Select(a => a.Expression);
-        var matches = expressions.SelectAsArray(static e => new CollectionExpressionMatch<ExpressionSyntax>(e, UseSpread: false));
+        var matches = expressions.SelectAsArray(static e => new CollectionMatch<ExpressionSyntax>(e, UseSpread: false));
 
         var collectionExpression = await CreateCollectionExpressionAsync(
             newSemanticDocument.Document,
             dummyObjectCreation,
+            preMatches: [],
             matches,
             static o => o.Initializer,
             static (o, i) => o.WithInitializer(i),

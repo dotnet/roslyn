@@ -28,18 +28,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     [Order(Before = PredefinedCommandHandlerNames.ChangeSignature)]
     [Order(Before = PredefinedCommandHandlerNames.ExtractInterface)]
     [Order(Before = PredefinedCommandHandlerNames.EncapsulateField)]
-    internal partial class RenameCommandHandler : AbstractRenameCommandHandler
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal partial class RenameCommandHandler(
+        IThreadingContext threadingContext,
+        InlineRenameService renameService,
+        IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
+        : AbstractRenameCommandHandler(threadingContext, renameService, asynchronousOperationListenerProvider.GetListener(FeatureAttribute.Rename))
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public RenameCommandHandler(
-            IThreadingContext threadingContext,
-            InlineRenameService renameService,
-            IAsynchronousOperationListenerProvider asynchronousOperationListenerProvider)
-            : base(threadingContext, renameService, asynchronousOperationListenerProvider)
-        {
-        }
-
         protected override bool AdornmentShouldReceiveKeyboardNavigation(ITextView textView)
             => GetAdornment(textView) switch
             {

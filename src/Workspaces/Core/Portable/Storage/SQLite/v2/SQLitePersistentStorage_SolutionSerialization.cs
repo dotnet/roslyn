@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.SQLite.v2;
 
 using static SQLitePersistentStorageConstants;
 
-internal partial class SQLitePersistentStorage
+internal sealed partial class SQLitePersistentStorage
 {
     public override Task<bool> ChecksumMatchesAsync(string name, Checksum checksum, CancellationToken cancellationToken)
         => _solutionAccessor.ChecksumMatchesAsync(this.SolutionKey, name, checksum, cancellationToken);

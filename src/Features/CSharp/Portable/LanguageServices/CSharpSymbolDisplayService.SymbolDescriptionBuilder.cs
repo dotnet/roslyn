@@ -15,9 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices;
 
-internal partial class CSharpSymbolDisplayService
+internal sealed partial class CSharpSymbolDisplayService
 {
-    protected class SymbolDescriptionBuilder(
+    private sealed class SymbolDescriptionBuilder(
         SemanticModel semanticModel,
         int position,
         Host.LanguageServices languageServices,

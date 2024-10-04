@@ -250,7 +250,7 @@ internal sealed class CodeRefactoringService(
             }, defaultValue: null, cancellationToken);
     }
 
-    private class ProjectCodeRefactoringProvider
+    private sealed class ProjectCodeRefactoringProvider
         : AbstractProjectExtensionProvider<ProjectCodeRefactoringProvider, CodeRefactoringProvider, ExportCodeRefactoringProviderAttribute>
     {
         protected override ImmutableArray<string> GetLanguages(ExportCodeRefactoringProviderAttribute exportAttribute)

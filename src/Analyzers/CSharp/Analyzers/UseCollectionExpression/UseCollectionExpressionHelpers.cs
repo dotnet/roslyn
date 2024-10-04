@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -814,7 +815,7 @@ internal static class UseCollectionExpressionHelpers
         return false;
     }
 
-    public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches<TArrayCreationExpressionSyntax>(
+    public static ImmutableArray<CollectionMatch<StatementSyntax>> TryGetMatches<TArrayCreationExpressionSyntax>(
         SemanticModel semanticModel,
         TArrayCreationExpressionSyntax expression,
         CollectionExpressionSyntax replacementExpression,
@@ -835,7 +836,7 @@ internal static class UseCollectionExpressionHelpers
         if (getType(expression) is not ArrayTypeSyntax { RankSpecifiers: [{ Sizes: [var size] }, ..] })
             return default;
 
-        using var _ = ArrayBuilder<CollectionExpressionMatch<StatementSyntax>>.GetInstance(out var matches);
+        using var _ = ArrayBuilder<CollectionMatch<StatementSyntax>>.GetInstance(out var matches);
 
         var initializer = getInitializer(expression);
         if (size is OmittedArraySizeExpressionSyntax)

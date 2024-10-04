@@ -1,3 +1,5 @@
+Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit.ErrorCode.get -> int
+Microsoft.CodeAnalysis.Emit.RuntimeRudeEdit.RuntimeRudeEdit(string! message, int errorCode) -> void
 Microsoft.CodeAnalysis.GeneratorDriver.RunGenerators(Microsoft.CodeAnalysis.Compilation! compilation) -> Microsoft.CodeAnalysis.GeneratorDriver!
 Microsoft.CodeAnalysis.GeneratorDriver.RunGenerators(Microsoft.CodeAnalysis.Compilation! compilation, System.Func<Microsoft.CodeAnalysis.GeneratorFilterContext, bool>? generatorFilter, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.GeneratorDriver!
 Microsoft.CodeAnalysis.GeneratorDriver.RunGenerators(Microsoft.CodeAnalysis.Compilation! compilation, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.GeneratorDriver!
