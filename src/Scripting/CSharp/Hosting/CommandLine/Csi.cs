@@ -5,6 +5,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Scripting;
@@ -14,14 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
     internal sealed class CSharpInteractiveCompiler : CSharpCompiler
     {
-        private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _createFromFileFunc;
+        private readonly Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference> _createFromFileFunc;
 
         internal CSharpInteractiveCompiler(
             string? responseFile,
             BuildPaths buildPaths,
             string[] args,
             IAnalyzerAssemblyLoader analyzerLoader,
-            Func<string, MetadataReferenceProperties, PortableExecutableReference>? createFromFileFunc = null)
+            Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference>? createFromFileFunc = null)
             // Unlike C# compiler we do not use LIB environment variable. It's only supported for historical reasons.
             : base(CSharpCommandLineParser.Script, responseFile, args, buildPaths, additionalReferenceDirectories: null, analyzerLoader)
         {

@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Scripting.Hosting;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Text;
 using System.IO;
+using System.Reflection.PortableExecutable;
 
 namespace Microsoft.CodeAnalysis.Scripting
 {
@@ -253,7 +254,7 @@ namespace Microsoft.CodeAnalysis.Scripting
             {
                 if (Previous == null)
                 {
-                    var corLib = Options.CreateFromAssemblyFunc(typeof(object).GetTypeInfo().Assembly, default);
+                    var corLib = CreateFromAssembly(typeof(object).GetTypeInfo().Assembly, default, Options.CreateFromFileFunc);
                     references.Add(corLib);
 
                     if (GlobalsType != null)
@@ -264,7 +265,7 @@ namespace Microsoft.CodeAnalysis.Scripting
                         // the host has to add reference to the metadata where globals type is located explicitly.
                         if (MetadataReference.HasMetadata(globalsAssembly))
                         {
-                            references.Add(Options.CreateFromAssemblyFunc(globalsAssembly, HostAssemblyReferenceProperties));
+                            references.Add(CreateFromAssembly(globalsAssembly, HostAssemblyReferenceProperties, Options.CreateFromFileFunc));
                         }
                     }
 
@@ -307,6 +308,17 @@ namespace Microsoft.CodeAnalysis.Scripting
         internal bool HasReturnValue()
         {
             return GetCompilation().HasSubmissionResult();
+        }
+
+        internal static MetadataImageReference CreateFromAssembly(
+            Assembly assembly,
+            MetadataReferenceProperties properties,
+            Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference> createFromFileFunc)
+        {
+            // The file is locked by the CLR assembly loader, so we can create a lazily read metadata, 
+            // which might also lock the file until the reference is GC'd.
+            var filePath = MetadataReference.GetAssemblyFilePath(assembly, properties);
+            return createFromFileFunc(filePath, PEStreamOptions.Default, properties);
         }
     }
 

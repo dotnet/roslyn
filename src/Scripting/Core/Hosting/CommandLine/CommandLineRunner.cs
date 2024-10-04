@@ -12,6 +12,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
@@ -23,16 +24,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     {
         private readonly ScriptCompiler _scriptCompiler;
         private readonly ObjectFormatter _objectFormatter;
-        private readonly Func<Assembly, MetadataReferenceProperties, MetadataImageReference> _createFromAssemblyFunc;
-        private readonly Func<string, MetadataReferenceProperties, PortableExecutableReference> _createFromFileFunc;
+        private readonly Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference> _createFromFileFunc;
 
         internal CommandLineRunner(
             ConsoleIO console,
             CommonCompiler compiler,
             ScriptCompiler scriptCompiler,
             ObjectFormatter objectFormatter,
-            Func<Assembly, MetadataReferenceProperties, MetadataImageReference>? createFromAssemblyFunc = null,
-            Func<string, MetadataReferenceProperties, PortableExecutableReference>? createFromFileFunc = null)
+            Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference>? createFromFileFunc = null)
         {
             Debug.Assert(console != null);
             Debug.Assert(compiler != null);
@@ -43,8 +42,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             Compiler = compiler;
             _scriptCompiler = scriptCompiler;
             _objectFormatter = objectFormatter;
-            _createFromAssemblyFunc = createFromAssemblyFunc ?? RuntimeMetadataReferenceResolver.CreateFromAssembly;
-            _createFromFileFunc = createFromFileFunc ?? RuntimeMetadataReferenceResolver.CreateFromFile;
+            _createFromFileFunc = createFromFileFunc ?? MetadataReference.CreateFromFile;
         }
 
         // for testing:
@@ -177,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 checkOverflow: false,
                 warningLevel: 4,
                 parseOptions: arguments.ParseOptions,
-                createFromAssemblyFunc: _createFromAssemblyFunc);
+                createFromFileFunc: _createFromFileFunc);
         }
 
 #nullable enable
@@ -185,15 +183,15 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         internal static MetadataReferenceResolver GetMetadataReferenceResolver(
             CommandLineArguments arguments,
             TouchedFileLogger? loggerOpt,
-            Func<string, MetadataReferenceProperties, PortableExecutableReference> createFromFileFunc)
+            Func<string, PEStreamOptions, MetadataReferenceProperties, MetadataImageReference> createFromFileFunc)
         {
             return RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(
                 arguments.ReferencePaths,
                 arguments.BaseDirectory,
-                fileReferenceProvider: (path, properties) =>
+                createFromFileFunc: (path, options, properties) =>
                 {
                     loggerOpt?.AddRead(path);
-                    return createFromFileFunc(path, properties);
+                    return createFromFileFunc(path, options, properties);
                 });
         }
 

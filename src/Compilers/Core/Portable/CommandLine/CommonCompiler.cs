@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis
             return (path, properties) =>
             {
                 var peStream = FileSystem.OpenFileWithNormalizedException(path, FileMode.Open, FileAccess.Read, FileShare.Read);
-                return MetadataReference.CreateFromFile(peStream, path, properties);
+                return MetadataReference.CreateFromFile(peStream, path, properties, documentation: null);
             };
         }
 

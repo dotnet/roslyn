@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
@@ -41,20 +42,12 @@ public class CSharpScriptTestBase : TestBase
         ScriptMetadataResolver = new ScriptMetadataResolver(runtimeMetadataReferenceResolver);
         ScriptOptions = ScriptOptions.Default
             .WithMetadataResolver(ScriptMetadataResolver)
-            .WithCreateAssemblyFunc(CreateFromAssembly);
+            .WithCreateFromFileFunc(CreateFromFile);
     }
 
-    private PortableExecutableReference CreateFromFile(string filePath, MetadataReferenceProperties properties)
+    private MetadataImageReference CreateFromFile(string filePath, PEStreamOptions options, MetadataReferenceProperties properties)
     {
-        var reference = MetadataReference.CreateFromFile(filePath, properties);
-        Debug.Assert(reference is MetadataImageReference);
-        _referenceList.Add((MetadataImageReference)reference);
-        return reference;
-    }
-
-    private MetadataImageReference CreateFromAssembly(Assembly assembly, MetadataReferenceProperties metadataReferenceProperties)
-    {
-        var reference = MetadataReference.CreateFromAssemblyInternal(assembly, metadataReferenceProperties);
+        var reference = MetadataReference.CreateFromFile(filePath, options, properties);
         _referenceList.Add(reference);
         return reference;
     }
@@ -79,7 +72,7 @@ public class CSharpScriptTestBase : TestBase
             args?.Where(a => a != null).ToArray() ?? s_defaultArgs,
             new NotImplementedAnalyzerLoader(),
             CreateFromFile);
-        return new CommandLineRunner(io, compiler, CSharpScriptCompiler.Instance, CSharpObjectFormatter.Instance, CreateFromAssembly, CreateFromFile);
+        return new CommandLineRunner(io, compiler, CSharpScriptCompiler.Instance, CSharpObjectFormatter.Instance, CreateFromFile);
     }
 
     private static IEnumerable<string> GetReferences()
