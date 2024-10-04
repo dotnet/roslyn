@@ -22,8 +22,8 @@ jobs:
       matrix:
         os:
         - ubuntu-22.04
-        - macos-latest
-        - windows-latest
+        - macos-14
+        - windows-2022
 
     steps:
     - uses: actions/checkout@v4
