@@ -46,9 +46,6 @@ parameters:
   - name: dropPath
     type: string
     default: ''
-  - name: updateXamlRoslynVersion
-    type: boolean
-    default: true
 
 steps:
   - checkout: none
@@ -211,7 +208,6 @@ steps:
         -visualStudioBranchName "$(Template.VSBranchName)" `
         -writePullRequest "prid.txt" `
         -queueSpeedometerValidation "${{ parameters.queueSpeedometerValidation }}"
-        -updatexamlroslynversion "${{ parameters.updateXamlRoslynVersion }}"
     displayName: 'Run OneOffInsertion.ps1'
 
   - script: 'echo. && echo. && type "prid.txt" && echo. && echo.'
