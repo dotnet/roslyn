@@ -3661,7 +3661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SetUnknownResultNullability(initializer);
                         Debug.Assert(node.Placeholder is { });
                         SetUnknownResultNullability(node.Placeholder);
-                        Visit(initializer.Arguments[0]);
+                        VisitRvalue(initializer.Arguments[0]);
                         break;
                     case BoundCollectionExpressionSpreadElement spread:
                         // https://github.com/dotnet/roslyn/issues/68786: We should check the spread
