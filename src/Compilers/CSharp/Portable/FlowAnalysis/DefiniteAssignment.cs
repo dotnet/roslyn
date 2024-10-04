@@ -971,6 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (MayRequireTracking(fieldAccess.ReceiverOpt, fieldAccess.FieldSymbol))
                             {
                                 n = fieldAccess.ReceiverOpt;
+                                isRef = false;
                                 if (n.Kind == BoundKind.Local)
                                 {
                                     _usedVariables.Add(((BoundLocal)n).LocalSymbol);

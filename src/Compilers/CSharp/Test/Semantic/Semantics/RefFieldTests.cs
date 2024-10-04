@@ -5562,6 +5562,73 @@ class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75315")]
+        public void DefiniteAssignment_RefField_Assigned_Nested()
+        {
+            var comp = CreateCompilation("""
+                ref struct R1
+                {
+                    public ref R2 F;
+                }
+
+                ref struct R2
+                {
+                    public ref int F;
+                }
+
+                class C
+                {
+                    static void Test(R1 r, int x)
+                    {
+                        r.F.F = x;
+                    }
+                }
+                """,
+                targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (3,12): error CS9050: A ref field cannot refer to a ref struct.
+                //     public ref R2 F;
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R2").WithLocation(3, 12),
+                // (3,19): warning CS0649: Field 'R1.F' is never assigned to, and will always have its default value (null reference)
+                //     public ref R2 F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R1.F", "(null reference)").WithLocation(3, 19),
+                // (8,20): warning CS0649: Field 'R2.F' is never assigned to, and will always have its default value (null reference)
+                //     public ref int F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R2.F", "(null reference)").WithLocation(8, 20));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75315")]
+        public void DefiniteAssignment_RefField_RefAssigned_Nested()
+        {
+            var comp = CreateCompilation("""
+                ref struct R1
+                {
+                    public ref R2 F;
+                }
+
+                ref struct R2
+                {
+                    public ref int F;
+                }
+
+                class C
+                {
+                    static void Test(scoped R1 r, ref int x)
+                    {
+                        r.F.F = ref x;
+                    }
+                }
+                """,
+                targetFramework: TargetFramework.NetCoreApp);
+            comp.VerifyDiagnostics(
+                // (3,12): error CS9050: A ref field cannot refer to a ref struct.
+                //     public ref R2 F;
+                Diagnostic(ErrorCode.ERR_RefFieldCannotReferToRefStruct, "ref R2").WithLocation(3, 12),
+                // (3,19): warning CS0649: Field 'R1.F' is never assigned to, and will always have its default value (null reference)
+                //     public ref R2 F;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("R1.F", "(null reference)").WithLocation(3, 19));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75315")]
         public void DefiniteAssignment_RefField_AssignedInObjectInitializer_InAtCallSite()
         {
             var comp = CreateCompilation("""
