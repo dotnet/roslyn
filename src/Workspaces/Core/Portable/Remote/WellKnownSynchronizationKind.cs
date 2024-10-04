@@ -4,7 +4,7 @@
 
 namespace Microsoft.CodeAnalysis.Serialization;
 
-internal enum WellKnownSynchronizationKind
+internal enum WellKnownSynchronizationKind : byte
 {
     // Start at a different value from 0 so that if we ever get 0 we know it's a bug.
 
@@ -12,23 +12,21 @@ internal enum WellKnownSynchronizationKind
     SolutionCompilationState = 1,
 
     // Solution snapshot state, only referencing actual user (non-generated) documents, options, and references.
-    SolutionState,
-    ProjectState,
-    DocumentState,
+    SolutionState = 2,
+    ProjectState = 3,
 
-    ChecksumCollection,
+    SolutionAttributes = 4,
+    ProjectAttributes = 5,
+    DocumentAttributes = 6,
+    SourceGeneratedDocumentIdentity = 7,
+    SourceGeneratorExecutionVersionMap = 8,
+    FallbackAnalyzerOptions = 9,
 
-    SolutionAttributes,
-    ProjectAttributes,
-    DocumentAttributes,
-    SourceGeneratedDocumentIdentity,
-    SourceGeneratorExecutionVersionMap,
+    CompilationOptions = 10,
+    ParseOptions = 11,
+    ProjectReference = 12,
+    MetadataReference = 13,
+    AnalyzerReference = 14,
 
-    CompilationOptions,
-    ParseOptions,
-    ProjectReference,
-    MetadataReference,
-    AnalyzerReference,
-
-    SerializableSourceText,
+    SerializableSourceText = 15,
 }

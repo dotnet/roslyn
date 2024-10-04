@@ -18,6 +18,9 @@ using SyntaxNodeOrTokenExtensions = Microsoft.CodeAnalysis.Shared.Extensions.Syn
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertLinq.ConvertForEachToLinqQuery;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 internal abstract class AbstractConverter(ForEachInfo<ForEachStatementSyntax, StatementSyntax> forEachInfo) : IConverter<ForEachStatementSyntax, StatementSyntax>
 {
     public ForEachInfo<ForEachStatementSyntax, StatementSyntax> ForEachInfo { get; } = forEachInfo;
@@ -54,11 +57,11 @@ internal abstract class AbstractConverter(ForEachInfo<ForEachStatementSyntax, St
         ExpressionSyntax selectExpression,
         IEnumerable<SyntaxToken> leadingTokensForSelect,
         IEnumerable<SyntaxToken> trailingTokensForSelect)
-        => SyntaxFactory.QueryExpression(
+        => QueryExpression(
             CreateFromClause(ForEachInfo.ForEachStatement, ForEachInfo.LeadingTokens.GetTrivia(), []),
-            SyntaxFactory.QueryBody(
+            QueryBody(
                 [.. ForEachInfo.ConvertingExtendedNodes.Select(node => CreateQueryClause(node))],
-                SyntaxFactory.SelectClause(selectExpression)
+                SelectClause(selectExpression)
                     .WithCommentsFrom(leadingTokensForSelect, ForEachInfo.TrailingTokens.Concat(trailingTokensForSelect)),
                 continuation: null)) // The current coverage of foreach statements to support does not need to use query continuations.                                                                                                           
         .WithAdditionalAnnotations(Formatter.Annotation);
@@ -69,8 +72,8 @@ internal abstract class AbstractConverter(ForEachInfo<ForEachStatementSyntax, St
         {
             case SyntaxKind.VariableDeclarator:
                 var variable = (VariableDeclaratorSyntax)node.Node;
-                return SyntaxFactory.LetClause(
-                            SyntaxFactory.Token(SyntaxKind.LetKeyword),
+                return LetClause(
+                            LetKeyword,
                             variable.Identifier,
                             variable.Initializer.EqualsToken,
                             variable.Initializer.Value)
@@ -81,8 +84,8 @@ internal abstract class AbstractConverter(ForEachInfo<ForEachStatementSyntax, St
 
             case SyntaxKind.IfStatement:
                 var ifStatement = (IfStatementSyntax)node.Node;
-                return SyntaxFactory.WhereClause(
-                            SyntaxFactory.Token(SyntaxKind.WhereKeyword)
+                return WhereClause(
+                            WhereKeyword
                                 .WithCommentsFrom(ifStatement.IfKeyword.LeadingTrivia, ifStatement.IfKeyword.TrailingTrivia),
                             ifStatement.Condition.WithCommentsFrom(ifStatement.OpenParenToken, ifStatement.CloseParenToken))
                         .WithCommentsFrom(node.ExtraLeadingComments, node.ExtraTrailingComments);
@@ -95,8 +98,8 @@ internal abstract class AbstractConverter(ForEachInfo<ForEachStatementSyntax, St
         ForEachStatementSyntax forEachStatement,
         IEnumerable<SyntaxTrivia> extraLeadingTrivia,
         IEnumerable<SyntaxTrivia> extraTrailingTrivia)
-        => SyntaxFactory.FromClause(
-                fromKeyword: SyntaxFactory.Token(SyntaxKind.FromKeyword)
+        => FromClause(
+                fromKeyword: FromKeyword
                                 .WithCommentsFrom(
                                     forEachStatement.ForEachKeyword.LeadingTrivia,
                                     forEachStatement.ForEachKeyword.TrailingTrivia,
@@ -162,8 +165,8 @@ internal abstract class AbstractConverter(ForEachInfo<ForEachStatementSyntax, St
         //
         var hasForEachChild = false;
         var lambdaBody = CreateLinqInvocationForExtendedNode(selectExpression, ref currentExtendedNodeIndex, ref receiverForInvocation, ref hasForEachChild);
-        var lambda = SyntaxFactory.SimpleLambdaExpression(
-            SyntaxFactory.Parameter(
+        var lambda = SimpleLambdaExpression(
+            Parameter(
                 forEachStatement.Identifier.WithPrependedLeadingTrivia(
                 SyntaxNodeOrTokenExtensions.GetTrivia(forEachStatement.Type.GetFirstToken())
                     .FilterComments(addElasticMarker: false))),
@@ -201,12 +204,12 @@ internal abstract class AbstractConverter(ForEachInfo<ForEachStatementSyntax, St
             return receiverForInvocation.WithAppendedTrailingTrivia(droppedTrivia);
         }
 
-        return SyntaxFactory.InvocationExpression(
-            SyntaxFactory.MemberAccessExpression(
+        return InvocationExpression(
+            MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
                 receiverForInvocation.Parenthesize(),
-                SyntaxFactory.IdentifierName(invokedMethodName)),
-            SyntaxFactory.ArgumentList([SyntaxFactory.Argument(lambda)]));
+                IdentifierName(invokedMethodName)),
+            ArgumentList([Argument(lambda)]));
     }
 
     /// <summary>
@@ -269,19 +272,19 @@ internal abstract class AbstractConverter(ForEachInfo<ForEachStatementSyntax, St
             case SyntaxKind.IfStatement:
                 var ifStatement = (IfStatementSyntax)node.Node;
                 var parentForEachStatement = ifStatement.GetAncestor<ForEachStatementSyntax>();
-                var lambdaParameter = SyntaxFactory.Parameter(SyntaxFactory.Identifier(parentForEachStatement.Identifier.ValueText));
-                var lambda = SyntaxFactory.SimpleLambdaExpression(
-                    SyntaxFactory.Parameter(
-                        SyntaxFactory.Identifier(parentForEachStatement.Identifier.ValueText)),
+                var lambdaParameter = Parameter(Identifier(parentForEachStatement.Identifier.ValueText));
+                var lambda = SimpleLambdaExpression(
+                    Parameter(
+                        Identifier(parentForEachStatement.Identifier.ValueText)),
                     ifStatement.Condition.WithCommentsFrom(ifStatement.OpenParenToken, ifStatement.CloseParenToken))
                     .WithCommentsFrom(ifStatement.IfKeyword.GetAllTrivia().Concat(node.ExtraLeadingComments), node.ExtraTrailingComments);
 
-                receiver = SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberAccessExpression(
+                receiver = InvocationExpression(
+                    MemberAccessExpression(
                         SyntaxKind.SimpleMemberAccessExpression,
                         receiver.Parenthesize(),
-                        SyntaxFactory.IdentifierName(nameof(Enumerable.Where))),
-                    SyntaxFactory.ArgumentList([SyntaxFactory.Argument(lambda)]));
+                        IdentifierName(nameof(Enumerable.Where))),
+                    ArgumentList([Argument(lambda)]));
 
                 ++extendedNodeIndex;
                 return CreateLinqInvocationForExtendedNode(selectExpression, ref extendedNodeIndex, ref receiver, ref hasForEachChild);

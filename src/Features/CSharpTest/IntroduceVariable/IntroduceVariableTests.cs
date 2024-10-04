@@ -5977,7 +5977,7 @@ class C
             {
                 int x = 1;
                 int {|Rename:y1|} = C.y;
-                var t = new { y= y1, y= y1 }; // this is an error already
+                var t = new { y = y1, y = y1 }; // this is an error already
             }
         }
         """;

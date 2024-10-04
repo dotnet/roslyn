@@ -28,14 +28,11 @@ internal sealed class SearchExceptionDefinitionItem(string message, ImmutableArr
             .. stackTrace
         ],
         nameDisplayParts: exceptionTypeName,
-        sourceSpans:
-        [
-            documentSpan
-        ],
+        sourceSpans: [documentSpan],
         classifiedSpans: [],
         metadataLocations: [],
         properties: null,
-        displayableProperties: null,
+        displayableProperties: [],
         displayIfNoReferences: true)
 {
     internal override bool IsExternal => false;

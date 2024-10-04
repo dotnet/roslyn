@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
@@ -15,7 +14,6 @@ using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolMapping;
@@ -72,7 +70,7 @@ internal abstract partial class AbstractInheritanceMarginService
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private async ValueTask<(Project remapped, SymbolAndLineNumberArray symbolAndLineNumbers)> GetMemberSymbolsAsync(
@@ -94,6 +92,13 @@ internal abstract partial class AbstractInheritanceMarginService
 
             foreach (var memberDeclarationNode in allDeclarationNodes)
             {
+                // Make sure the identifier declaration's span is within the spanToSearch.
+                // This is important because for example, for a class with big body, when the tagger is asking for the tag within the body of the class,
+                // we don't want to return the tag of the class identifier.
+                var declarationToken = GetDeclarationToken(memberDeclarationNode);
+                if (!spanToSearch.Contains(declarationToken.Span))
+                    continue;
+
                 var member = semanticModel.GetDeclaredSymbol(memberDeclarationNode, cancellationToken);
                 if (member == null || !CanHaveInheritanceTarget(member))
                     continue;
@@ -106,7 +111,8 @@ internal abstract partial class AbstractInheritanceMarginService
                 // All the symbols here are declared in the same document, they should belong to the same project.
                 // So here it is enough to get the project once.
                 project ??= mappingResult.Project;
-                builder.Add((mappingResult.Symbol, sourceText.Lines.GetLineFromPosition(GetDeclarationToken(memberDeclarationNode).SpanStart).LineNumber));
+                builder.Add((mappingResult.Symbol,
+                    sourceText.Lines.GetLineFromPosition(declarationToken.SpanStart).LineNumber));
             }
 
             if (project != null)
@@ -145,7 +151,7 @@ internal abstract partial class AbstractInheritanceMarginService
                 cancellationToken).ConfigureAwait(false));
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private async Task<ImmutableArray<InheritanceMarginItem>> GetGlobalImportsItemsAsync(
@@ -269,7 +275,7 @@ internal abstract partial class AbstractInheritanceMarginService
             }
         }
 
-        return items.ToImmutable();
+        return items.ToImmutableAndClear();
     }
 
     private static async ValueTask AddInheritanceMemberItemsForNamedTypeAsync(
@@ -756,6 +762,6 @@ internal abstract partial class AbstractInheritanceMarginService
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 }

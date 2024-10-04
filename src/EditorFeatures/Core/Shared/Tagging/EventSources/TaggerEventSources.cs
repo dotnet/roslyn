@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 
@@ -47,8 +46,8 @@ internal static partial class TaggerEventSources
     public static ITaggerEventSource OnReadOnlyRegionsChanged(ITextBuffer subjectBuffer)
         => new ReadOnlyRegionsChangedEventSource(subjectBuffer);
 
-    public static ITaggerEventSource OnGlobalOptionChanged(IGlobalOptionService globalOptions, IOption2 globalOption)
-        => new GlobalOptionChangedEventSource(globalOptions, globalOption);
+    public static ITaggerEventSource OnGlobalOptionChanged(IGlobalOptionService globalOptions, Func<IOption2, bool> predicate)
+        => new GlobalOptionChangedEventSource(globalOptions, predicate);
 
     public static ITaggerEventSource OnParseOptionChanged(ITextBuffer subjectBuffer)
         => new ParseOptionChangedEventSource(subjectBuffer);

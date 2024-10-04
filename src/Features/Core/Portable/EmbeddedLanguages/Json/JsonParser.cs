@@ -322,7 +322,7 @@ internal partial struct JsonParser
         while (ShouldConsumeSequenceElement())
             result.Add(ParseValue());
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private JsonSeparatedList ParseCommaSeparatedSequence()

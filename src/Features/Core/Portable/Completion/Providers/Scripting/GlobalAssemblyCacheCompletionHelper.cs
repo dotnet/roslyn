@@ -11,10 +11,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -59,7 +57,7 @@ internal sealed class GlobalAssemblyCacheCompletionHelper
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static IEnumerable<AssemblyIdentity> GetAssemblyIdentities(string partialName)

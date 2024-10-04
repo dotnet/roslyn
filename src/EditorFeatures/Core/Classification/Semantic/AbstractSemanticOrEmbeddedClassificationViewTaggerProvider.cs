@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
@@ -21,7 +20,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
-using Microsoft.CodeAnalysis.Workspaces;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
@@ -34,30 +32,16 @@ namespace Microsoft.CodeAnalysis.Classification;
 /// in the editor.  We use a view tagger so that we can only classify what's in view, and not
 /// the whole file.
 /// </summary>
-internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvider : AsynchronousViewportTaggerProvider<IClassificationTag>
+internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvider(
+    TaggerHost taggerHost,
+    ClassificationTypeMap typeMap,
+    ClassificationType type)
+    : AsynchronousViewportTaggerProvider<IClassificationTag>(taggerHost, FeatureAttribute.Classification)
 {
-    private readonly ClassificationTypeMap _typeMap;
-    private readonly IGlobalOptionService _globalOptions;
-    private readonly ClassificationType _type;
+    private readonly ClassificationTypeMap _typeMap = typeMap;
+    private readonly ClassificationType _type = type;
 
-    // We want to track text changes so that we can try to only reclassify a method body if
-    // all edits were contained within one.
-    protected sealed override TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.TrackTextChanges;
     protected sealed override ImmutableArray<IOption2> Options { get; } = [SemanticColorizerOptionsStorage.SemanticColorizer];
-
-    protected AbstractSemanticOrEmbeddedClassificationViewTaggerProvider(
-        IThreadingContext threadingContext,
-        ClassificationTypeMap typeMap,
-        IGlobalOptionService globalOptions,
-        ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListenerProvider listenerProvider,
-        ClassificationType type)
-        : base(threadingContext, globalOptions, visibilityTracker, listenerProvider.GetListener(FeatureAttribute.Classification))
-    {
-        _typeMap = typeMap;
-        _globalOptions = globalOptions;
-        _type = type;
-    }
 
     protected sealed override TaggerDelay EventChangeDelay => TaggerDelay.Short;
 
@@ -93,8 +77,8 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
             TaggerEventSources.OnViewSpanChanged(ThreadingContext, textView),
             TaggerEventSources.OnWorkspaceChanged(subjectBuffer, AsyncListener),
             TaggerEventSources.OnDocumentActiveContextChanged(subjectBuffer),
-            TaggerEventSources.OnGlobalOptionChanged(_globalOptions, ClassificationOptionsStorage.ClassifyReassignedVariables),
-            TaggerEventSources.OnGlobalOptionChanged(_globalOptions, ClassificationOptionsStorage.ClassifyObsoleteSymbols));
+            TaggerEventSources.OnGlobalOptionChanged(GlobalOptions,
+                static option => option.Equals(ClassificationOptionsStorage.ClassifyReassignedVariables) || option.Equals(ClassificationOptionsStorage.ClassifyObsoleteSymbols)));
     }
 
     protected sealed override async Task ProduceTagsAsync(
@@ -118,11 +102,11 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
             return;
 
         // If the LSP semantic tokens feature flag is enabled, return nothing to prevent conflicts.
-        var isLspSemanticTokensEnabled = _globalOptions.GetOption(LspOptionsStorage.LspSemanticTokensFeatureFlag);
+        var isLspSemanticTokensEnabled = this.GlobalOptions.GetOption(LspOptionsStorage.LspSemanticTokensFeatureFlag);
         if (isLspSemanticTokensEnabled)
             return;
 
-        var classificationOptions = _globalOptions.GetClassificationOptions(document.Project.Language);
+        var classificationOptions = this.GlobalOptions.GetClassificationOptions(document.Project.Language);
         await ProduceTagsAsync(
             context, spanToTag, classificationService, classificationOptions, cancellationToken).ConfigureAwait(false);
     }
@@ -138,8 +122,9 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
         if (document == null)
             return;
 
+        var currentSemanticVersion = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
         var classified = await TryClassifyContainingMemberSpanAsync(
-            context, document, spanToTag.SnapshotSpan, classificationService, options, cancellationToken).ConfigureAwait(false);
+            context, document, spanToTag.SnapshotSpan, classificationService, options, currentSemanticVersion, cancellationToken).ConfigureAwait(false);
         if (classified)
         {
             return;
@@ -148,7 +133,7 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
         // We weren't able to use our specialized codepaths for semantic classifying. 
         // Fall back to classifying the full span that was asked for.
         await ClassifySpansAsync(
-            context, document, spanToTag.SnapshotSpan, classificationService, options, cancellationToken).ConfigureAwait(false);
+            context, document, spanToTag.SnapshotSpan, classificationService, options, currentSemanticVersion, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<bool> TryClassifyContainingMemberSpanAsync(
@@ -157,39 +142,39 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
         SnapshotSpan snapshotSpan,
         IClassificationService classificationService,
         ClassificationOptions options,
+        VersionStamp currentSemanticVersion,
         CancellationToken cancellationToken)
     {
-        var range = context.TextChangeRange;
-        if (range == null)
-        {
-            // There was no text change range, we can't just reclassify a member body.
-            return false;
-        }
-
         // there was top level edit, check whether that edit updated top level element
         if (!document.SupportsSyntaxTree)
             return false;
 
-        var lastSemanticVersion = (VersionStamp?)context.State;
-        if (lastSemanticVersion != null)
-        {
-            var currentSemanticVersion = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
-            if (lastSemanticVersion.Value != currentSemanticVersion)
-            {
-                // A top level change was made.  We can't perform this optimization.
-                return false;
-            }
-        }
+        // No cached state, so we can't check if the edits were just inside a member.
+        if (context.State is null)
+            return false;
+
+        // Retrieve the information about the last time we classified this document.
+        var (lastSemanticVersion, lastTextImageVersion) = ((VersionStamp, ITextImageVersion))context.State;
+
+        // if a top level change was made.  We can't perform this optimization.
+        if (lastSemanticVersion != currentSemanticVersion)
+            return false;
 
         var service = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-        // perf optimization. Check whether all edits since the last update has happened within
-        // a member. If it did, it will find the member that contains the changes and only refresh
-        // that member.  If possible, try to get a speculative binder to make things even cheaper.
+        // perf optimization. Check whether all edits since the last update has happened within a member. If it did, it
+        // will find the member that contains the changes and only refresh that member.  If possible, try to get a
+        // speculative binder to make things even cheaper.
+
+        var currentTextImageVersion = GetTextImageVersion(snapshotSpan);
+
+        var textChangeRanges = ITextImageHelpers.GetChangeRanges(lastTextImageVersion, currentTextImageVersion);
+        var collapsedRange = TextChangeRange.Collapse(textChangeRanges);
+
+        var changedSpan = new TextSpan(collapsedRange.Span.Start, collapsedRange.NewLength);
 
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        var changedSpan = new TextSpan(range.Value.Span.Start, range.Value.NewLength);
         var member = service.GetContainingMemberDeclaration(root, changedSpan.Start);
         if (member == null || !member.FullSpan.Contains(changedSpan))
         {
@@ -222,9 +207,12 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
 
         // re-classify only the member we're inside.
         await ClassifySpansAsync(
-            context, document, subSpanToTag, classificationService, options, cancellationToken).ConfigureAwait(false);
+            context, document, subSpanToTag, classificationService, options, currentSemanticVersion, cancellationToken).ConfigureAwait(false);
         return true;
     }
+
+    private static ITextImageVersion GetTextImageVersion(SnapshotSpan snapshotSpan)
+        => ((ITextSnapshot2)snapshotSpan.Snapshot).TextImage.Version;
 
     private async Task ClassifySpansAsync(
         TaggerContext<IClassificationTag> context,
@@ -232,6 +220,7 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
         SnapshotSpan snapshotSpan,
         IClassificationService classificationService,
         ClassificationOptions options,
+        VersionStamp currentSemanticVersion,
         CancellationToken cancellationToken)
     {
         try
@@ -244,29 +233,33 @@ internal abstract class AbstractSemanticOrEmbeddedClassificationViewTaggerProvid
                 // that we preserve that same behavior in OOP if we end up computing the tags there.
                 options = options with { FrozenPartialSemantics = context.FrozenPartialSemantics };
 
+                var span = snapshotSpan.Span;
+                var snapshot = snapshotSpan.Snapshot;
+
                 if (_type == ClassificationType.Semantic)
                 {
                     await classificationService.AddSemanticClassificationsAsync(
-                       document, snapshotSpan.Span.ToTextSpan(), options, classifiedSpans, cancellationToken).ConfigureAwait(false);
+                       document, span.ToTextSpan(), options, classifiedSpans, cancellationToken).ConfigureAwait(false);
                 }
                 else if (_type == ClassificationType.EmbeddedLanguage)
                 {
                     await classificationService.AddEmbeddedLanguageClassificationsAsync(
-                       document, snapshotSpan.Span.ToTextSpan(), options, classifiedSpans, cancellationToken).ConfigureAwait(false);
+                       document, span.ToTextSpan(), options, classifiedSpans, cancellationToken).ConfigureAwait(false);
                 }
                 else
                 {
                     throw ExceptionUtilities.UnexpectedValue(_type);
                 }
 
-                foreach (var span in classifiedSpans)
-                    context.AddTag(ClassificationUtilities.Convert(_typeMap, snapshotSpan.Snapshot, span));
-
-                var version = await document.Project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
+                foreach (var classifiedSpan in classifiedSpans)
+                    context.AddTag(ClassificationUtilities.Convert(_typeMap, snapshot, classifiedSpan));
 
                 // Let the context know that this was the span we actually tried to tag.
                 context.SetSpansTagged([snapshotSpan]);
-                context.State = version;
+
+                // Store the semantic version and text-image-version we used to produce these tags.  We can use this in
+                // the future to try to limit what we classify, if all edits were made within a single member.
+                context.State = (currentSemanticVersion, GetTextImageVersion(snapshotSpan));
             }
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))

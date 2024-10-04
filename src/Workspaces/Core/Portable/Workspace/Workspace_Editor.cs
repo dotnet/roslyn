@@ -4,16 +4,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -368,7 +365,7 @@ public abstract partial class Workspace
             {
                 var (@this, documentId, textContainer, _, requireDocumentPresentAndClosed) = data;
 
-                var oldDocument = oldSolution.GetRequiredDocument(documentId);
+                var oldDocument = oldSolution.GetDocument(documentId);
                 if (oldDocument is null)
                 {
                     // Didn't have a document.  Throw if required.  Bail out gracefully if not.

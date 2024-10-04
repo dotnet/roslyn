@@ -23,6 +23,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ChangeNamespace;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 [ExportLanguageService(typeof(IChangeNamespaceService), LanguageNames.CSharp), Shared]
 internal sealed class CSharpChangeNamespaceService :
     AbstractChangeNamespaceService<BaseNamespaceDeclarationSyntax, CompilationUnitSyntax, MemberDeclarationSyntax>
@@ -139,7 +142,7 @@ internal sealed class CSharpChangeNamespaceService :
             if (!TryGetGlobalQualifiedName(newNamespaceParts, nameRef, aliasQualifier, out newNode))
             {
                 var qualifiedNamespaceName = CreateNamespaceAsQualifiedName(newNamespaceParts, aliasQualifier, newNamespaceParts.Length - 1);
-                newNode = SyntaxFactory.QualifiedName(qualifiedNamespaceName, nameRef.WithoutTrivia());
+                newNode = QualifiedName(qualifiedNamespaceName, nameRef.WithoutTrivia());
             }
 
             // We might lose some trivia associated with children of `oldNode`.  
@@ -156,7 +159,7 @@ internal sealed class CSharpChangeNamespaceService :
             if (!TryGetGlobalQualifiedName(newNamespaceParts, nameRef, aliasQualifier, out newNode))
             {
                 var memberAccessNamespaceName = CreateNamespaceAsMemberAccess(newNamespaceParts, aliasQualifier, newNamespaceParts.Length - 1);
-                newNode = SyntaxFactory.MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, memberAccessNamespaceName, nameRef.WithoutTrivia());
+                newNode = MemberAccessExpression(SyntaxKind.SimpleMemberAccessExpression, memberAccessNamespaceName, nameRef.WithoutTrivia());
             }
 
             // We might lose some trivia associated with children of `oldNode`.  
@@ -179,7 +182,7 @@ internal sealed class CSharpChangeNamespaceService :
                 // We will replace entire `QualifiedCrefSyntax` with a `TypeCrefSyntax`, 
                 // which is a alias qualified simple name, similar to the regular case above.
                 oldNode = qualifiedCref;
-                newNode = SyntaxFactory.TypeCref((AliasQualifiedNameSyntax)newNode!);
+                newNode = TypeCref((AliasQualifiedNameSyntax)newNode!);
             }
             else
             {
@@ -208,8 +211,8 @@ internal sealed class CSharpChangeNamespaceService :
         {
             // If new namespace is "", then name will be declared in global namespace.
             // We will replace qualified reference with simple name qualified with alias (global if it's not alias qualified)
-            var aliasNode = aliasQualifier?.ToIdentifierName() ?? SyntaxFactory.IdentifierName(SyntaxFactory.Token(SyntaxKind.GlobalKeyword));
-            newNode = SyntaxFactory.AliasQualifiedName(aliasNode, nameNode.WithoutTrivia());
+            var aliasNode = aliasQualifier?.ToIdentifierName() ?? IdentifierName(GlobalKeyword);
+            newNode = AliasQualifiedName(aliasNode, nameNode.WithoutTrivia());
             return true;
         }
 
@@ -310,7 +313,7 @@ internal sealed class CSharpChangeNamespaceService :
     {
         Debug.Assert(!compilationUnit.Members.Any(m => m is BaseNamespaceDeclarationSyntax));
 
-        var targetNamespaceDecl = SyntaxFactory.NamespaceDeclaration(
+        var targetNamespaceDecl = NamespaceDeclaration(
             name: CreateNamespaceAsQualifiedName(targetNamespaceParts, aliasQualifier: null, targetNamespaceParts.Length - 1)
                     .WithAdditionalAnnotations(WarningAnnotation),
             externs: default,
@@ -413,12 +416,12 @@ internal sealed class CSharpChangeNamespaceService :
         var part = namespaceParts[index].EscapeIdentifier();
         Debug.Assert(part.Length > 0);
 
-        var namePiece = SyntaxFactory.IdentifierName(part);
+        var namePiece = IdentifierName(part);
 
         if (index == 0)
-            return aliasQualifier == null ? namePiece : SyntaxFactory.AliasQualifiedName(aliasQualifier, namePiece);
+            return aliasQualifier == null ? namePiece : AliasQualifiedName(aliasQualifier, namePiece);
 
-        return SyntaxFactory.QualifiedName(CreateNamespaceAsQualifiedName(namespaceParts, aliasQualifier, index - 1), namePiece);
+        return QualifiedName(CreateNamespaceAsQualifiedName(namespaceParts, aliasQualifier, index - 1), namePiece);
     }
 
     private static ExpressionSyntax CreateNamespaceAsMemberAccess(ImmutableArray<string> namespaceParts, string? aliasQualifier, int index)
@@ -426,16 +429,16 @@ internal sealed class CSharpChangeNamespaceService :
         var part = namespaceParts[index].EscapeIdentifier();
         Debug.Assert(part.Length > 0);
 
-        var namePiece = SyntaxFactory.IdentifierName(part);
+        var namePiece = IdentifierName(part);
 
         if (index == 0)
         {
             return aliasQualifier == null
                  ? namePiece
-                 : SyntaxFactory.AliasQualifiedName(aliasQualifier, namePiece);
+                 : AliasQualifiedName(aliasQualifier, namePiece);
         }
 
-        return SyntaxFactory.MemberAccessExpression(
+        return MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             CreateNamespaceAsMemberAccess(namespaceParts, aliasQualifier, index - 1),
             namePiece);

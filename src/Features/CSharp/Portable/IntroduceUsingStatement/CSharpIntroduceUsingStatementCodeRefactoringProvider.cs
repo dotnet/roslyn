@@ -13,6 +13,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceUsingStatement;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.IntroduceUsingStatement), Shared]
 internal sealed class CSharpIntroduceUsingStatementCodeRefactoringProvider
@@ -52,13 +55,13 @@ internal sealed class CSharpIntroduceUsingStatementCodeRefactoringProvider
     }
 
     protected override StatementSyntax CreateUsingStatement(LocalDeclarationStatementSyntax declarationStatement, SyntaxList<StatementSyntax> statementsToSurround)
-        => SyntaxFactory.UsingStatement(
-            SyntaxFactory.Token(SyntaxKind.UsingKeyword).WithLeadingTrivia(declarationStatement.GetLeadingTrivia()),
-            SyntaxFactory.Token(SyntaxKind.OpenParenToken),
+        => UsingStatement(
+            UsingKeyword.WithLeadingTrivia(declarationStatement.GetLeadingTrivia()),
+            OpenParenToken,
             declaration: declarationStatement.Declaration.WithoutTrivia(),
             expression: null, // Declaration already has equals token and expression
-            SyntaxFactory.Token(SyntaxKind.CloseParenToken).WithTrailingTrivia(declarationStatement.GetTrailingTrivia()),
-            statement: SyntaxFactory.Block(statementsToSurround));
+            CloseParenToken.WithTrailingTrivia(declarationStatement.GetTrailingTrivia()),
+            statement: Block(statementsToSurround));
 
     protected override bool TryCreateUsingLocalDeclaration(
         ParseOptions options,
@@ -76,7 +79,7 @@ internal sealed class CSharpIntroduceUsingStatementCodeRefactoringProvider
 
         usingDeclarationStatement = declarationStatement
             .WithoutLeadingTrivia()
-            .WithUsingKeyword(SyntaxFactory.Token(declarationStatement.GetLeadingTrivia(), SyntaxKind.UsingKeyword, [SyntaxFactory.Space]));
+            .WithUsingKeyword(Token(declarationStatement.GetLeadingTrivia(), SyntaxKind.UsingKeyword, [Space]));
         return true;
     }
 }

@@ -3,13 +3,17 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Telemetry;
 
 /// <summary>
 /// Provides access to posting telemetry events or adding information
-/// to aggregated telemetry events.
+/// to aggregated telemetry events. Posts pending telemetry at 30
+/// minute intervals.
 /// </summary>
 internal static class TelemetryLogging
 {
@@ -20,9 +24,13 @@ internal static class TelemetryLogging
     public const string KeyLanguageName = "LanguageName";
     public const string KeyMetricName = "MetricName";
 
+    public static event EventHandler<EventArgs>? Flushed;
+
     public static void SetLogProvider(ITelemetryLogProvider logProvider)
     {
         s_logProvider = logProvider;
+
+        _ = PostCollectedTelemetryAsync(CancellationToken.None);
     }
 
     /// <summary>
@@ -112,5 +120,19 @@ internal static class TelemetryLogging
     public static void Flush()
     {
         s_logProvider?.Flush();
+
+        Flushed?.Invoke(null, EventArgs.Empty);
+    }
+
+    private static async Task PostCollectedTelemetryAsync(CancellationToken cancellationToken)
+    {
+        await Task.Delay(TimeSpan.FromMinutes(30), cancellationToken).ConfigureAwait(false);
+
+        Flush();
+
+        // Create a fire and forget task to handle the next collection. This doesn't use IAsynchronousOperationListener
+        // to track this work as no-one needs to ensure this is sent, and the create a new item of work
+        // upon previous completion doesn't fit well in that model.
+        _ = PostCollectedTelemetryAsync(CancellationToken.None).ReportNonFatalErrorAsync();
     }
 }

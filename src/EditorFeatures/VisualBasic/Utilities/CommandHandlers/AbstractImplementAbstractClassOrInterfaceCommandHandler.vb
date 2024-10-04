@@ -39,11 +39,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
             _globalOptions = globalOptions
         End Sub
 
-        Protected MustOverride Overloads Function TryGetNewDocument(
+        Protected MustOverride Overloads Function TryGetNewDocumentAsync(
             document As Document,
-            options As ImplementTypeGenerationOptions,
             typeSyntax As TypeSyntax,
-            cancellationToken As CancellationToken) As Document
+            cancellationToken As CancellationToken) As Task(Of Document)
 
         Private Function ExecuteCommand(args As ReturnKeyCommandArgs, context As CommandExecutionContext) As Boolean Implements ICommandHandler(Of ReturnKeyCommandArgs).ExecuteCommand
             Dim caretPointOpt = args.TextView.GetCaretPoint(args.SubjectBuffer)
@@ -165,13 +164,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
                 Return False
             End If
 
-            Dim newDocument = TryGetNewDocument(document, _globalOptions.GetImplementTypeGenerationOptions(document.Project.Services), identifier, cancellationToken)
-
+            Dim newDocument = TryGetNewDocumentAsync(document, identifier, cancellationToken).WaitAndGetResult(cancellationToken)
             If newDocument Is Nothing Then
                 Return False
             End If
 
-            Dim cleanupOptions = newDocument.GetCodeCleanupOptionsAsync(_globalOptions, cancellationToken).AsTask().WaitAndGetResult(cancellationToken)
+            Dim cleanupOptions = newDocument.GetCodeCleanupOptionsAsync(cancellationToken).AsTask().WaitAndGetResult(cancellationToken)
 
             newDocument = Simplifier.ReduceAsync(newDocument, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken).WaitAndGetResult(cancellationToken)
             newDocument = Formatter.FormatAsync(newDocument, Formatter.Annotation, cleanupOptions.FormattingOptions, cancellationToken).WaitAndGetResult(cancellationToken)

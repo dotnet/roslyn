@@ -177,17 +177,15 @@ internal abstract class AbstractDocumentationCommentCommandHandler :
         // According to JasonMal, the text undo history is associated with the surface buffer
         // in projection buffer scenarios, so the following line's usage of the surface buffer
         // is correct.
-        using (var transaction = _undoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(EditorFeaturesResources.Insert_new_line))
-        {
-            var editorOperations = _editorOperationsFactoryService.GetEditorOperations(args.TextView);
-            editorOperations.InsertNewLine();
+        using var transaction = _undoHistoryRegistry.GetHistory(args.TextView.TextBuffer).CreateTransaction(EditorFeaturesResources.Insert_new_line);
+        var editorOperations = _editorOperationsFactoryService.GetEditorOperations(args.TextView);
+        editorOperations.InsertNewLine();
 
-            CompleteComment(args.SubjectBuffer, args.TextView, InsertOnEnterTyped, CancellationToken.None);
+        CompleteComment(args.SubjectBuffer, args.TextView, InsertOnEnterTyped, CancellationToken.None);
 
-            // Since we're wrapping the ENTER key undo transaction, we always complete
-            // the transaction -- even if we didn't generate anything.
-            transaction.Complete();
-        }
+        // Since we're wrapping the ENTER key undo transaction, we always complete
+        // the transaction -- even if we didn't generate anything.
+        transaction.Complete();
 
         return true;
     }

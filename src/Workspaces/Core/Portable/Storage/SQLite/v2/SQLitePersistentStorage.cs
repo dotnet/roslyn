@@ -4,11 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SQLite.Interop;
 using Microsoft.CodeAnalysis.SQLite.v2.Interop;
 using Microsoft.CodeAnalysis.Storage;
@@ -23,14 +25,29 @@ using static SQLitePersistentStorageConstants;
 /// </summary>
 internal sealed partial class SQLitePersistentStorage : AbstractPersistentStorage
 {
+    private const string LockFile = "db.lock";
+
     private readonly CancellationTokenSource _shutdownTokenSource = new();
 
-    private readonly SolutionKey _solutionKey;
     private readonly string _solutionDirectory;
 
-    private readonly SQLiteConnectionPoolService _connectionPoolService;
-    private readonly ReferenceCountedDisposable<SQLiteConnectionPool> _connectionPool;
+    // We pool connections to the DB so that we don't have to take the hit of 
+    // reconnecting.  The connections also cache the prepared statements used
+    // to get/set data from the db.  A connection is safe to use by one thread
+    // at a time, but is not safe for simultaneous use by multiple threads.
+    private readonly object _connectionGate = new();
+    private readonly Stack<SqlConnection> _connectionsPool = new();
     private readonly Action _flushInMemoryDataToDisk;
+
+    /// <summary>
+    /// Lock file that ensures only one database is made per process per solution.
+    /// </summary>
+    public readonly IDisposable DatabaseOwnership;
+
+    /// <summary>
+    /// For testing purposes.  Allows us to test what happens when we fail to acquire the db lock file.
+    /// </summary>
+    private readonly IPersistentStorageFaultInjector? _faultInjector;
 
     // Accessors that allow us to retrieve/store data into specific DB tables.  The
     // core Accessor type has logic that we to share across all reading/writing, while
@@ -47,31 +64,48 @@ internal sealed partial class SQLitePersistentStorage : AbstractPersistentStorag
     private readonly string _select_star_from_string_table_where_0_limit_one = $"select * from {StringInfoTableName} where ({DataColumnName} = ?) limit 1";
     private readonly string _select_star_from_string_table = $"select * from {StringInfoTableName}";
 
+    /// <summary>
+    /// Use a <see cref="ConcurrentExclusiveSchedulerPair"/> to simulate a reader-writer lock.
+    /// Read operations are performed on the <see cref="ConcurrentExclusiveSchedulerPair.ConcurrentScheduler"/>
+    /// and writes are performed on the <see cref="ConcurrentExclusiveSchedulerPair.ExclusiveScheduler"/>.
+    ///
+    /// We use this as a condition of using the in-memory shared-cache sqlite DB.  This DB
+    /// doesn't busy-wait when attempts are made to lock the tables in it, which can lead to
+    /// deadlocks.  Specifically, consider two threads doing the following:
+    ///
+    /// Thread A starts a transaction that starts as a reader, and later attempts to perform a
+    /// write. Thread B is a writer (either started that way, or started as a reader and
+    /// promoted to a writer first). B holds a RESERVED lock, waiting for readers to clear so it
+    /// can start writing. A holds a SHARED lock (it's a reader) and tries to acquire RESERVED
+    /// lock (so it can start writing).  The only way to make progress in this situation is for
+    /// one of the transactions to roll back. No amount of waiting will help, so when SQLite
+    /// detects this situation, it doesn't honor the busy timeout.
+    ///
+    /// To prevent this scenario, we control our access to the db explicitly with operations that
+    /// can concurrently read, and operations that exclusively write.
+    ///
+    /// All code that reads or writes from the db should go through this.
+    /// </summary>
+    private ConcurrentExclusiveSchedulerPair Scheduler { get; } = new();
+
     private SQLitePersistentStorage(
-        SQLiteConnectionPoolService connectionPoolService,
         SolutionKey solutionKey,
         string workingFolderPath,
         string databaseFile,
         IAsynchronousOperationListener asyncListener,
-        IPersistentStorageFaultInjector? faultInjector)
-        : base(workingFolderPath, solutionKey.FilePath!, databaseFile)
+        IPersistentStorageFaultInjector? faultInjector,
+        IDisposable databaseOwnership)
+        : base(solutionKey, workingFolderPath, databaseFile)
     {
         Contract.ThrowIfNull(solutionKey.FilePath);
-        _solutionKey = solutionKey;
         _solutionDirectory = PathUtilities.GetDirectoryName(solutionKey.FilePath);
-        _connectionPoolService = connectionPoolService;
 
         _solutionAccessor = new SolutionAccessor(this);
         _projectAccessor = new ProjectAccessor(this);
         _documentAccessor = new DocumentAccessor(this);
 
-        // This assignment violates the declared non-nullability of _connectionPool, but the caller ensures that
-        // the constructed object is only used if the nullability post-conditions are met.
-        _connectionPool = connectionPoolService.TryOpenDatabase(
-            databaseFile,
-            faultInjector,
-            Initialize,
-            CancellationToken.None)!;
+        _faultInjector = faultInjector;
+        DatabaseOwnership = databaseOwnership;
 
         // Create a delay to batch up requests to flush.  We'll won't flush more than every FlushAllDelayMS.
         _flushInMemoryDataToDisk = FlushInMemoryDataToDisk;
@@ -83,49 +117,52 @@ internal sealed partial class SQLitePersistentStorage : AbstractPersistentStorag
     }
 
     public static SQLitePersistentStorage? TryCreate(
-        SQLiteConnectionPoolService connectionPoolService,
         SolutionKey solutionKey,
         string workingFolderPath,
         string databaseFile,
         IAsynchronousOperationListener asyncListener,
         IPersistentStorageFaultInjector? faultInjector)
     {
-        var sqlStorage = new SQLitePersistentStorage(
-            connectionPoolService, solutionKey, workingFolderPath, databaseFile, asyncListener, faultInjector);
-        if (sqlStorage._connectionPool is null)
-        {
-            // The connection pool failed to initialize
+        var databaseOwnership = TryGetDatabaseOwnership(databaseFile);
+        if (databaseOwnership is null)
             return null;
-        }
 
-        return sqlStorage;
+        var storage = new SQLitePersistentStorage(
+            solutionKey, workingFolderPath, databaseFile, asyncListener, faultInjector, databaseOwnership);
+        storage.Initialize();
+        return storage;
     }
 
-    public override void Dispose()
+    /// <summary>
+    /// Returns null in the case where an IO exception prevented us from being able to acquire
+    /// the db lock file.
+    /// </summary>
+    private static IDisposable? TryGetDatabaseOwnership(string databaseFilePath)
     {
-        var task = DisposeAsync().AsTask();
-        task.Wait();
-    }
+        return IOUtilities.PerformIO<IDisposable?>(() =>
+        {
+            // make sure directory exist first.
+            EnsureDirectory(databaseFilePath);
 
-    public override async ValueTask DisposeAsync()
-    {
-        try
+            var directoryName = Path.GetDirectoryName(databaseFilePath);
+            Contract.ThrowIfNull(directoryName);
+
+            return File.Open(
+                Path.Combine(directoryName, LockFile),
+                FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        }, defaultValue: null);
+
+        static void EnsureDirectory(string databaseFilePath)
         {
-            // Flush all pending writes so that all data our features wanted written are definitely
-            // persisted to the DB.
-            try
+            var directory = Path.GetDirectoryName(databaseFilePath);
+            Contract.ThrowIfNull(directory);
+
+            if (Directory.Exists(directory))
             {
-                await FlushWritesOnCloseAsync().ConfigureAwait(false);
+                return;
             }
-            catch (Exception e)
-            {
-                // Flushing may fail.  We still have to close all our connections.
-                StorageDatabaseLogger.LogException(e);
-            }
-        }
-        finally
-        {
-            _connectionPool.Dispose();
+
+            Directory.CreateDirectory(directory);
         }
     }
 
@@ -142,17 +179,11 @@ internal sealed partial class SQLitePersistentStorage : AbstractPersistentStorag
             d["Message"] = exception.Message;
         });
 
-    private void Initialize(SqlConnection connection, CancellationToken cancellationToken)
+    private void Initialize()
     {
-        if (cancellationToken.IsCancellationRequested)
-        {
-            // Someone tried to get a connection *after* a call to Dispose the storage system
-            // happened.  That should never happen.  We only Dispose when the last ref to the
-            // storage system goes away.  Once that happens, it's an error for there to be any
-            // future or existing consumers of the storage service.  So nothing should be doing
-            // anything that wants to get an connection.
-            throw new InvalidOperationException();
-        }
+        // This is our startup path.  No other code can be running.  So it's safe for us to access a connection that can
+        // talk to the db without having to be on the reader/writer scheduler queue.
+        using var _ = GetPooledConnection(checkScheduler: false, out var connection);
 
         // Ensure the database has tables for the types we care about.
 

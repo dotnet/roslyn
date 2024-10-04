@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private void AddAnalyzersToWorkspace(TestWorkspace workspace)
         {
             var analyzerReference = new AnalyzerImageReference(OtherAnalyzers.Add(SuppressionAnalyzer));
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences([analyzerReference]));
         }
 
         internal override async Task<IEnumerable<Diagnostic>> GetDiagnosticsAsync(

@@ -2,18 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Highlighting;
 
-internal abstract class AbstractKeywordHighlighter<TNode> : AbstractKeywordHighlighter where TNode : SyntaxNode
+internal abstract class AbstractKeywordHighlighter<TNode>(bool findInsideTrivia = true)
+    : AbstractKeywordHighlighter(findInsideTrivia)
+    where TNode : SyntaxNode
 {
-    protected sealed override bool IsHighlightableNode(SyntaxNode node) => node is TNode;
+    protected sealed override bool IsHighlightableNode(SyntaxNode node)
+        => node is TNode;
 
     protected sealed override void AddHighlightsForNode(SyntaxNode node, List<TextSpan> highlights, CancellationToken cancellationToken)
         => AddHighlights((TNode)node, highlights, cancellationToken);
@@ -21,35 +23,40 @@ internal abstract class AbstractKeywordHighlighter<TNode> : AbstractKeywordHighl
     protected abstract void AddHighlights(TNode node, List<TextSpan> highlights, CancellationToken cancellationToken);
 }
 
-internal abstract class AbstractKeywordHighlighter : IHighlighter
+internal abstract class AbstractKeywordHighlighter(bool findInsideTrivia = true) : IHighlighter
 {
+    private readonly bool _findInsideTrivia = findInsideTrivia;
+
     private static readonly ObjectPool<List<TextSpan>> s_textSpanListPool = new(() => []);
-    private static readonly ObjectPool<List<SyntaxToken>> s_tokenListPool = new(() => []);
 
     protected abstract bool IsHighlightableNode(SyntaxNode node);
+
+    protected virtual bool ContainsHighlightableToken(ref TemporaryArray<SyntaxToken> tokens)
+        => true;
 
     public void AddHighlights(
         SyntaxNode root, int position, List<TextSpan> highlights, CancellationToken cancellationToken)
     {
-        using (s_textSpanListPool.GetPooledObject(out var tempHighlights))
-        using (s_tokenListPool.GetPooledObject(out var touchingTokens))
+        // We only look at a max of 4 tokens (two trivia, and two non-trivia), so a temp-array is ideal here
+        using var touchingTokens = TemporaryArray<SyntaxToken>.Empty;
+        AddTouchingTokens(root, position, ref touchingTokens.AsRef());
+        if (!ContainsHighlightableToken(ref touchingTokens.AsRef()))
+            return;
+
+        using var _2 = s_textSpanListPool.GetPooledObject(out var highlightsBuffer);
+        foreach (var token in touchingTokens)
         {
-            AddTouchingTokens(root, position, touchingTokens);
-
-            foreach (var token in touchingTokens)
+            for (var parent = token.Parent; parent != null; parent = parent.Parent)
             {
-                for (var parent = token.Parent; parent != null; parent = parent.Parent)
+                if (IsHighlightableNode(parent))
                 {
-                    if (IsHighlightableNode(parent))
-                    {
-                        tempHighlights.Clear();
-                        AddHighlightsForNode(parent, tempHighlights, cancellationToken);
+                    highlightsBuffer.Clear();
+                    AddHighlightsForNode(parent, highlightsBuffer, cancellationToken);
 
-                        if (AnyIntersects(position, tempHighlights))
-                        {
-                            highlights.AddRange(tempHighlights);
-                            return;
-                        }
+                    if (AnyIntersects(position, highlightsBuffer))
+                    {
+                        highlights.AddRange(highlightsBuffer);
+                        return;
                     }
                 }
             }
@@ -61,9 +68,7 @@ internal abstract class AbstractKeywordHighlighter : IHighlighter
         foreach (var highlight in highlights)
         {
             if (highlight.IntersectsWith(position))
-            {
                 return true;
-            }
         }
 
         return false;
@@ -74,13 +79,15 @@ internal abstract class AbstractKeywordHighlighter : IHighlighter
     protected static TextSpan EmptySpan(int position)
         => new(position, 0);
 
-    internal static void AddTouchingTokens(SyntaxNode root, int position, List<SyntaxToken> tokens)
+    internal void AddTouchingTokens(SyntaxNode root, int position, ref TemporaryArray<SyntaxToken> tokens)
     {
-        AddTouchingTokens(root, position, tokens, findInsideTrivia: true);
-        AddTouchingTokens(root, position, tokens, findInsideTrivia: false);
+        AddTouchingTokens(root, position, ref tokens, findInsideTrivia: true);
+        if (_findInsideTrivia)
+            AddTouchingTokens(root, position, ref tokens, findInsideTrivia: false);
     }
 
-    private static void AddTouchingTokens(SyntaxNode root, int position, List<SyntaxToken> tokens, bool findInsideTrivia)
+    private static void AddTouchingTokens(
+        SyntaxNode root, int position, ref TemporaryArray<SyntaxToken> tokens, bool findInsideTrivia)
     {
         var token = root.FindToken(position, findInsideTrivia);
         if (!tokens.Contains(token))

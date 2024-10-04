@@ -48,10 +48,10 @@ internal abstract class AbstractImportCompletionCacheServiceFactory<TProjectCach
         }
 
         var workQueue = new AsyncBatchingWorkQueue<Project>(
-                TimeSpan.FromSeconds(1),
-                _processBatchAsync,
-                _listenerProvider.GetListener(FeatureAttribute.CompletionSet),
-                _disposalToken);
+            TimeSpan.FromSeconds(1),
+            _processBatchAsync,
+            _listenerProvider.GetListener(FeatureAttribute.CompletionSet),
+            _disposalToken);
 
         return new ImportCompletionCacheService(
             _peItemsCache, _projectItemsCache, workQueue);
@@ -63,7 +63,7 @@ internal abstract class AbstractImportCompletionCacheServiceFactory<TProjectCach
         _projectItemsCache.Clear();
     }
 
-    private class ImportCompletionCacheService(
+    private sealed class ImportCompletionCacheService(
         ConcurrentDictionary<string, TMetadataCacheEntry> peCache,
         ConcurrentDictionary<ProjectId, TProjectCacheEntry> projectCache,
         AsyncBatchingWorkQueue<Project> workQueue) : IImportCompletionCacheService<TProjectCacheEntry, TMetadataCacheEntry>

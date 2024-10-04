@@ -13,8 +13,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -23,13 +21,15 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.AddImport.AddImportDiagnosticIds;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddImport;
+
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
 [ExportLanguageService(typeof(IAddImportFeatureService), LanguageNames.CSharp), Shared]
 internal class CSharpAddImportFeatureService : AbstractAddImportFeatureService<SimpleNameSyntax>
@@ -386,7 +386,7 @@ internal class CSharpAddImportFeatureService : AbstractAddImportFeatureService<S
     {
         var root = GetCompilationUnitSyntaxNode(contextNode, cancellationToken);
 
-        var usingDirective = SyntaxFactory.UsingDirective(
+        var usingDirective = UsingDirective(
             CreateNameSyntax(namespaceParts, namespaceParts.Count - 1));
 
         var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -406,10 +406,10 @@ internal class CSharpAddImportFeatureService : AbstractAddImportFeatureService<S
             part = "@" + part;
         }
 
-        var namePiece = SyntaxFactory.IdentifierName(part);
+        var namePiece = IdentifierName(part);
         return index == 0
             ? namePiece
-            : SyntaxFactory.QualifiedName(CreateNameSyntax(namespaceParts, index - 1), namePiece);
+            : QualifiedName(CreateNameSyntax(namespaceParts, index - 1), namePiece);
     }
 
     private static (ExternAliasDirectiveSyntax, bool hasExistingImport) GetExternAliasDirective(
@@ -423,7 +423,7 @@ internal class CSharpAddImportFeatureService : AbstractAddImportFeatureService<S
             return (null, false);
         }
 
-        return (SyntaxFactory.ExternAliasDirective(SyntaxFactory.Identifier(val))
+        return (ExternAliasDirective(Identifier(val))
                              .WithAdditionalAnnotations(Formatter.Annotation),
                 hasExistingExtern);
     }
@@ -447,7 +447,7 @@ internal class CSharpAddImportFeatureService : AbstractAddImportFeatureService<S
         // from it if necessary).  So we first create a dummy using directive just to
         // determine which container we're going in.  Then we'll use the container to
         // help create the final using.
-        var dummyUsing = SyntaxFactory.UsingDirective(nameSyntax);
+        var dummyUsing = UsingDirective(nameSyntax);
 
         var container = addImportService.GetImportContainer(root, contextNode, dummyUsing, options);
         var namespaceToAddTo = container as BaseNamespaceDeclarationSyntax;
@@ -460,7 +460,7 @@ internal class CSharpAddImportFeatureService : AbstractAddImportFeatureService<S
         var externAlias = externAliasDirective?.Identifier.ValueText;
         if (externAlias != null)
         {
-            nameSyntax = AddOrReplaceAlias(nameSyntax, SyntaxFactory.IdentifierName(externAlias));
+            nameSyntax = AddOrReplaceAlias(nameSyntax, IdentifierName(externAlias));
         }
         else
         {
@@ -476,12 +476,12 @@ internal class CSharpAddImportFeatureService : AbstractAddImportFeatureService<S
             nameSyntax = RemoveGlobalAliasIfUnnecessary(semanticModel, nameSyntax, namespaceToAddTo);
         }
 
-        var usingDirective = SyntaxFactory.UsingDirective(nameSyntax)
+        var usingDirective = UsingDirective(nameSyntax)
                                           .WithAdditionalAnnotations(Formatter.Annotation);
 
         usingDirective = namespaceOrTypeSymbol.IsKind(SymbolKind.Namespace)
             ? usingDirective
-            : usingDirective.WithStaticKeyword(SyntaxFactory.Token(SyntaxKind.StaticKeyword));
+            : usingDirective.WithStaticKeyword(StaticKeyword);
 
         return (usingDirective, addImportService.HasExistingImport(semanticModel.Compilation, root, contextNode, usingDirective, generator));
     }
@@ -537,7 +537,7 @@ internal class CSharpAddImportFeatureService : AbstractAddImportFeatureService<S
     {
         if (nameSyntax is SimpleNameSyntax simpleName)
         {
-            return SyntaxFactory.AliasQualifiedName(alias, simpleName);
+            return AliasQualifiedName(alias, simpleName);
         }
 
         if (nameSyntax is QualifiedNameSyntax qualifiedName)

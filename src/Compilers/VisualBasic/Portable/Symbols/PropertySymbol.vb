@@ -2,12 +2,10 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -15,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' </summary>
     Friend MustInherit Class PropertySymbol
         Inherits Symbol
-        Implements IPropertySymbol
+        Implements IPropertySymbol, IPropertySymbolInternal
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         ' Changes to the public interface of this class should remain synchronized with the C# version.
@@ -618,6 +616,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IPropertySymbol_TypeCustomModifiers As ImmutableArray(Of CustomModifier) Implements IPropertySymbol.TypeCustomModifiers
             Get
                 Return Me.TypeCustomModifiers
+            End Get
+        End Property
+
+        Private ReadOnly Property IPropertySymbol_PartialDefinitionPart As IPropertySymbol Implements IPropertySymbol.PartialDefinitionPart
+            Get
+                ' Feature not supported in VB
+                Return Nothing
+            End Get
+        End Property
+
+        Private ReadOnly Property IPropertySymbol_PartialImplementationPart As IPropertySymbol Implements IPropertySymbol.PartialImplementationPart
+            Get
+                ' Feature not supported in VB
+                Return Nothing
+            End Get
+        End Property
+
+        Private ReadOnly Property IPropertySymbol_IsPartialDefinition As Boolean Implements IPropertySymbol.IsPartialDefinition
+            Get
+                ' Feature not supported in VB
+                Return False
+            End Get
+        End Property
+
+        Public ReadOnly Property IPropertySymbolInternal_PartialImplementationPart As IPropertySymbolInternal Implements IPropertySymbolInternal.PartialImplementationPart
+            Get
+                ' Feature not supported in VB
+                Return Nothing
+            End Get
+        End Property
+
+        Public ReadOnly Property IPropertySymbolInternal_PartialDefinitionPart As IPropertySymbolInternal Implements IPropertySymbolInternal.PartialDefinitionPart
+            Get
+                ' Feature not supported in VB
+                Return Nothing
             End Get
         End Property
 

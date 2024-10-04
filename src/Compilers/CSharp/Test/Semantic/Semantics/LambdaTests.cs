@@ -375,7 +375,7 @@ public class C
 
             var comp1 = CreateCompilationWithMscorlib40(
                 new[] { Parse(text1) },
-                new[] { TestMetadata.Net451.System });
+                new[] { NetFramework.System });
 
             var text2 = @"
 class Program
@@ -421,7 +421,8 @@ public delegate void Y(List<string> addin);
 
             var comp1 = CreateCompilation(
                 Parse(text1),
-                new[] { TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(true) },
+                targetFramework: TargetFramework.NetFramework,
+                references: [TestReferences.SymbolsTests.NoPia.StdOleNetFramework.WithEmbedInteropTypes(true)],
                 options: TestOptions.ReleaseDll);
 
             var text2 = @"
@@ -436,22 +437,24 @@ public class Program
 
             var comp2 = CreateCompilation(
                 Parse(text2),
-                new MetadataReference[]
-                    {
+                targetFramework: TargetFramework.NetFramework,
+                references:
+                    [
                         new CSharpCompilationReference(comp1),
-                        TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(true)
-                    },
+                        TestReferences.SymbolsTests.NoPia.StdOleNetFramework.WithEmbedInteropTypes(true)
+                    ],
                 options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp2, expectedOutput: "Y").Diagnostics.Verify();
 
             var comp3 = CreateCompilation(
                 Parse(text2),
-                new MetadataReference[]
-                    {
+                targetFramework: TargetFramework.NetFramework,
+                references:
+                    [
                         comp1.EmitToImageReference(),
-                        TestReferences.SymbolsTests.NoPia.StdOle.WithEmbedInteropTypes(true)
-                    },
+                        TestReferences.SymbolsTests.NoPia.StdOleNetFramework.WithEmbedInteropTypes(true)
+                    ],
                 options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp3, expectedOutput: "Y").Diagnostics.Verify();
@@ -1268,7 +1271,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1289,7 +1292,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1317,7 +1320,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1340,7 +1343,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics(
                 // (11,22): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         ME(() => ref i);
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "i").WithLocation(11, 22),
@@ -1370,7 +1373,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics(
                 // (9,33): error CS8149: By-reference returns may only be used in by-reference returning methods.
                 //         var e = new E(() => ref i);
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "i").WithLocation(9, 33),
@@ -1415,7 +1418,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics(
                 // (18,13): error CS8150: By-value returns may only be used in by-value returning methods.
                 //             return i;
                 Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(18, 13),
@@ -1975,7 +1978,7 @@ namespace RoslynAsyncDelegate
 }
 
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe);
 
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -3816,9 +3819,21 @@ class BAttribute : Attribute
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (6,2): error CS0181: Attribute constructor parameter 'a' has type 'Action', which is not a valid attribute parameter type
+                // (6,11): error CS1003: Syntax error, ',' expected
                 // [A([B] () => { })]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("a", "System.Action").WithLocation(6, 2));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(6, 11),
+                // (6,16): error CS1026: ) expected
+                // [A([B] () => { })]
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(6, 16),
+                // (6,16): error CS1003: Syntax error, ']' expected
+                // [A([B] () => { })]
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments("]").WithLocation(6, 16),
+                // (6,16): error CS1022: Type or namespace definition, or end-of-file expected
+                // [A([B] () => { })]
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 16),
+                // (6,17): error CS1022: Type or namespace definition, or end-of-file expected
+                // [A([B] () => { })]
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(6, 17));
         }
 
         [Fact]
@@ -4737,7 +4752,7 @@ class Program
 class C
 {
     object? field;
-    string Prop => field switch
+    string Prop => @field switch
     {
         string?[] a => ""a""
     };
@@ -4747,9 +4762,9 @@ class C
                 // (4,13): warning CS0649: Field 'C.field' is never assigned to, and will always have its default value null
                 //     object? field;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C.field", "null").WithLocation(4, 13),
-                // (5,26): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
-                //     string Prop => field switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(5, 26));
+                // (5,27): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //     string Prop => @field switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(5, 27));
         }
 
         [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
@@ -5988,15 +6003,15 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (10,39): error CS4012: Parameters or locals of type 'TypedReference' cannot be declared in async methods or async lambda expressions.
+                // (10,39): error CS4012: Parameters of type 'TypedReference' cannot be declared in async methods or async lambda expressions.
                 //         D1 d1 = async (TypedReference r) => { await Task.Yield(); };
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "r").WithArguments("System.TypedReference").WithLocation(10, 39),
-                // (11,46): error CS4012: Parameters or locals of type 'RuntimeArgumentHandle' cannot be declared in async methods or async lambda expressions.
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "r").WithArguments("System.TypedReference").WithLocation(10, 39),
+                // (11,46): error CS4012: Parameters of type 'RuntimeArgumentHandle' cannot be declared in async methods or async lambda expressions.
                 //         D2 d2 = async (RuntimeArgumentHandle h) => { await Task.Yield(); };
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "h").WithArguments("System.RuntimeArgumentHandle").WithLocation(11, 46),
-                // (12,36): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or async lambda expressions.
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "h").WithArguments("System.RuntimeArgumentHandle").WithLocation(11, 46),
+                // (12,36): error CS4012: Parameters of type 'ArgIterator' cannot be declared in async methods or async lambda expressions.
                 //         D3 d3 = async (ArgIterator i) => { await Task.Yield(); };
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "i").WithArguments("System.ArgIterator").WithLocation(12, 36));
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "i").WithArguments("System.ArgIterator").WithLocation(12, 36));
         }
 
         [Fact]
@@ -7345,7 +7360,7 @@ class Program
 class C
 {
     object field;
-    public object Field => field;
+    public object Field => @field;
 
     public C(object f) { field = f; }
 
@@ -7374,7 +7389,7 @@ class Program
 class C
 {
     object field;
-    public object Field => field;
+    public object Field => @field;
 
     public C(object f) { field = f; }
 

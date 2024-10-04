@@ -181,10 +181,10 @@ internal abstract class AbstractConvertForToForEachCodeRefactoringProvider<
 
             foreach (var child in current.ChildNodesAndTokens())
             {
-                if (child.IsNode)
+                if (child.AsNode(out var childNode) &&
+                    IterationVariableIsUsedForMoreThanCollectionIndex(childNode))
                 {
-                    if (IterationVariableIsUsedForMoreThanCollectionIndex(child.AsNode()!))
-                        return true;
+                    return true;
                 }
             }
 
@@ -458,8 +458,8 @@ internal abstract class AbstractConvertForToForEachCodeRefactoringProvider<
 
             foreach (var child in current.ChildNodesAndTokens())
             {
-                if (child.IsNode)
-                    FindAndReplaceMatches(child.AsNode()!);
+                if (child.AsNode(out var childNode))
+                    FindAndReplaceMatches(childNode);
             }
         }
 

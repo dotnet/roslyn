@@ -8,17 +8,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
-internal partial class SemanticMap
+internal sealed partial class SemanticMap
 {
-    private class Walker(SemanticModel semanticModel, SemanticMap map, CancellationToken cancellationToken)
+    private sealed class Walker(SemanticModel semanticModel, SemanticMap map, CancellationToken cancellationToken)
     {
         public void Visit(SyntaxNode node)
         {
             foreach (var child in node.DescendantNodesAndTokensAndSelf())
             {
-                if (child.IsNode)
+                if (child.AsNode(out var childNode))
                 {
-                    var childNode = child.AsNode()!;
                     var info = semanticModel.GetSymbolInfo(childNode);
                     if (!IsNone(info))
                     {

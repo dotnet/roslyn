@@ -6,8 +6,6 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Security.Cryptography;
-using System.Text;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Internal.Log;
 

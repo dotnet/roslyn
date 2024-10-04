@@ -272,21 +272,6 @@
         <target state="translated">&lt;Enter&gt; 키를 누르면 새 줄 추가 안 함(_N)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Always_include_snippets">
-        <source>Always include snippets</source>
-        <target state="translated">코드 조각 항상 포함</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
-        <source>Include snippets when ?-Tab is typed after an identifier</source>
-        <target state="translated">식별자 뒤에 ?-Tab을 입력하면 코드 조각 포함</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_include_snippets">
-        <source>Never include snippets</source>
-        <target state="translated">코드 조각 포함 안 함</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Snippets_behavior">
         <source>Snippets behavior</source>
         <target state="translated">코드 조각 동작</target>

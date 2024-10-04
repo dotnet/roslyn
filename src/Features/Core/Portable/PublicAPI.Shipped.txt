@@ -230,6 +230,7 @@ Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds
 Microsoft.CodeAnalysis.QuickInfo.QuickInfoService
 Microsoft.CodeAnalysis.QuickInfo.QuickInfoService.GetQuickInfoAsync(Microsoft.CodeAnalysis.Document document, int position, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem>
 Microsoft.CodeAnalysis.TaggedText
+Microsoft.CodeAnalysis.TaggedText.Equals(Microsoft.CodeAnalysis.TaggedText other) -> bool
 Microsoft.CodeAnalysis.TaggedText.Tag.get -> string
 Microsoft.CodeAnalysis.TaggedText.TaggedText() -> void
 Microsoft.CodeAnalysis.TaggedText.TaggedText(string tag, string text) -> void
@@ -237,6 +238,8 @@ Microsoft.CodeAnalysis.TaggedText.Text.get -> string
 Microsoft.CodeAnalysis.TextTags
 override Microsoft.CodeAnalysis.CodeActions.DocumentNavigationOperation.Apply(Microsoft.CodeAnalysis.Workspace workspace, System.Threading.CancellationToken cancellationToken) -> void
 override Microsoft.CodeAnalysis.Completion.CompletionItem.ToString() -> string
+override Microsoft.CodeAnalysis.TaggedText.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.TaggedText.GetHashCode() -> int
 override Microsoft.CodeAnalysis.TaggedText.ToString() -> string
 static Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule.Create(Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind kind, params char[] characters) -> Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule
 static Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule.Create(Microsoft.CodeAnalysis.Completion.CharacterSetModificationKind kind, System.Collections.Immutable.ImmutableArray<char> characters) -> Microsoft.CodeAnalysis.Completion.CharacterSetModificationRule
@@ -262,6 +265,8 @@ static Microsoft.CodeAnalysis.Completion.CompletionTrigger.CreateInsertionTrigge
 static Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem.Create(Microsoft.CodeAnalysis.Text.TextSpan span, System.Collections.Immutable.ImmutableArray<string> tags = default(System.Collections.Immutable.ImmutableArray<string>), System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.QuickInfo.QuickInfoSection> sections = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.QuickInfo.QuickInfoSection>), System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan> relatedSpans = default(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Text.TextSpan>)) -> Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem
 static Microsoft.CodeAnalysis.QuickInfo.QuickInfoSection.Create(string kind, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> taggedParts) -> Microsoft.CodeAnalysis.QuickInfo.QuickInfoSection
 static Microsoft.CodeAnalysis.QuickInfo.QuickInfoService.GetService(Microsoft.CodeAnalysis.Document document) -> Microsoft.CodeAnalysis.QuickInfo.QuickInfoService
+static Microsoft.CodeAnalysis.TaggedText.operator !=(Microsoft.CodeAnalysis.TaggedText left, Microsoft.CodeAnalysis.TaggedText right) -> bool
+static Microsoft.CodeAnalysis.TaggedText.operator ==(Microsoft.CodeAnalysis.TaggedText left, Microsoft.CodeAnalysis.TaggedText right) -> bool
 static readonly Microsoft.CodeAnalysis.Completion.CompletionDescription.Empty -> Microsoft.CodeAnalysis.Completion.CompletionDescription
 static readonly Microsoft.CodeAnalysis.Completion.CompletionList.Empty -> Microsoft.CodeAnalysis.Completion.CompletionList
 static readonly Microsoft.CodeAnalysis.Completion.CompletionRules.Default -> Microsoft.CodeAnalysis.Completion.CompletionRules

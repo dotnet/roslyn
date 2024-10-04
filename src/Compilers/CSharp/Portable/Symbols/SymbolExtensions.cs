@@ -201,6 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             switch (symbol.Kind)
             {
                 case SymbolKind.NamedType:
+                case SymbolKind.ErrorType:
                     return ((NamedTypeSymbol)symbol).ConstructedFrom;
 
                 case SymbolKind.Method:
@@ -825,5 +826,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool ShouldCheckRequiredMembers(this MethodSymbol method)
             => method is { MethodKind: MethodKind.Constructor, HasSetsRequiredMembers: false };
+
+        internal static int GetOverloadResolutionPriority(this Symbol symbol)
+        {
+            Debug.Assert(symbol is MethodSymbol or PropertySymbol);
+            return symbol is MethodSymbol method ? method.OverloadResolutionPriority : ((PropertySymbol)symbol).OverloadResolutionPriority;
+        }
     }
 }

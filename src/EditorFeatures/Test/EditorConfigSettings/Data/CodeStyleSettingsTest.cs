@@ -13,98 +13,97 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.EditorConfigSettings.Data;
+
+[UseExportProvider]
+public class CodeStyleSettingsTest
 {
-    [UseExportProvider]
-    public class CodeStyleSettingsTest
+    private static IGlobalOptionService GetGlobalOptions(Workspace workspace)
+        => workspace.Services.SolutionServices.ExportProvider.GetExportedValue<IGlobalOptionService>();
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public static void CodeStyleSettingBoolFactory(bool defaultValue)
     {
-        private static IGlobalOptionService GetGlobalOptions(Workspace workspace)
-            => workspace.Services.SolutionServices.ExportProvider.GetExportedValue<IGlobalOptionService>();
+        using var workspace = new AdhocWorkspace();
+        var globalOptions = GetGlobalOptions(workspace);
 
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public static void CodeStyleSettingBoolFactory(bool defaultValue)
-        {
-            using var workspace = new AdhocWorkspace();
-            var globalOptions = GetGlobalOptions(workspace);
+        var option = CreateBoolOption(defaultValue);
 
-            var option = CreateBoolOption(defaultValue);
+        var options = new TieredAnalyzerConfigOptions(
+            new TestAnalyzerConfigOptions(),
+            globalOptions,
+            LanguageNames.CSharp,
+            ".editorconfig");
 
-            var options = new TieredAnalyzerConfigOptions(
-                new TestAnalyzerConfigOptions(),
-                globalOptions,
-                LanguageNames.CSharp,
-                ".editorconfig");
+        var setting = CodeStyleSetting.Create(option, description: "TestDesciption", options, updater: null!);
+        Assert.Equal(string.Empty, setting.Category);
+        Assert.Equal("TestDesciption", setting.Description);
+        Assert.False(setting.IsDefinedInEditorConfig);
+        Assert.Equal(typeof(bool), setting.Type);
+        Assert.Equal(defaultValue, setting.GetCodeStyle().Value);
+    }
 
-            var setting = CodeStyleSetting.Create(option, description: "TestDesciption", options, updater: null!);
-            Assert.Equal(string.Empty, setting.Category);
-            Assert.Equal("TestDesciption", setting.Description);
-            Assert.False(setting.IsDefinedInEditorConfig);
-            Assert.Equal(typeof(bool), setting.Type);
-            Assert.Equal(defaultValue, setting.GetCodeStyle().Value);
-        }
+    [Theory]
+    [InlineData(DayOfWeek.Monday)]
+    [InlineData(DayOfWeek.Friday)]
+    public static void CodeStyleSettingEnumFactory(DayOfWeek defaultValue)
+    {
+        using var workspace = new AdhocWorkspace();
+        var globalOptions = GetGlobalOptions(workspace);
 
-        [Theory]
-        [InlineData(DayOfWeek.Monday)]
-        [InlineData(DayOfWeek.Friday)]
-        public static void CodeStyleSettingEnumFactory(DayOfWeek defaultValue)
-        {
-            using var workspace = new AdhocWorkspace();
-            var globalOptions = GetGlobalOptions(workspace);
+        var option = CreateEnumOption(defaultValue);
 
-            var option = CreateEnumOption(defaultValue);
+        var options = new TieredAnalyzerConfigOptions(
+            new TestAnalyzerConfigOptions(),
+            globalOptions,
+            LanguageNames.CSharp,
+            ".editorconfig");
 
-            var options = new TieredAnalyzerConfigOptions(
-                new TestAnalyzerConfigOptions(),
-                globalOptions,
-                LanguageNames.CSharp,
-                ".editorconfig");
+        var setting = CodeStyleSetting.Create(
+            option,
+            description: "TestDesciption",
+            options,
+            updater: null!,
+            enumValues: (DayOfWeek[])Enum.GetValues(typeof(DayOfWeek)),
+            valueDescriptions: Enum.GetNames(typeof(DayOfWeek)));
 
-            var setting = CodeStyleSetting.Create(
-                option,
-                description: "TestDesciption",
-                options,
-                updater: null!,
-                enumValues: (DayOfWeek[])Enum.GetValues(typeof(DayOfWeek)),
-                valueDescriptions: Enum.GetNames(typeof(DayOfWeek)));
+        Assert.Equal(string.Empty, setting.Category);
+        Assert.Equal("TestDesciption", setting.Description);
+        Assert.False(setting.IsDefinedInEditorConfig);
+        Assert.Equal(typeof(DayOfWeek), setting.Type);
+        Assert.Equal(defaultValue, setting.GetCodeStyle().Value);
+    }
 
-            Assert.Equal(string.Empty, setting.Category);
-            Assert.Equal("TestDesciption", setting.Description);
-            Assert.False(setting.IsDefinedInEditorConfig);
-            Assert.Equal(typeof(DayOfWeek), setting.Type);
-            Assert.Equal(defaultValue, setting.GetCodeStyle().Value);
-        }
+    private static Option2<CodeStyleOption2<bool>> CreateBoolOption(bool defaultValue = false)
+    {
+        var defaultCodeStyle = CodeStyleOption2<bool>.Default.WithValue(defaultValue);
 
-        private static Option2<CodeStyleOption2<bool>> CreateBoolOption(bool defaultValue = false)
-        {
-            var defaultCodeStyle = CodeStyleOption2<bool>.Default.WithValue(defaultValue);
+        return new Option2<CodeStyleOption2<bool>>(
+            name: "dotnet_test_option",
+            defaultValue: defaultCodeStyle,
+            serializer: new EditorConfigValueSerializer<CodeStyleOption2<bool>>(_ => defaultCodeStyle, _ => "default"),
+            isEditorConfigOption: true);
+    }
 
-            return new Option2<CodeStyleOption2<bool>>(
-                name: "dotnet_test_option",
-                defaultValue: defaultCodeStyle,
-                serializer: new EditorConfigValueSerializer<CodeStyleOption2<bool>>(_ => defaultCodeStyle, _ => "default"),
-                isEditorConfigOption: true);
-        }
+    private static Option2<CodeStyleOption2<T>> CreateEnumOption<T>(T defaultValue)
+        where T : notnull, Enum
+    {
+        var defaultCodeStyle = CodeStyleOption2<T>.Default.WithValue(defaultValue);
+        return new Option2<CodeStyleOption2<T>>(
+            name: "dotnet_test_option",
+            defaultValue: defaultCodeStyle,
+            serializer: new EditorConfigValueSerializer<CodeStyleOption2<T>>(_ => defaultCodeStyle, _ => "default"),
+            isEditorConfigOption: true);
+    }
 
-        private static Option2<CodeStyleOption2<T>> CreateEnumOption<T>(T defaultValue)
-            where T : notnull, Enum
-        {
-            var defaultCodeStyle = CodeStyleOption2<T>.Default.WithValue(defaultValue);
-            return new Option2<CodeStyleOption2<T>>(
-                name: "dotnet_test_option",
-                defaultValue: defaultCodeStyle,
-                serializer: new EditorConfigValueSerializer<CodeStyleOption2<T>>(_ => defaultCodeStyle, _ => "default"),
-                isEditorConfigOption: true);
-        }
-
-        private class TestAnalyzerConfigOptions : AnalyzerConfigOptions
-        {
-            private readonly IDictionary<string, string> _dictionary;
-            public TestAnalyzerConfigOptions((string, string)[]? options = null)
-                => _dictionary = options?.ToDictionary(x => x.Item1, x => x.Item2) ?? [];
-            public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
-                => _dictionary.TryGetValue(key, out value);
-        }
+    private class TestAnalyzerConfigOptions : AnalyzerConfigOptions
+    {
+        private readonly IDictionary<string, string> _dictionary;
+        public TestAnalyzerConfigOptions((string, string)[]? options = null)
+            => _dictionary = options?.ToDictionary(x => x.Item1, x => x.Item2) ?? [];
+        public override bool TryGetValue(string key, [NotNullWhen(true)] out string? value)
+            => _dictionary.TryGetValue(key, out value);
     }
 }

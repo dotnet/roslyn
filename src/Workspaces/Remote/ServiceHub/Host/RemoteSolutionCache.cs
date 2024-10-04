@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -156,6 +157,12 @@ internal sealed class RemoteSolutionCache<TChecksum, TSolution>
             m.Add(nameof(_cacheMissesNotInHistory), _cacheMissesNotInHistory);
             _cacheHitIndexHistogram.WriteTelemetryPropertiesTo(m, prefix: nameof(_cacheHitIndexHistogram));
         }));
+    }
+
+    public void AddAllTo(HashSet<TSolution> solutions)
+    {
+        foreach (var node in _cacheNodes)
+            solutions.AddIfNotNull(node.Solution);
     }
 
     private sealed class CacheNode(TChecksum checksum)

@@ -8,7 +8,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -20,17 +19,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UsePatternMatchingAsAndMemberAccess), Shared]
-internal partial class CSharpAsAndMemberAccessCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class CSharpAsAndMemberAccessCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpAsAndMemberAccessCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UsePatternMatchingAsAndMemberAccessDiagnosticId];
 
@@ -42,7 +38,7 @@ internal partial class CSharpAsAndMemberAccessCodeFixProvider : SyntaxEditorBase
 
     protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
             FixOne(editor, diagnostic, cancellationToken);
@@ -67,11 +63,11 @@ internal partial class CSharpAsAndMemberAccessCodeFixProvider : SyntaxEditorBase
 
         // { X.Y: pattern }
         var propertyPattern = PropertyPatternClause(
-            Token(SyntaxKind.OpenBraceToken).WithoutTrivia().WithAppendedTrailingTrivia(Space),
+            OpenBraceToken.WithoutTrivia().WithAppendedTrailingTrivia(Space),
             [Subpattern(
                 CreateExpressionColon(conditionalAccessExpression),
                 CreatePattern(binaryExpression, isPatternExpression).WithTrailingTrivia(Space))],
-            Token(SyntaxKind.CloseBraceToken).WithoutTrivia());
+            CloseBraceToken.WithoutTrivia());
 
         // T { X.Y: pattern }
         var newPattern = RecursivePattern(
@@ -83,7 +79,7 @@ internal partial class CSharpAsAndMemberAccessCodeFixProvider : SyntaxEditorBase
         // is T { X.Y: pattern }
         var newIsExpression = IsPatternExpression(
             asExpression.Left,
-            Token(SyntaxKind.IsKeyword).WithTriviaFrom(asExpression.OperatorToken),
+            IsKeyword.WithTriviaFrom(asExpression.OperatorToken),
             newPattern);
 
         var toReplace = parent.WalkUpParentheses();
@@ -100,7 +96,7 @@ internal partial class CSharpAsAndMemberAccessCodeFixProvider : SyntaxEditorBase
             if (whenNotNull is MemberBindingExpressionSyntax { Name: IdentifierNameSyntax identifierName })
                 return NameColon(identifierName);
 
-            return ExpressionColon(RewriteMemberBindingToExpression(whenNotNull), Token(SyntaxKind.ColonToken));
+            return ExpressionColon(RewriteMemberBindingToExpression(whenNotNull), ColonToken);
         }
 
         static ExpressionSyntax RewriteMemberBindingToExpression(ExpressionSyntax expression)

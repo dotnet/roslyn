@@ -195,6 +195,20 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         }
 
         [Fact]
+        public async Task TestAfterPreviousAllowsRefStructConstraint_01()
+        {
+            await VerifyKeywordAsync(
+@"class C<T> where T : allows ref struct $$");
+        }
+
+        [Fact]
+        public async Task TestAfterPreviousAllowsRefStructConstraint_02()
+        {
+            await VerifyKeywordAsync(
+@"class C { void M<T>() where T : allows ref struct $$");
+        }
+
+        [Fact]
         public async Task TestAfterPreviousConstraint()
         {
             await VerifyKeywordAsync(

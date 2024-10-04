@@ -119,7 +119,7 @@ public static class CommandLineProject
                 name: projectName,
                 assemblyName: assemblyName,
                 language: language,
-                compilationOutputFilePaths: new CompilationOutputInfo(commandLineArguments.OutputFileName != null ? commandLineArguments.GetOutputFilePath(commandLineArguments.OutputFileName) : null),
+                compilationOutputInfo: new CompilationOutputInfo(commandLineArguments.OutputFileName != null ? commandLineArguments.GetOutputFilePath(commandLineArguments.OutputFileName) : null),
                 checksumAlgorithm: commandLineArguments.ChecksumAlgorithm),
             compilationOptions: commandLineArguments.CompilationOptions
                 .WithXmlReferenceResolver(xmlFileResolver)

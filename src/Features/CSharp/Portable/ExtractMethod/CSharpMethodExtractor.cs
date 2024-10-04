@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,12 +15,11 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
-internal partial class CSharpMethodExtractor(CSharpSelectionResult result, ExtractMethodGenerationOptions options, bool localFunction)
+internal sealed partial class CSharpMethodExtractor(CSharpSelectionResult result, ExtractMethodGenerationOptions options, bool localFunction)
     : MethodExtractor<CSharpSelectionResult, StatementSyntax, ExpressionSyntax>(result, options, localFunction)
 {
     protected override CodeGenerator CreateCodeGenerator(AnalyzerResult analyzerResult)
@@ -181,12 +179,12 @@ internal partial class CSharpMethodExtractor(CSharpSelectionResult result, Extra
         {
             var originalMethodDefinition = methodDefinition;
             var newLine = Options.LineFormattingOptions.NewLine;
-            methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.EndOfLine(newLine)));
+            methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SyntaxFactory.EndOfLine(newLine));
 
             if (!originalMethodDefinition.FindTokenOnLeftOfPosition(originalMethodDefinition.SpanStart).TrailingTrivia.Any(SyntaxKind.EndOfLineTrivia))
             {
                 // Add a second new line since there were no line endings in the original form
-                methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(SyntaxFactory.EndOfLine(newLine)));
+                methodDefinition = methodDefinition.WithPrependedLeadingTrivia(SyntaxFactory.EndOfLine(newLine));
             }
 
             // Generating the new document and associated variables.

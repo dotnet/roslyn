@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -15,10 +14,10 @@ internal static partial class BaseTypeFinder
     public static ImmutableArray<INamedTypeSymbol> FindBaseTypesAndInterfaces(INamedTypeSymbol type)
         => FindBaseTypes(type).AddRange(type.AllInterfaces);
 
-    public static async ValueTask<ImmutableArray<ISymbol>> FindOverriddenAndImplementedMembersAsync(
+    public static ImmutableArray<ISymbol> FindOverriddenAndImplementedMembers(
         ISymbol symbol, Solution solution, CancellationToken cancellationToken)
     {
-        var results = ArrayBuilder<ISymbol>.GetInstance();
+        using var _ = ArrayBuilder<ISymbol>.GetInstance(out var results);
 
         // This is called for all: class, struct or interface member.
         results.AddRange(symbol.ExplicitOrImplicitInterfaceImplementations());
@@ -31,7 +30,7 @@ internal static partial class BaseTypeFinder
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // Add to results overridden members only. Do not add hidden members.
-                if (await SymbolFinder.IsOverrideAsync(solution, symbol, member, cancellationToken).ConfigureAwait(false))
+                if (SymbolFinder.IsOverride(solution, symbol, member))
                 {
                     results.Add(member);
 
@@ -64,7 +63,8 @@ internal static partial class BaseTypeFinder
         }
 
         // Remove duplicates from interface implementations before adding their projects.
-        return results.ToImmutableAndFree().Distinct();
+        results.RemoveDuplicates();
+        return results.ToImmutableAndClear();
     }
 
     private static ImmutableArray<INamedTypeSymbol> FindBaseTypes(INamedTypeSymbol type)

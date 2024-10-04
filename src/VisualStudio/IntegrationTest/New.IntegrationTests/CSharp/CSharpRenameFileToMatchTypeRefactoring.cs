@@ -10,81 +10,80 @@ using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
+namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
+public class CSharpRenameFileToMatchTypeRefactoring : AbstractEditorTest
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsMoveType)]
-    public class CSharpRenameFileToMatchTypeRefactoring : AbstractEditorTest
+    protected override string LanguageName => LanguageNames.CSharp;
+
+    public CSharpRenameFileToMatchTypeRefactoring()
+        : base(nameof(CSharpRenameFileToMatchTypeRefactoring))
     {
-        protected override string LanguageName => LanguageNames.CSharp;
+    }
 
-        public CSharpRenameFileToMatchTypeRefactoring()
-            : base(nameof(CSharpRenameFileToMatchTypeRefactoring))
-        {
-        }
+    [IdeFact]
+    public async Task RenameFileToMatchType_ExistingCode()
+    {
+        var project = ProjectName;
 
-        [IdeFact]
-        public async Task RenameFileToMatchType_ExistingCode()
-        {
-            var project = ProjectName;
+        await SetUpEditorAsync(@"class $$MismatchedClassName { }", HangMitigatingCancellationToken);
 
-            await SetUpEditorAsync(@"class $$MismatchedClassName { }", HangMitigatingCancellationToken);
+        await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CodeActionAsync("Rename file to MismatchedClassName.cs", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
 
-            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CodeActionAsync("Rename file to MismatchedClassName.cs", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
+        // Ensure the file is still open in the editor, and that the file name change was made & saved
+        await TestServices.EditorVerifier.TextContainsAsync("class MismatchedClassName { }", cancellationToken: HangMitigatingCancellationToken);
+        AssertEx.EqualOrDiff(@"class MismatchedClassName { }", await TestServices.SolutionExplorer.GetFileContentsAsync(project, "MismatchedClassName.cs", HangMitigatingCancellationToken));
+    }
 
-            // Ensure the file is still open in the editor, and that the file name change was made & saved
-            await TestServices.EditorVerifier.TextContainsAsync("class MismatchedClassName { }", cancellationToken: HangMitigatingCancellationToken);
-            AssertEx.EqualOrDiff(@"class MismatchedClassName { }", await TestServices.SolutionExplorer.GetFileContentsAsync(project, "MismatchedClassName.cs", HangMitigatingCancellationToken));
-        }
+    [IdeFact]
+    public async Task RenameFileToMatchType_InSubfolder()
+    {
+        var project = ProjectName;
 
-        [IdeFact]
-        public async Task RenameFileToMatchType_InSubfolder()
-        {
-            var project = ProjectName;
+        await TestServices.SolutionExplorer.AddFileAsync(project, @"folder1\folder2\test.cs", open: true, cancellationToken: HangMitigatingCancellationToken);
 
-            await TestServices.SolutionExplorer.AddFileAsync(project, @"folder1\folder2\test.cs", open: true, cancellationToken: HangMitigatingCancellationToken);
+        await SetUpEditorAsync(@"class $$MismatchedClassName { }", HangMitigatingCancellationToken);
 
-            await SetUpEditorAsync(@"class $$MismatchedClassName { }", HangMitigatingCancellationToken);
+        await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CodeActionAsync("Rename file to MismatchedClassName.cs", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
 
-            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CodeActionAsync("Rename file to MismatchedClassName.cs", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
+        // Ensure the file is still open in the editor, and that the file name change was made & saved
+        await TestServices.EditorVerifier.TextContainsAsync("class MismatchedClassName { }", cancellationToken: HangMitigatingCancellationToken);
+        AssertEx.EqualOrDiff(@"class MismatchedClassName { }", await TestServices.SolutionExplorer.GetFileContentsAsync(project, @"folder1\folder2\MismatchedClassName.cs", HangMitigatingCancellationToken));
+    }
 
-            // Ensure the file is still open in the editor, and that the file name change was made & saved
-            await TestServices.EditorVerifier.TextContainsAsync("class MismatchedClassName { }", cancellationToken: HangMitigatingCancellationToken);
-            AssertEx.EqualOrDiff(@"class MismatchedClassName { }", await TestServices.SolutionExplorer.GetFileContentsAsync(project, @"folder1\folder2\MismatchedClassName.cs", HangMitigatingCancellationToken));
-        }
+    [IdeFact]
+    public async Task RenameFileToMatchType_UndoStackPreserved()
+    {
+        var project = ProjectName;
 
-        [IdeFact]
-        public async Task RenameFileToMatchType_UndoStackPreserved()
-        {
-            var project = ProjectName;
+        await SetUpEditorAsync(@"$$class MismatchedClassName { }", HangMitigatingCancellationToken);
+        await TestServices.Input.SendAsync("public ", HangMitigatingCancellationToken);
 
-            await SetUpEditorAsync(@"$$class MismatchedClassName { }", HangMitigatingCancellationToken);
-            await TestServices.Input.SendAsync("public ", HangMitigatingCancellationToken);
+        await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CodeActionAsync("Rename file to MismatchedClassName.cs", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
 
-            await TestServices.Editor.InvokeCodeActionListAsync(HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CodeActionAsync("Rename file to MismatchedClassName.cs", applyFix: true, cancellationToken: HangMitigatingCancellationToken);
+        // Ensure the file is still open in the editor, and that the file name change was made & saved
+        await TestServices.EditorVerifier.CurrentLineTextAsync("public class MismatchedClassName { }", cancellationToken: HangMitigatingCancellationToken);
+        AssertEx.EqualOrDiff(@"public class MismatchedClassName { }", await TestServices.SolutionExplorer.GetFileContentsAsync(project, "MismatchedClassName.cs", HangMitigatingCancellationToken));
 
-            // Ensure the file is still open in the editor, and that the file name change was made & saved
-            await TestServices.EditorVerifier.CurrentLineTextAsync("public class MismatchedClassName { }", cancellationToken: HangMitigatingCancellationToken);
-            AssertEx.EqualOrDiff(@"public class MismatchedClassName { }", await TestServices.SolutionExplorer.GetFileContentsAsync(project, "MismatchedClassName.cs", HangMitigatingCancellationToken));
+        // The first undo is for the file rename.
+        await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CurrentLineTextAsync("public class MismatchedClassName { }", cancellationToken: HangMitigatingCancellationToken);
+        AssertEx.EqualOrDiff(@"public class MismatchedClassName { }", await TestServices.SolutionExplorer.GetFileContentsAsync(project, "Class1.cs", HangMitigatingCancellationToken));
 
-            // The first undo is for the file rename.
-            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CurrentLineTextAsync("public class MismatchedClassName { }", cancellationToken: HangMitigatingCancellationToken);
-            AssertEx.EqualOrDiff(@"public class MismatchedClassName { }", await TestServices.SolutionExplorer.GetFileContentsAsync(project, "Class1.cs", HangMitigatingCancellationToken));
+        // The second undo is for the text changes.
+        await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CurrentLineTextAsync("class MismatchedClassName { }", cancellationToken: HangMitigatingCancellationToken);
 
-            // The second undo is for the text changes.
-            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Undo, HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CurrentLineTextAsync("class MismatchedClassName { }", cancellationToken: HangMitigatingCancellationToken);
+        // Redo the text changes
+        await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Redo, HangMitigatingCancellationToken);
+        await TestServices.EditorVerifier.CurrentLineTextAsync("public class MismatchedClassName { }", cancellationToken: HangMitigatingCancellationToken);
 
-            // Redo the text changes
-            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Redo, HangMitigatingCancellationToken);
-            await TestServices.EditorVerifier.CurrentLineTextAsync("public class MismatchedClassName { }", cancellationToken: HangMitigatingCancellationToken);
-
-            // Redo the file rename
-            await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Redo, HangMitigatingCancellationToken);
-            AssertEx.EqualOrDiff(@"public class MismatchedClassName { }", await TestServices.SolutionExplorer.GetFileContentsAsync(project, "MismatchedClassName.cs", HangMitigatingCancellationToken));
-        }
+        // Redo the file rename
+        await TestServices.Shell.ExecuteCommandAsync(WellKnownCommands.Edit.Redo, HangMitigatingCancellationToken);
+        AssertEx.EqualOrDiff(@"public class MismatchedClassName { }", await TestServices.SolutionExplorer.GetFileContentsAsync(project, "MismatchedClassName.cs", HangMitigatingCancellationToken));
     }
 }

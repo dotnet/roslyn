@@ -2,13 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
-using System;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -32,9 +31,9 @@ internal sealed class DocumentAnalysisResults
 
     /// <summary>
     /// Diagnostics for rude edits in the document, or empty if the document is unchanged or has syntax errors.
-    /// If the compilation has semantic errors only syntactic rude edits are calculated.
+    /// Includes errors, should block the update and warnings, which should not.
     /// </summary>
-    public ImmutableArray<RudeEditDiagnostic> RudeEditErrors { get; }
+    public ImmutableArray<RudeEditDiagnostic> RudeEdits { get; }
 
     /// <summary>
     /// The first syntax error, or null if the document does not have syntax errors reported by the compiler.
@@ -100,6 +99,11 @@ internal sealed class DocumentAnalysisResults
     /// </summary>
     public bool HasChanges { get; }
 
+    /// <summary>
+    /// True if any of the <see cref="RudeEdits"/> are blocking.
+    /// </summary>
+    public bool HasBlockingRudeEdits { get; }
+
     public DocumentAnalysisResults(
         DocumentId documentId,
         string filePath,
@@ -112,9 +116,11 @@ internal sealed class DocumentAnalysisResults
         EditAndContinueCapabilities requiredCapabilities,
         TimeSpan elapsedTime,
         bool hasChanges,
-        bool hasSyntaxErrors)
+        bool hasSyntaxErrors,
+        bool hasBlockingRudeEdits)
     {
         Debug.Assert(!rudeEdits.IsDefault);
+        Debug.Assert(hasBlockingRudeEdits == (!rudeEdits.IsDefault && rudeEdits.HasBlockingRudeEdits()));
 
         if (hasSyntaxErrors || !hasChanges)
         {
@@ -122,7 +128,7 @@ internal sealed class DocumentAnalysisResults
             Debug.Assert(semanticEditsOpt.IsDefault);
             Debug.Assert(exceptionRegionsOpt.IsDefault);
             Debug.Assert(lineEditsOpt.IsDefault);
-            Debug.Assert(syntaxError != null || !rudeEdits.IsEmpty || !hasChanges);
+            Debug.Assert(syntaxError != null || hasBlockingRudeEdits || !hasChanges);
             Debug.Assert(requiredCapabilities == EditAndContinueCapabilities.None);
         }
         else
@@ -130,7 +136,7 @@ internal sealed class DocumentAnalysisResults
             Debug.Assert(!activeStatementsOpt.IsDefault);
             Debug.Assert(syntaxError == null);
 
-            if (!rudeEdits.IsEmpty)
+            if (hasBlockingRudeEdits)
             {
                 Debug.Assert(semanticEditsOpt.IsDefault);
                 Debug.Assert(exceptionRegionsOpt.IsDefault);
@@ -157,7 +163,7 @@ internal sealed class DocumentAnalysisResults
 
         DocumentId = documentId;
         FilePath = filePath;
-        RudeEditErrors = rudeEdits;
+        RudeEdits = rudeEdits;
         SyntaxError = syntaxError;
         SemanticEdits = semanticEditsOpt;
         ActiveStatements = activeStatementsOpt;
@@ -167,10 +173,11 @@ internal sealed class DocumentAnalysisResults
         ElapsedTime = elapsedTime;
         HasSyntaxErrors = hasSyntaxErrors;
         HasChanges = hasChanges;
+        HasBlockingRudeEdits = hasBlockingRudeEdits;
     }
 
     public bool HasChangesAndErrors
-        => HasChanges && (HasSyntaxErrors || !RudeEditErrors.IsEmpty);
+        => HasChanges && (HasSyntaxErrors || HasBlockingRudeEdits);
 
     public bool HasChangesAndSyntaxErrors
         => HasChanges && HasSyntaxErrors;
@@ -194,7 +201,8 @@ internal sealed class DocumentAnalysisResults
             EditAndContinueCapabilities.None,
             elapsedTime,
             hasChanges,
-            hasSyntaxErrors: true);
+            hasSyntaxErrors: true,
+            hasBlockingRudeEdits: !rudeEdits.IsEmpty);
 
     /// <summary>
     /// Report unchanged document results.
@@ -212,5 +220,6 @@ internal sealed class DocumentAnalysisResults
             EditAndContinueCapabilities.None,
             elapsedTime,
             hasChanges: false,
-            hasSyntaxErrors: false);
+            hasSyntaxErrors: false,
+            hasBlockingRudeEdits: false);
 }

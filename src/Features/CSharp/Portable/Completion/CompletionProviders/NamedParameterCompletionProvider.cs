@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExportCompletionProvider(nameof(NamedParameterCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(AttributeNamedParameterCompletionProvider))]
 [Shared]
-internal partial class NamedParameterCompletionProvider : LSPCompletionProvider, IEqualityComparer<IParameterSymbol>
+internal sealed partial class NamedParameterCompletionProvider : LSPCompletionProvider, IEqualityComparer<IParameterSymbol>
 {
     private const string ColonString = ":";
 
@@ -265,8 +264,7 @@ internal partial class NamedParameterCompletionProvider : LSPCompletionProvider,
             }
             else if (expressionType.IsDelegateType())
             {
-                var delegateType = expressionType;
-                return SpecializedCollections.SingletonEnumerable(delegateType.DelegateInvokeMethod!.Parameters);
+                return [expressionType.DelegateInvokeMethod!.Parameters];
             }
         }
 

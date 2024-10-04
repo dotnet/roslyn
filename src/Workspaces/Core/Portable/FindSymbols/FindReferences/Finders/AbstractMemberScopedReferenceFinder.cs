@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -23,45 +24,49 @@ internal abstract class AbstractMemberScopedReferenceFinder<TSymbol> : AbstractR
     protected sealed override bool CanFind(TSymbol symbol)
         => true;
 
-    protected sealed override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
+    protected sealed override Task DetermineDocumentsToSearchAsync<TData>(
         TSymbol symbol,
         HashSet<string>? globalAliases,
         Project project,
         IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
         var location = symbol.Locations.FirstOrDefault();
         if (location == null || !location.IsInSource)
-            return SpecializedTasks.EmptyImmutableArray<Document>();
+            return Task.CompletedTask;
 
         var document = project.GetDocument(location.SourceTree);
         if (document == null)
-            return SpecializedTasks.EmptyImmutableArray<Document>();
+            return Task.CompletedTask;
 
         if (documents != null && !documents.Contains(document))
-            return SpecializedTasks.EmptyImmutableArray<Document>();
+            return Task.CompletedTask;
 
-        return Task.FromResult(ImmutableArray.Create(document));
+        processResult(document, processResultData);
+        return Task.CompletedTask;
     }
 
-    protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+    protected sealed override void FindReferencesInDocument<TData>(
         TSymbol symbol,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
         var container = GetContainer(symbol);
         if (container != null)
-            return await FindReferencesInContainerAsync(symbol, container, state, cancellationToken).ConfigureAwait(false);
-
-        if (symbol.ContainingType != null && symbol.ContainingType.IsScriptClass)
         {
-            var tokens = await FindMatchingIdentifierTokensAsync(state, symbol.Name, cancellationToken).ConfigureAwait(false);
-            return await FindReferencesInTokensAsync(symbol, state, tokens, cancellationToken).ConfigureAwait(false);
+            FindReferencesInContainer(symbol, container, state, processResult, processResultData, cancellationToken);
         }
-
-        return [];
+        else if (symbol.ContainingType != null && symbol.ContainingType.IsScriptClass)
+        {
+            var tokens = FindMatchingIdentifierTokens(state, symbol.Name, cancellationToken);
+            FindReferencesInTokens(symbol, state, tokens, processResult, processResultData, cancellationToken);
+        }
     }
 
     private static ISymbol? GetContainer(ISymbol symbol)
@@ -92,10 +97,12 @@ internal abstract class AbstractMemberScopedReferenceFinder<TSymbol> : AbstractR
         return null;
     }
 
-    private ValueTask<ImmutableArray<FinderLocation>> FindReferencesInContainerAsync(
+    private void FindReferencesInContainer<TData>(
         TSymbol symbol,
         ISymbol container,
         FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
         CancellationToken cancellationToken)
     {
         var service = state.Document.GetRequiredLanguageService<ISymbolDeclarationService>();
@@ -114,6 +121,7 @@ internal abstract class AbstractMemberScopedReferenceFinder<TSymbol> : AbstractR
             }
         }
 
-        return FindReferencesInTokensAsync(symbol, state, tokens.ToImmutable(), cancellationToken);
+        FindReferencesInTokens(
+            symbol, state, tokens.ToImmutable(), processResult, processResultData, cancellationToken);
     }
 }

@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.Formatting;
 
 internal abstract partial class AbstractTriviaDataFactory
 {
-    protected class FormattedWhitespace : TriviaData
+    protected sealed class FormattedWhitespace : TriviaData
     {
         private readonly string _newString;
 
-        public FormattedWhitespace(SyntaxFormattingOptions options, int lineBreaks, int indentation, string language)
-            : base(options, language)
+        public FormattedWhitespace(LineFormattingOptions options, int lineBreaks, int indentation)
+            : base(options)
         {
             this.LineBreaks = Math.Max(0, lineBreaks);
             this.Spaces = Math.Max(0, indentation);
@@ -51,7 +51,7 @@ internal abstract partial class AbstractTriviaDataFactory
         public override bool ContainsChanges => true;
 
         public override IEnumerable<TextChange> GetTextChanges(TextSpan textSpan)
-            => SpecializedCollections.SingletonEnumerable<TextChange>(new TextChange(textSpan, _newString));
+            => [new TextChange(textSpan, _newString)];
 
         public override TriviaData WithSpace(int space, FormattingContext context, ChainedFormattingRules formattingRules)
             => throw new NotImplementedException();

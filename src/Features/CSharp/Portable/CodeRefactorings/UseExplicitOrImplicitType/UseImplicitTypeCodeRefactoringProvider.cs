@@ -19,14 +19,10 @@ using Microsoft.CodeAnalysis.Editing;
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseImplicitType;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseImplicitType), Shared]
-internal partial class UseImplicitTypeCodeRefactoringProvider : AbstractUseTypeCodeRefactoringProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class UseImplicitTypeCodeRefactoringProvider() : AbstractUseTypeCodeRefactoringProvider
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public UseImplicitTypeCodeRefactoringProvider()
-    {
-    }
-
     protected override string Title
         => CSharpAnalyzersResources.Use_implicit_type;
 

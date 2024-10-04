@@ -4,10 +4,10 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.NewLines.MultipleBlankLines;
@@ -59,8 +59,8 @@ internal abstract class AbstractMultipleBlankLinesDiagnosticAnalyzer : AbstractB
             if (!context.ShouldAnalyzeSpan(child.FullSpan))
                 continue;
 
-            if (child.IsNode)
-                Recurse(context, notificationOption, child.AsNode()!, cancellationToken);
+            if (child.AsNode(out var childNode))
+                Recurse(context, notificationOption, childNode, cancellationToken);
             else if (child.IsToken)
                 CheckToken(context, notificationOption, child.AsToken());
         }

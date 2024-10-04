@@ -9,10 +9,7 @@ using Microsoft.CodeAnalysis.RemoveRedundantEquality;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveRedundantEquality;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpRemoveRedundantEqualityDiagnosticAnalyzer
-    : AbstractRemoveRedundantEqualityDiagnosticAnalyzer
+internal sealed class CSharpRemoveRedundantEqualityDiagnosticAnalyzer()
+    : AbstractRemoveRedundantEqualityDiagnosticAnalyzer(CSharpSyntaxFacts.Instance)
 {
-    public CSharpRemoveRedundantEqualityDiagnosticAnalyzer() : base(CSharpSyntaxFacts.Instance)
-    {
-    }
 }

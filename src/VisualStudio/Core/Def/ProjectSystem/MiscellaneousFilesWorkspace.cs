@@ -13,6 +13,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -30,6 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 [Export(typeof(MiscellaneousFilesWorkspace))]
 internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenTextBufferEventListener
 {
+    private readonly IThreadingContext _threadingContext;
     private readonly IVsService<IVsTextManager> _textManagerService;
     private readonly OpenTextBufferProvider _openTextBufferProvider;
     private readonly IMetadataAsSourceFileService _fileTrackingMetadataAsSourceService;
@@ -50,8 +52,6 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
 
     private readonly ImmutableArray<MetadataReference> _metadataReferences;
 
-    private readonly ForegroundThreadAffinitizedObject _foregroundThreadAffinitization;
-
     private IVsTextManager _textManager;
 
     [ImportingConstructor]
@@ -64,8 +64,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
         VisualStudioWorkspace visualStudioWorkspace)
         : base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
     {
-        _foregroundThreadAffinitization = new ForegroundThreadAffinitizedObject(threadingContext, assertIsForeground: false);
-
+        _threadingContext = threadingContext;
         _textManagerService = textManagerService;
         _openTextBufferProvider = openTextBufferProvider;
         _fileTrackingMetadataAsSourceService = fileTrackingMetadataAsSourceService;
@@ -82,16 +81,8 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     }
 
     void IOpenTextBufferEventListener.OnOpenDocument(string moniker, ITextBuffer textBuffer, IVsHierarchy _) => TrackOpenedDocument(moniker, textBuffer);
-    void IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame) { }
 
     void IOpenTextBufferEventListener.OnCloseDocument(string moniker) => TryUntrackClosingDocument(moniker);
-
-    /// <summary>
-    /// File hierarchy events are not relevant to the misc workspace.
-    /// </summary>
-    void IOpenTextBufferEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy)
-    {
-    }
 
     void IOpenTextBufferEventListener.OnRenameDocument(string newMoniker, string oldMoniker, ITextBuffer buffer)
     {
@@ -106,6 +97,21 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
             TrackOpenedDocument(newMoniker, buffer);
         }
     }
+
+    /// <summary>
+    /// Not relevant to the misc workspace.
+    /// </summary>
+    void IOpenTextBufferEventListener.OnRefreshDocumentContext(string moniker, IVsHierarchy hierarchy) { }
+
+    /// <summary>
+    /// Not relevant to the misc workspace.
+    /// </summary>
+    void IOpenTextBufferEventListener.OnDocumentOpenedIntoWindowFrame(string moniker, IVsWindowFrame windowFrame) { }
+
+    /// <summary>
+    /// Not relevant to the misc workspace.
+    /// </summary>
+    void IOpenTextBufferEventListener.OnSaveDocument(string moniker) { }
 
     public void RegisterLanguage(Guid languageGuid, string languageName, string scriptExtension)
         => _languageInformationByLanguageGuid.Add(languageGuid, new LanguageInformation(languageName, scriptExtension));
@@ -135,7 +141,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
 
     private void TrackOpenedDocument(string moniker, ITextBuffer textBuffer)
     {
-        _foregroundThreadAffinitization.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         var languageInformation = TryGetLanguageInformation(moniker);
         if (languageInformation == null)
@@ -165,13 +171,13 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
         // We may or may not be getting this notification from the foreground thread if another workspace
         // is raising events on a background. Let's send it back to the UI thread since we can't talk
         // to the RDT in the background thread. Since this is all asynchronous a bit more asynchrony is fine.
-        if (!_foregroundThreadAffinitization.IsForeground())
+        if (!_threadingContext.JoinableTaskContext.IsOnMainThread)
         {
             ScheduleTask(() => Registration_WorkspaceChanged(sender, e));
             return;
         }
 
-        _foregroundThreadAffinitization.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         var workspaceRegistration = (WorkspaceRegistration)sender;
 
@@ -230,7 +236,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     /// <returns>true if we were previously tracking it.</returns>
     private bool TryUntrackClosingDocument(string moniker)
     {
-        _foregroundThreadAffinitization.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         var unregisteredRegistration = false;
 
@@ -258,9 +264,9 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
 
     private void AttachToDocument(string moniker, ITextBuffer textBuffer)
     {
-        _foregroundThreadAffinitization.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
-        if (_fileTrackingMetadataAsSourceService.TryAddDocumentToWorkspace(moniker, textBuffer.AsTextContainer()))
+        if (_fileTrackingMetadataAsSourceService.TryAddDocumentToWorkspace(moniker, textBuffer.AsTextContainer(), out var _))
         {
             // We already added it, so we will keep it excluded from the misc files workspace
             return;
@@ -293,7 +299,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
 
     private void DetachFromDocument(string moniker)
     {
-        _foregroundThreadAffinitization.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
         if (_fileTrackingMetadataAsSourceService.TryRemoveDocumentFromWorkspace(moniker))
         {
             return;

@@ -5,25 +5,22 @@
 #nullable disable
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames
-{
-    public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
-    {
-        #region "Fix all occurrences tests"
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyTypeNames;
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task TestFixAllInDocument()
-        {
-            var input = @"
+public partial class SimplifyTypeNamesTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+{
+    #region "Fix all occurrences tests"
+
+    [Fact]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+    public async Task TestFixAllInDocument()
+    {
+        var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -73,7 +70,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            var expected = @"
+        var expected = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -123,15 +120,15 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: PreferIntrinsicTypeEverywhere);
-        }
+        await TestInRegularAndScriptAsync(input, expected, options: PreferIntrinsicTypeEverywhere);
+    }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task TestFixAllInProject()
-        {
-            var input = @"
+    [Fact]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+    public async Task TestFixAllInProject()
+    {
+        var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -181,7 +178,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            var expected = @"
+        var expected = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -231,15 +228,15 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: PreferIntrinsicTypeEverywhere);
-        }
+        await TestInRegularAndScriptAsync(input, expected, options: PreferIntrinsicTypeEverywhere);
+    }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task TestFixAllInSolution()
-        {
-            var input = @"
+    [Fact]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+    public async Task TestFixAllInSolution()
+    {
+        var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -289,7 +286,7 @@ class Program2
     </Project>
 </Workspace>";
 
-            var expected = @"
+        var expected = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -339,15 +336,15 @@ class Program2
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected, options: PreferIntrinsicTypeEverywhere);
-        }
+        await TestInRegularAndScriptAsync(input, expected, options: PreferIntrinsicTypeEverywhere);
+    }
 
-        [Fact]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
-        public async Task TestFixAllInSolution_SimplifyMemberAccess()
-        {
-            var input = @"
+    [Fact]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+    [Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)]
+    public async Task TestFixAllInSolution_SimplifyMemberAccess()
+    {
+        var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -469,7 +466,7 @@ class ProgramB3
     </Project>
 </Workspace>";
 
-            var expected = @"
+        var expected = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
         <Document>
@@ -591,9 +588,8 @@ class ProgramB3
     </Project>
 </Workspace>";
 
-            await TestInRegularAndScriptAsync(input, expected);
-        }
-
-        #endregion
+        await TestInRegularAndScriptAsync(input, expected);
     }
+
+    #endregion
 }

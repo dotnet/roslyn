@@ -4,19 +4,13 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
@@ -52,7 +46,7 @@ internal static class SymbolContainment
             }
         }
 
-        return symbols.ToImmutable();
+        return symbols.ToImmutableAndClear();
     }
 
     private static bool IsTopLevelSymbol(ISymbol symbol)

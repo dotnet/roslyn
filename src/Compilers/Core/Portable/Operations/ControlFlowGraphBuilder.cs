@@ -1536,51 +1536,57 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         {
             if (operation == _currentStatement)
             {
-                if (operation.WhenFalse == null)
-                {
-                    // if (condition)
-                    //   consequence;
-                    //
-                    // becomes
-                    //
-                    // GotoIfFalse condition afterif;
-                    // consequence;
-                    // afterif:
+                // if (condition)
+                //   consequence;
+                //
+                // becomes
+                //
+                // GotoIfFalse condition afterif;
+                // consequence;
+                // afterif:
 
-                    BasicBlockBuilder? afterIf = null;
-                    VisitConditionalBranch(operation.Condition, ref afterIf, jumpIfTrue: false);
-                    VisitStatement(operation.WhenTrue);
-                    AppendNewBlock(afterIf);
-                }
-                else
-                {
-                    // if (condition)
-                    //     consequence;
-                    // else
-                    //     alternative
-                    //
-                    // becomes
-                    //
-                    // GotoIfFalse condition alt;
-                    // consequence
-                    // goto afterif;
-                    // alt:
-                    // alternative;
-                    // afterif:
+                // if (condition)
+                //     consequence;
+                // else
+                //     alternative
+                //
+                // becomes
+                //
+                // GotoIfFalse condition alt;
+                // consequence
+                // goto afterif;
+                // alt:
+                // alternative;
+                // afterif:
 
+                var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
+
+                while (true)
+                {
                     BasicBlockBuilder? whenFalse = null;
                     VisitConditionalBranch(operation.Condition, ref whenFalse, jumpIfTrue: false);
-
+                    Debug.Assert(whenFalse is { });
                     VisitStatement(operation.WhenTrue);
-
-                    var afterIf = new BasicBlockBuilder(BasicBlockKind.Block);
                     UnconditionalBranch(afterIf);
 
                     AppendNewBlock(whenFalse);
-                    VisitStatement(operation.WhenFalse);
 
-                    AppendNewBlock(afterIf);
+                    if (operation.WhenFalse is IConditionalOperation nested)
+                    {
+                        operation = nested;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
+
+                if (operation.WhenFalse is not null)
+                {
+                    VisitStatement(operation.WhenFalse);
+                }
+
+                AppendNewBlock(afterIf);
 
                 return null;
             }
@@ -4106,6 +4112,7 @@ oneMoreTime:
         private void AddDisposingFinally(IOperation resource, bool requiresRuntimeConversion, ITypeSymbol iDisposable, IMethodSymbol? disposeMethod, ImmutableArray<IArgumentOperation> disposeArguments, bool isAsynchronous)
         {
             Debug.Assert(CurrentRegionRequired.Kind == ControlFlowRegionKind.TryAndFinally);
+            Debug.Assert(resource.Type is not null);
 
             var endOfFinally = new BasicBlockBuilder(BasicBlockKind.Block);
             endOfFinally.FallThrough.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
@@ -4121,6 +4128,7 @@ oneMoreTime:
                 int captureId = GetNextCaptureId(finallyRegion);
                 AddStatement(new FlowCaptureOperation(captureId, resource.Syntax, resource));
                 resource = GetCaptureReference(captureId, resource);
+                Debug.Assert(resource.Type is not null);
             }
 
             if (requiresRuntimeConversion || !isNotNullableValueType(resource.Type))
@@ -4132,7 +4140,14 @@ oneMoreTime:
 
             if (!iDisposable.Equals(resource.Type) && disposeMethod is null)
             {
-                resource = ConvertToIDisposable(resource, iDisposable);
+                if (resource.Type.IsReferenceType)
+                {
+                    resource = ConvertToIDisposable(resource, iDisposable);
+                }
+                else if (ITypeSymbolHelpers.IsNullableType(resource.Type))
+                {
+                    resource = CallNullableMember(resource, SpecialMember.System_Nullable_T_GetValueOrDefault);
+                }
             }
 
             EvalStackFrame disposeFrame = PushStackFrame();
@@ -4150,7 +4165,8 @@ oneMoreTime:
 
             IOperation? tryDispose(IOperation value)
             {
-                Debug.Assert((disposeMethod is object && !disposeArguments.IsDefault) || (value.Type!.Equals(iDisposable) && disposeArguments.IsDefaultOrEmpty));
+                Debug.Assert((disposeMethod is object && !disposeArguments.IsDefault) ||
+                             ((value.Type!.Equals(iDisposable) || (!value.Type.IsReferenceType && !ITypeSymbolHelpers.IsNullableType(value.Type))) && disposeArguments.IsDefaultOrEmpty));
 
                 var method = disposeMethod ?? (isAsynchronous
                     ? (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)?.GetISymbol()
@@ -4170,7 +4186,7 @@ oneMoreTime:
                         args = ImmutableArray<IArgumentOperation>.Empty;
                     }
 
-                    var invocation = new InvocationOperation(method, constrainedToType: null, value, isVirtual: disposeMethod?.IsVirtual ?? true,
+                    var invocation = new InvocationOperation(method, constrainedToType: null, value, isVirtual: disposeMethod is (null or { IsVirtual: true } or { IsAbstract: true }),
                                                              args, semanticModel: null, value.Syntax,
                                                              method.ReturnType, isImplicit: true);
 
@@ -6575,7 +6591,8 @@ oneMoreTime:
                     }
                     else
                     {
-                        Debug.Fail("This code path should not be reachable.");
+                        Debug.Assert(operation.Parent is InvocationOperation { Parent: CollectionExpressionOperation ce } && ce.HasErrors(_compilation),
+                            "Expected to reach this only in collection expression infinite chain cases.");
                         return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
                     }
 
@@ -7548,15 +7565,43 @@ oneMoreTime:
 
         public override IOperation VisitBinaryPattern(IBinaryPatternOperation operation, int? argument)
         {
-            return new BinaryPatternOperation(
-                operatorKind: operation.OperatorKind,
-                leftPattern: (IPatternOperation)VisitRequired(operation.LeftPattern),
-                rightPattern: (IPatternOperation)VisitRequired(operation.RightPattern),
-                inputType: operation.InputType,
-                narrowedType: operation.NarrowedType,
-                semanticModel: null,
-                syntax: operation.Syntax,
-                isImplicit: IsImplicit(operation));
+            if (operation.LeftPattern is not IBinaryPatternOperation)
+            {
+                return createOperation(this, operation, (IPatternOperation)VisitRequired(operation.LeftPattern));
+            }
+
+            // Use a manual stack to avoid overflowing on deeply-nested binary patterns
+            var stack = ArrayBuilder<IBinaryPatternOperation>.GetInstance();
+            IBinaryPatternOperation? current = operation;
+
+            do
+            {
+                stack.Push(current);
+                current = current.LeftPattern as IBinaryPatternOperation;
+            } while (current != null);
+
+            current = stack.Pop();
+            var result = (IPatternOperation)VisitRequired(current.LeftPattern);
+            do
+            {
+                result = createOperation(this, current, result);
+            } while (stack.TryPop(out current));
+
+            stack.Free();
+            return result;
+
+            static BinaryPatternOperation createOperation(ControlFlowGraphBuilder @this, IBinaryPatternOperation operation, IPatternOperation left)
+            {
+                return new BinaryPatternOperation(
+                            operatorKind: operation.OperatorKind,
+                            leftPattern: left,
+                            rightPattern: (IPatternOperation)@this.VisitRequired(operation.RightPattern),
+                            inputType: operation.InputType,
+                            narrowedType: operation.NarrowedType,
+                            semanticModel: null,
+                            syntax: operation.Syntax,
+                            isImplicit: @this.IsImplicit(operation));
+            }
         }
 
         public override IOperation VisitNegatedPattern(INegatedPatternOperation operation, int? argument)

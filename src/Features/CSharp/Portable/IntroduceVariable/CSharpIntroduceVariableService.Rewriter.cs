@@ -5,15 +5,14 @@
 #nullable disable
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable;
 
-internal partial class CSharpIntroduceVariableService
+internal sealed partial class CSharpIntroduceVariableService
 {
-    private class Rewriter : CSharpSyntaxRewriter
+    private sealed class Rewriter : CSharpSyntaxRewriter
     {
         private readonly SyntaxAnnotation _replacementAnnotation = new SyntaxAnnotation();
         private readonly SyntaxNode _replacementNode;

@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.NavigationBar.RoslynNavigationBarItem
-Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
@@ -24,19 +23,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
         Private ReadOnly _editorOperationsFactoryService As IEditorOperationsFactoryService
         Private ReadOnly _textUndoHistoryRegistry As ITextUndoHistoryRegistry
-        Private ReadOnly _globalOptions As IGlobalOptionService
 
         <ImportingConstructor>
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New(
                 threadingContext As IThreadingContext,
                 editorOperationsFactoryService As IEditorOperationsFactoryService,
-                textUndoHistoryRegistry As ITextUndoHistoryRegistry,
-                globalOptions As IGlobalOptionService)
+                textUndoHistoryRegistry As ITextUndoHistoryRegistry)
             MyBase.New(threadingContext)
             _editorOperationsFactoryService = editorOperationsFactoryService
             _textUndoHistoryRegistry = textUndoHistoryRegistry
-            _globalOptions = globalOptions
         End Sub
 
         Friend Overrides Async Function GetNavigationLocationAsync(

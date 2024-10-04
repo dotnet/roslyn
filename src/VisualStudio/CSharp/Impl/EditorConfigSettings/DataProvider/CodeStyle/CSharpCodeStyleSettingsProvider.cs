@@ -8,7 +8,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
@@ -84,6 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
         private static IEnumerable<CodeStyleSetting> GetModifierCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)
         {
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferStaticLocalFunction, ServicesVSResources.Prefer_static_local_functions, options, updater);
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferStaticAnonymousFunction, ServicesVSResources.Prefer_static_anonymous_functions, options, updater);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferReadOnlyStruct, ServicesVSResources.Prefer_read_only_struct, options, updater);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferReadOnlyStructMember, ServicesVSResources.Prefer_read_only_struct_member, options, updater);
         }
@@ -102,6 +102,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.EditorConfigSettings.Da
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferMethodGroupConversion, ServicesVSResources.Prefer_method_group_conversion, options, updater);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferTopLevelStatements, ServicesVSResources.Prefer_top_level_statements, options, updater);
             yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferPrimaryConstructors, ServicesVSResources.Prefer_primary_constructors, options, updater);
+            yield return CodeStyleSetting.Create(CSharpCodeStyleOptions.PreferSystemThreadingLock, ServicesVSResources.Prefer_System_Threading_Lock, options, updater);
         }
 
         private static IEnumerable<CodeStyleSetting> GetExpressionCodeStyleOptions(TieredAnalyzerConfigOptions options, OptionUpdater updater)

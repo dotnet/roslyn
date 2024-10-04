@@ -35,23 +35,18 @@ internal class SnippetFunctionSimpleTypeName : AbstractSnippetFunction
     {
         var value = _fullyQualifiedName;
         var hasDefaultValue = 1;
-        if (!TryGetDocument(out var document))
-        {
+        var document = GetDocument(cancellationToken);
+        if (document is null)
             return (VSConstants.E_FAIL, value, hasDefaultValue);
-        }
 
         if (!TryGetFieldSpan(out var fieldSpan))
-        {
             return (VSConstants.E_FAIL, value, hasDefaultValue);
-        }
 
-        var simplifierOptions = await document.GetSimplifierOptionsAsync(snippetExpansionClient.EditorOptionsService.GlobalOptions, cancellationToken).ConfigureAwait(false);
+        var simplifierOptions = await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var simplifiedTypeName = await SnippetFunctionService.GetSimplifiedTypeNameAsync(document, fieldSpan.Value, _fullyQualifiedName, simplifierOptions, cancellationToken).ConfigureAwait(false);
         if (string.IsNullOrEmpty(simplifiedTypeName))
-        {
             return (VSConstants.E_FAIL, value, hasDefaultValue);
-        }
 
         return (VSConstants.S_OK, simplifiedTypeName!, hasDefaultValue);
     }

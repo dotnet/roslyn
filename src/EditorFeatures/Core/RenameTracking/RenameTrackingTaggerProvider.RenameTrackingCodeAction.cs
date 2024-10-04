@@ -81,8 +81,7 @@ internal sealed partial class RenameTrackingTaggerProvider
 
             var solutionSet = await _renameTrackingCommitter.RenameSymbolAsync(cancellationToken).ConfigureAwait(false);
 
-            return SpecializedCollections.SingletonEnumerable(
-                (CodeActionOperation)new ApplyChangesOperation(solutionSet.RenamedSolution));
+            return [new ApplyChangesOperation(solutionSet.RenamedSolution)];
         }
 
         private bool TryInitializeRenameTrackingCommitter(CancellationToken cancellationToken)

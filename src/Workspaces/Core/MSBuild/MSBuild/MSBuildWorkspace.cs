@@ -15,7 +15,6 @@ using Microsoft.Build.Framework;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.MSBuild.Rpc;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -453,11 +452,17 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var project = this.CurrentSolution.GetRequiredProject(info.Id.ProjectId);
 
-            var extension = _applyChangesProjectFile.GetDocumentExtensionAsync(info.SourceCodeKind, CancellationToken.None).Result;
+            var extension = project.Language switch
+            {
+                LanguageNames.CSharp => ".cs",
+                LanguageNames.VisualBasic => ".vb",
+                _ => throw ExceptionUtilities.UnexpectedValue(project.Language)
+            };
+
             var fileName = Path.ChangeExtension(info.Name, extension);
 
             var relativePath = (info.Folders != null && info.Folders.Count > 0)
-                ? Path.Combine(Path.Combine(info.Folders.ToArray()), fileName)
+                ? Path.Combine(Path.Combine([.. info.Folders]), fileName)
                 : fileName;
 
             var fullPath = GetAbsolutePath(relativePath, Path.GetDirectoryName(project.FilePath)!);
@@ -579,19 +584,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     // Since the location of the reference is in GAC, need to use full identity name to find it again.
                     // This typically happens when you base the reference off of a reflection assembly location.
-                    _applyChangesProjectFile.AddMetadataReferenceAsync(identity.GetDisplayName(), metadataReference.Properties, hintPath: null, CancellationToken.None).Wait();
+                    _applyChangesProjectFile.AddMetadataReferenceAsync(identity.GetDisplayName(), metadataReference.Properties.Aliases, hintPath: null, CancellationToken.None).Wait();
                 }
                 else if (IsFrameworkReferenceAssembly(peRef.FilePath))
                 {
                     // just use short name since this will be resolved by msbuild relative to the known framework reference assemblies.
                     var fileName = identity != null ? identity.Name : Path.GetFileNameWithoutExtension(peRef.FilePath);
-                    _applyChangesProjectFile.AddMetadataReferenceAsync(fileName, metadataReference.Properties, hintPath: null, CancellationToken.None).Wait();
+                    _applyChangesProjectFile.AddMetadataReferenceAsync(fileName, metadataReference.Properties.Aliases, hintPath: null, CancellationToken.None).Wait();
                 }
                 else // other location -- need hint to find correct assembly
                 {
                     var relativePath = PathUtilities.GetRelativePath(Path.GetDirectoryName(CurrentSolution.GetRequiredProject(projectId).FilePath)!, peRef.FilePath);
                     var fileName = Path.GetFileNameWithoutExtension(peRef.FilePath);
-                    _applyChangesProjectFile.AddMetadataReferenceAsync(fileName, metadataReference.Properties, relativePath, CancellationToken.None).Wait();
+                    _applyChangesProjectFile.AddMetadataReferenceAsync(fileName, metadataReference.Properties.Aliases, relativePath, CancellationToken.None).Wait();
                 }
             }
 
@@ -647,7 +652,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var project = this.CurrentSolution.GetProject(projectReference.ProjectId);
             if (project?.FilePath is not null)
             {
-                _applyChangesProjectFile.AddProjectReferenceAsync(project.Name, new ProjectFileReference(project.FilePath, projectReference.Aliases), CancellationToken.None).Wait();
+                // Only "ReferenceOutputAssembly=true" project references are represented in the workspace:
+                var reference = new ProjectFileReference(project.FilePath, projectReference.Aliases, referenceOutputAssembly: true);
+                _applyChangesProjectFile.AddProjectReferenceAsync(project.Name, reference, CancellationToken.None).Wait();
             }
 
             this.OnProjectReferenceAdded(projectId, projectReference);

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Host;
 /// disposal should always be preferred as the implementation of synchronous disposal may end up blocking the caller
 /// on async work.
 /// </remarks>
-public interface IPersistentStorage : IDisposable, IAsyncDisposable
+public interface IPersistentStorage
 {
     Task<Stream?> ReadStreamAsync(string name, CancellationToken cancellationToken = default);
     Task<Stream?> ReadStreamAsync(Project project, string name, CancellationToken cancellationToken = default);

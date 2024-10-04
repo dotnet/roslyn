@@ -2,8 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -14,10 +13,6 @@ internal static class XmlDocCommentCompletionItem
 
     public static CompletionItem Create(string displayText, string beforeCaretText, string afterCaretText, CompletionItemRules rules)
     {
-        var props = ImmutableArray.Create(
-            new KeyValuePair<string, string>(BeforeCaretText, beforeCaretText),
-            new KeyValuePair<string, string>(AfterCaretText, afterCaretText));
-
         // Set isComplexTextEdit to be always true for simplicity, even
         // though we don't always need to make change outside the default
         // completion list Span.
@@ -27,7 +22,9 @@ internal static class XmlDocCommentCompletionItem
             displayText: displayText,
             displayTextSuffix: "",
             glyph: Glyph.Keyword,
-            properties: props,
+            properties: [
+                KeyValuePairUtil.Create(BeforeCaretText, beforeCaretText),
+                KeyValuePairUtil.Create(AfterCaretText, afterCaretText)],
             rules: rules,
             isComplexTextEdit: true);
     }

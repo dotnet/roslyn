@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -13,6 +12,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -157,7 +157,7 @@ internal abstract class AbstractInternalsVisibleToCompletionProvider : LSPComple
                 displayTextSuffix: "",
                 rules: CompletionItemRules.Default,
                 glyph: project.GetGlyph(),
-                properties: [new KeyValuePair<string, string>(ProjectGuidKey, projectGuid)]);
+                properties: [KeyValuePairUtil.Create(ProjectGuidKey, projectGuid)]);
             context.AddItem(completionItem);
         }
 

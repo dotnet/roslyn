@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification;
 
@@ -80,10 +81,39 @@ internal readonly ref partial struct Worker
 
     private void ClassifyNode(SyntaxNode node)
     {
-        foreach (var token in node.DescendantTokens(span: _textSpan, descendIntoTrivia: false))
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
+        stack.Push(node);
+
+        var textSpanStart = _textSpan.Start;
+        var textSpanEnd = _textSpan.End;
+
+        while (stack.TryPop(out var current))
         {
             _cancellationToken.ThrowIfCancellationRequested();
-            ClassifyToken(token);
+
+            // It's ok that we're not pushing in reverse.  The caller (TotalClassificationTaggerProvider) will be
+            // sorting the results before doing anything with them.
+            foreach (var child in current.ChildNodesAndTokens())
+            {
+                if (child.AsNode(out var childNode))
+                {
+                    var childSpan = childNode.FullSpan;
+
+                    // If we haven't reached the start of the span we care about, then we can skip this node, going to
+                    // the next.  Once we go past that span, we can stop immediately.  Otherwise, we must be
+                    // intersecting the span, and we should recurse into this child.
+                    if (childSpan.End < textSpanStart)
+                        continue;
+                    else if (childSpan.Start > textSpanEnd)
+                        break;
+                    else
+                        stack.Push(childNode);
+                }
+                else
+                {
+                    ClassifyToken(child.AsToken());
+                }
+            }
         }
     }
 

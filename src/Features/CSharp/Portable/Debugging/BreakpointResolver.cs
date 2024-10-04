@@ -92,7 +92,7 @@ internal class BreakpointResolver(Solution solution, string text) : AbstractBrea
         }
         else
         {
-            nameParts = SpecializedCollections.EmptyList<NameAndArity>();
+            nameParts = [];
         }
     }
 }

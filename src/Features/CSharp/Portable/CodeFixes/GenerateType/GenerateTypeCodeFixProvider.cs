@@ -47,12 +47,10 @@ internal class GenerateTypeCodeFixProvider : AbstractGenerateMemberCodeFixProvid
     {
         switch (node)
         {
-            case QualifiedNameSyntax _:
+            case QualifiedNameSyntax or MemberAccessExpressionSyntax:
                 return true;
             case SimpleNameSyntax simple:
                 return !simple.IsParentKind(SyntaxKind.QualifiedName);
-            case MemberAccessExpressionSyntax _:
-                return true;
         }
 
         return false;
@@ -62,9 +60,9 @@ internal class GenerateTypeCodeFixProvider : AbstractGenerateMemberCodeFixProvid
         => ((ExpressionSyntax)node).GetRightmostName();
 
     protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
-        Document document, SyntaxNode node, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, SyntaxNode node, CancellationToken cancellationToken)
     {
         var service = document.GetRequiredLanguageService<IGenerateTypeService>();
-        return service.GenerateTypeAsync(document, node, fallbackOptions, cancellationToken);
+        return service.GenerateTypeAsync(document, node, cancellationToken);
     }
 }

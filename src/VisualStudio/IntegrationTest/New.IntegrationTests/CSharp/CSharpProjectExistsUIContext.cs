@@ -11,33 +11,32 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
+namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
+
+public class CSharpProjectExistsUIContext : AbstractIntegrationTest
 {
-    public class CSharpProjectExistsUIContext : AbstractIntegrationTest
+    public override async Task InitializeAsync()
     {
-        public override async Task InitializeAsync()
-        {
-            await base.InitializeAsync();
-            await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CSharpProjectExistsUIContext), HangMitigatingCancellationToken);
-        }
+        await base.InitializeAsync();
+        await TestServices.SolutionExplorer.CreateSolutionAsync(nameof(CSharpProjectExistsUIContext), HangMitigatingCancellationToken);
+    }
 
-        [IdeFact]
-        public async Task ProjectContextChanges()
-        {
-            var workspace = await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(HangMitigatingCancellationToken);
-            var contextProvider = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<IProjectExistsUIContextProviderLanguageService>();
-            var context = contextProvider.GetUIContext();
+    [IdeFact]
+    public async Task ProjectContextChanges()
+    {
+        var workspace = await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(HangMitigatingCancellationToken);
+        var contextProvider = workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetRequiredService<IProjectExistsUIContextProviderLanguageService>();
+        var context = contextProvider.GetUIContext();
 
-            Assert.False(context.IsActive);
+        Assert.False(context.IsActive);
 
-            await TestServices.SolutionExplorer.AddProjectAsync("TestCSharpProject", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.CSharp, HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddProjectAsync("TestCSharpProject", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.CSharp, HangMitigatingCancellationToken);
 
-            Assert.True(context.IsActive);
+        Assert.True(context.IsActive);
 
-            await TestServices.SolutionExplorer.CloseSolutionAsync(HangMitigatingCancellationToken);
-            await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.CloseSolutionAsync(HangMitigatingCancellationToken);
+        await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace], HangMitigatingCancellationToken);
 
-            Assert.False(context.IsActive);
-        }
+        Assert.False(context.IsActive);
     }
 }

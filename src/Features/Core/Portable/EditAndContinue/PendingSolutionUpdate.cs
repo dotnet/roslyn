@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;

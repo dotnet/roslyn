@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch;
 /// Service that allows you to query the SymbolSearch database and which keeps 
 /// the database up to date.  
 /// </summary>
-internal interface ISymbolSearchUpdateEngine
+internal interface ISymbolSearchUpdateEngine : IDisposable
 {
     ValueTask UpdateContinuouslyAsync(string sourceName, string localSettingsDirectory, CancellationToken cancellationToken);
 

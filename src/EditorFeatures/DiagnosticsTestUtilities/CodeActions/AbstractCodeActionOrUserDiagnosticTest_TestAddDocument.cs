@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             Assert.NotNull(addedDocument);
 
-            AssertEx.Equal(expectedFolders, addedDocument.Folders);
+            AssertEx.Equal(expectedFolders, addedDocument.Folders.AsEnumerable());
             Assert.Equal(expectedDocumentName, addedDocument.Name);
             var actual = (await addedDocument.GetTextAsync()).ToString();
             Assert.Equal(expected, actual);
@@ -126,10 +126,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 // If there is just one document change then we expect the preview to be a WpfTextView
                 var previews = await editHandler.GetPreviewsAsync(workspace, operations, CancellationToken.None);
                 var content = (await previews.GetPreviewsAsync())[0];
-                using (var diffView = content as DifferenceViewerPreview)
-                {
-                    Assert.NotNull(diffView.Viewer);
-                }
+                using var diffView = content as DifferenceViewerPreview;
+                Assert.NotNull(diffView.Viewer);
             }
             else
             {

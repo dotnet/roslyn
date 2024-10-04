@@ -6,7 +6,6 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Scripting.Hosting;
 using Roslyn.Utilities;
@@ -44,7 +43,7 @@ internal abstract class AbstractReferenceDirectiveCompletionProvider : AbstractD
             builder.Add(',');
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     protected override async Task ProvideCompletionsAsync(CompletionContext context, string pathThroughLastSlash)

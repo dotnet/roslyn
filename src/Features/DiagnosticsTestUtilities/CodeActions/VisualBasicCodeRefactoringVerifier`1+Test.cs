@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Testing;
@@ -26,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
     public static partial class VisualBasicCodeRefactoringVerifier<TCodeRefactoring>
         where TCodeRefactoring : CodeRefactoringProvider, new()
     {
-        public class Test : VisualBasicCodeRefactoringTest<TCodeRefactoring, XUnitVerifier>
+        public class Test : VisualBasicCodeRefactoringTest<TCodeRefactoring, DefaultVerifier>
         {
             private readonly SharedVerifierState _sharedState;
 
@@ -96,17 +97,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
 
 #if !CODE_STYLE
-
-            protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), _sharedState.GetIdeAnalyzerOptions(project));
-
-            protected override CodeRefactoringContext CreateCodeRefactoringContext(Document document, TextSpan span, Action<CodeAction> registerRefactoring, CancellationToken cancellationToken)
-                => new CodeRefactoringContext(document, span, (action, textSpan) => registerRefactoring(action), _sharedState.CodeActionOptions, cancellationToken);
-
             /// <summary>
-            /// The <see cref="TestHost"/> we want this test to run in.  Defaults to <see cref="TestHost.InProcess"/> if unspecified.
+            /// The <see cref="TestHost"/> we want this test to run in.  Defaults to <see cref="TestHost.OutOfProcess"/>
+            /// if unspecified.
             /// </summary>
-            public TestHost TestHost { get; set; } = TestHost.InProcess;
+            public TestHost TestHost { get; set; } = TestHost.OutOfProcess;
 
             private static readonly TestComposition s_editorFeaturesOOPComposition = FeaturesTestCompositions.Features.WithTestHostParts(TestHost.OutOfProcess);
 

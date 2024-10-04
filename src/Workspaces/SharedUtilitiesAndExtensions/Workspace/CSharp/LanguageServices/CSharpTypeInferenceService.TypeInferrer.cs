@@ -114,9 +114,7 @@ internal partial class CSharpTypeInferenceService
                     }
 
                     if (IsUsableTypeFunc(typeInferenceInfo))
-                    {
-                        return SpecializedCollections.SingletonEnumerable(typeInferenceInfo);
-                    }
+                        return [typeInferenceInfo];
                 }
             }
 
@@ -1609,8 +1607,7 @@ internal partial class CSharpTypeInferenceService
                 if (invoke != null)
                 {
                     var isAsync = anonymousFunction.AsyncKeyword.Kind() != SyntaxKind.None;
-                    return SpecializedCollections.SingletonEnumerable(
-                        new TypeInferenceInfo(UnwrapTaskLike(invoke.ReturnType, isAsync)));
+                    return [new TypeInferenceInfo(UnwrapTaskLike(invoke.ReturnType, isAsync))];
                 }
             }
 
@@ -1979,7 +1976,7 @@ internal partial class CSharpTypeInferenceService
             // We don't care what the type is, as long as it has 1 type argument. This will work for IEnumerable, IEnumerator,
             // IAsyncEnumerable, IAsyncEnumerator and it's also good for error recovery in case there is a missing using.
             return memberType is INamedTypeSymbol namedType && namedType.TypeArguments.Length == 1
-                ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(namedType.TypeArguments[0]))
+                ? [new TypeInferenceInfo(namedType.TypeArguments[0])]
                 : [];
         }
 
@@ -2031,7 +2028,7 @@ internal partial class CSharpTypeInferenceService
             var isAsync = symbol is IMethodSymbol methodSymbol && methodSymbol.IsAsync;
 
             return type != null
-                ? SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(UnwrapTaskLike(type, isAsync)))
+                ? [new TypeInferenceInfo(UnwrapTaskLike(type, isAsync))]
                 : [];
         }
 
@@ -2242,8 +2239,8 @@ internal partial class CSharpTypeInferenceService
                         return inferredFutureUsage.Length > 0 ? inferredFutureUsage[0].InferredType : Compilation.ObjectType;
                     });
 
-                    return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(
-                        Compilation.CreateTupleTypeSymbol(elementTypes, elementNames)));
+                    return [new TypeInferenceInfo(
+                        Compilation.CreateTupleTypeSymbol(elementTypes, elementNames))];
                 }
 
                 return GetTypes(declExpr.Type);
@@ -2358,7 +2355,7 @@ internal partial class CSharpTypeInferenceService
             if (previousToken.HasValue && previousToken.Value != whenClause.WhenKeyword)
                 return [];
 
-            return SpecializedCollections.SingletonEnumerable(new TypeInferenceInfo(Compilation.GetSpecialType(SpecialType.System_Boolean)));
+            return [new TypeInferenceInfo(Compilation.GetSpecialType(SpecialType.System_Boolean))];
         }
 
         private IEnumerable<TypeInferenceInfo> InferTypeInWhileStatement(WhileStatementSyntax whileStatement, SyntaxToken? previousToken = null)

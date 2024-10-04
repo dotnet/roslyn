@@ -721,7 +721,7 @@ End Class
         End Sub
 
         Shared Sub VerifyArgumentExceptionDiagnostic(diagnostic As Diagnostic, generatorName As String, message As String, parameterName As String, Optional initialization As Boolean = False)
-#If NETCOREAPP Then
+#If NET Then
             Dim expectedMessage = $"{message} (Parameter '{parameterName}')"
 #Else
             Dim expectedMessage = $"{message}{Environment.NewLine}Parameter name: {parameterName}"

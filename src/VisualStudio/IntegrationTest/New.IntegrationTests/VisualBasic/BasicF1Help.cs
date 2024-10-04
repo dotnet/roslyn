@@ -10,22 +10,22 @@ using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.NewIntegrationTests.InProcess;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic
+namespace Roslyn.VisualStudio.NewIntegrationTests.VisualBasic;
+
+[Trait(Traits.Feature, Traits.Features.F1Help)]
+public class BasicF1Help : AbstractEditorTest
 {
-    [Trait(Traits.Feature, Traits.Features.F1Help)]
-    public class BasicF1Help : AbstractEditorTest
+    protected override string LanguageName => LanguageNames.VisualBasic;
+
+    public BasicF1Help()
+        : base(nameof(BasicF1Help))
     {
-        protected override string LanguageName => LanguageNames.VisualBasic;
+    }
 
-        public BasicF1Help()
-            : base(nameof(BasicF1Help))
-        {
-        }
-
-        [IdeFact]
-        private async Task F1Help()
-        {
-            var text = @"
+    [IdeFact]
+    private async Task F1Help()
+    {
+        var text = @"
 Imports System
 Imports System.Collections.Generic
 Imports System.Linq
@@ -42,20 +42,19 @@ Module Program$$
     End Function
 End Module";
 
-            await SetUpEditorAsync(text, HangMitigatingCancellationToken);
-            await VerifyAsync("Linq", "System.Linq", HangMitigatingCancellationToken);
-            await VerifyAsync("String", "vb.String", HangMitigatingCancellationToken);
-            await VerifyAsync("Any", "System.Linq.Enumerable.Any", HangMitigatingCancellationToken);
-            await VerifyAsync("From", "vb.QueryFrom", HangMitigatingCancellationToken);
-            await VerifyAsync("+=", "vb.+=", HangMitigatingCancellationToken);
-            await VerifyAsync("Nothing", "vb.Nothing", HangMitigatingCancellationToken);
+        await SetUpEditorAsync(text, HangMitigatingCancellationToken);
+        await VerifyAsync("Linq", "System.Linq", HangMitigatingCancellationToken);
+        await VerifyAsync("String", "vb.String", HangMitigatingCancellationToken);
+        await VerifyAsync("Any", "System.Linq.Enumerable.Any", HangMitigatingCancellationToken);
+        await VerifyAsync("From", "vb.QueryFrom", HangMitigatingCancellationToken);
+        await VerifyAsync("+=", "vb.+=", HangMitigatingCancellationToken);
+        await VerifyAsync("Nothing", "vb.Nothing", HangMitigatingCancellationToken);
 
-        }
+    }
 
-        private async Task VerifyAsync(string word, string expectedKeyword, CancellationToken cancellationToken)
-        {
-            await TestServices.Editor.PlaceCaretAsync(word, charsOffset: -1, cancellationToken);
-            Assert.Contains(expectedKeyword, await TestServices.Editor.GetF1KeywordsAsync(cancellationToken));
-        }
+    private async Task VerifyAsync(string word, string expectedKeyword, CancellationToken cancellationToken)
+    {
+        await TestServices.Editor.PlaceCaretAsync(word, charsOffset: -1, cancellationToken);
+        Assert.Contains(expectedKeyword, await TestServices.Editor.GetF1KeywordsAsync(cancellationToken));
     }
 }

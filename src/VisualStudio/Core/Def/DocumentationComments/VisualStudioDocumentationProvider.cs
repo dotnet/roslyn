@@ -7,10 +7,7 @@
 using System;
 using System.Globalization;
 using System.Threading;
-using System.Xml;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 

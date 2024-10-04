@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -176,9 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (this.IsIndirectlyInIterator) // called *after* we know the binder map has been created.
             {
-                // Spec 8.2: "An iterator block always defines a safe context, even when its declaration
-                // is nested in an unsafe context."
-                Error(diagnostics, ErrorCode.ERR_IllegalInnerUnsafe, node.UnsafeKeyword);
+                CheckFeatureAvailability(node.UnsafeKeyword, MessageID.IDS_FeatureRefUnsafeInIteratorAsync, diagnostics);
             }
 
             return BindEmbeddedBlock(node.Block, diagnostics);
@@ -267,6 +266,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (BindingTopLevelScriptCode)
             {
                 Error(diagnostics, ErrorCode.ERR_YieldNotAllowedInScript, node.YieldKeyword);
+            }
+            else if (InUnsafeRegion && Compilation.IsFeatureEnabled(MessageID.IDS_FeatureRefUnsafeInIteratorAsync))
+            {
+                Error(diagnostics, ErrorCode.ERR_BadYieldInUnsafe, node.YieldKeyword);
             }
 
             CheckRequiredLangVersionForIteratorMethods(node, diagnostics);
@@ -772,13 +775,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if ((!hasAwait && disposeMethod?.ReturnsVoid == false)
                 || result == PatternLookupResult.NotAMethod)
             {
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                if (this.IsAccessible(disposeMethod, ref useSiteInfo))
-                {
-                    diagnostics.Add(ErrorCode.WRN_PatternBadSignature, syntaxNode.Location, expr.Type, MessageID.IDS_Disposable.Localize(), disposeMethod);
-                }
-
-                diagnostics.Add(syntaxNode, useSiteInfo);
                 disposeMethod = null;
             }
 
@@ -1100,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CheckRestrictedTypeInAsyncMethod(this.ContainingMemberOrLambda, declTypeOpt.Type, localDiagnostics, typeSyntax);
 
-            if (localSymbol.Scope == ScopedKind.ScopedValue && !declTypeOpt.Type.IsErrorTypeOrRefLikeType())
+            if (localSymbol.Scope == ScopedKind.ScopedValue && !declTypeOpt.Type.IsErrorOrRefLikeOrAllowsRefLikeType())
             {
                 localDiagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, typeSyntax.Location);
             }
@@ -1165,15 +1161,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected bool CheckRefLocalInAsyncOrIteratorMethod(SyntaxToken identifierToken, BindingDiagnosticBag diagnostics)
         {
-            if (IsInAsyncMethod())
+            if (IsDirectlyInIterator || IsInAsyncMethod())
             {
-                Error(diagnostics, ErrorCode.ERR_BadAsyncLocalType, identifierToken);
-                return true;
-            }
-            else if (IsDirectlyInIterator)
-            {
-                Error(diagnostics, ErrorCode.ERR_BadIteratorLocalType, identifierToken);
-                return true;
+                return !CheckFeatureAvailability(identifierToken, MessageID.IDS_FeatureRefUnsafeInIteratorAsync, diagnostics);
             }
 
             return false;
@@ -1580,7 +1570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         leftEscape = GetValEscape(op1, _localScopeDepth);
                         rightEscape = GetValEscape(op2, _localScopeDepth);
 
-                        Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeType);
+                        Debug.Assert(leftEscape == rightEscape || op1.Type.IsRefLikeOrAllowsRefLikeType());
 
                         // We only check if the safe-to-escape of e2 is wider than the safe-to-escape of e1 here,
                         // we don't check for equality. The case where the safe-to-escape of e2 is narrower than
@@ -1599,7 +1589,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (!hasErrors && op1.Type.IsRefLikeType)
+                if (!hasErrors && op1.Type.IsRefLikeOrAllowsRefLikeType())
                 {
                     var leftEscape = GetValEscape(op1, _localScopeDepth);
                     ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);
@@ -1760,26 +1750,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 new CSDiagnosticInfo(ErrorCode.ERR_BadEventUsageNoField, leastOverridden);
         }
 
+#nullable enable
         internal static bool AccessingAutoPropertyFromConstructor(BoundPropertyAccess propertyAccess, Symbol fromMember)
         {
-            return AccessingAutoPropertyFromConstructor(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember);
+            return AccessingAutoPropertyFromConstructor(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember, propertyAccess.AutoPropertyAccessorKind);
         }
 
-        private static bool AccessingAutoPropertyFromConstructor(BoundExpression receiver, PropertySymbol propertySymbol, Symbol fromMember)
+        private static bool AccessingAutoPropertyFromConstructor(BoundExpression? receiver, PropertySymbol propertySymbol, Symbol fromMember, AccessorKind accessorKind)
+        {
+            if (!HasSynthesizedBackingField(propertySymbol, out var sourceProperty))
+            {
+                return false;
+            }
+
+            var propertyIsStatic = propertySymbol.IsStatic;
+
+            return sourceProperty is { } &&
+                sourceProperty.CanUseBackingFieldDirectlyInConstructor(useAsLvalue: accessorKind != AccessorKind.Get) &&
+                TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.AllIgnoreOptions) &&
+                IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
+                (propertyIsStatic || receiver?.Kind == BoundKind.ThisReference);
+        }
+
+        private static bool HasSynthesizedBackingField(PropertySymbol propertySymbol, [NotNullWhen(true)] out SourcePropertySymbolBase? sourcePropertyDefinition)
         {
             if (!propertySymbol.IsDefinition && propertySymbol.ContainingType.Equals(propertySymbol.ContainingType.OriginalDefinition, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
                 propertySymbol = propertySymbol.OriginalDefinition;
             }
 
-            var sourceProperty = propertySymbol as SourcePropertySymbolBase;
-            var propertyIsStatic = propertySymbol.IsStatic;
+            if (propertySymbol is SourcePropertySymbolBase { BackingField: { } } sourceProperty)
+            {
+                sourcePropertyDefinition = sourceProperty;
+                return true;
+            }
 
-            return (object)sourceProperty != null &&
-                    sourceProperty.IsAutoPropertyWithGetAccessor &&
-                    TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.AllIgnoreOptions) &&
-                    IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
-                    (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);
+            sourcePropertyDefinition = null;
+            return false;
         }
 
         private static bool IsConstructorOrField(Symbol member, bool isStatic)
@@ -1789,6 +1796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                 MethodKind.Constructor) ||
                     (member as FieldSymbol)?.IsStatic == isStatic;
         }
+#nullable disable
 
         private TypeSymbol GetAccessThroughType(BoundExpression receiver)
         {
@@ -2509,15 +2517,64 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+#nullable enable
         private BoundStatement BindIfStatement(IfStatementSyntax node, BindingDiagnosticBag diagnostics)
         {
-            var condition = BindBooleanExpression(node.Condition, diagnostics);
-            var consequence = BindPossibleEmbeddedStatement(node.Statement, diagnostics);
-            BoundStatement alternative = (node.Else == null) ? null : BindPossibleEmbeddedStatement(node.Else.Statement, diagnostics);
+            return bindIfStatement(this, node, diagnostics);
 
-            BoundStatement result = new BoundIfStatement(node, condition, consequence, alternative);
-            return result;
+            static BoundStatement bindIfStatement(Binder binder, IfStatementSyntax node, BindingDiagnosticBag diagnostics)
+            {
+                var stack = ArrayBuilder<(Binder, IfStatementSyntax IfStatementSyntax, BoundExpression Condition, BoundStatement Consequence)>.GetInstance();
+
+                BoundStatement? alternative;
+                while (true)
+                {
+                    var condition = binder.BindBooleanExpression(node.Condition, diagnostics);
+                    var consequence = binder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
+                    stack.Push((binder, node, condition, consequence));
+
+                    if (node.Else == null)
+                    {
+                        alternative = null;
+                        break;
+                    }
+
+                    var elseStatementSyntax = node.Else.Statement;
+                    if (elseStatementSyntax is IfStatementSyntax ifStatementSyntax)
+                    {
+                        var b = binder.GetBinder(ifStatementSyntax);
+                        Debug.Assert(b != null);
+                        binder = b;
+                        node = ifStatementSyntax;
+                    }
+                    else
+                    {
+                        alternative = binder.BindPossibleEmbeddedStatement(elseStatementSyntax, diagnostics);
+                        break;
+                    }
+                }
+
+                BoundStatement result;
+                do
+                {
+                    BoundExpression condition;
+                    BoundStatement consequence;
+                    (binder, node, condition, consequence) = stack.Pop();
+                    result = new BoundIfStatement(node, condition, consequence, alternative);
+                    if (stack.Any())
+                    {
+                        result = binder.WrapWithVariablesIfAny(node, result);
+                    }
+                    alternative = result;
+                }
+                while (stack.Any());
+
+                stack.Free();
+
+                return result;
+            }
         }
+#nullable disable
 
         internal BoundExpression BindBooleanExpression(ExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
@@ -3596,7 +3653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundNode BindPrimaryConstructorBody(TypeDeclarationSyntax typeDecl, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(typeDecl.ParameterList is object);
-            Debug.Assert(typeDecl.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.ClassDeclaration);
+            Debug.Assert(typeDecl.Kind() is SyntaxKind.RecordDeclaration or SyntaxKind.ClassDeclaration or SyntaxKind.RecordStructDeclaration or SyntaxKind.StructDeclaration);
 
             BoundExpressionStatement initializer;
             ImmutableArray<LocalSymbol> constructorLocals;

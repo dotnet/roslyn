@@ -11,8 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -33,7 +31,6 @@ internal abstract partial class AbstractEditorInlineRenameService
         private readonly SymbolicRenameInfo _info;
 
         private Document Document => _info.Document!;
-        private readonly CodeCleanupOptionsProvider _fallbackOptions;
         private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
 
         /// <summary>
@@ -58,7 +55,6 @@ internal abstract partial class AbstractEditorInlineRenameService
         public SymbolInlineRenameInfo(
             IEnumerable<IRefactorNotifyService> refactorNotifyServices,
             SymbolicRenameInfo info,
-            CodeCleanupOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(info.IsError);
@@ -66,7 +62,6 @@ internal abstract partial class AbstractEditorInlineRenameService
 
             _info = info;
             _refactorNotifyServices = refactorNotifyServices;
-            _fallbackOptions = fallbackOptions;
 
             this.HasOverloads = RenameUtilities.GetOverloadedSymbols(this.RenameSymbol).Any();
 
@@ -141,7 +136,7 @@ internal abstract partial class AbstractEditorInlineRenameService
             var locations = await Renamer.FindRenameLocationsAsync(
                 solution, this.RenameSymbol, options, cancellationToken).ConfigureAwait(false);
 
-            return new InlineRenameLocationSet(this, locations, _fallbackOptions);
+            return new InlineRenameLocationSet(this, locations);
         }
 
         public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, string replacementText)

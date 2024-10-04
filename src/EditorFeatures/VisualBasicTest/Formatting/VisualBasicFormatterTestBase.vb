@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
@@ -66,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
                     workspace.Documents.First(Function(d) d.SelectedSpans.Any()).SelectedSpans,
                     workspace.Services.SolutionServices,
                     options,
-                    rules,
+                    rules.ToImmutableArray(),
                     CancellationToken.None)
 
                 AssertResult(expected, clonedBuffer, changes)

@@ -2,11 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionCodeFixHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseConditionalExpression;
@@ -32,9 +31,9 @@ internal class MultiLineConditionalExpressionFormattingRule : AbstractFormatting
     }
 
     private static bool IsQuestionOrColonOfNewConditional(SyntaxToken token)
-        => token.Kind() is SyntaxKind.QuestionToken or SyntaxKind.ColonToken && token.Parent.HasAnnotation(SpecializedFormattingAnnotation);
+        => token.Kind() is SyntaxKind.QuestionToken or SyntaxKind.ColonToken && token.GetRequiredParent().HasAnnotation(SpecializedFormattingAnnotation);
 
-    public override AdjustNewLinesOperation GetAdjustNewLinesOperation(
+    public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(
         in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
     {
         if (IsQuestionOrColonOfNewConditional(currentToken))

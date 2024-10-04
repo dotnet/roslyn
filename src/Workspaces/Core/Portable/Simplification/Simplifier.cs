@@ -208,12 +208,12 @@ public static partial class Simplifier
         }
 
 #pragma warning disable RS0030 // Do not used banned APIs
-        return ReduceAsync(document, SpecializedCollections.SingletonEnumerable(span), optionSet, cancellationToken);
+        return ReduceAsync(document, [span], optionSet, cancellationToken);
     }
 #pragma warning restore
 
     internal static Task<Document> ReduceAsync(Document document, TextSpan span, SimplifierOptions options, CancellationToken cancellationToken)
-        => ReduceAsync(document, SpecializedCollections.SingletonEnumerable(span), options, cancellationToken);
+        => ReduceAsync(document, [span], options, cancellationToken);
 
     /// <summary>
     /// Reduce the sub-trees annotated with <see cref="Annotation" /> found within the specified spans.
@@ -242,8 +242,9 @@ public static partial class Simplifier
             document, spans.ToImmutableArrayOrEmpty(), options, reducers: default, cancellationToken);
 
     internal static async Task<Document> ReduceAsync(
-        Document document, ImmutableArray<AbstractReducer> reducers, SimplifierOptions options, CancellationToken cancellationToken)
+        Document document, ImmutableArray<AbstractReducer> reducers, CancellationToken cancellationToken)
     {
+        var options = await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         return await document.GetRequiredLanguageService<ISimplificationService>()
             .ReduceAsync(document, [root.FullSpan], options,
@@ -255,7 +256,7 @@ public static partial class Simplifier
     {
         optionSet ??= await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
         var simplificationService = document.Project.Solution.Services.GetRequiredLanguageService<ISimplificationService>(document.Project.Language);
-        return simplificationService.GetSimplifierOptions(optionSet, fallbackOptions: null);
+        return simplificationService.GetSimplifierOptions(optionSet);
     }
 #pragma warning restore
 }

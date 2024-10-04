@@ -15,6 +15,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertIfToSwitch;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider
@@ -69,13 +70,13 @@ internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider
     {
         var block = ifStatement.Statement as BlockSyntax;
         return SwitchStatement(
-            switchKeyword: Token(SyntaxKind.SwitchKeyword).WithTriviaFrom(ifStatement.IfKeyword),
+            switchKeyword: SwitchKeyword.WithTriviaFrom(ifStatement.IfKeyword),
             openParenToken: ifStatement.OpenParenToken,
             expression: (ExpressionSyntax)expression,
             closeParenToken: ifStatement.CloseParenToken.WithPrependedLeadingTrivia(ElasticMarker),
-            openBraceToken: block?.OpenBraceToken ?? Token(SyntaxKind.OpenBraceToken),
+            openBraceToken: block?.OpenBraceToken ?? OpenBraceToken,
             sections: [.. sectionList.Cast<SwitchSectionSyntax>()],
-            closeBraceToken: block?.CloseBraceToken.WithoutLeadingTrivia() ?? Token(SyntaxKind.CloseBraceToken));
+            closeBraceToken: block?.CloseBraceToken.WithoutLeadingTrivia() ?? CloseBraceToken);
     }
 
     private static WhenClauseSyntax? AsWhenClause(AnalyzedSwitchLabel label)
@@ -90,7 +91,7 @@ internal sealed partial class CSharpConvertIfToSwitchCodeRefactoringProvider
         => CasePatternSwitchLabel(
             AsPatternSyntax(label.Pattern, feature),
             AsWhenClause(label),
-            Token(SyntaxKind.ColonToken));
+            ColonToken);
 
     private static PatternSyntax AsPatternSyntax(AnalyzedPattern pattern, Feature feature)
         => pattern switch

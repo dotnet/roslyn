@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -441,7 +440,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
         var syntaxRoot = await document.GetRequiredSyntaxRootAsync(CancellationToken.None);
         var options = CSharpSyntaxFormattingOptions.Default;
-        var node = Formatter.Format(syntaxRoot, spans, workspace.Services.SolutionServices, options, rules: null, CancellationToken.None);
+        var node = Formatter.Format(syntaxRoot, spans, workspace.Services.SolutionServices, options, rules: default, CancellationToken.None);
         Assert.Equal(expected, node.ToFullString());
     }
 
@@ -2222,7 +2221,7 @@ public class FormattingEngineTests : CSharpFormattingEngineTestBase
         var root = tree.GetRoot();
 
         var entry = SyntaxFactory.BinaryExpression(SyntaxKind.EqualsExpression, SyntaxFactory.LiteralExpression(SyntaxKind.TrueLiteralExpression), SyntaxFactory.LiteralExpression(SyntaxKind.FalseLiteralExpression));
-        var newRoot = root.InsertNodesBefore(root.DescendantNodes().Last(), new[] { entry });
+        var newRoot = root.InsertNodesBefore(root.DescendantNodes().Last(), [entry]);
         AssertFormatOnArbitraryNode(newRoot, expected);
     }
 

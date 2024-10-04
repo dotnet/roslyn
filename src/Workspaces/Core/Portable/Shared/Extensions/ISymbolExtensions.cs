@@ -26,24 +26,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 internal static partial class ISymbolExtensions
 {
     /// <summary>
-    /// Checks a given symbol for browsability based on its declaration location, attributes 
-    /// explicitly limiting browsability, and whether showing of advanced members is enabled. 
-    /// The optional editorBrowsableInfo parameters may be used to specify the symbols of the
-    /// constructors of the various browsability limiting attributes because finding these 
-    /// repeatedly over a large list of symbols can be slow. If these are not provided,
-    /// they will be found in the compilation.
+    /// Checks a given symbol for browsability based on its declaration location, attributes explicitly limiting
+    /// browsability, and whether showing of advanced members is enabled. The optional editorBrowsableInfo parameters
+    /// may be used to specify the symbols of the constructors of the various browsability limiting attributes because
+    /// finding these repeatedly over a large list of symbols can be slow. If these are not provided, they will be found
+    /// in the compilation.
     /// </summary>
     public static bool IsEditorBrowsable(
         this ISymbol symbol,
         bool hideAdvancedMembers,
         Compilation compilation,
-        EditorBrowsableInfo editorBrowsableInfo = default)
+        EditorBrowsableInfo editorBrowsableInfo = default,
+        bool includingSourceSymbols = false)
     {
         return IsEditorBrowsableWithState(
             symbol,
             hideAdvancedMembers,
             compilation,
-            editorBrowsableInfo).isBrowsable;
+            editorBrowsableInfo,
+            includingSourceSymbols).isBrowsable;
     }
 
     // In addition to given symbol's browsability, also returns its EditorBrowsableState if it contains EditorBrowsableAttribute.
@@ -51,40 +52,34 @@ internal static partial class ISymbolExtensions
         this ISymbol symbol,
         bool hideAdvancedMembers,
         Compilation compilation,
-        EditorBrowsableInfo editorBrowsableInfo = default)
+        EditorBrowsableInfo editorBrowsableInfo = default,
+        bool includingSourceSymbols = false)
     {
         // Namespaces can't have attributes, so just return true here.  This also saves us a 
         // costly check if this namespace has any locations in source (since a merged namespace
         // needs to go collect all the locations).
         if (symbol.Kind == SymbolKind.Namespace)
-        {
             return (isBrowsable: true, isEditorBrowsableStateAdvanced: false);
-        }
 
         // check for IsImplicitlyDeclared so we don't spend time examining VB's embedded types.
         // This saves a few percent in typing scenarios.  An implicitly declared symbol can't
         // have attributes, so it can't be hidden by them.
         if (symbol.IsImplicitlyDeclared)
-        {
             return (isBrowsable: true, isEditorBrowsableStateAdvanced: false);
-        }
 
         if (editorBrowsableInfo.IsDefault)
-        {
             editorBrowsableInfo = new EditorBrowsableInfo(compilation);
-        }
 
         // Ignore browsability limiting attributes if the symbol is declared in source.
         // Check all locations since some of VB's embedded My symbols are declared in 
         // both source and the MyTemplateLocation.
-        if (symbol.Locations.All(loc => loc.IsInSource))
+        if (!includingSourceSymbols && symbol.Locations.All(loc => loc.IsInSource))
         {
             // The HideModuleNameAttribute still applies to Modules defined in source
             return (!IsBrowsingProhibitedByHideModuleNameAttribute(symbol, editorBrowsableInfo.HideModuleNameAttribute), isEditorBrowsableStateAdvanced: false);
         }
 
         var (isProhibited, isEditorBrowsableStateAdvanced) = IsBrowsingProhibited(symbol, hideAdvancedMembers, editorBrowsableInfo);
-
         return (!isProhibited, isEditorBrowsableStateAdvanced);
     }
 
@@ -344,7 +339,7 @@ internal static partial class ISymbolExtensions
             result.AddRange(RewriteInheritdocElements(symbol, visitedSymbols, compilation, child, cancellationToken));
         }
 
-        return result.ToArray();
+        return [.. result];
     }
 
     private static XNode[]? RewriteInheritdocElement(ISymbol memberSymbol, HashSet<ISymbol>? visitedSymbols, Compilation compilation, XElement element, CancellationToken cancellationToken)
@@ -658,11 +653,10 @@ internal static partial class ISymbolExtensions
 
         // PERF: HasUnsupportedMetadata may require recreating the syntax tree to get the base class, so first
         // check to see if we're referencing a symbol defined in source.
-        static bool isSymbolDefinedInSource(Location l) => l.IsInSource;
         return symbols.WhereAsArray((s, arg) =>
             // Check if symbol is namespace (which is always visible) first to avoid realizing all locations
             // of each namespace symbol, which might end up allocating in LOH
-            (s.IsNamespace() || s.Locations.Any(isSymbolDefinedInSource) || !s.HasUnsupportedMetadata) &&
+            (s.IsNamespace() || s.Locations.Any(static loc => loc.IsInSource) || !s.HasUnsupportedMetadata) &&
             !s.IsDestructor() &&
             s.IsEditorBrowsable(
                 arg.hideAdvancedMembers,

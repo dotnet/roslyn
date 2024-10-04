@@ -366,8 +366,7 @@ class Program
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543969")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543969")>
         <CombinatorialData>
         Public Sub CannotRenameElementFromPreviousSubmission(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -384,8 +383,7 @@ class Program
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689002")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/689002")>
         <CombinatorialData>
         Public Sub CannotRenameHiddenElement(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -405,8 +403,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
         <CombinatorialData>
         Public Sub CannotRenameConstructorInVb(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -434,8 +431,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
         <CombinatorialData>
         Public Sub CannotRenameConstructorInVb2(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -457,8 +453,7 @@ End Class
             End Using
         End Sub
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/767187")>
         <CombinatorialData>
         Public Sub CannotRenameConstructorInVb3(host As RenameTestHost)
             Using workspace = CreateWorkspaceWithWaiter(
@@ -485,8 +480,7 @@ End Class
 #Region "Rename In Tuples"
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/10898")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/10567")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/10567")>
         <CombinatorialData>
         <CompilerTrait(CompilerFeature.Tuples)>
         Public Sub RenameTupleFiledInDeclaration(host As RenameTestHost)
@@ -538,8 +532,7 @@ namespace System
         End Sub
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/10898")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/10567")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/10567")>
         <CombinatorialData>
         <CompilerTrait(CompilerFeature.Tuples)>
         Public Sub RenameTupleFiledInLiteral(host As RenameTestHost)
@@ -591,8 +584,7 @@ namespace System
         End Sub
 
         <WorkItem("https://github.com/dotnet/roslyn/issues/10898")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/10567")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/10567")>
         <CombinatorialData>
         <CompilerTrait(CompilerFeature.Tuples)>
         Public Sub RenameTupleFiledInFieldAccess(host As RenameTestHost)

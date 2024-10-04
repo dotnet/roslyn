@@ -3,13 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Copilot;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.GoToDefinition;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.QuickInfo;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.QuickInfo;
 
@@ -103,11 +110,11 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
             case ILocalSymbol { HasConstantValue: true }: return default;
 
             // Symbols with useful quick info
-            case IFieldSymbol _:
-            case ILocalSymbol _:
-            case IParameterSymbol _:
-            case IPropertySymbol _:
-            case IRangeVariableSymbol _:
+            case IFieldSymbol:
+            case ILocalSymbol:
+            case IParameterSymbol:
+            case IPropertySymbol:
+            case IRangeVariableSymbol:
                 break;
 
             default:
@@ -126,5 +133,69 @@ internal class CSharpSemanticQuickInfoProvider : CommonSemanticQuickInfoProvider
         }
 
         return typeInfo.Nullability.FlowState;
+    }
+
+    protected override async Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(QuickInfoContext context, CancellationToken cancellationToken)
+    {
+        var document = context.Document;
+        var position = context.Position;
+
+        if (document.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
+            !await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        if (document.GetLanguageService<ICopilotOptionsService>() is not { } service ||
+            !await service.IsOnTheFlyDocsOptionEnabledAsync().ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        var symbolService = document.GetRequiredLanguageService<IGoToDefinitionSymbolService>();
+        var (symbol, _, _) = await symbolService.GetSymbolProjectAndBoundSpanAsync(
+            document, position, cancellationToken).ConfigureAwait(false);
+
+        if (symbol is null)
+        {
+            return null;
+        }
+
+        if (symbol.MetadataToken != 0)
+        {
+            OnTheFlyDocsLogger.LogHoveredMetadataSymbol();
+        }
+        else
+        {
+            OnTheFlyDocsLogger.LogHoveredSourceSymbol();
+        }
+
+        if (symbol.DeclaringSyntaxReferences.Length == 0)
+        {
+            return null;
+        }
+
+        // Checks to see if any of the files containing the symbol are excluded.
+        var hasContentExcluded = false;
+        var symbolFilePaths = symbol.DeclaringSyntaxReferences.Select(reference => reference.SyntaxTree.FilePath);
+        foreach (var symbolFilePath in symbolFilePaths)
+        {
+            if (await copilotService.IsFileExcludedAsync(symbolFilePath, cancellationToken).ConfigureAwait(false))
+            {
+                hasContentExcluded = true;
+                Logger.Log(FunctionId.Copilot_On_The_Fly_Docs_Content_Excluded, logLevel: LogLevel.Information);
+                break;
+            }
+        }
+
+        var maxLength = 1000;
+        var symbolStrings = symbol.DeclaringSyntaxReferences.Select(reference =>
+        {
+            var span = reference.Span;
+            var sourceText = reference.SyntaxTree.GetText(cancellationToken);
+            return sourceText.GetSubText(new Text.TextSpan(span.Start, Math.Min(maxLength, span.Length))).ToString();
+        }).ToImmutableArray();
+
+        return new OnTheFlyDocsInfo(symbol.ToDisplayString(), symbolStrings, symbol.Language, hasContentExcluded);
     }
 }

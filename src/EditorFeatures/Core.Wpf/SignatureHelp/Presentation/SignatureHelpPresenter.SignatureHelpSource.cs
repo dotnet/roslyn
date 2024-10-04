@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 
@@ -12,16 +13,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 {
     internal partial class SignatureHelpPresenter
     {
-        private class SignatureHelpSource : ForegroundThreadAffinitizedObject, ISignatureHelpSource
+        private sealed class SignatureHelpSource(IThreadingContext threadingContext) : ISignatureHelpSource
         {
-            public SignatureHelpSource(IThreadingContext threadingContext)
-                : base(threadingContext)
-            {
-            }
-
             public void AugmentSignatureHelpSession(ISignatureHelpSession session, IList<ISignature> signatures)
             {
-                AssertIsForeground();
+                threadingContext.ThrowIfNotOnUIThread();
                 if (!session.Properties.TryGetProperty<SignatureHelpPresenterSession>(s_augmentSessionKey, out var presenterSession))
                 {
                     return;
@@ -33,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
             public ISignature GetBestMatch(ISignatureHelpSession session)
             {
-                AssertIsForeground();
+                threadingContext.ThrowIfNotOnUIThread();
                 return session.SelectedSignature;
             }
 

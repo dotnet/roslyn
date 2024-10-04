@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -14,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis;
 
 [ExportWorkspaceService(typeof(IDocumentTextDifferencingService), ServiceLayer.Default), Shared]
-internal class DefaultDocumentTextDifferencingService : IDocumentTextDifferencingService
+internal sealed class DefaultDocumentTextDifferencingService : IDocumentTextDifferencingService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

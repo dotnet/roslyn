@@ -24,10 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.DocumentHighlighting;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class CSharpDocumentHighlightsService(
-    [ImportMany] IEnumerable<Lazy<IEmbeddedLanguageDocumentHighlighter, EmbeddedLanguageMetadata>> services) : AbstractDocumentHighlightsService(LanguageNames.CSharp,
-          CSharpEmbeddedLanguagesProvider.Info,
-          CSharpSyntaxKinds.Instance,
-          services)
+    [ImportMany] IEnumerable<Lazy<IEmbeddedLanguageDocumentHighlighter, EmbeddedLanguageMetadata>> services)
+    : AbstractDocumentHighlightsService(
+        LanguageNames.CSharp,
+        CSharpEmbeddedLanguagesProvider.Info,
+        CSharpSyntaxKinds.Instance,
+        services)
 {
     protected override async Task<ImmutableArray<Location>> GetAdditionalReferencesAsync(
         Document document, ISymbol symbol, CancellationToken cancellationToken)
@@ -56,7 +58,9 @@ internal class CSharpDocumentHighlightsService(
 
                 if (type.IsVar)
                 {
-                    semanticModel ??= await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                    // Document highlights are not impacted by nullable analysis.  Get a semantic model with nullability
+                    // disabled to lower the amount of work we need to do here.
+                    semanticModel ??= await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
                     var boundSymbol = semanticModel.GetSymbolInfo(type, cancellationToken).Symbol;
                     boundSymbol = boundSymbol?.OriginalDefinition;
@@ -67,6 +71,6 @@ internal class CSharpDocumentHighlightsService(
             }
         }
 
-        return results.ToImmutable();
+        return results.ToImmutableAndClear();
     }
 }

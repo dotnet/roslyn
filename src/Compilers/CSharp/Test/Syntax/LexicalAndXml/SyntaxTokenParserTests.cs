@@ -10,6 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.LexicalAndXml;
 
+#pragma warning disable RSEXPERIMENTAL003 // SyntaxTokenParser
 public class SyntaxTokenParserTests
 {
     [Fact]
@@ -265,6 +266,144 @@ public class SyntaxTokenParserTests
         AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(16, 5), "class", parser.ParseNextToken());
     }
 
+    [Fact]
+    public void ParseLeadingTrivia_Empty()
+    {
+        var sourceText = SourceText.From("class C { }");
+        var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
+
+        var result = parser.ParseLeadingTrivia();
+        AssertToken(expectedKind: SyntaxKind.None, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 0), "", result);
+        Assert.Empty(result.Token.LeadingTrivia);
+        Assert.Empty(result.Token.TrailingTrivia);
+
+        result = parser.ParseTrailingTrivia();
+        AssertToken(expectedKind: SyntaxKind.None, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 0), "", result);
+        Assert.Empty(result.Token.LeadingTrivia);
+        Assert.Empty(result.Token.TrailingTrivia);
+
+        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 6), "class ", parser.ParseNextToken());
+    }
+
+    [Fact]
+    public void ParseLeadingTrivia_SameLine()
+    {
+        var sourceText = SourceText.From("/* test */ class C { }");
+        var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
+
+        var result = parser.ParseLeadingTrivia();
+        AssertToken(expectedKind: SyntaxKind.None, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 11), "/* test */ ", result);
+        AssertTrivia(result.Token.LeadingTrivia,
+            (SyntaxKind.MultiLineCommentTrivia, "/* test */"),
+            (SyntaxKind.WhitespaceTrivia, " "));
+        Assert.Empty(result.Token.TrailingTrivia);
+
+        var intermediateResult = parser.ParseLeadingTrivia();
+        AssertToken(expectedKind: SyntaxKind.None, expectedContextualKind: SyntaxKind.None, new TextSpan(11, 0), "", intermediateResult);
+        Assert.Empty(intermediateResult.Token.LeadingTrivia);
+        Assert.Empty(intermediateResult.Token.TrailingTrivia);
+
+        intermediateResult = parser.ParseTrailingTrivia();
+        AssertToken(expectedKind: SyntaxKind.None, expectedContextualKind: SyntaxKind.None, new TextSpan(11, 0), "", intermediateResult);
+        Assert.Empty(intermediateResult.Token.LeadingTrivia);
+        Assert.Empty(intermediateResult.Token.TrailingTrivia);
+
+        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(11, 6), "class ", parser.ParseNextToken());
+
+        parser.ResetTo(result);
+        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 17), "/* test */ class ", parser.ParseNextToken());
+    }
+
+    [Fact]
+    public void ParseLeadingTrivia_MultiLine()
+    {
+        var sourceText = SourceText.From("""
+            /* test */
+
+            class C { }
+            """.NormalizeLineEndings());
+        var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
+
+        var result = parser.ParseLeadingTrivia();
+        AssertToken(expectedKind: SyntaxKind.None, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 14), $"/* test */\r\n\r\n", result);
+        AssertTrivia(result.Token.LeadingTrivia,
+            (SyntaxKind.MultiLineCommentTrivia, "/* test */"),
+            (SyntaxKind.EndOfLineTrivia, "\r\n"),
+            (SyntaxKind.EndOfLineTrivia, "\r\n"));
+        Assert.Empty(result.Token.TrailingTrivia);
+
+        var intermediateResult = parser.ParseLeadingTrivia();
+        AssertToken(expectedKind: SyntaxKind.None, expectedContextualKind: SyntaxKind.None, new TextSpan(14, 0), "", intermediateResult);
+        Assert.Empty(intermediateResult.Token.LeadingTrivia);
+        Assert.Empty(intermediateResult.Token.TrailingTrivia);
+
+        intermediateResult = parser.ParseTrailingTrivia();
+        AssertToken(expectedKind: SyntaxKind.None, expectedContextualKind: SyntaxKind.None, new TextSpan(14, 0), "", intermediateResult);
+        Assert.Empty(intermediateResult.Token.LeadingTrivia);
+        Assert.Empty(intermediateResult.Token.TrailingTrivia);
+
+        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(14, 6), "class ", parser.ParseNextToken());
+
+        parser.ResetTo(result);
+        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 20), "/* test */\r\n\r\nclass ", parser.ParseNextToken());
+    }
+
+    [Fact]
+    public void ParseTrailingTrivia_Empty()
+    {
+        var sourceText = SourceText.From("class C { }");
+        var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
+
+        var result = parser.ParseTrailingTrivia();
+        AssertToken(expectedKind: SyntaxKind.None, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 0), "", result);
+        Assert.Empty(result.Token.LeadingTrivia);
+        Assert.Empty(result.Token.TrailingTrivia);
+
+        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 6), "class ", parser.ParseNextToken());
+    }
+
+    [Fact]
+    public void ParseTrailingTrivia_SameLine()
+    {
+        var sourceText = SourceText.From("/* test */ class C { }");
+        var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
+
+        var result = parser.ParseTrailingTrivia();
+        AssertToken(expectedKind: SyntaxKind.None, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 11), "/* test */ ", result);
+        Assert.Empty(result.Token.LeadingTrivia);
+        AssertTrivia(result.Token.TrailingTrivia,
+            (SyntaxKind.MultiLineCommentTrivia, "/* test */"),
+            (SyntaxKind.WhitespaceTrivia, " "));
+
+        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(11, 6), "class ", parser.ParseNextToken());
+
+        parser.ResetTo(result);
+        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 17), "/* test */ class ", parser.ParseNextToken());
+    }
+
+    [Fact]
+    public void ParseTrailingTrivia_MultiLine()
+    {
+        var sourceText = SourceText.From("""
+            /* test */
+
+            class C { }
+            """.NormalizeLineEndings());
+        var parser = SyntaxFactory.CreateTokenParser(sourceText, TestOptions.Regular);
+
+        var result = parser.ParseTrailingTrivia();
+        AssertToken(expectedKind: SyntaxKind.None, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 12), $"/* test */\r\n", result);
+        Assert.Empty(result.Token.LeadingTrivia);
+        AssertTrivia(result.Token.TrailingTrivia,
+            (SyntaxKind.MultiLineCommentTrivia, "/* test */"),
+            (SyntaxKind.EndOfLineTrivia, "\r\n"));
+
+        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(12, 8), "\r\nclass ", parser.ParseNextToken());
+
+        parser.ResetTo(result);
+        AssertToken(expectedKind: SyntaxKind.ClassKeyword, expectedContextualKind: SyntaxKind.None, new TextSpan(0, 20), "/* test */\r\n\r\nclass ", parser.ParseNextToken());
+    }
+
     private static void AssertToken(SyntaxKind expectedKind, SyntaxKind expectedContextualKind, TextSpan expectedFullSpan, string expectedText, SyntaxTokenParser.Result result)
     {
         Assert.Equal(expectedKind, result.Token.Kind());
@@ -272,5 +411,16 @@ public class SyntaxTokenParserTests
         AssertEx.Equal(expectedText.NormalizeLineEndings(), result.Token.ToFullString());
         Assert.Null(result.Token.Parent);
         Assert.Equal(expectedFullSpan, result.Token.FullSpan);
+    }
+
+    private static void AssertTrivia(SyntaxTriviaList leadingTrivia, params (SyntaxKind kind, string text)[] expectedTrivia)
+    {
+        Assert.Equal(expectedTrivia.Length, leadingTrivia.Count);
+        for (int i = 0; i < expectedTrivia.Length; i++)
+        {
+            var (kind, text) = expectedTrivia[i];
+            Assert.Equal(kind, leadingTrivia[i].Kind());
+            Assert.Equal(text, leadingTrivia[i].ToFullString());
+        }
     }
 }

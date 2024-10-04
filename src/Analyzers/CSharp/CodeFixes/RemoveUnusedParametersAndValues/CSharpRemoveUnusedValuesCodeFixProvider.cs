@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
@@ -21,32 +19,30 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnusedParametersAndValues;
 
+using static SyntaxFactory;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveUnusedValues), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
-internal class CSharpRemoveUnusedValuesCodeFixProvider :
-    AbstractRemoveUnusedValuesCodeFixProvider<ExpressionSyntax, StatementSyntax, BlockSyntax,
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpRemoveUnusedValuesCodeFixProvider()
+    : AbstractRemoveUnusedValuesCodeFixProvider<ExpressionSyntax, StatementSyntax, BlockSyntax,
         ExpressionStatementSyntax, LocalDeclarationStatementSyntax, VariableDeclaratorSyntax,
         ForEachStatementSyntax, SwitchSectionSyntax, SwitchLabelSyntax, CatchClauseSyntax, CatchClauseSyntax>
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpRemoveUnusedValuesCodeFixProvider()
-    {
-    }
-
-    protected override ISyntaxFormatting GetSyntaxFormatting()
+    protected override ISyntaxFormatting SyntaxFormatting
         => CSharpSyntaxFormatting.Instance;
 
     protected override BlockSyntax WrapWithBlockIfNecessary(IEnumerable<StatementSyntax> statements)
-        => SyntaxFactory.Block(statements);
+        => Block(statements);
 
     protected override SyntaxToken GetForEachStatementIdentifier(ForEachStatementSyntax node)
         => node.Identifier;
 
-    protected override LocalDeclarationStatementSyntax GetCandidateLocalDeclarationForRemoval(VariableDeclaratorSyntax declarator)
+    protected override LocalDeclarationStatementSyntax? GetCandidateLocalDeclarationForRemoval(VariableDeclaratorSyntax declarator)
         => declarator.Parent?.Parent as LocalDeclarationStatementSyntax;
 
-    protected override SyntaxNode TryUpdateNameForFlaggedNode(SyntaxNode node, SyntaxToken newName)
+    protected override SyntaxNode? TryUpdateNameForFlaggedNode(SyntaxNode node, SyntaxToken newName)
     {
         switch (node.Kind())
         {
@@ -63,7 +59,7 @@ internal class CSharpRemoveUnusedValuesCodeFixProvider :
                     // If we are generating a discard on the left of an initialization with an implicit object creation on the right,
                     // then we need to replace the implicit object creation with an explicit one.
                     // For example: 'TypeName v = new();' must be changed to '_ = new TypeName();'
-                    var objectCreationNode = SyntaxFactory.ObjectCreationExpression(
+                    var objectCreationNode = ObjectCreationExpression(
                         newKeyword: implicitObjectCreation.NewKeyword,
                         type: parent.Type,
                         argumentList: implicitObjectCreation.ArgumentList,
@@ -75,8 +71,8 @@ internal class CSharpRemoveUnusedValuesCodeFixProvider :
 
             case SyntaxKind.SingleVariableDesignation:
                 return newName.ValueText == AbstractRemoveUnusedParametersAndValuesDiagnosticAnalyzer.DiscardVariableName
-                    ? SyntaxFactory.DiscardDesignation().WithTriviaFrom(node)
-                    : SyntaxFactory.SingleVariableDesignation(newName).WithTriviaFrom(node);
+                    ? DiscardDesignation().WithTriviaFrom(node)
+                    : SingleVariableDesignation(newName).WithTriviaFrom(node);
 
             case SyntaxKind.CatchDeclaration:
                 var catchDeclaration = (CatchDeclarationSyntax)node;
@@ -84,8 +80,8 @@ internal class CSharpRemoveUnusedValuesCodeFixProvider :
 
             case SyntaxKind.VarPattern:
                 return node.IsParentKind(SyntaxKind.Subpattern)
-                    ? SyntaxFactory.DiscardPattern().WithTriviaFrom(node)
-                    : SyntaxFactory.DiscardDesignation();
+                    ? DiscardPattern().WithTriviaFrom(node)
+                    : DiscardDesignation();
 
             default:
                 Debug.Fail($"Unexpected node kind for local/parameter declaration or reference: '{node.Kind()}'");
@@ -93,7 +89,7 @@ internal class CSharpRemoveUnusedValuesCodeFixProvider :
         }
     }
 
-    protected override SyntaxNode TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts, SemanticModel semanticModel)
+    protected override SyntaxNode? TryUpdateParentOfUpdatedNode(SyntaxNode parent, SyntaxNode newNameNode, SyntaxEditor editor, ISyntaxFacts syntaxFacts, SemanticModel semanticModel)
     {
         if (newNameNode.IsKind(SyntaxKind.DiscardDesignation))
         {
@@ -105,7 +101,7 @@ internal class CSharpRemoveUnusedValuesCodeFixProvider :
                 parent.SyntaxTree.Options.LanguageVersion() >= LanguageVersion.CSharp9)
             {
                 var trailingTrivia = declarationPattern.Type.GetTrailingTrivia().AddRange(triviaToAppend);
-                return SyntaxFactory.TypePattern(declarationPattern.Type).WithTrailingTrivia(trailingTrivia);
+                return TypePattern(declarationPattern.Type).WithTrailingTrivia(trailingTrivia);
             }
 
             // 1) `... is { } variable` -> `... is { }`
@@ -132,7 +128,7 @@ internal class CSharpRemoveUnusedValuesCodeFixProvider :
             // If we are generating a discard on the left of an assignment with an implicit object creation on the right,
             // then we need to replace the implicit object creation with an explicit one.
             // For example: 'v = new();' must be changed to '_ = new TypeOfV();'
-            var objectCreationNode = SyntaxFactory.ObjectCreationExpression(
+            var objectCreationNode = ObjectCreationExpression(
                 newKeyword: implicitObjectCreation.NewKeyword,
                 type: type.GenerateTypeSyntax(allowVar: false),
                 argumentList: implicitObjectCreation.ArgumentList,
@@ -181,7 +177,7 @@ internal class CSharpRemoveUnusedValuesCodeFixProvider :
         {
             // Switch section without any statements is an error case.
             // Insert before containing switch statement.
-            editor.InsertBefore(switchCaseBlock.Parent, declarationStatement);
+            editor.InsertBefore(switchCaseBlock.GetRequiredParent(), declarationStatement);
         }
     }
 
@@ -227,7 +223,7 @@ internal class CSharpRemoveUnusedValuesCodeFixProvider :
                 // Remove leading trivia from 'leftOfAssignment' as it should have been moved to 'newAssignmentTarget'.
                 leftOfAssignment = leftOfAssignment.WithoutLeadingTrivia();
                 return editor.Generator.AssignmentStatement(newAssignmentTarget,
-                    SyntaxFactory.BinaryExpression(SyntaxKind.CoalesceExpression, leftOfAssignment, rightOfAssignment));
+                    BinaryExpression(SyntaxKind.CoalesceExpression, leftOfAssignment, rightOfAssignment));
             }
         }
         else
@@ -239,7 +235,7 @@ internal class CSharpRemoveUnusedValuesCodeFixProvider :
                 return originalCompoundAssignment;
             }
 
-            return SyntaxFactory.BinaryExpression(mappedBinaryExpressionKind, leftOfAssignment, rightOfAssignment);
+            return BinaryExpression(mappedBinaryExpressionKind, leftOfAssignment, rightOfAssignment);
         }
     }
 

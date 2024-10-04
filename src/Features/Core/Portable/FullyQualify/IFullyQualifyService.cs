@@ -32,5 +32,5 @@ internal readonly struct FullyQualifyIndividualFixData(string title, ImmutableAr
 
 internal interface IFullyQualifyService : ILanguageService
 {
-    Task<FullyQualifyFixData?> GetFixDataAsync(Document document, TextSpan span, bool hideAdvancedMembers, CancellationToken cancellationToken);
+    Task<FullyQualifyFixData?> GetFixDataAsync(Document document, TextSpan span, CancellationToken cancellationToken);
 }

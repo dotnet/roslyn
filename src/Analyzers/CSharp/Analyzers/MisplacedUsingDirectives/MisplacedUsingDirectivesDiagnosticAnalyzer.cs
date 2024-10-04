@@ -3,15 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives;
 
@@ -40,9 +37,11 @@ internal sealed class MisplacedUsingDirectivesDiagnosticAnalyzer : AbstractBuilt
         s_localizableTitle, s_localizableInsideMessage);
 
     public MisplacedUsingDirectivesDiagnosticAnalyzer()
-       : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
-                .Add(s_outsideDiagnosticDescriptor, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement)
-                .Add(s_insideDiagnosticDescriptor, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement))
+       : base(
+            [
+                (s_outsideDiagnosticDescriptor, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement),
+                (s_insideDiagnosticDescriptor, CSharpCodeStyleOptions.PreferredUsingDirectivePlacement)
+            ])
     {
     }
 

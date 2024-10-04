@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Structure;
 
@@ -74,11 +73,10 @@ internal abstract class BlockStructureServiceWithProviders : BlockStructureServi
 
     private static BlockStructure CreateBlockStructure(in BlockStructureContext context)
     {
-        using var _ = ArrayBuilder<BlockSpan>.GetInstance(context.Spans.Count, out var updatedSpans);
-        foreach (var span in context.Spans)
-            updatedSpans.Add(UpdateBlockSpan(span, context.Options));
+        for (var i = 0; i < context.Spans.Count; i++)
+            context.Spans[i] = UpdateBlockSpan(context.Spans[i], context.Options);
 
-        return new BlockStructure(updatedSpans.ToImmutableAndClear());
+        return new BlockStructure(context.Spans.ToImmutable());
     }
 
     private static BlockSpan UpdateBlockSpan(BlockSpan blockSpan, in BlockStructureOptions options)

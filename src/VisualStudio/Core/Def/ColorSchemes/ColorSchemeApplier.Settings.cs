@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Utilities;
 using NativeMethods = Microsoft.CodeAnalysis.Editor.Wpf.Utilities.NativeMethods;
 
 namespace Microsoft.CodeAnalysis.ColorSchemes;

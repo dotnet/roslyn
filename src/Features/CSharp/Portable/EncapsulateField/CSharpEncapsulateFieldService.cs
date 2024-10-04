@@ -25,16 +25,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField;
 
-[ExportLanguageService(typeof(AbstractEncapsulateFieldService), LanguageNames.CSharp), Shared]
-internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpEncapsulateFieldService()
-    {
-    }
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
-    protected override async Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+[ExportLanguageService(typeof(IEncapsulateFieldService), LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpEncapsulateFieldService() : AbstractEncapsulateFieldService<ConstructorDeclarationSyntax>
+{
+    protected override async Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken)
     {
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -49,12 +48,12 @@ internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
 
         var tempAnnotation = new SyntaxAnnotation();
         var escapedName = originalFieldName.EscapeIdentifier();
-        var newIdentifier = SyntaxFactory.Identifier(
-                leading: [SyntaxFactory.ElasticMarker],
+        var newIdentifier = Identifier(
+                leading: [ElasticMarker],
                 contextualKind: SyntaxKind.IdentifierName,
                 text: escapedName,
                 valueText: originalFieldName,
-                trailing: [SyntaxFactory.ElasticMarker])
+                trailing: [ElasticMarker])
             .WithTrailingTrivia(declarator.Identifier.TrailingTrivia)
             .WithLeadingTrivia(declarator.Identifier.LeadingTrivia);
 
@@ -73,11 +72,8 @@ internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
 
             if (makePrivate)
             {
-                var modifiers = SpecializedCollections.SingletonEnumerable(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
-                                                        .Concat(fieldSyntax.Modifiers.Where(m => !modifierKinds.Contains(m.Kind())));
-
                 root = root.ReplaceNode(fieldSyntax, fieldSyntax
-                    .WithModifiers([.. modifiers])
+                    .WithModifiers([PrivateKeyword, .. fieldSyntax.Modifiers.Where(m => !modifierKinds.Contains(m.Kind()))])
                     .WithAdditionalAnnotations(Formatter.Annotation)
                     .WithLeadingTrivia(fieldSyntax.GetLeadingTrivia())
                     .WithTrailingTrivia(fieldSyntax.GetTrailingTrivia()));
@@ -109,8 +105,7 @@ internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
             var withField = await codeGenService.AddFieldAsync(
                 new CodeGenerationSolutionContext(
                     document.Project.Solution,
-                    CodeGenerationContext.Default,
-                    fallbackOptions),
+                    CodeGenerationContext.Default),
                 field.ContainingType,
                 fieldToAdd,
                 cancellationToken).ConfigureAwait(false);
@@ -130,9 +125,10 @@ internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        var fields = root.DescendantNodes(d => d.Span.IntersectsWith(span))
-                                .OfType<FieldDeclarationSyntax>()
-                                .Where(n => n.Span.IntersectsWith(span));
+        var fields = root
+            .DescendantNodes(d => d.Span.IntersectsWith(span))
+            .OfType<FieldDeclarationSyntax>()
+            .Where(n => n.Span.IntersectsWith(span));
 
         var declarations = fields.Where(CanEncapsulate).Select(f => f.Declaration);
 
@@ -197,12 +193,13 @@ internal class CSharpEncapsulateFieldService : AbstractEncapsulateFieldService
     private static string GenerateFieldName(string correspondingPropertyName)
         => char.ToLower(correspondingPropertyName[0]).ToString() + correspondingPropertyName[1..];
 
-    protected static string MakeUnique(string baseName, INamedTypeSymbol containingType)
+    private static string MakeUnique(string baseName, INamedTypeSymbol containingType)
     {
         var containingTypeMemberNames = containingType.GetAccessibleMembersInThisAndBaseTypes<ISymbol>(containingType).Select(m => m.Name);
         return NameGenerator.GenerateUniqueName(baseName, containingTypeMemberNames.ToSet(), StringComparer.Ordinal);
     }
 
-    internal override IEnumerable<SyntaxNode> GetConstructorNodes(INamedTypeSymbol containingType)
-        => containingType.Constructors.SelectMany(c => c.DeclaringSyntaxReferences.Select(d => d.GetSyntax()));
+    protected override IEnumerable<ConstructorDeclarationSyntax> GetConstructorNodes(INamedTypeSymbol containingType)
+        => containingType.Constructors.SelectMany(
+            c => c.DeclaringSyntaxReferences.Select(d => d.GetSyntax()).OfType<ConstructorDeclarationSyntax>());
 }

@@ -28,7 +28,6 @@ internal sealed class AggregatingTelemetryLog : ITelemetryLog
     private readonly HistogramConfiguration? _histogramConfiguration;
     private readonly string _eventName;
     private readonly FunctionId _functionId;
-    private readonly AggregatingTelemetryLogManager _aggregatingTelemetryLogManager;
     private readonly object _flushLock;
 
     private ImmutableDictionary<string, (IHistogram<long> Histogram, TelemetryEvent TelemetryEvent, object Lock)> _histograms = ImmutableDictionary<string, (IHistogram<long>, TelemetryEvent, object)>.Empty;
@@ -40,7 +39,7 @@ internal sealed class AggregatingTelemetryLog : ITelemetryLog
     /// <param name="functionId">Used to derive meter name</param>
     /// <param name="bucketBoundaries">Optional values indicating bucket boundaries in milliseconds. If not specified, 
     /// all histograms created will use the default histogram configuration</param>
-    public AggregatingTelemetryLog(TelemetrySession session, FunctionId functionId, double[]? bucketBoundaries, AggregatingTelemetryLogManager aggregatingTelemetryLogManager)
+    public AggregatingTelemetryLog(TelemetrySession session, FunctionId functionId, double[]? bucketBoundaries)
     {
         var meterName = TelemetryLogger.GetPropertyName(functionId, "meter");
         var meterProvider = new VSTelemetryMeterProvider();
@@ -49,7 +48,6 @@ internal sealed class AggregatingTelemetryLog : ITelemetryLog
         _meter = meterProvider.CreateMeter(meterName, version: MeterVersion);
         _eventName = TelemetryLogger.GetEventName(functionId);
         _functionId = functionId;
-        _aggregatingTelemetryLogManager = aggregatingTelemetryLogManager;
         _flushLock = new();
 
         if (bucketBoundaries != null)
@@ -104,8 +102,6 @@ internal sealed class AggregatingTelemetryLog : ITelemetryLog
         {
             histogram.Record(value);
         }
-
-        _aggregatingTelemetryLogManager.EnsureTelemetryWorkQueued();
     }
 
     public IDisposable? LogBlockTime(KeyValueLogMessage logMessage, int minThresholdMs)

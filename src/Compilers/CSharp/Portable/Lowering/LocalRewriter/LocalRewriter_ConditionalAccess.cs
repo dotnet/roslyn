@@ -142,7 +142,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression result;
-            var objectType = _compilation.GetSpecialType(SpecialType.System_Object);
 
             switch (loweringKind)
             {
@@ -174,9 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConditionalAccessLoweringKind.Conditional:
                     {
                         // (object)r != null ? access : default(T)
-                        var condition = _factory.ObjectNotEqual(
-                                _factory.Convert(objectType, loweredReceiver),
-                                _factory.Null(objectType));
+                        var condition = _factory.IsNotNullReference(loweredReceiver);
 
                         var consequence = loweredAccessExpression;
 

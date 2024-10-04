@@ -46,7 +46,7 @@ internal sealed class VsRefactorNotifyService : IRefactorNotifyService
                 {
                     var hresult = refactorNotify.OnBeforeGlobalSymbolRenamed(
                         (uint)itemIDs.Count,
-                        itemIDs.ToArray(),
+                        [.. itemIDs],
                         (uint)rqnames.Length,
                         rqnames,
                         newName,
@@ -83,7 +83,7 @@ internal sealed class VsRefactorNotifyService : IRefactorNotifyService
                 {
                     var hresult = refactorNotify.OnGlobalSymbolRenamed(
                         (uint)itemIDs.Count,
-                        itemIDs.ToArray(),
+                        [.. itemIDs],
                         (uint)rqnames.Length,
                         rqnames,
                         newName);

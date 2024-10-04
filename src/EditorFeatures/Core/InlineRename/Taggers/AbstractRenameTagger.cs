@@ -90,7 +90,10 @@ internal abstract class AbstractRenameTagger<T> : ITagger<T>, IDisposable where 
 
     public event EventHandler<SnapshotSpanEventArgs> TagsChanged;
 
-    public IEnumerable<ITagSpan<T>> GetTags(NormalizedSnapshotSpanCollection spans)
+    IEnumerable<ITagSpan<T>> ITagger<T>.GetTags(NormalizedSnapshotSpanCollection spans)
+        => GetTags(spans);
+
+    public IEnumerable<TagSpan<T>> GetTags(NormalizedSnapshotSpanCollection spans)
     {
         if (_renameService.ActiveSession == null)
         {

@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -24,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExportCompletionProvider(nameof(PartialMethodCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(OverrideCompletionProvider))]
 [Shared]
-internal partial class PartialMethodCompletionProvider : AbstractPartialMethodCompletionProvider
+internal sealed partial class PartialMethodCompletionProvider : AbstractPartialMethodCompletionProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

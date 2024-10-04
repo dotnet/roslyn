@@ -12,10 +12,10 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -29,18 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue;
 internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaultInjector = null) : AbstractEditAndContinueAnalyzer(testFaultInjector)
 {
     [ExportLanguageServiceFactory(typeof(IEditAndContinueAnalyzer), LanguageNames.CSharp), Shared]
-    internal sealed class Factory : ILanguageServiceFactory
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class Factory() : ILanguageServiceFactory
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public Factory()
-        {
-        }
-
         public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
-        {
-            return new CSharpEditAndContinueAnalyzer(testFaultInjector: null);
-        }
+            => new CSharpEditAndContinueAnalyzer(testFaultInjector: null);
     }
 
     #region Syntax Analysis
@@ -927,7 +921,7 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
         RoslynDebug.Assert(oldTokens != null);
         RoslynDebug.Assert(newTokens != null);
 
-        return DeclareSameIdentifiers(oldTokens.ToArray(), newTokens.ToArray());
+        return DeclareSameIdentifiers([.. oldTokens], [.. newTokens]);
     }
 
     protected override bool AreEquivalentImpl(SyntaxToken oldToken, SyntaxToken newToken)
@@ -1172,22 +1166,18 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
             case EditKind.Reorder:
                 Contract.ThrowIfNull(oldNode);
 
+                // When global statements are reordered, we issue an update edit for the synthesized main method, which is what
+                // oldSymbol and newSymbol will point to.
                 if (IsGlobalStatement(oldNode))
                 {
-                    // When global statements are reordered, we issue an update edit for the synthesized main method, which is what
-                    // oldSymbol and newSymbol will point to
                     result.Add((oldSymbol, newSymbol, EditKind.Update));
                     return;
                 }
 
-                // Otherwise, we don't do any semantic checks for reordering
-                // and we don't need to report them to the compiler either.
-                // Consider: Currently symbol ordering changes are not reflected in metadata (Reflection will report original order).
+                // Reordering of data members is only allowed if the layout of the type doesn't change.
+                // Reordering of other members is a no-op, although the new order won't be reflected in metadata (Reflection will report original order).
+                result.Add((oldSymbol, newSymbol, EditKind.Reorder));
 
-                // Consider: Reordering of fields is not allowed since it changes the layout of the type.
-                // This ordering should however not matter unless the type has explicit layout so we might want to allow it.
-                // We do not check changes to the order if they occur across multiple documents (the containing type is partial).
-                Debug.Assert(!IsDeclarationWithInitializer(oldNode!) && !IsDeclarationWithInitializer(newNode!));
                 return;
 
             case EditKind.Update:
@@ -1205,6 +1195,10 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
                     //   int this[...] { get => expr; }
                     //   int P => expr;
                     //   int P { get => expr; } = init
+                    //
+                    // Note: An update of a partial property/indexer definition can only affect its attributes. The partial definition does not have a body.
+                    // In that case we do not need to update/analyze the accessors since attribute update has no impact on them.
+                    //
                     // 2) Property/indexer declarations differ in readonly keyword.
                     // 3) Property signature changes
                     // 4) Property name changes
@@ -1871,7 +1865,8 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
                 return ((AnonymousObjectCreationExpressionSyntax)node).NewKeyword.Span;
 
             case SyntaxKind.ParenthesizedLambdaExpression:
-                return ((ParenthesizedLambdaExpressionSyntax)node).ParameterList.Span;
+                var parenthesizedLambda = (ParenthesizedLambdaExpressionSyntax)node;
+                return CombineSpans(parenthesizedLambda.ReturnType?.Span ?? default, parenthesizedLambda.ParameterList.Span, defaultSpan: default);
 
             case SyntaxKind.SimpleLambdaExpression:
                 return ((SimpleLambdaExpressionSyntax)node).Parameter.Span;
@@ -2393,14 +2388,6 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
 
             switch (newNode.Kind())
             {
-                case SyntaxKind.PropertyDeclaration:
-                case SyntaxKind.FieldDeclaration:
-                case SyntaxKind.EventFieldDeclaration:
-                case SyntaxKind.VariableDeclarator:
-                    // Maybe we could allow changing order of field declarations unless the containing type layout is sequential.
-                    ReportError(RudeEditKind.Move);
-                    return;
-
                 case SyntaxKind.EnumMemberDeclaration:
                     // To allow this change we would need to check that values of all fields of the enum 
                     // are preserved, or make sure we can update all method bodies that accessed those that changed.
@@ -2858,12 +2845,15 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
         IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap,
         SyntaxNode oldActiveStatement,
         DeclarationBody oldBody,
+        SemanticModel oldModel,
         SyntaxNode newActiveStatement,
         DeclarationBody newBody,
-        bool isNonLeaf)
+        SemanticModel newModel,
+        bool isNonLeaf,
+        CancellationToken cancellationToken)
     {
         ReportRudeEditsForSwitchWhenClauses(diagnostics, oldActiveStatement, newActiveStatement);
-        ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, reverseMap, oldActiveStatement, oldBody.EncompassingAncestor, newActiveStatement, newBody.EncompassingAncestor);
+        ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, reverseMap, oldActiveStatement, oldBody.EncompassingAncestor, oldModel, newActiveStatement, newBody.EncompassingAncestor, newModel, cancellationToken);
         ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isNonLeaf);
     }
 
@@ -2989,8 +2979,11 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
         IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap,
         SyntaxNode oldActiveStatement,
         SyntaxNode oldEncompassingAncestor,
+        SemanticModel oldModel,
         SyntaxNode newActiveStatement,
-        SyntaxNode newEncompassingAncestor)
+        SyntaxNode newEncompassingAncestor,
+        SemanticModel newModel,
+        CancellationToken cancellationToken)
     {
         // Rude Edits for fixed/using/lock/foreach statements that are added/updated around an active statement.
         // Although such changes are technically possible, they might lead to confusion since 
@@ -3004,47 +2997,68 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
         ReportUnmatchedStatements<LockStatementSyntax>(
             diagnostics,
             reverseMap,
-            n => n.IsKind(SyntaxKind.LockStatement),
             oldActiveStatement,
             oldEncompassingAncestor,
+            oldModel,
             newActiveStatement,
             newEncompassingAncestor,
+            newModel,
+            nodeSelector: static n => n.IsKind(SyntaxKind.LockStatement),
+            getTypedNodes: static n => OneOrMany.OneOrNone<SyntaxNode>(n.Expression),
             areEquivalent: AreEquivalentActiveStatements,
-            areSimilar: null);
+            areSimilar: null,
+            cancellationToken: cancellationToken);
 
         ReportUnmatchedStatements<FixedStatementSyntax>(
             diagnostics,
             reverseMap,
-            n => n.IsKind(SyntaxKind.FixedStatement),
             oldActiveStatement,
             oldEncompassingAncestor,
+            oldModel,
             newActiveStatement,
             newEncompassingAncestor,
+            newModel,
+            nodeSelector: static n => n.IsKind(SyntaxKind.FixedStatement),
+            getTypedNodes: static n => GetTypedNodes(n.Declaration),
             areEquivalent: AreEquivalentActiveStatements,
-            areSimilar: (n1, n2) => DeclareSameIdentifiers(n1.Declaration.Variables, n2.Declaration.Variables));
+            areSimilar: static (n1, n2) => DeclareSameIdentifiers(n1.Declaration.Variables, n2.Declaration.Variables),
+            cancellationToken: cancellationToken);
 
         // Using statements with declaration do not introduce compiler generated temporary.
         ReportUnmatchedStatements<UsingStatementSyntax>(
             diagnostics,
             reverseMap,
-            n => n is UsingStatementSyntax usingStatement && usingStatement.Declaration is null,
             oldActiveStatement,
             oldEncompassingAncestor,
+            oldModel,
             newActiveStatement,
             newEncompassingAncestor,
+            newModel,
+            nodeSelector: static n => n is UsingStatementSyntax { Declaration: null } usingStatement,
+            getTypedNodes: static n => OneOrMany.Create<SyntaxNode>(n.Expression!),
             areEquivalent: AreEquivalentActiveStatements,
-            areSimilar: null);
+            areSimilar: null,
+            cancellationToken: cancellationToken);
 
         ReportUnmatchedStatements<CommonForEachStatementSyntax>(
             diagnostics,
             reverseMap,
-            n => n.Kind() is SyntaxKind.ForEachStatement or SyntaxKind.ForEachVariableStatement,
             oldActiveStatement,
             oldEncompassingAncestor,
+            oldModel,
             newActiveStatement,
             newEncompassingAncestor,
+            newModel,
+            nodeSelector: static n => n.Kind() is SyntaxKind.ForEachStatement or SyntaxKind.ForEachVariableStatement,
+            getTypedNodes: static n => OneOrMany.OneOrNone<SyntaxNode>(n.Expression),
             areEquivalent: AreEquivalentActiveStatements,
-            areSimilar: AreSimilarActiveStatements);
+            areSimilar: AreSimilarActiveStatements,
+            cancellationToken: cancellationToken);
+
+        static OneOrMany<SyntaxNode> GetTypedNodes(VariableDeclarationSyntax declaration)
+            => (declaration.Variables is [{ Initializer: { } initializer }])
+                ? OneOrMany.Create<SyntaxNode>(initializer.Value)
+                : OneOrMany.Create(declaration.Variables.Select(static v => (SyntaxNode?)v.Initializer?.Value).WhereNotNull().ToImmutableArray());
     }
 
     private static bool DeclareSameIdentifiers(SeparatedSyntaxList<VariableDeclaratorSyntax> oldVariables, SeparatedSyntaxList<VariableDeclaratorSyntax> newVariables)

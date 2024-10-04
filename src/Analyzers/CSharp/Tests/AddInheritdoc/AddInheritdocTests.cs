@@ -9,70 +9,34 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddInheritdoc
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddInheritdoc;
+
+using VerifyCS = CSharpCodeFixVerifier<
+    EmptyDiagnosticAnalyzer,
+    AddInheritdocCodeFixProvider>;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritdoc)]
+public class AddInheritdocTests
 {
-    using VerifyCS = CSharpCodeFixVerifier<
-        EmptyDiagnosticAnalyzer,
-        AddInheritdocCodeFixProvider>;
-
-    [Trait(Traits.Feature, Traits.Features.CodeActionsAddInheritdoc)]
-    public class AddInheritdocTests
+    private static async Task TestAsync(string initialMarkup, string expectedMarkup)
     {
-        private static async Task TestAsync(string initialMarkup, string expectedMarkup)
+        var test = new VerifyCS.Test
         {
-            var test = new VerifyCS.Test
-            {
-                TestCode = initialMarkup,
-                FixedCode = expectedMarkup,
-                CodeActionValidationMode = CodeActionValidationMode.Full,
-            };
-            await test.RunAsync();
-        }
+            TestCode = initialMarkup,
+            FixedCode = expectedMarkup,
+            CodeActionValidationMode = CodeActionValidationMode.Full,
+        };
+        await test.RunAsync();
+    }
 
-        private static async Task TestMissingAsync(string initialMarkup)
-            => await VerifyCS.VerifyCodeFixAsync(initialMarkup, initialMarkup);
+    private static async Task TestMissingAsync(string initialMarkup)
+        => await VerifyCS.VerifyCodeFixAsync(initialMarkup, initialMarkup);
 
-        [Fact]
-        public async Task AddMissingInheritdocOnOverridenMethod()
-        {
-            await TestAsync(
-                """
-                /// Some doc.
-                public class BaseClass
-                {
-                    /// Some doc.
-                    public virtual void M() { }
-                }
-                /// Some doc.
-                public class Derived: BaseClass
-                {
-                    public override void {|CS1591:M|}() { }
-                }
-                """,
-                """
-                /// Some doc.
-                public class BaseClass
-                {
-                    /// Some doc.
-                    public virtual void M() { }
-                }
-                /// Some doc.
-                public class Derived: BaseClass
-                {
-                    /// <inheritdoc/>
-                    public override void M() { }
-                }
-                """);
-        }
-
-        [Theory]
-        [InlineData("public void {|CS1591:OtherMethod|}() { }")]
-        [InlineData("public void {|CS1591:M|}() { }")]
-        [InlineData("public new void {|CS1591:M|}() { }")]
-        public async Task DoNotOfferOnNotOverridenMethod(string methodDefintion)
-        {
-            await TestMissingAsync(
-            $$"""
+    [Fact]
+    public async Task AddMissingInheritdocOnOverridenMethod()
+    {
+        await TestAsync(
+            """
             /// Some doc.
             public class BaseClass
             {
@@ -82,320 +46,355 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddInheritd
             /// Some doc.
             public class Derived: BaseClass
             {
-                {{methodDefintion}}
+                public override void {|CS1591:M|}() { }
+            }
+            """,
+            """
+            /// Some doc.
+            public class BaseClass
+            {
+                /// Some doc.
+                public virtual void M() { }
+            }
+            /// Some doc.
+            public class Derived: BaseClass
+            {
+                /// <inheritdoc/>
+                public override void M() { }
             }
             """);
-        }
+    }
 
-        [Fact]
-        public async Task AddMissingInheritdocOnImplicitInterfaceMethod()
+    [Theory]
+    [InlineData("public void {|CS1591:OtherMethod|}() { }")]
+    [InlineData("public void {|CS1591:M|}() { }")]
+    [InlineData("public new void {|CS1591:M|}() { }")]
+    public async Task DoNotOfferOnNotOverridenMethod(string methodDefintion)
+    {
+        await TestMissingAsync(
+        $$"""
+        /// Some doc.
+        public class BaseClass
         {
-            await TestAsync(
-                """
-                /// Some doc.
-                public interface IInterface
-                {
-                    /// Some doc.
-                    void M();
-                }
-                /// Some doc.
-                public class MyClass: IInterface
-                {
-                    public void {|CS1591:M|}() { }
-                }
-                """,
-                """
-                /// Some doc.
-                public interface IInterface
-                {
-                    /// Some doc.
-                    void M();
-                }
-                /// Some doc.
-                public class MyClass: IInterface
-                {
-                    /// <inheritdoc/>
-                    public void M() { }
-                }
-                """);
+            /// Some doc.
+            public virtual void M() { }
         }
-
-        [Fact]
-        public async Task DoNotOfferOnExplicitInterfaceMethod()
+        /// Some doc.
+        public class Derived: BaseClass
         {
-            await TestMissingAsync(
-                """
-                /// Some doc.
-                public interface IInterface
-                {
-                    /// Some doc.
-                    void M();
-                }
-                /// Some doc.
-                public class MyClass: IInterface
-                {
-                    void IInterface.M() { }
-                }
-                """);
+            {{methodDefintion}}
         }
-        [Fact]
-        public async Task AddMissingInheritdocOnOverridenProperty()
-        {
-            await TestAsync(
-                """
-                /// Some doc.
-                public class BaseClass
-                {
-                    /// Some doc.
-                    public virtual string P { get; set; }
-                }
-                /// Some doc.
-                public class Derived: BaseClass
-                {
-                    public override string {|CS1591:P|} { get; set; }
-                }
-                """,
-                """
-                /// Some doc.
-                public class BaseClass
-                {
-                    /// Some doc.
-                    public virtual string P { get; set; }
-                }
-                /// Some doc.
-                public class Derived: BaseClass
-                {
-                    /// <inheritdoc/>
-                    public override string P { get; set; }
-                }
-                """);
-        }
+        """);
+    }
 
-        [Fact]
-        public async Task AddMissingInheritdocOnImplicitInterfaceProperty()
-        {
-            await TestAsync(
-                """
+    [Fact]
+    public async Task AddMissingInheritdocOnImplicitInterfaceMethod()
+    {
+        await TestAsync(
+            """
+            /// Some doc.
+            public interface IInterface
+            {
                 /// Some doc.
-                public interface IInterface
-                {
-                    /// Some doc.
-                    string P { get; }
-                }
+                void M();
+            }
+            /// Some doc.
+            public class MyClass: IInterface
+            {
+                public void {|CS1591:M|}() { }
+            }
+            """,
+            """
+            /// Some doc.
+            public interface IInterface
+            {
                 /// Some doc.
-                public class MyClass: IInterface
-                {
-                    public string {|CS1591:P|} { get; }
-                }
-                """,
-                """
-                /// Some doc.
-                public interface IInterface
-                {
-                    /// Some doc.
-                    string P { get; }
-                }
-                /// Some doc.
-                public class MyClass: IInterface
-                {
-                    /// <inheritdoc/>
-                    public string P { get; }
-                }
-                """);
-        }
+                void M();
+            }
+            /// Some doc.
+            public class MyClass: IInterface
+            {
+                /// <inheritdoc/>
+                public void M() { }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task AddMissingInheritdocOnImplicitInterfaceEvent()
-        {
-            await TestAsync(
-                """
+    [Fact]
+    public async Task DoNotOfferOnExplicitInterfaceMethod()
+    {
+        await TestMissingAsync(
+            """
+            /// Some doc.
+            public interface IInterface
+            {
                 /// Some doc.
-                public interface IInterface
-                {
-                    /// Some doc.
-                    event System.Action SomeEvent;
-                }
+                void M();
+            }
+            /// Some doc.
+            public class MyClass: IInterface
+            {
+                void IInterface.M() { }
+            }
+            """);
+    }
+    [Fact]
+    public async Task AddMissingInheritdocOnOverridenProperty()
+    {
+        await TestAsync(
+            """
+            /// Some doc.
+            public class BaseClass
+            {
                 /// Some doc.
-                public class MyClass: IInterface
-                {
-                    public event System.Action {|CS1591:SomeEvent|};
+                public virtual string P { get; set; }
+            }
+            /// Some doc.
+            public class Derived: BaseClass
+            {
+                public override string {|CS1591:P|} { get; set; }
+            }
+            """,
+            """
+            /// Some doc.
+            public class BaseClass
+            {
+                /// Some doc.
+                public virtual string P { get; set; }
+            }
+            /// Some doc.
+            public class Derived: BaseClass
+            {
+                /// <inheritdoc/>
+                public override string P { get; set; }
+            }
+            """);
+    }
 
-                    void OnSomething() => SomeEvent?.Invoke();
-                }
-                """,
-                """
+    [Fact]
+    public async Task AddMissingInheritdocOnImplicitInterfaceProperty()
+    {
+        await TestAsync(
+            """
+            /// Some doc.
+            public interface IInterface
+            {
                 /// Some doc.
-                public interface IInterface
-                {
-                    /// Some doc.
-                    event System.Action SomeEvent;
-                }
+                string P { get; }
+            }
+            /// Some doc.
+            public class MyClass: IInterface
+            {
+                public string {|CS1591:P|} { get; }
+            }
+            """,
+            """
+            /// Some doc.
+            public interface IInterface
+            {
                 /// Some doc.
-                public class MyClass: IInterface
-                {
-                    /// <inheritdoc/>
-                    public event System.Action SomeEvent;
+                string P { get; }
+            }
+            /// Some doc.
+            public class MyClass: IInterface
+            {
+                /// <inheritdoc/>
+                public string P { get; }
+            }
+            """);
+    }
 
-                    void OnSomething() => SomeEvent?.Invoke();
-                }
-                """);
-        }
+    [Fact]
+    public async Task AddMissingInheritdocOnImplicitInterfaceEvent()
+    {
+        await TestAsync(
+            """
+            /// Some doc.
+            public interface IInterface
+            {
+                /// Some doc.
+                event System.Action SomeEvent;
+            }
+            /// Some doc.
+            public class MyClass: IInterface
+            {
+                public event System.Action {|CS1591:SomeEvent|};
 
-        [Fact]
-        public async Task AddMissingInheritdocTriviaTest_1()
-        {
-            await TestAsync(
-                """
+                void OnSomething() => SomeEvent?.Invoke();
+            }
+            """,
+            """
+            /// Some doc.
+            public interface IInterface
+            {
                 /// Some doc.
-                public class BaseClass
-                {
-                    /// Some doc.
-                    public virtual void M() { }
-                }
-                /// Some doc.
-                public class Derived: BaseClass
-                {
-                    // Comment
-                    public override void {|CS1591:M|}() { }
-                }
-                """,
-                """
-                /// Some doc.
-                public class BaseClass
-                {
-                    /// Some doc.
-                    public virtual void M() { }
-                }
-                /// Some doc.
-                public class Derived: BaseClass
-                {
-                    /// <inheritdoc/>
-                    // Comment
-                    public override void M() { }
-                }
-                """);
-        }
+                event System.Action SomeEvent;
+            }
+            /// Some doc.
+            public class MyClass: IInterface
+            {
+                /// <inheritdoc/>
+                public event System.Action SomeEvent;
 
-        [Fact]
-        public async Task AddMissingInheritdocTriviaTest_2()
-        {
-            await TestAsync(
-                """
-                /// Some doc.
-                public class BaseClass
-                {
-                    /// Some doc.
-                    public virtual void M() { }
-                }
-                /// Some doc.
-                public class Derived: BaseClass
-                {
-                                   // Comment 1
-                  /* Comment 2 */  public /* Comment 3 */ override void {|CS1591:M|} /* Comment 4 */ ()  /* Comment 5 */ { } /* Comment 6 */
-                }
-                """,
-                """
-                /// Some doc.
-                public class BaseClass
-                {
-                    /// Some doc.
-                    public virtual void M() { }
-                }
-                /// Some doc.
-                public class Derived: BaseClass
-                {
-                                   /// <inheritdoc/>
-                                   // Comment 1
-                  /* Comment 2 */  public /* Comment 3 */ override void M /* Comment 4 */ ()  /* Comment 5 */ { } /* Comment 6 */
-                }
-                """);
-        }
+                void OnSomething() => SomeEvent?.Invoke();
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task AddMissingInheritdocMethodWithAttribute()
-        {
-            await TestAsync(
-                """
+    [Fact]
+    public async Task AddMissingInheritdocTriviaTest_1()
+    {
+        await TestAsync(
+            """
+            /// Some doc.
+            public class BaseClass
+            {
                 /// Some doc.
-                [System.AttributeUsage(System.AttributeTargets.Method)]
-                public sealed class DummyAttribute: System.Attribute
-                {
-                }
+                public virtual void M() { }
+            }
+            /// Some doc.
+            public class Derived: BaseClass
+            {
+                // Comment
+                public override void {|CS1591:M|}() { }
+            }
+            """,
+            """
+            /// Some doc.
+            public class BaseClass
+            {
+                /// Some doc.
+                public virtual void M() { }
+            }
+            /// Some doc.
+            public class Derived: BaseClass
+            {
+                /// <inheritdoc/>
+                // Comment
+                public override void M() { }
+            }
+            """);
+    }
 
+    [Fact]
+    public async Task AddMissingInheritdocTriviaTest_2()
+    {
+        await TestAsync(
+            """
+            /// Some doc.
+            public class BaseClass
+            {
                 /// Some doc.
-                public class BaseClass
-                {
-                    /// Some doc.
-                    public virtual void M() { }
-                }
+                public virtual void M() { }
+            }
+            /// Some doc.
+            public class Derived: BaseClass
+            {
+                               // Comment 1
+              /* Comment 2 */  public /* Comment 3 */ override void {|CS1591:M|} /* Comment 4 */ ()  /* Comment 5 */ { } /* Comment 6 */
+            }
+            """,
+            """
+            /// Some doc.
+            public class BaseClass
+            {
                 /// Some doc.
-                public class Derived: BaseClass
-                {
-                    [Dummy]
-                    public override void {|CS1591:M|}() { }
-                }
-                """,
-                """
-                /// Some doc.
-                [System.AttributeUsage(System.AttributeTargets.Method)]
-                public sealed class DummyAttribute: System.Attribute
-                {
-                }
+                public virtual void M() { }
+            }
+            /// Some doc.
+            public class Derived: BaseClass
+            {
+                               /// <inheritdoc/>
+                               // Comment 1
+              /* Comment 2 */  public /* Comment 3 */ override void M /* Comment 4 */ ()  /* Comment 5 */ { } /* Comment 6 */
+            }
+            """);
+    }
 
-                /// Some doc.
-                public class BaseClass
-                {
-                    /// Some doc.
-                    public virtual void M() { }
-                }
-                /// Some doc.
-                public class Derived: BaseClass
-                {
-                    /// <inheritdoc/>
-                    [Dummy]
-                    public override void M() { }
-                }
-                """);
-        }
+    [Fact]
+    public async Task AddMissingInheritdocMethodWithAttribute()
+    {
+        await TestAsync(
+            """
+            /// Some doc.
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public sealed class DummyAttribute: System.Attribute
+            {
+            }
 
-        [Fact]
-        public async Task AddMissingInheritdocFixAll()
-        {
-            await TestAsync(
-                """
+            /// Some doc.
+            public class BaseClass
+            {
                 /// Some doc.
-                public class BaseClass
-                {
-                    /// Some doc.
-                    public virtual void M() { }
-                    /// Some doc.
-                    public virtual string P { get; }
-                }
+                public virtual void M() { }
+            }
+            /// Some doc.
+            public class Derived: BaseClass
+            {
+                [Dummy]
+                public override void {|CS1591:M|}() { }
+            }
+            """,
+            """
+            /// Some doc.
+            [System.AttributeUsage(System.AttributeTargets.Method)]
+            public sealed class DummyAttribute: System.Attribute
+            {
+            }
+
+            /// Some doc.
+            public class BaseClass
+            {
                 /// Some doc.
-                public class Derived: BaseClass
-                {
-                    public override void {|CS1591:M|}() { }
-                    public override string {|CS1591:P|} { get; }
-                }
-                """,
-                """
+                public virtual void M() { }
+            }
+            /// Some doc.
+            public class Derived: BaseClass
+            {
+                /// <inheritdoc/>
+                [Dummy]
+                public override void M() { }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task AddMissingInheritdocFixAll()
+    {
+        await TestAsync(
+            """
+            /// Some doc.
+            public class BaseClass
+            {
                 /// Some doc.
-                public class BaseClass
-                {
-                    /// Some doc.
-                    public virtual void M() { }
-                    /// Some doc.
-                    public virtual string P { get; }
-                }
+                public virtual void M() { }
                 /// Some doc.
-                public class Derived: BaseClass
-                {
-                    /// <inheritdoc/>
-                    public override void M() { }
-                    /// <inheritdoc/>
-                    public override string P { get; }
-                }
-                """);
-        }
+                public virtual string P { get; }
+            }
+            /// Some doc.
+            public class Derived: BaseClass
+            {
+                public override void {|CS1591:M|}() { }
+                public override string {|CS1591:P|} { get; }
+            }
+            """,
+            """
+            /// Some doc.
+            public class BaseClass
+            {
+                /// Some doc.
+                public virtual void M() { }
+                /// Some doc.
+                public virtual string P { get; }
+            }
+            /// Some doc.
+            public class Derived: BaseClass
+            {
+                /// <inheritdoc/>
+                public override void M() { }
+                /// <inheritdoc/>
+                public override string P { get; }
+            }
+            """);
     }
 }

@@ -3,9 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure;
 
@@ -13,7 +12,7 @@ internal class MultilineCommentBlockStructureProvider : AbstractSyntaxTriviaStru
 {
     public override void CollectBlockSpans(
         SyntaxTrivia trivia,
-        ref TemporaryArray<BlockSpan> spans,
+        ArrayBuilder<BlockSpan> spans,
         BlockStructureOptions options,
         CancellationToken cancellationToken)
     {

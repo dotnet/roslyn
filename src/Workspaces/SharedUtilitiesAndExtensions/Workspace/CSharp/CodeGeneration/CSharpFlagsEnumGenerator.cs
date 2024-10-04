@@ -25,7 +25,7 @@ internal class CSharpFlagsEnumGenerator : AbstractFlagsEnumGenerator
         var expression = ExpressionGenerator.GenerateNonEnumValueExpression(
             generator, enumType.EnumUnderlyingType, constantValue, canUseFieldReference: true);
 
-        var constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingSpecialType);
+        var constantValueULong = underlyingSpecialType.ConvertUnderlyingValueToUInt64(constantValue);
         if (constantValueULong == 0)
         {
             // 0 is always convertible to an enum type without needing a cast.

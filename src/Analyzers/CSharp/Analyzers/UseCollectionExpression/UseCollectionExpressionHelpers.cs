@@ -17,10 +17,12 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class UseCollectionExpressionHelpers
@@ -32,10 +34,14 @@ internal static class UseCollectionExpressionHelpers
         distinguishRefFromOut: true,
         // Not relevant.  We are not comparing method signatures.
         objectAndDynamicCompareEqually: false,
+        // Not relevant.  We are not comparing method signatures.
+        arrayAndReadOnlySpanCompareEqually: false,
         // The value we're tweaking.
         tupleNamesMustMatch: false,
         // We do not want to ignore this.  `ImmutableArray<string?>` should not be convertible to `ImmutableArray<string>`
         ignoreNullableAnnotations: false);
+
+    private static readonly SymbolEquivalenceComparer s_arrayAndReadOnlySpanCompareEquallyComparer = s_tupleNamesCanDifferComparer.With(arrayAndReadOnlySpanCompareEqually: true);
 
     public static bool CanReplaceWithCollectionExpression(
         SemanticModel semanticModel,
@@ -146,9 +152,17 @@ internal static class UseCollectionExpressionHelpers
 
         // The new expression's converted type has to equal the old expressions as well.  Otherwise, we're now
         // converting this to some different collection type unintentionally.
+        //
+        // Note: it's acceptable to be originally converting to an array, and now converting to a ROS.  This occurs with
+        // APIs that started out just taking an array, but which now have an overload that takes a span.  APIs should
+        // only do this when the new api has the same semantics (outside of perf), and the language and runtime strongly
+        // want code to call the new api.  So it's desirable to change here.
         var replacedTypeInfo = speculationAnalyzer.SpeculativeSemanticModel.GetTypeInfo(speculationAnalyzer.ReplacedExpression, cancellationToken);
-        if (!originalTypeInfo.ConvertedType.Equals(replacedTypeInfo.ConvertedType))
+        if (!originalTypeInfo.ConvertedType.Equals(replacedTypeInfo.ConvertedType) &&
+            !s_arrayAndReadOnlySpanCompareEquallyComparer.Equals(originalTypeInfo.ConvertedType, replacedTypeInfo.ConvertedType))
+        {
             return false;
+        }
 
         return true;
 
@@ -196,6 +210,16 @@ internal static class UseCollectionExpressionHelpers
             if (s_tupleNamesCanDifferComparer.Equals(type, convertedType))
                 return true;
 
+            // It's always safe to convert List<X> to ICollection<X> or IList<X> as the language guarantees that it will
+            // continue emitting a List<X> for those target types.
+            var isWellKnownCollectionReadWriteInterface = IsWellKnownCollectionReadWriteInterface(convertedType);
+            if (isWellKnownCollectionReadWriteInterface &&
+                Equals(type.OriginalDefinition, compilation.ListOfTType()) &&
+                type.AllInterfaces.Contains(convertedType))
+            {
+                return true;
+            }
+
             // Before this point are all the changes that we can detect that are always safe to make.
             if (!allowSemanticsChange)
                 return false;
@@ -207,7 +231,7 @@ internal static class UseCollectionExpressionHelpers
 
             // In the case of a singleton (like `Array.Empty<T>()`) we don't want to convert to `IList<T>` as that
             // will replace the code with code that now always allocates.
-            if (isSingletonInstance && IsWellKnownCollectionReadWriteInterface(convertedType))
+            if (isSingletonInstance && isWellKnownCollectionReadWriteInterface)
                 return false;
 
             // Ok to convert in cases like:
@@ -690,10 +714,10 @@ internal static class UseCollectionExpressionHelpers
         InitializerExpressionSyntax initializer, bool wasOnSingleLine)
     {
         // if the initializer is already on multiple lines, keep it that way.  otherwise, squash from `{ 1, 2, 3 }` to `[1, 2, 3]`
-        var openBracket = Token(SyntaxKind.OpenBracketToken).WithTriviaFrom(initializer.OpenBraceToken);
+        var openBracket = OpenBracketToken.WithTriviaFrom(initializer.OpenBraceToken);
         var elements = initializer.Expressions.GetWithSeparators().SelectAsArray(
             i => i.IsToken ? i : ExpressionElement((ExpressionSyntax)i.AsNode()!));
-        var closeBracket = Token(SyntaxKind.CloseBracketToken).WithTriviaFrom(initializer.CloseBraceToken);
+        var closeBracket = CloseBracketToken.WithTriviaFrom(initializer.CloseBraceToken);
 
         // If it was on a single line to begin with, then remove the inner spaces on the `{ ... }` to create `[...]`. If
         // it was multiline, leave alone as we want the brackets to just replace the existing braces exactly as they are.
@@ -737,6 +761,9 @@ internal static class UseCollectionExpressionHelpers
         InitializerExpressionSyntax initializer,
         bool newCollectionIsSingleLine)
     {
+        if (initializer.OpenBraceToken.GetPreviousToken().TrailingTrivia.Any(static x => x.IsSingleOrMultiLineComment()))
+            return false;
+
         // Any time we have `{ x, y, z }` in any form, then always just replace the whole original expression
         // with `[x, y, z]`.
         if (newCollectionIsSingleLine && sourceText.AreOnSameLine(initializer.OpenBraceToken, initializer.CloseBraceToken))
@@ -788,9 +815,10 @@ internal static class UseCollectionExpressionHelpers
         return false;
     }
 
-    public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches<TArrayCreationExpressionSyntax>(
+    public static ImmutableArray<CollectionMatch<StatementSyntax>> TryGetMatches<TArrayCreationExpressionSyntax>(
         SemanticModel semanticModel,
         TArrayCreationExpressionSyntax expression,
+        CollectionExpressionSyntax replacementExpression,
         INamedTypeSymbol? expressionType,
         bool isSingletonInstance,
         bool allowSemanticsChange,
@@ -808,7 +836,7 @@ internal static class UseCollectionExpressionHelpers
         if (getType(expression) is not ArrayTypeSyntax { RankSpecifiers: [{ Sizes: [var size] }, ..] })
             return default;
 
-        using var _ = ArrayBuilder<CollectionExpressionMatch<StatementSyntax>>.GetInstance(out var matches);
+        using var _ = ArrayBuilder<CollectionMatch<StatementSyntax>>.GetInstance(out var matches);
 
         var initializer = getInitializer(expression);
         if (size is OmittedArraySizeExpressionSyntax)
@@ -900,12 +928,12 @@ internal static class UseCollectionExpressionHelpers
         }
 
         if (!CanReplaceWithCollectionExpression(
-                semanticModel, expression, expressionType, isSingletonInstance, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
+                semanticModel, expression, replacementExpression, expressionType, isSingletonInstance, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out changesSemantics))
         {
             return default;
         }
 
-        return matches.ToImmutable();
+        return matches.ToImmutableAndClear();
     }
 
     public static bool IsCollectionFactoryCreate(
@@ -1208,4 +1236,7 @@ internal static class UseCollectionExpressionHelpers
             : SeparatedList<ArgumentSyntax>(initializer.Expressions.GetWithSeparators().Select(
                 nodeOrToken => nodeOrToken.IsToken ? nodeOrToken : Argument((ExpressionSyntax)nodeOrToken.AsNode()!)));
     }
+
+    public static CollectionExpressionSyntax CreateReplacementCollectionExpressionForAnalysis(InitializerExpressionSyntax? initializer)
+        => initializer is null ? s_emptyCollectionExpression : CollectionExpression([.. initializer.Expressions.Select(ExpressionElement)]);
 }

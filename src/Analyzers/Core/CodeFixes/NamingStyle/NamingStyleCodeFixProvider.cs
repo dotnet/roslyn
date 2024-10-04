@@ -108,7 +108,7 @@ internal sealed class NamingStyleCodeFixProvider() : CodeFixProvider
             cancellationToken).ConfigureAwait(false);
     }
 
-    private class FixNameCodeAction : CodeAction
+    private sealed class FixNameCodeAction : CodeAction
     {
 #if !CODE_STYLE
         private readonly Solution _startingSolution;
@@ -148,10 +148,7 @@ internal sealed class NamingStyleCodeFixProvider() : CodeFixProvider
         }
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
-        {
-            return SpecializedCollections.SingletonEnumerable(
-                new ApplyChangesOperation(await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false)));
-        }
+            => [new ApplyChangesOperation(await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false))];
 
         protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {

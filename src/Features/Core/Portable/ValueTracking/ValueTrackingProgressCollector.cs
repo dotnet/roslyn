@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.ValueTracking;
 
-internal class ValueTrackingProgressCollector : IProgress<ValueTrackedItem>
+internal sealed class ValueTrackingProgressCollector : IProgress<ValueTrackedItem>
 {
     private readonly object _lock = new();
     private readonly Stack<ValueTrackedItem> _items = new();
@@ -33,7 +33,7 @@ internal class ValueTrackingProgressCollector : IProgress<ValueTrackedItem>
     {
         lock (_lock)
         {
-            return _items.ToImmutableArray();
+            return [.. _items];
         }
     }
 

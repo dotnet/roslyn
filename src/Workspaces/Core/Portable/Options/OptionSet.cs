@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Roslyn.Utilities;
 
@@ -94,11 +93,11 @@ public abstract partial class OptionSet : IOptionsReader
     /// Checks if the value is an internal representation -- does not cover all cases, just code style options.
     /// </summary>
     internal static bool IsInternalOptionValue(object? value)
-        => value is not ICodeStyleOption codeStyle || ReferenceEquals(codeStyle, codeStyle.AsInternalCodeStyleOption());
+        => value is not ICodeStyleOption;
 
     /// <summary>
     /// Checks if the value is an public representation -- does not cover all cases, just code style options.
     /// </summary>
     internal static bool IsPublicOptionValue(object? value)
-        => value is not ICodeStyleOption codeStyle || ReferenceEquals(codeStyle, codeStyle.AsPublicCodeStyleOption());
+        => value is not ICodeStyleOption2;
 }

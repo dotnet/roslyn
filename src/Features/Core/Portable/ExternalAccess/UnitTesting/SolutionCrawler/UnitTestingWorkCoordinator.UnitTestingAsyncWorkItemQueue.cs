@@ -8,14 +8,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
 
-internal partial class UnitTestingSolutionCrawlerRegistrationService
+internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 {
-    internal partial class UnitTestingWorkCoordinator
+    internal sealed partial class UnitTestingWorkCoordinator
     {
         private abstract class UnitTestingAsyncWorkItemQueue<TKey>(UnitTestingSolutionCrawlerProgressReporter progressReporter) : IDisposable
             where TKey : class

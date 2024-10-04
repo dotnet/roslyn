@@ -142,8 +142,8 @@ S5();
 
             var oldSpans = await map.GetOldActiveStatementsAsync(analyzer, document, CancellationToken.None);
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 "[48..52) -> (1,0)-(1,4) #6",
                 "[55..59) -> (2,0)-(2,4) #3",
                 "[62..66) -> (3,0)-(3,4) #0",
@@ -151,7 +151,7 @@ S5();
                 "[120..124) -> (4,0)-(4,4) #2",
                 "[127..131) -> (5,0)-(5,4) #4",
                 "[134..138) -> (6,0)-(6,4) #1"
-            }, oldSpans.Select(s => $"{s.UnmappedSpan} -> {s.Statement.Span} #{s.Statement.Id.Ordinal}"));
+            ], oldSpans.Select(s => $"{s.UnmappedSpan} -> {s.Statement.Span} #{s.Statement.Id.Ordinal}"));
         }
 
         [Fact]
@@ -248,12 +248,12 @@ class C
 
             var map = ActiveStatementsMap.Create(debugInfos, remapping.ToImmutable());
 
-            AssertEx.Equal(new[]
-            {
+            AssertEx.Equal(
+            [
                 "(7,16)-(15,9)",
                 "(9,17)-(9,18)",
                 "(20,8)-(20,13)"
-            }, map.DocumentPathMap["a.cs"].OrderBy(s => s.Span.Start.Line).Select(s => $"{s.Span}"));
+            ], map.DocumentPathMap["a.cs"].OrderBy(s => s.Span.Start.Line).Select(s => $"{s.Span}"));
 
             void CreateRegion(int ordinal, SourceFileSpan oldSpan, SourceFileSpan newSpan)
                 => remapping.Add(debugInfos[ordinal].ActiveInstruction.Method, ImmutableArray.Create(new NonRemappableRegion(oldSpan, newSpan, isExceptionRegion: false)));
@@ -262,8 +262,7 @@ class C
                 => new("a.cs", new(new(startLine, startColumn), new(endLine, endColumn)));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void NonRemappableRegionOrdering(bool reverse)
         {
             var source1 =
@@ -312,8 +311,7 @@ class C
             Assert.Equal(unmappedActiveStatements[0].Statement.Span, activeStatement.FileSpan.Span);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void SubSpan(bool reverse)
         {
             var source1 =

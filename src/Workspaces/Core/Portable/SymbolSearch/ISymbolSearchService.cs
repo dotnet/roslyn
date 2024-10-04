@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Runtime.Serialization;
@@ -134,7 +133,7 @@ internal sealed class ReferenceAssemblyWithTypeResult(
 }
 
 [ExportWorkspaceService(typeof(ISymbolSearchService)), Shared]
-internal class DefaultSymbolSearchService : ISymbolSearchService
+internal sealed class DefaultSymbolSearchService : ISymbolSearchService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

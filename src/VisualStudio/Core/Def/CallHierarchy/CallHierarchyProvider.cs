@@ -23,7 +23,6 @@ using Microsoft.VisualStudio.Language.CallHierarchy;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy;
 
@@ -144,7 +143,7 @@ internal partial class CallHierarchyProvider
 
         if (symbol.Kind == SymbolKind.Field)
         {
-            return SpecializedCollections.SingletonEnumerable(new FieldReferenceFinder(symbol, project.Id, AsyncListener, this));
+            return [new FieldReferenceFinder(symbol, project.Id, AsyncListener, this)];
         }
 
         return null;

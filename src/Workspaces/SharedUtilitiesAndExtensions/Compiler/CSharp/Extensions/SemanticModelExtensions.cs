@@ -488,4 +488,10 @@ internal static partial class SemanticModelExtensions
         return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
             ?? throw new InvalidOperationException();
     }
+
+    public static ISymbol GetRequiredDeclaredSymbol(this SemanticModel semanticModel, SingleVariableDesignationSyntax syntax, CancellationToken cancellationToken)
+    {
+        return semanticModel.GetDeclaredSymbol(syntax, cancellationToken)
+            ?? throw new InvalidOperationException();
+    }
 }

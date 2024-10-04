@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Host;
 
-[Obsolete("Roslyn no longer exports a mechanism to store arbitrary data in-memory.")]
+[Obsolete("Roslyn no longer exports a mechanism to store arbitrary data in-memory.", error: true)]
 public interface ITemporaryTextStorage : IDisposable
 {
     SourceText ReadText(CancellationToken cancellationToken = default);
@@ -21,27 +21,8 @@ public interface ITemporaryTextStorage : IDisposable
     Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default);
 }
 
-[Obsolete("Roslyn no longer exports a mechanism to store arbitrary data in-memory.")]
+[Obsolete("Roslyn no longer exports a mechanism to store arbitrary data in-memory.", error: true)]
 public interface ITemporaryStreamStorage : IDisposable
-{
-    Stream ReadStream(CancellationToken cancellationToken = default);
-    Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default);
-    void WriteStream(Stream stream, CancellationToken cancellationToken = default);
-    Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default);
-}
-
-/// <summary>
-/// TemporaryStorage can be used to read and write text to a temporary storage location.
-/// </summary>
-internal interface ITemporaryTextStorageInternal : IDisposable
-{
-    SourceText ReadText(CancellationToken cancellationToken = default);
-    Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default);
-    void WriteText(SourceText text, CancellationToken cancellationToken = default);
-    Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default);
-}
-
-internal interface ITemporaryStreamStorageInternal : IDisposable
 {
     Stream ReadStream(CancellationToken cancellationToken = default);
     Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default);

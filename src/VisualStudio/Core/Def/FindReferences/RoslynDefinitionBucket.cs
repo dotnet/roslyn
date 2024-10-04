@@ -36,6 +36,8 @@ internal partial class StreamingFindUsagesPresenter
         /// </summary>
         private readonly Dictionary<(string? filePath, TextSpan span), DocumentSpanEntry> _locationToEntry = [];
 
+        private string? _text;
+
         public RoslynDefinitionBucket(
             string name,
             bool expandedByDefault,
@@ -108,7 +110,7 @@ internal partial class StreamingFindUsagesPresenter
             {
                 case StandardTableKeyNames.Text:
                 case StandardTableKeyNames.FullText:
-                    return DefinitionItem.DisplayParts.JoinText();
+                    return _text ??= DefinitionItem.DisplayParts.JoinText();
 
                 case StandardTableKeyNames2.TextInlines:
                     var inlines = new List<Inline> { new Run(" ") };

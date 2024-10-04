@@ -7,17 +7,13 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Organizing.Organizers;
 
 internal abstract class AbstractSyntaxNodeOrganizer<TSyntaxNode> : ISyntaxOrganizer
     where TSyntaxNode : SyntaxNode
 {
-    public IEnumerable<Type> SyntaxNodeTypes
-    {
-        get { return SpecializedCollections.SingletonEnumerable(typeof(TSyntaxNode)); }
-    }
+    public IEnumerable<Type> SyntaxNodeTypes => [typeof(TSyntaxNode)];
 
     public SyntaxNode OrganizeNode(SemanticModel semanticModel, SyntaxNode node, CancellationToken cancellationToken)
         => Organize((TSyntaxNode)node, cancellationToken);

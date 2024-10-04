@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -151,7 +150,7 @@ internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesServi
                 continue;
             }
 
-            var spanMapper = document.Services.GetService<ISpanMappingService>();
+            var spanMapper = document.DocumentServiceProvider.GetService<ISpanMappingService>();
             if (spanMapper == null)
             {
                 // for normal document, just add one as they are
@@ -160,7 +159,7 @@ internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesServi
             }
 
             var span = new TextSpan(descriptor.SpanStart, descriptor.SpanLength);
-            var results = await spanMapper.MapSpansAsync(document, SpecializedCollections.SingletonEnumerable(span), cancellationToken).ConfigureAwait(false);
+            var results = await spanMapper.MapSpansAsync(document, [span], cancellationToken).ConfigureAwait(false);
 
             // external component violated contracts. the mapper should preserve input order/count. 
             // since we gave in 1 span, it should return 1 span back
@@ -174,7 +173,7 @@ internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesServi
                 continue;
             }
 
-            var excerpter = document.Services.GetService<IDocumentExcerptService>();
+            var excerpter = document.DocumentServiceProvider.GetService<IDocumentExcerptService>();
             if (excerpter == null)
             {
                 continue;
@@ -207,7 +206,7 @@ internal sealed class RemoteCodeLensReferencesService : ICodeLensReferencesServi
                 after2));
         }
 
-        return list.ToImmutable();
+        return list.ToImmutableAndClear();
     }
 
     private static (string text, int start, int length) GetReferenceInfo(ExcerptResult? reference, ReferenceLocationDescriptor descriptor)

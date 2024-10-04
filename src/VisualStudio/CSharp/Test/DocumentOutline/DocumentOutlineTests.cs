@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Microsoft.VisualStudio.Text;
@@ -80,15 +79,15 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 ImmutableArray<DocumentSymbolDataViewModel> documentSymbolData,
                 SortOption sortOption)
             {
-                using var _ = ArrayBuilder<DocumentSymbolDataViewModel>.GetInstance(out var sortedDocumentSymbols);
                 documentSymbolData = Sort(documentSymbolData, sortOption);
+                var sortedDocumentSymbols = new FixedSizeArrayBuilder<DocumentSymbolDataViewModel>(documentSymbolData.Length);
                 foreach (var documentSymbol in documentSymbolData)
                 {
                     var sortedChildren = SortDocumentSymbols(documentSymbol.Children, sortOption);
                     sortedDocumentSymbols.Add(ReplaceChildren(documentSymbol, sortedChildren));
                 }
 
-                return sortedDocumentSymbols.ToImmutable();
+                return sortedDocumentSymbols.MoveToImmutable();
             }
 
             static ImmutableArray<DocumentSymbolDataViewModel> Sort(ImmutableArray<DocumentSymbolDataViewModel> items, SortOption sortOption)

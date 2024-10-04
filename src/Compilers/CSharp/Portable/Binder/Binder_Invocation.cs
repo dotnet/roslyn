@@ -86,7 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode? queryClause = null,
             bool allowFieldsAndProperties = false,
             bool ignoreNormalFormIfHasValidParamsParameter = false,
-            bool searchExtensionMethodsIfNecessary = true)
+            bool searchExtensionMethodsIfNecessary = true,
+            bool disallowExpandedNonArrayParams = false)
         {
             //
             // !!! ATTENTION !!!
@@ -137,7 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression result = BindInvocationExpression(
                 node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause,
-                ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter);
+                ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter,
+                disallowExpandedNonArrayParams: disallowExpandedNonArrayParams);
 
             // Query operator can't be called dynamically. 
             if (queryClause != null && result.Kind == BoundKind.DynamicInvocation)
@@ -323,7 +325,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             BindingDiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause = null,
-            bool ignoreNormalFormIfHasValidParamsParameter = false)
+            bool ignoreNormalFormIfHasValidParamsParameter = false,
+            bool disallowExpandedNonArrayParams = false)
         {
             //
             // !!! ATTENTION !!!
@@ -349,7 +352,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportSuppressionIfNeeded(boundExpression, diagnostics);
                 result = BindMethodGroupInvocation(
                     node, expression, methodName, (BoundMethodGroup)boundExpression, analyzedArguments,
-                    diagnostics, queryClause, ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter, anyApplicableCandidates: out _);
+                    diagnostics, queryClause,
+                    ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter,
+                    disallowExpandedNonArrayParams: disallowExpandedNonArrayParams,
+                    anyApplicableCandidates: out _);
             }
             else if ((object)(delegateType = GetDelegateType(boundExpression)) != null)
             {
@@ -641,31 +647,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (analyzedArguments.HasDynamicArgument && overloadResolutionResult.HasAnyApplicableMember)
             {
                 var applicable = overloadResolutionResult.Results.Single(r => r.IsApplicable);
+                ReportMemberNotSupportedByDynamicDispatch(node, applicable, diagnostics);
 
-                // We have to do a dynamic dispatch only when a dynamic argument is
-                // passed to the params parameter and is ambiguous at compile time between normal
-                // and expanded form i.e., there is exactly one dynamic argument to
-                // a params parameter.
-
-                if (IsAmbiguousDynamicParamsArgument(analyzedArguments.Arguments, applicable, out SyntaxNode argumentSyntax))
-                {
-                    MethodSymbol singleCandidate = applicable.Member;
-
-                    // We know that runtime binder might not be
-                    // able to handle the disambiguation
-                    if (!singleCandidate.Parameters.Last().Type.IsSZArray())
-                    {
-                        Error(diagnostics,
-                            ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument,
-                            argumentSyntax, singleCandidate);
-                    }
-
-                    result = BindDynamicInvocation(node, boundExpression, analyzedArguments, overloadResolutionResult.GetAllApplicableMembers(), diagnostics, queryClause);
-                }
-                else
-                {
-                    result = BindInvocationExpressionContinued(node, expression, methodName, overloadResolutionResult, analyzedArguments, methodGroup, delegateType, diagnostics, queryClause);
-                }
+                result = BindDynamicInvocation(node, boundExpression, analyzedArguments, overloadResolutionResult.GetAllApplicableMembers(), diagnostics, queryClause);
             }
             else
             {
@@ -690,20 +674,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private bool HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection<TMember>(ArrayBuilder<BoundExpression> arguments, ImmutableArray<MemberResolutionResult<TMember>> finalApplicableCandidates)
+        private void ReportMemberNotSupportedByDynamicDispatch<TMember>(SyntaxNode syntax, MemberResolutionResult<TMember> candidate, BindingDiagnosticBag diagnostics)
             where TMember : Symbol
         {
-            foreach (var candidate in finalApplicableCandidates)
+            if (candidate.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm &&
+                !candidate.Member.GetParameters().Last().Type.IsSZArray())
             {
-                if ((candidate.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm ||
-                    IsAmbiguousDynamicParamsArgument(arguments, candidate, argumentSyntax: out _)) &&
-                    !candidate.Member.GetParameters().Last().Type.IsSZArray())
-                {
-                    return true;
-                }
+                Error(diagnostics,
+                    ErrorCode.ERR_DynamicDispatchToParamsCollection,
+                    syntax, candidate.LeastOverriddenMember);
             }
-
-            return false;
         }
 
         private BoundExpression BindMethodGroupInvocation(
@@ -715,7 +695,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindingDiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause,
             bool ignoreNormalFormIfHasValidParamsParameter,
-            out bool anyApplicableCandidates)
+            out bool anyApplicableCandidates,
+            bool disallowExpandedNonArrayParams = false)
         {
             //
             // !!! ATTENTION !!!
@@ -731,6 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodGroup, expression, methodName, analyzedArguments,
                 useSiteInfo: ref useSiteInfo,
                 options: (ignoreNormalFormIfHasValidParamsParameter ? OverloadResolution.Options.IgnoreNormalFormIfHasValidParamsParameter : OverloadResolution.Options.None) |
+                         (disallowExpandedNonArrayParams ? OverloadResolution.Options.DisallowExpandedNonArrayParams : OverloadResolution.Options.None) |
                          (analyzedArguments.HasDynamicArgument ? OverloadResolution.Options.DynamicResolution : OverloadResolution.Options.None));
             diagnostics.Add(expression, useSiteInfo);
             anyApplicableCandidates = resolution.ResultKind == LookupResultKind.Viable && resolution.OverloadResolutionResult.HasAnyApplicableMember;
@@ -812,6 +794,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             Debug.Assert(finalApplicableCandidates[0].IsApplicable);
 
                             result = TryEarlyBindSingleCandidateInvocationWithDynamicArgument(syntax, expression, methodName, methodGroup, diagnostics, queryClause, resolution, finalApplicableCandidates[0]);
+
+                            if (result is null && finalApplicableCandidates[0].LeastOverriddenMember.MethodKind != MethodKind.LocalFunction)
+                            {
+                                ReportMemberNotSupportedByDynamicDispatch(syntax, finalApplicableCandidates[0], diagnostics);
+                            }
                         }
 
                         if (result is null)
@@ -834,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                             else
                             {
-                                ReportDynamicInvocationWarnings(syntax, methodGroup, diagnostics, resolution, finalApplicableCandidates);
+                                ReportDynamicInvocationWarnings(syntax, methodGroup, diagnostics, finalApplicableCandidates);
 
                                 result = BindDynamicInvocation(syntax, methodGroup, resolution.AnalyzedArguments, finalApplicableCandidates.SelectAsArray(r => r.Member), diagnostics, queryClause);
                             }
@@ -856,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private void ReportDynamicInvocationWarnings(SyntaxNode syntax, BoundMethodGroup methodGroup, BindingDiagnosticBag diagnostics, MethodGroupResolution resolution, ImmutableArray<MemberResolutionResult<MethodSymbol>> finalApplicableCandidates)
+        private void ReportDynamicInvocationWarnings(SyntaxNode syntax, BoundMethodGroup methodGroup, BindingDiagnosticBag diagnostics, ImmutableArray<MemberResolutionResult<MethodSymbol>> finalApplicableCandidates)
         {
             if (HasApplicableConditionalMethod(finalApplicableCandidates))
             {
@@ -864,20 +851,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // because one or more applicable overloads are conditional methods
                 Error(diagnostics, ErrorCode.WRN_DynamicDispatchToConditionalMethod, syntax, methodGroup.Name);
             }
-
-            if (finalApplicableCandidates.Length != 1 &&
-                HasApplicableMemberWithPossiblyExpandedNonArrayParamsCollection(resolution.AnalyzedArguments.Arguments, finalApplicableCandidates))
-            {
-                Error(diagnostics,
-                    ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod,
-                    syntax, methodGroup.Name);
-            }
         }
 
         private bool IsAmbiguousDynamicParamsArgument<TMethodOrPropertySymbol>(ArrayBuilder<BoundExpression> arguments, MemberResolutionResult<TMethodOrPropertySymbol> candidate, out SyntaxNode argumentSyntax)
              where TMethodOrPropertySymbol : Symbol
         {
-            if (OverloadResolution.IsValidParams(this, candidate.LeastOverriddenMember) &&
+            if (OverloadResolution.IsValidParams(this, candidate.LeastOverriddenMember, disallowExpandedNonArrayParams: false, out _) &&
                 candidate.Result.Kind == MemberResolutionKind.ApplicableInNormalForm)
             {
                 var parameters = candidate.Member.GetParameters();
@@ -907,13 +886,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             MemberResolutionResult<MethodSymbol> methodResolutionResult,
             MethodSymbol singleCandidate)
         {
-            //
-            // !!! ATTENTION !!!
-            //
-            // In terms of errors relevant for HasCollectionExpressionApplicableAddMethod check
-            // this function should be kept in sync with local function
-            // HasCollectionExpressionApplicableAddMethod.canEarlyBindSingleCandidateInvocationWithDynamicArgument
-            //
+            if (singleCandidate.MethodKind != MethodKind.LocalFunction)
+            {
+                return false;
+            }
 
             if (boundMethodGroup.TypeArgumentsOpt.IsDefaultOrEmpty && singleCandidate.IsGenericMethod)
             {
@@ -930,19 +906,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // seem to worth the complexity. So, just disallow any mixing of dynamic and
                 // inferred generics. (Explicit generic arguments are fine)
 
-                if (OverloadResolution.IsValidParams(this, singleCandidate) &&
-                    !singleCandidate.Parameters.Last().Type.IsSZArray())
-                {
-                    Error(diagnostics,
-                        ErrorCode.ERR_CantInferMethTypeArgs_DynamicArgumentWithParamsCollections,
-                        syntax, singleCandidate);
-                }
-                else if (singleCandidate.MethodKind == MethodKind.LocalFunction)
-                {
-                    Error(diagnostics,
-                        ErrorCode.ERR_DynamicLocalFunctionTypeParameter,
-                        syntax, singleCandidate.Name);
-                }
+                Error(diagnostics,
+                    ErrorCode.ERR_DynamicLocalFunctionTypeParameter,
+                    syntax, singleCandidate.Name);
 
                 return false;
             }
@@ -955,18 +921,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // a params parameter, and we know that runtime binder might not be
                 // able to handle the disambiguation
                 // See https://github.com/dotnet/roslyn/issues/10708
-                if (!singleCandidate.Parameters.Last().Type.IsSZArray())
-                {
-                    Error(diagnostics,
-                        ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument,
-                        argumentSyntax, singleCandidate);
-                }
-                else if (singleCandidate.MethodKind == MethodKind.LocalFunction)
-                {
-                    Error(diagnostics,
-                        ErrorCode.ERR_DynamicLocalFunctionParamsParameter,
-                        argumentSyntax, singleCandidate.Parameters.Last().Name, singleCandidate.Name);
-                }
+                Error(diagnostics,
+                    ErrorCode.ERR_DynamicLocalFunctionParamsParameter,
+                    argumentSyntax, singleCandidate.Parameters.Last().Name, singleCandidate.Name);
 
                 return false;
             }
@@ -984,14 +941,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodGroupResolution resolution,
             MemberResolutionResult<MethodSymbol> methodResolutionResult)
         {
-            //
-            // !!! ATTENTION !!!
-            //
-            // In terms of errors relevant for HasCollectionExpressionApplicableAddMethod check
-            // this function should be kept in sync with local function
-            // HasCollectionExpressionApplicableAddMethod.tryEarlyBindSingleCandidateInvocationWithDynamicArgument
-            //
-
             MethodSymbol singleCandidate = methodResolutionResult.LeastOverriddenMember;
 
             if (!CanEarlyBindSingleCandidateInvocationWithDynamicArgument(syntax, boundMethodGroup, diagnostics, resolution, methodResolutionResult, singleCandidate))
@@ -1098,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // error CS0029: Cannot implicitly convert type 'A' to 'B'
 
                             // Case 1: receiver is a restricted type, and method called is defined on a parent type
-                            if (call.ReceiverOpt.Type.IsRestrictedType() && !TypeSymbol.Equals(call.Method.ContainingType, call.ReceiverOpt.Type, TypeCompareKind.ConsiderEverything2))
+                            if (call.ReceiverOpt.Type.IsRestrictedType() && !call.Method.ContainingType.IsInterface && !TypeSymbol.Equals(call.Method.ContainingType, call.ReceiverOpt.Type, TypeCompareKind.ConsiderEverything2))
                             {
                                 SymbolDistinguisher distinguisher = new SymbolDistinguisher(compilation, call.ReceiverOpt.Type, call.Method.ContainingType);
                                 Error(diagnostics, ErrorCode.ERR_NoImplicitConv, call.ReceiverOpt.Syntax, distinguisher.First, distinguisher.Second);
@@ -1384,7 +1333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal ThreeState ReceiverIsSubjectToCloning(BoundExpression? receiver, MethodSymbol method)
         {
-            if (receiver is BoundValuePlaceholderBase || receiver?.Type?.IsValueType != true)
+            if (receiver is BoundValuePlaceholderBase || receiver?.Type is null or { IsReferenceType: true })
             {
                 return ThreeState.False;
             }

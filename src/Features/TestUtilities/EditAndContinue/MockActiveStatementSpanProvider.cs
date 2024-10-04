@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 {
-    internal class MockActiveStatementSpanProvider : IActiveStatementSpanProvider
+    internal class MockActiveStatementSpanProvider : IActiveStatementSpanFactory
     {
         public Func<Solution, ImmutableArray<DocumentId>, ImmutableArray<ImmutableArray<ActiveStatementSpan>>>? GetBaseActiveStatementSpansImpl;
         public Func<TextDocument, ActiveStatementSpanProvider, ImmutableArray<ActiveStatementSpan>>? GetAdjustedActiveStatementSpansImpl;

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Storage;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
@@ -26,7 +27,7 @@ internal interface IRemoteNavigateToSearchService
 
     public interface ICallback
     {
-        ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, RoslynNavigateToItem result);
+        ValueTask OnItemsFoundAsync(RemoteServiceCallbackId callbackId, ImmutableArray<RoslynNavigateToItem> items);
         ValueTask OnProjectCompletedAsync(RemoteServiceCallbackId callbackId);
     }
 }
@@ -39,22 +40,23 @@ internal sealed class NavigateToSearchServiceServerCallbackDispatcher() : Remote
     private new NavigateToSearchServiceCallback GetCallback(RemoteServiceCallbackId callbackId)
         => (NavigateToSearchServiceCallback)base.GetCallback(callbackId);
 
-    public ValueTask OnResultFoundAsync(RemoteServiceCallbackId callbackId, RoslynNavigateToItem result)
-        => GetCallback(callbackId).OnResultFoundAsync(result);
+    public ValueTask OnItemsFoundAsync(RemoteServiceCallbackId callbackId, ImmutableArray<RoslynNavigateToItem> items)
+        => GetCallback(callbackId).OnItemsFoundAsync(items);
 
     public ValueTask OnProjectCompletedAsync(RemoteServiceCallbackId callbackId)
         => GetCallback(callbackId).OnProjectCompletedAsync();
 }
 
 internal sealed class NavigateToSearchServiceCallback(
-    Func<RoslynNavigateToItem, Task> onResultFound,
-    Func<Task>? onProjectCompleted)
+    Func<ImmutableArray<RoslynNavigateToItem>, VoidResult, CancellationToken, Task> onItemsFound,
+    Func<Task>? onProjectCompleted,
+    CancellationToken cancellationToken)
 {
-    public async ValueTask OnResultFoundAsync(RoslynNavigateToItem result)
+    public async ValueTask OnItemsFoundAsync(ImmutableArray<RoslynNavigateToItem> items)
     {
         try
         {
-            await onResultFound(result).ConfigureAwait(false);
+            await onItemsFound(items, default, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex) when (FatalError.ReportAndPropagateUnlessCanceled(ex))
         {

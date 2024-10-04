@@ -1942,18 +1942,18 @@ ref struct S
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (6,35): error CS0306: The type 'S' may not be used as a type argument
+                // (6,35): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         System.Console.Write(("", s1) == (null, s2));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "s1").WithArguments("S").WithLocation(6, 35),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "s1").WithArguments("(T1, T2)", "T2", "S").WithLocation(6, 35),
                 // (6,30): error CS0019: Operator '==' cannot be applied to operands of type 'S' and 'S'
                 //         System.Console.Write(("", s1) == (null, s2));
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, @"("""", s1) == (null, s2)").WithArguments("==", "S", "S").WithLocation(6, 30),
-                // (6,35): error CS0306: The type 'S' may not be used as a type argument
+                // (6,35): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         System.Console.Write(("", s1) == (null, s2));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "s1").WithArguments("S").WithLocation(6, 35),
-                // (6,49): error CS0306: The type 'S' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "s1").WithArguments("(T1, T2)", "T2", "S").WithLocation(6, 35),
+                // (6,49): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         System.Console.Write(("", s1) == (null, s2));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "s2").WithArguments("S").WithLocation(6, 49)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "s2").WithArguments("(T1, T2)", "T2", "S").WithLocation(6, 49)
                 );
         }
 

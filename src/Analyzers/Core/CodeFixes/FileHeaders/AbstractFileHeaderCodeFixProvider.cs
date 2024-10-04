@@ -35,7 +35,7 @@ internal abstract class AbstractFileHeaderCodeFixProvider : CodeFixProvider
             context.RegisterCodeFix(
                 CodeAction.Create(
                     CodeFixesResources.Add_file_header,
-                    cancellationToken => GetTransformedDocumentAsync(context.Document, context.GetOptionsProvider(), cancellationToken),
+                    cancellationToken => GetTransformedDocumentAsync(context.Document, cancellationToken),
                     nameof(AbstractFileHeaderCodeFixProvider)),
                 diagnostic);
         }
@@ -43,12 +43,12 @@ internal abstract class AbstractFileHeaderCodeFixProvider : CodeFixProvider
         return Task.CompletedTask;
     }
 
-    private async Task<Document> GetTransformedDocumentAsync(Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-        => document.WithSyntaxRoot(await GetTransformedSyntaxRootAsync(document, fallbackOptions, cancellationToken).ConfigureAwait(false));
+    private async Task<Document> GetTransformedDocumentAsync(Document document, CancellationToken cancellationToken)
+        => document.WithSyntaxRoot(await GetTransformedSyntaxRootAsync(document, cancellationToken).ConfigureAwait(false));
 
-    private async Task<SyntaxNode> GetTransformedSyntaxRootAsync(Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    private async Task<SyntaxNode> GetTransformedSyntaxRootAsync(Document document, CancellationToken cancellationToken)
     {
-        var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
         var newLineTrivia = generator.EndOfLine(options.NewLine);
 
@@ -232,6 +232,6 @@ internal abstract class AbstractFileHeaderCodeFixProvider : CodeFixProvider
             if (diagnostics.IsEmpty)
                 return null;
 
-            return await this.GetTransformedDocumentAsync(document, context.GetOptionsProvider(), context.CancellationToken).ConfigureAwait(false);
+            return await this.GetTransformedDocumentAsync(document, context.CancellationToken).ConfigureAwait(false);
         });
 }

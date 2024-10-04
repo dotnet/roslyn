@@ -8,85 +8,84 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UsePatternMatching;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
-    public partial class CSharpIsAndCastCheckDiagnosticAnalyzerTests
+    [Fact]
+    public async Task FixAllInDocument1()
     {
-        [Fact]
-        public async Task FixAllInDocument1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    if (x is string)
                     {
-                        if (x is string)
-                        {
-                            {|FixAllInDocument:var|} v1 = (string)x;
-                        }
+                        {|FixAllInDocument:var|} v1 = (string)x;
+                    }
 
-                        if (x is bool)
-                        {
-                            var v2 = (bool)x;
-                        }
+                    if (x is bool)
+                    {
+                        var v2 = (bool)x;
                     }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    if (x is string v1)
                     {
-                        if (x is string v1)
-                        {
-                        }
+                    }
 
-                        if (x is bool v2)
-                        {
-                        }
+                    if (x is bool v2)
+                    {
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task FixAllInDocument2()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                class C
+    [Fact]
+    public async Task FixAllInDocument2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    if (x is string)
                     {
-                        if (x is string)
-                        {
-                            var v1 = (string)x;
-                        }
+                        var v1 = (string)x;
+                    }
 
-                        if (x is bool)
-                        {
-                            {|FixAllInDocument:var|} v2 = (bool)x;
-                        }
+                    if (x is bool)
+                    {
+                        {|FixAllInDocument:var|} v2 = (bool)x;
                     }
                 }
-                """,
-                """
-                class C
+            }
+            """,
+            """
+            class C
+            {
+                void M()
                 {
-                    void M()
+                    if (x is string v1)
                     {
-                        if (x is string v1)
-                        {
-                        }
+                    }
 
-                        if (x is bool v2)
-                        {
-                        }
+                    if (x is bool v2)
+                    {
                     }
                 }
-                """);
-        }
+            }
+            """);
     }
 }

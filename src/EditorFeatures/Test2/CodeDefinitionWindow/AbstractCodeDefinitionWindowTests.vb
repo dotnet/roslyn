@@ -12,7 +12,6 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Host.Mef
 
 Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
-
     Public MustInherit Class AbstractCodeDefinitionWindowTests
         Public Shared ReadOnly TestComposition As TestComposition =
             EditorTestCompositions.EditorFeatures _
@@ -55,10 +54,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
                 Dim definitionContextTracker = workspace.ExportProvider.GetExportedValue(Of DefinitionContextTracker)
                 Dim locations = Await definitionContextTracker.GetContextFromPointAsync(
-                    workspace,
-                    document,
-                    hostDocument.CursorPosition.Value,
-                    CancellationToken.None)
+                    document, hostDocument.CursorPosition.Value, CancellationToken.None)
 
                 Dim location = Assert.Single(locations)
                 Assert.Equal(displayName, location.DisplayName)
@@ -81,10 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
             Dim definitionContextTracker = workspace.ExportProvider.GetExportedValue(Of DefinitionContextTracker)
             Dim locations = Await definitionContextTracker.GetContextFromPointAsync(
-                workspace,
-                triggerDocument,
-                triggerHostDocument.CursorPosition.Value,
-                CancellationToken.None)
+                triggerDocument, triggerHostDocument.CursorPosition.Value, CancellationToken.None)
 
             Dim expectedHostDocument = workspace.Documents.Single(Function(d) d.SelectedSpans.Any())
             Dim expectedDocument = workspace.CurrentSolution.GetDocument(expectedHostDocument.Id)

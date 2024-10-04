@@ -410,7 +410,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntax: resourceSyntax,
                     rewrittenCondition: ifCondition,
                     rewrittenConsequence: disposeStatement,
-                    rewrittenAlternativeOpt: null,
                     hasErrors: false);
             }
 
@@ -532,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ref temps,
                 invokedAsExtensionMethod: method.IsExtensionMethod);
 
-            return MakeCall(null, syntax, expression, method, rewrittenArguments, argumentRefKindsOpt, LookupResultKind.Viable, method.ReturnType, temps.ToImmutableAndFree());
+            return MakeCall(null, syntax, expression, method, rewrittenArguments, argumentRefKindsOpt, LookupResultKind.Viable, temps.ToImmutableAndFree());
         }
     }
 }

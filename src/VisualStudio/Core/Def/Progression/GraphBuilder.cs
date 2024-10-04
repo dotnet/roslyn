@@ -25,8 +25,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
 internal sealed partial class GraphBuilder
 {
-    private readonly Graph _graph = new();
+    // Our usage of SemaphoreSlim is fine.  We don't perform blocking waits for it on the UI thread.
+#pragma warning disable RS0030 // Do not use banned APIs
     private readonly SemaphoreSlim _gate = new(initialCount: 1);
+#pragma warning restore RS0030 // Do not use banned APIs
 
     private readonly ISet<GraphNode> _createdNodes = new HashSet<GraphNode>();
     private readonly IList<Tuple<GraphNode, GraphProperty, object>> _deferredPropertySets = new List<Tuple<GraphNode, GraphProperty, object>>();
@@ -215,7 +217,7 @@ internal sealed partial class GraphBuilder
 
         using (await _gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
-            var node = await GetOrCreateNodeAsync(_graph, symbol, _solution, cancellationToken).ConfigureAwait(false);
+            var node = await GetOrCreateNodeAsync(Graph, symbol, _solution, cancellationToken).ConfigureAwait(false);
 
             node[RoslynGraphProperties.SymbolId] = (SymbolKey?)symbol.GetSymbolKey(cancellationToken);
             node[RoslynGraphProperties.ContextProjectId] = GetContextProjectId(contextProject, symbol);
@@ -679,7 +681,7 @@ internal sealed partial class GraphBuilder
     {
         using (_gate.DisposableWait(cancellationToken))
         {
-            _graph.Links.GetOrCreate(from, to).AddCategory(category);
+            Graph.Links.GetOrCreate(from, to).AddCategory(category);
         }
     }
 
@@ -698,7 +700,7 @@ internal sealed partial class GraphBuilder
         {
             var id = GraphNodeIdCreation.GetIdForDocument(document);
 
-            var node = _graph.Nodes.GetOrCreate(id, fileName, CodeNodeCategories.ProjectItem);
+            var node = Graph.Nodes.GetOrCreate(id, fileName, CodeNodeCategories.ProjectItem);
 
             _nodeToContextDocumentMap[node] = document;
             _nodeToContextProjectMap[node] = document.Project;
@@ -752,7 +754,7 @@ internal sealed partial class GraphBuilder
 
         // If we already have a node that matches this (say there are multiple identical sibling symbols in an error
         // situation).  We just ignore the second match.
-        var existing = _graph.Nodes.Get(id);
+        var existing = Graph.Nodes.Get(id);
         if (existing != null)
             return null;
 
@@ -762,7 +764,7 @@ internal sealed partial class GraphBuilder
         if (sourceLocation == null)
             return null;
 
-        var symbolNode = _graph.Nodes.GetOrCreate(id);
+        var symbolNode = Graph.Nodes.GetOrCreate(id);
 
         symbolNode.Label = label;
         symbolNode.AddCategory(category);
@@ -841,13 +843,7 @@ internal sealed partial class GraphBuilder
         }
     }
 
-    public Graph Graph
-    {
-        get
-        {
-            return _graph;
-        }
-    }
+    public Graph Graph { get; } = new();
 
     public ImmutableArray<GraphNode> GetCreatedNodes(CancellationToken cancellationToken)
     {

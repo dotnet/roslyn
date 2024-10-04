@@ -1620,34 +1620,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static void ReportDefaultInterfaceImplementationMatchDiagnostics(Symbol interfaceMember, TypeSymbol implementingType, Symbol implicitImpl, BindingDiagnosticBag diagnostics)
         {
-            if (interfaceMember.Kind == SymbolKind.Method && implementingType.ContainingModule != implicitImpl.ContainingModule)
+            if (interfaceMember.Kind == SymbolKind.Method)
             {
-                // The default implementation is coming from a different module, which means that we probably didn't check
-                // for the required runtime capability or language version
                 bool isStatic = implicitImpl.IsStatic;
-                var feature = isStatic ? MessageID.IDS_FeatureStaticAbstractMembersInInterfaces : MessageID.IDS_DefaultInterfaceImplementation;
 
-                LanguageVersion requiredVersion = feature.RequiredVersion();
-                LanguageVersion? availableVersion = implementingType.DeclaringCompilation?.LanguageVersion;
-                if (requiredVersion > availableVersion)
+                if (!isStatic && implementingType.IsRefLikeType)
                 {
-                    diagnostics.Add(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember,
-                                    GetInterfaceLocation(interfaceMember, implementingType),
-                                    implicitImpl, interfaceMember, implementingType,
-                                    feature.Localize(),
-                                    availableVersion.GetValueOrDefault().ToDisplayString(),
-                                    new CSharpRequiredLanguageVersion(requiredVersion));
-                }
-
-                if (!(isStatic ?
-                          implementingType.ContainingAssembly.RuntimeSupportsStaticAbstractMembersInInterfaces :
-                          implementingType.ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation))
-                {
-                    diagnostics.Add(isStatic ?
-                                        ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember :
-                                        ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember,
+                    diagnostics.Add(ErrorCode.ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember,
                                     GetInterfaceLocation(interfaceMember, implementingType),
                                     implicitImpl, interfaceMember, implementingType);
+                }
+                else if (implementingType.ContainingModule != implicitImpl.ContainingModule)
+                {
+                    // The default implementation is coming from a different module, which means that we probably didn't check
+                    // for the required runtime capability or language version
+                    var feature = isStatic ? MessageID.IDS_FeatureStaticAbstractMembersInInterfaces : MessageID.IDS_DefaultInterfaceImplementation;
+
+                    LanguageVersion requiredVersion = feature.RequiredVersion();
+                    LanguageVersion? availableVersion = implementingType.DeclaringCompilation?.LanguageVersion;
+                    if (requiredVersion > availableVersion)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_LanguageVersionDoesNotSupportInterfaceImplementationForMember,
+                                        GetInterfaceLocation(interfaceMember, implementingType),
+                                        implicitImpl, interfaceMember, implementingType,
+                                        feature.Localize(),
+                                        availableVersion.GetValueOrDefault().ToDisplayString(),
+                                        new CSharpRequiredLanguageVersion(requiredVersion));
+                    }
+
+                    if (!(isStatic ?
+                              implementingType.ContainingAssembly.RuntimeSupportsStaticAbstractMembersInInterfaces :
+                              implementingType.ContainingAssembly.RuntimeSupportsDefaultInterfaceImplementation))
+                    {
+                        diagnostics.Add(isStatic ?
+                                            ErrorCode.ERR_RuntimeDoesNotSupportStaticAbstractMembersInInterfacesForMember :
+                                            ErrorCode.ERR_RuntimeDoesNotSupportDefaultInterfaceImplementationForMember,
+                                        GetInterfaceLocation(interfaceMember, implementingType),
+                                        implicitImpl, interfaceMember, implementingType);
+                    }
                 }
             }
         }
@@ -1786,8 +1796,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         MethodSymbol implementedMethod,
                         MethodSymbol implementingMethod,
                         bool isExplicit,
-                        bool checkReturnType,
-                        bool checkParameterTypes,
                         BindingDiagnosticBag diagnostics)
                     {
                         ReportMismatchInReturnType<(TypeSymbol implementingType, bool isExplicit)> reportMismatchInReturnType =
@@ -1843,12 +1851,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             implementedMethod,
                             implementingMethod,
                             diagnostics,
-                            checkReturnType ? reportMismatchInReturnType : null,
-                            checkParameterTypes ? reportMismatchInParameterType : null,
+                            reportMismatchInReturnType,
+                            reportMismatchInParameterType,
                             (implementingType, isExplicit));
 
-                        if (checkParameterTypes &&
-                            SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(implementedMethod))
+                        if (SourceMemberContainerTypeSymbol.RequiresValidScopedOverrideForRefSafety(implementedMethod))
                         {
                             SourceMemberContainerTypeSymbol.CheckValidScopedOverride(
                                 implementedMethod,
@@ -1867,27 +1874,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 allowVariance: true,
                                 invokedAsExtensionMethod: false);
                         }
-
-                        if (checkParameterTypes)
-                        {
-                            SourceMemberContainerTypeSymbol.CheckRefReadonlyInMismatch(
-                                implementedMethod, implementingMethod, diagnostics,
-                                static (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, arg) =>
-                                {
-                                    var (implementedParameter, implementingType) = arg;
-                                    var location = GetImplicitImplementationDiagnosticLocation(implementedMethod, implementingType, implementingMethod);
-                                    // Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.
-                                    diagnostics.Add(ErrorCode.WRN_OverridingDifferentRefness, location, implementingParameter, implementedParameter);
-                                },
-                                implementingType,
-                                invokedAsExtensionMethod: false);
-                        }
+                        SourceMemberContainerTypeSymbol.CheckRefReadonlyInMismatch(
+                            implementedMethod, implementingMethod, diagnostics,
+                            static (diagnostics, implementedMethod, implementingMethod, implementingParameter, _, arg) =>
+                            {
+                                var (implementedParameter, implementingType) = arg;
+                                var location = GetImplicitImplementationDiagnosticLocation(implementedMethod, implementingType, implementingMethod);
+                                // Reference kind modifier of parameter '{0}' doesn't match the corresponding parameter '{1}' in overridden or implemented member.
+                                diagnostics.Add(ErrorCode.WRN_OverridingDifferentRefness, location, implementingParameter, implementedParameter);
+                            },
+                            implementingType,
+                            invokedAsExtensionMethod: false);
 
                         if (implementingMethod.HasUnscopedRefAttributeOnMethodOrProperty())
                         {
-                            diagnostics.Add(
-                                ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation,
-                                GetImplicitImplementationDiagnosticLocation(implementedMethod, implementingType, implementingMethod));
+                            if (implementedMethod.HasUnscopedRefAttributeOnMethodOrProperty())
+                            {
+                                if (!implementingMethod.IsExplicitInterfaceImplementation && implementingMethod is SourceMethodSymbolWithAttributes &&
+                                    implementedMethod.ContainingModule != implementingMethod.ContainingModule)
+                                {
+                                    checkRefStructInterfacesFeatureAvailabilityOnUnscopedRefAttribute(implementingMethod.HasUnscopedRefAttribute ? implementingMethod : implementingMethod.AssociatedSymbol, diagnostics);
+                                }
+                            }
+                            else
+                            {
+                                diagnostics.Add(
+                                    ErrorCode.ERR_UnscopedRefAttributeInterfaceImplementation,
+                                    GetImplicitImplementationDiagnosticLocation(implementedMethod, implementingType, implementingMethod),
+                                    implementedMethod);
+                            }
                         }
                     }
 
@@ -1909,10 +1924,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     implementedProperty.GetMethod,
                                     implementingGetMethod,
                                     isExplicit: isExplicit,
-                                    checkReturnType: true,
-                                    // Don't check parameters on the getter if there is a setter
-                                    // because they will be a subset of the setter
-                                    checkParameterTypes: implementingGetMethod?.AssociatedSymbol != implementingProperty || implementingSetMethod?.AssociatedSymbol != implementingProperty,
                                     diagnostics);
                             }
 
@@ -1923,8 +1934,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     implementedProperty.SetMethod,
                                     implementingSetMethod,
                                     isExplicit: isExplicit,
-                                    checkReturnType: false,
-                                    checkParameterTypes: true,
                                     diagnostics);
                             }
                             break;
@@ -1942,14 +1951,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 implementedMethod,
                                 implementingMethod,
                                 isExplicit: isExplicit,
-                                checkReturnType: true,
-                                checkParameterTypes: true,
                                 diagnostics);
                             break;
                         default:
                             throw ExceptionUtilities.UnexpectedValue(interfaceMember.Kind);
                     }
                 }
+            }
+
+            static void checkRefStructInterfacesFeatureAvailabilityOnUnscopedRefAttribute(Symbol implementingSymbol, BindingDiagnosticBag diagnostics)
+            {
+                foreach (var attributeData in implementingSymbol.GetAttributes())
+                {
+                    if (attributeData is SourceAttributeData { ApplicationSyntaxReference: { } applicationSyntaxReference } &&
+                        attributeData.IsTargetAttribute(AttributeDescription.UnscopedRefAttribute))
+                    {
+                        MessageID.IDS_FeatureRefStructInterfaces.CheckFeatureAvailability(diagnostics, implementingSymbol.DeclaringCompilation, applicationSyntaxReference.GetLocation());
+                        return;
+                    }
+                }
+
+                Debug.Assert(false);
             }
         }
 

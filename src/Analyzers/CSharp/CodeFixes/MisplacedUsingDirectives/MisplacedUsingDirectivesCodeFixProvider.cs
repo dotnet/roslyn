@@ -13,24 +13,28 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 
 namespace Microsoft.CodeAnalysis.CSharp.MisplacedUsingDirectives;
 
 /// <summary>
 /// Implements a code fix for all misplaced using statements.
 /// </summary>
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MoveMisplacedUsingDirectives)]
-[Shared]
-internal sealed partial class MisplacedUsingDirectivesCodeFixProvider : CodeFixProvider
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MoveMisplacedUsingDirectives), Shared]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class MisplacedUsingDirectivesCodeFixProvider() : CodeFixProvider
 {
     private static readonly SyntaxAnnotation s_usingPlacementCodeFixAnnotation = new(nameof(s_usingPlacementCodeFixAnnotation));
 
@@ -39,12 +43,6 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider : CodeFixP
     /// </summary>
     private static readonly SyntaxAnnotation s_warningAnnotation = WarningAnnotation.Create(
         CSharpAnalyzersResources.Warning_colon_Moving_using_directives_may_change_code_meaning);
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public MisplacedUsingDirectivesCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds => [IDEDiagnosticIds.MoveMisplacedUsingDirectivesDiagnosticId];
 
@@ -62,12 +60,12 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider : CodeFixP
         var syntaxRoot = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var compilationUnit = (CompilationUnitSyntax)syntaxRoot;
 
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.GetOptionsProvider(), cancellationToken).ConfigureAwait(false);
-        var simplifierOptions = options.GetSimplifierOptions();
+        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var simplifierOptions = new CSharpSimplifierOptions(configOptions);
 
         // Read the preferred placement option and verify if it can be applied to this code file. There are cases
         // where we will not be able to fix the diagnostic and the user will need to resolve it manually.
-        var (placement, preferPreservation) = DeterminePlacement(compilationUnit, options.UsingDirectivePlacement);
+        var (placement, preferPreservation) = DeterminePlacement(compilationUnit, configOptions.GetOption(CSharpCodeStyleOptions.PreferredUsingDirectivePlacement));
         if (preferPreservation)
             return;
 
@@ -117,7 +115,7 @@ internal sealed partial class MisplacedUsingDirectivesCodeFixProvider : CodeFixP
 
         Recurse(compilationUnit.Members);
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
 
         void Recurse(SyntaxList<MemberDeclarationSyntax> members)
         {

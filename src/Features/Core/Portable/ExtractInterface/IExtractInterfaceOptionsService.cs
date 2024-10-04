@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -26,6 +25,5 @@ internal interface IExtractInterfaceOptionsService : IWorkspaceService
         string defaultNamespace,
         string generatedNameTypeParameterSuffix,
         string languageName,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken);
 }

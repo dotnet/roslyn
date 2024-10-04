@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis;
 
 internal partial struct SymbolKey
 {
-    private class SymbolKeyComparer : IEqualityComparer<SymbolKey>
+    private sealed class SymbolKeyComparer : IEqualityComparer<SymbolKey>
     {
         private readonly ComparisonOptions _options;
 

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,7 +61,7 @@ internal abstract partial class AbstractPartialMethodCompletionProvider : Abstra
 
     protected override async Task<ISymbol> GenerateMemberAsync(ISymbol member, INamedTypeSymbol containingType, Document document, CompletionItem item, CancellationToken cancellationToken)
     {
-        var syntaxFactory = document.GetLanguageService<SyntaxGenerator>();
+        var syntaxFactory = document.GetRequiredLanguageService<SyntaxGenerator>();
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
         var method = (IMethodSymbol)member;
@@ -91,6 +90,7 @@ internal abstract partial class AbstractPartialMethodCompletionProvider : Abstra
         if (enclosingSymbol.TypeKind is not (TypeKind.Struct or TypeKind.Class))
             return null;
 
+        // https://github.com/dotnet/roslyn/issues/73772: should we also add an `AbstractPartialPropertiesProvider`?
         var symbols = semanticModel.LookupSymbols(position, container: enclosingSymbol)
                                     .OfType<IMethodSymbol>()
                                     .Where(m => IsPartial(m) && m.PartialImplementationPart == null);

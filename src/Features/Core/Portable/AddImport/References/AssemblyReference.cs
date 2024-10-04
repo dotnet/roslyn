@@ -7,7 +7,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.AddImport;
 
 internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    private partial class AssemblyReference(
+    private sealed partial class AssemblyReference(
         AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
         SearchResult searchResult,
         ReferenceAssemblyWithTypeResult referenceAssemblyWithType) : Reference(provider, searchResult)

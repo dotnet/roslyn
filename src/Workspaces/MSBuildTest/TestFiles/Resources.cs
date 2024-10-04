@@ -28,20 +28,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
 
         private static byte[] LoadBytes(string name)
         {
-            using (var resourceStream = GetResourceStream(name))
-            {
-                var bytes = new byte[resourceStream.Length];
-                resourceStream.Read(bytes, 0, (int)resourceStream.Length);
-                return bytes;
-            }
+            using var resourceStream = GetResourceStream(name);
+            var bytes = new byte[resourceStream.Length];
+            resourceStream.Read(bytes, 0, (int)resourceStream.Length);
+            return bytes;
         }
 
         private static string LoadText(string name)
         {
-            using (var streamReader = new StreamReader(GetResourceStream(name)))
-            {
-                return streamReader.ReadToEnd();
-            }
+            using var streamReader = new StreamReader(GetResourceStream(name));
+            return streamReader.ReadToEnd();
         }
 
         private static readonly Func<string, byte[]> s_bytesLoader = LoadBytes;
@@ -136,6 +132,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.TestFiles
                 public static string ExternAlias => GetText("ProjectFiles.CSharp.ExternAlias.csproj");
                 public static string ExternAlias2 => GetText("ProjectFiles.CSharp.ExternAlias2.csproj");
                 public static string ForEmittedOutput => GetText("ProjectFiles.CSharp.ForEmittedOutput.csproj");
+                public static string InvalidTFM => GetText("ProjectFiles.CSharp.InvalidTFM.csproj");
                 public static string Issue30174_InspectedLibrary => GetText("Issue30174.InspectedLibrary.InspectedLibrary.csproj");
                 public static string Issue30174_ReferencedLibrary => GetText("Issue30174.ReferencedLibrary.ReferencedLibrary.csproj");
                 public static string MSBuildExecutionError => GetText("ProjectFiles.CSharp.MSBuildExecutionError.csproj");

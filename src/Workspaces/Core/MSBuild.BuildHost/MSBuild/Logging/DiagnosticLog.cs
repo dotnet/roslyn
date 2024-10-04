@@ -5,23 +5,16 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 
-namespace Microsoft.CodeAnalysis.MSBuild.Logging
+namespace Microsoft.CodeAnalysis.MSBuild
 {
-    internal class DiagnosticLog : IEnumerable<DiagnosticLogItem>
+    internal readonly struct DiagnosticLog() : IEnumerable<DiagnosticLogItem>
     {
-        private readonly List<DiagnosticLogItem> _items;
+        private readonly List<DiagnosticLogItem> _items = [];
 
         public int Count => _items.Count;
         public DiagnosticLogItem this[int index] => _items[index];
         public bool IsEmpty => _items.Count == 0;
-
-        public bool HasFailure
-            => _items.Any(i => i.Kind == WorkspaceDiagnosticKind.Failure);
-
-        public DiagnosticLog()
-            => _items = [];
 
         public IEnumerator<DiagnosticLogItem> GetEnumerator()
             => _items.GetEnumerator();
@@ -30,19 +23,12 @@ namespace Microsoft.CodeAnalysis.MSBuild.Logging
             => GetEnumerator();
 
         public void Add(DiagnosticLogItem item)
-        {
-            if (item == null)
-            {
-                throw new ArgumentNullException(nameof(item));
-            }
+            => _items.Add(item);
 
-            _items.Add(item);
-        }
-
-        public void Add(string message, string projectFilePath, WorkspaceDiagnosticKind kind = WorkspaceDiagnosticKind.Failure)
+        public void Add(string message, string projectFilePath, DiagnosticLogItemKind kind = DiagnosticLogItemKind.Error)
             => _items.Add(new DiagnosticLogItem(kind, message, projectFilePath));
 
-        public void Add(Exception exception, string projectFilePath, WorkspaceDiagnosticKind kind = WorkspaceDiagnosticKind.Failure)
+        public void Add(Exception exception, string projectFilePath, DiagnosticLogItemKind kind = DiagnosticLogItemKind.Error)
             => _items.Add(new DiagnosticLogItem(kind, exception.Message, projectFilePath));
     }
 }

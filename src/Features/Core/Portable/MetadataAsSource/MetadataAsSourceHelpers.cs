@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource;
 /// <summary>
 /// Helpers shared by both the text service and the editor service
 /// </summary>
-internal class MetadataAsSourceHelpers
+internal sealed class MetadataAsSourceHelpers
 {
 
 #if false

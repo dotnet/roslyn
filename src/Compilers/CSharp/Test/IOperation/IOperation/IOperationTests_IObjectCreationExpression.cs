@@ -15000,6 +15000,42 @@ Block[B8] - Exit
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/72931")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72931")]
+        public void ObjectCreationFlow_75_CollectionInitializerError()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    /*<bind>*/{
+        int d = 1;
+        var c = new C() { [d] = {2} };
+    }/*</bind>*/
+
+    C2 _test1 = new C2();    
+    C2 this[int x]
+    {
+        get => _test1;
+    }
+}
+
+class C2
+{
+}
+";
+            var expectedDiagnostics = new[] {
+                // (7,33): error CS1922: Cannot initialize type 'C2' with a collection initializer because it does not implement 'System.Collections.IEnumerable'
+                //         var c = new C() { [d] = {2} };
+                Diagnostic(ErrorCode.ERR_CollectionInitRequiresIEnumerable, "{2}").WithArguments("C2").WithLocation(7, 33)
+                };
+
+            string expectedFlowGraph = @"
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
         [Fact]
         public void ObjectCreationExpression_NoNewConstraint()
         {

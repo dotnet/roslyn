@@ -101,7 +101,7 @@ internal sealed class ParentInstallPackageCodeAction : CodeAction.CodeActionWith
 
         // And finally the action to show the package manager dialog.
         codeActions.Add(new InstallWithPackageManagerCodeAction(installerService, fixData.PackageName));
-        return codeActions.ToImmutable();
+        return codeActions.ToImmutableAndClear();
     }
 
     private static CodeAction CreateCodeAction(

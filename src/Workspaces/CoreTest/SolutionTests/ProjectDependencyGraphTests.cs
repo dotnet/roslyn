@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -214,8 +213,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             // so we shouldn't have any information for A, B, or C and have to deal with that.
 
             var solution = CreateSolutionFromReferenceMap("A B C:D D");
-            solution = solution.WithProjectReferences(solution.GetProjectsByName("C").Single().Id,
-                SpecializedCollections.EmptyEnumerable<ProjectReference>());
+            solution = solution.WithProjectReferences(solution.GetProjectsByName("C").Single().Id, []);
 
             VerifyTransitiveReferences(solution, "A", []);
 
@@ -394,8 +392,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyReverseTransitiveReferences(solution, "C", []);
             VerifyReverseTransitiveReferences(solution, "D", ["C"]);
 
-            solution = solution.WithProjectReferences(solution.GetProjectsByName("C").Single().Id,
-                SpecializedCollections.EmptyEnumerable<ProjectReference>());
+            solution = solution.WithProjectReferences(solution.GetProjectsByName("C").Single().Id, []);
 
             VerifyReverseTransitiveReferences(solution, "B", ["A"]);
         }

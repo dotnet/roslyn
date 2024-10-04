@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses;
 [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.AddRequiredParentheses), Shared]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal class AddRequiredParenthesesCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+internal sealed class AddRequiredParenthesesCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId];
@@ -41,7 +41,7 @@ internal class AddRequiredParenthesesCodeFixProvider() : SyntaxEditorBasedCodeFi
 
     protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
 

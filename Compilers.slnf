@@ -67,6 +67,8 @@
       "src\\Tools\\BuildBoss\\BuildBoss.csproj",
       "src\\Tools\\Replay\\Replay.csproj",
       "src\\Tools\\BuildValidator\\BuildValidator.csproj",
+      "src\\Tools\\ExternalAccess\\RazorCompilerTest\\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.UnitTests.csproj",
+      "src\\Tools\\ExternalAccess\\RazorCompiler\\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj",
       "src\\Tools\\PrepareTests\\PrepareTests.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\BoundTreeGenerator\\CompilersBoundTreeGenerator.csproj",
       "src\\Tools\\Source\\CompilerGeneratorTools\\Source\\CSharpErrorFactsGenerator\\CSharpErrorFactsGenerator.csproj",

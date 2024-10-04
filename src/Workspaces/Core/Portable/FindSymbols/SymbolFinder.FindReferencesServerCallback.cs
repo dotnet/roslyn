@@ -4,12 +4,11 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
@@ -40,18 +39,6 @@ public static partial class SymbolFinder
         public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
             => progress.OnCompletedAsync(cancellationToken);
 
-        public async ValueTask OnFindInDocumentStartedAsync(DocumentId documentId, CancellationToken cancellationToken)
-        {
-            var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-            await progress.OnFindInDocumentStartedAsync(document, cancellationToken).ConfigureAwait(false);
-        }
-
-        public async ValueTask OnFindInDocumentCompletedAsync(DocumentId documentId, CancellationToken cancellationToken)
-        {
-            var document = await solution.GetRequiredDocumentAsync(documentId, includeSourceGenerated: true, cancellationToken).ConfigureAwait(false);
-            await progress.OnFindInDocumentCompletedAsync(document, cancellationToken).ConfigureAwait(false);
-        }
-
         public async ValueTask OnDefinitionFoundAsync(SerializableSymbolGroup dehydrated, CancellationToken cancellationToken)
         {
             Contract.ThrowIfTrue(dehydrated.Symbols.Count == 0);
@@ -67,7 +54,7 @@ public static partial class SymbolFinder
                 map[symbolAndProjectId] = symbol;
             }
 
-            var symbolGroup = new SymbolGroup(map.Values.ToImmutableArray());
+            var symbolGroup = new SymbolGroup([.. map.Values]);
             lock (_gate)
             {
                 _groupMap[dehydrated] = symbolGroup;
@@ -78,34 +65,38 @@ public static partial class SymbolFinder
             await progress.OnDefinitionFoundAsync(symbolGroup, cancellationToken).ConfigureAwait(false);
         }
 
-        public async ValueTask OnReferenceFoundAsync(
-            SerializableSymbolGroup serializableSymbolGroup,
-            SerializableSymbolAndProjectId serializableSymbol,
-            SerializableReferenceLocation reference,
+        public async ValueTask OnReferencesFoundAsync(
+            ImmutableArray<(SerializableSymbolGroup serializableSymbolGroup, SerializableSymbolAndProjectId serializableSymbol, SerializableReferenceLocation reference)> references,
             CancellationToken cancellationToken)
         {
-            SymbolGroup? symbolGroup;
-            ISymbol? symbol;
-            lock (_gate)
+            using var _ = ArrayBuilder<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)>.GetInstance(references.Length, out var rehydrated);
+
+            foreach (var (serializableSymbolGroup, serializableSymbol, reference) in references)
             {
-                // The definition may not be in the map if we failed to map it over using TryRehydrateAsync in OnDefinitionFoundAsync.
-                // Just ignore this reference.  Note: while this is a degraded experience:
-                //
-                // 1. TryRehydrateAsync logs an NFE so we can track down while we're failing to roundtrip the
-                //    definition so we can track down that issue.
-                // 2. NFE'ing and failing to show a result, is much better than NFE'ing and then crashing
-                //    immediately afterwards.
-                if (!_groupMap.TryGetValue(serializableSymbolGroup, out symbolGroup) ||
-                    !_definitionMap.TryGetValue(serializableSymbol, out symbol))
+                SymbolGroup? symbolGroup;
+                ISymbol? symbol;
+                lock (_gate)
                 {
-                    return;
+                    // The definition may not be in the map if we failed to map it over using TryRehydrateAsync in OnDefinitionFoundAsync.
+                    // Just ignore this reference.  Note: while this is a degraded experience:
+                    //
+                    // 1. TryRehydrateAsync logs an NFE so we can track down while we're failing to roundtrip the
+                    //    definition so we can track down that issue.
+                    // 2. NFE'ing and failing to show a result, is much better than NFE'ing and then crashing
+                    //    immediately afterwards.
+                    if (!_groupMap.TryGetValue(serializableSymbolGroup, out symbolGroup) ||
+                        !_definitionMap.TryGetValue(serializableSymbol, out symbol))
+                    {
+                        continue;
+                    }
                 }
+
+                var referenceLocation = await reference.RehydrateAsync(
+                    solution, cancellationToken).ConfigureAwait(false);
+                rehydrated.Add((symbolGroup, symbol, referenceLocation));
             }
 
-            var referenceLocation = await reference.RehydrateAsync(
-                solution, cancellationToken).ConfigureAwait(false);
-
-            await progress.OnReferenceFoundAsync(symbolGroup, symbol, referenceLocation, cancellationToken).ConfigureAwait(false);
+            await progress.OnReferencesFoundAsync(rehydrated.ToImmutableAndClear(), cancellationToken).ConfigureAwait(false);
         }
     }
 }

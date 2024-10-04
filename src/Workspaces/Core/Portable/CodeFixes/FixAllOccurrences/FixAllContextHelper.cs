@@ -2,16 +2,15 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -64,23 +63,35 @@ internal static partial class FixAllContextHelper
                 break;
 
             case FixAllScope.Solution:
-                var projectsToFix = project.Solution.Projects
-                    .Where(p => p.Language == project.Language)
-                    .ToImmutableArray();
-
-                // Update the progress dialog with the count of projects to actually fix. We'll update the progress
-                // bar as we get all the documents in AddDocumentDiagnosticsAsync.
-
-                progressTracker.AddItems(projectsToFix.Length);
-
-                var diagnostics = new ConcurrentDictionary<ProjectId, ImmutableArray<Diagnostic>>();
-                using (var _ = ArrayBuilder<Task>.GetInstance(projectsToFix.Length, out var tasks))
                 {
-                    foreach (var projectToFix in projectsToFix)
-                        tasks.Add(Task.Run(async () => await AddDocumentDiagnosticsAsync(diagnostics, projectToFix).ConfigureAwait(false), cancellationToken));
+                    var projectsToFix = project.Solution.Projects
+                        .Where(p => p.Language == project.Language)
+                        .ToImmutableArray();
 
-                    await Task.WhenAll(tasks).ConfigureAwait(false);
-                    allDiagnostics = allDiagnostics.AddRange(diagnostics.SelectMany(i => i.Value));
+                    // Update the progress dialog with the count of projects to actually fix. We'll update the progress
+                    // bar as we get all the documents in AddDocumentDiagnosticsAsync.
+
+                    progressTracker.AddItems(projectsToFix.Length);
+
+                    allDiagnostics = await ProducerConsumer<ImmutableArray<Diagnostic>>.RunParallelAsync(
+                        source: projectsToFix,
+                        produceItems: static async (projectToFix, callback, args, cancellationToken) =>
+                        {
+                            var (fixAllContext, progressTracker) = args;
+                            using var _ = progressTracker.ItemCompletedScope();
+                            callback(await fixAllContext.GetAllDiagnosticsAsync(projectToFix).ConfigureAwait(false));
+                        },
+                        consumeItems: static async (results, _1, cancellationToken) =>
+                        {
+                            using var _2 = ArrayBuilder<Diagnostic>.GetInstance(out var builder);
+
+                            await foreach (var diagnostics in results)
+                                builder.AddRange(diagnostics);
+
+                            return builder.ToImmutableAndClear();
+                        },
+                        args: (fixAllContext, progressTracker),
+                        cancellationToken).ConfigureAwait(false);
                 }
 
                 break;
@@ -93,19 +104,6 @@ internal static partial class FixAllContextHelper
 
         return await GetDocumentDiagnosticsToFixAsync(
             fixAllContext.Solution, allDiagnostics, fixAllContext.CancellationToken).ConfigureAwait(false);
-
-        async Task AddDocumentDiagnosticsAsync(ConcurrentDictionary<ProjectId, ImmutableArray<Diagnostic>> diagnostics, Project projectToFix)
-        {
-            try
-            {
-                var projectDiagnostics = await fixAllContext.GetAllDiagnosticsAsync(projectToFix).ConfigureAwait(false);
-                diagnostics.TryAdd(projectToFix.Id, projectDiagnostics);
-            }
-            finally
-            {
-                progressTracker.ItemCompleted();
-            }
-        }
 
         static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetSpanDiagnosticsAsync(
             FixAllContext fixAllContext,

@@ -10,6 +10,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions;
 
+using static SyntaxFactory;
+
 internal static class ITypeParameterSymbolExtensions
 {
     public static SyntaxList<TypeParameterConstraintClauseSyntax> GenerateConstraintClauses(
@@ -39,19 +41,19 @@ internal static class ITypeParameterSymbolExtensions
 
         if (typeParameter.HasReferenceTypeConstraint)
         {
-            constraints.Add(SyntaxFactory.ClassOrStructConstraint(SyntaxKind.ClassConstraint));
+            constraints.Add(ClassOrStructConstraint(SyntaxKind.ClassConstraint));
         }
         else if (typeParameter.HasUnmanagedTypeConstraint)
         {
-            constraints.Add(SyntaxFactory.TypeConstraint(SyntaxFactory.IdentifierName("unmanaged")));
+            constraints.Add(TypeConstraint(IdentifierName("unmanaged")));
         }
         else if (typeParameter.HasValueTypeConstraint)
         {
-            constraints.Add(SyntaxFactory.ClassOrStructConstraint(SyntaxKind.StructConstraint));
+            constraints.Add(ClassOrStructConstraint(SyntaxKind.StructConstraint));
         }
         else if (typeParameter.HasNotNullConstraint)
         {
-            constraints.Add(SyntaxFactory.TypeConstraint(SyntaxFactory.IdentifierName("notnull")));
+            constraints.Add(TypeConstraint(IdentifierName("notnull")));
         }
 
         var constraintTypes =
@@ -63,13 +65,19 @@ internal static class ITypeParameterSymbolExtensions
         {
             if (type.SpecialType != SpecialType.System_Object)
             {
-                constraints.Add(SyntaxFactory.TypeConstraint(type.GenerateTypeSyntax()));
+                constraints.Add(TypeConstraint(type.GenerateTypeSyntax()));
             }
         }
 
         if (typeParameter.HasConstructorConstraint)
         {
-            constraints.Add(SyntaxFactory.ConstructorConstraint());
+            constraints.Add(ConstructorConstraint());
+        }
+
+        if (typeParameter.AllowsRefLikeType)
+        {
+            // "allows ref struct" anti-constraint must be last
+            constraints.Add(AllowsConstraintClause([RefStructConstraint()]));
         }
 
         if (constraints.Count == 0)
@@ -77,7 +85,7 @@ internal static class ITypeParameterSymbolExtensions
             return;
         }
 
-        clauses.Add(SyntaxFactory.TypeParameterConstraintClause(
+        clauses.Add(TypeParameterConstraintClause(
             typeParameter.Name.ToIdentifierName(),
             [.. constraints]));
     }

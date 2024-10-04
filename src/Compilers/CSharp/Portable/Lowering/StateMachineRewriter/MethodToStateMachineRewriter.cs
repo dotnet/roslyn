@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 proxies.TryGetValue(thisParameter, out thisProxy) &&
                 F.Compilation.Options.OptimizationLevel == OptimizationLevel.Release)
             {
-                BoundExpression thisProxyReplacement = thisProxy.Replacement(F.Syntax, frameType => F.This());
+                BoundExpression thisProxyReplacement = thisProxy.Replacement(F.Syntax, static (frameType, F) => F.This(), F);
                 Debug.Assert(thisProxyReplacement.Type is not null);
                 this.cachedThis = F.SynthesizedLocal(thisProxyReplacement.Type, syntax: F.Syntax, kind: SynthesizedLocalKind.FrameCache);
             }
@@ -159,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 #nullable disable
 
         protected abstract StateMachineState FirstIncreasingResumableState { get; }
-        protected abstract string EncMissingStateMessage { get; }
+        protected abstract HotReloadExceptionCode EncMissingStateErrorCode { get; }
 
         /// <summary>
         /// Generate return statements from the state machine method body.
@@ -217,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected void AddStateDebugInfo(SyntaxNode node, AwaitDebugId awaitId, StateMachineState state)
         {
-            Debug.Assert(SyntaxBindingUtilities.BindsToResumableStateMachineState(node) || SyntaxBindingUtilities.BindsToTryStatement(node), $"Unexpected syntax: {node.Kind()}");
+            RoslynDebug.Assert(SyntaxBindingUtilities.BindsToResumableStateMachineState(node) || SyntaxBindingUtilities.BindsToTryStatement(node), $"Unexpected syntax: {node.Kind()}");
 
             int syntaxOffset = CurrentMethod.CalculateLocalSyntaxOffset(node.SpanStart, node.SyntaxTree);
             _stateDebugInfoBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, awaitId, state));
@@ -264,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         protected virtual BoundStatement? GenerateMissingStateDispatch()
-            => _resumableStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(cachedState), EncMissingStateMessage);
+            => _resumableStateAllocator.GenerateThrowMissingStateDispatch(F, F.Local(cachedState), EncMissingStateErrorCode);
 
 #nullable disable
 #if DEBUG
@@ -925,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)this.cachedThis != null)
             {
                 CapturedSymbolReplacement proxy = proxies[this.OriginalMethod.ThisParameter];
-                var fetchThis = proxy.Replacement(F.Syntax, frameType => F.This());
+                var fetchThis = proxy.Replacement(F.Syntax, static (frameType, F) => F.This(), F);
                 return F.Assignment(F.Local(this.cachedThis), fetchThis);
             }
 
@@ -961,7 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(proxy != null);
-                return proxy.Replacement(F.Syntax, frameType => F.This());
+                return proxy.Replacement(F.Syntax, static (frameType, F) => F.This(), F);
             }
         }
 
@@ -977,7 +978,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CapturedSymbolReplacement proxy = proxies[this.OriginalMethod.ThisParameter];
             Debug.Assert(proxy != null);
-            return proxy.Replacement(F.Syntax, frameType => F.This());
+            return proxy.Replacement(F.Syntax, static (frameType, F) => F.This(), F);
         }
 
         #endregion

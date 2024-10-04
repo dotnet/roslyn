@@ -372,6 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return invocation.Expression switch
             {
                 MemberAccessExpressionSyntax memberAccess => memberAccess.Name,
+                MemberBindingExpressionSyntax memberBinding => memberBinding.Name,
                 SimpleNameSyntax name => name,
                 _ => null
             };

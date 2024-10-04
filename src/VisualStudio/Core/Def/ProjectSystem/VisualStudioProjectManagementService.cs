@@ -10,8 +10,10 @@ using System.Composition;
 using System.Linq;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
@@ -20,18 +22,15 @@ using Roslyn.Utilities;
 namespace Roslyn.VisualStudio.Services.Implementation.ProjectSystem;
 
 [ExportWorkspaceService(typeof(IProjectManagementService), ServiceLayer.Host), Shared]
-internal class VisualStudioProjectManagementService : ForegroundThreadAffinitizedObject, IProjectManagementService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class VisualStudioProjectManagementService(IThreadingContext threadingContext) : IProjectManagementService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VisualStudioProjectManagementService(IThreadingContext threadingContext)
-        : base(threadingContext)
-    {
-    }
+    private readonly IThreadingContext _threadingContext = threadingContext;
 
     public string GetDefaultNamespace(Microsoft.CodeAnalysis.Project project, Workspace workspace)
     {
-        this.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (project.Language == LanguageNames.VisualBasic)
         {
@@ -69,13 +68,12 @@ internal class VisualStudioProjectManagementService : ForegroundThreadAffinitize
 
             var projectItems = envDTEProject.ProjectItems;
 
-            var projectItemsStack = new Stack<Tuple<ProjectItem, string>>();
+            using var _ = ArrayBuilder<Tuple<ProjectItem, string>>.GetInstance(out var projectItemsStack);
 
             // Populate the stack
             projectItems.OfType<ProjectItem>().Where(n => n.IsFolder()).Do(n => projectItemsStack.Push(Tuple.Create(n, "\\")));
-            while (projectItemsStack.Count != 0)
+            while (projectItemsStack.TryPop(out var projectItemTuple))
             {
-                var projectItemTuple = projectItemsStack.Pop();
                 var projectItem = projectItemTuple.Item1;
                 var currentFolderPath = projectItemTuple.Item2;
 

@@ -17,6 +17,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
+using static CSharpSyntaxTokens;
+
 [ExportLanguageService(typeof(SyntaxGeneratorInternal), LanguageNames.CSharp), Shared]
 internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
 {
@@ -28,15 +30,31 @@ internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
 
     public static readonly SyntaxGeneratorInternal Instance = new CSharpSyntaxGeneratorInternal();
 
-    public override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+    public override ISyntaxFacts SyntaxFacts
+        => CSharpSyntaxFacts.Instance;
+
+    public override SyntaxTrivia CarriageReturnLineFeed
+        => SyntaxFactory.CarriageReturnLineFeed;
+
+    public override SyntaxTrivia ElasticCarriageReturnLineFeed
+        => SyntaxFactory.ElasticCarriageReturnLineFeed;
+
+    public override bool SupportsThrowExpression()
+        => true;
+
+    public override bool RequiresExplicitImplementationForInterfaceMembers
+        => false;
 
     public override SyntaxTrivia EndOfLine(string text)
         => SyntaxFactory.EndOfLine(text);
 
+    public override SyntaxTrivia SingleLineComment(string text)
+        => SyntaxFactory.Comment("//" + text);
+
     public override SyntaxNode LocalDeclarationStatement(SyntaxNode? type, SyntaxToken name, SyntaxNode? initializer, bool isConst)
     {
         return SyntaxFactory.LocalDeclarationStatement(
-            isConst ? [SyntaxFactory.Token(SyntaxKind.ConstKeyword)] : default,
+            isConst ? [ConstKeyword] : default,
              VariableDeclaration(type, name, initializer));
     }
 
@@ -104,11 +122,11 @@ internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
         => SyntaxFactory.Interpolation((ExpressionSyntax)syntaxNode);
 
     public override SyntaxNode InterpolationAlignmentClause(SyntaxNode alignment)
-        => SyntaxFactory.InterpolationAlignmentClause(SyntaxFactory.Token(SyntaxKind.CommaToken), (ExpressionSyntax)alignment);
+        => SyntaxFactory.InterpolationAlignmentClause(CommaToken, (ExpressionSyntax)alignment);
 
     public override SyntaxNode InterpolationFormatClause(string format)
         => SyntaxFactory.InterpolationFormatClause(
-                SyntaxFactory.Token(SyntaxKind.ColonToken),
+                ColonToken,
                 SyntaxFactory.Token(default, SyntaxKind.InterpolatedStringTextToken, format, format, default));
 
     public override SyntaxNode TypeParameterList(IEnumerable<string> typeParameterNames)
@@ -118,14 +136,14 @@ internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
         => refKind switch
         {
             RefKind.None => [],
-            RefKind.Out => [SyntaxFactory.Token(SyntaxKind.OutKeyword)],
-            RefKind.Ref => [SyntaxFactory.Token(SyntaxKind.RefKeyword)],
+            RefKind.Out => [OutKeyword],
+            RefKind.Ref => [RefKeyword],
             // Note: RefKind.RefReadonly == RefKind.In. Function Pointers must use the correct
             // ref kind syntax when generating for the return parameter vs other parameters.
             // The return parameter must use ref readonly, like regular methods.
-            RefKind.In when !forFunctionPointerReturnParameter => [SyntaxFactory.Token(SyntaxKind.InKeyword)],
-            RefKind.RefReadOnly when forFunctionPointerReturnParameter => [SyntaxFactory.Token(SyntaxKind.RefKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)],
-            RefKind.RefReadOnlyParameter => [SyntaxFactory.Token(SyntaxKind.RefKeyword), SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword)],
+            RefKind.In when !forFunctionPointerReturnParameter => [InKeyword],
+            RefKind.RefReadOnly when forFunctionPointerReturnParameter => [RefKeyword, ReadOnlyKeyword],
+            RefKind.RefReadOnlyParameter => [RefKeyword, ReadOnlyKeyword],
             _ => throw ExceptionUtilities.UnexpectedValue(refKind),
         };
 
@@ -151,7 +169,7 @@ internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
     public override SyntaxNode IsPatternExpression(SyntaxNode expression, SyntaxToken isKeyword, SyntaxNode pattern)
         => SyntaxFactory.IsPatternExpression(
             (ExpressionSyntax)expression,
-            isKeyword == default ? SyntaxFactory.Token(SyntaxKind.IsKeyword) : isKeyword,
+            isKeyword == default ? IsKeyword : isKeyword,
             (PatternSyntax)pattern);
 
     public override SyntaxNode AndPattern(SyntaxNode left, SyntaxNode right)
@@ -166,19 +184,19 @@ internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
             SyntaxFactory.SingleVariableDesignation(name.ToIdentifierToken()));
 
     public override SyntaxNode LessThanRelationalPattern(SyntaxNode expression)
-        => SyntaxFactory.RelationalPattern(SyntaxFactory.Token(SyntaxKind.LessThanToken), (ExpressionSyntax)expression);
+        => SyntaxFactory.RelationalPattern(LessThanToken, (ExpressionSyntax)expression);
 
     public override SyntaxNode LessThanEqualsRelationalPattern(SyntaxNode expression)
-        => SyntaxFactory.RelationalPattern(SyntaxFactory.Token(SyntaxKind.LessThanEqualsToken), (ExpressionSyntax)expression);
+        => SyntaxFactory.RelationalPattern(LessThanEqualsToken, (ExpressionSyntax)expression);
 
     public override SyntaxNode GreaterThanRelationalPattern(SyntaxNode expression)
-        => SyntaxFactory.RelationalPattern(SyntaxFactory.Token(SyntaxKind.GreaterThanToken), (ExpressionSyntax)expression);
+        => SyntaxFactory.RelationalPattern(GreaterThanToken, (ExpressionSyntax)expression);
 
     public override SyntaxNode GreaterThanEqualsRelationalPattern(SyntaxNode expression)
-        => SyntaxFactory.RelationalPattern(SyntaxFactory.Token(SyntaxKind.GreaterThanEqualsToken), (ExpressionSyntax)expression);
+        => SyntaxFactory.RelationalPattern(GreaterThanEqualsToken, (ExpressionSyntax)expression);
 
     public override SyntaxNode NotPattern(SyntaxNode pattern)
-        => SyntaxFactory.UnaryPattern(SyntaxFactory.Token(SyntaxKind.NotKeyword), (PatternSyntax)Parenthesize(pattern));
+        => SyntaxFactory.UnaryPattern(NotKeyword, (PatternSyntax)Parenthesize(pattern));
 
     public override SyntaxNode OrPattern(SyntaxNode left, SyntaxNode right)
         => SyntaxFactory.BinaryPattern(SyntaxKind.OrPattern, (PatternSyntax)Parenthesize(left), (PatternSyntax)Parenthesize(right));

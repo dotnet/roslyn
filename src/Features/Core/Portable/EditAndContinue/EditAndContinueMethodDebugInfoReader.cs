@@ -236,7 +236,7 @@ internal abstract class EditAndContinueMethodDebugInfoReader
         }
 
         algorithmId = symDocument.GetHashAlgorithm();
-        checksum = symDocument.GetChecksum().ToImmutableArray();
+        checksum = [.. symDocument.GetChecksum()];
         return true;
     }
 }

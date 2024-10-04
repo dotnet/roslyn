@@ -59,8 +59,7 @@ public class FormatterTests
         AssertEx.Equal(@"Formatted with options: LineFormattingOptions { UseTabs = False, TabSize = 4, IndentationSize = 4, NewLine = \r\n }", formattedText.ToString());
     }
 
-    [Theory]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public async Task FormatAsync_ForeignLanguageWithFormattingSupport_Options(bool passExplicitOptions)
     {
         var hostServices = s_composition.AddParts([typeof(NoCompilationLanguageService), typeof(TestFormattingService)]).GetHostServices();

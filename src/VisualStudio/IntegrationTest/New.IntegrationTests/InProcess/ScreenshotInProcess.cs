@@ -157,52 +157,50 @@ internal partial class ScreenshotInProcess
                         return;
                     }
 
-                    frames = s_frames.ToArray();
+                    frames = [.. s_frames];
                 }
 
                 // Make sure the frames are processed in order of their timestamps
                 Array.Sort(frames, (x, y) => x.elapsed.CompareTo(y.elapsed));
                 var croppedFrames = DetectChangedRegions(frames);
 
-                using (var fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.Write))
+                using var fileStream = new FileStream(fullPath, FileMode.Create, FileAccess.Write);
+                var crc = new Crc32();
+                var buffer = s_pool.Rent(4096);
+                try
                 {
-                    var crc = new Crc32();
-                    var buffer = s_pool.Rent(4096);
-                    try
+                    var firstFrame = croppedFrames[0];
+                    var firstEncoded = EncodeFrame(firstFrame.image);
+
+                    // PNG Signature (8 bytes)
+                    WritePngSignature(fileStream, buffer);
+
+                    // IHDR
+                    Write(fileStream, buffer, crc: null, firstEncoded.ihdr.Span);
+
+                    // acTL
+                    WriteActl(fileStream, buffer, crc, croppedFrames.Length, playCount: 1);
+
+                    // Write the first frame data as IDAT
+                    WriteFctl(fileStream, buffer, crc, sequenceNumber: 0, size: new Size(firstFrame.image.PixelWidth, firstFrame.image.PixelHeight), offset: firstFrame.offset, delay: TimeSpan.Zero, ApngDisposeOp.None, ApngBlendOp.Source);
+                    foreach (var idat in firstEncoded.idat)
                     {
-                        var firstFrame = croppedFrames[0];
-                        var firstEncoded = EncodeFrame(firstFrame.image);
-
-                        // PNG Signature (8 bytes)
-                        WritePngSignature(fileStream, buffer);
-
-                        // IHDR
-                        Write(fileStream, buffer, crc: null, firstEncoded.ihdr.Span);
-
-                        // acTL
-                        WriteActl(fileStream, buffer, crc, croppedFrames.Length, playCount: 1);
-
-                        // Write the first frame data as IDAT
-                        WriteFctl(fileStream, buffer, crc, sequenceNumber: 0, size: new Size(firstFrame.image.PixelWidth, firstFrame.image.PixelHeight), offset: firstFrame.offset, delay: TimeSpan.Zero, ApngDisposeOp.None, ApngBlendOp.Source);
-                        foreach (var idat in firstEncoded.idat)
-                        {
-                            Write(fileStream, buffer, crc: null, idat.Span);
-                        }
-
-                        // Write the remaining frames as fDAT
-                        var sequenceNumber = 1;
-                        for (var i = 1; i < croppedFrames.Length; i++)
-                        {
-                            var elapsed = croppedFrames[i].elapsed - croppedFrames[i - 1].elapsed;
-                            WriteFrame(fileStream, buffer, crc, ref sequenceNumber, croppedFrames[i].image, croppedFrames[i].offset, elapsed);
-                        }
-
-                        WriteIend(fileStream, buffer, crc);
+                        Write(fileStream, buffer, crc: null, idat.Span);
                     }
-                    finally
+
+                    // Write the remaining frames as fDAT
+                    var sequenceNumber = 1;
+                    for (var i = 1; i < croppedFrames.Length; i++)
                     {
-                        s_pool.Return(buffer);
+                        var elapsed = croppedFrames[i].elapsed - croppedFrames[i - 1].elapsed;
+                        WriteFrame(fileStream, buffer, crc, ref sequenceNumber, croppedFrames[i].image, croppedFrames[i].offset, elapsed);
                     }
+
+                    WriteIend(fileStream, buffer, crc);
+                }
+                finally
+                {
+                    s_pool.Return(buffer);
                 }
             },
             "",
@@ -303,7 +301,7 @@ internal partial class ScreenshotInProcess
             Marshal.FreeHGlobal(imageBuffer);
         }
 
-        return resultFrames.ToArray();
+        return [.. resultFrames];
     }
 
     private static void WritePngSignature(Stream stream, byte[] buffer)
@@ -617,44 +615,42 @@ internal partial class ScreenshotInProcess
             return null;
         }
 
-        using (var bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb))
-        using (var graphics = Graphics.FromImage(bitmap))
+        using var bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+        using var graphics = Graphics.FromImage(bitmap);
+        graphics.CopyFromScreen(
+            sourceX: Screen.PrimaryScreen.Bounds.X,
+            sourceY: Screen.PrimaryScreen.Bounds.Y,
+            destinationX: 0,
+            destinationY: 0,
+            blockRegionSize: bitmap.Size,
+            copyPixelOperation: CopyPixelOperation.SourceCopy);
+
+        if (Cursor.Current is { } cursor)
         {
-            graphics.CopyFromScreen(
-                sourceX: Screen.PrimaryScreen.Bounds.X,
-                sourceY: Screen.PrimaryScreen.Bounds.Y,
-                destinationX: 0,
-                destinationY: 0,
-                blockRegionSize: bitmap.Size,
-                copyPixelOperation: CopyPixelOperation.SourceCopy);
+            var bounds = new Rectangle(Cursor.Position - (Size)cursor.HotSpot, cursor.Size);
+            cursor.Draw(graphics, bounds);
+        }
 
-            if (Cursor.Current is { } cursor)
-            {
-                var bounds = new Rectangle(Cursor.Position - (Size)cursor.HotSpot, cursor.Size);
-                cursor.Draw(graphics, bounds);
-            }
-
-            var bitmapData = bitmap.LockBits(
-                new Rectangle(0, 0, bitmap.Width, bitmap.Height),
-                ImageLockMode.ReadOnly,
-                PixelFormat.Format32bppArgb);
-            try
-            {
-                return BitmapSource.Create(
-                    bitmapData.Width,
-                    bitmapData.Height,
-                    bitmap.HorizontalResolution,
-                    bitmap.VerticalResolution,
-                    PixelFormats.Bgra32,
-                    null,
-                    bitmapData.Scan0,
-                    bitmapData.Stride * bitmapData.Height,
-                    bitmapData.Stride);
-            }
-            finally
-            {
-                bitmap.UnlockBits(bitmapData);
-            }
+        var bitmapData = bitmap.LockBits(
+            new Rectangle(0, 0, bitmap.Width, bitmap.Height),
+            ImageLockMode.ReadOnly,
+            PixelFormat.Format32bppArgb);
+        try
+        {
+            return BitmapSource.Create(
+                bitmapData.Width,
+                bitmapData.Height,
+                bitmap.HorizontalResolution,
+                bitmap.VerticalResolution,
+                PixelFormats.Bgra32,
+                null,
+                bitmapData.Scan0,
+                bitmapData.Stride * bitmapData.Height,
+                bitmapData.Stride);
+        }
+        finally
+        {
+            bitmap.UnlockBits(bitmapData);
         }
     }
 }

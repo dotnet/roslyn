@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var info2 = SolutionInfo.Create(solutionId, version);
             Assert.True(((ImmutableArray<ProjectInfo>)info2.Projects).IsEmpty);
 
-            var info3 = SolutionInfo.Create(solutionId, version, projects: new ProjectInfo[0]);
+            var info3 = SolutionInfo.Create(solutionId, version, projects: []);
             Assert.True(((ImmutableArray<ProjectInfo>)info3.Projects).IsEmpty);
 
             var info4 = SolutionInfo.Create(solutionId, version, projects: []);

@@ -51,9 +51,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         protected ProjectId GetProjectId()
             => FileCodeModel.GetProjectId();
 
-        internal IGlobalOptionService GlobalOptions
-            => FileCodeModel.GlobalOptions;
-
         internal bool IsValidNode()
         {
             if (!TryLookupNode(out var node))
@@ -143,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
         }
 
         private LineFormattingOptions GetLineFormattingOptions()
-            => State.ThreadingContext.JoinableTaskFactory.Run(() => GetDocument().GetLineFormattingOptionsAsync(GlobalOptions, CancellationToken.None).AsTask());
+            => State.ThreadingContext.JoinableTaskFactory.Run(() => GetDocument().GetLineFormattingOptionsAsync(CancellationToken.None).AsTask());
 
         public EnvDTE.TextPoint StartPoint
         {

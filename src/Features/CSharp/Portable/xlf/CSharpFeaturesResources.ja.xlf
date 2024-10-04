@@ -269,7 +269,7 @@
       </trans-unit>
       <trans-unit id="do_while_loop">
         <source>do-while loop</source>
-        <target state="new">do-while loop</target>
+        <target state="translated">do-while ループ</target>
         <note>{Locked="do"}{Locked="while"} "do" and "while" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="extern_alias">
@@ -404,7 +404,7 @@
       </trans-unit>
       <trans-unit id="extension">
         <source>extension</source>
-        <target state="translated">拡張子</target>
+        <target state="translated">拡張</target>
         <note />
       </trans-unit>
       <trans-unit id="awaitable">
@@ -414,22 +414,12 @@
       </trans-unit>
       <trans-unit id="awaitable_extension">
         <source>awaitable, extension</source>
-        <target state="translated">待機可能、拡張子</target>
+        <target state="translated">待機可能、拡張</target>
         <note />
       </trans-unit>
       <trans-unit id="Organize_Usings">
         <source>Organize Usings</source>
         <target state="translated">using の整理</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_explicit_conversion_operator_in_0">
-        <source>Generate explicit conversion operator in '{0}'</source>
-        <target state="translated">明示的な変換演算子を '{0}' に生成します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_implicit_conversion_operator_in_0">
-        <source>Generate implicit conversion operator in '{0}'</source>
-        <target state="translated">暗黙的な変換演算子を '{0}' に生成します</target>
         <note />
       </trans-unit>
       <trans-unit id="record_">

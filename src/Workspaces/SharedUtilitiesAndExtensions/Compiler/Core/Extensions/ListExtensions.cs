@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
@@ -40,6 +41,25 @@ internal static class ListExtensions
     }
 
     public static void RemoveOrTransformAll<T, TArg>(this List<T> list, Func<T, TArg, T?> transform, TArg arg)
+        where T : struct
+    {
+        RoslynDebug.AssertNotNull(list);
+        RoslynDebug.AssertNotNull(transform);
+
+        var targetIndex = 0;
+        for (var sourceIndex = 0; sourceIndex < list.Count; sourceIndex++)
+        {
+            var newValue = transform(list[sourceIndex], arg);
+            if (newValue is null)
+                continue;
+
+            list[targetIndex++] = newValue.Value;
+        }
+
+        list.RemoveRange(targetIndex, list.Count - targetIndex);
+    }
+
+    public static void RemoveOrTransformAll<T, TArg>(this ArrayBuilder<T> list, Func<T, TArg, T?> transform, TArg arg)
         where T : struct
     {
         RoslynDebug.AssertNotNull(list);

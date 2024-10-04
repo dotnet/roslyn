@@ -13,7 +13,8 @@ namespace Microsoft.CodeAnalysis.Classification.Classifiers;
 internal interface ISyntaxClassifier
 {
     /// <summary>
-    /// The syntax node types this classifier is able to classify
+    /// The syntax node types this classifier is able to classify. This list must be the precise node types matches
+    /// (using <code>n.GetType().Equals(t)</code>).  Subtyping type checks are not supported here.
     /// </summary>
     ImmutableArray<Type> SyntaxNodeTypes { get; }
 

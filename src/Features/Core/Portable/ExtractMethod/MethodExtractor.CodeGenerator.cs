@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -288,7 +287,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 list.Add(declaration);
             }
 
-            return list.ToImmutable();
+            return list.ToImmutableAndClear();
         }
 
         protected ImmutableArray<TStatementSyntax> AppendReturnStatementIfNeeded(ImmutableArray<TStatementSyntax> statements)
@@ -344,7 +343,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 typeParameters.Add(CodeGenerationSymbolFactory.CreateTypeParameter(
                     parameter.GetAttributes(), parameter.Variance, parameter.Name, [], parameter.NullableAnnotation,
                     parameter.HasConstructorConstraint, parameter.HasReferenceTypeConstraint, parameter.HasUnmanagedTypeConstraint,
-                    parameter.HasValueTypeConstraint, parameter.HasNotNullConstraint, parameter.Ordinal));
+                    parameter.HasValueTypeConstraint, parameter.HasNotNullConstraint, parameter.AllowsRefLikeType, parameter.Ordinal));
             }
 
             return typeParameters.ToImmutableAndFree();

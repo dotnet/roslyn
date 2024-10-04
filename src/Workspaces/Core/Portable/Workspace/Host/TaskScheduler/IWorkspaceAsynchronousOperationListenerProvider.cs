@@ -12,4 +12,5 @@ namespace Microsoft.CodeAnalysis.Host;
 internal interface IWorkspaceAsynchronousOperationListenerProvider : IWorkspaceService
 {
     IAsynchronousOperationListener GetListener();
+    IAsynchronousOperationListener GetListener(string featureName);
 }

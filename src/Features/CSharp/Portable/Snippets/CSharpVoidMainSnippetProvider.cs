@@ -10,12 +10,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
+
+using static CSharpSyntaxTokens;
 
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
@@ -27,7 +28,7 @@ internal sealed class CSharpVoidMainSnippetProvider() : AbstractCSharpMainMethod
     public override string Description => CSharpFeaturesResources.static_void_Main;
 
     protected override TypeSyntax GenerateReturnType(SyntaxGenerator generator)
-        => SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword));
+        => SyntaxFactory.PredefinedType(VoidKeyword);
 
     protected override IEnumerable<StatementSyntax> GenerateInnerStatements(SyntaxGenerator generator)
         => [];

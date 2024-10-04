@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
@@ -19,7 +20,7 @@ internal sealed class DefaultOperationProvider : AbstractFormattingRule
     {
     }
 
-    public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+    public override void AddSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
     {
     }
 

@@ -10,7 +10,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -53,8 +52,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var activeStatementCount = Math.Max(OldStatements.Length, (newActiveStatementMarkers.Length == 0) ? -1 : newActiveStatementMarkers.Max(m => m.Id));
 
-            var newMappedSpans = new ArrayBuilder<SourceFileSpan>();
-            var newMappedRegions = new ArrayBuilder<ImmutableArray<SourceFileSpan>>();
+            using var _1 = ArrayBuilder<SourceFileSpan>.GetInstance(out var newMappedSpans);
+            using var _2 = ArrayBuilder<ImmutableArray<SourceFileSpan>>.GetInstance(out var newMappedRegions);
             var newExceptionRegionMarkers = SourceMarkers.GetExceptionRegions(newMarkedSource);
 
             newMappedSpans.ZeroInit(activeStatementCount);
@@ -100,7 +99,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var activeStatementMarkers = SourceMarkers.GetActiveSpans(markedSource).ToArray();
             var exceptionRegionMarkers = SourceMarkers.GetExceptionRegions(markedSource);
 
-            return activeStatementMarkers.Aggregate(
+            return [.. activeStatementMarkers.Aggregate(
                 new List<UnmappedActiveStatement>(),
                 (list, marker) =>
                 {
@@ -126,7 +125,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
                     documentActiveStatements.Add(unmappedActiveStatement.Statement);
                     return SourceMarkers.SetListItem(list, ordinal, unmappedActiveStatement);
-                }).ToImmutableArray();
+                })];
         }
 
         internal static ImmutableArray<UnmappedActiveStatement> GetUnmappedActiveStatements(
@@ -138,7 +137,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             var map = new Dictionary<string, List<ActiveStatement>>();
 
-            var activeStatements = new ArrayBuilder<UnmappedActiveStatement>();
+            using var _ = ArrayBuilder<UnmappedActiveStatement>.GetInstance(out var activeStatements);
 
             var sourceIndex = 0;
             foreach (var markedSource in markedSources)
@@ -152,7 +151,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             }
 
             activeStatements.Sort((x, y) => x.Statement.Id.Ordinal.CompareTo(y.Statement.Id.Ordinal));
-            return activeStatements.ToImmutable();
+            return activeStatements.ToImmutableAndClear();
         }
 
         internal static ImmutableArray<ManagedActiveStatementDebugInfo> GetActiveStatementDebugInfos(

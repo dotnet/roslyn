@@ -27,7 +27,7 @@ internal static partial class ModifiersOrganizer
             {
                 finalList[0] = finalList[0].WithLeadingTrivia(leadingTrivia);
 
-                return finalList.ToSyntaxTokenList();
+                return [.. finalList];
             }
         }
 

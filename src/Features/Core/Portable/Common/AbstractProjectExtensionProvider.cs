@@ -18,7 +18,7 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
     where TExportAttribute : Attribute
     where TExtension : class
 {
-    public record class ExtensionInfo(string[] DocumentKinds, string[]? DocumentExtensions);
+    public record class ExtensionInfo(ImmutableArray<TextDocumentKind> DocumentKinds, string[]? DocumentExtensions);
 
     // Following CWTs are used to cache completion providers from projects' references,
     // so we can avoid the slow path unless there's any change to the references.
@@ -73,7 +73,7 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
                     builder.Add(extension);
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
     }
 
@@ -87,25 +87,23 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
 
     public static ImmutableArray<TExtension> FilterExtensions(TextDocument document, ImmutableArray<TExtension> extensions, Func<TExportAttribute, ExtensionInfo> getExtensionInfoForFiltering)
     {
-        return extensions.WhereAsArray(ShouldIncludeExtension);
+        return extensions.WhereAsArray(ShouldIncludeExtension, (document, getExtensionInfoForFiltering));
 
-        bool ShouldIncludeExtension(TExtension extension)
+        static bool ShouldIncludeExtension(TExtension extension, (TextDocument, Func<TExportAttribute, ExtensionInfo>) args)
         {
+            var (document, getExtensionInfoForFiltering) = args;
             if (!s_extensionInfoMap.TryGetValue(extension, out var extensionInfo))
-            {
-                extensionInfo = s_extensionInfoMap.GetValue(extension,
-                    new ConditionalWeakTable<TExtension, ExtensionInfo?>.CreateValueCallback(ComputeExtensionInfo));
-            }
+                extensionInfo = GetOrCreateExtensionInfo(extension, getExtensionInfoForFiltering);
 
             if (extensionInfo == null)
                 return true;
 
-            if (!extensionInfo.DocumentKinds.Contains(document.Kind.ToString()))
+            if (extensionInfo.DocumentKinds.IndexOf(document.Kind) < 0)
                 return false;
 
             if (document.FilePath != null &&
                 extensionInfo.DocumentExtensions != null &&
-                !extensionInfo.DocumentExtensions.Contains(PathUtilities.GetExtension(document.FilePath)))
+                Array.IndexOf(extensionInfo.DocumentExtensions, PathUtilities.GetExtension(document.FilePath)) < 0)
             {
                 return false;
             }
@@ -113,22 +111,28 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
             return true;
         }
 
-        ExtensionInfo? ComputeExtensionInfo(TExtension extension)
+        static ExtensionInfo? GetOrCreateExtensionInfo(TExtension extension, Func<TExportAttribute, ExtensionInfo> getExtensionInfoForFiltering)
         {
-            TExportAttribute? attribute;
-            try
-            {
-                var typeInfo = extension.GetType().GetTypeInfo();
-                attribute = typeInfo.GetCustomAttribute<TExportAttribute>();
-            }
-            catch
-            {
-                attribute = null;
-            }
+            return s_extensionInfoMap.GetValue(extension,
+                new ConditionalWeakTable<TExtension, ExtensionInfo?>.CreateValueCallback(ComputeExtensionInfo));
 
-            if (attribute == null)
-                return null;
-            return getExtensionInfoForFiltering(attribute);
+            ExtensionInfo? ComputeExtensionInfo(TExtension extension)
+            {
+                TExportAttribute? attribute;
+                try
+                {
+                    var typeInfo = extension.GetType().GetTypeInfo();
+                    attribute = typeInfo.GetCustomAttribute<TExportAttribute>();
+                }
+                catch
+                {
+                    attribute = null;
+                }
+
+                if (attribute == null)
+                    return null;
+                return getExtensionInfoForFiltering(attribute);
+            }
         }
     }
 
@@ -178,6 +182,6 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
             // NOTE: We could report "unable to load analyzer" exception here but it should have been already reported by DiagnosticService.
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 }

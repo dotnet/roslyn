@@ -35,15 +35,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End Get
         End Property
 
-        Public Overrides Function GetFormattingOptions(options As IOptionsReader, fallbackOptions As SyntaxFormattingOptions) As SyntaxFormattingOptions
-            Return New VisualBasicSyntaxFormattingOptions(options, DirectCast(fallbackOptions, VisualBasicSyntaxFormattingOptions))
+        Public Overrides Function GetFormattingOptions(options As IOptionsReader) As SyntaxFormattingOptions
+            Return New VisualBasicSyntaxFormattingOptions(options)
         End Function
 
-        Protected Overrides Function CreateAggregatedFormattingResult(node As SyntaxNode, results As IList(Of AbstractFormattingResult), Optional formattingSpans As TextSpanIntervalTree = Nothing) As IFormattingResult
+        Protected Overrides Function CreateAggregatedFormattingResult(node As SyntaxNode, results As IList(Of AbstractFormattingResult), Optional formattingSpans As TextSpanMutableIntervalTree = Nothing) As IFormattingResult
             Return New AggregatedFormattingResult(node, results, formattingSpans)
         End Function
 
-        Protected Overrides Function Format(root As SyntaxNode, options As SyntaxFormattingOptions, formattingRules As IEnumerable(Of AbstractFormattingRule), startToken As SyntaxToken, endToken As SyntaxToken, cancellationToken As CancellationToken) As AbstractFormattingResult
+        Protected Overrides Function Format(root As SyntaxNode, options As SyntaxFormattingOptions, formattingRules As ImmutableArray(Of AbstractFormattingRule), startToken As SyntaxToken, endToken As SyntaxToken, cancellationToken As CancellationToken) As AbstractFormattingResult
             Return New VisualBasicFormatEngine(root, options, formattingRules, startToken, endToken).Format(cancellationToken)
         End Function
     End Class

@@ -342,9 +342,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental As String =
             ServicesVSResources.Show_Remove_Unused_References_command_in_Solution_Explorer_experimental
 
-        Public ReadOnly Property Enable_all_features_in_opened_files_from_source_generators_experimental As String =
-             ServicesVSResources.Enable_all_features_in_opened_files_from_source_generators_experimental
-
         Public ReadOnly Property Option_Enable_file_logging_for_diagnostics As String =
             ServicesVSResources.Enable_file_logging_for_diagnostics
 

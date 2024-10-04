@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -16,7 +15,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -25,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExportCompletionProvider(nameof(FunctionPointerUnmanagedCallingConventionCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(AggregateEmbeddedLanguageCompletionProvider))]
 [Shared]
-internal partial class FunctionPointerUnmanagedCallingConventionCompletionProvider : LSPCompletionProvider
+internal sealed partial class FunctionPointerUnmanagedCallingConventionCompletionProvider : LSPCompletionProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -124,7 +122,7 @@ internal partial class FunctionPointerUnmanagedCallingConventionCompletionProvid
     internal override Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CompletionOptions options, SymbolDescriptionOptions displayOptions, CancellationToken cancellationToken)
         => SymbolCompletionItem.GetDescriptionAsync(item, document, displayOptions, cancellationToken);
 
-    private class CompletionItemComparer : IEqualityComparer<CompletionItem>
+    private sealed class CompletionItemComparer : IEqualityComparer<CompletionItem>
     {
         public static readonly IEqualityComparer<CompletionItem> Instance = new CompletionItemComparer();
 

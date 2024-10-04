@@ -4,7 +4,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.MSBuild.Rpc;
+namespace Microsoft.CodeAnalysis.MSBuild;
 
 internal sealed class RemoteInvocationException : Exception
 {

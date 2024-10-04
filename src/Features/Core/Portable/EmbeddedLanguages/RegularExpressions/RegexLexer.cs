@@ -124,7 +124,7 @@ internal struct RegexLexer
             break;
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     public RegexTrivia? ScanComment(RegexOptions options)

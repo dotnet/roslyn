@@ -4,17 +4,13 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Simplification;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
 
 internal readonly record struct CodeGenerationSolutionContext(
     Solution Solution,
-    CodeGenerationContext Context,
-    CodeAndImportGenerationOptionsProvider FallbackOptions);
+    CodeGenerationContext Context);
 
 /// <summary>
 /// General options for controlling the code produced by the <see cref="CodeGenerator"/> that apply to all documents.

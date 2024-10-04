@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -38,7 +37,7 @@ internal readonly struct SemanticModelReuseInfo(SemanticModel previousNonSpecula
     public readonly VersionStamp TopLevelSemanticVersion = topLevelSementicVersion;
 }
 
-internal partial class SemanticModelReuseWorkspaceServiceFactory : IWorkspaceServiceFactory
+internal sealed partial class SemanticModelReuseWorkspaceServiceFactory : IWorkspaceServiceFactory
 {
     private sealed class SemanticModelReuseWorkspaceService : ISemanticModelReuseWorkspaceService
     {

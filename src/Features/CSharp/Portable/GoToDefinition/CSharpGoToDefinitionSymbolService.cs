@@ -6,6 +6,8 @@ using System;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.GoToDefinition;
@@ -16,16 +18,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.GoToDefinition;
 
 [ExportLanguageService(typeof(IGoToDefinitionSymbolService), LanguageNames.CSharp), Shared]
-internal class CSharpGoToDefinitionSymbolService : AbstractGoToDefinitionSymbolService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpGoToDefinitionSymbolService() : AbstractGoToDefinitionSymbolService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpGoToDefinitionSymbolService()
-    {
-    }
-
-    protected override ISymbol FindRelatedExplicitlyDeclaredSymbol(ISymbol symbol, Compilation compilation)
-        => symbol;
+    protected override Task<ISymbol> FindRelatedExplicitlyDeclaredSymbolAsync(Project project, ISymbol symbol, CancellationToken cancellationToken)
+        => Task.FromResult(symbol);
 
     protected override int? GetTargetPositionIfControlFlow(SemanticModel semanticModel, SyntaxToken token)
     {

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExportCompletionProvider(nameof(EnumAndCompletionListTagCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(CSharpSuggestionModeCompletionProvider))]
 [Shared]
-internal partial class EnumAndCompletionListTagCompletionProvider : LSPCompletionProvider
+internal sealed partial class EnumAndCompletionListTagCompletionProvider : LSPCompletionProvider
 {
     private static readonly CompletionItemRules s_enumTypeRules =
         CompletionItemRules.Default.WithCommitCharacterRules([CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.')])
@@ -154,7 +154,7 @@ internal partial class EnumAndCompletionListTagCompletionProvider : LSPCompletio
             type = enumType;
         }
 
-        var hideAdvancedMembers = context.CompletionOptions.HideAdvancedMembers;
+        var hideAdvancedMembers = context.CompletionOptions.MemberDisplayOptions.HideAdvancedMembers;
         if (!type.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))
             return;
 

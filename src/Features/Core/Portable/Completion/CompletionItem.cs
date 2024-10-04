@@ -461,7 +461,7 @@ public sealed class CompletionItem : IComparable<CompletionItem>
     /// Creates a copy of this <see cref="CompletionItem"/> with the specified property.
     /// </summary>
     public CompletionItem AddProperty(string name, string value)
-        => With(properties: GetProperties().Add(new KeyValuePair<string, string>(name, value)));
+        => With(properties: GetProperties().Add(KeyValuePairUtil.Create(name, value)));
 
     /// <summary>
     /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Tags"/> property changed.

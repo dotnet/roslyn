@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None)
         {
             return false;
         }
@@ -512,6 +512,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             builderArgument = null;
             return false;
+        }
+
+        internal override int? TryGetOverloadResolutionPriority()
+        {
+            return null;
         }
     }
 }

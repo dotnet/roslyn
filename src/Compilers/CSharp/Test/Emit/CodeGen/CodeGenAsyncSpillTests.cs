@@ -3789,9 +3789,11 @@ public class P
                 var comp = CreateCompilationWithMscorlibAndSpan(source, options: options);
                 comp.VerifyDiagnostics();
                 comp.VerifyEmitDiagnostics(
-                    // (9,66): error CS4007: 'await' cannot be used in an expression containing the type 'System.Span<int>'
-                    //         await Async1(F1(), G(F2(), stackalloc int[] { 1, 2, 3 }, await F3()));
-                    Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await F3()").WithArguments("System.Span<int>").WithLocation(9, 66)
+                    // (8,5): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                    //     {
+                    Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"{
+        await Async1(F1(), G(F2(), stackalloc int[] { 1, 2, 3 }, await F3()));
+    }").WithArguments("System.Span<int>").WithLocation(8, 5)
                     );
             }
         }
@@ -3897,16 +3899,16 @@ public ref struct S
     public bool P2 => true;
 }
 ";
-            CreateCompilation(source, options: TestOptions.DebugDll).VerifyDiagnostics().VerifyEmitDiagnostics(
-                // (9,17): error CS4013: Instance of type 'S' cannot be used inside a nested function, query expression, iterator block or async method
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,17): error CS4007: Instance of type 'S' cannot be preserved across 'await' or 'yield' boundary.
                 //             Q { F: { P1: true } } when await c => r, // error: cached Q.F is alive
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "F").WithArguments("S").WithLocation(9, 17)
-                );
-            CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics().VerifyEmitDiagnostics(
-                // (9,17): error CS4013: Instance of type 'S' cannot be used inside a nested function, query expression, iterator block or async method
-                //             Q { F: { P1: true } } when await c => r, // error: cached Q.F is alive
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "F").WithArguments("S").WithLocation(9, 17)
-                );
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "F").WithArguments("S").WithLocation(9, 17)
+            };
+
+            CreateCompilation(source, options: TestOptions.DebugDll).VerifyDiagnostics().VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(source, options: TestOptions.ReleaseDll).VerifyDiagnostics().VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Fact]

@@ -235,7 +235,7 @@ internal sealed partial class AsynchronousOperationListener : IAsynchronousOpera
                     return [];
                 }
 
-                return _diagnosticTokenList.ToImmutableArray();
+                return [.. _diagnosticTokenList];
             }
         }
     }

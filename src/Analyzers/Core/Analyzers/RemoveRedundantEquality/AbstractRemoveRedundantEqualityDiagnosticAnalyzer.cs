@@ -21,11 +21,40 @@ internal abstract class AbstractRemoveRedundantEqualityDiagnosticAnalyzer(ISynta
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
     protected override void InitializeWorker(AnalysisContext context)
-        => context.RegisterOperationAction(AnalyzeBinaryOperator, OperationKind.BinaryOperator);
+    {
+        context.RegisterOperationAction(AnalyzeBinaryOperator, OperationKind.BinaryOperator);
+        context.RegisterOperationAction(AnalyzeIsPatternOperator, OperationKind.IsPattern);
+    }
+
+    private void AnalyzeIsPatternOperator(OperationAnalysisContext context)
+    {
+        if (ShouldSkipAnalysis(context, notification: null))
+            return;
+
+        var syntax = context.Operation.Syntax;
+        if (!syntaxFacts.IsIsPatternExpression(syntax))
+            return;
+
+        var operation = (IIsPatternOperation)context.Operation;
+        if (operation.Pattern is not IConstantPatternOperation { Value.ConstantValue.Value: true or false } constantPattern)
+            return;
+
+        syntaxFacts.GetPartsOfIsPatternExpression(syntax, out _, out var isToken, out _);
+        AnalyzeOperator(
+            context,
+            leftOperand: operation.Value,
+            rightOperand: constantPattern.Value,
+            isOperatorEquals: true,
+            isToken);
+    }
 
     private void AnalyzeBinaryOperator(OperationAnalysisContext context)
     {
         if (ShouldSkipAnalysis(context, notification: null))
+            return;
+
+        var syntax = context.Operation.Syntax;
+        if (!syntaxFacts.IsBinaryExpression(syntax))
             return;
 
         // We shouldn't report diagnostic on overloaded operator as the behavior can change.
@@ -36,25 +65,31 @@ internal abstract class AbstractRemoveRedundantEqualityDiagnosticAnalyzer(ISynta
         if (operation.OperatorKind is not (BinaryOperatorKind.Equals or BinaryOperatorKind.NotEquals))
             return;
 
-        if (!syntaxFacts.IsBinaryExpression(operation.Syntax))
-        {
-            return;
-        }
-
-        var rightOperand = operation.RightOperand;
-        var leftOperand = operation.LeftOperand;
-
-        if (rightOperand.Type is null || leftOperand.Type is null)
-            return;
-
-        if (rightOperand.Type.SpecialType != SpecialType.System_Boolean ||
-            leftOperand.Type.SpecialType != SpecialType.System_Boolean)
-        {
-            return;
-        }
-
         var isOperatorEquals = operation.OperatorKind == BinaryOperatorKind.Equals;
-        syntaxFacts.GetPartsOfBinaryExpression(operation.Syntax, out _, out var operatorToken, out _);
+        syntaxFacts.GetPartsOfBinaryExpression(syntax, out _, out var operatorToken, out _);
+        AnalyzeOperator(
+            context,
+            operation.LeftOperand,
+            operation.RightOperand,
+            isOperatorEquals,
+            operatorToken);
+    }
+
+    private void AnalyzeOperator(
+        OperationAnalysisContext context,
+        IOperation leftOperand,
+        IOperation rightOperand,
+        bool isOperatorEquals,
+        SyntaxToken operatorToken)
+    {
+        var leftType = leftOperand.Type;
+        var rightType = rightOperand.Type;
+
+        if (leftType?.SpecialType != SpecialType.System_Boolean ||
+            rightType?.SpecialType != SpecialType.System_Boolean)
+        {
+            return;
+        }
 
         var properties = ImmutableDictionary.CreateBuilder<string, string?>();
         if (TryGetLiteralValue(rightOperand) is bool rightBool)
@@ -76,12 +111,12 @@ internal abstract class AbstractRemoveRedundantEqualityDiagnosticAnalyzer(ISynta
 
         context.ReportDiagnostic(Diagnostic.Create(Descriptor,
             operatorToken.GetLocation(),
-            additionalLocations: [operation.Syntax.GetLocation()],
+            additionalLocations: [operatorToken.GetLocation()],
             properties: properties.ToImmutable()));
 
         return;
 
-        static bool? TryGetLiteralValue(IOperation operand)
+        static bool? TryGetLiteralValue(IOperation? operand)
         {
             // Make sure we only simplify literals to avoid changing
             // something like the following example:

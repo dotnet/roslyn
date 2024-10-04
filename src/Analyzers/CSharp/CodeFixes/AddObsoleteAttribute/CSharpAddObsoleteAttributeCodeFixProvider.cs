@@ -13,8 +13,10 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.AddObsoleteAttribute;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddObsoleteAttribute), Shared]
-internal class CSharpAddObsoleteAttributeCodeFixProvider
-    : AbstractAddObsoleteAttributeCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpAddObsoleteAttributeCodeFixProvider()
+    : AbstractAddObsoleteAttributeCodeFixProvider(CSharpSyntaxFacts.Instance, CSharpCodeFixesResources.Add_Obsolete)
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [
@@ -22,14 +24,6 @@ internal class CSharpAddObsoleteAttributeCodeFixProvider
             "CS0618",
             "CS0672",
             "CS1062",
-            "CS1064"
-,  // The best overloaded Add method 'MyCollection.Add(int)' for the collection initializer element is obsolete"
+            "CS1064",
         ];
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpAddObsoleteAttributeCodeFixProvider()
-        : base(CSharpSyntaxFacts.Instance, CSharpCodeFixesResources.Add_Obsolete)
-    {
-    }
 }

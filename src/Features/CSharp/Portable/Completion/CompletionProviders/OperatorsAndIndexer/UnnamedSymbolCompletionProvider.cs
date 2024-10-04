@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 /// </summary>
 [ExportCompletionProvider(nameof(UnnamedSymbolCompletionProvider), LanguageNames.CSharp), Shared]
 [ExtensionOrder(After = nameof(SymbolCompletionProvider))]
-internal partial class UnnamedSymbolCompletionProvider : LSPCompletionProvider
+internal sealed partial class UnnamedSymbolCompletionProvider : LSPCompletionProvider
 {
     /// <summary>
     /// CompletionItems for indexers/operators should be sorted below other suggestions like methods or properties

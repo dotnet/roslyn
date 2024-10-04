@@ -70,7 +70,6 @@ public class RemoveUnnecessaryCastTests
                 static void Goo(bool a, bool b) { }
             }
             """,
-
             """
             class Program
             {
@@ -102,7 +101,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -132,7 +130,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -480,7 +477,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Program
             {
@@ -504,7 +500,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Program
             {
@@ -530,7 +525,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
             class Program
@@ -557,7 +551,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
             class Program
@@ -804,7 +797,6 @@ public class RemoveUnnecessaryCastTests
                 public static void M1(int i) { }
             }
             """,
-
             """
             using System;
             class Test
@@ -838,7 +830,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
             class Test
@@ -871,7 +862,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Test
             {
@@ -906,7 +896,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Test
             {
@@ -939,7 +928,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System.Collections.Generic;
 
@@ -1061,7 +1049,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
             class MyAction
@@ -1139,7 +1126,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -1285,7 +1271,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -1463,7 +1448,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
             using System.Collections.Generic;
@@ -1507,7 +1491,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -1874,7 +1857,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Program
             {
@@ -1904,7 +1886,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class X
             {
@@ -1932,7 +1913,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             static class C
             {
@@ -1960,7 +1940,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Program
             {
@@ -2101,7 +2080,6 @@ public class RemoveUnnecessaryCastTests
                 C() : this([|(int)|]1) { }
             }
             """,
-
             """
             class C
             {
@@ -2125,7 +2103,6 @@ public class RemoveUnnecessaryCastTests
                 C() : this([|(IEnumerable)|]"") { }
             }
             """,
-
             """
             using System.Collections;
 
@@ -2177,7 +2154,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             static class C
             {
@@ -3476,7 +3452,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -3510,7 +3485,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -3541,7 +3515,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
             using System.Collections.Generic;
@@ -3575,7 +3548,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -3878,7 +3850,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class C
             {
@@ -3907,7 +3878,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class C
             {
@@ -3936,7 +3906,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class C
             {
@@ -3965,7 +3934,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class C
             {
@@ -3994,7 +3962,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class C
             {
@@ -4297,7 +4264,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             using System;
 
@@ -4341,7 +4307,6 @@ public class RemoveUnnecessaryCastTests
                 static void Goo(this string x) { }
             }
             """,
-
             """
             using System;
 
@@ -5023,7 +4988,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Program
             {
@@ -10083,8 +10047,8 @@ public class RemoveUnnecessaryCastTests
             using System;
             public class TestClass
             {
-            	public TestClass(object? value) { }
-            	public TestClass(Func<object?> value) { }
+                public TestClass(object? value) { }
+                public TestClass(Func<object?> value) { }
 
                 public TestClass Create1() => new ((object?)null);
             }
@@ -10106,7 +10070,7 @@ public class RemoveUnnecessaryCastTests
             using System;
             public class TestClass
             {
-            	unsafe void M(nint** ptr)
+                unsafe void M(nint** ptr)
                 {
                     nint value = (nint)(void*)*ptr;
                 }
@@ -10134,7 +10098,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Program
             {
@@ -10159,7 +10122,6 @@ public class RemoveUnnecessaryCastTests
                 }
             }
             """,
-
             """
             class Program
             {
@@ -12565,39 +12527,39 @@ public class RemoveUnnecessaryCastTests
 
             namespace WrongRedundantCastWarning
             {
-            	struct Flag
-            	{
-            		public Flag(int value) => this.Value = value;
+                struct Flag
+                {
+                    public Flag(int value) => this.Value = value;
 
-            		public int Value { get; }
+                    public int Value { get; }
 
-            		// This cast is wrongly reported as redundant
-            		public static FlagSet operator ~(Flag flag) => ~(FlagSet)flag;
-            	}
+                    // This cast is wrongly reported as redundant
+                    public static FlagSet operator ~(Flag flag) => ~(FlagSet)flag;
+                }
 
-            	struct FlagSet
-            	{
-            		public FlagSet(int value) => this.Value = value;
+                struct FlagSet
+                {
+                    public FlagSet(int value) => this.Value = value;
 
-            		public int Value { get; }
+                    public int Value { get; }
 
-            		public static implicit operator FlagSet(Flag flag) => new FlagSet(flag.Value);
+                    public static implicit operator FlagSet(Flag flag) => new FlagSet(flag.Value);
 
-            		public static FlagSet operator ~(FlagSet flagSet) => new FlagSet(~flagSet.Value);
-            	}
+                    public static FlagSet operator ~(FlagSet flagSet) => new FlagSet(~flagSet.Value);
+                }
 
-            	class Program
-            	{
-            		static readonly Flag One = new Flag(1);
-            		static readonly Flag Two = new Flag(2);
+                class Program
+                {
+                    static readonly Flag One = new Flag(1);
+                    static readonly Flag Two = new Flag(2);
 
-            		static void Main(string[] args)
-            		{
-            			var flipped = ~Two;
+                    static void Main(string[] args)
+                    {
+                        var flipped = ~Two;
 
-            			Console.WriteLine(flipped.Value);
-            		}
-            	}
+                        Console.WriteLine(flipped.Value);
+                    }
+                }
             }
             """;
         await new VerifyCS.Test
@@ -12780,7 +12742,7 @@ public class RemoveUnnecessaryCastTests
             {
                 protected sbyte ExtractInt8(object data)
                 {
-            	    return (data is sbyte value) ? value : (sbyte)0;
+                    return (data is sbyte value) ? value : (sbyte)0;
                 }
             }
             """;
@@ -13823,6 +13785,205 @@ public class RemoveUnnecessaryCastTests
                     public static implicit operator Goo(Action value)
                     {
                         return default!;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72933")]
+    public async Task RemoveCollectionExpressionCastToArray()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class C
+                {
+                    void Goo(char[] input)
+                    {
+                    }
+
+                    void Goo(string input)
+                    {
+                    }
+
+                    void X()
+                    {
+                        Goo([|(char[])|]['a']);
+                    }
+                }
+                """,
+            FixedCode = """
+                class C
+                {
+                    void Goo(char[] input)
+                    {
+                    }
+
+                    void Goo(string input)
+                    {
+                    }
+
+                    void X()
+                    {
+                        Goo(['a']);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75145")]
+    public async Task UnnecessaryInterpolationCast1()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                using System;
+
+                public class C
+                {
+                    public static void Main()
+                    {
+                        string s = $"{[|(object?)|]null}";
+                        Console.WriteLine(s);
+                    }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+
+                using System;
+
+                public class C
+                {
+                    public static void Main()
+                    {
+                        string s = $"{null}";
+                        Console.WriteLine(s);
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75145")]
+    public async Task UnnecessaryInterpolationCast2()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                using System.Runtime.CompilerServices;
+
+                public class IssueClass
+                {
+                    public object? Test()
+                    {
+                        return InterpolateMe($"{[|(object?)|]null}");
+                    }
+
+                    public static object? InterpolateMe([InterpolatedStringHandlerArgument] ref TestInterpolatedStringHandler handler)
+                    {
+                        return null;
+                    }
+
+                    [InterpolatedStringHandler]
+                    public ref struct TestInterpolatedStringHandler(int literalLength, int formattedCount)
+                    {
+                        public readonly void AppendLiteral(string s)
+                        {
+                        }
+
+                        public void AppendFormatted<T>(T value)
+                        {
+                        }
+
+                        public void AppendFormatted(object? value)
+                        {
+                        }
+                    }
+                }
+                """,
+            FixedCode = """
+                #nullable enable
+
+                using System.Runtime.CompilerServices;
+
+                public class IssueClass
+                {
+                    public object? Test()
+                    {
+                        return InterpolateMe($"{null}");
+                    }
+
+                    public static object? InterpolateMe([InterpolatedStringHandlerArgument] ref TestInterpolatedStringHandler handler)
+                    {
+                        return null;
+                    }
+
+                    [InterpolatedStringHandler]
+                    public ref struct TestInterpolatedStringHandler(int literalLength, int formattedCount)
+                    {
+                        public readonly void AppendLiteral(string s)
+                        {
+                        }
+
+                        public void AppendFormatted<T>(T value)
+                        {
+                        }
+
+                        public void AppendFormatted(object? value)
+                        {
+                        }
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/75145")]
+    public async Task NecessaryInterpolationCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+
+                using System.Runtime.CompilerServices;
+
+                public class IssueClass
+                {
+                    public object? Test()
+                    {
+                        return InterpolateMe($"{(object?)null}");
+                    }
+
+                    public static object? InterpolateMe([InterpolatedStringHandlerArgument] ref TestInterpolatedStringHandler handler)
+                    {
+                        return null;
+                    }
+
+                    [InterpolatedStringHandler]
+                    public ref struct TestInterpolatedStringHandler(int literalLength, int formattedCount)
+                    {
+                        public readonly void AppendLiteral(string s)
+                        {
+                        }
+
+                        public void AppendFormatted<T>(T value)
+                        {
+                        }
                     }
                 }
                 """,

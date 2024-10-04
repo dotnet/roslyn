@@ -12,12 +12,11 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ValueTracking;
 
 [ExportWorkspaceService(typeof(IValueTrackingService)), Shared]
-internal partial class ValueTrackingService : IValueTrackingService
+internal sealed partial class ValueTrackingService : IValueTrackingService
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

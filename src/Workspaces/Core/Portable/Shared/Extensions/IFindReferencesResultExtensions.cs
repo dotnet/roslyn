@@ -20,7 +20,7 @@ internal static partial class IFindReferencesResultExtensions
         this ISymbol definition)
     {
         return definition.IsKind(SymbolKind.Namespace)
-            ? SpecializedCollections.SingletonEnumerable(definition.Locations.First())
+            ? [definition.Locations.First()]
             : definition.Locations;
     }
 
@@ -139,6 +139,6 @@ internal static partial class IFindReferencesResultExtensions
             result.Add(reference);
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 }

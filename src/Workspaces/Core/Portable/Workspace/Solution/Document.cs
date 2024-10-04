@@ -326,60 +326,56 @@ public class Document : TextDocument
     /// </returns>
     private async Task<SemanticModel?> GetSemanticModelHelperAsync(bool disableNullableAnalysis, CancellationToken cancellationToken)
     {
-        try
+        if (!this.SupportsSemanticModel)
+            return null;
+
+        var semanticModel = await GetSemanticModelWorkerAsync().ConfigureAwait(false);
+        this.Project.Solution.OnSemanticModelObtained(this.Id, semanticModel);
+        return semanticModel;
+
+        async Task<SemanticModel> GetSemanticModelWorkerAsync()
         {
-            if (!this.SupportsSemanticModel)
+            try
             {
-                return null;
-            }
-
-            SemanticModel? semanticModel;
-            if (disableNullableAnalysis)
-            {
-                if (this.TryGetNullableDisabledSemanticModel(out semanticModel))
+                if (disableNullableAnalysis)
                 {
-                    return semanticModel;
+                    if (this.TryGetNullableDisabledSemanticModel(out var semanticModel))
+                        return semanticModel;
                 }
-            }
-            else
-            {
-                if (this.TryGetSemanticModel(out semanticModel))
+                else
                 {
-                    return semanticModel;
+                    if (this.TryGetSemanticModel(out var semanticModel))
+                        return semanticModel;
                 }
-            }
 
-            var syntaxTree = await this.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var compilation = await this.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+                var syntaxTree = await this.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var compilation = await this.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
 #pragma warning disable RSEXPERIMENTAL001 // sym-shipped usage of experimental API
-            var result = compilation.GetSemanticModel(syntaxTree, disableNullableAnalysis ? SemanticModelOptions.DisableNullableAnalysis : SemanticModelOptions.None);
+                var result = compilation.GetSemanticModel(syntaxTree, disableNullableAnalysis ? SemanticModelOptions.DisableNullableAnalysis : SemanticModelOptions.None);
 #pragma warning restore RSEXPERIMENTAL001
-            Contract.ThrowIfNull(result);
-            var original = Interlocked.CompareExchange(ref disableNullableAnalysis ? ref _nullableDisabledModel : ref _model, new WeakReference<SemanticModel>(result), null);
+                Contract.ThrowIfNull(result);
+                var original = Interlocked.CompareExchange(ref disableNullableAnalysis ? ref _nullableDisabledModel : ref _model, new WeakReference<SemanticModel>(result), null);
 
-            // okay, it is first time.
-            if (original == null)
-            {
-                return result;
-            }
+                // okay, it is first time.
+                if (original == null)
+                    return result;
 
-            // It looks like someone has set it. Try to reuse same semantic model, or assign the new model if that
-            // fails. The lock is required since there is no compare-and-set primitive for WeakReference<T>.
-            lock (original)
-            {
-                if (original.TryGetTarget(out semanticModel))
+                // It looks like someone has set it. Try to reuse same semantic model, or assign the new model if that
+                // fails. The lock is required since there is no compare-and-set primitive for WeakReference<T>.
+                lock (original)
                 {
-                    return semanticModel;
-                }
+                    if (original.TryGetTarget(out var semanticModel))
+                        return semanticModel;
 
-                original.SetTarget(result);
-                return result;
+                    original.SetTarget(result);
+                    return result;
+                }
             }
-        }
-        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
-        {
-            throw ExceptionUtilities.Unreachable();
+            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken, ErrorSeverity.Critical))
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
         }
     }
 
@@ -387,41 +383,37 @@ public class Document : TextDocument
     /// Creates a new instance of this document updated to have the source code kind specified.
     /// </summary>
     public Document WithSourceCodeKind(SourceCodeKind kind)
-        => this.Project.Solution.WithDocumentSourceCodeKind(this.Id, kind).GetDocument(this.Id)!;
+        => this.Project.Solution.WithDocumentSourceCodeKind(this.Id, kind).GetRequiredDocument(Id);
 
     /// <summary>
     /// Creates a new instance of this document updated to have the text specified.
     /// </summary>
     public Document WithText(SourceText text)
-        => this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity).GetDocument(this.Id)!;
+        => this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity).GetRequiredDocument(Id);
 
     /// <summary>
     /// Creates a new instance of this document updated to have a syntax tree rooted by the specified syntax node.
     /// </summary>
     public Document WithSyntaxRoot(SyntaxNode root)
-        => this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity).GetDocument(this.Id)!;
+        => this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity).GetRequiredDocument(Id);
 
     /// <summary>
     /// Creates a new instance of this document updated to have the specified name.
     /// </summary>
     public Document WithName(string name)
-        => this.Project.Solution.WithDocumentName(this.Id, name).GetDocument(this.Id)!;
+        => this.Project.Solution.WithDocumentName(this.Id, name).GetRequiredDocument(Id);
 
     /// <summary>
     /// Creates a new instance of this document updated to have the specified folders.
     /// </summary>
     public Document WithFolders(IEnumerable<string> folders)
-        => this.Project.Solution.WithDocumentFolders(this.Id, folders).GetDocument(this.Id)!;
+        => this.Project.Solution.WithDocumentFolders(this.Id, folders).GetRequiredDocument(Id);
 
     /// <summary>
     /// Creates a new instance of this document updated to have the specified file path.
     /// </summary>
-    /// <param name="filePath"></param>
-    // TODO (https://github.com/dotnet/roslyn/issues/37125): Solution.WithDocumentFilePath will throw if
-    // filePath is null, but it's odd because we *do* support null file paths. Why can't you switch a
-    // document back to null?
-    public Document WithFilePath(string filePath)
-        => this.Project.Solution.WithDocumentFilePath(this.Id, filePath).GetDocument(this.Id)!;
+    public Document WithFilePath(string? filePath)
+        => this.Project.Solution.WithDocumentFilePath(this.Id, filePath).GetRequiredDocument(Id);
 
     /// <summary>
     /// Get the text changes between this document and a prior version of the same document.
@@ -568,4 +560,7 @@ public class Document : TextDocument
         var provider = (ProjectState.ProjectAnalyzerConfigOptionsProvider)Project.State.AnalyzerOptions.AnalyzerConfigOptionsProvider;
         return await provider.GetOptionsAsync(DocumentState, cancellationToken).ConfigureAwait(false);
     }
+
+    internal ValueTask<ImmutableArray<byte>> GetContentHashAsync(CancellationToken cancellationToken)
+        => this.DocumentState.GetContentHashAsync(cancellationToken);
 }

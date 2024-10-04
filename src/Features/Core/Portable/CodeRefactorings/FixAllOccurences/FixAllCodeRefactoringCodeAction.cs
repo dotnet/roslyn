@@ -4,7 +4,6 @@
 
 using System;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings;

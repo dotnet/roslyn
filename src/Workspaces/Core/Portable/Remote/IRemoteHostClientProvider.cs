@@ -17,4 +17,10 @@ internal interface IRemoteHostClientProvider : IWorkspaceService
     /// Get <see cref="RemoteHostClient"/> to current RemoteHost
     /// </summary>
     Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Allows a caller to wait until the remote host client is is first create, without itself kicking off the work to
+    /// spawn the remote host and make the client itself.
+    /// </summary>
+    Task WaitForClientCreationAsync(CancellationToken cancellationToken);
 }

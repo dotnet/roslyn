@@ -678,8 +678,8 @@ End Namespace")
 
             ' NamespaceNames and TypeNames do not match SyntaxTrees order.
             ' This is expected.
-            Assert.Equal({"", "N3", "N0", "N", "", "N4", "N"}, comp2.Declarations.NamespaceNames.ToArray())
-            Assert.Equal({"C3", "C0", "S", "C", "C4", "C"}, comp2.Declarations.TypeNames.ToArray())
+            AssertEx.Equal({"", "N3", "N0", "N", "", "N4", "N"}, comp2.Declarations.NamespaceNames.ToArray())
+            AssertEx.Equal({"C3", "C0", "S", "C", "C4", "C"}, comp2.Declarations.TypeNames.ToArray())
 
             ' RemoveSyntaxTrees should preserve order of remaining trees.
             Dim comp3 = comp2.RemoveSyntaxTrees(source0)

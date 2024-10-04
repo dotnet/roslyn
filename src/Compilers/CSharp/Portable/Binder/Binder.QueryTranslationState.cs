@@ -75,6 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = new RangeVariableSymbol(name, binder.ContainingMemberOrLambda, identifier.GetLocation());
                 bool error = false;
 
+                Debug.Assert(identifier.Parent is { });
+
                 foreach (var existingRangeVariable in allRangeVariables.Keys)
                 {
                     if (existingRangeVariable.Name == name)

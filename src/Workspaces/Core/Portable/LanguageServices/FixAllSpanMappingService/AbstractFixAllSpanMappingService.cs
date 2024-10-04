@@ -37,8 +37,7 @@ internal abstract class AbstractFixAllSpanMappingService : IFixAllSpanMappingSer
 
         if (fixAllInContainingMember)
         {
-            return ImmutableDictionary.CreateRange(SpecializedCollections.SingletonEnumerable(
-                KeyValuePairUtil.Create(document, ImmutableArray.Create(decl.FullSpan))));
+            return ImmutableDictionary.CreateRange([KeyValuePairUtil.Create(document, ImmutableArray.Create(decl.FullSpan))]);
         }
         else
         {
@@ -64,8 +63,7 @@ internal abstract class AbstractFixAllSpanMappingService : IFixAllSpanMappingSer
             }
             else
             {
-                return ImmutableDictionary.CreateRange(SpecializedCollections.SingletonEnumerable(
-                    KeyValuePairUtil.Create(document, ImmutableArray.Create(decl.FullSpan))));
+                return ImmutableDictionary.CreateRange([KeyValuePairUtil.Create(document, ImmutableArray.Create(decl.FullSpan))]);
             }
         }
     }

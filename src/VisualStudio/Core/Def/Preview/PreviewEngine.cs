@@ -10,8 +10,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -24,7 +22,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
 
-internal class PreviewEngine : ForegroundThreadAffinitizedObject, IVsPreviewChangesEngine
+internal sealed class PreviewEngine : IVsPreviewChangesEngine
 {
     private readonly IVsEditorAdaptersFactoryService _editorFactory;
     private readonly Solution _newSolution;
@@ -43,13 +41,12 @@ internal class PreviewEngine : ForegroundThreadAffinitizedObject, IVsPreviewChan
     public Solution FinalSolution { get; private set; }
     public bool ShowCheckBoxes { get; private set; }
 
-    public PreviewEngine(IThreadingContext threadingContext, string title, string helpString, string description, string topLevelItemName, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, IComponentModel componentModel, bool showCheckBoxes = true)
-        : this(threadingContext, title, helpString, description, topLevelItemName, topLevelGlyph, newSolution, oldSolution, componentModel, null, showCheckBoxes)
+    public PreviewEngine(string title, string helpString, string description, string topLevelItemName, Glyph topLevelGlyph, Solution newSolution, Solution oldSolution, IComponentModel componentModel, bool showCheckBoxes = true)
+        : this(title, helpString, description, topLevelItemName, topLevelGlyph, newSolution, oldSolution, componentModel, null, showCheckBoxes)
     {
     }
 
     public PreviewEngine(
-        IThreadingContext threadingContext,
         string title,
         string helpString,
         string description,
@@ -60,7 +57,6 @@ internal class PreviewEngine : ForegroundThreadAffinitizedObject, IVsPreviewChan
         IComponentModel componentModel,
         IVsImageService2 imageService,
         bool showCheckBoxes = true)
-        : base(threadingContext)
     {
         _topLevelName = topLevelItemName;
         _topLevelGlyph = topLevelGlyph;
@@ -226,7 +222,7 @@ internal class PreviewEngine : ForegroundThreadAffinitizedObject, IVsPreviewChan
     // However, once they've called it once, it's always the same TextView.
     public void SetTextView(object textView)
     {
-        _updater ??= new PreviewUpdater(ThreadingContext, EnsureTextViewIsInitialized(textView));
+        _updater ??= new PreviewUpdater(EnsureTextViewIsInitialized(textView));
     }
 
     private ITextView EnsureTextViewIsInitialized(object previewTextView)

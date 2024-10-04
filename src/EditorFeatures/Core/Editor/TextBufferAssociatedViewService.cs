@@ -97,7 +97,7 @@ internal class TextBufferAssociatedViewService : ITextViewConnectionListener, IT
         {
             if (!s_map.TryGetValue(textBuffer, out var set))
             {
-                return SpecializedCollections.EmptyList<ITextView>();
+                return [];
             }
 
             return set.ToList();

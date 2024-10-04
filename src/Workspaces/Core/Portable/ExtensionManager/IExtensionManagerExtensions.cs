@@ -3,15 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.Extensions;
 
@@ -94,36 +90,47 @@ internal static class IExtensionManagerExtensions
     public static Func<SyntaxNode, ImmutableArray<TExtension>> CreateNodeExtensionGetter<TExtension>(
         this IExtensionManager extensionManager, IEnumerable<TExtension> extensions, Func<TExtension, ImmutableArray<Type>> nodeTypeGetter)
     {
-        var map = new ConcurrentDictionary<Type, ImmutableArray<TExtension>>();
+        var map = new Dictionary<Type, ImmutableArray<TExtension>>();
 
-        Func<Type, ImmutableArray<TExtension>> getExtensions = (Type t1) =>
+        foreach (var extension in extensions)
         {
-            var query = from e in extensions
-                        let types = extensionManager.PerformFunction(e, () => nodeTypeGetter(e), [])
-                        where !types.Any() || types.Any(static (t2, t1) => t1 == t2 || t1.GetTypeInfo().IsSubclassOf(t2), t1)
-                        select e;
+            if (extension is null)
+                continue;
 
-            return query.ToImmutableArray();
-        };
+            var types = extensionManager.PerformFunction(
+                extension, () => nodeTypeGetter(extension), []);
+            foreach (var type in types)
+            {
+                map[type] = map.TryGetValue(type, out var existing)
+                    ? existing.Add(extension)
+                    : [extension];
+            }
+        }
 
-        return n => map.GetOrAdd(n.GetType(), getExtensions);
+        return n => map.TryGetValue(n.GetType(), out var extensions) ? extensions : [];
     }
 
     [SuppressMessage("Style", "IDE0039:Use local function", Justification = "Avoid per-call delegate allocation")]
     public static Func<SyntaxToken, ImmutableArray<TExtension>> CreateTokenExtensionGetter<TExtension>(
         this IExtensionManager extensionManager, IEnumerable<TExtension> extensions, Func<TExtension, ImmutableArray<int>> tokenKindGetter)
     {
-        var map = new ConcurrentDictionary<int, ImmutableArray<TExtension>>();
-        Func<int, ImmutableArray<TExtension>> getExtensions = (int k) =>
+        var map = new Dictionary<int, ImmutableArray<TExtension>>();
+
+        foreach (var extension in extensions)
         {
-            var query = from e in extensions
-                        let kinds = extensionManager.PerformFunction(e, () => tokenKindGetter(e), [])
-                        where !kinds.Any() || kinds.Contains(k)
-                        select e;
+            if (extension is null)
+                continue;
 
-            return query.ToImmutableArray();
-        };
+            var kinds = extensionManager.PerformFunction(
+                extension, () => tokenKindGetter(extension), []);
+            foreach (var kind in kinds)
+            {
+                map[kind] = map.TryGetValue(kind, out var existing)
+                    ? existing.Add(extension)
+                    : [extension];
+            }
+        }
 
-        return t => map.GetOrAdd(t.RawKind, getExtensions);
+        return t => map.TryGetValue(t.RawKind, out var extensions) ? extensions : [];
     }
 }

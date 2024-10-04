@@ -14,6 +14,8 @@ using Microsoft.CodeAnalysis.UseNamedArguments;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseNamedArguments;
 
+using static SyntaxFactory;
+
 [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.IntroduceVariable)]
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseNamedArguments), Shared]
 internal class CSharpUseNamedArgumentsCodeRefactoringProvider : AbstractUseNamedArgumentsCodeRefactoringProvider
@@ -55,7 +57,7 @@ internal class CSharpUseNamedArgumentsCodeRefactoringProvider : AbstractUseNamed
         }
     }
 
-    private class ArgumentAnalyzer :
+    private sealed class ArgumentAnalyzer :
         BaseAnalyzer<ArgumentSyntax, BaseArgumentListSyntax>
     {
         protected override bool IsPositionalArgument(ArgumentSyntax node)
@@ -66,16 +68,16 @@ internal class CSharpUseNamedArgumentsCodeRefactoringProvider : AbstractUseNamed
 
         protected override BaseArgumentListSyntax WithArguments(
             BaseArgumentListSyntax argumentList, IEnumerable<ArgumentSyntax> namedArguments, IEnumerable<SyntaxToken> separators)
-            => argumentList.WithArguments(SyntaxFactory.SeparatedList(namedArguments, separators));
+            => argumentList.WithArguments(SeparatedList(namedArguments, separators));
 
         protected override ArgumentSyntax WithName(ArgumentSyntax argument, string name)
-            => argument.WithNameColon(SyntaxFactory.NameColon(name.ToIdentifierName()));
+            => argument.WithNameColon(NameColon(name.ToIdentifierName()));
 
         protected override ExpressionSyntax GetArgumentExpression(ArgumentSyntax argumentSyntax)
             => argumentSyntax.Expression;
     }
 
-    private class AttributeArgumentAnalyzer :
+    private sealed class AttributeArgumentAnalyzer :
         BaseAnalyzer<AttributeArgumentSyntax, AttributeArgumentListSyntax>
     {
         protected override bool IsPositionalArgument(AttributeArgumentSyntax argument)
@@ -86,10 +88,10 @@ internal class CSharpUseNamedArgumentsCodeRefactoringProvider : AbstractUseNamed
 
         protected override AttributeArgumentListSyntax WithArguments(
             AttributeArgumentListSyntax argumentList, IEnumerable<AttributeArgumentSyntax> namedArguments, IEnumerable<SyntaxToken> separators)
-            => argumentList.WithArguments(SyntaxFactory.SeparatedList(namedArguments, separators));
+            => argumentList.WithArguments(SeparatedList(namedArguments, separators));
 
         protected override AttributeArgumentSyntax WithName(AttributeArgumentSyntax argument, string name)
-            => argument.WithNameColon(SyntaxFactory.NameColon(name.ToIdentifierName()));
+            => argument.WithNameColon(NameColon(name.ToIdentifierName()));
 
         protected override ExpressionSyntax GetArgumentExpression(AttributeArgumentSyntax argumentSyntax)
             => argumentSyntax.Expression;

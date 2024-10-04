@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Editor;
@@ -17,7 +18,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
-internal partial class InvisibleEditor : ForegroundThreadAffinitizedObject, IInvisibleEditor
+internal sealed partial class InvisibleEditor : IInvisibleEditor
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly string _filePath;
@@ -27,10 +28,10 @@ internal partial class InvisibleEditor : ForegroundThreadAffinitizedObject, IInv
     /// The text buffer. null if the object has been disposed.
     /// </summary>
     private ITextBuffer? _buffer;
-    private IVsTextLines _vsTextLines;
     private IVsInvisibleEditor _invisibleEditor;
     private OLE.Interop.IOleUndoManager? _manager;
     private readonly bool _needsUndoRestored;
+    private readonly IThreadingContext _threadingContext;
 
     /// <remarks>
     /// <para>The optional project is used to obtain an <see cref="IVsProject"/> instance. When this instance is
@@ -40,8 +41,9 @@ internal partial class InvisibleEditor : ForegroundThreadAffinitizedObject, IInv
     /// projects in the solution.</para>
     /// </remarks>
     public InvisibleEditor(IServiceProvider serviceProvider, string filePath, IVsHierarchy? hierarchy, bool needsSave, bool needsUndoDisabled)
-        : base(serviceProvider.GetMefService<IThreadingContext>(), assertIsForeground: true)
     {
+        _threadingContext = serviceProvider.GetMefService<IThreadingContext>();
+        _threadingContext.ThrowIfNotOnUIThread();
         _serviceProvider = serviceProvider;
         _filePath = filePath;
         _needsSave = needsSave;
@@ -54,13 +56,13 @@ internal partial class InvisibleEditor : ForegroundThreadAffinitizedObject, IInv
         {
             _invisibleEditor = (IVsInvisibleEditor)Marshal.GetUniqueObjectForIUnknown(invisibleEditorPtr);
 
-            _vsTextLines = RetrieveDocData(_invisibleEditor, needsSave);
+            VsTextLines = RetrieveDocData(_invisibleEditor, needsSave);
 
             var editorAdapterFactoryService = serviceProvider.GetMefService<IVsEditorAdaptersFactoryService>();
-            _buffer = editorAdapterFactoryService.GetDocumentBuffer(_vsTextLines);
+            _buffer = editorAdapterFactoryService.GetDocumentBuffer(VsTextLines);
             if (needsUndoDisabled)
             {
-                Marshal.ThrowExceptionForHR(_vsTextLines.GetUndoManager(out _manager));
+                Marshal.ThrowExceptionForHR(VsTextLines.GetUndoManager(out _manager));
                 Marshal.ThrowExceptionForHR(((IVsUndoState)_manager).IsEnabled(out var isEnabled));
                 _needsUndoRestored = isEnabled != 0;
                 if (_needsUndoRestored)
@@ -117,13 +119,7 @@ internal partial class InvisibleEditor : ForegroundThreadAffinitizedObject, IInv
         }
     }
 
-    public IVsTextLines VsTextLines
-    {
-        get
-        {
-            return _vsTextLines;
-        }
-    }
+    public IVsTextLines VsTextLines { get; private set; }
 
     public ITextBuffer TextBuffer
     {
@@ -143,10 +139,10 @@ internal partial class InvisibleEditor : ForegroundThreadAffinitizedObject, IInv
     /// </summary>
     public void Dispose()
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         _buffer = null;
-        _vsTextLines = null!;
+        VsTextLines = null!;
 
         try
         {

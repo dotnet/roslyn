@@ -520,8 +520,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 var requestId = getRequestId();
                 logger.Log($"Compilation request {requestId}, PathToTool={pathToTool}");
 
-                string workingDirectory = CurrentDirectoryToUse();
-                string? tempDirectory = BuildServerConnection.GetTempPath(workingDirectory);
+                string? tempDirectory = Path.GetTempPath();
 
                 if (!UseSharedCompilation ||
                     !IsManagedTool ||
@@ -549,7 +548,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     requestId,
                     Language,
                     GenerateCommandLineArgsList(responseFileCommands),
-                    workingDirectory: workingDirectory,
+                    workingDirectory: CurrentDirectoryToUse(),
                     tempDirectory: tempDirectory,
                     keepAlive: null,
                     libDirectory: LibDirectoryToUse());

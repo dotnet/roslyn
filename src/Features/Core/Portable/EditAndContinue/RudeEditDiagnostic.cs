@@ -2,9 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
+using System.Linq;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Text;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
 
@@ -41,4 +43,22 @@ internal readonly struct RudeEditDiagnostic
         var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(Kind);
         return Diagnostic.Create(descriptor, tree.GetLocation(Span), Arguments);
     }
+}
+
+internal static class RudeEditExtensions
+{
+    internal static DiagnosticSeverity GetSeverity(this RudeEditKind kind)
+        => EditAndContinueDiagnosticDescriptors.GetDescriptor(kind).DefaultSeverity;
+
+    internal static bool IsBlocking(this RudeEditKind kind)
+        => kind.GetSeverity() == DiagnosticSeverity.Error;
+
+    internal static bool IsBlockingRudeEdit(this Diagnostic diagnostic)
+        => diagnostic.Descriptor.DefaultSeverity == DiagnosticSeverity.Error;
+
+    public static bool HasBlockingRudeEdits(this ImmutableArray<Diagnostic> diagnostics)
+        => diagnostics.Any(IsBlockingRudeEdit);
+
+    public static bool HasBlockingRudeEdits(this IEnumerable<RudeEditDiagnostic> diagnostics)
+        => diagnostics.Any(static e => e.Kind.IsBlocking());
 }

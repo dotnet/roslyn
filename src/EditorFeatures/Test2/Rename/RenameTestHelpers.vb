@@ -10,10 +10,8 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Utilities.GoToHelpers
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Text
@@ -22,10 +20,10 @@ Imports Microsoft.VisualStudio.Text.Tagging
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
     Friend Module RenameTestHelpers
-
         Private ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf.AddParts(
             GetType(MockDocumentNavigationServiceFactory),
-            GetType(MockPreviewDialogService))
+            GetType(MockPreviewDialogService),
+            GetType(TestWorkspaceConfigurationService))
 
         Private Function GetSessionInfo(workspace As EditorTestWorkspace) As (document As Document, textSpan As TextSpan)
             Dim hostdoc = workspace.DocumentWithCursor

@@ -11,14 +11,13 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.StackFrame;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.StackTraceExplorer;
 
 [ExportWorkspaceService(typeof(IStackTraceExplorerService)), Shared]
-internal class StackTraceExplorerService : IStackTraceExplorerService
+internal sealed class StackTraceExplorerService : IStackTraceExplorerService
 {
     [ImportingConstructor]
     [System.Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -106,6 +105,6 @@ internal class StackTraceExplorerService : IStackTraceExplorerService
             }
         }
 
-        return potentialMatches.ToImmutableArray();
+        return [.. potentialMatches];
     }
 }

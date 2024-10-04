@@ -19,4 +19,7 @@ internal sealed class WorkspaceAsynchronousOperationListenerProvider(IAsynchrono
 
     public IAsynchronousOperationListener GetListener()
         => _listener;
+
+    public IAsynchronousOperationListener GetListener(string featureName)
+        => listenerProvider.GetListener(featureName);
 }

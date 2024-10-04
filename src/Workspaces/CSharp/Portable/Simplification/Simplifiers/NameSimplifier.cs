@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -21,6 +20,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
+using static SyntaxFactory;
 
 internal class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
 {
@@ -85,7 +85,7 @@ internal class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
         if (symbol.Kind == SymbolKind.Method && name.Kind() == SyntaxKind.GenericName)
         {
             var genericName = (GenericNameSyntax)name;
-            replacementNode = SyntaxFactory.IdentifierName(genericName.Identifier)
+            replacementNode = IdentifierName(genericName.Identifier)
                 .WithLeadingTrivia(genericName.GetLeadingTrivia())
                 .WithTrailingTrivia(genericName.GetTrailingTrivia());
 
@@ -125,7 +125,7 @@ internal class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
                     text = declIdentifier.IsVerbatimIdentifier() ? declIdentifier.ToString()[1..] : declIdentifier.ToString();
                 }
 
-                var identifierToken = SyntaxFactory.Identifier(
+                var identifierToken = Identifier(
                         name.GetLeadingTrivia(),
                         SyntaxKind.IdentifierToken,
                         text,
@@ -133,7 +133,7 @@ internal class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
                         name.GetTrailingTrivia());
 
                 identifierToken = CSharpSimplificationService.TryEscapeIdentifierToken(identifierToken, name);
-                replacementNode = SyntaxFactory.IdentifierName(identifierToken);
+                replacementNode = IdentifierName(identifierToken);
 
                 // Merge annotation to new syntax node
                 var annotatedNodesOrTokens = name.GetAnnotatedNodesAndTokens(RenameAnnotation.Kind);
@@ -290,7 +290,7 @@ internal class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
                         return false;
                     }
 
-                    replacementNode = SyntaxFactory.NullableType(oldType)
+                    replacementNode = NullableType(oldType)
                         .WithLeadingTrivia(name.GetLeadingTrivia())
                             .WithTrailingTrivia(name.GetTrailingTrivia());
                     issueSpan = name.Span;
@@ -379,7 +379,7 @@ internal class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
             // A.B.C with C.  In this case the parent of A.B.C is A.B.C.D which is a 
             // QualifiedCrefSyntax
 
-            var qualifiedReplacement = SyntaxFactory.QualifiedCref(replacement, qualifiedCrefParent.Member);
+            var qualifiedReplacement = QualifiedCref(replacement, qualifiedCrefParent.Member);
             if (QualifiedCrefSimplifier.CanSimplifyWithReplacement(qualifiedCrefParent, semanticModel, qualifiedReplacement, cancellationToken))
                 return true;
         }
@@ -390,7 +390,7 @@ internal class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
             // A.B with B.  In this case the parent of A.B is A.B.C which is a 
             // QualifiedNameSyntax
 
-            var qualifiedReplacement = SyntaxFactory.QualifiedName(replacementName, qualifiedParent.Right);
+            var qualifiedReplacement = QualifiedName(replacementName, qualifiedParent.Right);
             return CanReplaceWithReducedName(
                 qualifiedParent, qualifiedReplacement, semanticModel, cancellationToken);
         }
@@ -510,12 +510,12 @@ internal class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
 
                     // if this attribute name in source contained Unicode escaping, we will loose it now
                     // because there is no easy way to determine the substring from identifier->ToString() 
-                    // which would be needed to pass to SyntaxFactory.Identifier
+                    // which would be needed to pass to Identifier
                     // The result is an unescaped Unicode character in source.
 
                     // once we remove the Attribute suffix, we can't use an escaped identifier
                     var newIdentifierToken = identifierToken.CopyAnnotationsTo(
-                        SyntaxFactory.Identifier(
+                        Identifier(
                             identifierToken.LeadingTrivia,
                             newAttributeName,
                             identifierToken.TrailingTrivia));
@@ -523,12 +523,12 @@ internal class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
                     switch (name)
                     {
                         case GenericNameSyntax generic:
-                            replacementNode = SyntaxFactory.GenericName(newIdentifierToken, generic.TypeArgumentList)
+                            replacementNode = GenericName(newIdentifierToken, generic.TypeArgumentList)
                                 .WithLeadingTrivia(name.GetLeadingTrivia());
                             break;
 
                         default:
-                            replacementNode = SyntaxFactory.IdentifierName(newIdentifierToken)
+                            replacementNode = IdentifierName(newIdentifierToken)
                                 .WithLeadingTrivia(name.GetLeadingTrivia());
                             break;
                     }
@@ -664,7 +664,7 @@ internal class NameSimplifier : AbstractCSharpSimplifier<NameSyntax, TypeSyntax>
             castExpression.Type == expression)
         {
             var newCastExpression = castExpression.ReplaceNode(castExpression.Type, simplifiedNode);
-            var reparsedCastExpression = SyntaxFactory.ParseExpression(newCastExpression.ToString());
+            var reparsedCastExpression = ParseExpression(newCastExpression.ToString());
 
             if (!reparsedCastExpression.IsKind(SyntaxKind.CastExpression))
             {

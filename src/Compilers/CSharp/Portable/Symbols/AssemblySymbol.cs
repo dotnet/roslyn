@@ -427,6 +427,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return this.RuntimeSupportsStaticAbstractMembersInInterfaces;
                 case RuntimeCapability.InlineArrayTypes:
                     return this.RuntimeSupportsInlineArrayTypes;
+                case RuntimeCapability.ByRefLikeGenerics:
+                    return this.RuntimeSupportsByRefLikeGenerics;
             }
 
             return false;
@@ -474,6 +476,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor) is object;
+            }
+        }
+
+        /// <summary>
+        /// Figure out if the target runtime supports inline array types.
+        /// </summary>
+        internal bool RuntimeSupportsByRefLikeGenerics
+        {
+            // Keep in sync with VB's AssemblySymbol.RuntimeSupportsByRefLikeGenerics
+            get
+            {
+                // CorLibrary should never be null, but that invariant is broken in some cases for MissingAssemblySymbol.
+                // Tracked by https://github.com/dotnet/roslyn/issues/61262
+                return CorLibrary is not null &&
+                    RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics);
             }
         }
 

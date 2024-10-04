@@ -4,7 +4,6 @@
 
 using System;
 using System.Composition;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
@@ -13,6 +12,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
 
@@ -46,7 +46,7 @@ internal sealed class VSTypeScriptFindUsagesService(IVSTypeScriptFindUsagesServi
             => _context.OnDefinitionFoundAsync(definition.UnderlyingObject, cancellationToken);
 
         public ValueTask OnReferenceFoundAsync(VSTypeScriptSourceReferenceItem reference, CancellationToken cancellationToken)
-            => _context.OnReferenceFoundAsync(reference.UnderlyingObject, cancellationToken);
+            => _context.OnReferencesFoundAsync(IAsyncEnumerableExtensions.SingletonAsync(reference.UnderlyingObject), cancellationToken);
 
         public ValueTask OnCompletedAsync(CancellationToken cancellationToken)
             => ValueTaskFactory.CompletedTask;

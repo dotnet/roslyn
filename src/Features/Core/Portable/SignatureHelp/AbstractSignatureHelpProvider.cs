@@ -34,7 +34,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
     public abstract bool IsTriggerCharacter(char ch);
     public abstract bool IsRetriggerCharacter(char ch);
 
-    protected abstract Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken);
+    protected abstract Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken);
 
     protected static SignatureHelpItems? CreateSignatureHelpItems(
         IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState? state, int? selectedItemIndex, int parameterIndexOverride)
@@ -48,7 +48,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         (items, selectedItemIndex) = Filter(items, state.Value.ArgumentNames, selectedItemIndex);
 
         // If the caller provided a preferred parameter for us to be on then override whatever we found syntactically.
-        var argumentIndex = state.Value.ArgumentIndex;
+        var preferredParameterIndex = state.Value.SemanticParameterIndex;
         if (parameterIndexOverride >= 0)
         {
             // However, in the case where the overridden index is to a variadic member, and the syntactic index goes
@@ -56,16 +56,16 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
             // variadic member, and we still want to remember where we are syntactically so that if the user picks
             // another member that we correctly pick the right parameter for it.
             var keepSyntacticIndex =
-                argumentIndex > parameterIndexOverride &&
+                preferredParameterIndex > parameterIndexOverride &&
                 selectedItemIndex != null &&
                 items[selectedItemIndex.Value].IsVariadic &&
-                argumentIndex >= items[selectedItemIndex.Value].Parameters.Length;
+                preferredParameterIndex >= items[selectedItemIndex.Value].Parameters.Length;
 
             if (!keepSyntacticIndex)
-                argumentIndex = parameterIndexOverride;
+                preferredParameterIndex = parameterIndexOverride;
         }
 
-        return new SignatureHelpItems(items, applicableSpan, argumentIndex, state.Value.ArgumentCount, state.Value.ArgumentName, selectedItemIndex);
+        return new SignatureHelpItems(items, applicableSpan, preferredParameterIndex, state.Value.SyntacticArgumentCount, state.Value.ArgumentName, selectedItemIndex);
     }
 
     protected static SignatureHelpItems? CreateCollectionInitializerSignatureHelpItems(
@@ -101,7 +101,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         var filteredList = items.Where(i => Include(i, parameterNames)).ToList();
         var isEmpty = filteredList.Count == 0;
         if (!selectedItem.HasValue || isEmpty)
-            return (isEmpty ? items.ToList() : filteredList, selectedItem);
+            return (isEmpty ? [.. items] : filteredList, selectedItem);
 
         // adjust the selected item
         var selection = items[selectedItem.Value];
@@ -240,7 +240,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
     }
 
     public async Task<SignatureHelpItems?> GetItemsAsync(
-        Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
+        Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
     {
         var itemsForCurrentDocument = await GetItemsWorkerAsync(document, position, triggerInfo, options, cancellationToken).ConfigureAwait(false);
         if (itemsForCurrentDocument == null)
@@ -294,9 +294,10 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         }
 
         return new SignatureHelpItems(
-            finalItems, itemsForCurrentDocument.ApplicableSpan,
-            itemsForCurrentDocument.ArgumentIndex,
-            itemsForCurrentDocument.ArgumentCount,
+            finalItems,
+            itemsForCurrentDocument.ApplicableSpan,
+            itemsForCurrentDocument.SemanticParameterIndex,
+            itemsForCurrentDocument.SyntacticArgumentCount,
             itemsForCurrentDocument.ArgumentName,
             itemsForCurrentDocument.SelectedItemIndex);
     }
@@ -313,7 +314,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private static SignatureHelpItem UpdateItem(SignatureHelpItem item, SupportedPlatformData platformData)

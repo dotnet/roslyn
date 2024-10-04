@@ -403,9 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.GotoStatement:
                     return ((GotoStatementSyntax)statement).SemicolonToken;
                 case SyntaxKind.IfStatement:
-                    IfStatementSyntax ifStmt = (IfStatementSyntax)statement;
-                    ElseClauseSyntax? elseOpt = ifStmt.Else;
-                    return GetFirstExcludedToken(elseOpt == null ? ifStmt.Statement : elseOpt.Statement);
+                    return GetFirstExcludedIfStatementToken((IfStatementSyntax)statement);
                 case SyntaxKind.LabeledStatement:
                     return GetFirstExcludedToken(((LabeledStatementSyntax)statement).Statement);
                 case SyntaxKind.LockStatement:
@@ -449,6 +447,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return localFunctionStmt.ParameterList.GetLastToken();
                 default:
                     throw ExceptionUtilities.UnexpectedValue(statement.Kind());
+            }
+        }
+
+        private static SyntaxToken GetFirstExcludedIfStatementToken(IfStatementSyntax ifStmt)
+        {
+            while (true)
+            {
+                ElseClauseSyntax? elseOpt = ifStmt.Else;
+                if (elseOpt is null)
+                {
+                    return GetFirstExcludedToken(ifStmt.Statement);
+                }
+                if (elseOpt.Statement is IfStatementSyntax nestedIf)
+                {
+                    ifStmt = nestedIf;
+                }
+                else
+                {
+                    return GetFirstExcludedToken(elseOpt.Statement);
+                }
             }
         }
 

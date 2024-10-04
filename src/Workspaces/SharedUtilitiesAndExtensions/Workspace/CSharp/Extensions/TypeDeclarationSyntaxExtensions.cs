@@ -85,7 +85,7 @@ internal static class TypeDeclarationSyntaxExtensions
                         baseListTypes.AddRange(baseTypes);
                 }
 
-                return baseListTypes.ToImmutable();
+                return baseListTypes.ToImmutableAndClear();
             }
         }
 

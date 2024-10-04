@@ -34,7 +34,7 @@ internal static class DiagnosticDescriptorExtensions
     public static ReportDiagnostic GetEffectiveSeverity(
         this DiagnosticDescriptor descriptor,
         CompilationOptions compilationOptions,
-        ImmutableDictionary<string, string>? analyzerOptions,
+        AnalyzerConfigOptions? analyzerOptions,
         ImmutableDictionary<string, ReportDiagnostic>? treeOptions)
     {
         var effectiveSeverity = descriptor.GetEffectiveSeverity(compilationOptions);
@@ -213,7 +213,7 @@ internal static class DiagnosticDescriptorExtensions
     /// </summary>
     private static bool TryGetSeverityFromBulkConfiguration(
         DiagnosticDescriptor descriptor,
-        ImmutableDictionary<string, string> analyzerOptions,
+        AnalyzerConfigOptions analyzerOptions,
         out ReportDiagnostic severity)
     {
         // Analyzer bulk configuration does not apply to:

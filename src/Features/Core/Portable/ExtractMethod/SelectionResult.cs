@@ -24,7 +24,6 @@ internal abstract class SelectionResult<TStatementSyntax>
     protected SelectionResult(
         TextSpan originalSpan,
         TextSpan finalSpan,
-        ExtractMethodOptions options,
         bool selectionInExpression,
         SemanticDocument document,
         SyntaxAnnotation firstTokenAnnotation,
@@ -35,7 +34,6 @@ internal abstract class SelectionResult<TStatementSyntax>
         FinalSpan = finalSpan;
 
         SelectionInExpression = selectionInExpression;
-        Options = options;
 
         FirstTokenAnnotation = firstTokenAnnotation;
         LastTokenAnnotation = lastTokenAnnotation;
@@ -67,7 +65,6 @@ internal abstract class SelectionResult<TStatementSyntax>
 
     public TextSpan OriginalSpan { get; }
     public TextSpan FinalSpan { get; }
-    public ExtractMethodOptions Options { get; }
     public bool SelectionInExpression { get; }
     public SemanticDocument SemanticDocument { get; private set; }
     public SyntaxAnnotation FirstTokenAnnotation { get; }

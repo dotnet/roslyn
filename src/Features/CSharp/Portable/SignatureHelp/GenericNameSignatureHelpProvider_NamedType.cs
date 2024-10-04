@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
@@ -14,17 +13,9 @@ internal partial class GenericNameSignatureHelpProvider
         SemanticModel semanticModel,
         int position)
     {
-        var result = new List<SymbolDisplayPart>();
-
-        result.AddRange(namedType.ToMinimalDisplayParts(semanticModel, position, MinimallyQualifiedWithoutTypeParametersFormat));
-        result.Add(Punctuation(SyntaxKind.LessThanToken));
-
-        return result;
+        return [.. namedType.ToMinimalDisplayParts(semanticModel, position, MinimallyQualifiedWithoutTypeParametersFormat), Punctuation(SyntaxKind.LessThanToken)];
     }
 
     private static IList<SymbolDisplayPart> GetPostambleParts()
-    {
-        return SpecializedCollections.SingletonList(
-            Punctuation(SyntaxKind.GreaterThanToken));
-    }
+        => [Punctuation(SyntaxKind.GreaterThanToken)];
 }

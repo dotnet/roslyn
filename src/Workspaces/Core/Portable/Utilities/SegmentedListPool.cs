@@ -39,7 +39,7 @@ internal static class SegmentedListPool
     /// are added to the list, then the <see cref="Array.Empty{T}"/> singleton will be returned.  Otherwise the 
     /// <see cref="SegmentedList{T}"/> instance will be returned.
     /// </summary>
-    public static IList<T> ComputeList<T, TArgs>(
+    public static IReadOnlyList<T> ComputeList<T, TArgs>(
         Action<TArgs, SegmentedList<T>> addItems,
         TArgs args,
         // Only used to allow type inference to work at callsite
@@ -63,10 +63,6 @@ internal static class SegmentedListPool
 
 internal static class SegmentedListPool<T>
 {
-    public static IList<T> ComputeList<TArgs>(
-        Action<TArgs, SegmentedList<T>> addItems,
-        TArgs args)
-    {
-        return SegmentedListPool.ComputeList<T, TArgs>(addItems, args, _: default);
-    }
+    public static IReadOnlyList<T> ComputeList<TArgs>(Action<TArgs, SegmentedList<T>> addItems, TArgs args)
+        => SegmentedListPool.ComputeList(addItems, args, _: default);
 }

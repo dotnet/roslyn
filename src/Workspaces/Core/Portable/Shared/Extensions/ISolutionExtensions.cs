@@ -74,4 +74,9 @@ internal static partial class ISolutionExtensions
                 throw ExceptionUtilities.UnexpectedValue(documentKind);
         }
     }
+
+    public static Workspace? TryGetWorkspace(this Solution solution)
+        => solution.WorkspaceKind == WorkspaceKind.RemoteWorkspace
+            ? null
+            : solution.Workspace;
 }

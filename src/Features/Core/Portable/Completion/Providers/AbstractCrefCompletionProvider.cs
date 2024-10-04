@@ -24,7 +24,10 @@ internal abstract class AbstractCrefCompletionProvider : LSPCompletionProvider
         if (item.TryGetProperty(HideAdvancedMembers, out var hideAdvancedMembersString) &&
             bool.TryParse(hideAdvancedMembersString, out var hideAdvancedMembers))
         {
-            options = options with { HideAdvancedMembers = hideAdvancedMembers };
+            options = options with
+            {
+                MemberDisplayOptions = new() { HideAdvancedMembers = hideAdvancedMembers }
+            };
         }
 
         var (token, semanticModel, symbols) = await GetSymbolsAsync(document, position, options, cancellationToken).ConfigureAwait(false);

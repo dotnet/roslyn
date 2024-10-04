@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -26,6 +26,12 @@ internal static class DefaultFixAllProviderHelpers
         Func<TFixAllContext, ImmutableArray<TFixAllContext>, Task<Solution?>> fixAllContextsAsync)
         where TFixAllContext : IFixAllContext
     {
+
+        // We're about to do a lot of computation to compute all the diagnostics needed and to perform the
+        // changes.  Keep this solution alive on the OOP side so that we never drop it and then resync it
+        // (which would cause us to drop/recreate compilations, skeletons and sg docs.
+        using var _ = await RemoteKeepAliveSession.CreateAsync(fixAllContext.Solution, fixAllContext.CancellationToken).ConfigureAwait(false);
+
         var solution = fixAllContext.Scope switch
         {
             FixAllScope.Document or FixAllScope.ContainingMember or FixAllScope.ContainingType
@@ -39,7 +45,7 @@ internal static class DefaultFixAllProviderHelpers
             return null;
 
         return CodeAction.Create(
-            title, c => Task.FromResult(solution));
+            title, _ => Task.FromResult(solution));
     }
 
     private static Task<Solution?> GetDocumentFixesAsync<TFixAllContext>(

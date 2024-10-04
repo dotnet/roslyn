@@ -4,11 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Elfie.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Search.Data;
@@ -66,9 +64,9 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 return null;
 
             Uri? absoluteUri;
-            if (document.IsSourceGeneratedDocument)
+            if (document.SourceGeneratedDocumentIdentity is not null)
             {
-                absoluteUri = ProtocolConversions.CreateUriFromSourceGeneratedFilePath(filePath);
+                absoluteUri = SourceGeneratedDocumentUri.Create(document.SourceGeneratedDocumentIdentity.Value);
             }
             else
             {

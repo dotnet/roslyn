@@ -6,7 +6,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Wrapping;
@@ -14,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Wrapping.SeparatedSyntaxList;
 
-internal partial class CSharpArgumentWrapper
+internal sealed partial class CSharpArgumentWrapper
     : AbstractCSharpSeparatedSyntaxListWrapper<BaseArgumentListSyntax, ArgumentSyntax>
 {
     protected override string Align_wrapped_items => FeaturesResources.Align_wrapped_arguments;

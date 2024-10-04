@@ -5,7 +5,6 @@
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Utilities;
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.AddImport;
 
 internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    private partial class SymbolReferenceFinder
+    private sealed partial class SymbolReferenceFinder
     {
         internal async Task FindNugetOrReferenceAssemblyReferencesAsync(
             ConcurrentQueue<Reference> allReferences, CancellationToken cancellationToken)

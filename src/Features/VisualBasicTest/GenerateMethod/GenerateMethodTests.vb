@@ -1347,14 +1347,16 @@ End Class")
  [|[Me]|]([string])
     End Sub
 End Module",
-"Module Program
+"Imports System
+
+Module Program
     Sub Main(args As String())
         Dim [string] As String = ""hello"" 
  [Me]([string])
     End Sub
 
     Private Sub [Me]([string] As String)
-        Throw New System.NotImplementedException()
+        Throw New NotImplementedException()
     End Sub
 End Module")
         End Function

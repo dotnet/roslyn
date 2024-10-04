@@ -8,7 +8,6 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser;
 
@@ -16,30 +15,25 @@ using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 internal abstract class ObjectListItem
 {
-    private readonly ProjectId _projectId;
-    private ObjectList _parentList;
-    private readonly ushort _glyphIndex;
-    private readonly bool _isHidden;
-
     protected ObjectListItem(
         ProjectId projectId,
         StandardGlyphGroup glyphGroup,
         StandardGlyphItem glyphItem = StandardGlyphItem.GlyphItemPublic,
         bool isHidden = false)
     {
-        _projectId = projectId;
+        ProjectId = projectId;
 
-        _glyphIndex = glyphGroup < StandardGlyphGroup.GlyphGroupError
+        GlyphIndex = glyphGroup < StandardGlyphGroup.GlyphGroupError
             ? (ushort)((int)glyphGroup + (int)glyphItem)
             : (ushort)glyphGroup;
 
-        _isHidden = isHidden;
+        IsHidden = isHidden;
     }
 
     internal void SetParentList(ObjectList parentList)
     {
-        Debug.Assert(_parentList == null);
-        _parentList = parentList;
+        Debug.Assert(ParentList == null);
+        ParentList = parentList;
     }
 
     public virtual bool SupportsGoToDefinition
@@ -61,32 +55,23 @@ internal abstract class ObjectListItem
     public override string ToString()
         => DisplayText;
 
-    public ObjectList ParentList
-    {
-        get { return _parentList; }
-    }
+    public ObjectList ParentList { get; private set; }
 
     public ObjectListKind ParentListKind
     {
         get
         {
-            return _parentList != null
-                ? _parentList.Kind
+            return ParentList != null
+                ? ParentList.Kind
                 : ObjectListKind.None;
         }
     }
 
-    public ProjectId ProjectId
-    {
-        get
-        {
-            return _projectId;
-        }
-    }
+    public ProjectId ProjectId { get; }
 
     public Compilation GetCompilation(Workspace workspace)
     {
-        var project = workspace.CurrentSolution.GetProject(_projectId);
+        var project = workspace.CurrentSolution.GetProject(ProjectId);
         if (project == null)
         {
             return null;
@@ -97,13 +82,7 @@ internal abstract class ObjectListItem
             .WaitAndGetResult_ObjectBrowser(CancellationToken.None);
     }
 
-    public ushort GlyphIndex
-    {
-        get { return _glyphIndex; }
-    }
+    public ushort GlyphIndex { get; }
 
-    public bool IsHidden
-    {
-        get { return _isHidden; }
-    }
+    public bool IsHidden { get; }
 }

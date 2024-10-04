@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -200,7 +199,7 @@ internal sealed class DiagnosticData(
         var additionalLocations = GetAdditionalLocations(document, diagnostic);
         var additionalProperties = GetAdditionalProperties(document, diagnostic);
 
-        var documentPropertiesService = document.Services.GetService<DocumentPropertiesService>();
+        var documentPropertiesService = document.DocumentServiceProvider.GetService<DocumentPropertiesService>();
         var diagnosticsLspClientName = documentPropertiesService?.DiagnosticsLspClientName;
 
         if (diagnosticsLspClientName != null)

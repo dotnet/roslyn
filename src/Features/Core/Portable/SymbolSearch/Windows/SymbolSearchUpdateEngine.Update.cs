@@ -18,7 +18,6 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 using static System.FormattableString;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch;
@@ -30,7 +29,7 @@ namespace Microsoft.CodeAnalysis.SymbolSearch;
 /// This implementation also spawns a task which will attempt to keep that database up to
 /// date by downloading patches on a daily basis.
 /// </summary>
-internal partial class SymbolSearchUpdateEngine
+internal sealed partial class SymbolSearchUpdateEngine
 {
     // Internal for testing purposes.
     internal const string ContentAttributeName = "content";
@@ -654,7 +653,7 @@ internal partial class SymbolSearchUpdateEngine
             using (var inStream = new MemoryStream(compressedBytes))
             using (var deflateStream = new DeflateStream(inStream, CompressionMode.Decompress))
             {
-#if NETCOREAPP
+#if NET
                 await deflateStream.CopyToAsync(outStream, cancellationToken).ConfigureAwait(false);
 #else
                 await deflateStream.CopyToAsync(outStream).ConfigureAwait(false);

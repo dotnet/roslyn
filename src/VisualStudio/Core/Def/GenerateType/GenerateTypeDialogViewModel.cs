@@ -9,16 +9,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.ProjectManagement;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
 
@@ -781,70 +778,48 @@ internal class GenerateTypeDialogViewModel : AbstractNotifyPropertyChanged
         }
         else
         {
-            this.ProjectFolders = SpecializedCollections.EmptyList<string>();
+            this.ProjectFolders = [];
         }
     }
 
     public class ProjectSelectItem
     {
-        private readonly Project _project;
-
         public string Name
         {
             get
             {
-                return _project.Name;
+                return Project.Name;
             }
         }
 
-        public Project Project
-        {
-            get
-            {
-                return _project;
-            }
-        }
+        public Project Project { get; }
 
         public ProjectSelectItem(Project project)
-            => _project = project;
+            => Project = project;
     }
 
     public class DocumentSelectItem
     {
-        private readonly Document _document;
-        public Document Document
-        {
-            get
-            {
-                return _document;
-            }
-        }
+        public Document Document { get; }
 
-        private readonly string _name;
-        public string Name
-        {
-            get
-            {
-                return _name;
-            }
-        }
+        public string Name { get; }
 
         public DocumentSelectItem(Document document, string documentName)
         {
-            _document = document;
-            _name = documentName;
+            Document = document;
+            Name = documentName;
         }
 
         public DocumentSelectItem(Document document)
         {
-            _document = document;
+            Document = document;
             if (document.Folders.Count == 0)
             {
-                _name = document.Name;
+                Name = document.Name;
             }
             else
             {
-                _name = string.Join("\\", document.Folders) + "\\" + document.Name;
+                Name = string.Join("\\", document.Folders) + "\\" + document.Name;
             }
         }
     }

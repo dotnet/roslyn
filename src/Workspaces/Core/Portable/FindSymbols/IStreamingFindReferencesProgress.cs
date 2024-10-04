@@ -3,8 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 /// that we search for.  Placing these in a group allows the final consumer to know that these 
 /// symbols can be merged together.
 /// </summary>
-internal class SymbolGroup : IEquatable<SymbolGroup>
+internal sealed class SymbolGroup : IEquatable<SymbolGroup>
 {
     /// <summary>
     /// All the symbols in the group.
@@ -72,11 +73,8 @@ internal interface IStreamingFindReferencesProgress
     ValueTask OnStartedAsync(CancellationToken cancellationToken);
     ValueTask OnCompletedAsync(CancellationToken cancellationToken);
 
-    ValueTask OnFindInDocumentStartedAsync(Document document, CancellationToken cancellationToken);
-    ValueTask OnFindInDocumentCompletedAsync(Document document, CancellationToken cancellationToken);
-
     ValueTask OnDefinitionFoundAsync(SymbolGroup group, CancellationToken cancellationToken);
-    ValueTask OnReferenceFoundAsync(SymbolGroup group, ISymbol symbol, ReferenceLocation location, CancellationToken cancellationToken);
+    ValueTask OnReferencesFoundAsync(ImmutableArray<(SymbolGroup group, ISymbol symbol, ReferenceLocation location)> references, CancellationToken cancellationToken);
 }
 
 internal interface IStreamingFindLiteralReferencesProgress

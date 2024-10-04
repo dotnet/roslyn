@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +24,6 @@ internal abstract partial class CSharpSelectionResult : SelectionResult<Statemen
     public static async Task<CSharpSelectionResult> CreateAsync(
         TextSpan originalSpan,
         TextSpan finalSpan,
-        ExtractMethodOptions options,
         bool selectionInExpression,
         SemanticDocument document,
         SyntaxToken firstToken,
@@ -41,22 +39,21 @@ internal abstract partial class CSharpSelectionResult : SelectionResult<Statemen
         var root = await document.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var newDocument = await SemanticDocument.CreateAsync(document.Document.WithSyntaxRoot(AddAnnotations(
             root,
-            new[]
-            {
+            [
                 (firstToken, firstTokenAnnotation),
                 (lastToken, lastTokenAnnotation)
-            })), cancellationToken).ConfigureAwait(false);
+            ])), cancellationToken).ConfigureAwait(false);
 
         if (selectionInExpression)
         {
             return new ExpressionResult(
-                originalSpan, finalSpan, options, selectionInExpression,
+                originalSpan, finalSpan, selectionInExpression,
                 newDocument, firstTokenAnnotation, lastTokenAnnotation, selectionChanged);
         }
         else
         {
             return new StatementResult(
-                originalSpan, finalSpan, options, selectionInExpression,
+                originalSpan, finalSpan, selectionInExpression,
                 newDocument, firstTokenAnnotation, lastTokenAnnotation, selectionChanged);
         }
     }
@@ -64,13 +61,12 @@ internal abstract partial class CSharpSelectionResult : SelectionResult<Statemen
     protected CSharpSelectionResult(
         TextSpan originalSpan,
         TextSpan finalSpan,
-        ExtractMethodOptions options,
         bool selectionInExpression,
         SemanticDocument document,
         SyntaxAnnotation firstTokenAnnotation,
         SyntaxAnnotation lastTokenAnnotation,
         bool selectionChanged)
-        : base(originalSpan, finalSpan, options, selectionInExpression,
+        : base(originalSpan, finalSpan, selectionInExpression,
                document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
     {
     }

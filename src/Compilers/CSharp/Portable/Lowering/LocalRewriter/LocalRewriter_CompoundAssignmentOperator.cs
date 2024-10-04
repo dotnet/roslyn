@@ -153,7 +153,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     RemovePlaceholderReplacement(node.FinalPlaceholder);
                 }
 
-                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, node.Left.Type, used: used, isChecked: isChecked, isCompoundAssignment: true);
+                Debug.Assert(TypeSymbol.Equals(transformedLHS.Type, node.Left.Type, TypeCompareKind.AllIgnoreOptions));
+                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, used: used, isChecked: isChecked, isCompoundAssignment: true);
             }
         }
 
@@ -395,6 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentNamesOpt: default(ImmutableArray<string?>),
                 argumentRefKinds,
                 expanded: false,
+                accessorKind: indexerAccess.AccessorKind,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 defaultArguments: default(BitVector),
                 indexerAccess.Type);
@@ -597,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // This is a temporary object that will be rewritten away before the lowering completes.
                             return propertyAccess.Update(TransformPropertyOrEventReceiver(propertyAccess.PropertySymbol, propertyAccess.ReceiverOpt,
                                                                                           isRegularCompoundAssignment, stores, temps),
-                                                         propertyAccess.InitialBindingReceiverIsSubjectToCloning, propertyAccess.PropertySymbol, propertyAccess.ResultKind, propertyAccess.Type);
+                                                         propertyAccess.InitialBindingReceiverIsSubjectToCloning, propertyAccess.PropertySymbol, propertyAccess.AutoPropertyAccessorKind, propertyAccess.ResultKind, propertyAccess.Type);
                         }
                     }
                     break;

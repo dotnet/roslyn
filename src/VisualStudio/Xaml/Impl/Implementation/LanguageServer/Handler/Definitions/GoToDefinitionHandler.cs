@@ -55,13 +55,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             var document = context.Document;
             if (document == null)
             {
-                return locations.ToArray();
+                return [.. locations];
             }
+
+            var solution = document.Project.Solution;
 
             var xamlGoToDefinitionService = document.Project.Services.GetService<IXamlGoToDefinitionService>();
             if (xamlGoToDefinitionService == null)
             {
-                return locations.ToArray();
+                return [.. locations];
             }
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
@@ -73,7 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             {
                 var task = Task.Run(async () =>
                 {
-                    foreach (var location in await this.GetLocationsAsync(definition, context, cancellationToken).ConfigureAwait(false))
+                    foreach (var location in await this.GetLocationsAsync(definition, document, solution, cancellationToken).ConfigureAwait(false))
                     {
                         locations.Add(location);
                     }
@@ -83,20 +85,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
-            return locations.ToArray();
+            return [.. locations];
         }
 
-        private async Task<LSP.Location[]> GetLocationsAsync(XamlDefinition definition, RequestContext context, CancellationToken cancellationToken)
+        private async Task<LSP.Location[]> GetLocationsAsync(XamlDefinition definition, Document document, Solution solution, CancellationToken cancellationToken)
         {
             using var _ = ArrayBuilder<LSP.Location>.GetInstance(out var locations);
 
             if (definition is XamlSourceDefinition sourceDefinition)
             {
-                locations.AddIfNotNull(await GetSourceDefinitionLocationAsync(sourceDefinition, context, cancellationToken).ConfigureAwait(false));
+                locations.AddIfNotNull(await GetSourceDefinitionLocationAsync(sourceDefinition, solution, cancellationToken).ConfigureAwait(false));
             }
             else if (definition is XamlSymbolDefinition symbolDefinition)
             {
-                locations.AddRange(await GetSymbolDefinitionLocationsAsync(symbolDefinition, context, _metadataAsSourceFileService, _globalOptions, cancellationToken).ConfigureAwait(false));
+                locations.AddRange(await GetSymbolDefinitionLocationsAsync(symbolDefinition, document, solution, _metadataAsSourceFileService, _globalOptions, cancellationToken).ConfigureAwait(false));
             }
             else
             {
@@ -106,14 +108,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             return locations.ToArray();
         }
 
-        private static async Task<LSP.Location?> GetSourceDefinitionLocationAsync(XamlSourceDefinition sourceDefinition, RequestContext context, CancellationToken cancellationToken)
+        private static async Task<LSP.Location?> GetSourceDefinitionLocationAsync(XamlSourceDefinition sourceDefinition, Solution solution, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(sourceDefinition.FilePath);
 
             if (sourceDefinition.Span != null)
             {
                 // If the Span is not null, use the span.
-                var document = context.Solution?.GetDocuments(ProtocolConversions.CreateAbsoluteUri(sourceDefinition.FilePath)).FirstOrDefault();
+                var document = await solution.GetTextDocumentAsync(new TextDocumentIdentifier { Uri = ProtocolConversions.CreateAbsoluteUri(sourceDefinition.FilePath) }, cancellationToken).ConfigureAwait(false);
                 if (document != null)
                 {
                     return await ProtocolConversions.TextSpanToLocationAsync(
@@ -148,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             }
         }
 
-        private static async Task<LSP.Location[]> GetSymbolDefinitionLocationsAsync(XamlSymbolDefinition symbolDefinition, RequestContext context, IMetadataAsSourceFileService metadataAsSourceFileService, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
+        private static async Task<LSP.Location[]> GetSymbolDefinitionLocationsAsync(XamlSymbolDefinition symbolDefinition, Document document, Solution solution, IMetadataAsSourceFileService metadataAsSourceFileService, IGlobalOptionService globalOptions, CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(symbolDefinition.Symbol);
 
@@ -156,15 +158,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 
             var symbol = symbolDefinition.Symbol;
 
-            var items = NavigableItemFactory.GetItemsFromPreferredSourceLocations(context.Solution, symbol, displayTaggedParts: null, cancellationToken);
+            var items = NavigableItemFactory.GetItemsFromPreferredSourceLocations(solution, symbol, displayTaggedParts: null, cancellationToken);
             if (items.Any())
             {
-                RoslynDebug.AssertNotNull(context.Solution);
                 foreach (var item in items)
                 {
-                    var document = await item.Document.GetRequiredDocumentAsync(context.Solution, cancellationToken).ConfigureAwait(false);
+                    var navigableDocument = await item.Document.GetRequiredDocumentAsync(solution, cancellationToken).ConfigureAwait(false);
                     var location = await ProtocolConversions.TextSpanToLocationAsync(
-                        document, item.SourceSpan, item.IsStale, cancellationToken).ConfigureAwait(false);
+                        navigableDocument, item.SourceSpan, item.IsStale, cancellationToken).ConfigureAwait(false);
                     locations.AddIfNotNull(location);
                 }
             }
@@ -172,12 +173,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             {
                 if (metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
                 {
-                    var workspace = context.Workspace;
-                    var project = context.Document?.GetCodeProject();
+                    var workspace = solution.Workspace;
+                    var project = document.GetCodeProject();
                     if (workspace != null && project != null)
                     {
-                        var options = globalOptions.GetMetadataAsSourceOptions(project.Services);
-                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: true, options, cancellationToken).ConfigureAwait(false);
+                        var options = globalOptions.GetMetadataAsSourceOptions();
+                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: true, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         locations.Add(new LSP.Location
                         {

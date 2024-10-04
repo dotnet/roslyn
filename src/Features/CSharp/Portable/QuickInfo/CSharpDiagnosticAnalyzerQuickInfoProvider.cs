@@ -4,11 +4,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -156,15 +154,15 @@ internal class CSharpDiagnosticAnalyzerQuickInfoProvider(DiagnosticAnalyzerInfoC
         var idTag = !string.IsNullOrWhiteSpace(descriptor.HelpLinkUri)
             ? new TaggedText(TextTags.Text, descriptor.Id, TaggedTextStyle.None, descriptor.HelpLinkUri, descriptor.HelpLinkUri)
             : new TaggedText(TextTags.Text, descriptor.Id);
-        return QuickInfoItem.Create(location, sections: new[]
-            {
-                QuickInfoSection.Create(QuickInfoSectionKinds.Description, new[]
-                {
+        return QuickInfoItem.Create(location, sections:
+            [
+                QuickInfoSection.Create(QuickInfoSectionKinds.Description,
+                [
                     idTag,
                     new TaggedText(TextTags.Punctuation, ":"),
                     new TaggedText(TextTags.Space, " "),
                     new TaggedText(TextTags.Text, description)
-                }.ToImmutableArray())
-            }.ToImmutableArray(), relatedSpans: relatedSpans.ToImmutableArray());
+                ])
+            ], relatedSpans: [.. relatedSpans]);
     }
 }

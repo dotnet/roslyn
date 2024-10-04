@@ -17,12 +17,11 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 
 [ExportSignatureHelpProvider("ConstructorInitializerSignatureHelpProvider", LanguageNames.CSharp), Shared]
-internal partial class ConstructorInitializerSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
+internal sealed partial class ConstructorInitializerSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -67,7 +66,7 @@ internal partial class ConstructorInitializerSignatureHelpProvider : AbstractCSh
             token != expression.ArgumentList.CloseParenToken;
     }
 
-    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
+    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
     {
         var constructorInitializer = await TryGetConstructorInitializerAsync(
             document, position, triggerInfo.TriggerReason, cancellationToken).ConfigureAwait(false);
@@ -155,17 +154,9 @@ internal partial class ConstructorInitializerSignatureHelpProvider : AbstractCSh
         SemanticModel semanticModel,
         int position)
     {
-        var result = new List<SymbolDisplayPart>();
-
-        result.AddRange(method.ContainingType.ToMinimalDisplayParts(semanticModel, position));
-        result.Add(Punctuation(SyntaxKind.OpenParenToken));
-
-        return result;
+        return [.. method.ContainingType.ToMinimalDisplayParts(semanticModel, position), Punctuation(SyntaxKind.OpenParenToken)];
     }
 
     private static IList<SymbolDisplayPart> GetPostambleParts()
-    {
-        return SpecializedCollections.SingletonList(
-            Punctuation(SyntaxKind.CloseParenToken));
-    }
+        => [Punctuation(SyntaxKind.CloseParenToken)];
 }

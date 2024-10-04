@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
@@ -1473,6 +1472,19 @@ class C
 { 
     delegate T MyDelegate<T>() where T : str[||]uct;
 }", "structconstraint");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48392")]
+        public async Task TestAllowsRefStructAntiConstraint()
+        {
+            await Test_KeywordAsync(
+@"class C
+{ 
+    void M<T>()
+        where T : all[||]ows ref struct
+    {
+    }
+}", "allows");
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/48392")]

@@ -10,20 +10,19 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService.ErrorCases
-{
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = "Test")]
-    [Shared]
-    [PartNotDiscoverable]
-    internal class ExceptionInCodeActions : CodeRefactoringProvider
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public ExceptionInCodeActions()
-        {
-        }
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeRefactoringService.ErrorCases;
 
-        public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
-            => throw new Exception($"Exception thrown from ComputeRefactoringsAsync in {nameof(ExceptionInCodeActions)}");
+[ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = "Test")]
+[Shared]
+[PartNotDiscoverable]
+internal class ExceptionInCodeActions : CodeRefactoringProvider
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public ExceptionInCodeActions()
+    {
     }
+
+    public override Task ComputeRefactoringsAsync(CodeRefactoringContext context)
+        => throw new Exception($"Exception thrown from ComputeRefactoringsAsync in {nameof(ExceptionInCodeActions)}");
 }

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -244,7 +245,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
 
         ImmutableArray<CodeAction> NestByOverload()
         {
-            using var _ = ArrayBuilder<CodeAction>.GetInstance(codeFixData.Length, out var builder);
+            var builder = new FixedSizeArrayBuilder<CodeAction>(codeFixData.Length);
             foreach (var data in codeFixData)
             {
                 // We create the mandatory data.CreateChangedSolutionNonCascading fix first.
@@ -276,12 +277,12 @@ internal abstract class AbstractAddParameterCodeFixProvider<
                 builder.Add(codeAction);
             }
 
-            return builder.ToImmutableAndClear();
+            return builder.MoveToImmutable();
         }
 
         ImmutableArray<CodeAction> NestByCascading()
         {
-            using var _ = ArrayBuilder<CodeAction>.GetInstance(capacity: 2, out var builder);
+            using var builder = TemporaryArray<CodeAction>.Empty;
 
             var nonCascadingActions = codeFixData.SelectAsArray(data =>
             {
@@ -312,7 +313,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
                 builder.Add(CodeAction.Create(nestedCascadingTitle, cascadingActions, isInlinable: false));
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
     }
 
@@ -321,7 +322,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
         SeparatedSyntaxList<TArgumentSyntax> arguments,
         ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
     {
-        using var _ = ArrayBuilder<CodeFixData>.GetInstance(methodsAndArgumentsToAdd.Length, out var builder);
+        var builder = new FixedSizeArrayBuilder<CodeFixData>(methodsAndArgumentsToAdd.Length);
 
         // Order by the furthest argument index to the nearest argument index.  The ones with
         // larger argument indexes mean that we matched more earlier arguments (and thus are
@@ -343,7 +344,7 @@ internal abstract class AbstractAddParameterCodeFixProvider<
             builder.Add(codeFixData);
         }
 
-        return builder.ToImmutable();
+        return builder.MoveToImmutable();
     }
 
     private static string GetCodeFixTitle(string resourceString, IMethodSymbol methodToUpdate, bool includeParameters)

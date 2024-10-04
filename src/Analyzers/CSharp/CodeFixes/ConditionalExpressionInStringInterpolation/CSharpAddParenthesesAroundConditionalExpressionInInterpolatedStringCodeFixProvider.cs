@@ -18,16 +18,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConditionalExpressionInStringInterpolation;
 
+using static CSharpSyntaxTokens;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddParenthesesAroundConditionalExpressionInInterpolatedString), Shared]
-internal class CSharpAddParenthesesAroundConditionalExpressionInInterpolatedStringCodeFixProvider : CodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpAddParenthesesAroundConditionalExpressionInInterpolatedStringCodeFixProvider() : CodeFixProvider
 {
     private const string CS8361 = nameof(CS8361); //A conditional expression cannot be used directly in a string interpolation because the ':' ends the interpolation.Parenthesize the conditional expression.
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpAddParenthesesAroundConditionalExpressionInInterpolatedStringCodeFixProvider()
-    {
-    }
 
     // CS8361 is a syntax error and it is unlikely that there is more than one CS8361 at a time.
     public override FixAllProvider? GetFixAllProvider() => null;
@@ -119,7 +117,7 @@ internal class CSharpAddParenthesesAroundConditionalExpressionInInterpolatedStri
         }
 
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var newCloseParen = SyntaxFactory.Token(SyntaxKind.CloseParenToken).WithTriviaFrom(parenthesizedExpression.CloseParenToken);
+        var newCloseParen = CloseParenToken.WithTriviaFrom(parenthesizedExpression.CloseParenToken);
         var parenthesizedExpressionWithClosingParen = parenthesizedExpression.WithCloseParenToken(newCloseParen);
         var newRoot = root.ReplaceNode(parenthesizedExpression, parenthesizedExpressionWithClosingParen);
         return document.WithSyntaxRoot(newRoot);

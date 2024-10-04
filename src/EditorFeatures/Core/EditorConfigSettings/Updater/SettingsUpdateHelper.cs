@@ -62,7 +62,7 @@ internal static partial class SettingsUpdateHelper
             var optionName = option.Definition.ConfigName;
             var optionValue = option.Definition.Serializer.Serialize(value);
 
-            if (value is ICodeStyleOption codeStyleOption && !optionValue.Contains(':'))
+            if (value is ICodeStyleOption2 codeStyleOption && !optionValue.Contains(':'))
             {
                 var severity = codeStyleOption.Notification.Severity switch
                 {

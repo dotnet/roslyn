@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [ExportCompletionProvider(nameof(ExplicitInterfaceTypeCompletionProvider), LanguageNames.CSharp)]
 [ExtensionOrder(After = nameof(ExplicitInterfaceMemberCompletionProvider))]
 [Shared]
-internal partial class ExplicitInterfaceTypeCompletionProvider : AbstractSymbolCompletionProvider<CSharpSyntaxContext>
+internal sealed partial class ExplicitInterfaceTypeCompletionProvider : AbstractSymbolCompletionProvider<CSharpSyntaxContext>
 {
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]

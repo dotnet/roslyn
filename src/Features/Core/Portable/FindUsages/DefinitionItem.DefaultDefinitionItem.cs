@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindUsages;
 
-internal partial class DefinitionItem
+internal abstract partial class DefinitionItem
 {
     /// <summary>
     /// Implementation of a <see cref="DefinitionItem"/> that sits on top of a 
@@ -28,7 +28,7 @@ internal partial class DefinitionItem
         ImmutableArray<ClassifiedSpansAndHighlightSpan?> classifiedSpans,
         ImmutableArray<AssemblyLocation> metadataLocations,
         ImmutableDictionary<string, string>? properties,
-        ImmutableDictionary<string, string>? displayableProperties,
+        ImmutableArray<(string key, string value)> displayableProperties,
         bool displayIfNoReferences) : DefinitionItem(
             tags, displayParts, nameDisplayParts,
             sourceSpans, classifiedSpans, metadataLocations, properties, displayableProperties, displayIfNoReferences)

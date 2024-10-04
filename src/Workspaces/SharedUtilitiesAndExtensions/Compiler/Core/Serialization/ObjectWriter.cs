@@ -8,7 +8,6 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using EncodingExtensions = Microsoft.CodeAnalysis.EncodingExtensions;
@@ -28,8 +27,10 @@ internal sealed partial class ObjectWriter : IDisposable
 {
     private static class BufferPool<T>
     {
+        public const int BufferSize = 32768;
+
         // Large arrays that will not go into the LOH (even with System.Char).
-        public static ObjectPool<T[]> Shared = new(() => new T[32768], 512);
+        public static ObjectPool<T[]> Shared = new(() => new T[BufferSize], 512);
     }
 
     /// <summary>
@@ -53,7 +54,6 @@ internal sealed partial class ObjectWriter : IDisposable
     public const byte Byte4Marker = 2 << 6;
 
     private readonly BinaryWriter _writer;
-    private readonly CancellationToken _cancellationToken;
 
     /// <summary>
     /// Map of serialized string reference ids.  The string-reference-map uses value-equality for greater cache hits
@@ -81,11 +81,15 @@ internal sealed partial class ObjectWriter : IDisposable
     /// </summary>
     /// <param name="stream">The stream to write to.</param>
     /// <param name="leaveOpen">True to leave the <paramref name="stream"/> open after the <see cref="ObjectWriter"/> is disposed.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    public ObjectWriter(
-        Stream stream,
-        bool leaveOpen = false,
-        CancellationToken cancellationToken = default)
+    public ObjectWriter(Stream stream, bool leaveOpen = false)
+        : this(stream, leaveOpen, writeValidationBytes: true)
+    {
+    }
+
+    /// <inheritdoc cref="ObjectWriter(Stream, bool)"/>
+    /// <param name="writeValidationBytes">Whether or not the validation bytes (see <see cref="WriteValidationBytes"/>)
+    /// should be immediately written into the stream.</param>
+    public ObjectWriter(Stream stream, bool leaveOpen, bool writeValidationBytes)
     {
         // String serialization assumes both reader and writer to be of the same endianness.
         // It can be adjusted for BigEndian if needed.
@@ -93,12 +97,17 @@ internal sealed partial class ObjectWriter : IDisposable
 
         _writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen);
         _stringReferenceMap = new WriterReferenceMap();
-        _cancellationToken = cancellationToken;
 
-        WriteVersion();
+        if (writeValidationBytes)
+            WriteValidationBytes();
     }
 
-    private void WriteVersion()
+    /// <summary>
+    /// Writes out a special sequence of bytes indicating that the stream is a serialized object stream.  Used by the
+    /// <see cref="ObjectReader"/> to be able to easily detect if it is being improperly used, or if the stream is
+    /// corrupt.
+    /// </summary>
+    public void WriteValidationBytes()
     {
         WriteByte(ObjectReader.VersionByte1);
         WriteByte(ObjectReader.VersionByte2);
@@ -266,10 +275,31 @@ internal sealed partial class ObjectWriter : IDisposable
         _writer.Write(array);
     }
 
-    public void WriteCharArray(char[] array)
+    public void WriteCharArray(char[] array, int index, int count)
     {
-        WriteArrayLength(array.Length);
-        _writer.Write(array);
+        WriteArrayLength(count);
+
+#if !NETCOREAPP
+        // BinaryWriter in .NET Framework allocates via the following:
+        // byte[] bytes = _encoding.GetBytes(chars, 0, chars.Length);
+        //
+        // Instead, emulate the .net core code which has the GetBytes
+        // call fill up a pooled array instead
+        var maxByteCount = Encoding.UTF8.GetMaxByteCount(count);
+
+        if (maxByteCount <= BufferPool<byte>.BufferSize)
+        {
+            using var pooledObj = BufferPool<byte>.Shared.GetPooledObject();
+            var buffer = pooledObj.Object;
+
+            var actualByteCount = Encoding.UTF8.GetBytes(array, index, count, buffer, 0);
+            _writer.Write(buffer, 0, actualByteCount);
+
+            return;
+        }
+#endif
+
+        _writer.Write(array, index, count);
     }
 
     /// <summary>
@@ -281,28 +311,10 @@ internal sealed partial class ObjectWriter : IDisposable
     {
         WriteArrayLength(span.Length);
 
-#if NETCOREAPP
+#if NET
         _writer.Write(span);
 #else
         // BinaryWriter in .NET Framework does not support ReadOnlySpan<byte>, so we use a temporary buffer to write
-        // arrays of data.
-        WriteSpanPieces(span, static (writer, buffer, length) => writer.Write(buffer, 0, length));
-#endif
-    }
-
-    /// <summary>
-    /// Write an array of chars. The array data is provided as a <see
-    /// cref="ReadOnlySpan{T}">ReadOnlySpan</see>&lt;<see cref="char"/>&gt;, and deserialized to a char array.
-    /// </summary>
-    /// <param name="span">The array data.</param>
-    public void WriteSpan(ReadOnlySpan<char> span)
-    {
-        WriteArrayLength(span.Length);
-
-#if NETCOREAPP
-        _writer.Write(span);
-#else
-        // BinaryWriter in .NET Framework does not support ReadOnlySpan<char>, so we use a temporary buffer to write
         // arrays of data.
         WriteSpanPieces(span, static (writer, buffer, length) => writer.Write(buffer, 0, length));
 #endif

@@ -13,10 +13,10 @@ namespace Roslyn.Test.Utilities
     /// A simple deriviation of <see cref="AnalyzerReference"/> that returns the source generator
     /// passed, for ease in unit tests.
     /// </summary>
-    public class TestGeneratorReference : AnalyzerReference, IChecksummedObject
+    public class TestGeneratorReference : AnalyzerReference
     {
         private readonly ISourceGenerator _generator;
-        private readonly Checksum _checksum;
+        internal readonly Checksum Checksum;
 
         public TestGeneratorReference(ISourceGenerator generator, string? analyzerFilePath = null)
         {
@@ -30,7 +30,7 @@ namespace Roslyn.Test.Utilities
             // We'll make up a checksum here so we can "serialize" it to our unit test in-proc "remote" host.
             var checksumArray = Guid.ToByteArray();
             Array.Resize(ref checksumArray, Checksum.HashSize);
-            _checksum = Checksum.From(checksumArray);
+            this.Checksum = Checksum.From(checksumArray);
 
             FullPath = analyzerFilePath;
         }
@@ -43,8 +43,6 @@ namespace Roslyn.Test.Utilities
         public override string? FullPath { get; }
         public override object Id => this;
         public Guid Guid { get; }
-
-        Checksum IChecksummedObject.Checksum => _checksum;
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language) => [];
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages() => [];

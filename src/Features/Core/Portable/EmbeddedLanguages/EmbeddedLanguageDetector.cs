@@ -42,6 +42,19 @@ internal readonly struct EmbeddedLanguageDetector(
         return LanguageIdentifiers.Contains(identifier);
     }
 
+    public string? TryGetEmbeddedLanguageTokenIdentifier(
+        SyntaxToken token,
+        SemanticModel semanticModel,
+        CancellationToken cancellationToken)
+    {
+        return IsEmbeddedLanguageTokenWorker(token, semanticModel, cancellationToken, out var identifier, out _)
+            ? identifier
+            : null;
+    }
+
+    public bool IsEmbeddedLanguageIdentifier(string identifier)
+        => LanguageIdentifiers.Contains(identifier);
+
     private bool IsEmbeddedLanguageTokenWorker(
         SyntaxToken token,
         SemanticModel semanticModel,

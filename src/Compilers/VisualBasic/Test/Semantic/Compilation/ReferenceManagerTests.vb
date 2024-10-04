@@ -6,7 +6,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
-Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -656,11 +656,11 @@ BC31539: Cannot find the interop type that matches the embedded type 'IB'. Are y
             Dim comp = VisualBasicCompilation.Create(
                 "DupSignedRefs",
                 {VisualBasicSyntaxTree.ParseText(text)},
-                {Net451.System, Net20.System},
+                {NetFramework.System, Net20.References.System},
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default))
 
             comp.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_DuplicateReferenceStrong).WithArguments(Net451.System.Display, Net20.System.Display))
+                Diagnostic(ERRID.ERR_DuplicateReferenceStrong).WithArguments(NetFramework.System.Display, Net20.References.System.Display))
         End Sub
 
         <WorkItem(545062, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545062")>

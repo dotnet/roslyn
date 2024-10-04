@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
@@ -201,7 +199,7 @@ internal sealed class BufferedFindUsagesContext : IFindUsagesContext, IStreaming
         }
     }
 
-    ValueTask IFindUsagesContext.OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
+    ValueTask IFindUsagesContext.OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken)
     {
         // Entirely ignored.  These features do not show references.
         Contract.Fail("GoToImpl/Base should never report a reference.");

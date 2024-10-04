@@ -69,7 +69,7 @@ internal static class IDEDiagnosticIdToOptionMappingHelper
                     else
                     {
                         var map = s_diagnosticIdToLanguageSpecificOptionsMap.GetOrAdd(language, _ => new ConcurrentDictionary<string, ImmutableHashSet<IOption2>>());
-                        AddOptionMapping(map, diagnosticId, languageGroup.ToImmutableHashSet());
+                        AddOptionMapping(map, diagnosticId, [.. languageGroup]);
                     }
                 }
             }

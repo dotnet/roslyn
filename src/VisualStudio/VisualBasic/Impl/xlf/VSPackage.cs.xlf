@@ -130,6 +130,36 @@ Používat rozšířené barvy;Barevné schéma editoru;Okraj dědičnosti;Direk
         <target state="translated">Nástroje Visual Basicu</target>
         <note>Help &gt; About</note>
       </trans-unit>
+      <trans-unit id="Always_add_new_line_on_enter">
+        <source>Always add new line on enter</source>
+        <target state="translated">Při stisku Enter vždy přidat nový řádek</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Always_include_snippets">
+        <source>Always include snippets</source>
+        <target state="translated">Vždy zahrnovat fragmenty</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
+        <source>Include snippets when ?-Tab is typed after an identifier</source>
+        <target state="translated">Zahrnovat fragmenty po zadání ?-Tab za identifikátor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_add_new_line_on_enter">
+        <source>Never add new line on enter</source>
+        <target state="translated">Při stisku Enter nikdy nepřidávat nový řádek</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Never_include_snippets">
+        <source>Never include snippets</source>
+        <target state="translated">Nikdy nezahrnovat fragmenty</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
+        <source>Only add new line on enter after end of fully typed word</source>
+        <target state="translated">Při stisku Enter přidat nový řádek jenom po dopsání celého slova</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

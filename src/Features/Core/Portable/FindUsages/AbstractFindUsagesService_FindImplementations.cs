@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -120,7 +119,7 @@ internal abstract partial class AbstractFindUsagesService
             }
         }
 
-        return builder.ToImmutableArray();
+        return [.. builder];
 
         static bool AddedAllLocations(ISymbol implementation, HashSet<(string filePath, TextSpan span)> seenLocations)
         {
@@ -153,7 +152,7 @@ internal abstract partial class AbstractFindUsagesService
             }
         }
 
-        return result.ToImmutableArray();
+        return [.. result];
     }
 
     private static async Task<ImmutableArray<ISymbol>> FindSourceAndMetadataImplementationsAsync(
@@ -189,7 +188,7 @@ internal abstract partial class AbstractFindUsagesService
                 implementationsAndOverrides.Add(symbol);
             }
 
-            return implementationsAndOverrides.ToImmutableArray();
+            return [.. implementationsAndOverrides];
         }
         else if (symbol is INamedTypeSymbol { TypeKind: TypeKind.Class } namedType)
         {

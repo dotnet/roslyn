@@ -6,15 +6,13 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.FindReferences;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GoToBase;
 
 internal static class FindBaseHelpers
 {
-    public static ValueTask<ImmutableArray<ISymbol>> FindBasesAsync(
+    public static ImmutableArray<ISymbol> FindBases(
         ISymbol symbol, Solution solution, CancellationToken cancellationToken)
     {
         if (symbol is INamedTypeSymbol
@@ -23,16 +21,12 @@ internal static class FindBaseHelpers
             } namedTypeSymbol)
         {
             var result = BaseTypeFinder.FindBaseTypesAndInterfaces(namedTypeSymbol).CastArray<ISymbol>();
-            return ValueTaskFactory.FromResult(result);
+            return result;
         }
 
-        if (symbol.Kind is SymbolKind.Property or
-            SymbolKind.Method or
-            SymbolKind.Event)
-        {
-            return BaseTypeFinder.FindOverriddenAndImplementedMembersAsync(symbol, solution, cancellationToken);
-        }
+        if (symbol.Kind is SymbolKind.Property or SymbolKind.Method or SymbolKind.Event)
+            return BaseTypeFinder.FindOverriddenAndImplementedMembers(symbol, solution, cancellationToken);
 
-        return ValueTaskFactory.FromResult(ImmutableArray<ISymbol>.Empty);
+        return [];
     }
 }

@@ -1212,6 +1212,10 @@ next:;
                 {
                     diagnostics.Add(ErrorCode.ERR_AttributeOnBadSymbolType, arguments.AttributeSyntaxOpt.Name.Location, arguments.AttributeSyntaxOpt.GetErrorDisplayName(), "struct");
                 }
+                else if (IsRecordStruct)
+                {
+                    diagnostics.Add(ErrorCode.ERR_InlineArrayAttributeOnRecord, arguments.AttributeSyntaxOpt.Name.Location);
+                }
             }
             else
             {
@@ -1792,28 +1796,31 @@ next:;
             Debug.Assert(ObsoleteKind != ObsoleteAttributeKind.Uninitialized);
             Debug.Assert(GetMembers().All(m => m.ObsoleteKind != ObsoleteAttributeKind.Uninitialized));
 
-            if (ObsoleteKind != ObsoleteAttributeKind.None
-                || GetMembers().All(m => m is not MethodSymbol { MethodKind: MethodKind.Constructor, ObsoleteKind: ObsoleteAttributeKind.None } method
+            if (ObsoleteKind == ObsoleteAttributeKind.None
+                && !GetMembers().All(m => m is not MethodSymbol { MethodKind: MethodKind.Constructor, ObsoleteKind: ObsoleteAttributeKind.None } method
                                          || !method.ShouldCheckRequiredMembers()))
             {
-                return;
+                foreach (var member in GetMembers())
+                {
+                    if (!member.IsRequired())
+                    {
+                        continue;
+                    }
+
+                    if (member.ObsoleteKind != ObsoleteAttributeKind.None)
+                    {
+                        // Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
+                        diagnostics.Add(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, member.GetFirstLocation(), member);
+                    }
+                }
             }
 
-            foreach (var member in GetMembers())
+            if (Indexers.FirstOrDefault() is PropertySymbol indexerSymbol)
             {
-                if (!member.IsRequired())
-                {
-                    continue;
-                }
-
-                if (member.ObsoleteKind != ObsoleteAttributeKind.None)
-                {
-                    // Required member '{0}' should not be attributed with 'ObsoleteAttribute' unless the containing type is obsolete or all constructors are obsolete.
-                    diagnostics.Add(ErrorCode.WRN_ObsoleteMembersShouldNotBeRequired, member.GetFirstLocation(), member);
-                }
+                Binder.GetWellKnownTypeMember(DeclaringCompilation, WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor, diagnostics, indexerSymbol.TryGetFirstLocation() ?? GetFirstLocation());
             }
 
-            if (TypeKind == TypeKind.Struct && HasInlineArrayAttribute(out _))
+            if (TypeKind == TypeKind.Struct && !IsRecordStruct && HasInlineArrayAttribute(out _))
             {
                 if (Layout.Kind == LayoutKind.Explicit)
                 {
@@ -1878,7 +1885,7 @@ next:;
 
                     if (!reported_ERR_InlineArrayUnsupportedElementFieldModifier)
                     {
-                        if (!fieldSupported || elementType.Type.IsPointerOrFunctionPointer() || elementType.IsRestrictedType())
+                        if (!fieldSupported || elementType.Type.IsPointerOrFunctionPointer() || elementType.IsRestrictedType(ignoreSpanLikeTypes: true))
                         {
                             diagnostics.Add(ErrorCode.WRN_InlineArrayNotSupportedByLanguage, elementField.TryGetFirstLocation() ?? GetFirstLocation());
                         }

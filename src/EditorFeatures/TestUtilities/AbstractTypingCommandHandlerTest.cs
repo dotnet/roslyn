@@ -27,32 +27,30 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
 
         protected void Verify(string initialMarkup, string expectedMarkup, Action<EditorTestWorkspace> initializeWorkspace = null)
         {
-            using (var workspace = CreateTestWorkspace(initialMarkup))
+            using var workspace = CreateTestWorkspace(initialMarkup);
+            initializeWorkspace?.Invoke(workspace);
+
+            var testDocument = workspace.Documents.Single();
+            var view = testDocument.GetTextView();
+            view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
+
+            var commandHandler = GetCommandHandler(workspace);
+
+            var (args, insertionText) = CreateCommandArgs(view, view.TextBuffer);
+            var nextHandler = CreateInsertTextHandler(view, insertionText);
+
+            if (!commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create()))
             {
-                initializeWorkspace?.Invoke(workspace);
-
-                var testDocument = workspace.Documents.Single();
-                var view = testDocument.GetTextView();
-                view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, testDocument.CursorPosition.Value));
-
-                var commandHandler = GetCommandHandler(workspace);
-
-                var (args, insertionText) = CreateCommandArgs(view, view.TextBuffer);
-                var nextHandler = CreateInsertTextHandler(view, insertionText);
-
-                if (!commandHandler.ExecuteCommand(args, TestCommandExecutionContext.Create()))
-                {
-                    nextHandler();
-                }
-
-                MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int expectedPosition);
-
-                Assert.Equal(expectedCode, view.TextSnapshot.GetText());
-
-                var caretPosition = view.Caret.Position.BufferPosition.Position;
-                Assert.True(expectedPosition == caretPosition,
-                    string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, caretPosition));
+                nextHandler();
             }
+
+            MarkupTestFile.GetPosition(expectedMarkup, out var expectedCode, out int expectedPosition);
+
+            Assert.Equal(expectedCode, view.TextSnapshot.GetText());
+
+            var caretPosition = view.Caret.Position.BufferPosition.Position;
+            Assert.True(expectedPosition == caretPosition,
+                string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, caretPosition));
         }
 
         protected void VerifyTabs(string initialMarkup, string expectedMarkup)

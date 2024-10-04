@@ -155,8 +155,7 @@ public class VisualStudioSettingsOptionPersisterTests
         refreshedOptions.Clear();
     }
 
-    [Theory]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public void SettingsManagerReadOptionValue_Success(
         [CombinatorialValues(
             typeof(bool),
@@ -189,8 +188,7 @@ public class VisualStudioSettingsOptionPersisterTests
         Assert.Equal(optionValue, result.Value);
     }
 
-    [Theory]
-    [CombinatorialData]
+    [Theory, CombinatorialData]
     public void SettingsManagerReadOptionValue_Error(
         [CombinatorialValues(
             GetValueResult.Missing,

@@ -5,11 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -221,7 +217,7 @@ internal class KnownSourcePasteProcessor(
         if (quotesToAdd != null)
             edits.Add(new TextChange(new TextSpan(StringExpressionBeforePasteInfo.EndDelimiterSpanWithoutSuffix.End, 0), quotesToAdd));
 
-        return edits.ToImmutable();
+        return edits.ToImmutableAndClear();
     }
 
     private void UpdateExistingInterpolationBraces(

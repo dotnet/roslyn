@@ -115,7 +115,7 @@ internal abstract partial class AbstractGenerateFromMembersCodeRefactoringProvid
                 name: parameterName));
         }
 
-        return parameters.ToImmutable();
+        return parameters.ToImmutableAndClear();
     }
 
     protected static readonly SymbolDisplayFormat SimpleFormat =

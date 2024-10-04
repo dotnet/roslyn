@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Debug.Assert(!_parameters.IsDefault, $"Expected {nameof(InitializeParameters)} prior to accessing this property.");
+                RoslynDebug.Assert(!_parameters.IsDefault, $"Expected {nameof(InitializeParameters)} prior to accessing this property.");
                 return _parameters.NullToEmpty();
             }
         }
@@ -199,6 +199,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override System.AttributeTargets GetAttributeTarget()
         {
             return System.AttributeTargets.Delegate;
+        }
+
+        internal sealed override int? TryGetOverloadResolutionPriority()
+        {
+            return null;
         }
 
         private sealed class Constructor : SourceDelegateMethodSymbol

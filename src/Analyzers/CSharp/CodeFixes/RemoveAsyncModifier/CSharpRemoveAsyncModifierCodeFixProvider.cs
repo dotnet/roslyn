@@ -15,17 +15,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier;
 
+using static CSharpSyntaxTokens;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveAsyncModifier), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.MakeMethodSynchronous)]
-internal partial class CSharpRemoveAsyncModifierCodeFixProvider : AbstractRemoveAsyncModifierCodeFixProvider<ReturnStatementSyntax, ExpressionSyntax>
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class CSharpRemoveAsyncModifierCodeFixProvider() : AbstractRemoveAsyncModifierCodeFixProvider<ReturnStatementSyntax, ExpressionSyntax>
 {
     private const string CS1998 = nameof(CS1998); // This async method lacks 'await' operators and will run synchronously.
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpRemoveAsyncModifierCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS1998];
 
@@ -34,7 +32,7 @@ internal partial class CSharpRemoveAsyncModifierCodeFixProvider : AbstractRemove
 
     protected override SyntaxNode? ConvertToBlockBody(SyntaxNode node, ExpressionSyntax expressionBody)
     {
-        var semicolonToken = SyntaxFactory.Token(SyntaxKind.SemicolonToken);
+        var semicolonToken = SemicolonToken;
         if (expressionBody.TryConvertToStatement(semicolonToken, createReturnStatementForExpression: false, out var statement))
         {
             var block = SyntaxFactory.Block(statement);

@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
 using Microsoft.CodeAnalysis.CodeCleanup;
@@ -18,12 +17,10 @@ namespace Microsoft.CodeAnalysis.MoveToNamespace;
 
 internal abstract partial class AbstractMoveToNamespaceCodeAction(
     IMoveToNamespaceService moveToNamespaceService,
-    MoveToNamespaceAnalysisResult analysisResult,
-    CodeCleanupOptionsProvider cleanupOptions) : CodeActionWithOptions
+    MoveToNamespaceAnalysisResult analysisResult) : CodeActionWithOptions
 {
     private readonly IMoveToNamespaceService _moveToNamespaceService = moveToNamespaceService;
     private readonly MoveToNamespaceAnalysisResult _moveToNamespaceAnalysisResult = analysisResult;
-    private readonly CodeCleanupOptionsProvider _cleanupOptions = cleanupOptions;
 
     /// <summary>
     /// This code action does notify clients about the rename it performs.  However, this is an optional part of
@@ -51,7 +48,6 @@ internal abstract partial class AbstractMoveToNamespaceCodeAction(
             var moveToNamespaceResult = await _moveToNamespaceService.MoveToNamespaceAsync(
                 _moveToNamespaceAnalysisResult,
                 moveToNamespaceOptions.Namespace,
-                _cleanupOptions,
                 cancellationToken).ConfigureAwait(false);
 
             if (moveToNamespaceResult.Succeeded)
@@ -87,14 +83,14 @@ internal abstract partial class AbstractMoveToNamespaceCodeAction(
             }
         }
 
-        return operations.ToImmutable();
+        return operations.ToImmutableAndClear();
     }
 
-    public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult, CodeCleanupOptionsProvider cleanupOptions)
+    public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
         => analysisResult.Container switch
         {
-            MoveToNamespaceAnalysisResult.ContainerType.NamedType => new MoveTypeToNamespaceCodeAction(changeNamespaceService, analysisResult, cleanupOptions),
-            MoveToNamespaceAnalysisResult.ContainerType.Namespace => new MoveItemsToNamespaceCodeAction(changeNamespaceService, analysisResult, cleanupOptions),
+            MoveToNamespaceAnalysisResult.ContainerType.NamedType => new MoveTypeToNamespaceCodeAction(changeNamespaceService, analysisResult),
+            MoveToNamespaceAnalysisResult.ContainerType.Namespace => new MoveItemsToNamespaceCodeAction(changeNamespaceService, analysisResult),
             _ => throw ExceptionUtilities.UnexpectedValue(analysisResult.Container)
         };
 }

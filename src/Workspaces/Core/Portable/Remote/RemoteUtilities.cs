@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -39,7 +38,7 @@ internal static class RemoteUtilities
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     /// <summary>
@@ -47,15 +46,21 @@ internal static class RemoteUtilities
     /// a solution textually equivalent to the <c>newSolution</c> passed to <see cref="GetDocumentTextChangesAsync"/>.
     /// </summary>
     public static async Task<Solution> UpdateSolutionAsync(
-        Solution oldSolution, ImmutableArray<(DocumentId, ImmutableArray<TextChange>)> documentTextChanges, CancellationToken cancellationToken)
+        Solution oldSolution,
+        ImmutableArray<(DocumentId documentId, ImmutableArray<TextChange> textChanges)> documentTextChanges,
+        CancellationToken cancellationToken)
     {
         var currentSolution = oldSolution;
-        foreach (var (docId, textChanges) in documentTextChanges)
-        {
-            var text = await oldSolution.GetDocument(docId).GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            currentSolution = currentSolution.WithDocumentText(docId, text.WithChanges(textChanges));
-        }
 
-        return currentSolution;
+        var documentIdsAndTexts = await documentTextChanges
+            .SelectAsArrayAsync(async (tuple, cancellationToken) =>
+            {
+                var oldText = await oldSolution.GetDocument(tuple.documentId).GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                var newText = oldText.WithChanges(tuple.textChanges);
+                return (tuple.documentId, newText);
+            }, cancellationToken)
+            .ConfigureAwait(false);
+
+        return oldSolution.WithDocumentTexts(documentIdsAndTexts);
     }
 }

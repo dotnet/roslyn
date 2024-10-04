@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -45,7 +46,7 @@ internal abstract class AbstractUseConditionalExpressionForReturnCodeFixProvider
 
     protected override async Task FixOneAsync(
         Document document, Diagnostic diagnostic,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var ifStatement = (TIfStatementSyntax)diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
@@ -69,7 +70,7 @@ internal abstract class AbstractUseConditionalExpressionForReturnCodeFixProvider
             trueReturn?.ReturnedValue ?? trueStatement,
             falseReturn?.ReturnedValue ?? falseStatement,
             isRef,
-            fallbackOptions,
+            formattingOptions,
             cancellationToken).ConfigureAwait(false);
 
         var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();

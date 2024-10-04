@@ -6,23 +6,19 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractInterface;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CommonControls;
-using Microsoft.VisualStudio.LanguageServices.Implementation.PullMemberUp.MainDialog;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -54,7 +50,6 @@ internal class VisualStudioExtractInterfaceOptionsService : IExtractInterfaceOpt
         string defaultNamespace,
         string generatedNameTypeParameterSuffix,
         string languageName,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         using var cancellationTokenSource = new CancellationTokenSource();
@@ -94,8 +89,7 @@ internal class VisualStudioExtractInterfaceOptionsService : IExtractInterfaceOpt
                 includedMembers: includedMembers.AsImmutable(),
                 interfaceName: viewModel.DestinationViewModel.TypeName.Trim(),
                 fileName: viewModel.DestinationViewModel.FileName.Trim(),
-                location: GetLocation(viewModel.DestinationViewModel.Destination),
-                fallbackOptions);
+                location: GetLocation(viewModel.DestinationViewModel.Destination));
         }
         else
         {

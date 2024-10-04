@@ -72,7 +72,6 @@ public partial class GeneratedClass : IInterface { }
                             </Document>
                         </Project>
                     </Workspace>, host:=host, renameTo:="A", sourceGenerator:=New GeneratorThatImplementsInterfaceMethod())
-
             End Using
         End Sub
 

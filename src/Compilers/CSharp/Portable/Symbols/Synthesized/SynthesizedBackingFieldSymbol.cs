@@ -100,8 +100,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override Location ErrorLocation
             => _property.Location;
 
-        protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
-            => _property.AttributeDeclarationSyntaxList;
+        protected override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
+        {
+            // The backing field for a partial property may have been calculated for either
+            // the definition part or the implementation part. Regardless, we should use
+            // the attributes from the definition part.
+            var property = (_property as SourcePropertySymbol)?.SourcePartialDefinitionPart ?? _property;
+            return property.GetAttributeDeclarations();
+        }
 
         public override Symbol AssociatedSymbol
             => _property;
@@ -149,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.PostDecodeWellKnownAttributes(boundAttributes, allAttributeSyntaxNodes, diagnostics, symbolPart, decodedData);
 
-            if (!allAttributeSyntaxNodes.IsEmpty && _property.IsAutoPropertyWithGetAccessor)
+            if (!allAttributeSyntaxNodes.IsEmpty && _property.IsAutoPropertyOrUsesFieldKeyword)
             {
                 CheckForFieldTargetedAttribute(diagnostics);
             }
@@ -163,15 +169,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            foreach (var attribute in AttributeDeclarationSyntaxList)
+            foreach (var attributeList in GetAttributeDeclarations())
             {
-                if (attribute.Target?.GetAttributeLocation() == AttributeLocation.Field)
+                foreach (var attribute in attributeList)
                 {
-                    diagnostics.Add(
-                        new CSDiagnosticInfo(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable,
-                            languageVersion.ToDisplayString(),
-                            new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAttributesOnBackingFields.RequiredVersion())),
-                        attribute.Target.Location);
+                    if (attribute.Target?.GetAttributeLocation() == AttributeLocation.Field)
+                    {
+                        diagnostics.Add(
+                            new CSDiagnosticInfo(ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable,
+                                languageVersion.ToDisplayString(),
+                                new CSharpRequiredLanguageVersion(MessageID.IDS_FeatureAttributesOnBackingFields.RequiredVersion())),
+                            attribute.Target.Location);
+                    }
                 }
             }
         }

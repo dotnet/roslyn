@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.UnusedReferences;
@@ -40,7 +39,7 @@ internal partial class UnusedReferencesTableProvider
             _tableManager,
             autoSubscribe: true,
             BuildColumnStates(),
-            UnusedReferencesColumnDefinitions.ColumnNames.ToArray());
+            [.. UnusedReferencesColumnDefinitions.ColumnNames]);
         tableControl.ShowGroupingLine = true;
         tableControl.DoColumnsAutoAdjust = true;
         tableControl.DoSortingAndGroupingWhileUnstable = true;

@@ -58,7 +58,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             ScopeBinder = binder;
 
-            binder = binder.WithUnsafeRegionIfNecessary(syntax.Modifiers);
+            binder = binder.SetOrClearUnsafeRegionIfNecessary(syntax.Modifiers);
+            _binder = binder;
 
             if (syntax.TypeParameterList != null)
             {
@@ -85,8 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _declarationDiagnostics.AddRange(diagnostics.DiagnosticBag);
             _declarationDependencies.AddAll(diagnostics.DependenciesBag);
             diagnostics.Free();
-
-            _binder = binder;
         }
 
         /// <summary>
@@ -379,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
 
-        internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => false;
+        internal override bool IsMetadataVirtual(IsMetadataVirtualOption option = IsMetadataVirtualOption.None) => false;
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {

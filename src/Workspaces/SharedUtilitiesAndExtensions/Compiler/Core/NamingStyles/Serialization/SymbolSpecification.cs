@@ -94,9 +94,9 @@ internal sealed class SymbolSpecification(
     }
 
     public bool AppliesTo(ISymbol symbol)
-        => AnyMatches(this.ApplicableSymbolKindList, symbol) &&
-           AllMatches(this.RequiredModifierList, symbol) &&
-           AnyMatches(this.ApplicableAccessibilityList, symbol);
+        => ApplicableSymbolKindList.Any(static (kind, symbol) => kind.MatchesSymbol(symbol), symbol) &&
+           RequiredModifierList.All(static (modifier, symbol) => modifier.MatchesSymbol(symbol), symbol) &&
+           ApplicableAccessibilityList.Contains(GetAccessibility(symbol));
 
     public bool AppliesTo(SymbolKind symbolKind, Accessibility accessibility)
         => this.AppliesTo(new SymbolKindOrTypeKind(symbolKind), new DeclarationModifiers(), accessibility);
@@ -155,45 +155,37 @@ internal sealed class SymbolSpecification(
         return result;
     }
 
-    private static bool AnyMatches<TSymbolMatcher>(ImmutableArray<TSymbolMatcher> matchers, ISymbol symbol)
-        where TSymbolMatcher : ISymbolMatcher
+    private static Accessibility GetAccessibility(ISymbol symbol)
     {
-        foreach (var matcher in matchers)
+        for (var currentSymbol = symbol; currentSymbol != null; currentSymbol = currentSymbol.ContainingSymbol)
         {
-            if (matcher.MatchesSymbol(symbol))
+            switch (currentSymbol.Kind)
             {
-                return true;
+                case SymbolKind.Namespace:
+                    return Accessibility.Public;
+
+                case SymbolKind.Parameter:
+                case SymbolKind.TypeParameter:
+                    continue;
+
+                case SymbolKind.Method:
+                    switch (((IMethodSymbol)currentSymbol).MethodKind)
+                    {
+                        case MethodKind.AnonymousFunction:
+                        case MethodKind.LocalFunction:
+                            // Always treat anonymous and local functions as 'local'
+                            return Accessibility.NotApplicable;
+
+                        default:
+                            return currentSymbol.DeclaredAccessibility;
+                    }
+
+                default:
+                    return currentSymbol.DeclaredAccessibility;
             }
         }
 
-        return false;
-    }
-
-    private static bool AnyMatches(ImmutableArray<Accessibility> matchers, ISymbol symbol)
-    {
-        foreach (var matcher in matchers)
-        {
-            if (matcher.MatchesSymbol(symbol))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    private static bool AllMatches<TSymbolMatcher>(ImmutableArray<TSymbolMatcher> matchers, ISymbol symbol)
-    where TSymbolMatcher : ISymbolMatcher
-    {
-        foreach (var matcher in matchers)
-        {
-            if (!matcher.MatchesSymbol(symbol))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return Accessibility.NotApplicable;
     }
 
     public override bool Equals(object obj)
@@ -269,7 +261,7 @@ internal sealed class SymbolSpecification(
 
         foreach (var accessibility in ApplicableAccessibilityList)
         {
-            accessibilitiesElement.Add(accessibility.CreateXElement());
+            accessibilitiesElement.Add(new XElement("AccessibilityKind", accessibility));
         }
 
         return accessibilitiesElement;
@@ -317,34 +309,16 @@ internal sealed class SymbolSpecification(
     }
 
     private static ImmutableArray<Accessibility> GetAccessibilityListFromXElement(XElement accessibilityListElement)
-    {
-        var applicableAccessibilityList = ArrayBuilder<Accessibility>.GetInstance();
-        foreach (var accessibilityElement in accessibilityListElement.Elements("AccessibilityKind"))
-        {
-            applicableAccessibilityList.Add(AccessibilityExtensions.FromXElement(accessibilityElement));
-        }
+        => accessibilityListElement.Elements("AccessibilityKind").SelectAsArray(ParseAccessibility);
 
-        return applicableAccessibilityList.ToImmutableAndFree();
-    }
+    private static Accessibility ParseAccessibility(XElement accessibilityElement)
+        => (Accessibility)Enum.Parse(typeof(Accessibility), accessibilityElement.Value);
 
     private static ImmutableArray<ModifierKind> GetModifierListFromXElement(XElement modifierListElement)
-    {
-        var result = ArrayBuilder<ModifierKind>.GetInstance();
-        foreach (var modifierElement in modifierListElement.Elements(nameof(ModifierKind)))
-        {
-            result.Add(ModifierKind.FromXElement(modifierElement));
-        }
-
-        return result.ToImmutableAndFree();
-    }
-
-    private interface ISymbolMatcher
-    {
-        bool MatchesSymbol(ISymbol symbol);
-    }
+        => modifierListElement.Elements(nameof(ModifierKind)).SelectAsArray(ModifierKind.FromXElement);
 
     [DataContract]
-    public readonly record struct SymbolKindOrTypeKind : ISymbolMatcher
+    public readonly record struct SymbolKindOrTypeKind
     {
         public enum SymbolCategory : byte
         {
@@ -468,7 +442,7 @@ internal sealed class SymbolSpecification(
     }
 
     [DataContract]
-    public readonly struct ModifierKind : ISymbolMatcher, IEquatable<ModifierKind>
+    public readonly struct ModifierKind : IEquatable<ModifierKind>
     {
         [DataMember(Order = 0)]
         public readonly ModifierKindEnum ModifierKindWrapper;

@@ -6,7 +6,7 @@ Imports VerifyVB = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBas
     Microsoft.CodeAnalysis.VisualBasic.AddDebuggerDisplay.VisualBasicAddDebuggerDisplayCodeRefactoringProvider)
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddDebuggerDisplay
-
+    <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.CodeActionsAddDebuggerDisplay)>
     Public NotInheritable Class AddDebuggerDisplayTests
         <Fact>

@@ -195,7 +195,7 @@ internal sealed class VisualStudioSettingsOptionPersister
     {
         Contract.ThrowIfNull(_settingManager);
 
-        if (value is ICodeStyleOption codeStyleOption)
+        if (value is ICodeStyleOption2 codeStyleOption)
         {
             // We store these as strings, so serialize
             value = codeStyleOption.ToXElement().ToString();

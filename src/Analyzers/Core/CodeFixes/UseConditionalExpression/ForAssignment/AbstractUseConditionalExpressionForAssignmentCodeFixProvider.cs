@@ -2,22 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
-using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionHelpers;
 using static Microsoft.CodeAnalysis.UseConditionalExpression.UseConditionalExpressionCodeFixHelpers;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression;
 
@@ -59,7 +57,7 @@ internal abstract class AbstractUseConditionalExpressionForAssignmentCodeFixProv
     /// </summary>
     protected override async Task FixOneAsync(
         Document document, Diagnostic diagnostic,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var ifStatement = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
@@ -81,7 +79,7 @@ internal abstract class AbstractUseConditionalExpressionForAssignmentCodeFixProv
             trueAssignment?.Value ?? trueStatement,
             falseAssignment?.Value ?? falseStatement,
             isRef,
-            fallbackOptions,
+            formattingOptions,
             cancellationToken).ConfigureAwait(false);
 
         // See if we're assigning to a variable declared directly above the if statement. If so,

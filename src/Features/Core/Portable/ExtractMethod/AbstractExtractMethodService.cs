@@ -20,7 +20,7 @@ internal abstract class AbstractExtractMethodService<
     where TStatementSyntax : SyntaxNode
     where TExpressionSyntax : SyntaxNode
 {
-    protected abstract TValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, ExtractMethodOptions options, bool localFunction);
+    protected abstract TValidator CreateSelectionValidator(SemanticDocument document, TextSpan textSpan, bool localFunction);
     protected abstract TExtractor CreateMethodExtractor(TSelectionResult selectionResult, ExtractMethodGenerationOptions options, bool localFunction);
 
     public async Task<ExtractMethodResult> ExtractMethodAsync(
@@ -32,7 +32,7 @@ internal abstract class AbstractExtractMethodService<
     {
         var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
-        var validator = CreateSelectionValidator(semanticDocument, textSpan, options.ExtractOptions, localFunction);
+        var validator = CreateSelectionValidator(semanticDocument, textSpan, localFunction);
 
         var (selectionResult, status) = await validator.GetValidSelectionAsync(cancellationToken).ConfigureAwait(false);
         if (selectionResult is null)

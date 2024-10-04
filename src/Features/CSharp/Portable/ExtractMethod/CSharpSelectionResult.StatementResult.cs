@@ -13,18 +13,17 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
-internal partial class CSharpSelectionResult
+internal abstract partial class CSharpSelectionResult
 {
-    private class StatementResult(
+    private sealed class StatementResult(
         TextSpan originalSpan,
         TextSpan finalSpan,
-        ExtractMethodOptions options,
         bool selectionInExpression,
         SemanticDocument document,
         SyntaxAnnotation firstTokenAnnotation,
         SyntaxAnnotation lastTokenAnnotation,
         bool selectionChanged) : CSharpSelectionResult(
-            originalSpan, finalSpan, options, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
+            originalSpan, finalSpan, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
     {
         public override bool ContainingScopeHasAsyncKeyword()
         {

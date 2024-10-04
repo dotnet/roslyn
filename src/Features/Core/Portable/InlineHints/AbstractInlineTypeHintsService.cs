@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -28,6 +25,7 @@ internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
         bool forImplicitVariableTypes,
         bool forLambdaParameterTypes,
         bool forImplicitObjectCreation,
+        bool forCollectionExpressions,
         CancellationToken cancellationToken);
 
     public async Task<ImmutableArray<InlineHint>> GetInlineHintsAsync(
@@ -45,7 +43,8 @@ internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
         var forImplicitVariableTypes = enabledForTypes && options.ForImplicitVariableTypes;
         var forLambdaParameterTypes = enabledForTypes && options.ForLambdaParameterTypes;
         var forImplicitObjectCreation = enabledForTypes && options.ForImplicitObjectCreation;
-        if (!forImplicitVariableTypes && !forLambdaParameterTypes && !forImplicitObjectCreation && !displayAllOverride)
+        var forCollectionExpressions = enabledForTypes && options.ForCollectionExpressions;
+        if (!forImplicitVariableTypes && !forLambdaParameterTypes && !forImplicitObjectCreation && !forCollectionExpressions && !displayAllOverride)
             return [];
 
         var anonymousTypeService = document.GetRequiredLanguageService<IStructuralTypeDisplayService>();
@@ -62,6 +61,7 @@ internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
                 forImplicitVariableTypes,
                 forLambdaParameterTypes,
                 forImplicitObjectCreation,
+                forCollectionExpressions,
                 cancellationToken);
             if (hintOpt == null)
                 continue;
@@ -86,7 +86,7 @@ internal abstract class AbstractInlineTypeHintsService : IInlineTypeHintsService
                 InlineHintHelpers.GetDescriptionFunction(span.Start, type.GetSymbolKey(cancellationToken: cancellationToken), displayOptions)));
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static void AddParts(

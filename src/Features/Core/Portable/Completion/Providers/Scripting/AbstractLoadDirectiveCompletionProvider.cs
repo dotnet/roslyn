@@ -6,8 +6,7 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
@@ -22,7 +21,7 @@ internal abstract class AbstractLoadDirectiveCompletionProvider : AbstractDirect
 
     private static ImmutableArray<char> GetCommitCharacters()
     {
-        using var builderDisposer = ArrayBuilder<char>.GetInstance(out var builder);
+        using var builder = TemporaryArray<char>.Empty;
         builder.Add('"');
         if (PathUtilities.IsUnixLikePlatform)
         {
@@ -34,7 +33,7 @@ internal abstract class AbstractLoadDirectiveCompletionProvider : AbstractDirect
             builder.Add('\\');
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     protected override async Task ProvideCompletionsAsync(CompletionContext context, string pathThroughLastSlash)

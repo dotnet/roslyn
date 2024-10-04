@@ -29,6 +29,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeofToNameof\CSharpConvertTypeOfToNameOfDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ForEachCast\CSharpForEachCastDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpFormattingAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)MakeAnonymousFunctionStatic\MakeAnonymousFunctionStaticDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\CSharpMakeFieldReadonlyDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeStructMemberReadOnly\CSharpMakeStructMemberReadOnlyAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ArrowExpressionClausePlacement\ArrowExpressionClausePlacementDiagnosticAnalyzer.cs" />
@@ -81,7 +82,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\CSharpUseCoalesceExpressionForNullableTernaryConditionalCheckDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCoalesceExpression\UseCoalesceExpressionHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\CollectionExpressionMatch.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\CSharpUseCollectionExpressionForBuilderDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\CSharpUseCollectionExpressionForFluentDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseCollectionExpression\CSharpUseCollectionExpressionForEmptyDiagnosticAnalyzer.cs" />
@@ -135,6 +135,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\CSharpUseNullCheckOverTypeCheckDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\CSharpUseIsNullCheckForCastAndEqualityOperatorDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseIsNullCheck\CSharpUseIsNullCheckForReferenceEqualsDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)UseSystemThreadingLock\CSharpUseSystemThreadingLockDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseNameofInNullableAttribute\CSharpUseNameofInNullableAttributeDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseObjectInitializer\CSharpUseNamedMemberInitializerAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UsePatternMatching\CSharpAsAndMemberAccessDiagnosticAnalyzer.cs" />

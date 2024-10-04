@@ -10,7 +10,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
@@ -26,19 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp.DisambiguateSameVariable;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.DisambiguateSameVariable), Shared]
-internal class CSharpDisambiguateSameVariableCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpDisambiguateSameVariableCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     private const string CS1717 = nameof(CS1717); // Assignment made to same variable; did you mean to assign something else?
     private const string CS1718 = nameof(CS1718); // Comparison made to same variable; did you mean to compare something else?
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpDisambiguateSameVariableCodeFixProvider()
-    {
-    }
-
-    public override ImmutableArray<string> FixableDiagnosticIds { get; }
-        = [CS1717, CS1718];
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS1717, CS1718];
 
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -137,7 +131,7 @@ internal class CSharpDisambiguateSameVariableCodeFixProvider : SyntaxEditorBased
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var syntaxFacts = CSharpSyntaxFacts.Instance;
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

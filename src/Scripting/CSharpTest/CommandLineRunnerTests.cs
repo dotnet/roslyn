@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
@@ -121,6 +120,9 @@ select x * x
 ");
             runner.RunInteractive();
 
+            var iteratorType = RuntimeUtilities.IsCoreClr9OrHigherRuntime
+                ? "ArrayWhereSelectIterator"
+                : "WhereSelectArrayIterator";
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
 $@"{LogoAndHelpPrompt}
 > async Task<int[]> GetStuffAsync()
@@ -133,7 +135,7 @@ $@"{LogoAndHelpPrompt}
 > from x in await GetStuffAsync()
 . where x > 2
 . select x * x
-Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
+Enumerable.{iteratorType}<int, int> {{ 9, 16, 25 }}
 > ", runner.Console.Out.ToString());
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
@@ -866,28 +868,28 @@ public class LibBase
 {
     public readonly int X = 1;
 }
-", new[] { Net451.mscorlib }, libBaseName);
+", new[] { NetFramework.mscorlib }, libBaseName);
 
             var libBase2 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class LibBase
 {
     public readonly int X = 2;
 }
-", new[] { Net451.mscorlib }, libBaseName);
+", new[] { NetFramework.mscorlib }, libBaseName);
 
             var lib1 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib1
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { Net451.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
+", new MetadataReference[] { NetFramework.mscorlib, libBase1.ToMetadataReference() }, lib1Name);
 
             var lib2 = TestCompilationFactory.CreateCSharpCompilation(@"
 public class Lib2
 {
     public LibBase libBase = new LibBase();
 }
-", new MetadataReference[] { Net451.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
+", new MetadataReference[] { NetFramework.mscorlib, libBase1.ToMetadataReference() }, lib2Name);
 
             var libBase1Image = libBase1.EmitToArray();
             var libBase2Image = libBase2.EmitToArray();

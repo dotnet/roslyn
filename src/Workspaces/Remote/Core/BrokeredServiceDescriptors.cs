@@ -74,7 +74,13 @@ internal static class BrokeredServiceDescriptors
     public static readonly ServiceRpcDescriptor HotReloadLoggerService = CreateDebuggerServiceDescriptor("HotReloadLogger", new Version(0, 1));
     public static readonly ServiceRpcDescriptor HotReloadSessionNotificationService = CreateDebuggerServiceDescriptor("HotReloadSessionNotificationService", new Version(0, 1));
     public static readonly ServiceRpcDescriptor ManagedHotReloadAgentManagerService = CreateDebuggerServiceDescriptor("ManagedHotReloadAgentManagerService", new Version(0, 1));
-    public static readonly ServiceRpcDescriptor MauiLaunchCustomizerServiceDescriptor = CreateMauiServiceDescriptor("MauiLaunchCustomizerService", new Version(0, 1));
+    public static readonly ServiceRpcDescriptor GenericHotReloadAgentManagerService = CreateDebuggerServiceDescriptor("GenericHotReloadAgentManagerService", new Version(0, 1));
+    public static readonly ServiceRpcDescriptor HotReloadOptionService = CreateDebuggerClientServiceDescriptor("HotReloadOptionService", new Version(0, 1));
+    public static readonly ServiceRpcDescriptor MauiLaunchCustomizerService = CreateMauiServiceDescriptor("MauiLaunchCustomizerService", new Version(0, 1));
+    public static readonly ServiceRpcDescriptor DebuggerSymbolLocatorService =
+        CreateDebuggerServiceDescriptor("SymbolLocatorService", new Version(0, 1), new MultiplexingStream.Options { ProtocolMajorVersion = 3 });
+    public static readonly ServiceRpcDescriptor DebuggerSourceLinkService =
+        CreateDebuggerServiceDescriptor("SourceLinkService", new Version(0, 1), new MultiplexingStream.Options { ProtocolMajorVersion = 3 });
 
     public static ServiceMoniker CreateMoniker(string namespaceName, string componentName, string serviceName, Version? version)
         => new(namespaceName + "." + componentName + "." + serviceName, version);
@@ -95,8 +101,15 @@ internal static class BrokeredServiceDescriptors
     /// <summary>
     /// Descriptor for services proferred by the debugger server (implemented in C#). 
     /// </summary>
-    public static ServiceJsonRpcDescriptor CreateDebuggerServiceDescriptor(string serviceName, Version? version = null)
-        => CreateDescriptor(CreateMoniker(VisualStudioComponentNamespace, DebuggerComponentName, serviceName, version));
+    public static ServiceJsonRpcDescriptor CreateDebuggerServiceDescriptor(string serviceName, Version? version = null, MultiplexingStream.Options? streamOptions = null)
+        => CreateDescriptor(CreateMoniker(VisualStudioComponentNamespace, DebuggerComponentName, serviceName, version), streamOptions);
+
+    /// <summary>
+    /// Descriptor for services proferred by the debugger server (implemented in TypeScript).
+    /// </summary>
+    public static ServiceJsonRpcDescriptor CreateDebuggerClientServiceDescriptor(string serviceName, Version? version = null)
+        => new ClientServiceDescriptor(CreateMoniker(VisualStudioComponentNamespace, DebuggerComponentName, serviceName, version), clientInterface: null)
+           .WithExceptionStrategy(ExceptionProcessing.ISerializable);
 
     /// <summary>
     /// Descriptor for services proferred by the MAUI extension (implemented in TypeScript).
@@ -107,7 +120,11 @@ internal static class BrokeredServiceDescriptors
             new MultiplexingStream.Options { ProtocolMajorVersion = 3 })
            .WithExceptionStrategy(ExceptionProcessing.ISerializable);
 
-    private static ServiceJsonRpcDescriptor CreateDescriptor(ServiceMoniker moniker)
-        => new ServiceJsonRpcDescriptor(moniker, Formatters.MessagePack, MessageDelimiters.BigEndianInt32LengthHeader)
-           .WithExceptionStrategy(ExceptionProcessing.ISerializable);
+    private static ServiceJsonRpcDescriptor CreateDescriptor(ServiceMoniker moniker, MultiplexingStream.Options? streamOptions = null)
+    {
+        var descriptor = streamOptions is not null
+            ? new ServiceJsonRpcDescriptor(moniker, clientInterface: null, Formatters.MessagePack, MessageDelimiters.BigEndianInt32LengthHeader, streamOptions)
+            : new ServiceJsonRpcDescriptor(moniker, Formatters.MessagePack, MessageDelimiters.BigEndianInt32LengthHeader);
+        return descriptor.WithExceptionStrategy(ExceptionProcessing.ISerializable);
+    }
 }

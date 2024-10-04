@@ -10,8 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -37,7 +35,7 @@ internal abstract partial class AbstractChainedExpressionWrapper<
     /// if wrap-long produces the same results as wrap-each, then the caller will
     /// filter it out.
     /// </summary>
-    private class CallExpressionCodeActionComputer :
+    private sealed class CallExpressionCodeActionComputer :
         AbstractCodeActionComputer<AbstractChainedExpressionWrapper<TNameSyntax, TBaseArgumentListSyntax>>
     {
         /// <summary>
@@ -163,7 +161,7 @@ internal abstract partial class AbstractChainedExpressionWrapper<
                 position += NormalizedWidth(chunk);
             }
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         private static int NormalizedWidth(ImmutableArray<SyntaxNodeOrToken> chunk)
@@ -178,7 +176,7 @@ internal abstract partial class AbstractChainedExpressionWrapper<
             var flattened = _chunks.SelectManyAsArray(c => c);
             DeleteAllSpacesInChunk(result, flattened);
 
-            return result.ToImmutable();
+            return result.ToImmutableAndClear();
         }
 
         private static void DeleteAllSpacesInChunk(

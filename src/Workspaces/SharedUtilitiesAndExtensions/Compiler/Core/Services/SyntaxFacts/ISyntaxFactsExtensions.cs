@@ -36,12 +36,10 @@ internal static class ISyntaxFactsExtensions
         // and all the trivia on each token.  If full-span is false we'll examine all tokens
         // but we'll ignore the leading trivia on the very first trivia and the trailing trivia
         // on the very last token.
-        var stack = s_stackPool.Allocate();
+        using var _ = s_stackPool.GetPooledObject(out var stack);
         stack.Push((node, leading: fullSpan, trailing: fullSpan));
 
         var result = IsOnSingleLine(syntaxFacts, stack);
-
-        s_stackPool.ClearAndFree(stack);
 
         return result;
     }
@@ -49,9 +47,9 @@ internal static class ISyntaxFactsExtensions
     private static bool IsOnSingleLine(
         ISyntaxFacts syntaxFacts, Stack<(SyntaxNodeOrToken nodeOrToken, bool leading, bool trailing)> stack)
     {
-        while (stack.Count > 0)
+        while (stack.TryPop(out var tuple))
         {
-            var (currentNodeOrToken, currentLeading, currentTrailing) = stack.Pop();
+            var (currentNodeOrToken, currentLeading, currentTrailing) = tuple;
             if (currentNodeOrToken.IsToken)
             {
                 // If this token isn't on a single line, then the original node definitely
@@ -383,7 +381,7 @@ internal static class ISyntaxFactsExtensions
         => syntaxFacts.IsWord(token) || syntaxFacts.IsNumericLiteral(token);
 
     public static bool SpansPreprocessorDirective(this ISyntaxFacts service, SyntaxNode node)
-        => service.SpansPreprocessorDirective(SpecializedCollections.SingletonEnumerable(node));
+        => service.SpansPreprocessorDirective([node]);
 
     public static bool SpansPreprocessorDirective(this ISyntaxFacts service, params SyntaxNode[] nodes)
         => service.SpansPreprocessorDirective((IEnumerable<SyntaxNode>)nodes);
@@ -563,6 +561,12 @@ internal static class ISyntaxFactsExtensions
         return members;
     }
 
+    public static SyntaxNode GetNameOfAttribute(this ISyntaxFacts syntaxFacts, SyntaxNode node)
+    {
+        syntaxFacts.GetPartsOfAttribute(node, out var name, out _);
+        return name;
+    }
+
     public static SyntaxNode GetNameOfBaseNamespaceDeclaration(this ISyntaxFacts syntaxFacts, SyntaxNode node)
     {
         syntaxFacts.GetPartsOfBaseNamespaceDeclaration(node, out var name, out _, out _);
@@ -630,6 +634,15 @@ internal static class ISyntaxFactsExtensions
 
         syntaxFacts.GetPartsOfMemberAccessExpression(parent, out var expression, out _);
         return node == expression;
+    }
+
+    public static bool IsNameOfAttribute(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)
+    {
+        if (!syntaxFacts.IsAttribute(node?.Parent))
+            return false;
+
+        syntaxFacts.GetPartsOfAttribute(node.Parent, out var name, out _);
+        return name == node;
     }
 
     public static bool IsRightOfQualifiedName(this ISyntaxFacts syntaxFacts, [NotNullWhen(true)] SyntaxNode? node)

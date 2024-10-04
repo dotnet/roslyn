@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -13,16 +12,14 @@ using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
-internal partial class CSharpMethodExtractor
+internal sealed partial class CSharpMethodExtractor
 {
-    private partial class CSharpCodeGenerator
+    private abstract partial class CSharpCodeGenerator
     {
         private sealed class ExpressionCodeGenerator(
             CSharpSelectionResult selectionResult,

@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -584,7 +583,6 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,
-        CodeActionOptionsProvider optionsProvider,
         string? equivalenceKey,
         CancellationToken cancellationToken)
     {

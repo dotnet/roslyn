@@ -139,7 +139,7 @@ internal abstract class AbstractDocumentationCommentService<
                         AppendTextTokens(sb, GetTextTokens(xmlTextAttribute));
                         break;
                     default:
-                        Debug.Assert(false, $"Unexpected XML syntax kind {attribute.RawKind}");
+                        RoslynDebug.Assert(false, $"Unexpected XML syntax kind {attribute.RawKind}");
                         break;
                 }
             }
@@ -185,7 +185,7 @@ internal abstract class AbstractDocumentationCommentService<
         => tokenText.Length > 0 && char.IsWhiteSpace(tokenText[0]);
 
     private static bool HasTrailingWhitespace(string tokenText)
-        => tokenText.Length > 0 && char.IsWhiteSpace(tokenText[tokenText.Length - 1]);
+        => tokenText.Length > 0 && char.IsWhiteSpace(tokenText[^1]);
 
     public string GetBannerText(SyntaxNode documentationCommentTriviaSyntax, int maxBannerLength, CancellationToken cancellationToken)
         => GetBannerText((TDocumentationCommentTriviaSyntax)documentationCommentTriviaSyntax, maxBannerLength, cancellationToken);

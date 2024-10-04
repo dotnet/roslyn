@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -60,7 +59,6 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
     protected override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         TObjectCreationExpressionSyntax objectCreation,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)

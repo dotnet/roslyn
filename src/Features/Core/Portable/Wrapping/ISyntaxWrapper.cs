@@ -6,7 +6,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Indentation;
 
 namespace Microsoft.CodeAnalysis.Wrapping;
 

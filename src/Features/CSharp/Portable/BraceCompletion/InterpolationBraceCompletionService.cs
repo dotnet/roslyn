@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -18,15 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion;
 /// Brace completion service used for completing curly braces inside interpolated strings.
 /// In other curly brace completion scenarios the <see cref="CurlyBraceCompletionService"/> should be used.
 /// </summary>
-[Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
-internal class InterpolationBraceCompletionService : AbstractCSharpBraceCompletionService
+[ExportBraceCompletionService(LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class InterpolationBraceCompletionService() : AbstractCSharpBraceCompletionService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public InterpolationBraceCompletionService()
-    {
-    }
-
     protected override char OpeningBrace => CurlyBrace.OpenCharacter;
     protected override char ClosingBrace => CurlyBrace.CloseCharacter;
 

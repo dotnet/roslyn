@@ -73,7 +73,7 @@ internal abstract class AbstractTaskListService : ITaskListService
             AppendTaskListItems(descriptors, syntaxDoc, trivia, items);
         }
 
-        return items.ToImmutable();
+        return items.ToImmutableAndClear();
     }
 
     private bool ContainsComments(SyntaxTrivia trivia)

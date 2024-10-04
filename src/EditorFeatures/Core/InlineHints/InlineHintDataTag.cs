@@ -5,7 +5,6 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.InlineHints;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;

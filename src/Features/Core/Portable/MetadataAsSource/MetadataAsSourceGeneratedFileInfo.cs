@@ -8,7 +8,6 @@ using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
@@ -37,7 +36,7 @@ internal sealed class MetadataAsSourceGeneratedFileInfo
             ? sourceProject.ParseOptions
             : sourceProject.Solution.Services.GetLanguageServices(LanguageName).GetRequiredService<ISyntaxTreeFactoryService>().GetDefaultParseOptionsWithLatestLanguageVersion();
 
-        this.References = sourceProject.MetadataReferences.ToImmutableArray();
+        this.References = [.. sourceProject.MetadataReferences];
         this.AssemblyIdentity = topLevelNamedType.ContainingAssembly.Identity;
 
         var extension = LanguageName == LanguageNames.CSharp ? ".cs" : ".vb";
@@ -98,7 +97,7 @@ internal sealed class MetadataAsSourceGeneratedFileInfo
                 name: AssemblyIdentity.Name,
                 assemblyName: AssemblyIdentity.Name,
                 language: LanguageName,
-                compilationOutputFilePaths: default,
+                compilationOutputInfo: default,
                 checksumAlgorithm: ChecksumAlgorithm),
             compilationOptions: compilationOptions,
             parseOptions: _parseOptions,

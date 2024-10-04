@@ -272,21 +272,6 @@
         <target state="translated">_Nie neue Zeile beim Drücken der EINGABETASTE einfügen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Always_include_snippets">
-        <source>Always include snippets</source>
-        <target state="translated">Schnipsel immer einschließen</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
-        <source>Include snippets when ?-Tab is typed after an identifier</source>
-        <target state="translated">Schnipsel einschließen, wenn ?-TAB nach einem Bezeichner eingegeben wird</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_include_snippets">
-        <source>Never include snippets</source>
-        <target state="translated">Schnipsel nie einschließen</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Snippets_behavior">
         <source>Snippets behavior</source>
         <target state="translated">Schnipselverhalten</target>

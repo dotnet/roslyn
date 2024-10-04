@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;

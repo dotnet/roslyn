@@ -3,14 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Formatting;
 
 #if CODE_STYLE
 using CSharpWorkspaceResources = Microsoft.CodeAnalysis.CSharp.CSharpCodeStyleResources;
-using WorkspacesResources = Microsoft.CodeAnalysis.CodeStyleResources;
 #endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -19,7 +17,7 @@ internal static partial class CSharpFormattingOptions2
 {
     private const string PublicFeatureName = "CSharpFormattingOptions";
 
-    private static readonly ImmutableArray<IOption2>.Builder s_allOptionsBuilder = ImmutableArray.CreateBuilder<IOption2>();
+    private static readonly ImmutableArray<IOption2>.Builder s_editorConfigOptionsBuilder = ImmutableArray.CreateBuilder<IOption2>();
 
     // Maps to store mapping between special option kinds and the corresponding editor config string representations.
     #region Editor Config maps
@@ -65,12 +63,10 @@ internal static partial class CSharpFormattingOptions2
         ]);
     #endregion
 
-    internal static ImmutableArray<IOption2> AllOptions { get; }
-
     private static Option2<T> CreateOption<T>(OptionGroup group, string name, T defaultValue, EditorConfigValueSerializer<T>? serializer = null)
     {
         var option = new Option2<T>(name, defaultValue, group, LanguageNames.CSharp, isEditorConfigOption: true, serializer: serializer);
-        s_allOptionsBuilder.Add(option);
+        s_editorConfigOptionsBuilder.Add(option);
         return option;
     }
 
@@ -274,13 +270,24 @@ internal static partial class CSharpFormattingOptions2
         CSharpSyntaxFormattingOptions.NewLinesDefault.HasFlag(NewLinePlacement.BetweenQueryExpressionClauses))
         .WithPublicOption(PublicFeatureName, "NewLineForClausesInQuery");
 
-    static CSharpFormattingOptions2()
-    {
-        // Note that the static constructor executes after all the static field initializers for the options have executed,
-        // and each field initializer adds the created option to the following builders.
+    /// <summary>
+    /// Internal option -- not exposed to editorconfig tooling via <see cref="EditorConfigOptions"/>.
+    /// </summary>
+    public static readonly Option2<int> CollectionExpressionWrappingLength = new(
+        $"csharp_unsupported_collection_expression_wrapping_length",
+        defaultValue: CSharpSyntaxFormattingOptions.Default.CollectionExpressionWrappingLength,
+        languageName: LanguageNames.CSharp,
+        isEditorConfigOption: true);
 
-        AllOptions = s_allOptionsBuilder.ToImmutable();
-    }
+    /// <summary>
+    /// Options that we expect the user to set in editorconfig.
+    /// </summary>
+    internal static readonly ImmutableArray<IOption2> EditorConfigOptions = s_editorConfigOptionsBuilder.ToImmutable();
+
+    /// <summary>
+    /// Options that can be set via editorconfig but we do not provide tooling support.
+    /// </summary>
+    internal static readonly ImmutableArray<IOption2> UndocumentedOptions = [CollectionExpressionWrappingLength];
 }
 
 #if CODE_STYLE

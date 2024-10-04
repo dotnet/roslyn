@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
@@ -21,7 +22,7 @@ internal class ElasticTriviaFormattingRule : BaseFormattingRule
 {
     internal const string Name = "CSharp Elastic trivia Formatting Rule";
 
-    public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+    public override void AddSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
     {
         nextOperation.Invoke();
 
@@ -37,7 +38,7 @@ internal class ElasticTriviaFormattingRule : BaseFormattingRule
         AddCollectionExpressionSuppressOperations(list, node);
     }
 
-    private static void AddPropertyDeclarationSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+    private static void AddPropertyDeclarationSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         if (node is BasePropertyDeclarationSyntax basePropertyDeclaration && basePropertyDeclaration.AccessorList != null &&
             basePropertyDeclaration.AccessorList.Accessors.All(a => a.Body == null) &&
@@ -49,7 +50,7 @@ internal class ElasticTriviaFormattingRule : BaseFormattingRule
         }
     }
 
-    private static void AddInitializerSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+    private static void AddInitializerSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         var initializer = GetInitializerNode(node);
         var lastTokenOfType = GetLastTokenOfType(node);
@@ -66,7 +67,7 @@ internal class ElasticTriviaFormattingRule : BaseFormattingRule
         }
     }
 
-    private static void AddCollectionExpressionSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+    private static void AddCollectionExpressionSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         if (node is CollectionExpressionSyntax { OpenBracketToken.IsMissing: false, CloseBracketToken.IsMissing: false } collectionExpression)
         {

@@ -5,7 +5,6 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
@@ -32,8 +31,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.Formatting
             var languageServices = document.Project.Services;
 
             var cleanupOptions =
-                options?.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions: false, fallbackOptions: null) ??
-                CodeCleanupOptions.GetDefault(languageServices);
+                options?.GetCodeCleanupOptions(languageServices, allowImportsInHiddenRegions: false) ??
+                await document.GetCodeCleanupOptionsAsync(CancellationToken.None);
 
             var formattingService = document.GetRequiredLanguageService<INewDocumentFormattingService>();
             var formattedDocument = await formattingService.FormatNewDocumentAsync(document, hintDocument: null, cleanupOptions, CancellationToken.None);

@@ -10,7 +10,6 @@ using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -19,7 +18,7 @@ namespace Microsoft.CodeAnalysis.AddImport;
 
 internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    private partial class MetadataSymbolReference(
+    private sealed partial class MetadataSymbolReference(
         AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
         SymbolResult<INamespaceOrTypeSymbol> symbolResult,
         ProjectId referenceProjectId,

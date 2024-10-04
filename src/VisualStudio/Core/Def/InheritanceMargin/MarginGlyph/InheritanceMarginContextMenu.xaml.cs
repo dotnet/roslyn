@@ -2,16 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Globalization;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.InheritanceMargin;
 using Microsoft.VisualStudio.Utilities;
@@ -34,7 +32,8 @@ internal partial class InheritanceMarginContextMenu : ContextMenu
         IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
         IUIThreadOperationExecutor operationExecutor,
         Workspace workspace,
-        IAsynchronousOperationListener listener)
+        IAsynchronousOperationListener listener,
+        double scaleFactor)
     {
         _threadingContext = threadingContext;
         _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
@@ -42,6 +41,8 @@ internal partial class InheritanceMarginContextMenu : ContextMenu
         _operationExecutor = operationExecutor;
         _listener = listener;
         InitializeComponent();
+        LayoutTransform = new ScaleTransform(scaleFactor, scaleFactor);
+        LayoutTransform.Freeze();
     }
 
     private void TargetMenuItem_OnClick(object sender, RoutedEventArgs e)

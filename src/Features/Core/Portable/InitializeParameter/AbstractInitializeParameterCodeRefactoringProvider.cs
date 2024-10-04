@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.InitializeParameter;
 
@@ -43,7 +42,6 @@ internal abstract partial class AbstractInitializeParameterCodeRefactoringProvid
         IBlockOperation? blockStatement,
         ImmutableArray<SyntaxNode> listOfParameterNodes,
         TextSpan parameterSpan,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken);
 
     protected abstract Task<ImmutableArray<CodeAction>> GetRefactoringsForSingleParameterAsync(
@@ -53,7 +51,6 @@ internal abstract partial class AbstractInitializeParameterCodeRefactoringProvid
         SyntaxNode functionDeclaration,
         IMethodSymbol methodSymbol,
         IBlockOperation? blockStatement,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken);
 
     protected abstract void InsertStatement(
@@ -105,7 +102,7 @@ internal abstract partial class AbstractInitializeParameterCodeRefactoringProvid
             // Ok.  Looks like the selected parameter could be refactored. Defer to subclass to 
             // actually determine if there are any viable refactorings here.
             var refactorings = await GetRefactoringsForSingleParameterAsync(
-                document, selectedParameter, parameter, functionDeclaration, methodSymbol, blockStatementOpt, context.Options, cancellationToken).ConfigureAwait(false);
+                document, selectedParameter, parameter, functionDeclaration, methodSymbol, blockStatementOpt, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(refactorings, context.Span);
         }
 
@@ -126,7 +123,7 @@ internal abstract partial class AbstractInitializeParameterCodeRefactoringProvid
             // actually determine if there are any viable refactorings here.
             var refactorings = await GetRefactoringsForAllParametersAsync(
                 document, functionDeclaration, methodSymbol, blockStatementOpt,
-                listOfPotentiallyValidParametersNodes.ToImmutable(), selectedParameter.Span, context.Options, cancellationToken).ConfigureAwait(false);
+                listOfPotentiallyValidParametersNodes.ToImmutable(), selectedParameter.Span, cancellationToken).ConfigureAwait(false);
             context.RegisterRefactorings(refactorings, context.Span);
         }
 

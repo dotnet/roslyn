@@ -17,8 +17,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using VSThreading = Microsoft.VisualStudio.Threading;
 
@@ -92,6 +92,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         private readonly IVsService<IBrokeredServiceContainer> _brokeredServiceContainer;
         private readonly AsynchronousOperationListenerProvider _listenerProvider;
         private readonly RemoteServiceCallbackDispatcherRegistry _callbackDispatchers;
+        private readonly TaskCompletionSource<bool> _clientCreationSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
         private VisualStudioRemoteHostClientProvider(
             SolutionServices services,
@@ -134,9 +135,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
             {
                 return null;
             }
+            finally
+            {
+                _clientCreationSource.SetResult(true);
+            }
         }
 
         public Task<RemoteHostClient?> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
             => _lazyClient.GetValueAsync(cancellationToken);
+
+        public Task WaitForClientCreationAsync(CancellationToken cancellationToken)
+            => _clientCreationSource.Task.WithCancellation(cancellationToken);
     }
 }

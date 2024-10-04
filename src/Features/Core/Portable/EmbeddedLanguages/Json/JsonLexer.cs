@@ -230,7 +230,7 @@ internal struct JsonLexer
             break;
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private JsonTrivia? ScanEndOfLine()

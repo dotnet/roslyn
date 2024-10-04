@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
@@ -35,16 +34,6 @@ internal abstract class PreferFrameworkTypeDiagnosticAnalyzerBase<
                new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)),
                new LocalizableResourceString(nameof(FeaturesResources.Use_framework_type), FeaturesResources.ResourceManager, typeof(FeaturesResources)))
     {
-    }
-
-    public override bool OpenFileOnly(SimplifierOptions? options)
-    {
-        // analyzer is only active in C# and VB projects
-        Contract.ThrowIfNull(options);
-
-        return
-            !(options.PreferPredefinedTypeKeywordInDeclaration.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
-              options.PreferPredefinedTypeKeywordInMemberAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
     }
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()

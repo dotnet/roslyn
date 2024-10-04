@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ReplaceDiscardDeclarationsWithAssignments;
@@ -22,6 +21,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplaceDiscardDeclarationsWithAssignments;
+
+using static SyntaxFactory;
 
 [ExportLanguageService(typeof(IReplaceDiscardDeclarationsWithAssignmentsService), LanguageNames.CSharp), Shared]
 internal sealed class CSharpReplaceDiscardDeclarationsWithAssignmentsService : IReplaceDiscardDeclarationsWithAssignmentsService
@@ -68,13 +69,13 @@ internal sealed class CSharpReplaceDiscardDeclarationsWithAssignmentsService : I
                         // "M(out var _)" => "M(out _)"
                         // "M(out int _)" => "M(out _)"
 
-                        var discardToken = SyntaxFactory.Identifier(
+                        var discardToken = Identifier(
                             leading: declarationExpression.GetLeadingTrivia(),
                             contextualKind: SyntaxKind.UnderscoreToken,
                             text: discardSyntax.UnderscoreToken.Text,
                             valueText: discardSyntax.UnderscoreToken.ValueText,
                             trailing: declarationExpression.GetTrailingTrivia());
-                        var replacementNode = SyntaxFactory.IdentifierName(discardToken);
+                        var replacementNode = IdentifierName(discardToken);
 
                         // Removing explicit type is possible only if there are no overloads of the method with same parameter.
                         // For example, if method "M" had overloads with signature "void M(int x)" and "void M(char x)",
@@ -95,7 +96,7 @@ internal sealed class CSharpReplaceDiscardDeclarationsWithAssignmentsService : I
                         declarationPattern.Parent is IsPatternExpressionSyntax isPatternExpression)
                     {
                         // "x is int _" => "x is int"
-                        var replacementNode = SyntaxFactory.BinaryExpression(
+                        var replacementNode = BinaryExpression(
                             kind: SyntaxKind.IsExpression,
                             left: isPatternExpression.Expression,
                             operatorToken: isPatternExpression.IsKeyword,
@@ -211,7 +212,7 @@ internal sealed class CSharpReplaceDiscardDeclarationsWithAssignmentsService : I
             }
             else
             {
-                _editor.ReplaceNode(_localDeclarationStatement, SyntaxFactory.Block(_statementsBuilder));
+                _editor.ReplaceNode(_localDeclarationStatement, Block(_statementsBuilder));
             }
         }
 
@@ -224,8 +225,8 @@ internal sealed class CSharpReplaceDiscardDeclarationsWithAssignmentsService : I
             // which are split by a single assignment statement "_ = M();"
             if (_currentNonDiscardVariables.Count > 0)
             {
-                var statement = SyntaxFactory.LocalDeclarationStatement(
-                                    SyntaxFactory.VariableDeclaration(_localDeclarationStatement.Declaration.Type, _currentNonDiscardVariables))
+                var statement = LocalDeclarationStatement(
+                                    VariableDeclaration(_localDeclarationStatement.Declaration.Type, _currentNonDiscardVariables))
                                 .WithAdditionalAnnotations(Formatter.Annotation);
                 _statementsBuilder.Add(statement);
                 _currentNonDiscardVariables = [];
@@ -241,10 +242,10 @@ internal sealed class CSharpReplaceDiscardDeclarationsWithAssignmentsService : I
             if (variable.Initializer != null)
             {
                 _statementsBuilder.Add(
-                    SyntaxFactory.ExpressionStatement(
-                        SyntaxFactory.AssignmentExpression(
+                    ExpressionStatement(
+                        AssignmentExpression(
                             kind: SyntaxKind.SimpleAssignmentExpression,
-                            left: SyntaxFactory.IdentifierName(variable.Identifier),
+                            left: IdentifierName(variable.Identifier),
                             operatorToken: variable.Initializer.EqualsToken,
                             right: variable.Initializer.Value))
                     .WithAdditionalAnnotations(Formatter.Annotation));

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
    Name = PredefinedCodeRefactoringProviderNames.ReplacePropertyWithMethods), Shared]
-internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
+internal sealed class ReplacePropertyWithMethodsCodeRefactoringProvider :
     CodeRefactoringProvider,
     IEqualityComparer<(IPropertySymbol property, ReferenceLocation location)>
 {
@@ -67,7 +67,7 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
         context.RegisterRefactoring(
             CodeAction.Create(
                 string.Format(resourceString, propertyName),
-                c => ReplacePropertyWithMethodsAsync(document, propertySymbol, context.Options, c),
+                c => ReplacePropertyWithMethodsAsync(document, propertySymbol, c),
                 propertyName),
             propertyDeclaration.Span);
     }
@@ -75,7 +75,6 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
     private async Task<Solution> ReplacePropertyWithMethodsAsync(
        Document document,
        IPropertySymbol propertySymbol,
-       CodeGenerationOptionsProvider fallbackOptions,
        CancellationToken cancellationToken)
     {
         var desiredMethodSuffix = NameGenerator.GenerateUniqueName(propertySymbol.Name,
@@ -112,7 +111,7 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
 
         updatedSolution = await ReplaceDefinitionsWithMethodsAsync(
             originalSolution, updatedSolution, propertyReferences, definitionToBackingField,
-            desiredGetMethodName, desiredSetMethodName, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            desiredGetMethodName, desiredSetMethodName, cancellationToken).ConfigureAwait(false);
 
         return updatedSolution;
     }
@@ -276,6 +275,11 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
                     editor.ReplaceNode(parent, parent.WithAdditionalAnnotations(
                         ConflictAnnotation.Create(FeaturesResources.Property_reference_cannot_be_updated)));
                 }
+                else if (syntaxFacts.IsNameOfSubpattern(parent))
+                {
+                    editor.ReplaceNode(parent, parent.WithAdditionalAnnotations(
+                        ConflictAnnotation.Create(FeaturesResources.Property_reference_cannot_be_updated)));
+                }
                 else
                 {
                     var fieldSymbol = propertyToBackingField.GetValueOrDefault(property);
@@ -295,7 +299,6 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
         IEnumerable<ReferencedSymbol> references,
         ImmutableDictionary<IPropertySymbol, IFieldSymbol?> definitionToBackingField,
         string desiredGetMethodName, string desiredSetMethodName,
-        CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var definitionsByDocumentId = await GetDefinitionsByDocumentIdAsync(originalSolution, references, cancellationToken).ConfigureAwait(false);
@@ -306,7 +309,7 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
 
             updatedSolution = await ReplaceDefinitionsWithMethodsAsync(
                 updatedSolution, documentId, definitions, definitionToBackingField,
-                desiredGetMethodName, desiredSetMethodName, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                desiredGetMethodName, desiredSetMethodName, cancellationToken).ConfigureAwait(false);
         }
 
         return updatedSolution;
@@ -346,7 +349,6 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
         MultiDictionary<DocumentId, IPropertySymbol>.ValueSet originalDefinitions,
         IDictionary<IPropertySymbol, IFieldSymbol?> definitionToBackingField,
         string desiredGetMethodName, string desiredSetMethodName,
-        CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var updatedDocument = updatedSolution.GetRequiredDocument(documentId);
@@ -373,7 +375,6 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
                 property, declaration,
                 definitionToBackingField.GetValueOrDefault(property),
                 desiredGetMethodName, desiredSetMethodName,
-                fallbackOptions,
                 cancellationToken).ConfigureAwait(false);
 
             // Properly make the members fit within an interface if that's what
@@ -412,7 +413,7 @@ internal class ReplacePropertyWithMethodsCodeRefactoringProvider :
                 result.Add((property, declaration));
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static async Task<SyntaxNode?> GetPropertyDeclarationAsync(

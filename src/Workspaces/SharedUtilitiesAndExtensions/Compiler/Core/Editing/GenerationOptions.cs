@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Editing;
 
-internal class GenerationOptions
+internal sealed class GenerationOptions
 {
     public static readonly PerLanguageOption2<bool> PlaceSystemNamespaceFirst = new(
         "dotnet_sort_system_directives_first",
@@ -24,5 +24,8 @@ internal class GenerationOptions
         group: CodeStyleOptionGroups.Usings,
         isEditorConfigOption: true);
 
-    public static readonly ImmutableArray<IOption2> AllOptions = [PlaceSystemNamespaceFirst, SeparateImportDirectiveGroups];
+    /// <summary>
+    /// Options that we expect the user to set in editorconfig.
+    /// </summary>
+    public static readonly ImmutableArray<IOption2> EditorConfigOptions = [PlaceSystemNamespaceFirst, SeparateImportDirectiveGroups];
 }

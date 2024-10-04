@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
@@ -40,7 +39,6 @@ internal sealed partial class EventHookupSessionManager
         private readonly ITrackingSpan _trackingSpan;
         private readonly ITextView _textView;
         private readonly ITextBuffer _subjectBuffer;
-        private readonly IGlobalOptionService _globalOptions;
 
         public event Action Dismissed = () => { };
 
@@ -91,7 +89,6 @@ internal sealed partial class EventHookupSessionManager
             int position,
             Document document,
             IAsynchronousOperationListener asyncListener,
-            IGlobalOptionService globalOptions,
             Mutex testSessionHookupMutex)
         {
             _threadingContext = eventHookupSessionManager.ThreadingContext;
@@ -101,7 +98,6 @@ internal sealed partial class EventHookupSessionManager
             var cancellationToken = _cancellationTokenSource.Token;
             _textView = textView;
             _subjectBuffer = subjectBuffer;
-            _globalOptions = globalOptions;
             this.TESTSessionHookupMutex = testSessionHookupMutex;
 
             // If the caret is at the end of the document we just create an empty span
@@ -180,7 +176,6 @@ internal sealed partial class EventHookupSessionManager
                     new SymbolKindOrTypeKind(MethodKind.Ordinary),
                     new DeclarationModifiers(isStatic: plusEqualsToken.Value.GetRequiredParent().IsInStaticContext()),
                     Accessibility.Private,
-                    _globalOptions.CreateProvider(),
                     cancellationToken).ConfigureAwait(false);
 
                 return GetEventHandlerName(

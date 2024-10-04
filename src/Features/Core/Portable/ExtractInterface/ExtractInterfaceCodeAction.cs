@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExtractInterface;
 
-internal class ExtractInterfaceCodeAction(AbstractExtractInterfaceService extractInterfaceService, ExtractInterfaceTypeAnalysisResult typeAnalysisResult) : CodeActionWithOptions
+internal sealed class ExtractInterfaceCodeAction(AbstractExtractInterfaceService extractInterfaceService, ExtractInterfaceTypeAnalysisResult typeAnalysisResult) : CodeActionWithOptions
 {
     private readonly ExtractInterfaceTypeAnalysisResult _typeAnalysisResult = typeAnalysisResult;
     private readonly AbstractExtractInterfaceService _extractInterfaceService = extractInterfaceService;
@@ -27,7 +27,6 @@ internal class ExtractInterfaceCodeAction(AbstractExtractInterfaceService extrac
             _typeAnalysisResult.TypeToExtractFrom,
             _typeAnalysisResult.ExtractableMembers,
             containingNamespaceDisplay,
-            _typeAnalysisResult.FallbackOptions,
             cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
     }
 

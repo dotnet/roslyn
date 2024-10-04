@@ -48,7 +48,13 @@ internal abstract class AbstractOrderModifiersDiagnosticAnalyzer : AbstractBuilt
             return;
         }
 
-        Recurse(context, preferredOrder, option.Notification, context.GetAnalysisRoot(findInTrivia: false));
+        var analysisRoot = context.GetAnalysisRoot(findInTrivia: false);
+
+        // Check the root node first to see if it has any modifiers that need reordering.
+        CheckModifiers(context, preferredOrder, option.Notification, analysisRoot);
+
+        // Recurse to check the child nodes.
+        Recurse(context, preferredOrder, option.Notification, analysisRoot);
     }
 
     protected abstract void Recurse(
@@ -71,8 +77,13 @@ internal abstract class AbstractOrderModifiersDiagnosticAnalyzer : AbstractBuilt
                 // If the severity is hidden, put the marker on all the modifiers so that the
                 // user can bring up the fix anywhere in the modifier list.
                 context.ReportDiagnostic(
-                    Diagnostic.Create(Descriptor, context.Tree.GetLocation(
-                        TextSpan.FromBounds(modifiers.First().SpanStart, modifiers.Last().Span.End))));
+                    DiagnosticHelper.Create(
+                        Descriptor,
+                        context.Tree.GetLocation(TextSpan.FromBounds(modifiers.First().SpanStart, modifiers.Last().Span.End)),
+                        notificationOption,
+                        context.Options,
+                        additionalLocations: null,
+                        properties: null));
             }
             else
             {

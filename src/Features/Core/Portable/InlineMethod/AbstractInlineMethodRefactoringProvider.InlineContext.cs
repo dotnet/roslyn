@@ -376,7 +376,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
         return renameTable.ToImmutableDictionary();
     }
 
-    private class LocalVariableDeclarationVisitor : OperationWalker
+    private sealed class LocalVariableDeclarationVisitor : OperationWalker
     {
         private readonly CancellationToken _cancellationToken;
         private readonly HashSet<ISymbol> _allSymbols = [];
@@ -395,7 +395,7 @@ internal abstract partial class AbstractInlineMethodRefactoringProvider<TMethodD
             var operation = semanticModel.GetOperation(methodDeclarationSyntax, cancellationToken);
             visitor.Visit(operation);
 
-            return visitor._allSymbols.ToImmutableHashSet();
+            return [.. visitor._allSymbols];
         }
 
         public override void Visit(IOperation? operation)

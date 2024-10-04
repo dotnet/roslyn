@@ -8,8 +8,8 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.StringCopyPaste;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -27,7 +27,6 @@ using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
-using VSUtilities = Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.StringCopyPaste;
 
@@ -188,7 +187,7 @@ internal partial class StringCopyPasteCommandHandler(
         {
             var newLine = textView.Options.GetNewLineCharacter();
             var indentationWhitespace = DetermineIndentationWhitespace(
-                parsedDocumentBeforePaste, subjectBuffer, snapshotBeforePaste.AsText(), stringExpressionBeforePaste, cancellationToken);
+                parsedDocumentBeforePaste, subjectBuffer, snapshotBeforePaste.AsText(), stringExpressionBeforePaste, documentBeforePaste.Project.GetFallbackAnalyzerOptions(), cancellationToken);
 
             // See if this is a paste of the last copy that we heard about.
             var edits = TryGetEditsFromKnownCopySource(newLine, indentationWhitespace);
@@ -237,6 +236,7 @@ internal partial class StringCopyPasteCommandHandler(
         ITextBuffer textBuffer,
         SourceText textBeforePaste,
         ExpressionSyntax stringExpressionBeforePaste,
+        StructuredAnalyzerConfigOptions fallbackOptions,
         CancellationToken cancellationToken)
     {
         // Only raw strings care about indentation.  Don't bother computing if we don't need it.
@@ -254,7 +254,7 @@ internal partial class StringCopyPasteCommandHandler(
 
         // Otherwise, we have a single-line raw string.  Determine the default indentation desired here.
         // We'll use that if we have to convert this single-line raw string to a multi-line one.
-        var indentationOptions = textBuffer.GetIndentationOptions(_editorOptionsService, documentBeforePaste.LanguageServices, explicitFormat: false);
+        var indentationOptions = textBuffer.GetIndentationOptions(_editorOptionsService, fallbackOptions, documentBeforePaste.LanguageServices, explicitFormat: false);
         return stringExpressionBeforePaste.GetFirstToken().GetPreferredIndentation(documentBeforePaste, indentationOptions, cancellationToken);
     }
 

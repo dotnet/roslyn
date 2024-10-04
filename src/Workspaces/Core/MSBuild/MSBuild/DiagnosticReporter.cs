@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild

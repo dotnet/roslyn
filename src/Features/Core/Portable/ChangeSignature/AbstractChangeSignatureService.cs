@@ -24,6 +24,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -54,10 +55,9 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
         SyntaxNode potentiallyUpdatedNode,
         SyntaxNode originalNode,
         SignatureChange signaturePermutation,
-        LineFormattingOptionsProvider fallbackOptions,
         CancellationToken cancellationToken);
 
-    protected abstract IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document);
+    protected abstract ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document);
 
     protected abstract T TransferLeadingWhitespaceTrivia<T>(T newArgument, SyntaxNode oldArgument) where T : SyntaxNode;
 
@@ -90,9 +90,9 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
     protected abstract SyntaxGenerator Generator { get; }
     protected abstract ISyntaxFacts SyntaxFacts { get; }
 
-    public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<ChangeSignatureCodeAction>> GetChangeSignatureCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
     {
-        var context = await GetChangeSignatureContextAsync(document, span.Start, restrictToDeclarations: true, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var context = await GetChangeSignatureContextAsync(document, span.Start, restrictToDeclarations: true, cancellationToken).ConfigureAwait(false);
 
         return context is ChangeSignatureAnalysisSucceededContext changeSignatureAnalyzedSucceedContext
             ? [new ChangeSignatureCodeAction(this, changeSignatureAnalyzedSucceedContext)]
@@ -100,7 +100,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
     }
 
     internal async Task<ChangeSignatureAnalyzedContext> GetChangeSignatureContextAsync(
-        Document document, int position, bool restrictToDeclarations, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
     {
         var (symbol, selectedIndex) = await GetInvocationSymbolAsync(
             document, position, restrictToDeclarations, cancellationToken).ConfigureAwait(false);
@@ -185,7 +185,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             symbol.IsExtensionMethod(), selectedIndex);
 
         return new ChangeSignatureAnalysisSucceededContext(
-            declarationDocument, positionForTypeBinding, symbol, parameterConfiguration, fallbackOptions);
+            declarationDocument, positionForTypeBinding, symbol, parameterConfiguration);
     }
 
     internal async Task<ChangeSignatureResult> ChangeSignatureWithContextAsync(ChangeSignatureAnalyzedContext context, ChangeSignatureOptionsResult? options, CancellationToken cancellationToken)
@@ -235,7 +235,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             var engine = new FindReferencesSearchEngine(
                 solution,
                 documents: null,
-                ReferenceFinders.DefaultReferenceFinders.Add(DelegateInvokeMethodReferenceFinder.DelegateInvokeMethod),
+                [.. ReferenceFinders.DefaultReferenceFinders, DelegateInvokeMethodReferenceFinder.Instance],
                 streamingProgress,
                 FindReferencesSearchOptions.Default);
 
@@ -382,7 +382,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             var root = await doc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (root is null)
             {
-                throw new NotSupportedException(WorkspacesResources.Document_does_not_support_syntax_trees);
+                throw new NotSupportedException(WorkspaceExtensionsResources.Document_does_not_support_syntax_trees);
             }
 
             var nodes = nodesToUpdate[docId];
@@ -395,12 +395,11 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
                     potentiallyUpdatedNode,
                     originalNode,
                     UpdateSignatureChangeToIncludeExtraParametersFromTheDeclarationSymbol(definitionToUse[originalNode], options.UpdatedSignature),
-                    context.FallbackOptions,
                     cancellationToken).WaitAndGetResult_CanCallOnBackground(cancellationToken);
             });
 
             var annotatedNodes = newRoot.GetAnnotatedNodes<SyntaxNode>(syntaxAnnotation: changeSignatureFormattingAnnotation);
-            var formattingOptions = await doc.GetSyntaxFormattingOptionsAsync(context.FallbackOptions, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await doc.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var formattedRoot = Formatter.Format(
                 newRoot,
@@ -414,17 +413,24 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
         }
 
         // Update the documents using the updated syntax trees
-        foreach (var docId in nodesToUpdate.Keys)
-        {
-            var updatedDoc = currentSolution.GetRequiredDocument(docId).WithSyntaxRoot(updatedRoots[docId]);
-            var cleanupOptions = await updatedDoc.GetCodeCleanupOptionsAsync(context.FallbackOptions, cancellationToken).ConfigureAwait(false);
+        var changedDocuments = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
+            source: nodesToUpdate.Keys,
+            produceItems: static async (docId, callback, args, cancellationToken) =>
+            {
+                var (currentSolution, updatedRoots, context) = args;
+                var updatedDoc = currentSolution.GetRequiredDocument(docId).WithSyntaxRoot(updatedRoots[docId]);
+                var cleanupOptions = await updatedDoc.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var docWithImports = await ImportAdder.AddImportsFromSymbolAnnotationAsync(updatedDoc, cleanupOptions.AddImportOptions, cancellationToken).ConfigureAwait(false);
-            var reducedDoc = await Simplifier.ReduceAsync(docWithImports, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
-            var formattedDoc = await Formatter.FormatAsync(reducedDoc, SyntaxAnnotation.ElasticAnnotation, cleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
+                var docWithImports = await ImportAdder.AddImportsFromSymbolAnnotationAsync(updatedDoc, cleanupOptions.AddImportOptions, cancellationToken).ConfigureAwait(false);
+                var reducedDoc = await Simplifier.ReduceAsync(docWithImports, Simplifier.Annotation, cleanupOptions.SimplifierOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var formattedDoc = await Formatter.FormatAsync(reducedDoc, SyntaxAnnotation.ElasticAnnotation, cleanupOptions.FormattingOptions, cancellationToken).ConfigureAwait(false);
 
-            currentSolution = currentSolution.WithDocumentSyntaxRoot(docId, (await formattedDoc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false))!);
-        }
+                callback((formattedDoc.Id, await formattedDoc.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
+            },
+            args: (currentSolution, updatedRoots, context),
+            cancellationToken).ConfigureAwait(false);
+
+        currentSolution = currentSolution.WithDocumentSyntaxRoots(changedDocuments);
 
         telemetryTimer.Stop();
         ChangeSignatureLogger.LogCommitInformation(telemetryNumberOfDeclarationsToUpdate, telemetryNumberOfReferencesToUpdate, telemetryTimer.Elapsed);
@@ -737,16 +743,20 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
 
     protected ImmutableArray<SyntaxToken> GetSeparators<T>(SeparatedSyntaxList<T> arguments, int numSeparatorsToSkip) where T : SyntaxNode
     {
-        var separators = ImmutableArray.CreateBuilder<SyntaxToken>();
+        var count = arguments.SeparatorCount - numSeparatorsToSkip;
+        if (count < 0)
+            return [];
 
-        for (var i = 0; i < arguments.SeparatorCount - numSeparatorsToSkip; i++)
+        var separators = new FixedSizeArrayBuilder<SyntaxToken>(count);
+
+        for (var i = 0; i < count; i++)
         {
             separators.Add(i < arguments.SeparatorCount
                 ? arguments.GetSeparator(i)
                 : CommaTokenWithElasticSpace());
         }
 
-        return separators.ToImmutable();
+        return separators.MoveToImmutable();
     }
 
     protected virtual async Task<SeparatedSyntaxList<TArgumentSyntax>> AddNewArgumentsToListAsync<TArgumentSyntax>(
@@ -1009,7 +1019,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             updatedLeadingTrivia.Add(newTrivia);
         }
 
-        var extraNodeList = ArrayBuilder<SyntaxNode>.GetInstance();
+        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var extraNodeList);
         while (index < permutedParamNodes.Length)
         {
             extraNodeList.Add(permutedParamNodes[index]);
@@ -1027,9 +1037,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             updatedLeadingTrivia.Add(newTrivia);
         }
 
-        extraNodeList.Free();
-
-        return updatedLeadingTrivia.ToImmutable();
+        return updatedLeadingTrivia.ToImmutableAndClear();
     }
 
     protected static bool IsParamsArrayExpandedHelper(ISymbol symbol, int argumentCount, bool lastArgumentIsNamed, SemanticModel semanticModel, SyntaxNode lastArgumentExpression, CancellationToken cancellationToken)

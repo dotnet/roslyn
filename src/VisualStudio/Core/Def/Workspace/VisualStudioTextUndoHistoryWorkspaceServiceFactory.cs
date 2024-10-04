@@ -6,7 +6,6 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -65,10 +64,8 @@ internal class VisualStudioTextUndoHistoryWorkspaceServiceFactory : IWorkspaceSe
 
                     break;
 
-                case MiscellaneousFilesWorkspace _:
-
+                case MiscellaneousFilesWorkspace:
                     // Nothing to do in this case: textBuffer is correct!
-
                     break;
 
                 default:

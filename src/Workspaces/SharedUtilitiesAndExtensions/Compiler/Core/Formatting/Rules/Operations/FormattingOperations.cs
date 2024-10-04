@@ -142,18 +142,6 @@ internal static class FormattingOperations
     }
 
     /// <summary>
-    /// return SuppressOperation for the node provided by the given formatting rules
-    /// </summary>
-    internal static IEnumerable<SuppressOperation> GetSuppressOperations(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, SyntaxFormattingOptions options)
-    {
-        var chainedFormattingRules = new ChainedFormattingRules(formattingRules, options);
-
-        var list = new List<SuppressOperation>();
-        chainedFormattingRules.AddSuppressOperations(list, node);
-        return list;
-    }
-
-    /// <summary>
     /// return AnchorIndentationOperation for the node provided by the given formatting rules
     /// </summary>
     internal static IEnumerable<AnchorIndentationOperation> GetAnchorIndentationOperations(IEnumerable<AbstractFormattingRule> formattingRules, SyntaxNode node, SyntaxFormattingOptions options)

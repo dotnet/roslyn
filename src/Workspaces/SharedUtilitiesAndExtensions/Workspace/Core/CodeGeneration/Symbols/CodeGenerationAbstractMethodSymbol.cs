@@ -109,7 +109,7 @@ internal abstract class CodeGenerationAbstractMethodSymbol : CodeGenerationSymbo
     public ImmutableArray<INamedTypeSymbol> UnmanagedCallingConventionTypes => [];
 
     public IMethodSymbol Construct(params ITypeSymbol[] typeArguments)
-        => new CodeGenerationConstructedMethodSymbol(this, typeArguments.ToImmutableArray());
+        => new CodeGenerationConstructedMethodSymbol(this, [.. typeArguments]);
 
     public IMethodSymbol Construct(ImmutableArray<ITypeSymbol> typeArguments, ImmutableArray<CodeAnalysis.NullableAnnotation> typeArgumentNullableAnnotations)
         => new CodeGenerationConstructedMethodSymbol(this, typeArguments);

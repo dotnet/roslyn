@@ -60,9 +60,16 @@ public class DefinitionItemFactoryTests
     }
 
     private static void VerifyProperties(IEnumerable<(string key, string value)> expected, IReadOnlyDictionary<string, string> actual, string? propertyName, IReadOnlyDictionary<string, string> expressionMap)
-        => AssertEx.SetEqual(
+        => VerifyProperties(
             expected,
             actual.Select(item => (key: item.Key, value: item.Value)).OrderBy(item => item.key),
+            propertyName,
+            expressionMap);
+
+    private static void VerifyProperties(IEnumerable<(string key, string value)> expected, IEnumerable<(string key, string value)> actual, string? propertyName, IReadOnlyDictionary<string, string> expressionMap)
+        => AssertEx.SetEqual(
+            expected,
+            actual.OrderBy(item => item.key),
             itemSeparator: "," + Environment.NewLine,
             itemInspector: item => $"({Inspect(item.key)}, {InspectValueAsExpression(item.value, expressionMap)})",
             message: PropertyMessage(propertyName));
@@ -105,7 +112,7 @@ public class DefinitionItemFactoryTests
             {
                 assert();
             }
-            catch (AssertActualExpectedException e)
+            catch (Exception e) when (e is IAssertionException)
             {
                 failures.Add(e);
             }
@@ -346,8 +353,8 @@ public class DefinitionItemFactoryTests
                 "mscorlib 4.0.0.0 'Z:\\FxReferenceAssembliesUri'",
                 "System 4.0.0.0 ''",
                 "System.Core 4.0.0.0 ''",
-                "System.ValueTuple 4.0.1.0 ''",
-                "System.Runtime 4.0.10.0 ''"
+                "System.ValueTuple 4.0.3.0 'System.ValueTuple.dll'",
+                "System.Runtime 4.0.20.0 ''"
             ],
             tags:
             [
@@ -398,8 +405,8 @@ public class DefinitionItemFactoryTests
                 "mscorlib 4.0.0.0 'Z:\\FxReferenceAssembliesUri'",
                 "System 4.0.0.0 ''",
                 "System.Core 4.0.0.0 ''",
-                "System.ValueTuple 4.0.1.0 ''",
-                "System.Runtime 4.0.10.0 ''"
+                "System.ValueTuple 4.0.3.0 'System.ValueTuple.dll'",
+                "System.Runtime 4.0.20.0 ''"
             ],
             sourceSpans:
             [
@@ -728,7 +735,7 @@ public class DefinitionItemFactoryTests
             // the symbol has metadata locations because the generic type is in metadata:
             metadataLocations:
             [
-                "System.ValueTuple 4.0.1.0 ''"
+                "System.ValueTuple 4.0.3.0 'System.ValueTuple.dll'"
             ],
             tags:
             [
@@ -784,7 +791,7 @@ public class DefinitionItemFactoryTests
             ],
             metadataLocations:
             [
-                "System.ValueTuple 4.0.1.0 ''"
+                "System.ValueTuple 4.0.3.0 'System.ValueTuple.dll'"
             ],
             tags:
             [

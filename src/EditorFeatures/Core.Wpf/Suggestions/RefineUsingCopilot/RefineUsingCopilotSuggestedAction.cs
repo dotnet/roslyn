@@ -44,13 +44,17 @@ internal partial class SuggestedActionWithNestedFlavors
             if (suggestedAction.OriginalDocument is not Document originalDocument)
                 return null;
 
-            var copilotService = originalDocument.GetLanguageService<ICopilotCodeAnalysisService>();
-            if (copilotService == null || !await copilotService.IsRefineOptionEnabledAsync().ConfigureAwait(false))
+            if (originalDocument.GetLanguageService<ICopilotOptionsService>() is not { } optionsService ||
+                 await optionsService.IsRefineOptionEnabledAsync().ConfigureAwait(false) is false)
+            {
                 return null;
+            }
 
-            var isAvailable = await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false);
-            if (!isAvailable)
+            if (originalDocument.GetLanguageService<ICopilotCodeAnalysisService>() is not { } copilotService ||
+                await copilotService.IsAvailableAsync(cancellationToken).ConfigureAwait(false) is false)
+            {
                 return null;
+            }
 
             return new RefineUsingCopilotSuggestedAction(
                 suggestedAction.ThreadingContext,

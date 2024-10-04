@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static int? CheckForDuplicateNamedArgument(AnalyzedArguments arguments)
         {
-            if (arguments.Names.IsEmpty())
+            if (arguments.Names.IsEmpty)
             {
                 // No checks if there are no named arguments
                 return null;

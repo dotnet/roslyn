@@ -5,7 +5,6 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Xaml;
 using Roslyn.LanguageServer.Protocol;
-using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler;
 using RoslynCompletion = Microsoft.CodeAnalysis.Completion;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml

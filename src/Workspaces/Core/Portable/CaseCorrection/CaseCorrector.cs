@@ -8,7 +8,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -29,7 +28,7 @@ internal static class CaseCorrector
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         if (root is null)
         {
-            throw new NotSupportedException(WorkspacesResources.Document_does_not_support_syntax_trees);
+            throw new NotSupportedException(WorkspaceExtensionsResources.Document_does_not_support_syntax_trees);
         }
 
         return await CaseCorrectAsync(document, root.FullSpan, cancellationToken).ConfigureAwait(false);
@@ -44,7 +43,7 @@ internal static class CaseCorrector
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         if (root is null)
         {
-            throw new NotSupportedException(WorkspacesResources.Document_does_not_support_syntax_trees);
+            throw new NotSupportedException(WorkspaceExtensionsResources.Document_does_not_support_syntax_trees);
         }
 
         return await CaseCorrectAsync(document, root.GetAnnotatedNodesAndTokens(annotation).Select(n => n.Span).ToImmutableArray(), cancellationToken).ConfigureAwait(false);

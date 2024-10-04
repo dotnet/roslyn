@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class SolutionState
+internal sealed partial class SolutionState
 {
     private static readonly ConditionalWeakTable<IReadOnlyList<ProjectId>, IReadOnlyList<ProjectId>> s_projectIdToSortedProjectsMap = new();
 
@@ -133,14 +133,21 @@ internal partial class SolutionState
                 var projectChecksums = allResults.SelectAsArray(r => r.Checksum);
                 var projectIds = allResults.SelectAsArray(r => r.ProjectId);
 
-                var analyzerReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(
-                    this.AnalyzerReferences, this.Services.GetRequiredService<ISerializerService>(), cancellationToken);
+                var serializer = this.Services.GetRequiredService<ISerializerService>();
+
+                var analyzerReferenceChecksums = ChecksumCache.GetOrCreateChecksumCollection(AnalyzerReferences, serializer, cancellationToken);
+
+                var fallbackAnalyzerOptionsChecksum = ChecksumCache.GetOrCreate(
+                    FallbackAnalyzerOptions,
+                    static (value, args) => args.serializer.CreateChecksum(value, args.cancellationToken),
+                    arg: (serializer, cancellationToken));
 
                 var stateChecksums = new SolutionStateChecksums(
                     projectConeId,
                     this.SolutionAttributes.Checksum,
                     new(new ChecksumCollection(projectChecksums), projectIds),
-                    analyzerReferenceChecksums);
+                    analyzerReferenceChecksums,
+                    fallbackAnalyzerOptionsChecksum);
 
 #if DEBUG
                 var projectConeTemp = projectConeId is null ? null : new ProjectCone(projectConeId, projectCone.Object.ToFrozenSet());

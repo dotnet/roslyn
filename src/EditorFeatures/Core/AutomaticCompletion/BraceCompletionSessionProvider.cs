@@ -19,7 +19,6 @@ using Microsoft.VisualStudio.Text.BraceCompletion;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.BraceCompletion.AbstractBraceCompletionService;
 
 namespace Microsoft.CodeAnalysis.AutomaticCompletion;

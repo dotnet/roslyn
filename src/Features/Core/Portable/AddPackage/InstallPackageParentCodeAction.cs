@@ -8,8 +8,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Packaging;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Tags;
 
 namespace Microsoft.CodeAnalysis.AddPackage;
 
@@ -24,7 +22,7 @@ namespace Microsoft.CodeAnalysis.AddPackage;
 /// navigate through, and we don't want our child items confusingly being added to the
 /// top level light-bulb where it's not clear what effect they would have if invoked.
 /// </remarks>
-internal class InstallPackageParentCodeAction(
+internal sealed class InstallPackageParentCodeAction(
     IPackageInstallerService installerService,
     string source,
     string packageName,

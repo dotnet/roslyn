@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
@@ -55,7 +54,7 @@ internal sealed class CSharpIntMainSnippetProvider() : AbstractCSharpMainMethodS
         var body = methodDeclaration.Body!;
         var returnStatement = body.Statements.First();
 
-        var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+        var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var indentationString = CSharpSnippetHelpers.GetBlockLikeIndentationString(document, body.OpenBraceToken.SpanStart, syntaxFormattingOptions, cancellationToken);
 
         var updatedReturnStatement = returnStatement.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString));

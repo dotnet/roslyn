@@ -5,13 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.Shell;
-using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
@@ -35,11 +33,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     {
         public virtual event PropertyChangedEventHandler PropertyChanged { add { } remove { } }
 
-        private readonly string _name;
+        protected readonly string Name;
 
         public BaseItem(string name)
         {
-            _name = name;
+            Name = name;
         }
 
         public IEnumerable<string> Children => [];
@@ -63,9 +61,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         public virtual ImageMoniker StateIconMoniker => default;
         public string? StateToolTipText => null;
         public override string ToString() => Text;
-        public string Text => _name;
+        public string Text => Name;
         public object? ToolTipContent => null;
-        public string ToolTipText => _name;
+        public string ToolTipText => Name;
 
         private static readonly HashSet<Type> s_supportedPatterns =
         [

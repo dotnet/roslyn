@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isParams = false,
             bool hasUnscopedRefAttribute = false)
         {
-            Debug.Assert(!isParams || !typeWithAnnotations.Type.IsTypeParameter());
             this.Name = name;
             this.Location = location;
             this.TypeWithAnnotations = typeWithAnnotations;

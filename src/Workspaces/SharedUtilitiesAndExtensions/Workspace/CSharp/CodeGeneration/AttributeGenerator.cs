@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -14,6 +13,8 @@ using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CodeGeneration.CodeGenerationHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
+
+using static SyntaxFactory;
 
 internal static class AttributeGenerator
 {
@@ -30,8 +31,8 @@ internal static class AttributeGenerator
                           .WhereNotNull().ToList();
             return attributeNodes.Count == 0
                 ? default
-                : [SyntaxFactory.AttributeList(
-                    target.HasValue ? SyntaxFactory.AttributeTargetSpecifier(target.Value) : null,
+                : [AttributeList(
+                    target.HasValue ? AttributeTargetSpecifier(target.Value) : null,
                     [.. attributeNodes])];
         }
         else
@@ -50,9 +51,9 @@ internal static class AttributeGenerator
         var attributeSyntax = TryGenerateAttribute(attribute, info);
         return attributeSyntax == null
             ? null
-            : SyntaxFactory.AttributeList(
+            : AttributeList(
                 target.HasValue
-                    ? SyntaxFactory.AttributeTargetSpecifier(target.Value)
+                    ? AttributeTargetSpecifier(target.Value)
                     : null,
                 [attributeSyntax]);
     }
@@ -76,7 +77,7 @@ internal static class AttributeGenerator
 
         var attributeArguments = GenerateAttributeArgumentList(info.Generator, attribute);
         return attribute.AttributeClass.GenerateTypeSyntax() is NameSyntax nameSyntax
-            ? SyntaxFactory.Attribute(nameSyntax, attributeArguments)
+            ? Attribute(nameSyntax, attributeArguments)
             : null;
     }
 
@@ -87,13 +88,13 @@ internal static class AttributeGenerator
 
         var arguments = new List<AttributeArgumentSyntax>();
         arguments.AddRange(attribute.ConstructorArguments.Select(c =>
-            SyntaxFactory.AttributeArgument(ExpressionGenerator.GenerateExpression(generator, c))));
+            AttributeArgument(ExpressionGenerator.GenerateExpression(generator, c))));
 
         arguments.AddRange(attribute.NamedArguments.Select(kvp =>
-            SyntaxFactory.AttributeArgument(
-                SyntaxFactory.NameEquals(SyntaxFactory.IdentifierName(kvp.Key)), null,
+            AttributeArgument(
+                NameEquals(IdentifierName(kvp.Key)), null,
                 ExpressionGenerator.GenerateExpression(generator, kvp.Value))));
 
-        return SyntaxFactory.AttributeArgumentList([.. arguments]);
+        return AttributeArgumentList([.. arguments]);
     }
 }

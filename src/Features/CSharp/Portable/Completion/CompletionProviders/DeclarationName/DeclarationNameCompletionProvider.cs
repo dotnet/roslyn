@@ -6,9 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
-using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationName;
@@ -28,9 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 [Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal partial class DeclarationNameCompletionProvider([ImportMany] IEnumerable<Lazy<IDeclarationNameRecommender, OrderableMetadata>> recommenders) : LSPCompletionProvider
+internal sealed partial class DeclarationNameCompletionProvider([ImportMany] IEnumerable<Lazy<IDeclarationNameRecommender, OrderableMetadata>> recommenders) : LSPCompletionProvider
 {
-    private ImmutableArray<Lazy<IDeclarationNameRecommender, OrderableMetadata>> Recommenders { get; } = ExtensionOrderer.Order(recommenders).ToImmutableArray();
+    private ImmutableArray<Lazy<IDeclarationNameRecommender, OrderableMetadata>> Recommenders { get; } = [.. ExtensionOrderer.Order(recommenders)];
 
     internal override string Language => LanguageNames.CSharp;
 

@@ -65,9 +65,10 @@ internal class CSharpSyntaxKinds : ISyntaxKinds
     public int XmlTextLiteralToken => (int)SyntaxKind.XmlTextLiteralToken;
 
     public int DelegateKeyword => (int)SyntaxKind.DelegateKeyword;
-    public int IfKeyword => (int)SyntaxKind.IfKeyword;
-    public int TrueKeyword => (int)SyntaxKind.TrueKeyword;
     public int FalseKeyword => (int)SyntaxKind.FalseKeyword;
+    public int IfKeyword => (int)SyntaxKind.IfKeyword;
+    public int NewKeyword => (int)SyntaxKind.NewKeyword;
+    public int TrueKeyword => (int)SyntaxKind.TrueKeyword;
     public int UsingKeyword => (int)SyntaxKind.UsingKeyword;
 
     public int GenericName => (int)SyntaxKind.GenericName;

@@ -3511,10 +3511,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return ConstantValue.False;
                     }
 
-                    // * If either type is a restricted type, the type check isn't supported because
+                    // * If either type is a restricted type, the type check isn't supported for some scenarios because
                     //   a restricted type cannot be boxed or unboxed into.
                     if (targetType.IsRestrictedType() || operandType.IsRestrictedType())
                     {
+                        if (targetType is TypeParameterSymbol { AllowsRefLikeType: true })
+                        {
+                            if (!operandType.IsErrorOrRefLikeOrAllowsRefLikeType())
+                            {
+                                return null;
+                            }
+                        }
+                        else if (operandType is not TypeParameterSymbol { AllowsRefLikeType: true })
+                        {
+                            if (targetType.IsRefLikeType)
+                            {
+                                if (operandType is TypeParameterSymbol)
+                                {
+                                    Debug.Assert(operandType is TypeParameterSymbol { AllowsRefLikeType: false });
+                                    return ConstantValue.False;
+                                }
+                            }
+                            else if (operandType.IsRefLikeType)
+                            {
+                                if (targetType is TypeParameterSymbol)
+                                {
+                                    Debug.Assert(targetType is TypeParameterSymbol { AllowsRefLikeType: false });
+                                    return ConstantValue.False;
+                                }
+                            }
+                        }
+
                         return ConstantValue.Bad;
                     }
 
@@ -3926,6 +3953,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (!isOperatorConstantResult.BooleanValue)
                 {
+                    if (operandType?.IsRefLikeType == true)
+                    {
+                        return ConstantValue.Bad;
+                    }
+
                     return ConstantValue.Null;
                 }
             }
@@ -4277,13 +4309,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundUnconvertedConditionalOperator(node, condition, trueExpr, falseExpr, constantValue, noCommonTypeError, hasErrors: constantValue?.IsBad == true);
             }
 
-            TypeSymbol type;
             bool hasErrors;
             if (bestType.IsErrorType())
             {
                 trueExpr = BindToNaturalType(trueExpr, diagnostics, reportNoTargetType: false);
                 falseExpr = BindToNaturalType(falseExpr, diagnostics, reportNoTargetType: false);
-                type = bestType;
                 hasErrors = true;
             }
             else
@@ -4291,9 +4321,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 trueExpr = GenerateConversionForAssignment(bestType, trueExpr, diagnostics);
                 falseExpr = GenerateConversionForAssignment(bestType, falseExpr, diagnostics);
                 hasErrors = trueExpr.HasAnyErrors || falseExpr.HasAnyErrors;
-                // If one of the conversions went wrong (e.g. return type of method group being converted
-                // didn't match), then we don't want to use bestType because it's not accurate.
-                type = hasErrors ? CreateErrorType() : bestType;
             }
 
             if (!hasErrors)
@@ -4302,7 +4329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = constantValue != null && constantValue.IsBad;
             }
 
-            return new BoundConditionalOperator(node, isRef: false, condition, trueExpr, falseExpr, constantValue, naturalTypeOpt: type, wasTargetTyped: false, type, hasErrors);
+            return new BoundConditionalOperator(node, isRef: false, condition, trueExpr, falseExpr, constantValue, naturalTypeOpt: bestType, wasTargetTyped: false, bestType, hasErrors);
         }
 #nullable disable
 

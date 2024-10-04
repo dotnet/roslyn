@@ -10,116 +10,115 @@ using Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
+
+[Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+public class RegionHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
-    [Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-    public class RegionHighlighterTests : AbstractCSharpKeywordHighlighterTests
+    internal override Type GetHighlighterType()
+        => typeof(RegionHighlighter);
+
+    [Fact]
+    public async Task TestExample1_1()
     {
-        internal override Type GetHighlighterType()
-            => typeof(RegionHighlighter);
-
-        [Fact]
-        public async Task TestExample1_1()
-        {
-            await TestAsync(
-                """
-                class C
+        await TestAsync(
+            """
+            class C
+            {
+                {|Cursor:[|#region|]|} Main
+                static void Main()
                 {
-                    {|Cursor:[|#region|]|} Main
-                    static void Main()
-                    {
-                    }
-                    [|#endregion|]
                 }
-                """);
-        }
+                [|#endregion|]
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestExample1_2()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestExample1_2()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                [|#region|] Main
+                static void Main()
                 {
-                    [|#region|] Main
-                    static void Main()
-                    {
-                    }
-                    {|Cursor:[|#endregion|]|}
                 }
-                """);
-        }
+                {|Cursor:[|#endregion|]|}
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestNestedExample1_1()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestNestedExample1_1()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                {|Cursor:[|#region|]|} Main
+                static void Main()
                 {
-                    {|Cursor:[|#region|]|} Main
-                    static void Main()
-                    {
-                        #region body
-                        #endregion
-                    }
-                    [|#endregion|]
-                }
-                """);
-        }
-
-        [Fact]
-        public async Task TestNestedExample1_2()
-        {
-            await TestAsync(
-                """
-                class C
-                {
-                    #region Main
-                    static void Main()
-                    {
-                        {|Cursor:[|#region|]|} body
-                        [|#endregion|]
-                    }
+                    #region body
                     #endregion
                 }
-                """);
-        }
+                [|#endregion|]
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestNestedExample1_3()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestNestedExample1_2()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                #region Main
+                static void Main()
                 {
-                    #region Main
-                    static void Main()
-                    {
-                        [|#region|] body
-                        {|Cursor:[|#endregion|]|}
-                    }
-                    #endregion
+                    {|Cursor:[|#region|]|} body
+                    [|#endregion|]
                 }
-                """);
-        }
+                #endregion
+            }
+            """);
+    }
 
-        [Fact]
-        public async Task TestNestedExample1_4()
-        {
-            await TestAsync(
-                """
-                class C
+    [Fact]
+    public async Task TestNestedExample1_3()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                #region Main
+                static void Main()
                 {
-                    [|#region|] Main
-                    static void Main()
-                    {
-                        #region body
-                        #endregion
-                    }
+                    [|#region|] body
                     {|Cursor:[|#endregion|]|}
                 }
-                """);
-        }
+                #endregion
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNestedExample1_4()
+    {
+        await TestAsync(
+            """
+            class C
+            {
+                [|#region|] Main
+                static void Main()
+                {
+                    #region body
+                    #endregion
+                }
+                {|Cursor:[|#endregion|]|}
+            }
+            """);
     }
 }

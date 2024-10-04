@@ -12,9 +12,7 @@ using Microsoft.CodeAnalysis.CSharp.Simplification;
 using Microsoft.CodeAnalysis.CSharp.Simplification.Simplifiers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Text;
 
@@ -66,7 +64,7 @@ internal sealed class CSharpSimplifyTypeNamesDiagnosticAnalyzer
         return simplifier.Diagnostics;
     }
 
-    protected override ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, TextSpanIntervalTree? codeBlockIntervalTree)
+    protected override ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, TextSpanMutableIntervalTree? codeBlockIntervalTree)
     {
         var options = context.GetCSharpAnalyzerOptions().GetSimplifierOptions();
         if (ShouldSkipAnalysis(context.FilterTree, context.Options, context.SemanticModel.Compilation.Options, GetAllNotifications(options), context.CancellationToken))

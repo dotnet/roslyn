@@ -9,16 +9,15 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.MSBuild.Build;
-using Microsoft.CodeAnalysis.MSBuild.Logging;
+using Microsoft.Build.Evaluation;
+using Microsoft.Build.Globbing;
+using Microsoft.Build.Globbing.Extensions;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
-    internal abstract class ProjectFile
+    internal abstract class ProjectFile : IProjectFile
     {
         private readonly ProjectFileLoader _loader;
         private readonly MSB.Evaluation.Project? _loadedProject;
@@ -39,10 +38,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             Log = log;
         }
 
-        public ImmutableArray<DiagnosticLogItem> GetDiagnosticLogItems() => Log.ToImmutableArray();
+        public ImmutableArray<DiagnosticLogItem> GetDiagnosticLogItems() => [.. Log];
 
-        protected abstract SourceCodeKind GetSourceCodeKind(string documentFileName);
-        public abstract string GetDocumentExtension(SourceCodeKind kind);
         protected abstract IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject);
         protected abstract ImmutableArray<string> ReadCommandLineArgs(MSB.Execution.ProjectInstance project);
 
@@ -68,11 +65,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 // each value, and build the project.
 
                 var targetFrameworks = targetFrameworksValue.Split(';');
-                var results = ImmutableArray.CreateBuilder<ProjectFileInfo>(targetFrameworks.Length);
 
                 if (!_loadedProject.GlobalProperties.TryGetValue(PropertyNames.TargetFramework, out var initialGlobalTargetFrameworkValue))
                     initialGlobalTargetFrameworkValue = null;
 
+                var results = new FixedSizeArrayBuilder<ProjectFileInfo>(targetFrameworks.Length);
                 foreach (var targetFramework in targetFrameworks)
                 {
                     _loadedProject.SetGlobalProperty(PropertyNames.TargetFramework, targetFramework);
@@ -94,7 +91,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 _loadedProject.ReevaluateIfNecessary();
 
-                return results.ToImmutable();
+                return results.MoveToImmutable();
             }
             else
             {
@@ -157,6 +154,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var targetFrameworkIdentifier = project.ReadPropertyString(PropertyNames.TargetFrameworkIdentifier);
 
+            var targetFrameworkVersion = project.ReadPropertyString(PropertyNames.TargetFrameworkVersion);
+
             var docs = project.GetDocuments()
                 .Where(IsNotTemporaryGeneratedFile)
                 .Select(MakeDocumentFileInfo)
@@ -175,6 +174,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var projectCapabilities = project.GetItems(ItemNames.ProjectCapability).SelectAsArray(item => item.ToString());
             var contentFileInfo = GetContentFiles(project);
 
+            var fileGlobs = _loadedProject?.GetAllGlobs().Select(GetFileGlobs).ToImmutableArray() ?? [];
+
             return ProjectFileInfo.Create(
                 Language,
                 project.FullPath,
@@ -184,6 +185,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 defaultNamespace,
                 targetFramework,
                 targetFrameworkIdentifier,
+                targetFrameworkVersion,
                 projectAssetsFilePath,
                 commandLineArgs,
                 docs,
@@ -192,7 +194,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 project.GetProjectReferences().ToImmutableArray(),
                 packageReferences,
                 projectCapabilities,
-                contentFileInfo);
+                contentFileInfo,
+                fileGlobs);
+
+            static FileGlobs GetFileGlobs(GlobResult g)
+            {
+                return new FileGlobs(g.IncludeGlobs.ToImmutableArray(), g.Excludes.ToImmutableArray(), g.Removes.ToImmutableArray());
+            }
         }
 
         private static ImmutableArray<string> GetContentFiles(MSB.Execution.ProjectInstance project)
@@ -230,10 +238,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var logicalPath = GetDocumentLogicalPath(documentItem, _projectDirectory);
             var isLinked = IsDocumentLinked(documentItem);
             var isGenerated = IsDocumentGenerated(documentItem);
-            var sourceCodeKind = GetSourceCodeKind(filePath);
 
             var folders = GetRelativeFolders(documentItem);
-            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, sourceCodeKind, folders);
+            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, folders);
         }
 
         private DocumentFileInfo MakeNonSourceFileDocumentFileInfo(MSB.Framework.ITaskItem documentItem)
@@ -244,7 +251,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var isGenerated = IsDocumentGenerated(documentItem);
 
             var folders = GetRelativeFolders(documentItem);
-            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, SourceCodeKind.Regular, folders);
+            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, folders);
         }
 
         private ImmutableArray<string> GetRelativeFolders(MSB.Framework.ITaskItem documentItem)
@@ -252,7 +259,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var linkPath = documentItem.GetMetadata(MetadataNames.Link);
             if (!RoslynString.IsNullOrEmpty(linkPath))
             {
-                return PathUtilities.GetDirectoryName(linkPath).Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar).ToImmutableArray();
+                return [.. PathUtilities.GetDirectoryName(linkPath).Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar)];
             }
             else
             {
@@ -382,7 +389,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        public void AddMetadataReference(string metadataReferenceIdentity, MetadataReferenceProperties properties, string? hintPath)
+        public void AddMetadataReference(string metadataReferenceIdentity, ImmutableArray<string> aliases, string? hintPath)
         {
             if (_loadedProject is null)
             {
@@ -390,8 +397,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             var metadata = new Dictionary<string, string>();
-            if (!properties.Aliases.IsEmpty)
-                metadata.Add(MetadataNames.Aliases, string.Join(",", properties.Aliases));
+            if (!aliases.IsEmpty)
+                metadata.Add(MetadataNames.Aliases, string.Join(",", aliases));
 
             if (hintPath is not null)
                 metadata.Add(MetadataNames.HintPath, hintPath);

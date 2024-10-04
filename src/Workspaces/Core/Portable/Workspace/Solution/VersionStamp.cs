@@ -168,41 +168,6 @@ public readonly struct VersionStamp : IEquatable<VersionStamp>
     public static bool operator !=(VersionStamp left, VersionStamp right)
         => !left.Equals(right);
 
-    /// <summary>
-    /// Check whether given persisted version is re-usable. Used by VS for Mac
-    /// </summary>
-    internal static bool CanReusePersistedVersion(VersionStamp baseVersion, VersionStamp persistedVersion)
-    {
-        if (baseVersion == persistedVersion)
-        {
-            return true;
-        }
-
-        // there was a collision, we can't use these
-        if (baseVersion._localIncrement != 0 || persistedVersion._localIncrement != 0)
-        {
-            return false;
-        }
-
-        return baseVersion._utcLastModified == persistedVersion._utcLastModified;
-    }
-
-    internal void WriteTo(ObjectWriter writer)
-    {
-        writer.WriteInt64(_utcLastModified.ToBinary());
-        writer.WriteInt32(_localIncrement);
-        writer.WriteInt32(_globalIncrement);
-    }
-
-    internal static VersionStamp ReadFrom(ObjectReader reader)
-    {
-        var raw = reader.ReadInt64();
-        var localIncrement = reader.ReadInt32();
-        var globalIncrement = reader.ReadInt32();
-
-        return new VersionStamp(DateTime.FromBinary(raw), localIncrement, globalIncrement);
-    }
-
     private static int GetGlobalVersion(VersionStamp version)
     {
         // global increment < 0 means it is a global version which has its global increment in local increment

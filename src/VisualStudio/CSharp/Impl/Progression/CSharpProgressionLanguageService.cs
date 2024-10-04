@@ -7,18 +7,13 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
@@ -58,12 +53,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Progression
             // We implement this method lazily so we are able to abort as soon as we need to.
             if (!cancellationToken.IsCancellationRequested)
             {
-                var nodes = new Stack<SyntaxNode>();
+                using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var nodes);
                 nodes.Push(root);
 
-                while (nodes.Count > 0)
+                while (nodes.TryPop(out var node))
                 {
-                    var node = nodes.Pop();
                     if (!cancellationToken.IsCancellationRequested)
                     {
                         if (node.Kind() is SyntaxKind.ClassDeclaration or

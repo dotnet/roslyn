@@ -504,6 +504,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool AllowsRefLikeType
+        {
+            get
+            {
+                var constraints = this.GetConstraintKinds();
+                return (constraints & TypeParameterConstraintKind.AllowByRefLike) != 0;
+            }
+        }
+
         public override bool IsValueTypeFromConstraintTypes
         {
             get
@@ -634,6 +643,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var constraints = this.GetConstraintKinds();
                 return (constraints & TypeParameterConstraintKind.AllValueTypeKinds) != 0;
+            }
+        }
+
+        public override bool AllowsRefLikeType
+        {
+            get
+            {
+                var constraints = this.GetConstraintKinds();
+                return (constraints & TypeParameterConstraintKind.AllowByRefLike) != 0;
             }
         }
 
@@ -888,6 +906,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var typeParameter = this.OverriddenTypeParameter;
                 return ((object)typeParameter != null) && typeParameter.HasValueTypeConstraint;
+            }
+        }
+
+        public override bool AllowsRefLikeType
+        {
+            get
+            {
+                var typeParameter = this.OverriddenTypeParameter;
+                return ((object)typeParameter != null) && typeParameter.AllowsRefLikeType;
             }
         }
 

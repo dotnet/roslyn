@@ -74,8 +74,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 _ => value.ToString()!
             };
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         internal void IgnoredSeverity(LogLevel level)
         {
             var logger = new TestLogger();

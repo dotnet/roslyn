@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.CodeFixes.UseExpressionBodyForLambda;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -22,14 +22,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseExpressionBodyForLambda;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseExpressionBodyForLambda), Shared]
-internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : CodeRefactoringProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider() : CodeRefactoringProvider
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public UseExpressionBodyForLambdaCodeRefactoringProvider()
-    {
-    }
-
     public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
     {
         var document = context.Document;
@@ -168,13 +164,11 @@ internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : CodeRe
     {
         var lambdaNode = await document.TryGetRelevantNodeAsync<LambdaExpressionSyntax>(span, cancellationToken).ConfigureAwait(false);
         if (lambdaNode == null)
-        {
             return [];
-        }
 
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        using var resultDisposer = ArrayBuilder<CodeAction>.GetInstance(out var result);
+        using var result = TemporaryArray<CodeAction>.Empty;
         if (UseExpressionBodyForLambdaHelpers.CanOfferUseExpressionBody(option, lambdaNode, root.GetLanguageVersion(), cancellationToken))
         {
             var title = UseExpressionBodyForLambdaHelpers.UseExpressionBodyTitle.ToString();
@@ -194,7 +188,7 @@ internal sealed class UseExpressionBodyForLambdaCodeRefactoringProvider : CodeRe
                 title));
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static async Task<Document> UpdateDocumentAsync(

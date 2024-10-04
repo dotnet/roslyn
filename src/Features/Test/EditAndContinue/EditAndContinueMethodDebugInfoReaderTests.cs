@@ -6,7 +6,6 @@
 
 using System;
 using System.IO;
-using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -87,9 +86,9 @@ class C
             // Main method
             var debugInfo = reader.GetDebugInfo(MetadataTokens.MethodDefinitionHandle(5));
             Assert.Equal(0, debugInfo.GetMethodOrdinal());
-            AssertEx.Equal(new[] { "Offset=0 Ordinal=0 Kind=LambdaDisplayClass", "Offset=33 Ordinal=0 Kind=UserDefined" }, debugInfo.InspectLocalSlots());
-            AssertEx.Equal(new[] { "Offset=43 Id=0#0 Closure=0" }, debugInfo.InspectLambdas());
-            AssertEx.Equal(new[] { "Offset=0 Id=0#0" }, debugInfo.InspectClosures());
+            AssertEx.Equal(["Offset=0 Ordinal=0 Kind=LambdaDisplayClass", "Offset=33 Ordinal=0 Kind=UserDefined"], debugInfo.InspectLocalSlots());
+            AssertEx.Equal(["Offset=43 Id=0#0 Closure=0"], debugInfo.InspectLambdas());
+            AssertEx.Equal(["Offset=0 Id=0#0"], debugInfo.InspectClosures());
 
             var localSig = reader.GetLocalSignature(MetadataTokens.MethodDefinitionHandle(5));
             Assert.Equal(MetadataTokens.StandaloneSignatureHandle(1), localSig);
@@ -110,7 +109,7 @@ class C
             Assert.False(reader.TryGetDocumentChecksum("/A/C.cs", out _, out _));
 
             Assert.True(reader.TryGetDocumentChecksum("/a/c.cs", out var actualChecksum, out var actualAlgorithm));
-            Assert.Equal("21-C8-B2-D7-A3-6B-49-C7-57-DF-67-B8-1F-75-DF-6A-64-FD-59-22", BitConverter.ToString(actualChecksum.ToArray()));
+            Assert.Equal("21-C8-B2-D7-A3-6B-49-C7-57-DF-67-B8-1F-75-DF-6A-64-FD-59-22", BitConverter.ToString([.. actualChecksum]));
             Assert.Equal(new Guid("ff1816ec-aa5e-4d10-87f7-6f4963833460"), actualAlgorithm);
         }
     }

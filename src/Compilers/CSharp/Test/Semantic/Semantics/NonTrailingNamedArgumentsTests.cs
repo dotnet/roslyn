@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -157,10 +158,10 @@ public class C
         c.M(a: 1, 2);
     }
 }";
-            var verifier = CompileAndVerifyWithMscorlib40(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, references: new[] { TestMetadata.Net40.SystemCore });
+            var verifier = CompileAndVerifyWithMscorlib40(source, expectedOutput: "1 2.", parseOptions: TestOptions.Regular7_2, references: new[] { Net40.References.SystemCore });
             verifier.VerifyDiagnostics();
 
-            var comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular7_1, references: new[] { TestMetadata.Net40.SystemCore });
+            var comp = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Regular7_1, references: new[] { Net40.References.SystemCore });
             comp.VerifyDiagnostics(
                 // (14,19): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         c.M(a: 1, 2);
@@ -872,9 +873,6 @@ class C
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (15,9): error CS0200: Property or indexer 'C.this[int, int]' cannot be assigned to -- it is read only
-                //         c[a: 1, d] = d;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "c[a: 1, d]").WithArguments("C.this[int, int]").WithLocation(15, 9)
                 );
         }
 

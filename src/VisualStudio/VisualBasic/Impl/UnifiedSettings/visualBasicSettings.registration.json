@@ -1,0 +1,185 @@
+// NOTE:
+// When this file is changed. Please also update the cache tag under settings entry in src/VisualStudio/VisualBasic/Impl/PackageRegistration.pkgdef
+// Otherwise your change might be ignored.
+// See https://devdiv.visualstudio.com/DevDiv/_wiki/wikis/DevDiv.wiki/39345/Manifest-Build-Deployment-and-Setup-Authoring-In-Depth?anchor=example-pkgdef-key for more details
+{
+  "properties": {
+    // CompletionOptionsStorage.TriggerOnTypingLetters
+    "textEditor.basic.intellisense.triggerCompletionOnTypingLetters": {
+      "title": "@Show_completion_list_after_a_character_is_typed;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 0,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.TriggerOnTypingLetters"
+          }
+        }
+      }
+    },
+    // CompletionOptionsStorage.TriggerOnDeletion
+    "textEditor.basic.intellisense.triggerCompletionOnDeletion": {
+      "title": "@Show_completion_list_after_a_character_is_deleted;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 1,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.TriggerOnDeletion"
+          }
+        }
+      }
+    },
+    // CompletionViewOptionsStorage.HighlightMatchingPortionsOfCompletionListItems
+    "textEditor.basic.intellisense.highlightMatchingPortionsOfCompletionListItems": {
+      "title": "@Highlight_matching_portions_of_completion_list_items;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 10,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.HighlightMatchingPortionsOfCompletionListItems"
+          }
+        }
+      }
+    },
+    // CompletionViewOptionsStorage.ShowCompletionItemFilters
+    "textEditor.basic.intellisense.showCompletionItemFilters": {
+      "title": "@Show_completion_item_filters;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 20,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.ShowCompletionItemFilters"
+          }
+        }
+      }
+    },
+    // CompletionOptionsStorage.SnippetsBehavior
+    "textEditor.basic.intellisense.snippetsBehavior": {
+      "title": "@Snippets_behavior;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "string",
+      "enum": [ "neverInclude", "alwaysInclude", "includeAfterTypingIdentifierQuestionTab" ],
+      "enumItemLabels": [ "@Never_include_snippets;{574fc912-f74f-4b4e-92c3-f695c208a2bb}", "@Always_include_snippets;{574fc912-f74f-4b4e-92c3-f695c208a2bb}", "@Include_snippets_when_Tab_is_typed_after_an_identifier;{574fc912-f74f-4b4e-92c3-f695c208a2bb}" ],
+      "default": "includeAfterTypingIdentifierQuestionTab",
+      "order": 30,
+      "migration": {
+        "enumIntegerToString": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.SnippetsBehavior"
+          },
+          "map": [
+            {
+              "result": "neverInclude",
+              "match": 1
+            },
+            // '0' matches to SnippetsRule.Default. Means the behavior is decided by language.
+            // '3' matches to SnippetsRule.IncludeAfterTypingIdentifierQuestionTab. It's the default behavior for Visual Basic
+            // Put both mapping here, so it's possible for unified setting to load '0' from the storage.
+            // Put '3' in front, so unifed settings would persist '3' to storage when 'includeAfterTypingIdentifierQuestionTab' is selected.
+            {
+              "result": "alwaysInclude",
+              "match": 2
+            },
+            {
+              "result": "includeAfterTypingIdentifierQuestionTab",
+              "match": 3
+            },
+            {
+              "result": "includeAfterTypingIdentifierQuestionTab",
+              "match": 0
+            }
+          ]
+        }
+      }
+    },
+    // CompletionOptionsStorage.EnterKeyBehavior
+    "textEditor.basic.intellisense.returnKeyCompletionBehavior": {
+      "title": "@Enter_key_behavior_colon;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "string",
+      "enum": [ "never", "afterFullyTypedWord", "always" ],
+      "enumItemLabels": [ "@Never_add_new_line_on_enter;{574fc912-f74f-4b4e-92c3-f695c208a2bb}", "@Only_add_new_line_on_enter_after_end_of_fully_typed_word;{574fc912-f74f-4b4e-92c3-f695c208a2bb}", "@Always_add_new_line_on_enter;{574fc912-f74f-4b4e-92c3-f695c208a2bb}" ],
+      "default": "always",
+      "order": 40,
+      "migration": {
+        "enumIntegerToString": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.EnterKeyBehavior"
+          },
+          "map": [
+            // '0' matches to EnterKeyRule.Default. Means the behavior is decided by langauge.
+            // '2' matches to EnterKeyRule.Alwasys. It's the default behavior for Visual Basic
+            // Put both mapping here, so it's possible for unified setting to load '0' from the storage.
+            // Put '2' in front, so unifed settings would persist '2' to storage when 'always' is selected.
+            {
+              "result": "never",
+              "match": 1
+            },
+            {
+              "result": "always",
+              "match": 2
+            },
+            {
+              "result": "always",
+              "match": 0
+            },
+            {
+              "result": "afterFullyTypedWord",
+              "match": 3
+            }
+          ]
+        }
+      }
+    },
+    // CompletionOptionsStorage.ShowItemsFromUnimportedNamespaces
+    "textEditor.basic.intellisense.showCompletionItemsFromUnimportedNamespaces": {
+      "title": "@Show_items_from_unimported_namespaces;..\\Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
+      "type": "boolean",
+      "default": true,
+      "order": 50,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.ShowItemsFromUnimportedNamespaces"
+          }
+        }
+      }
+    },
+    // CompletionViewOptionsStorage.EnableArgumentCompletionSnippets
+    "textEditor.basic.intellisense.enableArgumentCompletionSnippets": {
+      "title": "@Tab_twice_to_insert_arguments;..\\Microsoft.VisualStudio.LanguageServices.dll",
+      "type": "boolean",
+      "default": false,
+      "order": 60,
+      "migration": {
+        "pass": {
+          "input": {
+            "store": "SettingsManager",
+            "path": "TextEditor.VisualBasic.Specific.EnableArgumentCompletionSnippets"
+          }
+        }
+      }
+    }
+  },
+  "categories": {
+    "textEditor.basic":{
+      "title": "Visual Basic"
+    },
+    "textEditor.basic.intellisense": {
+      "title": "@112;{574fc912-f74f-4b4e-92c3-f695c208a2bb}",
+      "legacyOptionPageId": "04460A3B-1B5F-4402-BC6D-89A4F6F0A8D7"
+    }
+  }
+}

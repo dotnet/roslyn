@@ -8,6 +8,7 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -22,6 +23,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
+
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -31,7 +35,7 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
 
     public override string Description => FeaturesResources.foreach_loop;
 
-    protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
+    protected override bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken)
     {
         var syntaxContext = context.SyntaxContext;
         var token = syntaxContext.TargetToken;
@@ -45,15 +49,18 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
             return true;
         }
 
-        return base.IsValidSnippetLocation(in context, cancellationToken);
+        return base.IsValidSnippetLocationCore(context, cancellationToken);
     }
+
+    protected override bool CanInsertStatementAfterToken(SyntaxToken token)
+        => token.IsBeginningOfStatementContext() || token.IsBeginningOfGlobalStatementContext();
 
     protected override ForEachStatementSyntax GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)
     {
         var semanticModel = syntaxContext.SemanticModel;
         var position = syntaxContext.Position;
 
-        var varIdentifier = SyntaxFactory.IdentifierName("var");
+        var varIdentifier = IdentifierName("var");
         var collectionIdentifier = (ExpressionSyntax?)inlineExpressionInfo?.Node;
 
         if (collectionIdentifier is null)
@@ -63,8 +70,8 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
                 (isAsync ? symbolType.CanBeAsynchronouslyEnumerated(semanticModel.Compilation) : symbolType.CanBeEnumerated()) &&
                 symbol.Kind is SymbolKind.Local or SymbolKind.Field or SymbolKind.Parameter or SymbolKind.Property);
             collectionIdentifier = enumerationSymbol is null
-                ? SyntaxFactory.IdentifierName("collection")
-                : SyntaxFactory.IdentifierName(enumerationSymbol.Name);
+                ? IdentifierName("collection")
+                : IdentifierName(enumerationSymbol.Name);
         }
 
         var itemString = NameGenerator.GenerateUniqueName(
@@ -75,24 +82,24 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
         if (inlineExpressionInfo is { TypeInfo: var typeInfo } &&
             typeInfo.Type!.CanBeAsynchronouslyEnumerated(semanticModel.Compilation))
         {
-            forEachStatement = SyntaxFactory.ForEachStatement(
-                SyntaxFactory.Token(SyntaxKind.AwaitKeyword),
-                SyntaxFactory.Token(SyntaxKind.ForEachKeyword),
-                SyntaxFactory.Token(SyntaxKind.OpenParenToken),
+            forEachStatement = ForEachStatement(
+                AwaitKeyword,
+                ForEachKeyword,
+                OpenParenToken,
                 varIdentifier,
-                SyntaxFactory.Identifier(itemString),
-                SyntaxFactory.Token(SyntaxKind.InKeyword),
+                Identifier(itemString),
+                InKeyword,
                 collectionIdentifier.WithoutLeadingTrivia(),
-                SyntaxFactory.Token(SyntaxKind.CloseParenToken),
-                SyntaxFactory.Block());
+                CloseParenToken,
+                Block());
         }
         else
         {
-            forEachStatement = SyntaxFactory.ForEachStatement(
+            forEachStatement = ForEachStatement(
                 varIdentifier,
                 itemString,
                 collectionIdentifier.WithoutLeadingTrivia(),
-                SyntaxFactory.Block());
+                Block());
         }
 
         return forEachStatement.NormalizeWhitespace();
@@ -110,7 +117,7 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
         if (!ConstructedFromInlineExpression)
             arrayBuilder.Add(new SnippetPlaceholder(node.Expression.ToString(), node.Expression.SpanStart));
 
-        return arrayBuilder.ToImmutable();
+        return arrayBuilder.ToImmutableAndClear();
     }
 
     protected override int GetTargetCaretPosition(ForEachStatementSyntax forEachStatement, SourceText sourceText)

@@ -191,6 +191,6 @@ internal static class InheritanceMarginHelpers
             builder.Add(TargetMenuItemViewModel.Create(target, target.DisplayName));
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 }

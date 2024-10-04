@@ -50,7 +50,6 @@ internal sealed class CSharpRemoveUnnecessaryNullableDirectiveCodeFixProvider()
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         // We first group the nullable directives by the token they are attached This allows to replace each token

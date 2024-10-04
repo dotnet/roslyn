@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
@@ -20,18 +19,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseIsNullCheck;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 using static UseIsNullCheckHelpers;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseIsNullCheckForCastAndEqualityOperator), Shared]
-internal class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseIsNullCheckDiagnosticId];
 
@@ -56,7 +52,7 @@ internal class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider : S
 
     protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics)
         {
@@ -91,7 +87,7 @@ internal class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider : S
             return BinaryExpression(
                 SyntaxKind.IsExpression,
                 isPattern.Expression,
-                PredefinedType(Token(SyntaxKind.ObjectKeyword))).WithTriviaFrom(isPattern);
+                PredefinedType(ObjectKeyword)).WithTriviaFrom(isPattern);
         }
     }
 
@@ -106,7 +102,7 @@ internal class CSharpUseIsNullCheckForCastAndEqualityOperatorCodeFixProvider : S
         var castExpr = (CastExpressionSyntax)expr;
         return IsPatternExpression(
             castExpr.Expression.WithTriviaFrom(binary.Left),
-            Token(SyntaxKind.IsKeyword).WithTriviaFrom(binary.OperatorToken),
+            IsKeyword.WithTriviaFrom(binary.OperatorToken),
             ConstantPattern(nullLiteral).WithTriviaFrom(binary.Right));
     }
 }

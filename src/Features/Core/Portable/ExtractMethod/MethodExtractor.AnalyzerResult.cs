@@ -31,7 +31,6 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
     {
         private readonly IList<ITypeParameterSymbol> _typeParametersInDeclaration = typeParametersInDeclaration.ToList();
         private readonly IList<ITypeParameterSymbol> _typeParametersInConstraintList = typeParametersInConstraintList.ToList();
-        private readonly ImmutableArray<VariableInfo> _variables = variables;
         private readonly VariableInfo _variableToUseAsReturnValue = variableToUseAsReturnValue;
 
         /// <summary>
@@ -62,7 +61,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         /// </summary>
         public OperationStatus Status { get; } = status;
 
-        public ImmutableArray<VariableInfo> Variables => _variables;
+        public ImmutableArray<VariableInfo> Variables { get; } = variables;
 
         public ReadOnlyCollection<ITypeParameterSymbol> MethodTypeParametersInDeclaration
         {
@@ -109,32 +108,32 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
         {
             get
             {
-                return _variables.Where(v => v.UseAsParameter);
+                return Variables.Where(v => v.UseAsParameter);
             }
         }
 
         public ImmutableArray<VariableInfo> GetVariablesToSplitOrMoveIntoMethodDefinition(CancellationToken cancellationToken)
         {
-            return _variables.WhereAsArray(
+            return Variables.WhereAsArray(
                 v => v.GetDeclarationBehavior(cancellationToken) is DeclarationBehavior.SplitIn or
                      DeclarationBehavior.MoveIn);
         }
 
         public IEnumerable<VariableInfo> GetVariablesToMoveIntoMethodDefinition(CancellationToken cancellationToken)
-            => _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveIn);
+            => Variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveIn);
 
         public IEnumerable<VariableInfo> GetVariablesToMoveOutToCallSite(CancellationToken cancellationToken)
-            => _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveOut);
+            => Variables.Where(v => v.GetDeclarationBehavior(cancellationToken) == DeclarationBehavior.MoveOut);
 
         public IEnumerable<VariableInfo> GetVariablesToMoveOutToCallSiteOrDelete(CancellationToken cancellationToken)
         {
-            return _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) is DeclarationBehavior.MoveOut or
+            return Variables.Where(v => v.GetDeclarationBehavior(cancellationToken) is DeclarationBehavior.MoveOut or
                                              DeclarationBehavior.Delete);
         }
 
         public IEnumerable<VariableInfo> GetVariablesToSplitOrMoveOutToCallSite(CancellationToken cancellationToken)
         {
-            return _variables.Where(v => v.GetDeclarationBehavior(cancellationToken) is DeclarationBehavior.SplitOut or
+            return Variables.Where(v => v.GetDeclarationBehavior(cancellationToken) is DeclarationBehavior.SplitOut or
                                              DeclarationBehavior.MoveOut);
         }
 

@@ -11,15 +11,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
 
-internal partial class CSharpMethodExtractor
+internal sealed partial class CSharpMethodExtractor
 {
-    private partial class CSharpCodeGenerator
+    private abstract partial class CSharpCodeGenerator
     {
         public sealed class MultipleStatementsCodeGenerator(
             CSharpSelectionResult selectionResult,
@@ -60,7 +59,7 @@ internal partial class CSharpMethodExtractor
                     }
                 }
 
-                return list.ToImmutable();
+                return list.ToImmutableAndClear();
             }
 
             private static IEnumerable<StatementSyntax> GetStatementsFromContainer(SyntaxNode node)

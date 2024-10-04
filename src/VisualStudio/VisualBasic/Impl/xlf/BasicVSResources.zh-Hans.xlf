@@ -264,27 +264,12 @@
       </trans-unit>
       <trans-unit id="Always_add_new_line_on_enter">
         <source>_Always add new line on enter</source>
-        <target state="translated">按下 Enter 时始终添加新行(_A)</target>
+        <target state="translated">始终在按下 Enter 时添加新行(_A)</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_add_new_line_on_enter">
         <source>_Never add new line on enter</source>
         <target state="translated">按下 Enter 时不添加新行(_N)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Always_include_snippets">
-        <source>Always include snippets</source>
-        <target state="translated">始终包含片段</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
-        <source>Include snippets when ?-Tab is typed after an identifier</source>
-        <target state="translated">在标识符后键入 ?-Tab 时包含片段</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_include_snippets">
-        <source>Never include snippets</source>
-        <target state="translated">从不包含片段</target>
         <note />
       </trans-unit>
       <trans-unit id="Snippets_behavior">

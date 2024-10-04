@@ -4,11 +4,9 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -77,7 +75,7 @@ internal abstract class AbstractInlineParameterNameHintsService : IInlineParamet
             }
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
 
         void AddHintsIfAppropriate(SyntaxNode node)
         {

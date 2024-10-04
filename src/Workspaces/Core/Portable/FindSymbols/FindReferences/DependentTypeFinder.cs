@@ -136,7 +136,7 @@ internal static partial class DependentTypeFinder
                 await DescendInheritanceTreeInProjectAsync(project).ConfigureAwait(false);
         }
 
-        return result.ToImmutableArray();
+        return [.. result];
 
         async Task DescendInheritanceTreeInProjectAsync(Project project)
         {
@@ -472,7 +472,7 @@ internal static partial class DependentTypeFinder
             index++;
         }
 
-        return projectsToExamine.OrderBy((p1, p2) => order[p1.Id] - order[p2.Id]).ToImmutableArray();
+        return [.. projectsToExamine.OrderBy((p1, p2) => order[p1.Id] - order[p2.Id])];
     }
 
     private static ImmutableArray<Project> GetProjectsToExamineWorker(

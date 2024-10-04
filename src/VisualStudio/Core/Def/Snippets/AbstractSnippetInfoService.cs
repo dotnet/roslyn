@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -209,7 +208,7 @@ internal abstract class AbstractSnippetInfoService : ISnippetInfoService, IVsExp
             Marshal.FreeCoTaskMem(pSnippetInfo[0]);
         }
 
-        return snippetListBuilder.ToImmutable();
+        return snippetListBuilder.ToImmutableAndClear();
     }
 
     protected static IImmutableSet<string> GetShortcutsHashFromSnippets(ImmutableArray<SnippetInfo> updatedSnippets)

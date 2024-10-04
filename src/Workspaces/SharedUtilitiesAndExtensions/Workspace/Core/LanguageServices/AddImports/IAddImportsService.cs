@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.AddImport;
 
 internal interface IAddImportsService : ILanguageService
 {
-    AddImportPlacementOptions GetAddImportOptions(IOptionsReader configOptions, bool allowInHiddenRegions, AddImportPlacementOptions? fallbackOptions);
+    AddImportPlacementOptions GetAddImportOptions(IOptionsReader configOptions, bool allowInHiddenRegions);
 
     /// <summary>
     /// Returns true if the tree already has an existing import syntactically equivalent to
@@ -47,6 +47,6 @@ internal static class IAddImportServiceExtensions
         CancellationToken cancellationToken)
     {
         return service.AddImports(compilation, root, contextLocation,
-            SpecializedCollections.SingletonEnumerable(newImport), generator, options, cancellationToken);
+            [newImport], generator, options, cancellationToken);
     }
 }

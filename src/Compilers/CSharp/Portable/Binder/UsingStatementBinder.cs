@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(expressionOpt is not null);
                 if (expressionOpt.Type is not null)
                 {
-                    CheckRestrictedTypeInAsyncMethod(originalBinder.ContainingMemberOrLambda, expressionOpt.Type, diagnostics, expressionOpt.Syntax, errorCode: ErrorCode.ERR_BadSpecialByRefUsing);
+                    CheckRestrictedTypeInAsyncMethod(originalBinder.ContainingMemberOrLambda, expressionOpt.Type, diagnostics, expressionOpt.Syntax);
                 }
             }
             else
@@ -196,12 +196,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                ? expressionOpt
                                                : new BoundLocal(syntax, declarationsOpt[0].LocalSymbol, null, type) { WasCompilerGenerated = true };
 
-                    BindingDiagnosticBag patternDiagnostics = originalBinder.Compilation.IsFeatureEnabled(MessageID.IDS_FeatureDisposalPattern)
-                                                       ? diagnostics
-                                                       : BindingDiagnosticBag.Discarded;
+                    BindingDiagnosticBag patternDiagnostics = BindingDiagnosticBag.GetInstance(diagnostics);
                     MethodSymbol disposeMethod = originalBinder.TryFindDisposePatternMethod(receiver, syntax, hasAwait, patternDiagnostics, out bool expanded);
                     if (disposeMethod is object)
                     {
+                        diagnostics.AddRangeAndFree(patternDiagnostics);
                         MessageID.IDS_FeatureDisposalPattern.CheckFeatureAvailability(diagnostics, originalBinder.Compilation, syntax.Location);
 
                         var argumentsBuilder = ArrayBuilder<BoundExpression>.GetInstance(disposeMethod.ParameterCount);
@@ -220,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             out BitVector defaultArguments,
                             expanded,
                             enableCallerInfo: true,
-                            patternDiagnostics);
+                            diagnostics);
 
                         Debug.Assert(argsToParams.IsDefault);
                         patternDisposeInfo = new MethodArgumentInfo(disposeMethod, argumentsBuilder.ToImmutableAndFree(), defaultArguments, expanded);
@@ -228,20 +227,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             awaitableType = disposeMethod.ReturnType;
                         }
+
                         return true;
                     }
+
+                    patternDiagnostics.Free();
                 }
 
                 // Interface binding
-                TypeSymbol disposableInterface = getDisposableInterface(hasAwait);
+                NamedTypeSymbol disposableInterface = getDisposableInterface(hasAwait);
                 Debug.Assert((object)disposableInterface != null);
 
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = originalBinder.GetNewCompoundUseSiteInfo(diagnostics);
-                Conversion iDisposableConversion = classifyConversion(fromExpression, disposableInterface, ref useSiteInfo);
+                bool implementsIDisposable = implementsInterface(fromExpression, disposableInterface, diagnostics);
 
-                diagnostics.Add(syntax, useSiteInfo);
-
-                if (iDisposableConversion.IsImplicit)
+                if (implementsIDisposable)
                 {
                     if (hasAwait)
                     {
@@ -254,12 +253,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (type is null || !type.IsErrorType())
                 {
                     // Retry with a different assumption about whether the `using` is async
-                    TypeSymbol alternateInterface = getDisposableInterface(!hasAwait);
-                    var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    Conversion alternateConversion = classifyConversion(fromExpression, alternateInterface, ref discardedUseSiteInfo);
+                    NamedTypeSymbol alternateInterface = getDisposableInterface(!hasAwait);
+                    bool implementsAlternateIDisposable = implementsInterface(fromExpression, alternateInterface, BindingDiagnosticBag.Discarded);
 
-                    bool wrongAsync = alternateConversion.IsImplicit;
-                    ErrorCode errorCode = wrongAsync
+                    ErrorCode errorCode = implementsAlternateIDisposable
                         ? (hasAwait ? ErrorCode.ERR_NoConvToIAsyncDispWrongAsync : ErrorCode.ERR_NoConvToIDispWrongAsync)
                         : (hasAwait ? ErrorCode.ERR_NoConvToIAsyncDisp : ErrorCode.ERR_NoConvToIDisp);
 
@@ -269,28 +266,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            Conversion classifyConversion(bool fromExpression, TypeSymbol targetInterface, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            bool implementsInterface(bool fromExpression, NamedTypeSymbol targetInterface, BindingDiagnosticBag diagnostics)
             {
                 var conversions = originalBinder.Conversions;
+                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = originalBinder.GetNewCompoundUseSiteInfo(diagnostics);
+                bool result;
+                bool needSupportForRefStructInterfaces;
+
                 if (fromExpression)
                 {
                     Debug.Assert(expressionOpt is { });
-                    var result = conversions.ClassifyImplicitConversionFromExpression(expressionOpt, targetInterface, ref useSiteInfo);
-
-                    Debug.Assert(expressionOpt.Type?.IsDynamic() != true || result.Kind == ConversionKind.ImplicitDynamic);
-                    return result;
+                    result = conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(expressionOpt, targetInterface, ref useSiteInfo, out needSupportForRefStructInterfaces);
                 }
                 else
                 {
                     Debug.Assert(declarationTypeOpt is { });
-                    var result = conversions.ClassifyImplicitConversionFromType(declarationTypeOpt, targetInterface, ref useSiteInfo);
-
-                    Debug.Assert(!declarationTypeOpt.IsDynamic() || result.Kind == ConversionKind.ImplicitDynamic);
-                    return result;
+                    result = conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(declarationTypeOpt, targetInterface, ref useSiteInfo, out needSupportForRefStructInterfaces);
                 }
+
+                diagnostics.Add(syntax, useSiteInfo);
+
+                if (needSupportForRefStructInterfaces &&
+                    (fromExpression ? expressionOpt!.Type : declarationTypeOpt)!.ContainingModule != originalBinder.Compilation.SourceModule)
+                {
+                    CheckFeatureAvailability(syntax, MessageID.IDS_FeatureRefStructInterfaces, diagnostics);
+                }
+
+                return result;
             }
 
-            TypeSymbol getDisposableInterface(bool isAsync)
+            NamedTypeSymbol getDisposableInterface(bool isAsync)
             {
                 return isAsync
                     ? originalBinder.Compilation.GetWellKnownType(WellKnownType.System_IAsyncDisposable)

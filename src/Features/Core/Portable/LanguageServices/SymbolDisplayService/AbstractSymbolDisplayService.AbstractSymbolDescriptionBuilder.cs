@@ -11,14 +11,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageService;
 
-internal partial class AbstractSymbolDisplayService
+internal abstract partial class AbstractSymbolDisplayService
 {
     protected abstract partial class AbstractSymbolDescriptionBuilder
     {
@@ -771,10 +770,13 @@ internal partial class AbstractSymbolDisplayService
 
         private static IEnumerable<SymbolDisplayPart> Description(string description)
         {
-            return Punctuation("(")
-                .Concat(PlainText(description))
-                .Concat(Punctuation(")"))
-                .Concat(Space());
+            return
+            [
+                .. Punctuation("("),
+                .. PlainText(description),
+                .. Punctuation(")"),
+                .. Space(),
+            ];
         }
 
         protected static IEnumerable<SymbolDisplayPart> Keyword(string text)

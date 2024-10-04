@@ -15,7 +15,7 @@ using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable;
 
-internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringProvider
+internal sealed partial class EnableNullableCodeRefactoringProvider : CodeRefactoringProvider
 {
     internal sealed override CodeAnalysis.CodeRefactorings.FixAllProvider? GetFixAllProvider()
         => FixAllProvider.Instance;
@@ -46,8 +46,7 @@ internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringPr
                     if (!ShouldOfferRefactoring(project))
                         continue;
 
-                    solution = await EnableNullableReferenceTypesAsync(project, purpose,
-                        fixAllContext.GetOptionsProvider(), progress, fixAllContext.CancellationToken).ConfigureAwait(false);
+                    solution = await EnableNullableReferenceTypesAsync(project, purpose, fixAllContext.CancellationToken).ConfigureAwait(false);
                 }
 
                 return solution;

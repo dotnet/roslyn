@@ -8,7 +8,8 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using EnvDTE;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 
@@ -52,13 +53,11 @@ internal static class ProjectExtensions
 
     public static ProjectItem? FindItemByPath(this EnvDTE.Project project, string itemFilePath, StringComparer comparer)
     {
-        var stack = new Stack<ProjectItems>();
+        using var _ = ArrayBuilder<ProjectItems>.GetInstance(out var stack);
         stack.Push(project.ProjectItems);
 
-        while (stack.Count > 0)
+        while (stack.TryPop(out var currentItems))
         {
-            var currentItems = stack.Pop();
-
             foreach (var projectItem in currentItems.OfType<ProjectItem>())
             {
                 if (projectItem.TryGetFullPath(out var filePath) && comparer.Equals(filePath, itemFilePath))

@@ -7,7 +7,6 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
 
@@ -23,7 +22,7 @@ internal sealed class TypeImportCompletionServiceFactory : ILanguageServiceFacto
     public ILanguageService CreateLanguageService(HostLanguageServices languageServices)
         => new CSharpTypeImportCompletionService(languageServices.LanguageServices.SolutionServices);
 
-    private class CSharpTypeImportCompletionService(SolutionServices services) : AbstractTypeImportCompletionService(services)
+    private sealed class CSharpTypeImportCompletionService(SolutionServices services) : AbstractTypeImportCompletionService(services)
     {
         protected override string GenericTypeSuffix
             => "<>";

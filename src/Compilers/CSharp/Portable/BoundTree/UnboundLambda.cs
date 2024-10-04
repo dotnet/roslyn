@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            protected override BoundExpression VisitExpressionWithoutStackGuard(BoundExpression node)
+            protected override BoundNode VisitExpressionOrPatternWithoutStackGuard(BoundNode node)
             {
                 throw ExceptionUtilities.Unreachable();
             }
@@ -571,6 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Interlocked.Increment(ref data.LambdaBindingCount);
             }
 
+            Binder.RecordLambdaBinding(UnboundLambda.Syntax);
             return BindLambdaBodyCore(lambdaSymbol, lambdaBodyBinder, diagnostics);
         }
 
@@ -668,7 +669,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             getEffectiveScopeFromSymbol = true;
                         }
                     }
-                    else if (type.IsRefLikeType() && ParameterSyntax(i)?.Modifiers.Any(SyntaxKind.ParamsKeyword) == true)
+                    else if (type.IsRefLikeOrAllowsRefLikeType() && ParameterSyntax(i)?.Modifiers.Any(SyntaxKind.ParamsKeyword) == true)
                     {
                         scope = ScopedKind.ScopedValue;
                         if (_unboundLambda.ParameterAttributes(i).Any())
@@ -763,6 +764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Binder.GetMethodGroupOrLambdaDelegateType(
                 _unboundLambda.Syntax,
                 lambdaSymbol,
+                hasParams: OverloadResolution.IsValidParams(Binder, lambdaSymbol, disallowExpandedNonArrayParams: false, out _),
                 parameterScopesBuilder.ToImmutableAndFree(),
                 lambdaSymbol.Parameters.SelectAsArray(p => p.HasUnscopedRefAttribute),
                 returnRefKind,

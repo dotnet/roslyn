@@ -14,6 +14,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
 
 using static ConvertSwitchStatementToExpressionHelpers;
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider
@@ -73,12 +74,12 @@ internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider
                     return ReturnStatement(
                         Token(leadingTrivia, SyntaxKind.ReturnKeyword, trailing: default),
                         switchExpression,
-                        Token(SyntaxKind.SemicolonToken));
+                        SemicolonToken);
                 case SyntaxKind.ThrowStatement:
                     return ThrowStatement(
                         Token(leadingTrivia, SyntaxKind.ThrowKeyword, trailing: default),
                         switchExpression,
-                        Token(SyntaxKind.SemicolonToken));
+                        SemicolonToken);
             }
 
             Debug.Assert(SyntaxFacts.IsAssignmentExpression(nodeToGenerate));
@@ -250,8 +251,8 @@ internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider
                 Token(leading: default, SyntaxKind.OpenBraceToken, node.OpenBraceToken.TrailingTrivia),
                 SeparatedList(
                     switchArms.Select(t => t.armExpression.WithLeadingTrivia(t.tokensForLeadingTrivia.GetTrivia().FilterComments(addElasticMarker: false))),
-                    switchArms.Select(t => Token(SyntaxKind.CommaToken).WithTrailingTrivia(t.tokensForTrailingTrivia.GetTrivia().FilterComments(addElasticMarker: true)))),
-                Token(SyntaxKind.CloseBraceToken));
+                    switchArms.Select(t => CommaToken.WithTrailingTrivia(t.tokensForTrailingTrivia.GetTrivia().FilterComments(addElasticMarker: true)))),
+                CloseBraceToken);
         }
 
         private SwitchStatementSyntax AddCastIfNecessary(SwitchStatementSyntax node)

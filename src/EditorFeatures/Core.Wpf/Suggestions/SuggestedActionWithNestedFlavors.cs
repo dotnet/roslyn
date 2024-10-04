@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Host;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -67,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             cancellationToken.ThrowIfCancellationRequested();
 
             // Light bulb will always invoke this property on the UI thread.
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
 
             if (_nestedFlavors.IsDefault)
             {
@@ -144,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             cancellationToken.ThrowIfCancellationRequested();
 
             // Light bulb will always invoke this function on the UI thread.
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
 
             var previewPaneService = Workspace.Services.GetService<IPreviewPaneService>();
             if (previewPaneService == null)
@@ -170,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 else
                 {
                     // TakeNextPreviewAsync() needs to run on UI thread.
-                    AssertIsForeground();
+                    this.ThreadingContext.ThrowIfNotOnUIThread();
                     return await previewResult.GetPreviewsAsync(preferredDocumentId, preferredProjectId, cancellationToken).ConfigureAwait(true);
                 }
 
@@ -178,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             }, defaultValue: null, cancellationToken).ConfigureAwait(true);
 
             // GetPreviewPane() needs to run on the UI thread.
-            AssertIsForeground();
+            this.ThreadingContext.ThrowIfNotOnUIThread();
 
             return previewPaneService.GetPreviewPane(GetDiagnostic(), previewContents);
         }

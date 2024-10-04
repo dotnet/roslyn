@@ -8,6 +8,7 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.Versioning;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -34,24 +35,18 @@ internal sealed class VisualStudioFrameworkAssemblyPathResolverFactory : IWorksp
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new Service(_threadingContext, workspaceServices.Workspace as VisualStudioWorkspace, _serviceProvider);
 
-    private sealed class Service : ForegroundThreadAffinitizedObject, IFrameworkAssemblyPathResolver
+    private sealed class Service(IThreadingContext threadingContext, VisualStudioWorkspace? workspace, IServiceProvider serviceProvider) : IFrameworkAssemblyPathResolver
     {
-        private readonly VisualStudioWorkspace? _workspace;
-        private readonly IServiceProvider _serviceProvider;
-
-        public Service(IThreadingContext threadingContext, VisualStudioWorkspace? workspace, IServiceProvider serviceProvider)
-            : base(threadingContext, assertIsForeground: false)
-        {
-            _workspace = workspace;
-            _serviceProvider = serviceProvider;
-        }
+        private readonly IThreadingContext _threadingContext = threadingContext;
+        private readonly VisualStudioWorkspace? _workspace = workspace;
+        private readonly IServiceProvider _serviceProvider = serviceProvider;
 
         public string? ResolveAssemblyPath(
             ProjectId projectId,
             string assemblyName,
             string? fullyQualifiedTypeName)
         {
-            AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             var assembly = ResolveAssembly(projectId, assemblyName);
             if (assembly != null)
@@ -111,7 +106,7 @@ internal sealed class VisualStudioFrameworkAssemblyPathResolverFactory : IWorksp
 
         private Assembly? ResolveAssembly(ProjectId projectId, string assemblyName)
         {
-            this.AssertIsForeground();
+            _threadingContext.ThrowIfNotOnUIThread();
 
             if (_workspace == null)
             {

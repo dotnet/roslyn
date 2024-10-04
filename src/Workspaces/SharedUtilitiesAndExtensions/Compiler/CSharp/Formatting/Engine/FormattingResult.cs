@@ -23,7 +23,7 @@ internal class FormattingResult : AbstractFormattingResult
 
     protected override SyntaxNode Rewriter(Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> changeMap, CancellationToken cancellationToken)
     {
-        var rewriter = new TriviaRewriter(this.TreeInfo.Root, new TextSpanIntervalTree(this.FormattedSpan), changeMap, cancellationToken);
+        var rewriter = new TriviaRewriter(this.TreeInfo.Root, new TextSpanMutableIntervalTree(this.FormattedSpan), changeMap, cancellationToken);
         return rewriter.Transform();
     }
 }

@@ -5,7 +5,6 @@
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -25,7 +24,7 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors;
 /// </summary>
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, LanguageNames.VisualBasic,
     Name = PredefinedCodeRefactoringProviderNames.GenerateDefaultConstructors), Shared]
-internal class GenerateDefaultConstructorsCodeRefactoringProvider : CodeRefactoringProvider
+internal sealed class GenerateDefaultConstructorsCodeRefactoringProvider : CodeRefactoringProvider
 {
     [ImportingConstructor]
     [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
@@ -47,7 +46,7 @@ internal class GenerateDefaultConstructorsCodeRefactoringProvider : CodeRefactor
 
         var service = document.GetRequiredLanguageService<IGenerateDefaultConstructorsService>();
         var actions = await service.GenerateDefaultConstructorsAsync(
-            document, textSpan, context.Options, forRefactoring: true, cancellationToken).ConfigureAwait(false);
+            document, textSpan, forRefactoring: true, cancellationToken).ConfigureAwait(false);
         context.RegisterRefactorings(actions);
     }
 }

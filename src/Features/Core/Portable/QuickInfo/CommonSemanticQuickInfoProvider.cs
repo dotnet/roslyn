@@ -29,8 +29,9 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         var cancellationToken = context.CancellationToken;
         var semanticModel = await context.Document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var services = context.Document.Project.Solution.Services;
+        var onTheFlyDocsInfo = await GetOnTheFlyDocsInfoAsync(context, cancellationToken).ConfigureAwait(false);
         return await CreateContentAsync(
-            services, semanticModel, token, tokenInformation, supportedPlatforms, context.Options, cancellationToken).ConfigureAwait(false);
+            services, semanticModel, token, tokenInformation, supportedPlatforms, context.Options, onTheFlyDocsInfo, cancellationToken).ConfigureAwait(false);
     }
 
     protected override async Task<QuickInfoItem?> BuildQuickInfoAsync(
@@ -40,8 +41,9 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         if (tokenInformation.Symbols.IsDefaultOrEmpty)
             return null;
 
+        // onTheFlyDocInfo is null here since On-The-Fly Docs are being computed at the document level.
         return await CreateContentAsync(
-            context.Services, context.SemanticModel, token, tokenInformation, supportedPlatforms: null, context.Options, context.CancellationToken).ConfigureAwait(false);
+            context.Services, context.SemanticModel, token, tokenInformation, supportedPlatforms: null, context.Options, onTheFlyDocsInfo: null, context.CancellationToken).ConfigureAwait(false);
     }
 
     private async Task<(TokenInformation tokenInformation, SupportedPlatformData? supportedPlatforms)> ComputeQuickInfoDataAsync(
@@ -155,6 +157,7 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         TokenInformation tokenInformation,
         SupportedPlatformData? supportedPlatforms,
         SymbolDescriptionOptions options,
+        OnTheFlyDocsInfo? onTheFlyDocsInfo,
         CancellationToken cancellationToken)
     {
         var syntaxFactsService = services.GetRequiredLanguageService<ISyntaxFactsService>(semanticModel.Language);
@@ -162,22 +165,25 @@ internal abstract partial class CommonSemanticQuickInfoProvider : CommonQuickInf
         var symbols = tokenInformation.Symbols;
 
         // if generating quick info for an attribute, prefer bind to the class instead of the constructor
-        if (syntaxFactsService.IsAttributeName(token.Parent!))
+        if (syntaxFactsService.IsNameOfAttribute(token.Parent!))
         {
-            symbols = symbols.OrderBy((s1, s2) =>
+            symbols = [.. symbols.OrderBy((s1, s2) =>
                 s1.Kind == s2.Kind ? 0 :
                 s1.Kind == SymbolKind.NamedType ? -1 :
-                s2.Kind == SymbolKind.NamedType ? 1 : 0).ToImmutableArray();
+                s2.Kind == SymbolKind.NamedType ? 1 : 0)];
         }
 
         return QuickInfoUtilities.CreateQuickInfoItemAsync(
             services, semanticModel, token.Span, symbols, supportedPlatforms,
-            tokenInformation.ShowAwaitReturn, tokenInformation.NullableFlowState, options, cancellationToken);
+            tokenInformation.ShowAwaitReturn, tokenInformation.NullableFlowState, options, onTheFlyDocsInfo, cancellationToken);
     }
 
     protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);
     protected abstract bool GetBindableNodeForTokenIndicatingPossibleIndexerAccess(SyntaxToken token, [NotNullWhen(returnValue: true)] out SyntaxNode? found);
     protected abstract bool GetBindableNodeForTokenIndicatingMemberAccess(SyntaxToken token, out SyntaxToken found);
+
+    protected virtual Task<OnTheFlyDocsInfo?> GetOnTheFlyDocsInfoAsync(QuickInfoContext context, CancellationToken cancellationToken)
+        => Task.FromResult<OnTheFlyDocsInfo?>(null);
 
     protected virtual NullableFlowState GetNullabilityAnalysis(SemanticModel semanticModel, ISymbol symbol, SyntaxNode node, CancellationToken cancellationToken) => NullableFlowState.None;
 

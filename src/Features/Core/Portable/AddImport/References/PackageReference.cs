@@ -7,14 +7,13 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddImport;
 
 internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSyntax>
 {
-    private partial class PackageReference(
+    private sealed partial class PackageReference(
         AbstractAddImportFeatureService<TSimpleNameSyntax> provider,
         SearchResult searchResult,
         string source,

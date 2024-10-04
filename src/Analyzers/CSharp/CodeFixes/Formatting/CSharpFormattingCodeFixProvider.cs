@@ -12,13 +12,9 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CodeStyle;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.FixFormatting), Shared]
-internal class CSharpFormattingCodeFixProvider : AbstractFormattingCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpFormattingCodeFixProvider() : AbstractFormattingCodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpFormattingCodeFixProvider()
-    {
-    }
-
     protected override ISyntaxFormatting SyntaxFormatting => CSharpSyntaxFormatting.Instance;
 }

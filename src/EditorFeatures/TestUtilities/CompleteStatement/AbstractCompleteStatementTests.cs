@@ -97,37 +97,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CompleteStatement
             Action<IWpfTextView, EditorTestWorkspace> execute,
             Action<EditorTestWorkspace>? setOptions = null)
         {
-            using (var workspace = CreateTestWorkspace(initialMarkup))
+            using var workspace = CreateTestWorkspace(initialMarkup);
+            var testDocument = workspace.Documents.Single();
+
+            Assert.True(testDocument.CursorPosition.HasValue || testDocument.SelectedSpans.Any(), "No caret position or selected spans are set!");
+            var startCaretPosition = testDocument.CursorPosition ?? testDocument.SelectedSpans.Last().End;
+
+            var view = testDocument.GetTextView();
+
+            if (testDocument.SelectedSpans.Any())
             {
-                var testDocument = workspace.Documents.Single();
+                var selectedSpan = testDocument.SelectedSpans[0];
 
-                Assert.True(testDocument.CursorPosition.HasValue || testDocument.SelectedSpans.Any(), "No caret position or selected spans are set!");
-                var startCaretPosition = testDocument.CursorPosition ?? testDocument.SelectedSpans.Last().End;
+                var isReversed = selectedSpan.Start == startCaretPosition;
 
-                var view = testDocument.GetTextView();
-
-                if (testDocument.SelectedSpans.Any())
-                {
-                    var selectedSpan = testDocument.SelectedSpans[0];
-
-                    var isReversed = selectedSpan.Start == startCaretPosition;
-
-                    view.Selection.Select(new SnapshotSpan(view.TextSnapshot, selectedSpan.Start, selectedSpan.Length), isReversed);
-                }
-
-                view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, startCaretPosition));
-
-                setOptions?.Invoke(workspace);
-
-                execute(view, workspace);
-                TestFileMarkupParser.GetPosition(expectedMarkup, out var expectedCode, out var expectedPosition);
-
-                AssertEx.EqualOrDiff(expectedCode, view.TextSnapshot.GetText());
-
-                var endCaretPosition = view.Caret.Position.BufferPosition.Position;
-                Assert.True(expectedPosition == endCaretPosition,
-                    string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, endCaretPosition));
+                view.Selection.Select(new SnapshotSpan(view.TextSnapshot, selectedSpan.Start, selectedSpan.Length), isReversed);
             }
+
+            view.Caret.MoveTo(new SnapshotPoint(view.TextSnapshot, startCaretPosition));
+
+            setOptions?.Invoke(workspace);
+
+            execute(view, workspace);
+            TestFileMarkupParser.GetPosition(expectedMarkup, out var expectedCode, out var expectedPosition);
+
+            AssertEx.EqualOrDiff(expectedCode, view.TextSnapshot.GetText());
+
+            var endCaretPosition = view.Caret.Position.BufferPosition.Position;
+            Assert.True(expectedPosition == endCaretPosition,
+                string.Format("Caret positioned incorrectly. Should have been {0}, but was {1}.", expectedPosition, endCaretPosition));
         }
     }
 }

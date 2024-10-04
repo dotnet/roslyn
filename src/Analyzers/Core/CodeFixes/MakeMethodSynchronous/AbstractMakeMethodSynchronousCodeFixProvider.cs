@@ -177,18 +177,14 @@ internal abstract class AbstractMakeMethodSynchronousCodeFixProvider : CodeFixPr
         var editor = new SyntaxEditor(root, currentSolution.Services);
 
         foreach (var location in group)
-        {
-            RemoveAwaitFromCallerIfPresent(editor, syntaxFactsService, root, location, cancellationToken);
-        }
+            RemoveAwaitFromCallerIfPresent(editor, syntaxFactsService, location, cancellationToken);
 
         var newRoot = editor.GetChangedRoot();
         return currentSolution.WithDocumentSyntaxRoot(document.Id, newRoot);
     }
 
     private static void RemoveAwaitFromCallerIfPresent(
-        SyntaxEditor editor, ISyntaxFactsService syntaxFacts,
-        SyntaxNode root, ReferenceLocation referenceLocation,
-        CancellationToken cancellationToken)
+        SyntaxEditor editor, ISyntaxFactsService syntaxFacts, ReferenceLocation referenceLocation, CancellationToken cancellationToken)
     {
         if (referenceLocation.IsImplicit)
         {

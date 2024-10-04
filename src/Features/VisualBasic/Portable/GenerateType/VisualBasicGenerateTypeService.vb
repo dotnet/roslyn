@@ -626,7 +626,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 document As Document,
                 simpleName As SimpleNameSyntax,
                 includeUsingsOrImports As String,
-                fallbackOptions As AddImportPlacementOptionsProvider,
                 cancellationToken As CancellationToken) As Task(Of Solution)
 
             ' Nothing to include
@@ -672,7 +671,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                     Return updatedSolution
                 End If
 
-                Dim addImportOptions = Await document.GetAddImportPlacementOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(False)
+                Dim addImportOptions = Await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(False)
                 Dim addedCompilationRoot = compilationRoot.AddImportsStatement(newImport, addImportOptions.PlaceSystemNamespaceFirst, Formatter.Annotation, Simplifier.Annotation)
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(document.Id, addedCompilationRoot, PreservationMode.PreserveIdentity)
             End If

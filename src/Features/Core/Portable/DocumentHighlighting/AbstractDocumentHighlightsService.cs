@@ -63,7 +63,9 @@ internal abstract partial class AbstractDocumentHighlightsService :
     private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
         Document document, int position, IImmutableSet<Document> documentsToSearch, HighlightingOptions options, CancellationToken cancellationToken)
     {
-        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        // Document highlights are not impacted by nullable analysis.  Get a semantic model with nullability disabled to
+        // lower the amount of work we need to do here.
+        var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var result = TryGetEmbeddedLanguageHighlights(document, semanticModel, position, options, cancellationToken);
         if (!result.IsDefaultOrEmpty)
             return result;
@@ -263,13 +265,11 @@ internal abstract partial class AbstractDocumentHighlightsService :
             await AddLocationSpanAsync(location, solution, spanSet, tagMap, HighlightSpanKind.Reference, cancellationToken).ConfigureAwait(false);
         }
 
-        using var _1 = ArrayBuilder<DocumentHighlights>.GetInstance(tagMap.Count, out var list);
+        var list = new FixedSizeArrayBuilder<DocumentHighlights>(tagMap.Count);
         foreach (var kvp in tagMap)
-        {
             list.Add(new DocumentHighlights(kvp.Key, [.. kvp.Value]));
-        }
 
-        return list.ToImmutableAndClear();
+        return list.MoveToImmutable();
     }
 
     private static bool ShouldIncludeDefinition(ISymbol symbol)

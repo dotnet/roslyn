@@ -2,11 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PullMemberUp;
@@ -109,7 +107,7 @@ internal abstract class AbstractExtractClassRefactoringProvider(IExtractClassOpt
         }
 
         var action = new ExtractClassWithDialogCodeAction(
-            document, memberSpan, optionsService, containingType, containingTypeDeclarationNode, context.Options, selectedMembers);
+            document, memberSpan, optionsService, containingType, containingTypeDeclarationNode, selectedMembers);
 
         return (action, false);
     }
@@ -136,7 +134,7 @@ internal abstract class AbstractExtractClassRefactoringProvider(IExtractClassOpt
         }
 
         return new ExtractClassWithDialogCodeAction(
-            document, span, optionsService, selectedType, selectedClassNode, context.Options, selectedMembers: []);
+            document, span, optionsService, selectedType, selectedClassNode, selectedMembers: []);
     }
 
     private static bool HasBaseType(INamedTypeSymbol containingType) => containingType.BaseType?.SpecialType != SpecialType.System_Object;

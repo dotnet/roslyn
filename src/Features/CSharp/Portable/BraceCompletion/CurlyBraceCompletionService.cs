@@ -8,32 +8,24 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.BraceCompletion;
 
-[Export(LanguageNames.CSharp, typeof(IBraceCompletionService)), Shared]
-internal class CurlyBraceCompletionService : AbstractCurlyBraceOrBracketCompletionService
+[ExportBraceCompletionService(LanguageNames.CSharp), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class CurlyBraceCompletionService() : AbstractCurlyBraceOrBracketCompletionService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CurlyBraceCompletionService()
-    {
-    }
-
     protected override char OpeningBrace => CurlyBrace.OpenCharacter;
 
     protected override char ClosingBrace => CurlyBrace.CloseCharacter;
@@ -260,16 +252,16 @@ internal class CurlyBraceCompletionService : AbstractCurlyBraceOrBracketCompleti
                     // If the user has set block style indentation and we're in a valid brace pair
                     // then make sure we align the close brace to the open brace.
                     AddAlignIndentationOfTokensToBaseTokenOperation(list, node, bracePair.openBrace,
-                        SpecializedCollections.SingletonEnumerable(bracePair.closeBrace), AlignTokensOption.AlignIndentationOfTokensToFirstTokenOfBaseTokenLine);
+                        [bracePair.closeBrace], AlignTokensOption.AlignIndentationOfTokensToFirstTokenOfBaseTokenLine);
                 }
             }
         }
 
-        public override void AddSuppressOperations(List<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
+        public override void AddSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node, in NextSuppressOperationAction nextOperation)
         {
             base.AddSuppressOperations(list, node, in nextOperation);
 
-            // not sure exactly what is happening here, but removing the bellow causesthe indentation to be wrong.
+            // not sure exactly what is happening here, but removing the bellow causes the indentation to be wrong.
 
             // remove suppression rules for array and collection initializer
             if (node.IsInitializerForArrayOrCollectionCreationExpression())

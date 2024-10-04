@@ -54,7 +54,7 @@ internal class CSharpRemoveUnnecessaryExpressionParenthesesDiagnosticAnalyzer
         ExpressionSyntax parentExpression;
         switch (parenthesizedExpression.Parent)
         {
-            case ConditionalExpressionSyntax _:
+            case ConditionalExpressionSyntax:
                 // If our parent is a conditional, then only remove parens if the inner
                 // expression is a primary. i.e. it's ok to remove any of the following:
                 //

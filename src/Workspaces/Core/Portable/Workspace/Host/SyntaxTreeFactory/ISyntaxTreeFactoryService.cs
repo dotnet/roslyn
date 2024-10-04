@@ -3,11 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host;
 
@@ -28,8 +26,8 @@ internal interface ISyntaxTreeFactoryService : ILanguageService
     /// </summary>
     bool OptionsDifferOnlyByPreprocessorDirectives(ParseOptions options1, ParseOptions options2);
 
-    // new tree from root node
-    SyntaxTree CreateSyntaxTree(string? filePath, ParseOptions options, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, SyntaxNode root);
+    // new tree from root node and optional text
+    SyntaxTree CreateSyntaxTree(string? filePath, ParseOptions options, SourceText? text, Encoding? encoding, SourceHashAlgorithm checksumAlgorithm, SyntaxNode root);
 
     // new tree from text
     SyntaxTree ParseSyntaxTree(string? filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken);

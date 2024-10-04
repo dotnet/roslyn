@@ -17,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.FindUsages;
 
 internal partial class StreamingFindUsagesPresenter
 {
-    private class MetadataDefinitionItemEntry(
+    private sealed class MetadataDefinitionItemEntry(
         AbstractTableDataSourceFindUsagesContext context,
         RoslynDefinitionBucket definitionBucket,
         AssemblyLocation metadataLocation,

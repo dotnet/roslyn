@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.ConvertPrimaryToRegularConstructor;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
@@ -13,6 +14,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertPrimaryToRegular
 
 using VerifyCS = CSharpCodeRefactoringVerifier<ConvertPrimaryToRegularConstructorCodeRefactoringProvider>;
 
+[UseExportProvider]
 public class ConvertPrimaryToRegularConstructorTests
 {
     private const string FieldNamesCamelCaseWithFieldUnderscorePrefixEditorConfig = """

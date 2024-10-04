@@ -26,15 +26,12 @@ using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Simplification;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -204,7 +201,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var messagePackOptions = MessagePackSerializerOptions.Standard.WithResolver(MessagePackFormatters.DefaultResolver);
             var options = new object[]
             {
-                ExtractMethodOptions.Default,
                 AddImportPlacementOptions.Default,
                 LineFormattingOptions.Default,
                 DocumentFormattingOptions.Default,
@@ -235,13 +231,11 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
             var options = new object[]
             {
-                SimplifierOptions.GetDefault(languageServices),
-                SyntaxFormattingOptions.GetDefault(languageServices),
-                CodeCleanupOptions.GetDefault(languageServices),
-                CodeGenerationOptions.GetDefault(languageServices),
-                IdeCodeStyleOptions.GetDefault(languageServices),
-                CodeActionOptions.GetDefault(languageServices),
-                IndentationOptions.GetDefault(languageServices),
+                SimplifierOptionsProviders.GetDefault(languageServices),
+                SyntaxFormattingOptionsProviders.GetDefault(languageServices),
+                CodeCleanupOptionsProviders.GetDefault(languageServices),
+                CodeGenerationOptionsProviders.GetDefault(languageServices),
+                IndentationOptionsProviders.GetDefault(languageServices),
                 ExtractMethodGenerationOptions.GetDefault(languageServices),
 
                 // some non-default values:
@@ -269,12 +263,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                     NewLines = NewLinePlacement.BeforeFinally
                 },
 
-                new CSharpIdeCodeStyleOptions()
-                {
-                    AllowStatementImmediatelyAfterBlock = new CodeStyleOption2<bool>(true, NotificationOption2.Error),
-                    PreferConditionalDelegateCall = new CodeStyleOption2<bool>(false, NotificationOption2.Error)
-                },
-
                 new VisualBasicSyntaxFormattingOptions()
                 {
                     AccessibilityModifiersRequired = AccessibilityModifiersRequired.Always
@@ -289,12 +277,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 {
                     NamingStyle = OptionsTestHelpers.GetNonDefaultNamingStylePreference()
                 },
-
-                new VisualBasicIdeCodeStyleOptions()
-                {
-                    AllowStatementImmediatelyAfterBlock = new CodeStyleOption2<bool>(false, NotificationOption2.Error),
-                    PreferredModifierOrder = new CodeStyleOption2<string>("Public Private", NotificationOption2.Error)
-                }
             };
 
             foreach (var original in options)

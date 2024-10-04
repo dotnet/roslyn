@@ -1,0 +1,18 @@
+# Remove the line below if you want to inherit .editorconfig settings from higher directories
+root = true
+
+# C# files
+[*.cs]
+
+# We don't want any analyzer diagnostics to be reported for people consuming this as a source package.
+dotnet_analyzer_diagnostic.severity = none
+
+generated_code = true
+
+# The above configurations don't apply to compiler warnings.  Requiring all params to be documented
+# is not something we require for this project, so suppressing it directly here.
+dotnet_diagnostic.CS1573.severity = none
+
+# As above, we need to specifically disable compiler warnings that we don't want to break downstream
+# builds
+dotnet_diagnostic.IDE0005.severity = none

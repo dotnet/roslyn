@@ -20,17 +20,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
 
-internal partial class UnitTestingSolutionCrawlerRegistrationService
+internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
 {
-    internal partial class UnitTestingWorkCoordinator
+    internal sealed partial class UnitTestingWorkCoordinator
     {
-        private partial class UnitTestingIncrementalAnalyzerProcessor
+        private sealed partial class UnitTestingIncrementalAnalyzerProcessor
         {
             private static readonly Func<int, object, bool, string> s_enqueueLogger = EnqueueLogger;
 
             private readonly UnitTestingRegistration _registration;
             private readonly IAsynchronousOperationListener _listener;
-            private readonly IUnitTestingDocumentTrackingService _documentTracker;
 
             private readonly UnitTestingNormalPriorityProcessor _normalPriorityProcessor;
             private readonly UnitTestingLowPriorityProcessor _lowPriorityProcessor;
@@ -58,8 +57,6 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
                 var lazyAllAnalyzers = new Lazy<ImmutableArray<IUnitTestingIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(_registration, analyzersGetter, onlyHighPriorityAnalyzer: false));
 
                 // event and worker queues
-                _documentTracker = _registration.Services.GetRequiredService<IUnitTestingDocumentTrackingService>();
-
                 var globalNotificationService = _registration.Services.ExportProvider.GetExports<IGlobalOperationNotificationService>().FirstOrDefault()?.Value;
 
                 _normalPriorityProcessor = new UnitTestingNormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpan, shutdownToken);
@@ -284,7 +281,7 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
                 }
             }
 
-            private class UnitTestingAnalyzersGetter(IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders)
+            private sealed class UnitTestingAnalyzersGetter(IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders)
             {
                 private readonly List<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> _analyzerProviders = analyzerProviders.ToList();
                 private readonly Dictionary<(string workspaceKind, SolutionServices services), ImmutableArray<IUnitTestingIncrementalAnalyzer>> _analyzerMap = [];

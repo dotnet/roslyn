@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -277,7 +276,7 @@ internal sealed class CommittedSolution
                         filePath: document.FilePath,
                         isGenerated: document.State.Attributes.IsGenerated)
                         .WithDesignTimeOnly(document.State.Attributes.DesignTimeOnly)
-                        .WithDocumentServiceProvider(document.State.Services));
+                        .WithDocumentServiceProvider(document.State.DocumentServiceProvider));
                 }
 
                 var matchingSourceText = maybeMatchingSourceText.Value;

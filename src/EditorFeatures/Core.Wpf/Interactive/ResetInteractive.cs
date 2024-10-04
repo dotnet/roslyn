@@ -14,7 +14,6 @@ using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.InteractiveWindow;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
@@ -122,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             if (!string.IsNullOrWhiteSpace(importNamespacesCommand))
             {
-                await interactiveWindow.SubmitAsync(new[] { importNamespacesCommand }).ConfigureAwait(true);
+                await interactiveWindow.SubmitAsync([importNamespacesCommand]).ConfigureAwait(true);
             }
         }
 

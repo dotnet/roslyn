@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using Microsoft.CodeAnalysis.Emit;
 
@@ -13,14 +11,19 @@ namespace Microsoft.CodeAnalysis.Scripting
     {
         public static DebugInformationFormat GetPlatformSpecificDebugInformationFormat()
         {
-            // for CoreCLR & Mono, use PortablePdb
-            if (CoreClrShim.AssemblyLoadContext.Type != null || Type.GetType("Mono.Runtime") != null)
+#if NET
+            // Use PortablePdb for .NET
+            return DebugInformationFormat.PortablePdb;
+#else
+            // Use PortablePdb for Mono
+            if (Type.GetType("Mono.Runtime") != null)
             {
                 return DebugInformationFormat.PortablePdb;
             }
 
             // otherwise standard PDB
             return DebugInformationFormat.Pdb;
+#endif
         }
     }
 }

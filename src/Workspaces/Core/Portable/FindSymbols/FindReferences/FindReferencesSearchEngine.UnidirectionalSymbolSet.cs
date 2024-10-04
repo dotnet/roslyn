@@ -7,12 +7,11 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
-internal partial class FindReferencesSearchEngine
+internal sealed partial class FindReferencesSearchEngine
 {
     /// <summary>
     /// Symbol set used when <see cref="FindReferencesSearchOptions.UnidirectionalHierarchyCascade"/> is <see
@@ -40,24 +39,20 @@ internal partial class FindReferencesSearchEngine
             var result = new MetadataUnifyingSymbolHashSet();
             result.AddRange(_upSymbols);
             result.AddRange(initialSymbols);
-            return result.ToImmutableArray();
+            return [.. result];
         }
 
         public override async Task InheritanceCascadeAsync(Project project, CancellationToken cancellationToken)
         {
             // Start searching using the existing set of symbols found at the start (or anything found below that).
-            var workQueue = new Stack<ISymbol>();
-            workQueue.Push(initialSymbols);
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var workQueue);
+            workQueue.AddRange(initialSymbols);
 
             var projects = ImmutableHashSet.Create(project);
 
-            while (workQueue.Count > 0)
-            {
-                var current = workQueue.Pop();
-
-                // Keep adding symbols downwards in this project as long as we keep finding new symbols.
+            // Keep adding symbols downwards in this project as long as we keep finding new symbols.
+            while (workQueue.TryPop(out var current))
                 await AddDownSymbolsAsync(this.Engine, current, initialSymbols, workQueue, projects, cancellationToken).ConfigureAwait(false);
-            }
         }
     }
 }

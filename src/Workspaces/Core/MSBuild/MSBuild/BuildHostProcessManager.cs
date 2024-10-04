@@ -14,8 +14,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.MSBuild.Rpc;
-using Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
@@ -85,13 +83,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         {
             if (!_processes.TryGetValue(buildHostKind, out var buildHostProcess))
             {
-                var processStartInfo = buildHostKind switch
-                {
-                    BuildHostProcessKind.NetCore => CreateDotNetCoreBuildHostStartInfo(),
-                    BuildHostProcessKind.NetFramework => CreateDotNetFrameworkBuildHostStartInfo(),
-                    BuildHostProcessKind.Mono => CreateMonoBuildHostStartInfo(),
-                    _ => throw ExceptionUtilities.UnexpectedValue(buildHostKind)
-                };
+                var processStartInfo = CreateBuildHostStartInfo(buildHostKind);
 
                 var process = Process.Start(processStartInfo);
                 Contract.ThrowIfNull(process, "Process.Start failed to launch a process.");
@@ -111,6 +103,17 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
 
             return buildHostProcess.BuildHost;
         }
+    }
+
+    internal ProcessStartInfo CreateBuildHostStartInfo(BuildHostProcessKind buildHostKind)
+    {
+        return buildHostKind switch
+        {
+            BuildHostProcessKind.NetCore => CreateDotNetCoreBuildHostStartInfo(),
+            BuildHostProcessKind.NetFramework => CreateDotNetFrameworkBuildHostStartInfo(),
+            BuildHostProcessKind.Mono => CreateMonoBuildHostStartInfo(),
+            _ => throw ExceptionUtilities.UnexpectedValue(buildHostKind)
+        };
     }
 
     private void BuildHostProcess_Disconnected(object? sender, EventArgs e)
@@ -149,7 +152,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         // may try to mutate the list while we're enumerating.
         using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
         {
-            processesToDispose = _processes.Values.ToList();
+            processesToDispose = [.. _processes.Values];
             _processes.Clear();
         }
 
@@ -242,6 +245,9 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             AddArgument(processStartInfo, _binaryLogPath);
         }
 
+        AddArgument(processStartInfo, "--locale");
+        AddArgument(processStartInfo, System.Globalization.CultureInfo.CurrentUICulture.Name);
+
         // MSBUILD_EXE_PATH is read by MSBuild to find related tasks and targets. We don't want this to be inherited by our build process, or otherwise
         // it might try to load targets that aren't appropriate for the build host.
         processStartInfo.Environment.Remove("MSBUILD_EXE_PATH");
@@ -292,9 +298,9 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         try
         {
             // Read the XML, prohibiting DTD processing due the the usual security concerns there.
-            using (var fileStream = FileUtilities.OpenRead(projectFilePath))
-            using (var xmlReader = XmlReader.Create(fileStream, s_xmlSettings))
-                document = XDocument.Load(xmlReader);
+            using var fileStream = FileUtilities.OpenRead(projectFilePath);
+            using var xmlReader = XmlReader.Create(fileStream, s_xmlSettings);
+            document = XDocument.Load(xmlReader);
         }
         catch (Exception e) when (e is IOException or XmlException)
         {

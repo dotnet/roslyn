@@ -475,6 +475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 ' edit. Furthermore, comparing constraint types might lead to a cycle.
                 Debug.Assert(type.HasConstructorConstraint = other.HasConstructorConstraint)
                 Debug.Assert(type.HasValueTypeConstraint = other.HasValueTypeConstraint)
+                Debug.Assert(type.AllowsRefLikeType = other.AllowsRefLikeType)
                 Debug.Assert(type.HasReferenceTypeConstraint = other.HasReferenceTypeConstraint)
                 Debug.Assert(type.ConstraintTypesNoUseSiteDiagnostics.Length = other.ConstraintTypesNoUseSiteDiagnostics.Length)
                 Return True

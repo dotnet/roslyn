@@ -6,9 +6,7 @@
 
 using System;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch;
 

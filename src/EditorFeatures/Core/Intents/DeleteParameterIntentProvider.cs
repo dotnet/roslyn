@@ -8,11 +8,9 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -22,10 +20,8 @@ namespace Microsoft.CodeAnalysis.EditorFeatures.Intents;
 [IntentProvider(WellKnownIntents.DeleteParameter, LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DeleteParameterIntentProvider(IGlobalOptionService globalOptionService) : IIntentProvider
+internal sealed class DeleteParameterIntentProvider() : IIntentProvider
 {
-    private readonly IGlobalOptionService _globalOptionService = globalOptionService;
-
     public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(
         Document priorDocument,
         TextSpan priorSelection,
@@ -35,7 +31,7 @@ internal sealed class DeleteParameterIntentProvider(IGlobalOptionService globalO
     {
         var changeSignatureService = priorDocument.GetRequiredLanguageService<AbstractChangeSignatureService>();
         var contextResult = await changeSignatureService.GetChangeSignatureContextAsync(
-            priorDocument, priorSelection.Start, restrictToDeclarations: false, _globalOptionService.CreateProvider(), cancellationToken).ConfigureAwait(false);
+            priorDocument, priorSelection.Start, restrictToDeclarations: false, cancellationToken).ConfigureAwait(false);
 
         if (contextResult is not ChangeSignatureAnalysisSucceededContext context)
         {
