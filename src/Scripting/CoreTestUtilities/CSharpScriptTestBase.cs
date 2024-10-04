@@ -20,7 +20,7 @@ using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Scripting.TestUtilities;
 
-public class CSharpScriptTestBase : TestBase
+public class CSharpScriptTestBase : ScriptTestBase
 {
     // default csi.rsp
     private static readonly string[] s_defaultArgs =
@@ -28,29 +28,6 @@ public class CSharpScriptTestBase : TestBase
         "/r:" + string.Join(";", GetReferences()),
         "/u:System;System.IO;System.Collections.Generic;System.Diagnostics;System.Dynamic;System.Linq;System.Linq.Expressions;System.Text;System.Threading.Tasks",
     ];
-
-    private readonly List<MetadataImageReference> _referenceList = new List<MetadataImageReference>();
-    public ScriptOptions ScriptOptions { get; }
-    public ScriptMetadataResolver ScriptMetadataResolver { get; }
-
-    protected CSharpScriptTestBase()
-    {
-        var runtimeMetadataReferenceResolver = RuntimeMetadataReferenceResolver.CreateCurrentPlatformResolver(
-            searchPaths: [],
-            baseDirectory: null,
-            CreateFromFile);
-        ScriptMetadataResolver = new ScriptMetadataResolver(runtimeMetadataReferenceResolver);
-        ScriptOptions = ScriptOptions.Default
-            .WithMetadataResolver(ScriptMetadataResolver)
-            .WithCreateFromFileFunc(CreateFromFile);
-    }
-
-    private MetadataImageReference CreateFromFile(string filePath, PEStreamOptions options, MetadataReferenceProperties properties)
-    {
-        var reference = MetadataReference.CreateFromFile(filePath, options, properties);
-        _referenceList.Add(reference);
-        return reference;
-    }
 
     private protected CommandLineRunner CreateRunner(
         string[]? args = null,
@@ -116,15 +93,6 @@ public class CSharpScriptTestBase : TestBase
             yield return "System.Runtime.Numerics";
             yield return "System.Dynamic.Runtime";
             yield return "Microsoft.CSharp";
-        }
-    }
-
-    public override void Dispose()
-    {
-        base.Dispose();
-        foreach (var reference in _referenceList)
-        {
-            reference.GetMetadataNoCopy().Dispose();
         }
     }
 }
