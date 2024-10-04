@@ -44,6 +44,16 @@ namespace Roslyn.LanguageServer.Protocol
             set;
         }
 
+        /// <summary>
+        /// Gets or sets the kind of the workspace the project context is associated.
+        /// </summary>
+        [JsonPropertyName("_vs_workspace_kind")]
+        public VSWorkspaceKind WorkspaceKind
+        {
+            get;
+            set;
+        }
+
         public static bool operator ==(VSProjectContext? value1, VSProjectContext? value2)
         {
             if (ReferenceEquals(value1, value2))

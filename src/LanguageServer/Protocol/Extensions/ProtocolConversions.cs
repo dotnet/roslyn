@@ -827,6 +827,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 projectContext.Kind = LSP.VSProjectKind.VisualBasic;
             }
 
+            var solution = project.Solution;
+            if (solution.WorkspaceKind == WorkspaceKind.Host)
+            {
+                projectContext.WorkspaceKind = LSP.VSWorkspaceKind.Host;
+            }
+            else if (solution.WorkspaceKind == WorkspaceKind.MiscellaneousFiles)
+            {
+                projectContext.WorkspaceKind = LSP.VSWorkspaceKind.MiscellaneousFiles;
+            }
+
             return projectContext;
         }
 
