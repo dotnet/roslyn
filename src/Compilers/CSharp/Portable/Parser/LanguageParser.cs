@@ -12124,6 +12124,7 @@ done:
             {
                 return false;
             }
+
             //  case 1:  ( x ,
             if (isParenVarCommaSyntax())
             {
@@ -12254,6 +12255,15 @@ done:
 
                 if (hasModifier || ShouldParseLambdaParameterType())
                 {
+                    if (hasModifier)
+                    {
+                        // Also support just `ref x,` or `ref x)` as an implicit lambda parameter
+                        if (this.IsTrueIdentifier() && this.PeekToken(1).Kind is SyntaxKind.CommaToken or SyntaxKind.CloseParenToken)
+                        {
+                            return true;
+                        }
+                    }
+
                     if (this.ScanType() == ScanTypeFlags.NotType)
                     {
                         return false;
