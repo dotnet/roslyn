@@ -347,7 +347,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_commit_rename_asynchronously", new RoamingProfileStorage("TextEditor.Specific.CommitRenameAsynchronously")},
         {"dotnet_commit_rename_asynchronously_feature_flag", new FeatureFlagStorage("Roslyn.CommitRenameAsynchronously")},
         {"dotnet_rename_get_suggestions_automatically", new FeatureFlagStorage(@"Editor.AutoSmartRenameSuggestions")},
-        // Deprecated option, don't use the same RoamingProfileStorage key
+        // Option is deprecated, don't use the same RoamingProfileStorage key
         // {"dotnet_rename_asynchronously", new RoamingProfileStorage("TextEditor.Specific.RenameAsynchronously")},
         {"dotnet_rename_file", new RoamingProfileStorage("TextEditor.Specific.RenameFile")},
         {"dotnet_rename_in_comments", new RoamingProfileStorage("TextEditor.Specific.RenameInComments")},
