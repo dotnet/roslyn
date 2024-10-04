@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // delegate (int x) { }      (typed parameter list)
         // x => ...                  (type-inferred parameter list)
         // (x) => ...                (type-inferred parameter list)
+        // (ref x) => ...            (type-inferred parameter list with modifiers)
         // (x, y) => ...             (type-inferred parameter list)
         // ( ) => ...                (typed parameter list)
         // (ref int x) => ...        (typed parameter list)
