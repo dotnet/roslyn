@@ -703,11 +703,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // error CS0231: A params parameter must be the last parameter in a parameter list
                 diagnostics.Add(ErrorCode.ERR_ParamsLast, syntax.GetLocation());
             }
-
-            if (declaredScope == ScopedKind.ScopedValue && !typeWithAnnotations.IsDefault && !typeWithAnnotations.IsRefLikeType())
-            {
-                diagnostics.Add(ErrorCode.ERR_ScopedRefAndRefStructOnly, syntax.Location);
-            }
         }
 
 #nullable disable

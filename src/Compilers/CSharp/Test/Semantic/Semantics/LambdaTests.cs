@@ -250,8 +250,7 @@ class C
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "Expression<int>").WithArguments("", "System.Linq.Expressions.Expression<T>", "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System.Linq.Expressions.Expression<TDelegate>").WithLocation(72, 9),
                 // (72,33): error CS0835: Cannot convert lambda to an expression tree whose type argument 'int' is not a delegate type
                 //         Expression<int> ex1 = ()=>1;
-                Diagnostic(ErrorCode.ERR_ExpressionTreeMustHaveDelegate, "=>").WithArguments("int").WithLocation(72, 33)
-                );
+                Diagnostic(ErrorCode.ERR_ExpressionTreeMustHaveDelegate, "=>").WithArguments("int").WithLocation(72, 33));
         }
 
         [Fact] // 5368
